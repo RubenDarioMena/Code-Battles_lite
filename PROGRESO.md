@@ -1,5 +1,13 @@
 # Code-battle-lite · progreso
 
+## Plan de efectos visuales · 29 de octubre de 2026
+
+- Añadido [docs/PLAN-VFX.md](docs/PLAN-VFX.md). Propone efectos procedurales definidos como recetas de datos y partículas sin estado, calculadas en función del tiempo. Un módulo compartido sin dependencias las dibujaría en Three.js r128 (nubes de puntos con un shader propio) y en canvas 2D. La simulación anotaría los sucesos visibles en `mundo.fx`; ninguna regla, instantánea de los programas ni telemetría lee esa lista. Fases: base y laboratorio, combate de War, estado de War, Factory y Ajustes.
+- Validación con un prototipo desechable fuera del repositorio: War real en Chromium sin pantalla (WebGL por SwiftShader, Three r128) y tres recetas (disparo, impacto, derribo de dron) comparadas con la explosión actual en hojas de contactos 3D/plano. Bastaron dos iteraciones de ajuste. 60 efectos simultáneos (869 partículas) cuestan 0,7–0,8 ms de CPU por fotograma. Detalle: `mundo.derribados` se anota, pero hoy no se dibuja.
+- En esta nube la red del entorno bloquea cdnjs y jsdelivr. Las pruebas sirvieron la misma Three r128 y Acorn 8.11.3 desde el registro npm, interceptando las peticiones sin cambiar el juego.
+- Comprobación actual: 75 comprobaciones de lógica correctas (solo cambió documentación).
+- Límites: no se modificaron juegos, pruebas, `window.cmg` ni formatos de guardado, y el juego no tiene efectos nuevos. SwiftShader dibuja en la CPU: la fluidez y el coste de GPU se medirán en Android/iPhone reales. Pendiente: aprobación del enfoque y Fase 0.
+
 ## Corrección del despliegue de main en Netlify · 29 de octubre de 2026
 
 - Reproducido el 404 de `https://codewar-mageddon.netlify.app/`. Netlify tenía publicado `main@49bd493`, sin `index.html` en la raíz; la portada, recursos compartidos y configuración de publicación seguían sin seguimiento en la carpeta local.
