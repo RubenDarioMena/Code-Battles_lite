@@ -181,3 +181,28 @@
   .app[data-forma="movil"] .pie[data-abierto="false"] .consola { display: none; }
   .app[data-forma="movil"] #detalles-editor > .herramientas { display: none; }
 }
+
+/* Factory comparte las herramientas avanzadas de War. */
+#seleccion { display: none; }
+.app .paleta, .barra-edicion { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
+.app[data-forma="escritorio"] .paleta { max-height: none; overflow-y: hidden; }
+.app[data-forma="movil"] .pie[data-abierto="false"] .consola { display: none; }
+.app[data-forma="movil"] .barra-edicion, .app[data-sin-teclado="true"] .barra-edicion,
+.app[data-modo="bloques"] .barra-edicion, .app[data-modo="pseudo"] .barra-edicion { display: flex; }
+.app[data-forma="movil"] .barra-edicion { padding: 3px; gap: 3px; }
+.app[data-forma="movil"] .barra-edicion button { width: 38px; height: 32px; }
+.app[data-forma="movil"] .herramientas .b-teclado,
+.app[data-forma="escritorio"] .barra-edicion .solo-teclado,
+.app[data-forma="escritorio"] .barra-edicion .b-teclado { display: none; }
+.app:not([data-modo="js"]) .b-teclado, .app:not([data-modo="js"]) .solo-teclado,
+.app:not([data-modo="js"]) #edicion [data-accion="linea"] { display: none; }
+.editor { grid-template-columns: auto minmax(0, 1fr) auto; }
+.bloques-texto { font: inherit; line-height: var(--lh); padding: var(--pad); tab-size: 2; white-space: pre-wrap; overflow-wrap: anywhere; font-variant-ligatures: none; }
+.bloques-texto .com { color: var(--tk-com); font-style: italic; }
+.bloques-texto .str { color: var(--tk-str); }
+.bloques-texto .num { color: var(--tk-num); }
+.bloques-texto .kw { color: var(--tk-kw); font-weight: 600; }
+.bloques-texto .maq { color: var(--tk-var); font-weight: 600; }
+.bloques-texto .fn { color: var(--tk-fn); }
+.bloques-texto .hueco { background: var(--warn-soft); outline: 1px dashed var(--warn); }
+.atajo { position: relative; }

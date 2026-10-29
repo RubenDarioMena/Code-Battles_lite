@@ -52,7 +52,7 @@ export async function probarTresVistas(page, origen = 'http://127.0.0.1:8771') {
   };
   await arrastrar(false);
   eq(await evaluar(() => window.__banco.programa.modelo.cuerpo.length), 3, 'arrastre real de ratón desde la paleta');
-  await page.click('#prog .fila.simple.sel'); await page.click('[data-sel="borrar"]');
+  await page.click('#prog .fila.simple.sel'); await page.click('#edicion [data-accion="borrar"]');
   await page.click('#modos [data-modo="pseudo"]');
   eq(await evaluar(() => document.querySelector('#prog').classList.contains('v-pseudo') && document.querySelector('#paleta').classList.contains('v-pseudo-paleta')), true, 'seudocódigo usa su programa y su barra');
   await page.click('#g-idioma [data-idioma="es"]');
@@ -64,9 +64,9 @@ export async function probarTresVistas(page, origen = 'http://127.0.0.1:8771') {
   await page.click('[data-ladrillo="repetir"]');
   eq(await evaluar(() => window.__banco.programa.modelo.cuerpo.at(-1).t), 'repetir', 'paleta añade un bloque');
   await page.click('#prog .contenedor .cabeza');
-  await page.click('[data-sel="duplicar"]');
+  await page.click('#edicion [data-accion="duplicar"]');
   eq(await evaluar(() => window.__banco.programa.modelo.cuerpo.length), 4, 'duplicar conserva la edición por bloques');
-  await page.click('[data-sel="borrar"]');
+  await page.click('#edicion [data-accion="borrar"]');
   eq(await evaluar(() => window.__banco.programa.modelo.cuerpo.length), 3, 'borrar bloque funciona');
   await page.click('#modos [data-modo="js"]');
   eq(await evaluar(() => document.querySelector('#paleta [data-js]') !== null && document.querySelector('#paleta [data-ladrillo]') === null && document.querySelector('#g-idioma').hidden), true, 'JavaScript cambia de barra y oculta el idioma de bloques');

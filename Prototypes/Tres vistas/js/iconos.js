@@ -16,7 +16,7 @@
     <path class="t2" d="M11.7 15.5l-3.9 4.4v4.6l3.9-2.4zM20.3 15.5l3.9 4.4v4.6l-3.9-2.4z"/>
     <path class="t3" d="M13.2 22.4h5.6L16 30z"/>`;
 
-  window.ICONOS = {
+  window.ICONOS = { ...window.ICONOS,
     comentar: { c1: "#6FA0FF", c2: "#E3ECFF", svg: svg(`
       <path class="s1" stroke-width="2.4" stroke-linejoin="round" d="M5.5 5h21a2.5 2.5 0 0 1 2.5 2.5v12.5a2.5 2.5 0 0 1-2.5 2.5H14l-6.5 5v-5H5.5A2.5 2.5 0 0 1 3 20V7.5A2.5 2.5 0 0 1 5.5 5z"/>
       <path class="t2" d="M10.6 18.8l4.2-10.6h2.8l-4.2 10.6zM16.4 18.8l4.2-10.6h2.8l-4.2 10.6z"/>`) },

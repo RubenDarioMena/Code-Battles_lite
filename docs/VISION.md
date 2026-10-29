@@ -16,15 +16,15 @@ JavaScript real en Web Workers, escenarios de lanzadores y sensores, editor con 
 
 La interfaz permite variar el orden y orientación de mapa/código. Al escribir en móvil se prioriza el editor y su paleta; el divisor permite ocupar toda el área con un panel.
 
-## Prototipo Tres vistas
+## Factory / Tres vistas
 
-La recogida de materiales conserva su simulación y ofrece bloques, pseudocódigo EN/ES y JavaScript como vistas del mismo programa. Ahora comparte la distribución adaptable y el estilo de Rocket Launcher, con las paletas propias de cada modo. Mantiene el plano 2D, el guardado del banco 02 y su API de R1; esta integración no añade esos modos al juego de defensa.
+La recogida de materiales conserva su simulación y ofrece bloques, pseudocódigo EN/ES y JavaScript como vistas del mismo programa. Ahora comparte la distribución adaptable y el estilo de Rocket Launcher, con las paletas propias de cada modo. Mantiene el plano 2D, el guardado del banco 02 y su API de R1; ambos juegos comparten ahora las herramientas de edición sin teclado y barra, con adaptadores para sus programas y sugerencias. War también ofrece seudocódigo ES/EN.
 
 ## Próximas decisiones
 
 - Continuar QA de teclado, selección táctil, gestos y accesibilidad de estadísticas.
 - Evolucionar los retos y las herramientas de edición a partir del uso real.
-- Decidir semántica, traducción y validación de seudocódigo/Python para defensa antes de implementar esos modos allí. Tres vistas conserva su traductor existente de bloques/pseudocódigo a JavaScript.
+- Ampliar gradualmente los subconjuntos de seudocódigo de Factory y War sin alterar el significado de los programas. Python sigue como propuesta.
 - Decidir cómo guardar o exportar borradores y trasladar programas entre dispositivos/orígenes.
 - Revisar rendimiento móvil y dependencias CDN antes de prometer soporte offline.
 
@@ -33,3 +33,7 @@ La recogida de materiales conserva su simulación y ofrece bloques, pseudocódig
 Separar el núcleo de simulación, adoptar TypeScript, usar una representación intermedia/VM, mejorar la transición 2D/3D y empaquetar la web para móvil son propuestas del brief original. No se incorporan como requisitos técnicos inmediatos de esta migración.
 
 Fábrica abierta, SQL, ciudades, modelos detallados y mundo abierto quedan fuera del alcance actual. La base de este proyecto es el juego de programación de defensa que ya se está probando.
+
+## Entrada y distribución
+
+La portada ofrece Factory, War y Campaign (próximamente). El repositorio prepara un paquete estático para Netlify en `dist/`, sin publicar ni incluir el laboratorio de animación. Los enlaces y formatos de guardado existentes se conservan; trasladar programas entre orígenes sigue pendiente.

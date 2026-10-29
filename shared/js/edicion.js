@@ -11,8 +11,9 @@
   const $ = (id) => document.getElementById(id);
   const app = $("app"), $editor = $("editor"), $codigo = cmg.codigo, $gutter = $("gutter"), $barra = $("edicion");
   const $vista = $("bloques"), $in = $("bloques-in"), $texto = $("bloques-texto"), $capa = $("bloques-capa"), $asas = $("asas"), $asasIn = $("asas-in");
-  const leer = (k, d) => { try { const v = localStorage.getItem(`cmg-juego-${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
-  const escribir = (k, v) => { try { localStorage.setItem(`cmg-juego-${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento: dura la sesión */ } };
+  const prefijo = cmg.prefijoUI || "cmg-juego-";
+  const leer = (k, d) => { try { const v = localStorage.getItem(`${prefijo}${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const escribir = (k, v) => { try { localStorage.setItem(`${prefijo}${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento: dura la sesión */ } };
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
   const UNIDAD = "  ";   // sangría de los programas de partida
 
@@ -82,30 +83,44 @@
   }
   // Un historial por documento (programa o borrador). Lo tecleado seguido cuenta como un solo paso.
   const historiales = new Map();
-  const nuevoHistorial = () => ({ pasado: [], futuro: [], ultimo: $codigo.value, t: 0, tecleo: false, operacion: false });
+  const capturar = () => cmg.capturarDocumento ? cmg.capturarDocumento() : $codigo.value;
+  const nuevoHistorial = () => ({ pasado: [], futuro: [], ultimo: capturar(), t: 0, tecleo: false, operacion: false });
   let hist = nuevoHistorial(), claveDoc = cmg.claveDocumento, aplicando = false;
   $codigo.addEventListener("input", (ev) => {
-    if (aplicando || $codigo.value === hist.ultimo) return;
+    const actual = capturar();
+    if (aplicando || actual === hist.ultimo) return;
     const ahora = performance.now();
     const tecleo = !hist.operacion && !!ev.inputType && ((ev.inputType === "insertText" && (ev.data || "").length === 1) || ev.inputType.startsWith("deleteContent"));
     if (!(tecleo && hist.tecleo && ahora - hist.t < 1200)) { hist.pasado.push(hist.ultimo); if (hist.pasado.length > 200) hist.pasado.shift(); }
     hist.futuro.length = 0;
-    Object.assign(hist, { ultimo: $codigo.value, t: ahora, tecleo, operacion: false });
+    Object.assign(hist, { ultimo: actual, t: ahora, tecleo, operacion: false });
     pintarBarra();
   });
   $codigo.addEventListener("cmg:documento", (ev) => {
     historiales.set(claveDoc, hist);
     claveDoc = ev.detail.clave;
     const h = historiales.get(claveDoc);
-    hist = h && h.ultimo === $codigo.value ? h : nuevoHistorial();
+    hist = h && h.ultimo === capturar() ? h : nuevoHistorial();
     pila.length = 0;
     cerrarSugerencias();
     pintarBarra();
   });
+  // Un cambio de vista conserva el documento, sin añadir un paso de deshacer.
+  $codigo.addEventListener("cmg:sincronizado", () => {
+    if (claveDoc !== cmg.claveDocumento) return;
+    hist.ultimo = capturar(); hist.tecleo = false; pintarBarra();
+  });
   function recorrer(desde, hacia) {
     if (!desde.length || !editable()) return;
-    const actual = $codigo.value, otro = desde.pop();
+    const actual = capturar(), otro = desde.pop();
     hacia.push(actual);
+    if (cmg.restaurarDocumento) {
+      aplicando = true;
+      try { cmg.restaurarDocumento(otro); } finally { aplicando = false; }
+      Object.assign(hist, { ultimo: capturar(), tecleo: false });
+      pintarBarra();
+      return;
+    }
     let i = 0; while (i < otro.length && i < actual.length && otro[i] === actual[i]) i++;
     let j = 0; while (j < otro.length - i && j < actual.length - i && otro[otro.length - 1 - j] === actual[actual.length - 1 - j]) j++;
     aplicando = true;

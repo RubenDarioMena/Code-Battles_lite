@@ -4,6 +4,10 @@ __pycache__/
 *.pyc
 *.log
 coverage/
+.qa-recuperacion/
 .env
 .env.*
 !.env.example
+
+# Paquete estático de publicación (regenerar con scripts/preparar-netlify.mjs)
+/dist/

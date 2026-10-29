@@ -2523,6 +2523,7 @@ onmessage = async (ev) => {
   }
   // pointerdown sin foco: en el teléfono el textarea conserva el foco y el teclado no se cierra.
   $("paleta").addEventListener("pointerdown", (ev) => {
+    suprimirClic = false;  // una pulsación nueva no hereda el clic suprimido de una variante
     const b = ev.target.closest(".atajo"); if (!b) return;
     ev.preventDefault();
     const a = ATAJOS[+b.dataset.i];

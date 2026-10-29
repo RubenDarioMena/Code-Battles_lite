@@ -1,20 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
 <meta charset="utf-8">
-<title>Code Battle Lite · Defensa</title>
+<title>Code Battle Lite · War</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
 <meta name="theme-color" content="#0B0F13">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/componentes.css?v=13">
+<link rel="stylesheet" href="css/componentes.css?v=14">
+<link rel="stylesheet" href="../../shared/css/edicion.css?v=1">
 <link rel="stylesheet" href="css/layout.css?v=13">
 
+</head>
+<body>
 <div class="app" id="app" data-forma="escritorio">
 
   <!-- ===== Mapa: reto, escenario con el inspector encima y mando ===== -->
   <section class="zona-mapa marco" id="zona-mapa" aria-label="Escenario">
     <header class="cabeza">
-      <span class="placa marca" aria-hidden="true">CBL</span>
+      <a class="placa marca" href="../../index.html" aria-label="Volver al inicio">CBL</a>
       <button class="reto-actual" id="b-reto" type="button" aria-expanded="false" aria-controls="hoja-reto">
         <span class="n" id="reto-n">1</span>
         <span class="tit"><span id="titulo">Primer blanco</span><span class="obj" id="objetivo-corto"></span></span>
@@ -208,6 +214,7 @@
     <h2 id="ajustes-titulo">Ajustes</h2>
     <button class="cerrar" id="ajustes-cerrar" type="button" aria-label="Cerrar ajustes" autofocus>×</button>
   </header>
+  <nav class="fila-botones" aria-label="Navegación"><a class="btn chico" href="../../index.html">← Cambiar de juego</a></nav>
   <section>
     <h3>Idioma</h3>
     <div class="seg" role="group" aria-label="Idioma de la interfaz">
@@ -313,10 +320,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
-<script src="js/iconos.js?v=3" charset="utf-8"></script>
-<script src="js/juego.js?v=11" charset="utf-8"></script>
+<script src="../../shared/js/iconos.js?v=3" charset="utf-8"></script>
+<script src="js/juego.js?v=12" charset="utf-8"></script>
 <script src="js/layout.js?v=9" charset="utf-8"></script>
-<script src="js/estructura.js?v=1" charset="utf-8"></script>
-<script src="js/edicion.js?v=10" charset="utf-8"></script>
-<script src="js/seudo.js?v=1" charset="utf-8"></script>
+<script src="../../shared/js/estructura.js?v=1" charset="utf-8"></script>
+<script src="../../shared/js/edicion.js?v=13" charset="utf-8"></script>
+<script src="js/seudo.js?v=2" charset="utf-8"></script>
 
+</body>
+</html>

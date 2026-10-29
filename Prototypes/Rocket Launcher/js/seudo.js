@@ -102,8 +102,9 @@
       for (const n of lista) if (n.var) veces[n.var] = (veces[n.var] || 0) + 1;
       const decl = (v) => { if (veces[v] === 1) return `const ${v}`; if (vistas.has(v)) return v; vistas.add(v); return `let ${v}`; };
       for (const n of lista) {
-        if (n.t === "apuntar") emit(`${decl(n.var)} = ${at(n.tipo, n.sensor)}${n.alt ? ` ?? ${at(n.alt, n.sensor)}` : ""};`, n.id, nivel);
-        else if (n.t === "oir") emit(`${decl(n.var)} = ${n.red}.detect(${q(n.tipo)});`, n.id, nivel);
+        const declarar = () => Object.hasOwn(n, "declaracion") ? (n.declaracion ? `${n.declaracion} ${n.var}` : n.var) : decl(n.var);
+        if (n.t === "apuntar") emit(`${declarar()} = ${at(n.tipo, n.sensor)}${n.alt ? ` ?? ${at(n.alt, n.sensor)}` : ""};`, n.id, nivel);
+        else if (n.t === "oir") emit(`${declarar()} = ${n.red}.detect(${q(n.tipo)});`, n.id, nivel);
         else if (n.t === "disparo") emit(`regularShoot(${n.lugar});`, n.id, nivel);
         else if (n.t === "rafaga") emit(`burstFire(${n.lugar});`, n.id, nivel);
         else if (n.t === "detener") emit("stopFire();", n.id, nivel);
@@ -115,8 +116,8 @@
           bloque(n.cuerpo, nivel + 1, prof);
           emit("}", n.id, nivel);
         } else if (n.t === "repetir") {
-          const v = vars[prof] || `i${prof}`;
-          emit(`for (let ${v} = 0; ${v} < ${n.n}; ${v}++) {`, n.id, nivel);
+          const v = n.indice || vars[prof] || `i${prof}`;
+          emit(`for (${n.declaracion || "let"} ${v} = 0; ${v} < ${n.n}; ${v}++) {`, n.id, nivel);
           bloque(n.cuerpo, nivel + 1, prof + 1);
           emit("}", n.id, nivel);
         } else if (n.t === "si") {
@@ -161,7 +162,7 @@
         && init.callee.object.type === "Identifier" && init.arguments.length === 1 && str(init.arguments[0])) return { t: "oir", var: v, red: init.callee.object.name, tipo: init.arguments[0].value };
       no(s, "este valor de variable");
     }
-    const OPS_AST = { ">": ">", ">=": ">=", "<": "<", "<=": "<=", "===": "==", "==": "==", "!==": "!=", "!=": "!=" };
+    const OPS_AST = { ">": ">", ">=": ">=", "<": "<", "<=": "<=", "===": "==", "!==": "!=" };
     function cond(e) {
       if (nombre(e)) return { que: texto(e), op: "existe", n: 0 };
       if (e.type === "UnaryExpression" && e.operator === "!" && nombre(e.argument)) return { que: texto(e.argument), op: "noexiste", n: 0 };
@@ -174,21 +175,21 @@
       const out = [];
       for (const s of stmts) {
         if (s.type === "EmptyStatement") continue;
-        if (s.type === "BlockStatement") { out.push(...lista(s.body)); continue; }
+        if (s.type === "BlockStatement") no(s, "un ámbito de bloque independiente");
         if (s.type === "VariableDeclaration") {
           if (s.declarations.length !== 1 || s.declarations[0].id.type !== "Identifier" || !s.declarations[0].init) no(s, "esta declaración");
-          out.push(valorVariable(s.declarations[0].id.name, s.declarations[0].init, s));
+          out.push({ ...valorVariable(s.declarations[0].id.name, s.declarations[0].init, s), declaracion: s.kind });
           continue;
         }
         if (s.type === "ExpressionStatement") {
           const e = s.expression;
-          if (e.type === "AssignmentExpression" && e.operator === "=" && e.left.type === "Identifier") { out.push(valorVariable(e.left.name, e.right, s)); continue; }
+          if (e.type === "AssignmentExpression" && e.operator === "=" && e.left.type === "Identifier") { out.push({ ...valorVariable(e.left.name, e.right, s), declaracion: null }); continue; }
           const arg = e.arguments && e.arguments[0];
           const lugar = (a) => a && (nombre(a) || (a.type === "Literal" && a.value === null));
           if ((llamada(e, "regularShoot") || llamada(e, "burstFire")) && e.arguments.length === 1 && lugar(arg)) { out.push({ t: e.callee.name === "regularShoot" ? "disparo" : "rafaga", lugar: texto(arg) }); continue; }
           if (llamada(e, "stopFire") && !e.arguments.length) { out.push({ t: "detener" }); continue; }
           if (e.type === "AwaitExpression" && llamada(e.argument, "esperar") && e.argument.arguments.length === 1 && num(e.argument.arguments[0])) { out.push({ t: "esperar", s: e.argument.arguments[0].value }); continue; }
-          if (e.type === "CallExpression" && e.callee.type === "MemberExpression" && e.callee.object.name === "console" && ["log", "info", "warn", "error"].includes(e.callee.property.name)
+          if (e.type === "CallExpression" && e.callee.type === "MemberExpression" && !e.callee.computed && e.callee.object.name === "console" && ["log", "info", "warn", "error"].includes(e.callee.property.name)
             && e.arguments.length === 1 && (nombre(arg) || arg.type === "Literal")) { out.push({ t: "aviso", nivel: e.callee.property.name, valor: texto(arg) }); continue; }
           no(s, "esta instrucción");
         }
@@ -203,7 +204,7 @@
           const ok = d && num(d.init) && d.init.value === 0 && s.test && s.test.type === "BinaryExpression" && s.test.operator === "<" && s.test.left.name === v && num(s.test.right)
             && s.update && s.update.type === "UpdateExpression" && s.update.operator === "++" && s.update.argument.name === v;
           if (!ok) no(s, "un for distinto de «for (let i = 0; i < N; i++)»");
-          out.push({ t: "repetir", n: s.test.right.value, cuerpo: cuerpo(s.body) });
+          out.push({ t: "repetir", indice: v, declaracion: s.init.kind, n: s.test.right.value, cuerpo: cuerpo(s.body) });
           continue;
         }
         if (s.type === "IfStatement") {

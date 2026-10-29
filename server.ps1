@@ -7,14 +7,14 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Root = [IO.Path]::GetFullPath($Root)
-$Required = @('index.html','css/base.css','css/componentes.css','css/layout.css',
-              'js/iconos.js','js/juego.js','js/layout.js')
+$Required = @('index.html','css/inicio.css','shared/js/iconos.js','shared/js/estructura.js',
+              'shared/js/edicion.js','Prototypes/Tres vistas/index.html','Prototypes/Rocket Launcher/index.html')
 $Missing = @($Required | Where-Object { -not [IO.File]::Exists((Join-Path $Root $_)) })
 if ($Missing.Count -gt 0) {
   Write-Host "Server root: $Root" -ForegroundColor Yellow
   Write-Host 'Required files are missing:' -ForegroundColor Red
   $Missing | ForEach-Object { Write-Host "  - $_" }
-  throw 'Run server.ps1 from the complete Code-battle-lite folder (index.html, css and js are required).'
+  throw 'Serve the complete Code-battle-lite folder: the home page, Prototypes and shared are required.'
 }
 $RootPrefix = $Root.TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar
 $Url = "http://localhost:$Port/"
@@ -49,7 +49,7 @@ function Get-Version {
   Get-ChildItem -LiteralPath $Root -File -Recurse -ErrorAction SilentlyContinue |
     Where-Object {
       $_.Extension -in @('.html','.htm','.css','.js','.json','.svg','.png','.jpg','.jpeg','.webp','.wasm') -and
-      $_.FullName -notmatch '[\\/](node_modules|\.git)[\\/]'
+      $_.FullName -notmatch '[\\/](node_modules|\.git|dist|educational-animation|pruebas)[\\/]'
     } | ForEach-Object {
       $count++
       if ($_.LastWriteTimeUtc.Ticks -gt $latest) { $latest = $_.LastWriteTimeUtc.Ticks }

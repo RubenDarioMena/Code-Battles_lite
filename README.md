@@ -1,6 +1,6 @@
 # Code Battle Lite
 
-Juegos de programación con interfaz para escritorio y móvil. Rocket Launcher permite controlar lanzadores con JavaScript; Tres vistas permite programar un robot de recogida con bloques, pseudocódigo o JavaScript.
+Juegos de programación para escritorio y móvil con una entrada común: **Factory** (Tres vistas), **War** (Rocket Launcher) y **Campaign** (próximamente). Factory programa un robot de recogida con bloques, seudocódigo o JavaScript; War controla lanzadores con JavaScript o seudocódigo.
 
 ## Ejecutar
 
@@ -10,8 +10,9 @@ Desde esta carpeta, sin instalar paquetes ni compilar:
 python3 -m http.server 8770 --bind 0.0.0.0
 ```
 
-- Rocket Launcher: [abrir defensa](http://localhost:8770/Prototypes/Rocket%20Launcher/).
-- Tres vistas: [abrir recogida](http://localhost:8770/Prototypes/Tres%20vistas/). El enlace anterior `Prototypes/02_tres_vistas.html` redirige aquí conservando los parámetros.
+- [Entrada común](http://localhost:8770/).
+- War / Rocket Launcher: [abrir defensa](http://localhost:8770/Prototypes/Rocket%20Launcher/).
+- Factory / Tres vistas: [abrir recogida](http://localhost:8770/Prototypes/Tres%20vistas/). El enlace anterior `Prototypes/02_tres_vistas.html` redirige aquí conservando los parámetros.
 - Cada carpeta incluye `probar.html` para ver teléfono y PC a la vez.
 - Para probar desde otro dispositivo de la misma Wi-Fi: `http://IP-DEL-EQUIPO:8770/`.
 - Recarga después de editar. El servidor debe permanecer abierto.
@@ -20,10 +21,10 @@ python3 -m http.server 8770 --bind 0.0.0.0
 Alternativa con PowerShell y recarga automática, en localhost:
 
 ```powershell
-pwsh -NoProfile -File ./server.ps1 -Root "./Prototypes/Tres vistas" -Port 8770 -NoBrowser
+pwsh -NoProfile -File ./server.ps1 -Root "." -Port 8770 -NoBrowser
 ```
 
-Esta alternativa sirve únicamente el prototipo elegido en `http://localhost:8770/`; cambia `-Root` para servir Rocket Launcher.
+Sirve la entrada y ambos juegos. Mantén como raíz la carpeta completa: los juegos usan los recursos de `shared/`. PowerShell sigue pendiente de comprobación en Windows.
 
 Ambos prototipos cargan Acorn 8.11.3 y las fuentes Archivo/JetBrains Mono desde CDN. Rocket Launcher también usa Three.js r128. Se necesita conexión para cargarlos; todavía no son aplicaciones offline.
 
@@ -36,16 +37,16 @@ Cada prototipo vive en su propia carpeta bajo `Prototypes/`, con `index.html`, `
 | `index.html` | Mapa, editor, inspector, Ajustes y diálogos. |
 | `js/juego.js` | Retos, simulación de paso fijo, programas en Web Workers, dibujo del mapa, selección y editor. |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil, barra de símbolos y tooltips. |
-| `js/iconos.js` | Iconos SVG de la paleta y de sus variantes. |
-| `js/estructura.js` | Solo Rocket Launcher. Análisis tolerante del programa para editar por bloques: átomos, niveles semánticos, líneas, argumentos y destinos. Sin DOM. |
-| `js/edicion.js` | Solo Rocket Launcher. Modo sin teclado, barra de edición (y su orden en Ajustes), sugerencias, arrastre, asas de línea e historial de deshacer. |
+| `js/iconos.js` | Solo Factory: iconos de recogida que complementan los compartidos. |
 | `js/seudo.js` | Solo Rocket Launcher. Seudocódigo ES/EN traído de Tres vistas: traducción JavaScript ↔ árbol, renglones editables, ladrillos y arrastre. |
 | `css/base.css` | Colores, tipografía y apariencia común. |
 | `css/componentes.css` | Estilos de componentes. |
 | `css/layout.css` | Reparto y adaptación a pantalla/teclado. |
 | `probar.html` | Probador con marcos de dispositivos y teclado simulado. |
 
-En la raíz: `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
+Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Factory aporta sus sugerencias, su adaptador del árbol y capturas completas para deshacer sin perder la sincronía. Las claves de preferencias de Factory y War permanecen separadas.
+
+En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
 Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semilla y recogida su secuencia de stock por intento. El código del jugador se instrumenta con Acorn y se ejecuta en Web Workers. `window.cmg` comunica editor y layout; `window.__banco` expone herramientas de depuración/pruebas. Son interfaces existentes que se mantienen durante la separación.
 
@@ -65,15 +66,33 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - El divisor permite ocupar toda la pantalla con uno de los paneles y recuperar el otro mediante el asa.
 - Al escribir en móvil se prioriza la paleta. Las barras auxiliares se pliegan juntas; su botón flota con borde rojo. Las coordenadas manuales se activan en Ajustes.
 - La ficha móvil permite recorrer las estadísticas manteniendo visible únicamente el cierre.
-- Idiomas alternativos, seudocódigo y Python aparecen como opciones futuras deshabilitadas.
+- El idioma alternativo de la interfaz y Python siguen deshabilitados; el seudocódigo ES/EN ya está disponible.
+- La traducción conserva `let`/`const`/`var`, las reasignaciones y el nombre y alcance del contador de un `for`. Bloques independientes, comparaciones con coerción (`==`/`!=`) y llamadas calculadas no representables se conservan en JavaScript con aviso.
 
-## Tres vistas
+## Factory / Tres vistas
 
 - Conserva los seis retos de recogida, el reto propio y la API `yo.recoger`, `yo.entregar`, `yo.esperar` y `yo.cuantos`.
 - Bloques y pseudocódigo comparten un árbol editable, con paletas propias EN/ES, valores seleccionables y arrastre. JavaScript conserva el texto libre, la traducción del subconjunto admitido y la confirmación antes de descartar texto no traducible.
 - Interfaz de Rocket Launcher: marcos, paneles ajustables y reordenables, herramientas plegables, inspector desplazable con cierre fijo y consola móvil plegable. El mapa conserva el plano 2D de este prototipo.
-- JavaScript incluye iconos de recogida, resaltado de sintaxis, selección de cadenas/comentarios y elementos envolventes; al escribir en móvil aparece la barra de símbolos.
+- JavaScript incluye los controles de edición de War: modo sin teclado, selección semántica, arrastre de valores/líneas, asas configurables, sugerencias de edificios/materiales/sensores, variantes por pulsación larga y barra reordenable. Al escribir en móvil aparece la barra de símbolos.
+- La barra común sirve también a bloques y seudocódigo: cortar, copiar, pegar, borrar, duplicar, mover y ampliar/reducir la selección. Deshacer/rehacer recupera modelo y texto juntos, con historial por reto durante la sesión. Las filas de seudocódigo usan placas y chips como War.
+- Se guarda la última edición al cambiar de reto o abandonar el juego para volver al inicio. Las barras ocupan una línea y la consola móvil empieza cerrada.
 - Ajustes permite elegir el modo, el idioma de los bloques, el tamaño de letra y la distribución. En teléfonos bajos, idioma y letra quedan en Ajustes, y la consola espera a desplegarse. Las preferencias de pantalla usan `cmg-banco02-ui-*`; los programas, retos y registros conservan `cmg-banco02:*`.
+
+## Preparar Netlify
+
+El repositorio incluye `netlify.toml`. Para conectar el repo en Netlify, usa la raíz del repositorio como base; el comando es `node scripts/preparar-netlify.mjs` y el directorio publicado es `dist`. No requiere `npm install` ni backend. El comando usa Node.js 22 y copia una lista permitida: entrada, Campaign, ambos juegos, recursos compartidos y el enlace heredado del prototipo.
+
+Para una subida manual o una revisión local del paquete:
+
+```bash
+node scripts/preparar-netlify.mjs
+node pruebas/publicacion.mjs
+```
+
+Sube el **contenido de `dist/`**. La carpeta es generada e ignorada por Git. No incluye el laboratorio de animación, sus dependencias, documentos, pruebas ni metadatos del repositorio. Incluye una página 404; conserva las URL existentes bajo `Prototypes/`. No hay una redirección global de SPA que oculte recursos ausentes.
+
+La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage empieza separado del origen local: aún no existe importación/exportación de programas. Los CDN siguen requiriendo conexión.
 
 ## Verificar
 
@@ -81,15 +100,19 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 node pruebas/interaccion.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
 node --check "Prototypes/Rocket Launcher/js/layout.js"
-node --check "Prototypes/Rocket Launcher/js/iconos.js"
-node --check "Prototypes/Rocket Launcher/js/estructura.js"
-node --check "Prototypes/Rocket Launcher/js/edicion.js"
+node --check shared/js/iconos.js
+node --check shared/js/estructura.js
+node --check shared/js/edicion.js
 node --check "Prototypes/Rocket Launcher/js/seudo.js"
 node --check "Prototypes/Tres vistas/js/juego.js"
 node --check "Prototypes/Tres vistas/js/layout.js"
 node --check "Prototypes/Tres vistas/js/iconos.js"
 node --check pruebas/navegador.mjs
 node --check pruebas/tres-vistas.mjs
+node --check pruebas/factory-editor.mjs
+node --check pruebas/entrada.mjs
+node --check scripts/preparar-netlify.mjs
+node --check pruebas/publicacion.mjs
 ```
 
 Para la suite de navegador usa otro puerto, porque modifica programas y preferencias del origen de prueba:
@@ -105,13 +128,19 @@ ego-browser nodejs <<'JS'
 const task = await taskSpace("Code Battle Lite QA " + Date.now());
 const { probar } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/navegador.mjs");
 const { probarTresVistas } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/tres-vistas.mjs");
-await probar(task.page("p1")); // Rocket Launcher
+const { probarFactoryEditor } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-editor.mjs");
+const { probarEntrada } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/entrada.mjs");
+await probar(task.page("p1")); // War / Rocket Launcher
 await probarTresVistas(task.page("p1"));
+await probarFactoryEditor(task.page("p1"));
+await probarEntrada(task.page("p1")); // generar dist/ primero
 await task.finish({ keep: [] });
 JS
 ```
 
 Adapta la ruta del import si mueves el proyecto. El teclado simulado no sustituye probar teclado real, selección táctil e inspector en Android y Safari/iPhone. Al modificar CSS/JS incrementa su versión `?v=N` en el `index.html` correspondiente.
+
+Para evaluar la recuperación del editor sin teclado de Rocket Launcher, consultar [el ciclo, la matriz de 10 intentos y el prompt para el agente](docs/CICLO-RECUPERACION-EDITOR.md). El arnés externo de `pruebas/recuperacion-editor.mjs` introduce perturbaciones con semilla mediante clics reales en el origen 8771, exporta evidencia detallada solo ante incidencias y admite contadores de tokens. Su calibración sintética se ejecuta con `probarArnes(page)` de `pruebas/recuperacion-harness.mjs`; no sustituye el piloto sobre la nueva UI.
 
 ## Origen y continuidad
 

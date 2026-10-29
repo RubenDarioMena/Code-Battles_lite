@@ -967,9 +967,10 @@ onmessage = async (ev) => {
     return "/* Programa de partida, comentado. Quita las // (Ctrl+/ o el botón «//»)\n * o escribe el tuyo. En bloques sigue activo. */\n"
       + codigo.replace(/\n$/, "").split("\n").map(l => "// " + l).join("\n") + "\n";
   }
-  function guardarPrograma() { guardado.escribir(`prog-${retoIdx}`, programa); }
+  function guardarPrograma() { clearTimeout(tGuardar); tGuardar = 0; guardado.escribir(`prog-${retoIdx}`, programa); }
 
   function elegirReto(i) {
+    if (programa) guardarPrograma();
     cerrarPrograma();
     cerrarHoja();
     retoIdx = i; guardado.escribir("reto", i);
@@ -990,6 +991,7 @@ onmessage = async (ev) => {
     metasClave = "";
     aplicarModo(modo, true);
     pintarFormReto();
+    $codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: `reto-${retoIdx}` } }));
   }
 
   let metasClave = "";
@@ -1325,6 +1327,7 @@ onmessage = async (ev) => {
     pintarInfo();
     if (modo === "js") medirEditor();
     $("app").dispatchEvent(new Event("cmg:modo"));
+    $codigo.dispatchEvent(new Event("cmg:sincronizado"));
   }
   $("modos").addEventListener("click", (ev) => { const b = ev.target.closest(".modo"); if (b && b.dataset.modo !== modo) aplicarModo(b.dataset.modo); });
   document.querySelectorAll("[data-ajuste-modo]").forEach(b => b.addEventListener("click", () => {
@@ -1367,6 +1370,20 @@ onmessage = async (ev) => {
     { ico: "esperar", t: "Esperar", b: "await yo.esperar(/* segundos */);" },
     { ico: "aviso", t: "Console.warn", b: 'console.warn(/* mensaje */);' },
   ];
+  ATAJOS_JS[3].variantes = [
+    { ico: "whileTrue", t: "While true", b: "while (true) {\n  \n}", envolvente: ["while (true) {\n", "\n}"] },
+    { ico: "hacer", t: "Do … while", b: "do {\n  \n} while (/* condición */);", envolvente: ["do {\n", "\n} while (/* condición */);"] },
+    { ico: "salir", t: "Salir del bucle", b: "break;" },
+  ];
+  ATAJOS_JS[5].variantes = [
+    { ico: "si", t: "If", b: "if (/* condición */) {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n}"] },
+    { ico: "siSino", t: "If / else if", b: "if (/* condición */) {\n  \n} else if (/* condición */) {\n  \n} else {\n  \n}" },
+  ];
+  ATAJOS_JS[8].variantes = ["log", "info", "error"].map(n => ({ ico: "aviso", t: `Console.${n}`, b: `console.${n}(/* mensaje */);` }));
+  ATAJOS_JS.push(
+    { ico: "plan", t: "Si no hay (??)", operador: "??", variantes: ["&&", "||", "!", "===", "!==", ">", "<"].map(op => ({ ico: "plan", t: op, operador: op, prefijo: op === "!", hueco: ["&&", "||", "!"].includes(op) ? "condición" : "valor" })) },
+    { ico: "variable", t: "Variable", enLinea: "let nombre = ", variantes: [{ ico: "asignar", t: "Asignar", enLinea: "nombre = " }] },
+  );
   function iconoPaleta(nombre) {
     const ico = window.ICONOS[nombre];
     return { svg: ico.svg, estilo: `--c1:${ico.c1};--c2:${ico.c2 || ico.c1};--c3:${ico.c3 || ico.c1}` };
@@ -1375,10 +1392,11 @@ onmessage = async (ev) => {
     const $p = $("paleta");
     $p.className = `paleta${modo === "pseudo" ? " v-pseudo-paleta" : ""}`;
     $p.setAttribute("aria-label", modo === "js" ? "Insertar en JavaScript" : `Ladrillos de ${modo === "pseudo" ? "pseudocódigo" : "bloques"} en ${idioma === "es" ? "español" : "inglés"}`);
+    cerrarVariantes();
     if (modo === "js") {
       $p.innerHTML = ATAJOS_JS.map((a, i) => {
         const ico = iconoPaleta(a.ico);
-        return `<button type="button" class="atajo" data-js="${i}" aria-label="${a.t}" data-tip="${a.t}" data-tip-cod="${escapar(a.b || "// … (Ctrl+/)")}" style="${ico.estilo}">${ico.svg}</button>`;
+        return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}" data-js="${i}"${a.variantes ? ` aria-haspopup="menu"` : ""} aria-label="${a.t}" data-tip="${a.t}" data-tip-cod="${escapar(codAtajo(a))}" style="${ico.estilo}">${ico.svg}</button>`;
       }).join("") + MATERIALES.map(m => `<button type="button" class="atajo mat" data-m="${m}" aria-label="Insertar ${m}" style="--c1:var(--${m})"><i style="background:var(--${m})"></i>"${m}"</button>`).join("");
       return;
     }
@@ -1390,21 +1408,107 @@ onmessage = async (ev) => {
   }
   const $paleta = $("paleta");
   $paleta.addEventListener("pointerdown", (ev) => { if (modo === "js" && ev.target.closest(".atajo")) ev.preventDefault(); });
-  $paleta.addEventListener("click", (ev) => {
+  function usarAtajo(a) {
+    if (ejec) return aviso("Detén el programa para editarlo.");
+    if (a.comentar) alternarComentario();
+    else if (a.operador) {
+      const ini = $codigo.selectionStart, fin = $codigo.selectionEnd, txt = $codigo.value.slice(ini, fin);
+      if (!txt) return insertar(a.prefijo ? a.operador : ` ${a.operador} `);
+      if (a.prefijo) return insertar(`!(${txt})`);
+      const h = `/* ${a.hueco || "valor"} */`, t = `${txt} ${a.operador} ${h}`;
+      insertar(t, t.length - h.length, t.length);
+    } else if (typeof a.enLinea === "string") {
+      if ($codigo.selectionStart !== $codigo.selectionEnd) envolver(a.enLinea, ""); else insertar(a.enLinea);
+    } else if (a.enLinea) {
+      const hueco = a.b.match(RE_HUECO);
+      if (!hueco || !envolver(a.b.slice(0, hueco.index), a.b.slice(hueco.index + hueco[0].length))) insertar(a.b, hueco?.index, hueco ? hueco.index + hueco[0].length : undefined);
+    } else insertarBloque(a.b, a.envolvente);
+  }
+  // Variantes: mantener pulsado ~0,45 s (o clic derecho) abre un menú encima del atajo.
+  // Se puede soltar el dedo directamente sobre una variante o tocarla después.
+  const estiloIcono = ico => `--c1:${ico.c1};--c2:${ico.c2 || ico.c1};--c3:${ico.c3 || ico.c1}`;
+  const codAtajo = a => a.b || a.enLinea || a.operador || "// …";
+  const $variantes = document.createElement("div");
+  $variantes.className = "variantes"; $variantes.hidden = true; $variantes.setAttribute("role", "menu");
+  document.body.append($variantes);
+  let pulsado = null, variantesDe = -1, suprimirClic = false;
+  function abrirVariantes(b, porPulsacion) {
+    const i = +b.dataset.js, a = ATAJOS_JS[i], I = window.ICONOS || {};
+    if (variantesDe === i && !$variantes.hidden) return;
+    variantesDe = i;
+    $variantes.innerHTML = [a, ...a.variantes].map((v, j) => {
+      const ico = I[v.ico] || { svg: "", c1: "#7FA3FF" };
+      return `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${j}" data-tip="${escapar(v.t)}" data-tip-cod="${escapar(codAtajo(v))}" style="${estiloIcono(ico)}">${ico.svg}<span>${escapar(v.t)}</span></button>`;
+    }).join("");
+    $variantes.hidden = false;
+    const r = b.getBoundingClientRect(), m = $variantes.getBoundingClientRect();
+    let x = r.left + r.width / 2 - m.width / 2, y = r.top - m.height - 8;
+    if (y < 6) y = r.bottom + 8;
+    x = Math.max(6, Math.min(innerWidth - m.width - 6, x));
+    $variantes.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    b.classList.add("abierto");
+    if (porPulsacion && navigator.vibrate) navigator.vibrate(12);
+  }
+  function cerrarVariantes() {
+    if ($variantes.hidden) return;
+    $variantes.hidden = true; variantesDe = -1;
+    document.querySelectorAll(".atajo.abierto").forEach(x => x.classList.remove("abierto"));
+  }
+  const varianteEn = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest && el.closest(".variante"); };
+  function elegirVariante(boton) {
+    const a = ATAJOS_JS[variantesDe], j = +boton.dataset.v;
+    cerrarVariantes();
+    if (a) usarAtajo(j ? a.variantes[j - 1] : a);
+  }
+  // pointerdown sin foco: en el teléfono el textarea conserva el foco y el teclado no se cierra.
+  $("paleta").addEventListener("pointerdown", (ev) => {
+    if (modo !== "js") return;
+    suprimirClic = false;
+    const b = ev.target.closest(".atajo[data-js]"); if (!b) return;
+    ev.preventDefault();
+    const a = ATAJOS_JS[+b.dataset.js];
+    if (!a.variantes || ev.button > 0) return;
+    pulsado = { b, id: ev.pointerId, x: ev.clientX, y: ev.clientY, abierto: false };
+    pulsado.t = setTimeout(() => { if (pulsado) { pulsado.abierto = true; abrirVariantes(b, true); } }, 450);
+  });
+  document.addEventListener("pointermove", (ev) => {
+    if (!pulsado || ev.pointerId !== pulsado.id) return;
+    if (!pulsado.abierto) { if (Math.hypot(ev.clientX - pulsado.x, ev.clientY - pulsado.y) > 12) { clearTimeout(pulsado.t); pulsado = null; } return; }
+    const v = varianteEn(ev.clientX, ev.clientY);
+    $variantes.querySelectorAll(".variante").forEach(x => x.classList.toggle("activa", x === v));
+  });
+  const soltarPulsado = (ev) => {
+    if (!pulsado || ev.pointerId !== pulsado.id) return;
+    clearTimeout(pulsado.t);
+    if (pulsado.abierto) {
+      suprimirClic = true;
+      const v = ev.type === "pointerup" && varianteEn(ev.clientX, ev.clientY);
+      if (v) elegirVariante(v);
+    }
+    pulsado = null;
+  };
+  document.addEventListener("pointerup", soltarPulsado);
+  document.addEventListener("pointercancel", soltarPulsado);
+  $("paleta").addEventListener("contextmenu", (ev) => {
+    const b = ev.target.closest(".atajo.con-variantes[data-js]"); if (!b) return;
+    ev.preventDefault();
+    if (pulsado) { clearTimeout(pulsado.t); pulsado.abierto = true; }
+    abrirVariantes(b, false);
+  });
+  $variantes.addEventListener("pointerdown", (ev) => ev.preventDefault());
+  $variantes.addEventListener("click", (ev) => { const v = ev.target.closest(".variante"); if (v) elegirVariante(v); });
+  document.addEventListener("pointerdown", (ev) => { if (!$variantes.hidden && !ev.target.closest(".variantes, .atajo.abierto")) cerrarVariantes(); }, true);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") cerrarVariantes(); });
+  $("paleta").addEventListener("scroll", cerrarVariantes, { passive: true });
+  $("paleta").addEventListener("click", (ev) => {
     if (ejec) return aviso("Detén el programa para editarlo.");
     const lad = ev.target.closest("[data-ladrillo]");
     if (lad) return agregarLadrillo(lad.dataset.ladrillo);
     const b = ev.target.closest(".atajo"); if (!b) return;
     if (b.dataset.m) return insertarId(b.dataset.m);
-    const a = ATAJOS_JS[+b.dataset.js];
-    if (a.comentar) alternarComentario();
-    else if (a.enLinea) {
-      const hueco = a.b.match(RE_HUECO);
-      if (!hueco || !envolver(a.b.slice(0, hueco.index), a.b.slice(hueco.index + hueco[0].length))) {
-        insertar(a.b, hueco?.index, hueco ? hueco.index + hueco[0].length : undefined);
-      }
-    }
-    else insertarBloque(a.b, a.envolvente);
+    if (suprimirClic) { suprimirClic = false; return; }
+    cerrarVariantes();
+    usarAtajo(ATAJOS_JS[+b.dataset.js]);
   });
 
   // ---------- Edición de bloques ----------
@@ -1428,6 +1532,9 @@ onmessage = async (ev) => {
     programa.fuente = "modelo";
     programa.texto = generar(programa.modelo).codigo;
     guardarPrograma();
+    $codigo.value = programa.texto;
+    cambioModelo = true;
+    try { $codigo.dispatchEvent(new Event("input")); } finally { cambioModelo = false; }
     pintarEdicion();
   }
   function agregarLadrillo(t) { agregarNodo(nuevoLadrillo(t)); }
@@ -1565,7 +1672,9 @@ onmessage = async (ev) => {
   }
   function pintarEdicion() {
     if (!programa) return;
-    if (modo === "js") { $codigo.readOnly = !!ejec; pintarMarcas(); return; }
+    $codigo.readOnly = !!ejec;
+    $codigo.dispatchEvent(new Event("cmg:estado"));
+    if (modo === "js") { pintarMarcas(); return; }
     const scroll = $prog.scrollTop;
     $prog.className = `prog ${modo === "pseudo" ? "v-pseudo" : "v-bloques"}`;
     const tx = TXT[idioma];
@@ -1791,10 +1900,15 @@ onmessage = async (ev) => {
   let coloresCodigo = guardado.leer("colores", true) !== false;
   const PALABRAS = new Set("await async break const continue else false for if let null return true while".split(" "));
   const FUNCIONES = new Set("recoger entregar esperar cuantos log info warn error".split(" "));
+  function clasificar(toks, i) {
+    const [tipo, texto] = toks[i];
+    if (tipo === "com" && RE_HUECO.test(texto)) return "hueco";
+    return tipo === "id" ? (PALABRAS.has(texto) ? "kw" : FUNCIONES.has(texto) ? "fn" : texto === "yo" || texto === "console" ? "maq" : "") : ["str", "com", "num"].includes(tipo) ? tipo : "";
+  }
   function pintarResaltado() {
     const r = $("resaltado");
-    r.innerHTML = lexico($codigo.value).map(([tipo, texto]) => {
-      const clase = tipo === "id" ? (PALABRAS.has(texto) ? "kw" : FUNCIONES.has(texto) ? "fn" : texto === "yo" || texto === "console" ? "maq" : "") : ["str", "com", "num"].includes(tipo) ? tipo : "";
+    r.innerHTML = lexico($codigo.value).map(([tipo, texto], i, toks) => {
+      const clase = clasificar(toks, i);
       return clase ? `<span class="${clase}">${escapar(texto)}</span>` : escapar(texto);
     }).join("") + "\n";
     r.style.width = `${$codigo.clientWidth}px`;
@@ -1819,6 +1933,7 @@ onmessage = async (ev) => {
     pintarResaltado();
     $gutter.innerHTML = alturas.map((h, i) => `<div style="height:${h}px" class="${i + 1 === lineaCorre ? "corre" : i + 1 === lineaErr ? "err" : ""}">${i + 1}</div>`).join("");
     pintarBanda();
+    $codigo.dispatchEvent(new Event("cmg:medido"));
   }
   function pad() { return parseFloat(getComputedStyle($codigo).paddingTop) || 10; }
   function pintarBanda() {
@@ -1834,14 +1949,15 @@ onmessage = async (ev) => {
     $gutter.style.transform = `translateY(${-$codigo.scrollTop}px)`;
   }
   function irALinea(l) {
-    $codigo.focus();
+    if (!window.cmg?.edicion?.activo) $codigo.focus();
     if (!l) return;
     const lineas = $codigo.value.split("\n");
     let pos = 0; for (let i = 0; i < l - 1 && i < lineas.length; i++) pos += lineas[i].length + 1;
     $codigo.setSelectionRange(pos, pos + (lineas[l - 1] || "").length);
   }
-  let tGuardar = 0;
+  let tGuardar = 0, cambioModelo = false;
   $codigo.addEventListener("input", () => {
+    if (cambioModelo) return;
     programa.texto = $codigo.value;
     programa.fuente = "texto";
     mapaLineas = null;
@@ -1850,6 +1966,8 @@ onmessage = async (ev) => {
     clearTimeout(tGuardar); tGuardar = setTimeout(guardarPrograma, 400);
   });
   $codigo.addEventListener("scroll", () => { pintarBanda(); pintarResaltado(); });
+  addEventListener("pagehide", () => { if (tGuardar) guardarPrograma(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && tGuardar) guardarPrograma(); });
   // Localiza el carácter bajo el puntero con las mismas métricas y ajuste de línea del textarea.
   // Así las comillas y los delimitadores contiguos no dependen de dónde deje el caret el navegador.
   // Se copian las propiedades sueltas: con font-variant-ligatures: none el atajo «font» calculado
@@ -1921,10 +2039,11 @@ onmessage = async (ev) => {
   // Inserta con execCommand para que Ctrl+Z lo deshaga; si el navegador no lo permite, cambia el valor a mano.
   function insertar(texto, selDesde, selHasta) {
     if ($codigo.readOnly) return;
-    $codigo.focus();
+    const sinTeclado = window.cmg?.edicion?.activo;
+    if (!sinTeclado) $codigo.focus();
     const a = $codigo.selectionStart;
     let ok = false;
-    try { ok = document.execCommand("insertText", false, texto); } catch { ok = false; }
+    if (!sinTeclado) { try { ok = document.execCommand("insertText", false, texto); } catch { ok = false; } }
     if (!ok) {
       const v = $codigo.value, b = $codigo.selectionEnd;
       $codigo.value = v.slice(0, a) + texto + v.slice(b);
@@ -1932,10 +2051,11 @@ onmessage = async (ev) => {
     }
     const p = a + (selDesde == null ? texto.length : selDesde);
     $codigo.setSelectionRange(p, selHasta == null ? p : a + selHasta);
+    $codigo.dispatchEvent(new Event("cmg:seleccion"));
     return true;
   }
   // Las funciones llegan con huecos /* … */ seleccionados: el siguiente doble clic en un valor los rellena.
-  const RE_HUECO = /\/\*\s*(?:material|origen|destino|lugar|segundos|condición|mensaje)\s*\*\//;
+  const RE_HUECO = /\/\*\s*(?:material|origen|destino|lugar|segundos|condición|mensaje|valor|nombre)\s*\*\//;
   function seleccionarHueco() {
     const v = $codigo.value, p = $codigo.selectionEnd;
     const finLinea = v.indexOf("\n", p) < 0 ? v.length : v.indexOf("\n", p);
@@ -1973,7 +2093,7 @@ onmessage = async (ev) => {
       nuevas = lineas.map(l => !l.trim() || bloque(l) ? l : l.slice(0, min) + "// " + l.slice(min));
     }
     const texto = nuevas.join("\n");
-    $codigo.focus();
+    if (!window.cmg?.edicion?.activo) $codigo.focus();
     $codigo.setSelectionRange(ini, fin);
     insertar(texto, 0, texto.length);
   }
@@ -2007,7 +2127,8 @@ onmessage = async (ev) => {
     const ini = v.lastIndexOf("\n", a - 1) + 1;
     const fin = v.indexOf("\n", a) === -1 ? v.length : v.indexOf("\n", a);
     const linea = v.slice(ini, fin);
-    const sangria = linea.match(/^\s*/)[0] + (/\{\s*$/.test(linea) ? "  " : "");
+    const guia = linea.trim() ? linea : v.slice(0, ini).split("\n").slice(0, -1).reverse().find(l => l.trim()) ?? linea;
+    const sangria = guia.match(/^\s*/)[0] + (/\{\s*$/.test(guia) ? "  " : "");
     const texto = bloque.split("\n").map((l, i) => (i ? sangria : "") + l).join("\n");
     const h = texto.search(RE_HUECO), hueco = texto.indexOf("\n" + sangria + "  \n");
     const pos = h >= 0 ? h : hueco === -1 ? texto.length : hueco + 1 + sangria.length + 2;
@@ -2124,9 +2245,69 @@ onmessage = async (ev) => {
     if (ev.target.dataset.k === "tipo") { const n = ev.target.closest("[data-meta]").querySelector('[data-k="n"]'); n.disabled = ev.target.value === "vaciar"; }
   });
 
+  // ---------- Adaptador de Factory para las herramientas compartidas ----------
+  const FIRMAS = { recoger: ["origen", "material"], entregar: ["destino"], cuantos: ["lugar", "material"], esperar: ["segundos"], log: ["mensaje"], info: ["mensaje"], warn: ["mensaje"], error: ["mensaje"] };
+  function sugerencias(c) {
+    const clase = c.hueco || (c.tipo === "argumento" ? FIRMAS[c.funcion]?.[c.indice] : c.tipo === "condicion" ? "condición" : c.tipo === "valor" ? "valor" : null);
+    if (!clase) return null;
+    const it = (ins, cls = "str", nota = "") => ({ ins, cls, nota });
+    const vars = (c.variables || []).map(v => it(v, "var", "variable del programa"));
+    const lugares = mundo.entidades.filter(e => clase !== "origen" || e.tipo === "bodega");
+    const sensores = mundo.entidades.map(e => it(`await yo.cuantos(${JSON.stringify(e.id)}, "cobre")`, "fn", e.id));
+    let grupos;
+    if (["origen", "destino", "lugar"].includes(clase)) grupos = [{ items: lugares.map(e => it(JSON.stringify(e.id), "str", e.tipo === "bodega" ? "bodega" : `acepta ${e.acepta}`)) }];
+    else if (clase === "material") grupos = [{ items: MATERIALES.map(m => it(JSON.stringify(m))) }];
+    else if (clase === "segundos") grupos = [{ items: [0.1, 0.5, 1, 2, 3, 5].map(n => it(String(n), "num", "segundos de juego")) }];
+    else if (clase === "condición") grupos = [
+      { titulo: "Stock e inventario", items: mundo.entidades.map(e => it(`await yo.cuantos(${JSON.stringify(e.id)}, "cobre") > 0`, "fn", e.id)) },
+      { titulo: "Combinar", items: [it("true", "kw"), ...["&&", "||", "===", "!==", ">", "<"].map(op => it(`/* valor */ ${op} /* valor */`, "op", op))] },
+    ];
+    else if (clase === "mensaje") grupos = [{ titulo: "Textos", items: [it('"Viaje terminado"'), it('"Sin material"')] }, { titulo: "Sensores", items: sensores }];
+    else if (clase === "valor") grupos = [{ titulo: "Sensores", items: sensores }, { titulo: "Valores", items: [0, 1, 2, 3, 5].map(n => it(String(n), "num")) }];
+    else if (clase === "nombre") grupos = [{ items: [it("cantidad", "var"), it("resultado", "var")] }];
+    else return null;
+    return { titulo: clase, grupos: [...grupos, { titulo: "Del programa", items: vars }] };
+  }
+  function restaurarDocumento(texto) {
+    programa = JSON.parse(texto);
+    programa.modelo = raizDe(programa.modelo.cuerpo);
+    cursor = { padre: "raiz", rama: "cuerpo", idx: programa.modelo.cuerpo.length };
+    seleccionBloque = null;
+    $codigo.value = programa.texto;
+    aplicarModo(modo, true);
+    guardarPrograma();
+  }
+  let copiaModelo = null, seleccionHija = null;
+  function accionModelo(id) {
+    // El historial compartido guarda modelo y texto juntos; también sirve tras cambiar de vista.
+    if (["deshacer", "rehacer"].includes(id)) return false;
+    if (ejec) return "Detén el programa para editarlo.";
+    const l = seleccionBloque && buscar(programa.modelo, seleccionBloque);
+    if (id === "pegar") {
+      if (!copiaModelo) return "Copia primero un bloque de Factory.";
+      agregarNodo(conIds([JSON.parse(copiaModelo)])[0]); return true;
+    }
+    if (!l) return "Elige primero un bloque del programa.";
+    if (id === "copiar" || id === "cortar") {
+      copiaModelo = JSON.stringify(l.nodo);
+      if (id === "cortar") borrar(l.nodo.id);
+    } else if (id === "borrar") borrar(l.nodo.id);
+    else if (id === "duplicar") duplicar(l.nodo.id);
+    else if (id === "subir" || id === "bajar") mover(l.nodo.id, id === "subir" ? -1 : 1);
+    else if (id === "ampliar" && l.padre !== "raiz") { seleccionHija = seleccionBloque; seleccionBloque = l.padre; pintarEdicion(); }
+    else if (id === "reducir" && seleccionHija && buscar(programa.modelo, seleccionHija)) { seleccionBloque = seleccionHija; seleccionHija = null; pintarEdicion(); }
+    return true;
+  }
+
   // ---------- Arranque ----------
   window.cmg = {
     codigo: $codigo, insertar, envolver, alternarComentario, medirEditor, abrirPestana,
+    prefijoUI: "cmg-banco02-ui-", lexico, clasificar, sugerencias, firma: f => FIRMAS[f] || null, reHueco: RE_HUECO,
+    aviso, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
+    get claveDocumento() { return `reto-${retoIdx}`; },
+    // Los ids de pantalla se regeneran al cargar un reto; no forman parte del documento.
+    capturarDocumento: () => JSON.stringify(programa, (k, v) => k === "id" ? undefined : v), restaurarDocumento,
+    seudo: { get activo() { return modo !== "js"; }, accion: accionModelo },
     get modo() { return modo; }, get ejecutando() { return !!ejec; },
   };
   window.__banco = { elegirReto, aplicarModo, abrirPestana, get seleccionMapa() { return seleccionMapa; }, get mundo() { return mundo; }, get programa() { return programa; }, generar, parsear, RETOS }; // para depurar desde la consola

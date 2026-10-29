@@ -114,7 +114,7 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   eq(run('RE_HUECO.test("/* segundos */") && RE_HUECO.test("/* tipo de enemigo */") && !RE_HUECO.test("/* nota */")'), true);
 
   // Estructura para el modo sin teclado (js/estructura.js).
-  vm.runInContext(readFileSync(ruta('estructura.js'), 'utf8'), ctx);
+  vm.runInContext(readFileSync(require('node:path').join(__dirname, '../shared/js/estructura.js'), 'utf8'), ctx);
   const E = ctx.window.ESTRUCTURA;
   const est = (t) => E.analizar(t, ctx.lexico(t));
   const j = (x) => x == null ? x : JSON.parse(JSON.stringify(x));   // objetos de otro contexto vm

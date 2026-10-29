@@ -605,3 +605,80 @@ textarea#codigo {
 .prog { overscroll-behavior: contain; }
 .seleccion { flex: none; }
 .consola { min-height: 2.6rem; max-height: 6rem; }
+
+/* Placas de seudocódigo, con el mismo lenguaje visual de War. */
+.v-pseudo {
+  --c-accion: var(--tk-fn); --c-sentido: var(--accent); --c-espera: var(--warn); --c-control: var(--ok);
+  position: relative; flex: 1 1 auto; min-height: 9rem; overflow: auto; overscroll-behavior: contain; padding: 10px 10px 14px;
+  border-radius: 8px; background: var(--code-bg); font-family: var(--f-body); font-size: calc(var(--code-size) * 1.04); line-height: 1.35;
+  box-shadow: inset 0 0 0 1px var(--metal-negro), inset 0 0 0 2px var(--line), inset 0 3px 12px rgba(0, 0, 0, .45);
+}
+.v-pseudo .lista { display: flex; flex-direction: column; gap: 3px; }
+.v-pseudo .inicio {
+  display: inline-block; margin-bottom: 6px; padding: 1px 8px; border-radius: 4px; cursor: pointer;
+  font-family: var(--f-display); font-stretch: 118%; font-size: 10.5px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.v-pseudo .fila {
+  --c: var(--c-accion);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-height: 34px; padding: 4px 8px 4px 10px; border-radius: 6px; cursor: pointer;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 10%, transparent), rgba(255, 255, 255, .015) 40%);
+  box-shadow: inset 3px 0 0 var(--c);
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+}
+.v-pseudo .sentido { --c: var(--c-sentido); }
+.v-pseudo .espera { --c: var(--c-espera); }
+.v-pseudo .control { --c: var(--c-control); }
+.v-pseudo .fila:hover { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 18%, transparent), rgba(255, 255, 255, .03) 50%); }
+.v-pseudo .kw, .v-pseudo .kc { color: var(--c); font-weight: 760; }
+.v-pseudo .tx { color: var(--muted); }
+.v-pseudo .slot {
+  border: 1px solid var(--line); border-radius: 5px; padding: 1px 7px; min-height: 26px; cursor: pointer;
+  background: #0A0F13; color: var(--ink); font-family: var(--f-code); font-size: .92em; font-weight: 600;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5);
+}
+.v-pseudo .slot:hover { border-color: var(--accent); }
+.v-pseudo .slot.abierto { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.v-pseudo .slot-var, .v-pseudo .slot-lugar, .v-pseudo .slot-red { color: var(--tk-var); }
+.v-pseudo .slot-tipo, .v-pseudo .slot-alt, .v-pseudo .slot-sensor { color: var(--tk-str); }
+.v-pseudo .slot-s, .v-pseudo .slot-n, .v-pseudo .slot-cond-n { color: var(--tk-num); }
+.v-pseudo .slot-valor, .v-pseudo .slot-cond-que { color: var(--tk-prop); }
+.v-pseudo .slot-cond-op { color: var(--warn); font-family: var(--f-body); }
+.v-pseudo .slot-nivel { color: var(--muted); }
+.v-pseudo .slot .nada { color: var(--muted); font-weight: 400; }
+.v-pseudo .cond { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 4px; border-radius: 6px; background: color-mix(in srgb, var(--c-control) 9%, transparent); }
+.v-pseudo .contenedor > .cuerpo { margin: 2px 0 2px 12px; padding: 1px 0 1px 10px; box-shadow: inset 2px 0 0 color-mix(in srgb, var(--c-control) 35%, transparent); }
+.v-pseudo .contenedor > .fila.pie, .v-pseudo .contenedor > .fila.sino { min-height: 24px; padding-block: 1px; font-size: .88em; background: none; box-shadow: none; color: var(--muted); }
+.v-pseudo .contenedor > .fila.sino .kc { color: var(--c-control); }
+.v-pseudo .nodo.sel > .fila.cabeza, .v-pseudo .fila.simple.sel { box-shadow: inset 3px 0 0 var(--c), 0 0 0 1.5px var(--accent); }
+.v-pseudo .fila.corre { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 2px var(--accent), 0 0 14px var(--accent-soft); }
+.v-pseudo .fila.err { box-shadow: inset 3px 0 0 var(--bad), 0 0 0 2px var(--bad); }
+.v-pseudo .vacio { padding: 5px 10px; border: 1.5px dashed var(--line); border-radius: 6px; color: var(--muted); font-size: .85em; cursor: pointer; }
+.v-pseudo .cursor { position: relative; height: 0; margin: 2px 0; border-top: 2px solid var(--accent); }
+.v-pseudo .cursor span {
+  position: absolute; right: 0; top: -.8em; padding: 0 5px; border-radius: 3px; background: var(--code-bg); color: var(--accent);
+  font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase;
+}
+.v-pseudo .seudo-nota { margin-bottom: 8px; padding: 6px 9px; border-radius: 6px; border: 1px solid var(--warn); color: var(--ink); font-size: 12.5px; background: var(--warn-soft); }
+.v-pseudo.quieto .fila, .v-pseudo.quieto .slot { cursor: default; }
+.v-pseudo .arrastrando { opacity: .35; }
+.v-pseudo .soltar-linea { position: absolute; height: 0; border-top: 3px solid var(--ok); pointer-events: none; z-index: 2; box-shadow: 0 0 8px var(--ok); }
+.v-pseudo .soltar-linea::before { content: ""; position: absolute; left: -4px; top: -6.5px; width: 9px; height: 9px; border-radius: 50%; background: var(--ok); }
+.fantasma-seudo {
+  position: fixed; left: 0; top: 0; z-index: 95; pointer-events: none; opacity: .92; max-width: 70vw; border-radius: 7px;
+  font-family: var(--f-body); background: var(--surface-2); box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(0, 0, 0, .5);
+}
+.fantasma-seudo .fila { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; padding: 4px 8px; }
+/* Ladrillos de la paleta de seudocódigo: icono grabado y su palabra. */
+.paleta-seudo .ladrillo { width: auto; padding: 0 10px 0 6px; gap: 6px; display: flex; align-items: center; }
+.paleta-seudo .ladrillo svg { width: 24px; height: 24px; }
+.paleta-seudo .ladrillo span { font-size: 12.5px; font-weight: 750; color: var(--grabado); text-shadow: 0 1px 0 var(--grabado-luz); white-space: nowrap; }
+.paleta-seudo .ladrillo:hover span, .paleta-seudo .ladrillo:focus-visible span { color: var(--ink); text-shadow: none; }
+.paleta-seudo.borrar { outline: 2px dashed var(--bad); outline-offset: 2px; }
+.paleta-seudo.borrar::after { content: "Suelta aquí para borrar"; flex: none; align-self: center; padding: 0 8px; font-size: 12.5px; font-weight: 700; color: var(--bad); }
+
+
+.v-pseudo .contenedor > .cuerpo { border-left: 0; }
+.v-pseudo [data-campo="origen"], .v-pseudo [data-campo="destino"], .v-pseudo [data-campo="cond.lugar"] { color: var(--tk-str); }
+.v-pseudo [data-campo="n"], .v-pseudo [data-campo="s"], .v-pseudo [data-campo="cond.n"] { color: var(--tk-num); }
+.v-pseudo .cond [data-campo="cond.op"] { color: var(--warn); }

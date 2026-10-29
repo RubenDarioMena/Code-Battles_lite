@@ -2,21 +2,22 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Code Battle Lite · Tres vistas</title>
+<title>Code Battle Lite · Factory</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
 <meta name="theme-color" content="#0B0F13">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=1">
-<link rel="stylesheet" href="css/componentes.css?v=2">
-<link rel="stylesheet" href="css/layout.css?v=4">
+<link rel="stylesheet" href="css/componentes.css?v=4">
+<link rel="stylesheet" href="../../shared/css/edicion.css?v=1">
+<link rel="stylesheet" href="css/layout.css?v=6">
 </head>
 <body>
 <div class="app" id="app" data-forma="escritorio">
   <section class="zona-mapa marco" id="zona-mapa" aria-label="Planta de recogida">
     <header class="cabeza">
-      <span class="placa marca" aria-hidden="true">CBL</span>
+      <a class="placa marca" href="../../index.html" aria-label="Volver al inicio">CBL</a>
       <button class="reto-actual" id="b-reto" type="button" aria-expanded="false" aria-controls="hoja-reto">
         <span class="n" id="reto-n">1</span>
         <span class="tit"><span id="titulo">Primer viaje</span><span class="obj" id="objetivo-corto"></span></span>
@@ -67,7 +68,7 @@
           <button class="mini" type="button" data-idioma="en" aria-pressed="true">EN</button>
           <button class="mini" type="button" data-idioma="es" aria-pressed="false">ES</button>
         </span>
-        <span class="grupo"><button class="mini" id="b-colores" type="button" aria-label="Colores del código" aria-pressed="true" hidden>Aa</button><span>Letra</span>
+        <span class="grupo"><button class="mini b-teclado" type="button" id="b-teclado" aria-pressed="false" aria-label="Modo sin teclado"></button><button class="mini" id="b-colores" type="button" aria-label="Colores del código" aria-pressed="true" hidden>Aa</button><span>Letra</span>
           <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña">A−</button>
           <button class="mini" type="button" id="b-mas" aria-label="Letra más grande">A+</button>
         </span>
@@ -78,17 +79,22 @@
     <section class="vista" id="v-programa" role="tabpanel" aria-labelledby="t-programa">
       <div class="aviso" id="aviso" hidden></div>
       <div class="paleta" id="paleta" role="toolbar" aria-label="Ladrillos del modo activo"></div>
+      <div class="barra-edicion" id="edicion" role="toolbar" aria-label="Edición"></div>
       <div class="seleccion" id="seleccion" hidden></div>
 
       <div class="prog" id="prog" hidden></div>
       <div class="editor" id="editor" hidden>
         <div class="gutter"><div class="gutter-in" id="gutter"></div></div>
-        <div class="area">
+        <div class="area" id="area">
           <div class="resaltado" id="resaltado" aria-hidden="true"></div>
           <div class="espejo" id="espejo" aria-hidden="true"></div>
           <div class="banda" id="banda"></div>
           <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Programa del robot R1 en JavaScript"></textarea>
+          <div class="bloques" id="bloques" tabindex="0" role="group" aria-label="Programa sin teclado: toca para elegir, doble toque amplía, arrastra para mover o copiar" hidden>
+            <div class="bloques-in" id="bloques-in"><div class="bloques-capa" id="bloques-capa" aria-hidden="true"></div><div class="bloques-texto" id="bloques-texto"></div></div>
+          </div>
         </div>
+        <div class="asas" id="asas" aria-hidden="true" hidden><div class="asas-in" id="asas-in"></div></div>
       </div>
       <details class="vista-js" id="vista-js">
         <summary>Así se ve en JavaScript</summary>
@@ -182,6 +188,7 @@
 <div class="tip" id="tip" role="tooltip" hidden></div>
 <dialog id="ajustes" class="ajustes" aria-labelledby="ajustes-titulo">
   <header class="hoja-cab"><h2 id="ajustes-titulo">Ajustes</h2><button class="cerrar" id="ajustes-cerrar" type="button" aria-label="Cerrar ajustes" autofocus>×</button></header>
+  <nav class="fila-botones" aria-label="Navegación"><a class="btn chico" href="../../index.html">← Cambiar de juego</a></nav>
   <section><h3>Vista del programa</h3><div class="seg" role="group" aria-label="Modo de programación">
     <button class="btn chico" type="button" data-ajuste-modo="bloques">Bloques</button>
     <button class="btn chico" type="button" data-ajuste-modo="pseudo">Pseudocódigo</button>
@@ -195,6 +202,18 @@
     <button class="btn chico" type="button" data-tamano="1" aria-label="Aumentar letra">A+</button>
     <output id="ajustes-letra" aria-live="polite"></output>
   </div></section>
+  <section>
+    <h3>Edición sin teclado</h3>
+    <p class="nota">El botón con el teclado (⌨) cambia entre escribir y editar por bloques. Sin teclado, un toque elige un elemento entero (textos con sus comillas, comentarios completos), el doble toque amplía la selección y arrastrar copia un valor sobre un hueco o mueve líneas.</p>
+    <label class="ajuste-campo">Asa para mover líneas
+      <select id="ajustes-asa">
+        <option value="numero">En el número de línea</option>
+        <option value="borde">En el borde derecho</option>
+      </select>
+    </label>
+    <p>Barra de edición</p>
+    <button class="btn chico" id="ajustes-orden-barra" type="button" aria-haspopup="dialog" aria-controls="orden-barra">Ordenar botones y grupos…</button>
+  </section>
   <section>
     <h3>Pantalla</h3>
     <label class="ajuste-campo">1. Distribución de los paneles
@@ -244,9 +263,22 @@
   </div>
 </div>
 
+<dialog id="orden-barra" class="ajustes orden-barra" aria-labelledby="orden-titulo">
+  <header class="hoja-cab">
+    <h2 id="orden-titulo">Barra de edición</h2>
+    <button class="cerrar" id="orden-cerrar" type="button" aria-label="Cerrar">×</button>
+  </header>
+  <p class="nota">Arrastra un botón para cambiarlo de sitio o llevarlo a otro grupo. Arrastra el asa ⋮⋮ de un grupo para mover el grupo entero. Suelta un botón en «Grupo nuevo» para separarlo.</p>
+  <div class="orden-grupos" id="orden-grupos"></div>
+  <div class="fila-botones"><button class="btn chico" id="orden-restaurar" type="button">Restaurar el orden de fábrica</button></div>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
-<script src="js/iconos.js?v=1"></script>
-<script src="js/juego.js?v=4"></script>
-<script src="js/layout.js?v=2"></script>
+<script src="../../shared/js/iconos.js?v=3"></script>
+<script src="js/iconos.js?v=2"></script>
+<script src="js/juego.js?v=6"></script>
+<script src="js/layout.js?v=3"></script>
+<script src="../../shared/js/estructura.js?v=1"></script>
+<script src="../../shared/js/edicion.js?v=13"></script>
 </body>
 </html>

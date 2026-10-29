@@ -265,7 +265,9 @@ async function probarSeudo(page, eq) {
   const evaluar = fn => page.evaluate(fn);
   const codigo = () => evaluar(() => window.cmg.codigo.value);
   await evaluar(() => window.__banco.elegirReto(3));
-  const partida = await codigo();
+  // El reto puede tener un programa guardado de una ejecución anterior de QA.
+  const partida = await evaluar(() => window.cmg.inicial().texto);
+  await page.fill('#codigo', partida);
   await page.click('.modos-codigo [data-modo-codigo="pseudo"]');
   eq(await evaluar(() => [document.querySelector('#app').dataset.modo, document.querySelector('#editor').hidden, [...document.querySelectorAll('#prog .fila')].slice(0, 2).map(f => f.textContent.replace(/\s+/g, ' ').trim())]),
     ['pseudo', true, ['repite siempre', 'pos ← apunta a drone con visual · si no hay: crawler']], 'el programa de partida se lee en seudocódigo');
@@ -291,6 +293,16 @@ async function probarSeudo(page, eq) {
   await page.fill('#codigo', raro);
   await page.click('.modos-codigo [data-modo-codigo="pseudo"]');
   eq(await evaluar(() => [document.querySelector('#app').dataset.modo, window.cmg.codigo.value]), ['js', raro], 'lo que no tiene seudocódigo se queda intacto en JavaScript');
+
+  // Review: la traducción debe preservar declaraciones, asignaciones y contadores.
+  const revisar = async fuente => page.evaluate(fuente => { const s = window.cmg.seudo; return s.generar(s.parsear(fuente)).codigo; }, fuente);
+  eq(await revisar('let pos = autoTarget("drone", "visual");\nif (pos) { pos = autoTarget("crawler", "visual"); }'),
+    'let pos = autoTarget("drone", "visual");\nif (pos) {\n  pos = autoTarget("crawler", "visual");\n}\n', 'seudocódigo conserva let y la reasignación en un bloque interior');
+  eq(await revisar('for (var k = 0; k < 3; k++) { console.log(k); }'),
+    'for (var k = 0; k < 3; k++) {\n  console.log(k);\n}\n', 'seudocódigo conserva nombre y alcance del contador');
+  for (const fuente of ['console[warn]("x");', '{ const pos = autoTarget("drone", "visual"); }', 'if (missiles == "1") { stopFire(); }']) {
+    eq(await page.evaluate(fuente => { try { window.cmg.seudo.parsear(fuente); return false; } catch { return true; } }, fuente), true, `la traducción conserva en JS la forma no representable: ${fuente}`);
+  }
 
   // Orden de la barra: arrastrar un botón a otro grupo y restaurar.
   await page.click('#b-ajustes');
