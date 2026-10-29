@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Code Battle Lite · Tres vistas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+<meta name="theme-color" content="#0B0F13">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="css/base.css?v=1">
+<link rel="stylesheet" href="css/componentes.css?v=2">
+<link rel="stylesheet" href="css/layout.css?v=4">
+</head>
+<body>
+<div class="app" id="app" data-forma="escritorio">
+  <section class="zona-mapa marco" id="zona-mapa" aria-label="Planta de recogida">
+    <header class="cabeza">
+      <span class="placa marca" aria-hidden="true">CBL</span>
+      <button class="reto-actual" id="b-reto" type="button" aria-expanded="false" aria-controls="hoja-reto">
+        <span class="n" id="reto-n">1</span>
+        <span class="tit"><span id="titulo">Primer viaje</span><span class="obj" id="objetivo-corto"></span></span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <a class="probar" id="b-probar" href="probar.html">⧉ Probar en dispositivos</a>
+      <button class="mini ajustes-abrir" id="b-ajustes" type="button" aria-label="Ajustes" aria-haspopup="dialog" aria-controls="ajustes">⚙</button>
+    </header>
+    <div class="escena" id="escena">
+      <div class="campo" id="campo"><canvas id="lienzo" aria-label="Mapa de la planta: toca un edificio o a R1 para inspeccionarlo"></canvas></div>
+      <div class="reloj" id="reloj">t 0.0 s</div>
+      <div class="metas" id="metas"></div>
+      <div class="banner" id="banner" hidden></div>
+      <aside class="inspector marco" id="inspector" data-estado="cerrado" aria-label="Inspector del edificio elegido"></aside>
+      <div class="hoja-reto marco" id="hoja-reto" hidden>
+        <div class="hoja-cab"><span class="placa">Retos</span><button class="cerrar" id="reto-cerrar" type="button" aria-label="Cerrar retos">×</button></div>
+        <nav class="retos" id="retos" aria-label="Retos"></nav>
+        <section class="objetivo" aria-label="Objetivo"><p id="objetivo-txt"></p><div class="leccion" id="leccion"></div></section>
+        <div class="leyenda"><span><i style="background:var(--cobre)"></i>cobre</span><span><i style="background:var(--silicio)"></i>silicio</span><span>R1 lleva 1 unidad</span></div>
+      </div>
+    </div>
+    <div class="controles">
+      <button class="btn primario" id="b-ejecutar" type="button">▶ Ejecutar</button>
+      <button class="btn" id="b-pausa" type="button" disabled>Pausa</button>
+      <button class="btn" id="b-vel" type="button" aria-label="Velocidad">1×</button>
+      <button class="btn" id="b-reiniciar" type="button">Reiniciar</button>
+    </div>
+  </section>
+  <div class="divisor" id="divisor" role="separator" tabindex="0" aria-label="Cambiar el reparto entre mapa y código" aria-orientation="vertical"><span></span></div>
+  <section class="zona-codigo marco" id="zona-codigo" data-pestana="programa" aria-label="Programa del robot R1">
+    <div class="cabecera-editor" id="cabecera-editor">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-programa" aria-selected="true" aria-controls="v-programa" type="button">Programa</button>
+      <button class="tab" role="tab" id="t-registro" aria-selected="false" aria-controls="v-registro" type="button">Registro</button>
+      <button class="tab" role="tab" id="t-ayuda" aria-selected="false" aria-controls="v-ayuda" type="button">Órdenes</button>
+      <button class="tab" role="tab" id="t-reto" aria-selected="false" aria-controls="v-reto" type="button">Reto</button>
+      <button class="mini plegar-barras" id="b-barras" type="button" aria-expanded="true" aria-controls="detalles-editor" aria-label="Plegar herramientas">▴</button>
+    </div>
+
+      <div id="detalles-editor">
+      <div class="modos" role="radiogroup" aria-label="Vista del programa" id="modos">
+        <button class="modo" type="button" role="radio" data-modo="bloques" aria-checked="true">Bloques</button>
+        <button class="modo" type="button" role="radio" data-modo="pseudo" aria-checked="false">Pseudocódigo</button>
+        <button class="modo" type="button" role="radio" data-modo="js" aria-checked="false">JavaScript</button>
+      </div>
+      <div class="herramientas">
+        <span class="grupo" id="g-idioma"><span>Idioma</span>
+          <button class="mini" type="button" data-idioma="en" aria-pressed="true">EN</button>
+          <button class="mini" type="button" data-idioma="es" aria-pressed="false">ES</button>
+        </span>
+        <span class="grupo"><button class="mini" id="b-colores" type="button" aria-label="Colores del código" aria-pressed="true" hidden>Aa</button><span>Letra</span>
+          <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña">A−</button>
+          <button class="mini" type="button" id="b-mas" aria-label="Letra más grande">A+</button>
+        </span>
+      </div>
+
+      </div>
+    </div>
+    <section class="vista" id="v-programa" role="tabpanel" aria-labelledby="t-programa">
+      <div class="aviso" id="aviso" hidden></div>
+      <div class="paleta" id="paleta" role="toolbar" aria-label="Ladrillos del modo activo"></div>
+      <div class="seleccion" id="seleccion" hidden></div>
+
+      <div class="prog" id="prog" hidden></div>
+      <div class="editor" id="editor" hidden>
+        <div class="gutter"><div class="gutter-in" id="gutter"></div></div>
+        <div class="area">
+          <div class="resaltado" id="resaltado" aria-hidden="true"></div>
+          <div class="espejo" id="espejo" aria-hidden="true"></div>
+          <div class="banda" id="banda"></div>
+          <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Programa del robot R1 en JavaScript"></textarea>
+        </div>
+      </div>
+      <details class="vista-js" id="vista-js">
+        <summary>Así se ve en JavaScript</summary>
+        <pre id="js-pre"></pre>
+      </details>
+
+      <div class="pie" id="pie" data-abierto="false">
+      <button class="pie-asa" id="b-pie" type="button" aria-expanded="false" aria-controls="consola">Consola <span>⌃</span></button>
+      <div class="consola" id="consola" aria-live="polite"><div class="vacia">Aquí verás cada orden y lo que devuelve.</div></div>
+      <div class="fila-bajo">
+        <span id="intento-txt">Intento 1</span>
+        <button class="link" id="b-restaurar" type="button">Restaurar programa inicial</button>
+      </div>
+      </div>
+    </section>
+    <section class="vista desliza" id="v-registro" role="tabpanel" aria-labelledby="t-registro" hidden>
+      <div class="resumen" id="resumen"></div>
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>t (s)</th><th>Línea</th><th>Orden</th><th>Resultado</th></tr></thead>
+          <tbody id="eventos"></tbody>
+        </table>
+      </div>
+      <div class="fila-bajo">
+        <span>Registro del último intento, como la tabla <span class="r">eventos</span> del juego. Los sensores aparecen en gris.</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+        <button class="btn chico" id="b-copiar" type="button">Copiar telemetría (JSON)</button>
+        <button class="btn chico" id="b-borrar" type="button">Borrar telemetría</button>
+        <span id="copiado" class="fila-bajo" hidden>Copiada.</span>
+      </div>
+      <details class="json">
+        <summary>Ver JSON</summary>
+        <textarea id="json" readonly></textarea>
+      </details>
+    </section>
+
+    <section class="vista desliza ayuda" id="v-ayuda" role="tabpanel" aria-labelledby="t-ayuda" hidden>
+      <h3>Tres vistas, un solo programa</h3>
+      <ul>
+        <li><b>Bloques:</b> toca un ladrillo de arriba y se coloca donde está la línea azul, o arrástralo hasta donde lo quieras. Toca un bloque para moverlo, duplicarlo o borrarlo. Toca un valor para cambiarlo, o toca un edificio del mapa mientras eliges un lugar.</li>
+        <li><b>Pseudocódigo:</b> el mismo programa escrito como frases. Se edita igual que los bloques.</li>
+        <li><b>JavaScript:</b> texto libre. El programa de partida llega comentado: quita las // (Ctrl+/ o el botón «//») o escribe el tuyo. Al volver a bloques, el texto se traduce si solo usa lo que los bloques conocen.</li>
+      </ul>
+      <h3>Órdenes</h3>
+      <div class="firma">
+        <code>await yo.recoger(origen, material)</code>
+        <p>R1 camina hasta la bodega y toma 1 unidad. Devuelve <span class="r">"ok"</span>, <span class="r">"viaje_vacio"</span> o <span class="r">"manos_llenas"</span>.</p>
+      </div>
+      <div class="firma">
+        <code>await yo.entregar(destino)</code>
+        <p>R1 deja lo que lleva. Devuelve <span class="r">"ok"</span>, <span class="r">"rechazado"</span> (la máquina no acepta ese material), <span class="r">"derrame"</span> (entrada llena: el material cae al suelo) o <span class="r">"manos_vacias"</span>.</p>
+      </div>
+      <div class="firma">
+        <code>await yo.esperar(segundos)</code>
+        <p>R1 se queda quieto ese tiempo de juego.</p>
+      </div>
+      <div class="firma sensor">
+        <code>await yo.cuantos(lugar, material)</code>
+        <p>Sensor nuevo. No gasta tiempo ni mueve a R1. En una bodega devuelve cuántas unidades de ese material quedan; en una máquina, cuántas esperan en su entrada.</p>
+      </div>
+      <h3>Reglas del mundo</h3>
+      <ul>
+        <li>R1 camina 4 casillas por segundo, en L. Recoger o entregar tarda 0,5 s.</li>
+        <li>Cada máquina procesa una pieza a la vez; las demás esperan en una entrada con huecos limitados.</li>
+        <li>El reloj solo avanza con las órdenes: pensar no gasta tiempo de juego.</li>
+        <li>Cada ejecución empieza con el mundo recién puesto.</li>
+        <li>Un bucle que solo consulta sensores sin moverse se detiene solo.</li>
+      </ul>
+      <h3>Ejemplo en JavaScript</h3>
+<pre>while (await yo.cuantos("ENT-1", "cobre") > 0) {
+  await yo.recoger("ENT-1", "cobre");
+  await yo.entregar("FUN");
+}</pre>
+      <h3>Inspector y consola</h3>
+      <ul>
+        <li>Toca un edificio o a R1. A la izquierda está lo que se escribe en el código; a la derecha, sus datos; abajo, las métricas del intento.</li>
+        <li>Doble clic sobre una palabra de color: en JavaScript la inserta donde está el cursor; en bloques rellena el valor que tengas abierto o añade el bloque que corresponde.</li>
+        <li><span class="r">console.log</span>, <span class="r">info</span>, <span class="r">warn</span> y <span class="r">error</span> escriben en la consola y salen en un globo sobre R1.</li>
+        <li>En bloques y pseudocódigo puedes arrastrar los ladrillos al programa, mover bloques arrastrándolos y soltarlos sobre la paleta para borrarlos. En el móvil, mantén pulsado un bloque antes de arrastrarlo.</li>
+      </ul>
+    </section>
+
+    <section class="vista desliza" id="v-reto" role="tabpanel" aria-labelledby="t-reto" hidden>
+      <div class="aviso" id="reto-aviso" hidden></div>
+      <form class="form" id="reto-form" autocomplete="off"></form>
+    </section>  </section>
+  <div class="simbolos" id="simbolos" role="toolbar" aria-label="Símbolos de JavaScript" hidden></div>
+  <div class="teclado-sim" id="teclado-sim" aria-hidden="true" hidden></div>
+</div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<dialog id="ajustes" class="ajustes" aria-labelledby="ajustes-titulo">
+  <header class="hoja-cab"><h2 id="ajustes-titulo">Ajustes</h2><button class="cerrar" id="ajustes-cerrar" type="button" aria-label="Cerrar ajustes" autofocus>×</button></header>
+  <section><h3>Vista del programa</h3><div class="seg" role="group" aria-label="Modo de programación">
+    <button class="btn chico" type="button" data-ajuste-modo="bloques">Bloques</button>
+    <button class="btn chico" type="button" data-ajuste-modo="pseudo">Pseudocódigo</button>
+    <button class="btn chico" type="button" data-ajuste-modo="js">JavaScript</button>
+  </div><p class="nota">Bloques y pseudocódigo comparten el mismo programa. JavaScript conserva la traducción y la edición libre.</p></section>
+  <section><h3>Idioma de bloques y pseudocódigo</h3><div class="seg" role="group" aria-label="Idioma de los bloques">
+    <button class="btn chico" type="button" data-idioma="en">English</button><button class="btn chico" type="button" data-idioma="es">Español</button>
+  </div><p class="nota">Las órdenes JavaScript y la interfaz conservan sus nombres actuales.</p></section>
+  <section><h3>Letra del programa</h3><div class="seg" role="group" aria-label="Tamaño de letra">
+    <button class="btn chico" type="button" data-tamano="-1" aria-label="Reducir letra">A−</button>
+    <button class="btn chico" type="button" data-tamano="1" aria-label="Aumentar letra">A+</button>
+    <output id="ajustes-letra" aria-live="polite"></output>
+  </div></section>
+  <section>
+    <h3>Pantalla</h3>
+    <label class="ajuste-campo">1. Distribución de los paneles
+      <select id="ajustes-orientacion" aria-describedby="ajustes-orientacion-nota">
+        <option value="auto">Automática (según la pantalla)</option>
+        <option value="horizontal">Izquierda y derecha</option>
+        <option value="vertical">Arriba y abajo</option>
+      </select>
+    </label>
+    <p class="nota" id="ajustes-orientacion-nota"></p>
+    <p>2. Posición del mapa</p>
+    <div class="pantalla-posiciones">
+      <div>
+        <label class="ajuste-campo">Paneles lado a lado
+          <select id="ajustes-primero-horizontal" aria-describedby="ajustes-posicion-nota">
+            <option value="mapa">Mapa a la izquierda</option>
+            <option value="codigo">Mapa a la derecha</option>
+          </select>
+        </label>
+        <div class="pantalla-previa" id="ajustes-previa-horizontal" data-eje="horizontal" role="img" aria-label="Mapa a la izquierda, código a la derecha">
+          <span class="previa-mapa">Mapa</span><span class="previa-codigo">Código</span>
+        </div>
+      </div>
+      <div>
+        <label class="ajuste-campo">Paneles arriba y abajo
+          <select id="ajustes-primero-vertical" aria-describedby="ajustes-posicion-nota">
+            <option value="mapa">Mapa arriba</option>
+            <option value="codigo">Mapa abajo</option>
+          </select>
+        </label>
+        <div class="pantalla-previa" id="ajustes-previa-vertical" data-eje="vertical" role="img" aria-label="Mapa arriba, código abajo">
+          <span class="previa-mapa">Mapa</span><span class="previa-codigo">Código</span>
+        </div>
+      </div>
+    </div>
+    <p class="nota" id="ajustes-posicion-nota">Ambas posiciones se guardan por separado. Automática usa la que corresponde al tamaño de la pantalla.</p>
+    <p>Arrastra el divisor hasta un extremo para ver solo el mapa o solo el código. Arrástralo de vuelta para recuperar ambos.</p>
+    <button class="btn chico" id="ajustes-reparto" type="button">Restaurar reparto de pantalla</button>
+    <p class="nota">También puedes hacer doble clic en el divisor para restaurar el reparto.</p>
+  </section>
+</dialog>
+<div class="hoja" id="hoja" hidden role="dialog" aria-label="Elegir valor">
+  <div class="hoja-in">
+    <div class="hoja-top"><h3 id="hoja-titulo">Elige</h3><button class="btn chico" id="hoja-cerrar" type="button">Listo</button></div>
+    <div class="opciones" id="hoja-opciones"></div>
+    <div class="pista" id="hoja-pista"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
+<script src="js/iconos.js?v=1"></script>
+<script src="js/juego.js?v=3"></script>
+<script src="js/layout.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+node_modules/
+compositions/remotion/public/
+compositions/remotion/out/
+# Los vídeos pesan; los manifiestos sí se conservan.
+renders/**/*.mp4
+renders/**/*.webm
+renders/**/*.mov
+renders/**/*.png

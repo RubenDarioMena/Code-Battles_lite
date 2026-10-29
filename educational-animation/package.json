@@ -1,0 +1,22 @@
+{
+  "name": "cmg-educational-animation",
+  "private": true,
+  "description": "Banco de pruebas de vídeos educativos de Codemageddon (fuera del juego).",
+  "type": "module",
+  "workspaces": [
+    "concepts/motion-canvas",
+    "compositions/remotion"
+  ],
+  "scripts": {
+    "mc": "npm run dev -w concepts/motion-canvas",
+    "remotion": "npm run sync-assets -w compositions/remotion && npm run studio -w compositions/remotion",
+    "render:remotion": "npm run sync-assets -w compositions/remotion && npm run render -w compositions/remotion && node tools/render-manifest.mjs renders/remotion/await-pilot.mp4 AwaitPilot",
+    "render:remotion:en": "npm run sync-assets -w compositions/remotion && npm run render:en -w compositions/remotion && node tools/render-manifest.mjs renders/remotion/await-pilot-en.mp4 AwaitPilotEn",
+    "still:remotion": "npm run still -w compositions/remotion",
+    "typecheck": "npm run typecheck -w concepts/motion-canvas && npm run typecheck -w compositions/remotion"
+  },
+  "dependencies": {
+    "@lezer/highlight": "1.2.5",
+    "@lezer/javascript": "1.5.6"
+  }
+}
