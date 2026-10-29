@@ -6,8 +6,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/componentes.css?v=9">
-<link rel="stylesheet" href="css/layout.css?v=10">
+<link rel="stylesheet" href="css/componentes.css?v=13">
+<link rel="stylesheet" href="css/layout.css?v=13">
 
 <div class="app" id="app" data-forma="escritorio">
 
@@ -98,6 +98,11 @@
       <div class="barra-prog">
         <div class="progs" id="progs" aria-label="Programa de cada lanzador"></div>
         <div class="herramientas">
+          <span class="modos-codigo" role="group" aria-label="Vista del programa">
+            <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
+            <button class="mini" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-tip="Seudocódigo">Seudo</button>
+          </span>
+          <button class="mini b-teclado" type="button" id="b-teclado" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"></button>
           <button class="mini" type="button" id="b-colores" aria-pressed="true" data-tip="Colores del código">◐</button>
           <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña" data-tip="Letra más pequeña">A−</button>
           <button class="mini" type="button" id="b-mas" aria-label="Letra más grande" data-tip="Letra más grande">A+</button>
@@ -114,12 +119,17 @@
 
     <section class="vista" id="v-programa" role="tabpanel" aria-labelledby="t-programa">
       <div class="paleta" id="paleta" role="toolbar" aria-label="Insertar en el código"></div>
+      <div class="paleta paleta-seudo" id="paleta-seudo" role="toolbar" aria-label="Ladrillos de seudocódigo" hidden></div>
+      <!-- Barra de edición: siempre en el teléfono; en PC, solo en modo sin teclado -->
+      <div class="barra-edicion" id="edicion" role="toolbar" aria-label="Edición"></div>
       <div class="fila-botones multi" id="acciones-multi" hidden>
         <span id="multi-estado" role="status"></span>
         <button class="btn chico anadir" id="b-add" type="button" aria-describedby="multi-estado"><span class="ico" aria-hidden="true">+</span> Add <small>al final</small></button>
         <button class="btn chico peligro" id="b-replace" type="button" aria-describedby="multi-estado">Replace <small>borra el anterior</small></button>
       </div>
       <div class="aviso" id="aviso" hidden></div>
+      <!-- Seudocódigo (seudo.js): otra vista del mismo programa en JavaScript -->
+      <div class="prog prog-seudo" id="prog" hidden></div>
       <div class="editor colores" id="editor">
         <div class="gutter"><div class="gutter-in" id="gutter"></div></div>
         <div class="area" id="area">
@@ -127,7 +137,15 @@
           <div class="banda" id="banda"></div>
           <pre class="resaltado" id="resaltado" aria-hidden="true"></pre>
           <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Programa del lanzador en JavaScript"></textarea>
+          <!-- Modo sin teclado: el mismo código como fichas que se eligen y arrastran (edicion.js) -->
+          <div class="bloques" id="bloques" tabindex="0" role="group" aria-label="Programa, modo sin teclado: toca para elegir, doble toque amplía, arrastra para mover o copiar" hidden>
+            <div class="bloques-in" id="bloques-in">
+              <div class="bloques-capa" id="bloques-capa" aria-hidden="true"></div>
+              <div class="bloques-texto" id="bloques-texto"></div>
+            </div>
+          </div>
         </div>
+        <div class="asas" id="asas" aria-hidden="true" hidden><div class="asas-in" id="asas-in"></div></div>
       </div>
       <div class="pie" id="pie" data-abierto="false">
         <button class="pie-asa" id="b-pie" type="button" aria-expanded="false" aria-controls="pie">Consola <span aria-hidden="true">▴</span></button>
@@ -201,11 +219,27 @@
   <section>
     <h3>Lenguaje del programa</h3>
     <div class="seg" role="group" aria-label="Lenguaje del programa">
-      <button class="btn chico" type="button" aria-pressed="false" disabled>Seudocódigo</button>
-      <button class="btn chico" type="button" aria-pressed="true" disabled>JavaScript</button>
+      <button class="btn chico" type="button" data-modo-codigo="pseudo" aria-pressed="false">Seudocódigo</button>
+      <button class="btn chico" type="button" data-modo-codigo="js" aria-pressed="true">JavaScript</button>
       <button class="btn chico" type="button" aria-pressed="false" disabled>Python</button>
     </div>
-    <p class="nota">Por ahora los programas se escriben y ejecutan en JavaScript.</p>
+    <p class="nota">El seudocódigo es otra vista del mismo programa: se guarda y se ejecuta como JavaScript. Lo que todavía no tiene seudocódigo se queda en JavaScript.</p>
+    <div class="seg" role="group" aria-label="Idioma del seudocódigo">
+      <button class="btn chico" type="button" data-idioma-seudo="es" aria-pressed="true">Seudocódigo en español</button>
+      <button class="btn chico" type="button" data-idioma-seudo="en" aria-pressed="false">In English</button>
+    </div>
+  </section>
+  <section>
+    <h3>Edición sin teclado</h3>
+    <p class="nota">El botón con el teclado (⌨) cambia entre escribir y editar por bloques. Sin teclado, un toque elige un elemento entero (textos con sus comillas, comentarios completos), el doble toque amplía la selección y arrastrar copia un valor sobre un hueco o mueve líneas.</p>
+    <label class="ajuste-campo">Asa para mover líneas
+      <select id="ajustes-asa">
+        <option value="numero">En el número de línea</option>
+        <option value="borde">En el borde derecho</option>
+      </select>
+    </label>
+    <p>Barra de edición</p>
+    <button class="btn chico" id="ajustes-orden-barra" type="button" aria-haspopup="dialog" aria-controls="orden-barra">Ordenar botones y grupos…</button>
   </section>
   <section>
     <h3>Confirmaciones</h3>
@@ -254,6 +288,17 @@
   </section>
 </dialog>
 
+<!-- Orden de la barra de edición (edicion.js): se abre desde Ajustes y se ordena arrastrando -->
+<dialog id="orden-barra" class="ajustes orden-barra" aria-labelledby="orden-titulo">
+  <header class="hoja-cab">
+    <h2 id="orden-titulo">Barra de edición</h2>
+    <button class="cerrar" id="orden-cerrar" type="button" aria-label="Cerrar">×</button>
+  </header>
+  <p class="nota">Arrastra un botón para cambiarlo de sitio o llevarlo a otro grupo. Arrastra el asa ⋮⋮ de un grupo para mover el grupo entero. Suelta un botón en «Grupo nuevo» para separarlo.</p>
+  <div class="orden-grupos" id="orden-grupos"></div>
+  <div class="fila-botones"><button class="btn chico" id="orden-restaurar" type="button">Restaurar el orden de fábrica</button></div>
+</dialog>
+
 <dialog id="confirmar-replace" aria-labelledby="replace-titulo" aria-describedby="replace-texto">
   <form method="dialog">
     <h2 id="replace-titulo">¿Sustituir los programas?</h2>
@@ -268,7 +313,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
-<script src="js/iconos.js?v=2" charset="utf-8"></script>
-<script src="js/juego.js?v=7" charset="utf-8"></script>
-<script src="js/layout.js?v=8" charset="utf-8"></script>
+<script src="js/iconos.js?v=3" charset="utf-8"></script>
+<script src="js/juego.js?v=11" charset="utf-8"></script>
+<script src="js/layout.js?v=9" charset="utf-8"></script>
+<script src="js/estructura.js?v=1" charset="utf-8"></script>
+<script src="js/edicion.js?v=10" charset="utf-8"></script>
+<script src="js/seudo.js?v=1" charset="utf-8"></script>
 

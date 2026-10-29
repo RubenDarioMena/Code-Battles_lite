@@ -361,7 +361,9 @@ onmessage = async (ev) => {
   const FN_PROPIAS = new Set(["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
   const FN_MIEMBRO = new Set(["autoTarget", "regularShoot", "burstFire", "stopFire", "detect", "log", "info", "warn", "error"]);
   const PROPS = new Set(["failureRate", "missiles", "mode", "jammed", "fireRate", "sensors", "target", "count"]);
-  const HUECO = /^\/\*\s*(tipo|sensor|lugar)\s*\*\/$/;
+  // Nombres de los huecos /* … */ que dejan las plantillas y el modo sin teclado.
+  const NOMBRES_HUECO = "tipo de enemigo|tipo|sensor|lugar|condición|segundos|mensaje|valor";
+  const HUECO = new RegExp(`^\\/\\*\\s*(${NOMBRES_HUECO})\\s*\\*\\/$`);
   const RE_ID = /[A-Za-z_$][\w$]*/y, RE_NUM = /0x[0-9a-f]+|\d*\.?\d+(?:e[+-]?\d+)?/iy;
   function lexico(src) {
     const out = []; const n = src.length; let i = 0;
@@ -680,7 +682,7 @@ onmessage = async (ev) => {
   function revisar(src) {
     const lineas = src.split("\n");
     for (let i = 0; i < lineas.length; i++) {
-      const m = lineas[i].match(/\/\*\s*(tipo de enemigo|tipo|sensor|lugar)\s*\*\//);
+      const m = lineas[i].match(new RegExp(`\\/\\*\\s*(${NOMBRES_HUECO})\\s*\\*\\/`));
       if (m && !/^\s*\/\//.test(lineas[i])) return { linea: i + 1, mensaje: `Rellena el hueco /* ${m[1]} */ antes de ejecutar. Doble clic en un valor del inspector lo pone en su lugar.` };
     }
     if (typeof acorn !== "undefined") {
@@ -2096,7 +2098,10 @@ onmessage = async (ev) => {
     $("acciones-multi").hidden = !edicion.mixto;
     $("multi-estado").textContent = `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
     pintarProgs(); medirEditor(); pintarEdicion(); marcasSucias = true;
+    // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
+    $codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: claveDocumento() } }));
   }
+  const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}`;
   const CLAVE_CONFIRMAR_REPLACE = "cmg-juego-confirmar-replace";
   let confirmarReplace = (() => { try { return localStorage.getItem(CLAVE_CONFIRMAR_REPLACE) !== "false"; } catch { return true; } })();
   function preferirConfirmacionReplace(valor) {
@@ -2156,10 +2161,15 @@ onmessage = async (ev) => {
     $codigo.readOnly = !!ejec;
     for (const id of ["b-add", "b-replace", "b-coordenadas", "coordenadas"]) $(id).disabled = !!ejec;
     marcasSucias = true;
+    $codigo.dispatchEvent(new CustomEvent("cmg:estado"));
   }
 
   // ---------- Editor de texto ----------
-  const $codigo = $("codigo"), $gutter = $("gutter"), $banda = $("banda"), $espejo = $("espejo"), $resaltado = $("resaltado");
+  const $codigo = $("codigo"), $gutter = $("gutter"), $banda = $("banda"), $espejo = $("espejo"), $resaltado = $("resaltado"), $bloques = $("bloques");
+  // En modo sin teclado (edicion.js) el textarea sigue guardando valor y selección, pero queda oculto:
+  // la vista de bloques es la que se ve y se desplaza.
+  const sinTecladoActivo = () => $editor.classList.contains("sin-teclado");
+  const desplazamiento = () => sinTecladoActivo() ? $bloques.scrollTop : $codigo.scrollTop;
   let alturas = [];
   function medirEditor() {
     const lineas = $codigo.value.split("\n");
@@ -2169,6 +2179,7 @@ onmessage = async (ev) => {
     $gutter.innerHTML = alturas.map((h, i) => `<div style="height:${h}px">${i + 1}</div>`).join("");
     pintarResaltado();
     pintarBanda();
+    $codigo.dispatchEvent(new CustomEvent("cmg:medido"));
   }
   function pintarResaltado() {
     if (!colores) return;
@@ -2181,7 +2192,7 @@ onmessage = async (ev) => {
   }
   function sincronizarScroll() {
     $resaltado.style.transform = `translate(${-$codigo.scrollLeft}px, ${-$codigo.scrollTop}px)`;
-    $gutter.style.transform = `translateY(${-$codigo.scrollTop}px)`;
+    $gutter.style.transform = `translateY(${-desplazamiento()}px)`;
   }
   const pad = () => parseFloat(getComputedStyle($codigo).paddingTop) || 10;
   function pintarBanda() {
@@ -2190,20 +2201,22 @@ onmessage = async (ev) => {
     $banda.className = `banda ${l ? (err ? "err" : "corre") : ""}`;
     if (l && alturas.length >= l) {
       const top = alturas.slice(0, l - 1).reduce((a, b) => a + b, 0);
-      $banda.style.top = `${pad() + top - $codigo.scrollTop}px`;
+      $banda.style.top = `${pad() + top - desplazamiento()}px`;
       $banda.style.height = `${alturas[l - 1]}px`;
     }
     [...$gutter.children].forEach((d, i) => d.className = i + 1 === err ? "err" : i + 1 === corre ? "corre" : "");
     sincronizarScroll();
+    $codigo.dispatchEvent(new CustomEvent("cmg:marcas"));
   }
   function pintarMarcasYa() { marcasSucias = false; pintarBanda(); pintarProgs(); }
   function irALinea(l) {
     abrirPestana("programa");
-    $codigo.focus();
+    if (!sinTecladoActivo()) $codigo.focus();
     if (!l) return;
     const lineas = $codigo.value.split("\n");
     let pos = 0; for (let i = 0; i < l - 1 && i < lineas.length; i++) pos += lineas[i].length + 1;
     $codigo.setSelectionRange(pos, pos + (lineas[l - 1] || "").length);
+    $codigo.dispatchEvent(new CustomEvent("cmg:seleccion"));
   }
   $codigo.addEventListener("input", () => {
     if (!edicion.mixto) for (const id of edicion.ids) programas[id] = $codigo.value;
@@ -2215,9 +2228,13 @@ onmessage = async (ev) => {
   $codigo.addEventListener("scroll", pintarBanda);
   // Localiza el carácter bajo el puntero con las mismas métricas y ajuste de línea del textarea.
   // Así las comillas y los delimitadores contiguos no dependen de dónde deje el caret el navegador.
+  // Se copian las propiedades sueltas: con font-variant-ligatures: none el atajo «font» calculado
+  // queda vacío y el espejo heredaba la letra proporcional del body (un clic caía en otro argumento).
+  const METRICAS_TEXTO = ["fontFamily", "fontSize", "fontWeight", "fontStyle", "fontStretch", "fontVariantLigatures", "fontFeatureSettings", "fontVariationSettings", "fontKerning",
+    "lineHeight", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "boxSizing", "whiteSpace", "overflowWrap", "wordBreak", "tabSize", "letterSpacing", "wordSpacing", "textIndent", "textTransform"];
   function caracterCodigo(ev) {
     const r = $codigo.getBoundingClientRect(), cs = getComputedStyle($codigo), espejo = document.createElement("div");
-    for (const k of ["font", "lineHeight", "padding", "boxSizing", "whiteSpace", "overflowWrap", "wordBreak", "tabSize", "letterSpacing", "fontVariantLigatures"]) espejo.style[k] = cs[k];
+    for (const k of METRICAS_TEXTO) espejo.style[k] = cs[k];
     Object.assign(espejo.style, { position: "fixed", left: `${r.left}px`, top: `${r.top}px`, width: `${$codigo.clientWidth}px`, height: `${$codigo.clientHeight}px`, overflow: "hidden", opacity: "0", pointerEvents: "none" });
     const texto = document.createTextNode($codigo.value);
     espejo.append(texto); document.body.append(espejo);
@@ -2277,7 +2294,7 @@ onmessage = async (ev) => {
   });
   // Inserta con execCommand para que Ctrl+Z lo deshaga; si el navegador no lo permite, cambia el valor a mano.
   const tactil = matchMedia("(pointer: coarse)");
-  const sinTeclado = () => tactil.matches && document.activeElement !== $codigo;
+  const sinTeclado = () => sinTecladoActivo() || (tactil.matches && document.activeElement !== $codigo);
   function insertar(texto, selDesde, selHasta) {
     if ($codigo.readOnly) return false;
     const quieto = sinTeclado();
@@ -2294,7 +2311,7 @@ onmessage = async (ev) => {
     else $codigo.setSelectionRange(a + texto.length, a + texto.length);
     return true;
   }
-  const RE_HUECO = /\/\*\s*(?:tipo de enemigo|tipo|sensor|lugar|condición)\s*\*\//;
+  const RE_HUECO = new RegExp(`\\/\\*\\s*(?:${NOMBRES_HUECO})\\s*\\*\\/`);
   function seleccionarHueco() {
     const v = $codigo.value, p = $codigo.selectionEnd;
     const finLinea = v.indexOf("\n", p) < 0 ? v.length : v.indexOf("\n", p);
@@ -2305,6 +2322,7 @@ onmessage = async (ev) => {
   function insertarRef(ins, fin) {
     abrirPestana("programa");
     if (ejec) { avisoEditor("Detén el programa para editarlo."); return; }
+    if ($("app").dataset.modo === "pseudo") { avisoEditor("En seudocódigo toca un valor del programa para cambiarlo, o usa los ladrillos."); return; }
     const v = $codigo.value, a = $codigo.selectionStart, b = $codigo.selectionEnd;
     const finLinea = v.indexOf("\n", b) < 0 ? v.length : v.indexOf("\n", b);
     let texto = ins;
@@ -2345,7 +2363,9 @@ onmessage = async (ev) => {
     const ini = v.lastIndexOf("\n", a - 1) + 1;
     const fin = v.indexOf("\n", a) === -1 ? v.length : v.indexOf("\n", a);
     const linea = v.slice(ini, fin);
-    const sangria = linea.match(/^\s*/)[0] + (/\{\s*$/.test(linea) ? "  " : "");
+    // En una línea vacía la sangría sale de la línea anterior (sin teclado no hay espacios escritos).
+    const guia = linea.trim() ? linea : v.slice(0, ini).split("\n").slice(0, -1).reverse().find(l => l.trim()) ?? linea;
+    const sangria = guia.match(/^\s*/)[0] + (/\{\s*$/.test(guia) ? "  " : "");
     const texto = bloque.split("\n").map((l, i) => (i ? sangria : "") + l).join("\n");
     const h = texto.search(RE_HUECO), hueco = texto.indexOf("\n" + sangria + "  \n");
     const pos = h >= 0 ? h : hueco === -1 ? texto.length : hueco + 1 + sangria.length + 2;
@@ -2385,15 +2405,35 @@ onmessage = async (ev) => {
 
   // Atajos de escritura
   // "|" separa grupos: control de flujo · órdenes del lanzador · avisos.
+  // Los que llevan variantes las muestran al mantenerlos pulsados (o con clic derecho);
+  // un toque corto usa la forma principal. Así cabe más del lenguaje en la misma paleta.
   const ATAJOS = [
     { ico: "comentar", t: "Comentar", cod: "// …  (Ctrl+/)", comentar: true },
     "|",
-    { ico: "whileTrue", t: "While true", b: "while (true) {\n  \n  await esperar(0.5);\n}", envolvente: ["while (true) {\n", "\n}"] },
-    { ico: "mientras", t: "While", b: "while (/* condición */) {\n  \n  await esperar(0.5);\n}", envolvente: ["while (/* condición */) {\n", "\n}"] },
-    { ico: "siNo", t: "If / else", b: "if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else {\n    \n}"] },
-    { ico: "plan", t: "Si no hay (??)", enLinea: " ?? " },
+    { ico: "whileTrue", t: "While true", b: "while (true) {\n  \n  await esperar(0.5);\n}", envolvente: ["while (true) {\n", "\n}"], variantes: [
+      { ico: "mientras", t: "While", b: "while (/* condición */) {\n  \n  await esperar(0.5);\n}", envolvente: ["while (/* condición */) {\n", "\n}"] },
+      { ico: "para", t: "For", b: "for (let i = 0; i < 3; i++) {\n  \n}", envolvente: ["for (let i = 0; i < 3; i++) {\n", "\n}"] },
+      { ico: "hacer", t: "Do … while", b: "do {\n  \n  await esperar(0.5);\n} while (/* condición */);", envolvente: ["do {\n", "\n} while (/* condición */);"] },
+      { ico: "salir", t: "Salir del bucle", b: "break;" },
+    ] },
+    { ico: "siNo", t: "If / else", b: "if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else {\n    \n}"], variantes: [
+      { ico: "si", t: "If", b: "if (/* condición */) {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n}"] },
+      { ico: "siSino", t: "If / else if", b: "if (/* condición */) {\n  \n} else if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else if (/* condición */) {\n    \n} else {\n    \n}"] },
+    ] },
+    { ico: "plan", t: "Si no hay (??)", operador: "??", variantes: [
+      { ico: "y", t: "Y (&&)", operador: "&&", hueco: "condición" },
+      { ico: "o", t: "O (||)", operador: "||", hueco: "condición" },
+      { ico: "no", t: "No (!)", operador: "!", prefijo: true },
+      { ico: "igual", t: "Igual (===)", operador: "===" },
+      { ico: "distinto", t: "Distinto (!==)", operador: "!==" },
+      { ico: "mayor", t: "Mayor (>)", operador: ">" },
+      { ico: "menor", t: "Menor (<)", operador: "<" },
+    ] },
     { ico: "esperar", t: "Esperar", b: "await esperar(0.5);" },
-    { ico: "variable", t: "Variable", enLinea: "const pos = " },
+    { ico: "variable", t: "Variable", enLinea: "const pos = ", variantes: [
+      { ico: "variableLet", t: "Variable que cambia (let)", enLinea: "let valor = " },
+      { ico: "asignar", t: "Asignar (=)", operador: "=" },
+    ] },
     "|",
     { ico: "apuntar", t: "Apuntar", b: "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);" },
     { ico: "disparo", t: "Disparo", b: "regularShoot(/* lugar */);" },
@@ -2401,29 +2441,195 @@ onmessage = async (ev) => {
     { ico: "detener", t: "Detener", b: "stopFire();" },
     { ico: "sensor", t: "Sensor de vibración", b: () => `const pos = ${varDe(mundo.sensores[0].id)}.detect(/* tipo de enemigo */);`, si: () => mundo && mundo.sensores.length },
     "|",
-    { ico: "aviso", t: "Aviso", b: "console.warn(/* condición */);" },
+    { ico: "aviso", t: "Aviso", b: "console.warn(/* mensaje */);", variantes: [
+      { ico: "registro", t: "Registro (console.log)", b: "console.log(/* mensaje */);" },
+      { ico: "info", t: "Info (console.info)", b: "console.info(/* mensaje */);" },
+      { ico: "errorCons", t: "Error (console.error)", b: "console.error(/* mensaje */);" },
+    ] },
   ];
   const textoAtajo = (a) => typeof a.b === "function" ? a.b() : a.b;
+  const codAtajo = (a) => a.cod || (a.operador ? a.operador : a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
+  const estiloIcono = (ico) => `--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}`;
   function pintarPaleta() {
     const I = window.ICONOS || {};
+    cerrarVariantes();
     $("paleta").innerHTML = ATAJOS.map((a, i) => {
       if (a === "|") return `<span class="sep-pal" aria-hidden="true"></span>`;
       if (a.si && !a.si()) return "";
       const ico = I[a.ico] || { svg: "", c1: "#7FA3FF" };
-      const cod = a.cod || (a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
-      return `<button type="button" class="atajo" data-i="${i}" aria-label="${esc(a.t)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(cod)}" style="--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}">${ico.svg}</button>`;
+      const mas = a.variantes ? ` · mantén para ${a.variantes.length} variantes` : "";
+      return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}" data-i="${i}" aria-label="${esc(a.t + mas)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
     }).join("");
   }
-  $("paleta").addEventListener("pointerdown", (ev) => { if (ev.target.closest(".atajo")) ev.preventDefault(); });
-  $("paleta").addEventListener("click", (ev) => {
-    const b = ev.target.closest(".atajo"); if (!b) return;
+  // Operadores: con algo elegido lo usan de primer operando y dejan elegido el hueco del segundo;
+  // «!» lo niega. Sin selección se escriben donde está el cursor.
+  function insertarOperador(a) {
+    const s = $codigo.selectionStart, e = $codigo.selectionEnd;
+    if (s === e) return insertar(a.prefijo ? a.operador : ` ${a.operador} `);
+    const elegido = $codigo.value.slice(s, e);
+    if (a.prefijo) {
+      const negado = a.operador + (/[\s&|<>=!?+\-*/%]/.test(elegido.replace(/^\/\*.*\*\/$/, "")) ? `(${elegido})` : elegido);
+      return insertar(negado, 0, negado.length);
+    }
+    const hueco = `/* ${a.hueco || "valor"} */`, texto = `${elegido} ${a.operador} ${hueco}`;
+    if (RE_HUECO.test(elegido) && elegido.match(RE_HUECO)[0] === elegido) return insertar(texto, 0, elegido.length);
+    insertar(texto, texto.length - hueco.length, texto.length);
+  }
+  function usarAtajo(a) {
     if (ejec) return avisoEditor("Detén el programa para editarlo.");
-    const a = ATAJOS[+b.dataset.i];
     insercion.atajo++;
     if (a.comentar) alternarComentario();
-    else if (a.enLinea) insertar(a.enLinea);
+    else if (a.operador) insertarOperador(a);
+    else if (a.enLinea) {
+      // Con algo elegido, «const pos = » lo toma como valor inicial.
+      if ($codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea)) envolver(a.enLinea, "");
+      else insertar(a.enLinea);
+    }
     else insertarBloque(textoAtajo(a), a.envolvente);
+  }
+  // Variantes: mantener pulsado ~0,45 s (o clic derecho) abre un menú encima del atajo.
+  // Se puede soltar el dedo directamente sobre una variante o tocarla después.
+  const $variantes = document.createElement("div");
+  $variantes.className = "variantes"; $variantes.hidden = true; $variantes.setAttribute("role", "menu");
+  document.body.append($variantes);
+  let pulsado = null, variantesDe = -1, suprimirClic = false;
+  function abrirVariantes(b, porPulsacion) {
+    const i = +b.dataset.i, a = ATAJOS[i], I = window.ICONOS || {};
+    if (variantesDe === i && !$variantes.hidden) return;
+    variantesDe = i;
+    $variantes.innerHTML = [a, ...a.variantes].map((v, j) => {
+      const ico = I[v.ico] || { svg: "", c1: "#7FA3FF" };
+      return `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${j}" data-tip="${esc(v.t)}" data-tip-cod="${esc(codAtajo(v))}" style="${estiloIcono(ico)}">${ico.svg}<span>${esc(v.t)}</span></button>`;
+    }).join("");
+    $variantes.hidden = false;
+    const r = b.getBoundingClientRect(), m = $variantes.getBoundingClientRect();
+    let x = r.left + r.width / 2 - m.width / 2, y = r.top - m.height - 8;
+    if (y < 6) y = r.bottom + 8;
+    x = Math.max(6, Math.min(innerWidth - m.width - 6, x));
+    $variantes.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    b.classList.add("abierto");
+    if (porPulsacion && navigator.vibrate) navigator.vibrate(12);
+  }
+  function cerrarVariantes() {
+    if ($variantes.hidden) return;
+    $variantes.hidden = true; variantesDe = -1;
+    document.querySelectorAll(".atajo.abierto").forEach(x => x.classList.remove("abierto"));
+  }
+  const varianteEn = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest && el.closest(".variante"); };
+  function elegirVariante(boton) {
+    const a = ATAJOS[variantesDe], j = +boton.dataset.v;
+    cerrarVariantes();
+    if (a) usarAtajo(j ? a.variantes[j - 1] : a);
+  }
+  // pointerdown sin foco: en el teléfono el textarea conserva el foco y el teclado no se cierra.
+  $("paleta").addEventListener("pointerdown", (ev) => {
+    const b = ev.target.closest(".atajo"); if (!b) return;
+    ev.preventDefault();
+    const a = ATAJOS[+b.dataset.i];
+    if (!a.variantes || ev.button > 0) return;
+    pulsado = { b, id: ev.pointerId, x: ev.clientX, y: ev.clientY, abierto: false };
+    pulsado.t = setTimeout(() => { if (pulsado) { pulsado.abierto = true; abrirVariantes(b, true); } }, 450);
   });
+  document.addEventListener("pointermove", (ev) => {
+    if (!pulsado || ev.pointerId !== pulsado.id) return;
+    if (!pulsado.abierto) { if (Math.hypot(ev.clientX - pulsado.x, ev.clientY - pulsado.y) > 12) { clearTimeout(pulsado.t); pulsado = null; } return; }
+    const v = varianteEn(ev.clientX, ev.clientY);
+    $variantes.querySelectorAll(".variante").forEach(x => x.classList.toggle("activa", x === v));
+  });
+  const soltarPulsado = (ev) => {
+    if (!pulsado || ev.pointerId !== pulsado.id) return;
+    clearTimeout(pulsado.t);
+    if (pulsado.abierto) {
+      suprimirClic = true;
+      const v = ev.type === "pointerup" && varianteEn(ev.clientX, ev.clientY);
+      if (v) elegirVariante(v);
+    }
+    pulsado = null;
+  };
+  document.addEventListener("pointerup", soltarPulsado);
+  document.addEventListener("pointercancel", soltarPulsado);
+  $("paleta").addEventListener("contextmenu", (ev) => {
+    const b = ev.target.closest(".atajo.con-variantes"); if (!b) return;
+    ev.preventDefault();
+    if (pulsado) { clearTimeout(pulsado.t); pulsado.abierto = true; }
+    abrirVariantes(b, false);
+  });
+  $variantes.addEventListener("pointerdown", (ev) => ev.preventDefault());
+  $variantes.addEventListener("click", (ev) => { const v = ev.target.closest(".variante"); if (v) elegirVariante(v); });
+  document.addEventListener("pointerdown", (ev) => { if (!$variantes.hidden && !ev.target.closest(".variantes, .atajo.abierto")) cerrarVariantes(); }, true);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") cerrarVariantes(); });
+  $("paleta").addEventListener("scroll", cerrarVariantes, { passive: true });
+  $("paleta").addEventListener("click", (ev) => {
+    const b = ev.target.closest(".atajo"); if (!b) return;
+    if (suprimirClic) { suprimirClic = false; return; }
+    cerrarVariantes();
+    usarAtajo(ATAJOS[+b.dataset.i]);
+  });
+
+  // ---------- Sugerencias para huecos, argumentos y condiciones ----------
+  // Salen de los datos de la máquina cuyo programa se edita, como los del inspector:
+  // sus sensores, los enemigos del reto, sus propiedades y la red de sensores.
+  const FIRMAS = {
+    autoTarget: ["tipo de enemigo", "sensor"], detect: ["tipo de enemigo"], regularShoot: ["lugar"], burstFire: ["lugar"], stopFire: [],
+    esperar: ["segundos"], log: ["mensaje"], info: ["mensaje"], warn: ["mensaje"], error: ["mensaje"],
+  };
+  const OPERADORES_COND = [["&&", "y · se cumplen las dos", "condición"], ["||", "o · basta una", "condición"], ["!", "no · lo contrario", "condición"],
+    ["===", "igual", "valor"], ["!==", "distinto", "valor"], [">", "mayor", "valor"], ["<", "menor", "valor"], [">=", "mayor o igual", "valor"], ["<=", "menor o igual", "valor"]];
+  function sugerencias(c) {
+    const clase = c.hueco ? (c.hueco === "tipo" ? "tipo de enemigo" : c.hueco)
+      : c.tipo === "argumento" ? (FIRMAS[c.funcion] || [])[c.indice]
+      : c.tipo === "condicion" ? "condición" : c.tipo === "valor" ? "valor" : null;
+    if (!clase || !def) return null;
+    const it = (ins, cls, nota, ver) => ({ ins, cls, nota, ver });
+    const enReto = new Set(def.oleadas.map(o => o.tipo));
+    const vars = (c.variables || []).map(v => it(v, "var", "variable del programa"));
+    const red = mundo ? mundo.sensores : [];
+    const donde = c.funcion ? `${c.objeto ? c.objeto + "." : ""}${c.funcion}(…) · ${c.indice + 1}.º valor` : "";
+    switch (clase) {
+      case "tipo de enemigo": {
+        const oye = c.funcion === "detect";
+        const tipos = Object.keys(TIPOS).sort((x, y) => enReto.has(y) - enReto.has(x));
+        return { titulo: "Tipo de enemigo", donde, grupos: [{ items: tipos.map(t => it(`"${t}"`, "str", `${TIPOS[t].nombre}${enReto.has(t) ? " · en este reto" : ""}${oye && !TIPOS[t].suelo ? " · no se oye" : ""}`)) }] };
+      }
+      case "sensor":
+        return { titulo: "Sensor", donde, grupos: [{ items: Object.keys(SENSOR).map(s => it(`"${s}"`, "str", `${SENSOR[s].nombre} · alcance ${def.niebla ? SENSOR[s].niebla : SENSOR[s].alcance}`)) }] };
+      case "lugar": {
+        const manual = $("coordenadas").value.trim();
+        return { titulo: "Lugar", donde, grupos: [
+          { titulo: "Del programa", items: vars },
+          { titulo: "Apuntar ahora", items: [...enReto].map(t => it(`autoTarget("${t}", "visual")`, "fn", TIPOS[t].nombre)) },
+          { titulo: "Red de sensores", items: red.map(s => it(`${varDe(s.id)}.detect("crawler")`, "fn", "posición actual")) },
+          { titulo: "Otros", items: [it("target", "prop", "a donde apunta ahora"), it("null", "kw", "deja de disparar"), ...(manual ? [it(manual, "num", "lugar manual")] : [])] },
+        ] };
+      }
+      case "condición":
+        return { titulo: "Condición", donde, grupos: [
+          { titulo: "Comprobar", items: [
+            ...(c.variables || []).flatMap(v => [it(v, "var", "existe (no es null)"), it(`${v} === null`, "var", "no hay")]),
+            it("!jammed", "prop", "no está atascado"), it("jammed", "prop", "está atascado"), it("missiles > 0", "prop", "quedan misiles"),
+            it("failureRate < 0.25", "prop", "fallo bajo"), it("failureRate >= 0.35", "prop", "fallo alto"), it('mode === "burst"', "prop", "en ráfaga"),
+            ...red.map(s => it(`${varDe(s.id)}.count > 0`, "fn", "oye enemigos")),
+            it("true", "kw", "siempre"),
+          ] },
+          { titulo: "Combinar o comparar", items: OPERADORES_COND.map(([op, nota, h]) => it(op === "!" ? `!/* ${h} */` : `/* ${h} */ ${op} /* ${h} */`, "op", nota, op)) },
+        ] };
+      case "valor":
+        return { titulo: "Valor", donde, grupos: [
+          { titulo: "Propiedades", items: [it("failureRate", "prop", "0 a 1"), it("missiles", "prop", `0 a ${def.cargador}`), it("fireRate", "prop", "disparos/s"), it("mode", "prop", '"idle", "regular" o "burst"'), ...red.map(s => it(`${varDe(s.id)}.count`, "fn", "enemigos oídos"))] },
+          { titulo: "Del programa", items: vars },
+          { titulo: "Números y textos", items: [it("0", "num"), it("0.25", "num"), it("0.35", "num"), it("1", "num"), it('"idle"', "str"), it('"regular"', "str"), it('"burst"', "str"), it("null", "kw")] },
+        ] };
+      case "segundos":
+        return { titulo: "Segundos de espera", donde, grupos: [{ items: [["0.1", "muy rápido"], ["0.25", ""], ["0.4", ""], ["0.5", "lo habitual"], ["1", ""], ["2", "lento"]].map(([n, nota]) => it(n, "num", nota)) }] };
+      case "mensaje":
+        return { titulo: "Mensaje", donde, grupos: [
+          { titulo: "Datos de la máquina", items: [it("failureRate", "prop"), it("missiles", "prop"), it("mode", "prop"), it("target", "prop")] },
+          { titulo: "Del programa", items: vars },
+          { titulo: "Textos", items: [it('"Atascado"', "str"), it('"Sin misiles"', "str"), it('"Fallo alto"', "str")] },
+        ] };
+    }
+    return null;
+  }
   $("b-colores").setAttribute("aria-pressed", colores);
   $editor.classList.toggle("colores", colores);
   $("b-colores").addEventListener("click", () => {
@@ -2490,6 +2696,17 @@ onmessage = async (ev) => {
         <li>Doble clic sobre cualquier palabra de color la inserta en el programa abierto. Las funciones llegan con huecos <span class="r">/* tipo de enemigo */</span> ya seleccionados: el siguiente doble clic en un valor los rellena.</li>
       </ul>
       <div class="leyenda-tk"><span class="tk-var">máquina</span><span class="tk-fn">función</span><span class="tk-prop">propiedad</span><span class="tk-num">número</span><span class="tk-str">texto</span></div>
+      <h3>Editar sin teclado</h3>
+      <ul>
+        <li>El botón del teclado (junto a la letra en PC, al principio de la barra de edición en el teléfono) cambia a edición por bloques. Tachado y en rojo, el teclado del teléfono no se abre.</li>
+        <li>Un toque elige un elemento entero: textos con sus comillas, comentarios completos, nombres y números. Una palabra clave o un signo eligen su construcción: el if, la llamada, la operación.</li>
+        <li>Doble toque amplía hasta el siguiente límite: <span class="r">"oro"</span> → <span class="r">entregar("oro")</span> → <span class="r">yo.entregar("oro")</span> → el if que lo contiene.</li>
+        <li>Arrastra un valor sobre un hueco, un argumento o dentro de ( ) o [ ]: se copia y el original se queda. Una línea completa se mueve; con Alt o Ctrl, se copia. Con el dedo, mantén pulsada la palabra antes de arrastrarla.</li>
+        <li>Las líneas se agarran por su número o por el borde derecho; se elige en Ajustes.</li>
+        <li>Al elegir un hueco <span class="r">/* … */</span> o un argumento aparecen los valores posibles de la máquina; en las condiciones, comprobaciones y operadores.</li>
+        <li>Mantén pulsado un ladrillo con la esquina marcada para ver sus variantes: while, for, do … while y break; if, if / else y else if; operadores; let; los niveles de console.</li>
+        <li>Seudocódigo (botón «Seudo»): el mismo programa como frases. Toca un valor para cambiarlo, toca un renglón para poner ahí el siguiente ladrillo y arrástralo para moverlo; soltado sobre la paleta se borra. Se guarda y ejecuta como JavaScript.</li>
+      </ul>
       <h3>Funciones del lanzador</h3>
       <p class="leccion" style="margin:0">En el programa de un lanzador, lo suyo se escribe sin prefijo. Lo de otra máquina lleva su nombre: <span class="r">LAU_02.failureRate</span>. En pantalla los nombres llevan guion (LAU-01); en el código, guion bajo.</p>
       ${f(`${k("fn", "autoTarget")}(tipo, sensor) → posición | null`, `Mira con ese sensor, elige el enemigo de ese tipo más cercano a la base y calcula dónde estará cuando llegue tu próximo misil. Devuelve <span class="r">{x, y, z, id, tipo}</span> o <span class="r">null</span>. No gasta tiempo. Ignora a los que ya tienen misiles suficientes en el aire.`)}
@@ -2657,7 +2874,19 @@ onmessage = async (ev) => {
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
   }; // para depurar y probar desde la consola
-  window.cmg = { insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); } };
+  window.cmg = { insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
+    // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
+    lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
+    get claveDocumento() { return claveDocumento(); },
+    // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
+    datos: () => ({
+      tipos: Object.entries(TIPOS).map(([id, t]) => ({ id, nombre: t.nombre, enReto: def.oleadas.some(o => o.tipo === id) })),
+      sensores: Object.entries(SENSOR).map(([id, x]) => ({ id, nombre: x.nombre, alcance: def.niebla ? x.niebla : x.alcance })),
+      red: mundo ? mundo.sensores.map(x => varDe(x.id)) : [],
+      otras: def.lanzadores.map(l => l.id).filter(id => !edicion.ids.includes(id)).map(varDe),
+    }),
+    inicial: () => edicion.mixto ? null : { texto: textoInicial(def, progSel), codigo: (def.inicial[progSel] || []).join("\n") + ((def.inicial[progSel] || []).length ? "\n" : "") },
+    get marcas() { return { corre: (!edicion.mixto && lineaCorre[progSel]) || null, err: !edicion.mixto && lineaErr && lineaErr.id === progSel ? lineaErr.linea : null }; } };
   pintarRuteo();
   pintarAyuda();
   def = defActual();

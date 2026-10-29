@@ -245,6 +245,16 @@
     window.cmg.insertar(texto, k.sel, k.sel);
   });
 
+  // ---------- Barras de una línea ----------
+  // La paleta y la barra de edición se deslizan; con ratón, la rueda vertical las mueve en horizontal.
+  for (const barra of [$("paleta"), $("edicion")]) {
+    barra.addEventListener("wheel", (ev) => {
+      if (Math.abs(ev.deltaY) <= Math.abs(ev.deltaX) || barra.scrollWidth <= barra.clientWidth) return;
+      ev.preventDefault();
+      barra.scrollLeft += ev.deltaY;
+    }, { passive: false });
+  }
+
   // ---------- Consola plegable (teléfono) ----------
   $("b-pie").addEventListener("click", () => {
     const pie = $("pie"), abierto = pie.dataset.abierto !== "true";

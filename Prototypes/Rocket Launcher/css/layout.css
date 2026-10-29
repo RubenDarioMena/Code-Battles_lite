@@ -127,7 +127,8 @@
   font-family: var(--f-display); font-stretch: 112%; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--muted);
 }
 .app[data-forma="movil"] .pie { gap: 4px; }
-.app[data-forma="movil"] .pie[data-abierto="false"] .consola { max-height: 2.3rem; min-height: 2.3rem; padding: 3px 8px; font-size: 12px; }
+/* Cerrada por defecto: solo queda el asa «Consola» y el código gana ese espacio. */
+.app[data-forma="movil"] .pie[data-abierto="false"] .consola { display: none; }
 .app[data-forma="movil"] .pie[data-abierto="false"] .caja,
 .app[data-forma="movil"] .pie[data-abierto="false"] > .fila-bajo { display: none; }
 .app[data-forma="movil"] .pie[data-abierto="true"] .pie-asa span { display: inline-block; transform: rotate(180deg); }
@@ -143,8 +144,8 @@
 .app.teclado[data-forma="movil"] .divisor { visibility: hidden; }
 .app.teclado[data-forma="movil"] .pie { display: none; }
 
-/* En PC la paleta se parte en dos filas antes que esconder iconos. */
-.app[data-forma="escritorio"] .paleta { flex-wrap: wrap; }
+/* Paleta y barra de edición: una sola línea cada una, deslizante (rueda, arrastre o dedo). */
+.paleta, .barra-edicion { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
 
 /* Conserva el divisor en el borde para poder recuperar el panel plegado. */
 .app[data-solo="codigo"] .zona-mapa,
@@ -183,3 +184,23 @@
   pointer-events: auto; border: 1px solid var(--bad); color: var(--bad);
   box-shadow: 0 0 5px var(--bad-soft); background: var(--surface);
 }
+
+/* Barra de edición: fija bajo la paleta en el teléfono (también con el teclado abierto);
+   en PC solo con el modo sin teclado, donde el teclado ya no copia ni pega. */
+.app[data-forma="movil"] .barra-edicion,
+.app[data-sin-teclado="true"] .barra-edicion { display: flex; }
+.app[data-forma="movil"] .barra-edicion { padding: 3px; gap: 3px; }
+.app[data-forma="movil"] .barra-edicion button { width: 38px; height: 32px; }
+/* El interruptor del teclado: en el teléfono vive en la barra; en PC, junto a la letra. */
+.app[data-forma="movil"] .herramientas .b-teclado { display: none; }
+.app[data-forma="escritorio"] .barra-edicion .b-teclado,
+.app[data-forma="escritorio"] .barra-edicion .grupo-ed.solo-teclado { display: none; }
+.app.teclado[data-forma="movil"] .barra-edicion { flex: none; }
+
+/* Seudocódigo: ocupa el sitio del editor; la barra de edición actúa sobre el renglón elegido. */
+#v-programa > .prog { flex: 1 1 auto; min-height: 9rem; }
+.app[data-forma="movil"] #v-programa > .prog { min-height: 5rem; }
+.app[data-modo="pseudo"] .barra-edicion { display: flex; }
+.app[data-modo="pseudo"] .b-teclado, .app[data-modo="pseudo"] .grupo-ed.solo-teclado,
+.app[data-modo="pseudo"] .barra-edicion [data-accion="linea"] { display: none; }
+.app[data-forma="movil"] .modos-codigo .mini { min-width: 0; }

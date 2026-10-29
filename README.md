@@ -36,7 +36,10 @@ Cada prototipo vive en su propia carpeta bajo `Prototypes/`, con `index.html`, `
 | `index.html` | Mapa, editor, inspector, Ajustes y diálogos. |
 | `js/juego.js` | Retos, simulación de paso fijo, programas en Web Workers, dibujo del mapa, selección y editor. |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil, barra de símbolos y tooltips. |
-| `js/iconos.js` | Iconos SVG de la paleta. |
+| `js/iconos.js` | Iconos SVG de la paleta y de sus variantes. |
+| `js/estructura.js` | Solo Rocket Launcher. Análisis tolerante del programa para editar por bloques: átomos, niveles semánticos, líneas, argumentos y destinos. Sin DOM. |
+| `js/edicion.js` | Solo Rocket Launcher. Modo sin teclado, barra de edición (y su orden en Ajustes), sugerencias, arrastre, asas de línea e historial de deshacer. |
+| `js/seudo.js` | Solo Rocket Launcher. Seudocódigo ES/EN traído de Tres vistas: traducción JavaScript ↔ árbol, renglones editables, ladrillos y arrastre. |
 | `css/base.css` | Colores, tipografía y apariencia común. |
 | `css/componentes.css` | Estilos de componentes. |
 | `css/layout.css` | Reparto y adaptación a pantalla/teclado. |
@@ -52,6 +55,12 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - Cuadro de selección: arrastre con el botón izquierdo en PC; en táctil, doble toque en el suelo y arrastrar con el segundo toque.
 - Cada máquina toma el color de su función principal (provisional). Sin seleccionar muestra un halo difuso; seleccionada, un círculo nítido y su nombre. `?poc=1` abre el selector de paleta, halo, brillo e intensidad.
 - Doble clic selecciona cadenas o comentarios `/* … */`. Los elementos envolventes rodean el código seleccionado con bloques, llamadas o pares de símbolos.
+- Modo sin teclado: el botón del teclado (junto a la letra en PC, primero de la barra de edición en el teléfono) se tacha en rojo y muestra el código como fichas sin abrir el teclado. Un toque elige un elemento entero (textos con comillas, comentarios completos); el doble toque amplía hasta el siguiente límite semántico. Los valores arrastrados se copian sobre un hueco, un argumento o dentro de `( )`/`[ ]`; las líneas se mueven por el número o por un asa en el borde derecho (Ajustes). El modo se recuerda por dispositivo.
+- Al elegir un hueco `/* … */`, un argumento vacío o (sin teclado) un valor de una llamada conocida aparece la lista de valores posibles: tipos, sensores, lugares, propiedades y operadores, según los datos de la máquina. Elegir uno pasa al siguiente hueco de la línea.
+- Barra de edición (deshacer, rehacer, cortar, copiar, pegar, borrar, ampliar/reducir selección, duplicar, subir/bajar, línea nueva): fija bajo la paleta en el teléfono; en PC con el modo sin teclado o el seudocódigo. Sin contexto seguro (IP de la red local) pegar usa lo último copiado en el juego. Ajustes → «Ordenar botones y grupos…» cambia el orden de grupos y botones arrastrándolos.
+- La paleta y la barra de edición ocupan una línea cada una y se deslizan (con ratón, la rueda las mueve). En el teléfono la consola empieza cerrada: solo queda su asa.
+- Seudocódigo (botones JS/Seudo junto a la letra o Ajustes → Lenguaje del programa, en español o inglés): el mismo programa como frases con valores que se eligen, ladrillos que se tocan o arrastran y la barra de edición sobre el renglón elegido. Se guarda y ejecuta como JavaScript; lo que aún no tiene seudocódigo se queda en JavaScript con un aviso.
+- Mantener pulsado un atajo con la esquina marcada (o clic derecho) abre sus variantes: while/for/do…while/break, if/if-else/else if, operadores, `let`/asignación y niveles de `console`.
 - Ajustes ofrece distribución automática o fija; posiciones del mapa independientes para izquierda/derecha y arriba/abajo, con vistas previas.
 - El divisor permite ocupar toda la pantalla con uno de los paneles y recuperar el otro mediante el asa.
 - Al escribir en móvil se prioriza la paleta. Las barras auxiliares se pliegan juntas; su botón flota con borde rojo. Las coordenadas manuales se activan en Ajustes.
@@ -70,6 +79,12 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 
 ```bash
 node pruebas/interaccion.cjs
+node --check "Prototypes/Rocket Launcher/js/juego.js"
+node --check "Prototypes/Rocket Launcher/js/layout.js"
+node --check "Prototypes/Rocket Launcher/js/iconos.js"
+node --check "Prototypes/Rocket Launcher/js/estructura.js"
+node --check "Prototypes/Rocket Launcher/js/edicion.js"
+node --check "Prototypes/Rocket Launcher/js/seudo.js"
 node --check "Prototypes/Tres vistas/js/juego.js"
 node --check "Prototypes/Tres vistas/js/layout.js"
 node --check "Prototypes/Tres vistas/js/iconos.js"

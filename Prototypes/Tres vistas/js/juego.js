@@ -1852,9 +1852,13 @@ onmessage = async (ev) => {
   $codigo.addEventListener("scroll", () => { pintarBanda(); pintarResaltado(); });
   // Localiza el carácter bajo el puntero con las mismas métricas y ajuste de línea del textarea.
   // Así las comillas y los delimitadores contiguos no dependen de dónde deje el caret el navegador.
+  // Se copian las propiedades sueltas: con font-variant-ligatures: none el atajo «font» calculado
+  // queda vacío y el espejo heredaba la letra proporcional del body (un clic caía en otro argumento).
+  const METRICAS_TEXTO = ["fontFamily", "fontSize", "fontWeight", "fontStyle", "fontStretch", "fontVariantLigatures", "fontFeatureSettings", "fontVariationSettings", "fontKerning",
+    "lineHeight", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "boxSizing", "whiteSpace", "overflowWrap", "wordBreak", "tabSize", "letterSpacing", "wordSpacing", "textIndent", "textTransform"];
   function caracterCodigo(ev) {
     const r = $codigo.getBoundingClientRect(), cs = getComputedStyle($codigo), espejo = document.createElement("div");
-    for (const k of ["font", "lineHeight", "padding", "boxSizing", "whiteSpace", "overflowWrap", "wordBreak", "tabSize", "letterSpacing", "fontVariantLigatures"]) espejo.style[k] = cs[k];
+    for (const k of METRICAS_TEXTO) espejo.style[k] = cs[k];
     Object.assign(espejo.style, { position: "fixed", left: `${r.left}px`, top: `${r.top}px`, width: `${$codigo.clientWidth}px`, height: `${$codigo.clientHeight}px`, overflow: "hidden", opacity: "0", pointerEvents: "none" });
     const texto = document.createTextNode($codigo.value);
     espejo.append(texto); document.body.append(espejo);

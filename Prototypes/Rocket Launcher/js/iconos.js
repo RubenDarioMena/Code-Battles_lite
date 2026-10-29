@@ -81,5 +81,84 @@
       <path class="s1" stroke-width="2.4" stroke-linejoin="round" d="M16 3.6l13 23.2H3z"/>
       <rect class="t2" x="14.8" y="11" width="2.4" height="9" rx="1.2"/>
       <circle class="t2" cx="16" cy="23.4" r="1.6"/>`) },
+
+    // ---------- Variantes (se abren manteniendo pulsado un atajo) ----------
+    para: { c1: "#4D9BFF", c2: "#F2C14E", svg: svg(`${flechasCiclo}
+      <text class="t2 letra" x="16" y="19.6" font-size="8.6" text-anchor="middle">×3</text>`) },
+
+    hacer: { c1: "#4CC38A", c2: "#F2C14E", svg: svg(`
+      <rect class="s1" stroke-width="2.2" x="5" y="4" width="22" height="9" rx="2"/>
+      <path class="s1" stroke-width="2.4" stroke-linecap="round" d="M16 13v4.4M26.6 23.6A10.6 10.6 0 0 1 5.4 23.6"/>
+      <path class="t1" d="M2.6 21.4l5.6.8-2.6 4.6z"/>
+      <path class="s2" stroke-width="2" stroke-linejoin="round" d="M16 16.4l4 4-4 4-4-4z"/>`) },
+
+    salir: { c1: "#F0645A", c2: "#E9EEF2", svg: svg(`
+      <path class="s1" stroke-width="2.6" stroke-linecap="round" d="M20.8 6.4A10.4 10.4 0 1 0 25.4 20"/>
+      <path class="s2" stroke-width="2.6" stroke-linecap="round" d="M15 16h13.4"/>
+      <path class="t2" d="M30 16l-5.4 4.2v-8.4z"/>`) },
+
+    si: { c1: "#F2C14E", c2: "#4CC38A", svg: svg(`
+      <path class="s1" stroke-width="2" stroke-linejoin="round" d="M16 2.2l5.6 5.6-5.6 5.6-5.6-5.6z"/>
+      <text class="t1 letra" x="16" y="10.4" font-size="7" text-anchor="middle">?</text>
+      <path class="s1" stroke-width="2" stroke-linecap="round" d="M16 13.4v4.2"/>
+      <rect class="s2" stroke-width="2" x="10.6" y="17.6" width="10.8" height="10.2" rx="2"/>
+      <path class="s2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M13.4 22.8l2.1 2.1 3.2-4"/>`) },
+
+    siSino: { c1: "#F2C14E", c2: "#4CC38A", c3: "#F0645A", svg: svg(`
+      <path class="s1" stroke-width="2" stroke-linejoin="round" d="M16 1.8l5 5-5 5-5-5z"/>
+      <text class="t1 letra" x="16" y="9.3" font-size="6.2" text-anchor="middle">?</text>
+      <path class="s1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M11 6.8H5.2v10.6M16 11.8v5.6M21 6.8h5.8v10.6"/>
+      <rect class="s2" stroke-width="1.8" x="1.6" y="18.6" width="7.4" height="8" rx="1.6"/>
+      <path class="s1" stroke-width="1.8" stroke-linejoin="round" d="M16 18.2l3.4 3.4-3.4 3.4-3.4-3.4z"/>
+      <rect class="s3" stroke-width="1.8" x="23" y="18.6" width="7.4" height="8" rx="1.6"/>`) },
+
+    y: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="21" font-size="14" text-anchor="middle" letter-spacing="-1.5">&amp;&amp;</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    o: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="21.4" font-size="16" text-anchor="middle" letter-spacing="1">||</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    no: { c1: "#F0645A", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="22" font-size="19" text-anchor="middle">!</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    igual: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.6" font-size="12" text-anchor="middle" letter-spacing="-1.6">===</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    distinto: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.6" font-size="12" text-anchor="middle" letter-spacing="-1.6">!==</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    mayor: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <path class="s1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M10 8.4l12 7.6-12 7.6"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 28h22"/>`) },
+
+    menor: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <path class="s1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M22 8.4L10 16l12 7.6"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 28h22"/>`) },
+
+    variableLet: { c1: "#B7C2CC", c2: "#F2C14E", svg: svg(`
+      <path class="s1" stroke-width="2.2" stroke-linejoin="round" d="M4.6 11.2h22.8v16.2H4.6zM4.6 11.2l3.2-5.4h16.4l3.2 5.4"/>
+      <path class="s2" stroke-width="2.2" stroke-linecap="round" d="M10 19.4h9M15.8 15.8l3.6 3.6-3.6 3.6"/>`) },
+
+    asignar: { c1: "#B7C2CC", c2: "#F2C14E", svg: svg(`
+      <rect class="s1" stroke-width="2.2" x="15.6" y="9" width="12.4" height="14" rx="1.6"/>
+      <path class="s2" stroke-width="2.6" stroke-linecap="round" d="M3.6 13.6h8.4M3.6 18.4h8.4"/>`) },
+
+    registro: { c1: "#9CC8FF", c2: "#E3ECFF", svg: svg(`
+      <path class="s1" stroke-width="2.4" stroke-linejoin="round" d="M5.5 5h21a2.5 2.5 0 0 1 2.5 2.5v12.5a2.5 2.5 0 0 1-2.5 2.5H14l-6.5 5v-5H5.5A2.5 2.5 0 0 1 3 20V7.5A2.5 2.5 0 0 1 5.5 5z"/>
+      <path class="s2" stroke-width="2.2" stroke-linecap="round" d="M8.6 11h14.8M8.6 16h9.4"/>`) },
+
+    info: { c1: "#7FA3FF", c2: "#E3ECFF", svg: svg(`
+      <circle class="s1" stroke-width="2.4" cx="16" cy="16" r="12"/>
+      <circle class="t2" cx="16" cy="9.8" r="1.8"/>
+      <rect class="t2" x="14.7" y="13.4" width="2.6" height="10" rx="1.3"/>`) },
+
+    errorCons: { c1: "#F0645A", c2: "#FFE3E0", svg: svg(`
+      <path class="s1" stroke-width="2.2" stroke-linejoin="round" d="M11.2 2.6h9.6l8.6 8.6v9.6l-8.6 8.6h-9.6l-8.6-8.6v-9.6z"/>
+      <path class="s2" stroke-width="2.6" stroke-linecap="round" d="M11.6 11.6l8.8 8.8M20.4 11.6l-8.8 8.8"/>`) },
   };
 })();
