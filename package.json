@@ -1,0 +1,8 @@
+{
+  "name": "code-battles-lite",
+  "private": true,
+  "description": "Paquete estático; la única dependencia es para la función de telemetría de Netlify.",
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0"
+  }
+}

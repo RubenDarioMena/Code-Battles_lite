@@ -1,5 +1,15 @@
 # Code-battle-lite · progreso
 
+
+## Telemetría mínima para la prueba con compañeros · 31 de octubre de 2026
+
+- War envía eventos `entrada`, `reto` e `intento` (resultado, motivo, línea y código de cada lanzador, incluidos los errores de sintaxis al pulsar EJECUTAR) a `/api/t`. La función de Netlify `netlify/functions/t.mjs` los guarda en Netlify Blobs. Se leen con la clave `TELEMETRIA_CLAVE` como JSON, CSV o un resumen por persona y reto. Detalle en `docs/TELEMETRIA.md`.
+- `juego.js` solo emite `CustomEvent` (`cmg:intento`, `cmg:reto`); el envío está en `js/remota.js` (`sendBeacon`). Hay un id anónimo por navegador, `?quien=` opcional para etiquetar enlaces, y un ajuste o `?telemetria=0` para desactivarlo. No envía nada en local, en githack ni en la red local.
+- Nuevo `package.json` con la única dependencia `@netlify/blobs@^8.2.0`, que es solo para la función; el juego sigue sin compilación. `netlify.toml` declara `netlify/functions`.
+- Versiones: `juego.js?v=17` y `remota.js?v=1`.
+- Verificación: `pruebas/telemetria.mjs` (11 OK) y `interaccion.cjs` (87 OK). En el navegador, el envío se probó interceptando `/api/t`: nada en local, la entrada con quien/id/sesión, el intento con error de sintaxis y su código, el intento terminado, el cambio de reto y el ajuste desactivado. War: 82 OK; paquete de Netlify verificado.
+- Pendiente: definir `TELEMETRIA_CLAVE` en Netlify y comprobar un evento real tras el despliegue. Conviene avisar a los compañeros de que se guarda su código.
+
 ## Información del reto con pestañas (en curso) · 31 de octubre de 2026
 
 - La ficha ⓘ del editor tiene una tira de pestañas deslizable (dedo, rueda, arrastre con ratón) con flechas que avisan de que hay más: **Objetivo**, **Metas** en vivo (verde cumplida, rojo rota), **Enemigos** del reto con miniatura (`img/enemigos/*.png`, capturas del modelo actual con `cmg.retrato(tipo)`), **Pista** escalonada por frases (la primera a petición; cada intento fallido muestra y abre la siguiente; el aviso de fallo muestra la última parte) y **Último intento** (motivo, «Ir a la línea» en errores, economía mínima). Paleta, barra de edición y pestañas se deslizan 36 px más allá del último botón.

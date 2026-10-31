@@ -208,6 +208,9 @@
     };
   }
 
+  // Avisos para quien escuche fuera del juego (telemetría remota): nunca interrumpen la partida.
+  const avisar = (tipo, detalle) => { try { window.dispatchEvent(new CustomEvent(tipo, { detail: detalle })); } catch { /* sin oyentes */ } };
+
   // ---------- Almacenamiento local (comodidad del jugador) ----------
   const guardado = {
     leer(k, def) { try { const v = localStorage.getItem(`${CLAVE}:${k}`); return v == null ? def : JSON.parse(v); } catch { return def; } },
@@ -705,6 +708,7 @@ onmessage = async (ev) => {
       if (err) {
         abrirPrograma(l.id); lineaErr = { id: l.id, linea: err.linea }; marcasSucias = true;
         ultimoAviso[claveReto()] = { resultado: "sintaxis", motivo: "error", texto: err.mensaje, linea: err.linea, id: l.id, cuando: Date.now() };
+        avisar("cmg:intento", { reto: retoIdx + 1, titulo: def.titulo, intento: intento + 1, resultado: "sintaxis", motivo: "error", mensaje: err.mensaje, linea: err.linea, programa: l.id, codigos: { ...programas } });
         mostrarBanner("fallo", err.linea ? `Línea ${err.linea} de ${l.id}` : `Programa de ${l.id}`, esc(err.mensaje), null, [["Ir a la línea", "primario", () => { ocultarBanner(); irALinea(err.linea); }]]);
         return;
       }
@@ -828,6 +832,7 @@ onmessage = async (ev) => {
     });
     insercion = { dobleClic: 0, arrastre: 0, atajo: 0 };
     guardado.escribir("telemetria", telemetria);
+    avisar("cmg:intento", telemetria[telemetria.length - 1]);
     const stats = `${m.derribos}/${m.total} derribados · ${m.consumidos} misiles · precisión ${m.consumidos ? Math.round(m.impactos / m.consumidos * 100) : 0} % · ${m.atascos} ${m.atascos === 1 ? "atasco" : "atascos"} · ${coma(m.t)} s`;
     if (resultado === "victoria") {
       if (!hechos.includes(claveReto())) { hechos.push(claveReto()); guardado.escribir("hechos", hechos); }
@@ -2029,6 +2034,7 @@ onmessage = async (ev) => {
     cerrarProgramas();
     retoIdx = i; guardado.escribir("reto", i);
     def = defActual();
+    avisar("cmg:reto", { reto: i + 1, titulo: def.titulo });
     intento = telemetria.filter(t => t.reto === i + 1).length;
     if (!semillaFija) semilla = intento + 1;
     programas = cargarProgramas();

@@ -1,0 +1,20 @@
+// Función de telemetría (netlify/functions/t.mjs) con un almacén en memoria: node pruebas/telemetria.mjs
+import { recibir, consultar } from "../netlify/functions/t.mjs";
+const datos = new Map();
+const store = { async setJSON(k, v) { datos.set(k, JSON.stringify(v)); }, async list() { return { blobs: [...datos.keys()].map(key => ({ key })) }; }, async get(k) { return JSON.parse(datos.get(k)); } };
+const post = (o) => recibir(new Request("https://x/api/t", { method: "POST", body: typeof o === "string" ? o : JSON.stringify(o) }), store, { country: { code: "MX" } });
+const ok = (c, m) => { console.log((c ? "OK " : "FALLA ") + m); if (!c) process.exitCode = 1; };
+ok((await post({ tipo: "entrada", id: "a", quien: "Ana" })).status === 204, "entrada guardada");
+ok((await post({ tipo: "intento", id: "a", reto: 1, resultado: "fallo", codigos: { L1: "x" } })).status === 204, "intento guardado");
+ok((await post({ tipo: "intento", id: "a", reto: 1, resultado: "victoria" })).status === 204, "victoria guardada");
+ok((await post({ tipo: "otra", id: "a" })).status === 400, "tipo desconocido rechazado");
+ok((await post("{no json")).status === 400, "json inválido rechazado");
+ok((await post({ tipo: "entrada", id: "a", x: "z".repeat(70000) })).status === 413, "cuerpo grande rechazado");
+ok((await consultar(new URL("https://x/api/t?clave=mal"), store, "buena")).status === 401, "clave mala rechazada");
+ok((await consultar(new URL("https://x/api/t?clave=x"), store, undefined)).status === 401, "sin variable: lectura cerrada");
+const todos = await (await consultar(new URL("https://x/api/t?clave=buena"), store, "buena")).json();
+ok(todos.length === 3 && todos[0].pais === "MX" && todos[0].recibido, "lista con país y hora");
+const r = await (await consultar(new URL("https://x/api/t?clave=buena&resumen=1"), store, "buena")).json();
+ok(r.personas === 1 && r.gente.a.quien === "Ana" && r.gente.a.retos[1].intentos === 2 && r.gente.a.retos[1].victorias === 1, "resumen por persona y reto");
+const c = await (await consultar(new URL("https://x/api/t?clave=buena&formato=csv"), store, "buena")).text();
+ok(c.split("\n").length === 4 && c.includes('"{""L1"":""x""}"'), "csv con código escapado");

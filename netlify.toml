@@ -2,6 +2,10 @@
   command = "node scripts/preparar-netlify.mjs"
   publish = "dist"
 
+# Telemetría mínima de la prueba con compañeros: POST/GET /api/t (ver docs/TELEMETRIA.md).
+[functions]
+  directory = "netlify/functions"
+
 [build.environment]
   NODE_VERSION = "22"
 
