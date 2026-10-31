@@ -226,9 +226,41 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await pulsar('#b-pantalla', 'pointerup');
   eq(await evaluar(() => [document.querySelector('#app').dataset.solo, document.querySelector('#b-pantalla').getAttribute('aria-pressed'), !document.querySelector('.aviso-pantalla').hidden]),
     ['mapa', 'true', true], 'mantener 2 s activa la pantalla completa con la batalla y un aviso');
+  // Cámara: en vertical, la pantalla completa gira el campo 90° (base abajo); dos dedos giran el escenario.
+  const camara = () => evaluar(() => { const c = window.cmg.camara(); return { clave: c.clave, yaw: c.yaw }; });
+  await page.waitForTimeout(150);
+  eq((await camara()).clave, 'girada', 'en vertical, la pantalla completa gira el campo 90°');
+  await evaluar(() => { const b = document.querySelector('#inspector [data-accion="cerrar"]'); if (b) b.click(); });
+  await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
+  const girarDedos = async (grados) => {
+    const c = await page.evaluate(() => { const r = document.querySelector('#c3d').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const pts = (a) => [0, 1].map(k => ({ x: c.x + Math.cos(a + k * Math.PI) * 80, y: c.y + Math.sin(a + k * Math.PI) * 80, id: 20 + k }));
+    await page.cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pts(0) });
+    for (let i = 1; i <= 10; i++) { await page.cdp('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pts(grados * Math.PI / 180 * i / 10) }); await page.waitForTimeout(16); }
+    await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  };
+  const yaw0 = (await camara()).yaw;
+  await girarDedos(40);
+  const yaw1 = (await camara()).yaw;
+  eq(yaw1 - yaw0 > .55 && yaw1 - yaw0 < .75, true, 'girar dos dedos en sentido horario gira el escenario con ellos');
+  await girarDedos(4);
+  eq((await camara()).yaw, yaw1, 'un giro pequeño al pellizcar no gira el escenario');
+  await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: false });
+  await evaluar(() => { const c = document.querySelector('#ajustes-girar-campo'); c.checked = false; c.dispatchEvent(new Event('change')); });
+  await page.waitForTimeout(50);
+  eq((await camara()).clave, 'vertical', 'el ajuste desactiva el campo girado');
+  await evaluar(() => { const c = document.querySelector('#ajustes-girar-campo'); c.checked = true; c.dispatchEvent(new Event('change')); });
+  await page.waitForTimeout(50);
+  eq(await camara(), { clave: 'girada', yaw: yaw1 }, 'cada cámara recuerda dónde se dejó durante la sesión');
   await page.click('#b-ver-codigo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.solo, getComputedStyle(document.querySelector('#progs')).display, !!document.querySelector('#b-ejecutar-cod').offsetParent, !!document.querySelector('#b-ver-mapa').offsetParent]),
     ['codigo', 'none', true, true], 'el código a pantalla completa cambia los programas por EJECUTAR y ofrece volver al mapa');
+  eq(await evaluar(() => { const a = document.querySelector('#b-pantalla-cod').getBoundingClientRect(), b = document.querySelector('#b-ver-mapa').getBoundingClientRect(); return b.top >= a.bottom && Math.abs(a.right - b.right) < 2; }),
+    true, 'el botón del mapa flota bajo el de pantalla completa');
+  await page.click('#b-info-reto');
+  eq(await evaluar(() => [!document.querySelector('#info-reto').hidden, document.querySelector('#info-reto-txt').textContent === document.querySelector('#objetivo-txt').textContent && document.querySelector('#info-reto-txt').textContent.length > 0]),
+    [true, true], 'el botón de información muestra el objetivo del reto desde el código');
+  await page.click('#info-reto-cerrar');
   await evaluar(() => { const c = window.cmg.codigo; c.value = 'regularShoot(autoTarget("crawler", "visual"));\n'; c.dispatchEvent(new Event('input')); window.__banco.seleccionar('LAU-01'); });
   await page.click('#b-ejecutar-cod');
   eq(await evaluar(() => [document.querySelector('#app').dataset.solo, window.cmg.ejecutando, document.querySelector('#inspector').dataset.estado]),

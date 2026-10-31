@@ -448,6 +448,10 @@
   $("b-ver-codigo").addEventListener("click", () => verPanel("codigo"));
   $("b-ver-mapa").addEventListener("click", () => verPanel("mapa"));
   app.addEventListener("cmg:pantalla", (ev) => verPanel(ev.detail));
+  // Campo girado 90° con la pantalla en vertical (la cámara lo lee de data-girar-campo).
+  app.dataset.girarCampo = String(leer("pantalla-girar", true) !== false);
+  $("ajustes-girar-campo").checked = app.dataset.girarCampo === "true";
+  $("ajustes-girar-campo").addEventListener("change", (ev) => { app.dataset.girarCampo = String(ev.target.checked); escribir("pantalla-girar", ev.target.checked); });
   $("ajustes-pantalla-info").addEventListener("click", abrirInfoPantalla);
   $("info-pantalla-cerrar").addEventListener("click", () => $("info-pantalla").close());
 

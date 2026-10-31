@@ -133,7 +133,7 @@
 .app.teclado[data-forma="movil"] #v-programa > .editor { min-height: 0; }
 
 .app.teclado[data-forma="movil"] .divisor { visibility: hidden; }
-.app.teclado[data-forma="movil"] .pie, .app.teclado[data-forma="movil"] .ver-mapa { display: none; }
+.app.teclado[data-forma="movil"] .pie, .app.teclado[data-forma="movil"] .info-reto-abrir, .app.teclado[data-forma="movil"] .info-reto { display: none; }
 
 /* Paleta y barra de edición: una sola línea cada una, deslizante (rueda, arrastre o dedo). */
 .paleta, .barra-edicion { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
@@ -213,6 +213,14 @@
 .app[data-pantalla-completa="true"] .ver-codigo { display: grid; place-items: center; }
 .app[data-pantalla-completa="true"] .barra-prog .progs { display: none; }
 .app[data-pantalla-completa="true"] .ejecutar-cod { display: inline-flex; justify-content: center; }
+/* El botón del mapa flota bajo el de pantalla completa (o en su sitio, si ese no está en esta esquina). */
 .app[data-pantalla-completa="true"] .ver-mapa { display: grid; }
+#b-ver-mapa { position: absolute; top: 50px; right: 10px; z-index: 46; }
+.app[data-esquina="codigo"] #b-ver-mapa { top: 98px; }
+.app[data-forma="movil"] #b-ver-mapa { top: 42px; right: 6px; min-width: 36px; min-height: 36px; }
+.app[data-forma="movil"][data-esquina="codigo"] #b-ver-mapa { top: 84px; }
 .app[data-pantalla-completa="true"] .barra-prog { justify-content: flex-start; }
 .app[data-pantalla-completa="true"] .barra-prog .herramientas { margin-left: auto; }
+/* La paleta se acorta para que el botón del mapa no tape sus ladrillos. */
+.app[data-pantalla-completa="true"][data-esquina="codigo"] #v-programa > .paleta { margin-right: 46px; }
+.app[data-forma="movil"][data-pantalla-completa="true"][data-esquina="codigo"] #v-programa > .paleta { margin-right: 38px; }

@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/componentes.css?v=15">
+<link rel="stylesheet" href="css/componentes.css?v=16">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=4">
-<link rel="stylesheet" href="css/layout.css?v=14">
+<link rel="stylesheet" href="css/layout.css?v=15">
 
 </head>
 <body>
@@ -128,6 +128,8 @@
     </div>
     <!-- Pantalla completa: flota bajo el botón de las herramientas cuando el código ocupa la esquina superior derecha -->
     <button class="mini b-pantalla flotante" id="b-pantalla-cod" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+    <!-- Pantalla completa: vuelve directamente al mapa; flota bajo el botón de pantalla completa -->
+    <button class="mini ver-mapa flotante" id="b-ver-mapa" type="button" aria-label="Ver el mapa a pantalla completa" data-tip="Ver el mapa"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
 
     <section class="vista" id="v-programa" role="tabpanel" aria-labelledby="t-programa">
       <div class="paleta" id="paleta" role="toolbar" aria-label="Insertar en el código"></div>
@@ -158,8 +160,19 @@
           </div>
         </div>
         <div class="asas" id="asas" aria-hidden="true" hidden><div class="asas-in" id="asas-in"></div></div>
-        <!-- Pantalla completa: vuelve directamente al mapa -->
-        <button class="ver-mapa" id="b-ver-mapa" type="button" aria-label="Ver el mapa a pantalla completa" data-tip="Ver el mapa"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
+        <!-- El objetivo del reto, a mano desde el código (en todos los modos) -->
+        <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Ver el objetivo del reto" data-tip="Objetivo del reto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg></button>
+        <div class="info-reto marco" id="info-reto" role="dialog" aria-labelledby="info-reto-titulo" hidden>
+          <div class="hoja-cab">
+            <span class="placa">Objetivo</span>
+            <button class="cerrar" id="info-reto-cerrar" type="button" aria-label="Cerrar">×</button>
+          </div>
+          <h3 id="info-reto-titulo"></h3>
+          <section class="objetivo" aria-label="Objetivo">
+            <p id="info-reto-txt"></p>
+            <div class="leccion" id="info-reto-leccion"></div>
+          </section>
+        </div>
       </div>
       <!-- Panel inferior: inspector del programa (por defecto) o consola. Su barra se arrastra como el divisor. -->
       <div class="pie" id="pie" data-abierto="true" data-modo="inspector">
@@ -313,6 +326,7 @@
     <div class="ajuste-pantalla" id="ajustes-pantalla">
       <p>Modo pantalla completa <span class="estado" id="ajustes-pantalla-estado">inactivo</span></p>
       <p class="nota">Para tabletas y teléfonos: salta de la batalla al código con un toque. Se activa y se desactiva manteniendo pulsado 2 segundos el botón de las cuatro esquinas.</p>
+      <label class="check"><input type="checkbox" id="ajustes-girar-campo" checked> Con la pantalla en vertical, girar el campo 90°</label>
       <button class="btn chico" id="ajustes-pantalla-info" type="button" aria-haspopup="dialog" aria-controls="info-pantalla">¿Cómo funciona?</button>
     </div>
     <p>Arrastra el divisor hasta un extremo para ver solo el mapa o solo el código. Arrástralo de vuelta para recuperar ambos.</p>
@@ -342,7 +356,8 @@
   <ul class="info-lista">
     <li><b>Activar o desactivar:</b> mantén pulsado 2 segundos el botón de las cuatro esquinas, arriba a la derecha. El círculo se llena mientras mantienes el dedo. Con el modo activo, el icono brilla en blanco.</li>
     <li><b>De la batalla al código:</b> el botón <code>&lt;/&gt;</code>, junto a Ajustes, pone el editor a pantalla completa.</li>
-    <li><b>Del código a la batalla:</b> <b>▶ EJECUTAR</b>, en lugar de las pestañas de programas, corre el código, muestra la batalla y cierra el inspector si estaba abierto. El botón del mapa, abajo a la derecha del editor, vuelve a la batalla sin ejecutar.</li>
+    <li><b>Del código a la batalla:</b> <b>▶ EJECUTAR</b>, en lugar de las pestañas de programas, corre el código, muestra la batalla y cierra el inspector si estaba abierto. El botón del mapa, que flota bajo el de pantalla completa, vuelve a la batalla sin ejecutar.</li>
+    <li><b>Campo girado:</b> con la pantalla en vertical, la batalla se gira 90° para aprovechar el alto: la base queda abajo y los enemigos llegan desde arriba. Al girar el teléfono a horizontal vuelve la vista normal. Cada postura recuerda dónde dejaste la cámara. Se desactiva en Ajustes.</li>
     <li><b>El divisor sigue funcionando:</b> arrástralo para ver ambos paneles; los botones vuelven a llevarte a pantalla completa mientras el modo siga activo.</li>
   </ul>
   <p class="nota">El botón solo aparece en pantallas de tableta o teléfono.</p>
@@ -363,8 +378,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
 <script src="../../shared/js/iconos.js?v=3" charset="utf-8"></script>
-<script src="js/juego.js?v=14" charset="utf-8"></script>
-<script src="js/layout.js?v=10" charset="utf-8"></script>
+<script src="js/juego.js?v=15" charset="utf-8"></script>
+<script src="js/layout.js?v=11" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=2" charset="utf-8"></script>
 <script src="../../shared/js/edicion.js?v=15" charset="utf-8"></script>
 <script src="js/seudo.js?v=2" charset="utf-8"></script>
