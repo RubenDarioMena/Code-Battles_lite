@@ -845,7 +845,7 @@ onmessage = async (ev) => {
       const comentados = def.lanzadores.filter(l => soloComentarios(codigos[l.id] || "")).map(l => l.id);
       let extra = comentados.length ? ` El programa de ${comentados.join(" y ")} está todo comentado: no hace nada.` : "";
       for (const p of acabados) if (!comentados.includes(p.id)) extra += ` El programa de ${p.id} terminó a los ${p.finT.toFixed(1)} s: desde entonces nadie volvió a apuntar.`;
-      mostrarBanner("fallo", "Aún no", esc(texto + extra), `Pista: ${def.pista || "revisa el registro y la consola."}`, [["Editar programa", "primario", ocultarBanner]]);
+      mostrarBanner("fallo", "Aún no", esc(texto + extra), `Pista: ${def.pista || "revisa el registro y la consola."}`, [["Editar programa", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); }]]);
     } else if (resultado === "error") {
       mostrarBanner("fallo", linea ? `Error en la línea ${linea} de ${idProg}` : `Error en el programa de ${idProg}`, esc(texto), null,
         [["Ir a la línea", "primario", () => { ocultarBanner(); abrirPrograma(idProg); irALinea(linea); }]]);
