@@ -1,6 +1,12 @@
 # Code-battle-lite · progreso
 
 
+
+## Aviso en Factory: War es la versión vigente · 31 de octubre de 2026
+
+- Factory (`Prototypes/Tres vistas/`) muestra una franja fija arriba: «War es la versión más actualizada del juego», con el botón «Ir a War» y ×, que lo oculta durante la sesión. La app baja 36 px para que no tape nada. La franja se oculta con el teclado de código abierto y en pantallas estrechas usa un texto corto. `componentes.css?v=6`.
+- Verificación: Tres vistas 43 OK y editor Factory 23 OK. La primera versión, flotante abajo, tapaba controles y rompía la suite; se cambió por la franja. Revisado en PC 1400 y teléfono 390.
+
 ## Telemetría mínima para la prueba con compañeros · 31 de octubre de 2026
 
 - War envía eventos `entrada`, `reto` e `intento` (resultado, motivo, línea y código de cada lanzador, incluidos los errores de sintaxis al pulsar EJECUTAR) a `/api/t`. La función de Netlify `netlify/functions/t.mjs` los guarda en Netlify Blobs. Se leen con la clave `TELEMETRIA_CLAVE` como JSON, CSV o un resumen por persona y reto. Detalle en `docs/TELEMETRIA.md`.
