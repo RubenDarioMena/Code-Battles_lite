@@ -1,0 +1,82 @@
+{
+  "file": "renders/remotion/await-pilot.mp4",
+  "composition": "AwaitPilot",
+  "createdAt": "2026-10-29T08:13:41.402Z",
+  "width": 1920,
+  "height": 1080,
+  "fps": "30/1",
+  "durationSeconds": 23,
+  "codec": "h264",
+  "sha256": "73cd172daf043e5926f236cb250ed1f0276fbb2c3d3724f3bd9851e864527e2a",
+  "tools": {
+    "node": "v22.19.0",
+    "remotion": "4.0.539",
+    "@motion-canvas/core": "3.17.2",
+    "ffmpeg": "ffmpeg version 8.1.1 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "command": "pnpm run render:remotion",
+  "params": {
+    "lang": "es",
+    "timing": {
+      "introSeconds": 3,
+      "waitSeconds": 14,
+      "collapseAt": 0.72,
+      "staggerSeconds": 1.6,
+      "collapseSeconds": 0.55,
+      "shrugDelaySeconds": 1,
+      "outroSeconds": 6
+    },
+    "polling": {
+      "startIntervalMs": 650,
+      "endIntervalMs": 28
+    },
+    "motionBlur": {
+      "samples": 8,
+      "shutterSeconds": 0.06
+    },
+    "texts": {
+      "es": {
+        "title": "Esperar sin desesperar",
+        "busyLabel": "Polling ocupado",
+        "asyncLabel": "Espera asíncrona",
+        "attempts": "intentos",
+        "boxArrived": "¡Llegó la caja!",
+        "takeaway": "Comprobar sin pausa gasta energía en algo que todavía no existe.\nawait deja que la operación avise cuando termina.",
+        "caveat": "Lo que hace el entorno mientras tanto depende del lenguaje y de la operación."
+      },
+      "en": {
+        "title": "Waiting without wearing out",
+        "busyLabel": "Busy polling",
+        "asyncLabel": "Async wait",
+        "attempts": "attempts",
+        "boxArrived": "The box is here!",
+        "takeaway": "Checking nonstop burns energy on something that doesn't exist yet.\nawait lets the operation tell you when it's done.",
+        "caveat": "What the runtime does meanwhile depends on the language and the operation."
+      }
+    },
+    "code": {
+      "es": {
+        "busy": "let intentos = 0;\nwhile (!sensor.hayCaja()) {\n  intentos++; // sin pausa\n}\nrecoger(sensor.caja());",
+        "async": "// la cinta avisa al llegar\nconst caja = await cinta.siguienteCaja();\nrecoger(caja);",
+        "busyLoopLines": [
+          1,
+          3
+        ],
+        "asyncAwaitLine": 1,
+        "asyncAfterLine": 2,
+        "busyAfterLine": 4
+      },
+      "en": {
+        "busy": "let attempts = 0;\nwhile (!sensor.hasBox()) {\n  attempts++; // no pause\n}\npickUp(sensor.box());",
+        "async": "// the belt signals on arrival\nconst box = await belt.nextBox();\npickUp(box);",
+        "busyLoopLines": [
+          1,
+          3
+        ],
+        "asyncAwaitLine": 1,
+        "asyncAfterLine": 2,
+        "busyAfterLine": 4
+      }
+    }
+  }
+}

@@ -1,0 +1,1256 @@
+{
+  "numero": 3,
+  "ejercicio": "Nivel 4 · escritorio",
+  "usoInicio": null,
+  "rngInicio": 2069807671,
+  "umbral": 4,
+  "fase": "reparacion",
+  "pendiente": false,
+  "clicsPrevios": 4,
+  "clicsReparacion": 5,
+  "inicio": 155615.70000000298,
+  "secuencia": 27,
+  "traza": [
+    {
+      "orden": 1,
+      "ms": 0,
+      "fase": "espera",
+      "tipo": "inicio"
+    },
+    {
+      "orden": 2,
+      "ms": 107,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 874,
+      "y": 312,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          262
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 3,
+      "ms": 162,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          262
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 4,
+      "ms": 276,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 874,
+      "y": 312,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 5,
+      "ms": 331,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 6,
+      "ms": 440,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 874,
+      "y": 312,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 7,
+      "ms": 495,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 8,
+      "ms": 606,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 874,
+      "y": 312,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 9,
+      "ms": 660,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 10,
+      "ms": 664,
+      "fase": "inyeccion",
+      "tipo": "antes-perturbacion",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      },
+      "plan": {
+        "punto": {
+          "offset": 17,
+          "caracter": "c",
+          "x": 874.6796875,
+          "y": 334.4453125,
+          "linea": 2,
+          "columna": 3,
+          "candidatos": 251
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(10)",
+          "nombre": "Detener",
+          "datos": {
+            "i": "11",
+            "tip": "Detener",
+            "tipCod": "stopFire();"
+          }
+        },
+        "inventario": [
+          {
+            "selector": "#paleta > button:nth-of-type(1)",
+            "nombre": "Comentar",
+            "datos": {
+              "i": "0",
+              "tip": "Comentar",
+              "tipCod": "// …  (Ctrl+/)"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(2)",
+            "nombre": "While true · mantén para 4 variantes",
+            "datos": {
+              "i": "2",
+              "tip": "While true",
+              "tipCod": "while (true) { …"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(3)",
+            "nombre": "If / else · mantén para 2 variantes",
+            "datos": {
+              "i": "3",
+              "tip": "If / else",
+              "tipCod": "if (/* condición */) { …"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(4)",
+            "nombre": "Si no hay (??) · mantén para 7 variantes",
+            "datos": {
+              "i": "4",
+              "tip": "Si no hay (??)",
+              "tipCod": "??"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(5)",
+            "nombre": "Esperar",
+            "datos": {
+              "i": "5",
+              "tip": "Esperar",
+              "tipCod": "await esperar(0.5);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(6)",
+            "nombre": "Variable · mantén para 2 variantes",
+            "datos": {
+              "i": "6",
+              "tip": "Variable",
+              "tipCod": "const pos ="
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(7)",
+            "nombre": "Apuntar",
+            "datos": {
+              "i": "8",
+              "tip": "Apuntar",
+              "tipCod": "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(8)",
+            "nombre": "Disparo",
+            "datos": {
+              "i": "9",
+              "tip": "Disparo",
+              "tipCod": "regularShoot(/* lugar */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(9)",
+            "nombre": "Ráfaga",
+            "datos": {
+              "i": "10",
+              "tip": "Ráfaga",
+              "tipCod": "burstFire(/* lugar */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(10)",
+            "nombre": "Detener",
+            "datos": {
+              "i": "11",
+              "tip": "Detener",
+              "tipCod": "stopFire();"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(11)",
+            "nombre": "Aviso · mantén para 3 variantes",
+            "datos": {
+              "i": "14",
+              "tip": "Aviso",
+              "tipCod": "console.warn(/* mensaje */);"
+            }
+          }
+        ],
+        "rng": 3608042270
+      }
+    },
+    {
+      "orden": 11,
+      "ms": 671,
+      "fase": "inyeccion",
+      "tipo": "clic",
+      "x": 874,
+      "y": 334,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 12,
+      "ms": 724,
+      "fase": "inyeccion",
+      "tipo": "tras-caracter",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 13,
+      "ms": 809,
+      "fase": "inyeccion",
+      "tipo": "clic",
+      "x": 1331,
+      "y": 204,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Detener",
+        "id": "",
+        "datos": {
+          "i": "11",
+          "tip": "Detener",
+          "tipCod": "stopFire();"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          0,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 14,
+      "ms": 869,
+      "fase": "reparacion",
+      "tipo": "tras-perturbacion",
+      "despues": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          28,
+          28
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 15,
+      "ms": 19740,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 904,
+      "y": 334,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          17,
+          25
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 16,
+      "ms": 19794,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          17,
+          25
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 17,
+      "ms": 19871,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 1125,
+      "y": 262,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Ampliar selección",
+        "id": "",
+        "datos": {
+          "accion": "ampliar",
+          "tip": "Ampliar selección"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          17,
+          25
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 18,
+      "ms": 19924,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          17,
+          27
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 19,
+      "ms": 20020,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 1072,
+      "y": 262,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Borrar",
+        "id": "",
+        "datos": {
+          "accion": "borrar",
+          "tip": "Borrar"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          17,
+          27
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 20,
+      "ms": 20021,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "while (true) {\n ;\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          266,
+          266
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 21,
+      "ms": 20076,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n ;\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          16,
+          16
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 22,
+      "ms": 30989,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 843,
+      "y": 262,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Deshacer",
+        "id": "",
+        "datos": {
+          "accion": "deshacer",
+          "tip": "Deshacer"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n ;\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          16,
+          16
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 23,
+      "ms": 30990,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          277,
+          277
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 24,
+      "ms": 31045,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          16,
+          27
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 25,
+      "ms": 31124,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 843,
+      "y": 262,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Deshacer",
+        "id": "",
+        "datos": {
+          "accion": "deshacer",
+          "tip": "Deshacer"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          16,
+          27
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 26,
+      "ms": 31124,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          263,
+          263
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 27,
+      "ms": 31180,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+        "seleccion": [
+          17,
+          17
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 1366,
+          "alto": 900,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    }
+  ],
+  "inicial": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+    "seleccion": [
+      263,
+      263
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 1366,
+      "alto": 900,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "usoTeclado": false,
+  "objetivo": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+    "seleccion": [
+      0,
+      263
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 1366,
+      "alto": 900,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "perturbacion": {
+    "punto": {
+      "offset": 17,
+      "caracter": "c",
+      "x": 874.6796875,
+      "y": 334.4453125,
+      "linea": 2,
+      "columna": 3,
+      "candidatos": 251
+    },
+    "boton": {
+      "selector": "#paleta > button:nth-of-type(10)",
+      "nombre": "Detener",
+      "datos": {
+        "i": "11",
+        "tip": "Detener",
+        "tipCod": "stopFire();"
+      }
+    },
+    "inventario": [
+      {
+        "selector": "#paleta > button:nth-of-type(1)",
+        "nombre": "Comentar",
+        "datos": {
+          "i": "0",
+          "tip": "Comentar",
+          "tipCod": "// …  (Ctrl+/)"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(2)",
+        "nombre": "While true · mantén para 4 variantes",
+        "datos": {
+          "i": "2",
+          "tip": "While true",
+          "tipCod": "while (true) { …"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(3)",
+        "nombre": "If / else · mantén para 2 variantes",
+        "datos": {
+          "i": "3",
+          "tip": "If / else",
+          "tipCod": "if (/* condición */) { …"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(4)",
+        "nombre": "Si no hay (??) · mantén para 7 variantes",
+        "datos": {
+          "i": "4",
+          "tip": "Si no hay (??)",
+          "tipCod": "??"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(5)",
+        "nombre": "Esperar",
+        "datos": {
+          "i": "5",
+          "tip": "Esperar",
+          "tipCod": "await esperar(0.5);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(6)",
+        "nombre": "Variable · mantén para 2 variantes",
+        "datos": {
+          "i": "6",
+          "tip": "Variable",
+          "tipCod": "const pos ="
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(7)",
+        "nombre": "Apuntar",
+        "datos": {
+          "i": "8",
+          "tip": "Apuntar",
+          "tipCod": "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(8)",
+        "nombre": "Disparo",
+        "datos": {
+          "i": "9",
+          "tip": "Disparo",
+          "tipCod": "regularShoot(/* lugar */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(9)",
+        "nombre": "Ráfaga",
+        "datos": {
+          "i": "10",
+          "tip": "Ráfaga",
+          "tipCod": "burstFire(/* lugar */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(10)",
+        "nombre": "Detener",
+        "datos": {
+          "i": "11",
+          "tip": "Detener",
+          "tipCod": "stopFire();"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(11)",
+        "nombre": "Aviso · mantén para 3 variantes",
+        "datos": {
+          "i": "14",
+          "tip": "Aviso",
+          "tipCod": "console.warn(/* mensaje */);"
+        }
+      }
+    ],
+    "rng": 3608042270
+  },
+  "trasCaracter": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+    "seleccion": [
+      0,
+      263
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 1366,
+      "alto": 900,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "trasPerturbacion": {
+    "codigo": "while (true) {\n  stopFire();\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+    "seleccion": [
+      28,
+      28
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 1366,
+      "alto": 900,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "cambio": true
+}

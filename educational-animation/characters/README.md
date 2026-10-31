@@ -6,7 +6,7 @@ Fuente: proyectos `.styk` en esta carpeta (p. ej. `stickman-wait.styk`). **Nunca
 
 1. En StykAnimate: exportar **secuencia PNG** (conserva alfa; el WebM del editor web es opaco).
 2. Guardar en `exports/png-sequence/<nombre>/` con nombres `0001.png`, `0002.png`, … y conservar el manifiesto que genera StykAnimate (dimensiones, FPS, nº de fotogramas).
-3. `npm run remotion` copia `exports/` a `compositions/remotion/public/characters/` (sync-assets).
+3. `pnpm remotion` copia `exports/` a `compositions/remotion/public/characters/` (sync-assets).
 4. En las props de la composición, cambiar el personaje de `vector` a `png`:
 
 ```json

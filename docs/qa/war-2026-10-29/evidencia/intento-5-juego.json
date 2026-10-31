@@ -1,0 +1,12 @@
+{
+  "nivel": 3,
+  "movil": false,
+  "juego": {
+    "t": 34.60000000000017,
+    "fin": "fallo",
+    "brechas": 1,
+    "derribos": 4,
+    "atascos": 0,
+    "consola": "Brecha: dron frío F1 cruzó la línea de la base."
+  }
+}

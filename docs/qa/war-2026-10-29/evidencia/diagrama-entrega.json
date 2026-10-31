@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "deliver",
+  "type": "sequence",
+  "input": "/Users/rubenmena/Documents/Dev/Code-battle-lite/docs/qa/war-2026-10-29/cadena-inputs.json",
+  "output": "/Users/rubenmena/Documents/Dev/Code-battle-lite/docs/qa/war-2026-10-29/cadena-inputs.html",
+  "specification": {
+    "sha256": "1e3c47e5eee5d7c9700d937e4dfecf1f9f066829b868dd9f07626b50a279dada",
+    "bytes": 2004
+  },
+  "artifact": {
+    "sha256": "551f20b7a209c600bb53713cb821ee8c0cfa0f87b5d5c57d7591561a9ecbf042",
+    "bytes": 801682
+  },
+  "validation": {
+    "checksPassed": 9,
+    "checkCount": 9,
+    "compositionProfile": "showcase",
+    "compositionStatus": "pass",
+    "errors": 0,
+    "warnings": 0
+  }
+}

@@ -1,0 +1,262 @@
+{
+  "fechaLocal": "2026-10-30",
+  "timezone": "America/Mexico_City",
+  "metodo": "CDP Page.startScreencast + ffmpeg; vídeo real con rótulos QA; no corrección del juego",
+  "fuentesJuego": [
+    {
+      "ruta": "Prototypes/Rocket Launcher/index.html",
+      "sha256": "41f6f97d1913f68452339bc1f8f68434d7dd95e942ec06f81b6e0daf039103e5",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "Prototypes/Rocket Launcher/js/layout.js",
+      "sha256": "0772aa206edabe09d9aaf058995ff7223040e03d3b27fb16789618eaf66b3f9e",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "Prototypes/Rocket Launcher/js/seudo.js",
+      "sha256": "40472ef684776d8520bdb0f0995602a956fbbe90dbd284c3ba09bdfda29f6e07",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "Prototypes/Rocket Launcher/js/juego.js",
+      "sha256": "189bd5863c1fd0b53c29aa67921e26ec309a3b1929535e22e8675ba2661dfb82",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "Prototypes/Rocket Launcher/css/componentes.css",
+      "sha256": "4bc1b5840921dea1ff229e48e19de96767ffb0b0aa6d2cd460955d50157aca94",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "Prototypes/Rocket Launcher/css/layout.css",
+      "sha256": "b0b311a5ca7364e3e2a6b885bf24d3c94022ba656afbfd99664580b82a01fbcb",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "Prototypes/Rocket Launcher/css/base.css",
+      "sha256": "62cb8dde0dc1b46f916653890d91070e2e112344f4799a68404c1325f37507f7",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "shared/js/edicion.js",
+      "sha256": "60ce762ed07f995c8861ec867874313ee0bdb3b9576e924900580039e174d21c",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "shared/js/estructura.js",
+      "sha256": "05de02226f59b9e6113ed4a3193cd07bd514fc806a69d2048c60733d22edac8d",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "shared/js/iconos.js",
+      "sha256": "3043da9983159373d33380b7dcdf0cccca8ce0249ce35561db3b26aa8ecf87ad",
+      "coincideConTandaAnterior": true
+    },
+    {
+      "ruta": "shared/css/edicion.css",
+      "sha256": "233b641bc2ee588d021600feae03b20f8e0bbbe77773f348c182d526380e8477",
+      "coincideConTandaAnterior": true
+    }
+  ],
+  "grabador": {
+    "ruta": "pruebas/grabar-regresiones-war.mjs",
+    "sha256": "9c24d501c11b9f4ae57f9f3f7ff93898793e9843a69412c48f1021e3bd26e899"
+  },
+  "videos": [
+    {
+      "id": "01a-seleccion-pc",
+      "archivo": "videos/01a-seleccion-pc.mp4",
+      "sha256": "0b81f5cda52dccd055786d3552c439e7717f06d3aeacd526f9fd479f00d59071",
+      "duracionSegundos": 13.133333,
+      "dimensiones": [
+        1366,
+        900
+      ],
+      "decodificacionCompleta": true,
+      "revisadoVisualmente": true,
+      "captura": {
+        "frames": 632,
+        "duracion": 12.880019187927246,
+        "intervaloMax": 0.41664695739746094
+      },
+      "resultado": {
+        "rapidoEnvuelveWhile": true,
+        "recuperado": true,
+        "pausadoEnvuelveWhile": false,
+        "rapido": {
+          "codigo": "burstFire(while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n});\n",
+          "seleccion": [
+            131,
+            131
+          ],
+          "sintaxis": false,
+          "viewport": [
+            1366,
+            900
+          ]
+        },
+        "pausado": {
+          "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    burstFire(console);.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+          "seleccion": [
+            138,
+            145
+          ],
+          "sintaxis": false,
+          "viewport": [
+            1366,
+            900
+          ]
+        }
+      }
+    },
+    {
+      "id": "01b-seleccion-movil",
+      "archivo": "videos/01b-seleccion-movil.mp4",
+      "sha256": "3b08040cf14cead15ba5e167f8c2e8381813bd7ceb0a3a9ac2746f1b2065ee83",
+      "duracionSegundos": 13.166667,
+      "dimensiones": [
+        416,
+        900
+      ],
+      "decodificacionCompleta": true,
+      "revisadoVisualmente": true,
+      "captura": {
+        "frames": 662,
+        "duracion": 13.033148050308228,
+        "intervaloMax": 0.4212629795074463
+      },
+      "resultado": {
+        "rapidoEnvuelveWhile": true,
+        "recuperado": true,
+        "pausadoEnvuelveWhile": false,
+        "rapido": {
+          "codigo": "regularShoot(while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n});\n",
+          "seleccion": [
+            30,
+            35
+          ],
+          "sintaxis": false,
+          "viewport": [
+            393,
+            852
+          ]
+        },
+        "pausado": {
+          "codigo": "while (true) {\n  const pos = regularShoot(autoTarget);(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+          "seleccion": [
+            42,
+            52
+          ],
+          "sintaxis": true,
+          "viewport": [
+            393,
+            852
+          ]
+        }
+      }
+    },
+    {
+      "id": "02-borrado-residuos",
+      "archivo": "videos/02-borrado-residuos.mp4",
+      "sha256": "829fff2d4cdc99a00a18a65d75c67ab3d965fda0fd25e7957e683576a9483b5d",
+      "duracionSegundos": 19.333333,
+      "dimensiones": [
+        1366,
+        900
+      ],
+      "decodificacionCompleta": true,
+      "revisadoVisualmente": true,
+      "captura": {
+        "frames": 960,
+        "duracion": 19.08230185508728,
+        "intervaloMax": 0.20091891288757324
+      },
+      "resultado": {
+        "casos": [
+          {
+            "codigo": "const pos = autoTarget(\"crawler\", \"visual\"); ?? \nregularShoot(pos);\n",
+            "seleccion": [
+              48,
+              48
+            ],
+            "sintaxis": false,
+            "viewport": [
+              1366,
+              900
+            ]
+          },
+          {
+            "codigo": "const = while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+            "seleccion": [
+              5,
+              5
+            ],
+            "sintaxis": false,
+            "viewport": [
+              1366,
+              900
+            ]
+          },
+          {
+            "codigo": "while (true) {\n ;\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+            "seleccion": [
+              16,
+              16
+            ],
+            "sintaxis": true,
+            "viewport": [
+              1366,
+              900
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "03-espacio-movil",
+      "archivo": "videos/03-espacio-movil.mp4",
+      "sha256": "4afa9d5566ee48fdc23d5ec64dc6761815b7b9888bf946eb3985b808af8eed2e",
+      "duracionSegundos": 11.133333,
+      "dimensiones": [
+        416,
+        900
+      ],
+      "decodificacionCompleta": true,
+      "revisadoVisualmente": true,
+      "captura": {
+        "frames": 591,
+        "duracion": 10.985534906387329,
+        "intervaloMax": 0.2500128746032715
+      },
+      "resultado": {
+        "antes": {
+          "editor": {
+            "x": 48.59375,
+            "y": 695.296875,
+            "width": 329.40625,
+            "height": 111.703125,
+            "top": 695.296875,
+            "right": 378,
+            "bottom": 807,
+            "left": 48.59375
+          },
+          "barra": "true"
+        },
+        "despues": {
+          "editor": {
+            "x": 48.59375,
+            "y": 545,
+            "width": 329.40625,
+            "height": 262,
+            "top": 545,
+            "right": 378,
+            "bottom": 807,
+            "left": 48.59375
+          },
+          "barra": "false"
+        }
+      }
+    }
+  ]
+}

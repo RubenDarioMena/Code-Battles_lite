@@ -1,0 +1,12 @@
+{
+  "nivel": 4,
+  "movil": true,
+  "juego": {
+    "t": 49.19999999999934,
+    "fin": "fallo",
+    "brechas": 2,
+    "derribos": 33,
+    "atascos": 4,
+    "consola": "Brecha: dron D32 cruzó la línea de la base.Brecha: dron D33 cruzó la línea de la base."
+  }
+}

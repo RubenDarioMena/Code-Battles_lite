@@ -4,19 +4,28 @@ Implementa el setup de [docs/Codemageddon_Vision_Animacion_Educativa.md](../docs
 
 ## Arranque
 
-Requisitos: Node 22+, FFmpeg (ya instalado en este equipo).
+Requisitos: Node 22+, **pnpm 11** (`packageManager` en package.json), FFmpeg y Google Chrome.
+
+Remotion renderiza con el **Google Chrome instalado** (`remotion.config.ts`): el Chrome headless que descarga (Chromium 157, también en 4.0.539) se cierra en macOS 26.5.1. Para otra ruta, definir `REMOTION_CHROME`.
 
 ```bash
 cd educational-animation
-npm install
-npm run mc          # Motion Canvas → http://localhost:9000
-npm run remotion    # Remotion Studio → http://localhost:3000
-npm run render:remotion      # MP4 + manifiesto en renders/remotion/
-npm run render:remotion:en   # variante de la prueba de reutilización
-npm run typecheck
+pnpm install
+pnpm mc                    # Motion Canvas → http://localhost:9000
+pnpm remotion              # Remotion Studio → http://localhost:3000
+pnpm render:remotion       # MP4 + manifiesto en renders/remotion/
+pnpm render:remotion:en    # variante de la prueba de reutilización
+pnpm still:remotion        # un fotograma de prueba
+pnpm typecheck
 ```
 
 En Motion Canvas el render se lanza desde el botón *Render* del editor y se escribe en `renders/motion-canvas/`.
+
+pnpm solo ejecuta los scripts de instalación aprobados en `pnpm-workspace.yaml` (`allowBuilds`): esbuild y los instaladores de ffmpeg/ffprobe de Motion Canvas.
+
+## MCP de StykAnimate
+
+Registrado en Claude Code solo para este proyecto (`claude mcp add --scope local`) como `stykanimate`: [mashhoorahdal/stykanimate-mcp](https://github.com/mashhoorahdal/stykanimate-mcp) fijado al commit `de645ec`, ejecutado con `pnpm dlx` (el `npx` de npm 10.9 falla con paquetes de GitHub). Guarda en `characters/` y usa el Google Chrome instalado. Ejecuta la app real sin interfaz: escena → `.styk` + previsualización + MP4/WebM/GIF. **No exporta PNG con alfa**; ver `characters/README.md`.
 
 ## Estructura
 
@@ -28,7 +37,7 @@ En Motion Canvas el render se lanza desde el botón *Render* del editor y se esc
 | `shared/awaitPilot.ts` | Lógica de la escena como funciones puras del tiempo (cues, contador, poses, cajas, muestras de blur). |
 | `shared/stickman.ts` | Stickman vectorial provisional (IK simple) hasta tener la exportación de StykAnimate. |
 | `concepts/motion-canvas/` | Proyecto Motion Canvas 3.17 (escena `awaitBusyWait`). |
-| `compositions/remotion/` | Proyecto Remotion 4.0.535 (composiciones `AwaitPilot` y `AwaitPilotEn`). Admite personajes en PNG y voz opcional. |
+| `compositions/remotion/` | Proyecto Remotion 4.0.539 (composiciones `AwaitPilot` y `AwaitPilotEn`). Admite personajes en PNG y voz opcional. |
 | `concepts/hyperframes/`, `motion-studio-projects/` | Vacíos a propósito; ver abajo. |
 | `characters/` | `.styk` fuente y exportaciones PNG (ver su README). |
 | `audio/voice`, `audio/sfx` | Fuente de audio; `sync-assets` lo copia a `public/` de Remotion. |

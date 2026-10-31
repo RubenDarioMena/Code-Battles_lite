@@ -1,11 +1,39 @@
 # Code-battle-lite · progreso
 
+## Skill de QA visual · 30 de octubre de 2026
+
+- Creada la skill personal `qa-regresion-visual` en `~/.codex/skills/`, con las capturas, cuatro vídeos, trazas y diagrama de War como assets históricos, más instrucciones reutilizables para recopilación, reproducción y recuperación. Diez ciclos por tanda como valor predeterminado ajustable.
+- Retirado de esta entrega el caso descartado por el usuario: menciones, medios, diagnóstico y entradas del manifiesto. Se conservan los casos de selección, borrado y espacio móvil. Recursos y reglas del juego sin cambios.
+
+## Vídeos de reproducción de incidencias de War · 30 de octubre de 2026
+
+- **WAR-SEL-01 reproducido en ambos formatos**: intervalos rápidos de unos 51 y 77 ms hacen operar sobre el `while` anterior; Deshacer recupera el texto exacto y el control con pausa de 450 ms utiliza la ficha nueva. El control evalúa la selección, no que la inserción elegida genere un programa correcto.
+- Fricciones filmadas sin reclasificarlas como bugs: restos `??`, `const =` y `;` tras borrar; en móvil plegar herramientas aumenta la altura de fichas de 111,7 a 262 px.
+- Grabador externo `pruebas/grabar-regresiones-war.mjs`, mediante CDP `Page.startScreencast` y FFmpeg ya instalado. MP4 H.264 sin audio, tiempos reales de captura y duplicación a 30 fps de salida; no se promete 30 capturas distintas por segundo. HUD de QA solo sobrepuesto, sin cambios en recursos del juego. Preparación con fixtures fuera de la recuperación; solo origen 8771.
+- Verificación actual: cuatro MP4 examinados con FFprobe, decodificados íntegramente con FFmpeg y revisados visualmente por fotogramas; script con sintaxis válida, **75 comprobaciones de lógica correctas** y hashes de juego idénticos a los del reporte anterior. Las 57 comprobaciones de navegador citadas el día 29 son históricas y no se repitieron para esta grabación. Ratón y móvil emulado; pendiente tacto real. Sin correcciones del juego, commits, push ni publicación.
+
+
+## Robots 3D en Blender (exploración de arte) · 29 de octubre de 2026
+
+- `arte/blender/robots.py` genera por código tres robots con la estética «fábrica de juguete» (crema, turquesa «rol», grafito, amarillo y luces emisivas) y las convenciones de Concepto2 (1 m = 1 casilla, mirada a +Y, pivotes con nombre, animación «ciclo» de 2 s). Escena guardada en `arte/blender/robots.blend`; render en `arte/blender/render_familia.png`.
+- Transporte T1 con orugas y brazo largo alineado con su torreta, según la referencia. Araña de ocho patas con cara pixel art en «pantalla» (candidata a protagonista de Campaign). Escarabajo explorador de seis patas y cuerpo único: los élitros se abren y despliegan un propulsor a cada lado (`pose_vuelo`). Las patas caminan con cinemática inversa y los pies de apoyo no resbalan.
+- Sin integrar en los juegos ni exportar GLB. `dist/` no incluye `arte/`. Sin commits.
+
+## QA exploratoria de War con inputs aleatorios · 29 de octubre de 2026
+
+- Misión de recopilación, sin corregir recursos del juego: **10 ciclos de edición/recuperación, 6 sobre el nivel 4**, cinco en escritorio y cinco en móvil emulado. Las diez perturbaciones efectivas se recuperaron con texto exacto mediante UI, sin teclado durante los intentos. Se guardan partida, perturbación y final de cada ciclo, selección, coordenadas, tiempos y cadena de botones.
+- Hallazgo prioritario **WAR-SEL-01**: un clic dentro de una selección espera 380 ms; un botón pulsado antes puede actuar sobre el bloque anterior. Evidencia clara en 7/10 ciclos y reproducción dirigida rápida 2/2; el control con pausa de 450 ms usa la nueva selección. Deshacer permitió continuar. Queda pendiente corregir y añadir la aserción de regresión cuando cambie la UI; no se ha corregido el juego en esta misión.
+- Fricciones: tres reparaciones locales dejaron `??`, `const =` o `;` residual; no son bugs confirmados de Borrar. En móvil, las preferencias con herramientas/inspector desplegados dejan pocas líneas visibles. Las seis ejecuciones del programa inicial del nivel 4 con semilla 17 finalizaron en 33 derribos, 2 brechas y 4 atascos a 49,2 s; no se buscó una estrategia ganadora.
+- [Reporte priorizado, evidencia y diagrama secuencial](docs/qa/war-2026-10-29/REPORTE.md), [cadena de inputs por ciclo](docs/qa/war-2026-10-29/LOG-INPUTS.md) y diagnóstico reutilizable `pruebas/war-recuperacion-regresion.mjs`. Arnés externo adaptado a fichas y barra actual; se conservan diferencias temporales entre los primeros tres ciclos y los siguientes. No corresponde a la matriz R1–R5 del piloto original.
+- Verificación actual: **75 comprobaciones de lógica y 57 de navegador de War correctas**, sintaxis de arnés/diagnóstico y `git diff --check` correctos. Diagrama Archify: 9/9 comprobaciones, evidencia de navegador y revisión visual de capturas. Solo puerto 8771, Chromium con ratón/móvil emulado; pendiente tacto y teclado reales. Esta misión no hizo commits, push ni publicación.
+
+
 ## Corrección del despliegue de main en Netlify · 29 de octubre de 2026
 
 - Reproducido el 404 de `https://codewar-mageddon.netlify.app/`. Netlify tenía publicado `main@49bd493`, sin `index.html` en la raíz; la portada, recursos compartidos y configuración de publicación seguían sin seguimiento en la carpeta local.
-- Se prepara la inclusión en `main` del conjunto estático ya implementado: entrada Factory / War / Campaign (Próximamente), recursos de ambos juegos, `netlify.toml` y generador de `dist/`. El laboratorio de animación y el arnés de recuperación quedan fuera de esta subida.
+- Incluido en `main` mediante `4175c37` el conjunto estático ya implementado: entrada Factory / War / Campaign (Próximamente), recursos de ambos juegos, `netlify.toml` y generador de `dist/`. El laboratorio de animación y el arnés de recuperación quedaron fuera de esta subida.
 - Comprobación actual: 75 pruebas de lógica, sintaxis de scripts, 8 HTML y 41 referencias locales del paquete correctos. Las 131 comprobaciones de navegador pasan en 8771: War (57), Tres vistas (43), editor Factory (23) y entrada (8), incluidos arranque de Factory/War, Campaign, retorno al inicio y anchos móviles emulados. En Netlify se confirmó base `/`, sin comando ni directorio de publicación configurados; el archivo TOML versionado aporta ambos valores.
-- Publicación y comprobación del dominio real pendientes al iniciar esta corrección; los resultados finales se registrarán tras el despliegue. Los programas continúan guardándose por origen, y el tacto/teclado real sigue pendiente de QA manual.
+- Netlify confirmó **Published deploy** para `main@4175c37` (despliegue `6ae338eb20d6be29f4801ccd`). Verificación real en el dominio público: portada disponible, Factory y War arrancan con sus módulos/CDN, Campaign muestra Próximamente y los enlaces permiten regresar al inicio. La suite que modifica programas se ejecutó solo en 8771. Los programas continúan guardándose por origen, y el tacto/teclado real sigue pendiente de QA manual.
 
 ## Factory refinado, entrada común y preparación Netlify · 29 de octubre de 2026
 

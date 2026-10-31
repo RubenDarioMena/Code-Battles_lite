@@ -1,0 +1,50 @@
+[
+  {
+    "ruta": "Prototypes/Rocket Launcher/index.html",
+    "sha256": "41f6f97d1913f68452339bc1f8f68434d7dd95e942ec06f81b6e0daf039103e5"
+  },
+  {
+    "ruta": "Prototypes/Rocket Launcher/js/layout.js",
+    "sha256": "0772aa206edabe09d9aaf058995ff7223040e03d3b27fb16789618eaf66b3f9e"
+  },
+  {
+    "ruta": "Prototypes/Rocket Launcher/js/seudo.js",
+    "sha256": "40472ef684776d8520bdb0f0995602a956fbbe90dbd284c3ba09bdfda29f6e07"
+  },
+  {
+    "ruta": "Prototypes/Rocket Launcher/js/juego.js",
+    "sha256": "189bd5863c1fd0b53c29aa67921e26ec309a3b1929535e22e8675ba2661dfb82"
+  },
+  {
+    "ruta": "Prototypes/Rocket Launcher/css/componentes.css",
+    "sha256": "4bc1b5840921dea1ff229e48e19de96767ffb0b0aa6d2cd460955d50157aca94"
+  },
+  {
+    "ruta": "Prototypes/Rocket Launcher/css/layout.css",
+    "sha256": "b0b311a5ca7364e3e2a6b885bf24d3c94022ba656afbfd99664580b82a01fbcb"
+  },
+  {
+    "ruta": "Prototypes/Rocket Launcher/css/base.css",
+    "sha256": "62cb8dde0dc1b46f916653890d91070e2e112344f4799a68404c1325f37507f7"
+  },
+  {
+    "ruta": "shared/js/edicion.js",
+    "sha256": "60ce762ed07f995c8861ec867874313ee0bdb3b9576e924900580039e174d21c"
+  },
+  {
+    "ruta": "shared/js/estructura.js",
+    "sha256": "05de02226f59b9e6113ed4a3193cd07bd514fc806a69d2048c60733d22edac8d"
+  },
+  {
+    "ruta": "shared/js/iconos.js",
+    "sha256": "3043da9983159373d33380b7dcdf0cccca8ce0249ce35561db3b26aa8ecf87ad"
+  },
+  {
+    "ruta": "shared/css/edicion.css",
+    "sha256": "233b641bc2ee588d021600feae03b20f8e0bbbe77773f348c182d526380e8477"
+  },
+  {
+    "ruta": "pruebas/recuperacion-editor.mjs",
+    "sha256": "aa8cb0d93c341611405654a5393283e1bf183b607ecc0d5d9ae5c907d1698703"
+  }
+]
