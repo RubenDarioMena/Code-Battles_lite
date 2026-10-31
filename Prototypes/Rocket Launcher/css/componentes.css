@@ -647,10 +647,102 @@ textarea.json { width: 100%; height: 10rem; font-family: var(--f-code); font-siz
 .info-reto-abrir[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 .info-reto-abrir svg { width: 22px; height: 22px; }
 .info-reto {
-  position: absolute; z-index: 7; right: 10px; bottom: 62px; width: min(380px, calc(100% - 20px)); max-height: calc(100% - 74px); overflow: auto;
-  padding: 10px 14px 14px; display: grid; gap: 8px; align-content: start; animation: bajar .16s ease-out;
+  position: absolute; z-index: 7; right: 10px; bottom: 62px; width: min(420px, calc(100% - 20px)); max-height: calc(100% - 74px); overflow: auto;
+  padding: 10px 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-content: start; animation: bajar .16s ease-out;
 }
-.info-reto h3 { margin: 0; font-size: 15px; font-weight: 750; }
+.info-reto h3 { margin: 0 2px; font-size: 15px; font-weight: 750; }
+.info-cab { display: flex; align-items: center; gap: 6px; }
+.info-cab .cerrar { flex: none; }
+
+/* Tira de pestañas: barra metálica como la de edición; se desliza y muestra flechas si queda más. */
+.tira { position: relative; flex: 1 1 auto; min-width: 0; }
+.info-pestanas {
+  display: flex; gap: 4px; align-items: center; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; padding: 4px; border-radius: 8px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 3px), linear-gradient(180deg, #333C44, #20272D);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 0 0 1px var(--metal-negro);
+}
+.info-pestanas::-webkit-scrollbar { display: none; }
+.tira.arrastrada .info-pestanas { cursor: grabbing; }
+.info-pestanas [role="tab"] {
+  position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 11px 0 8px; border: 0; border-radius: 6px; cursor: pointer;
+  color: var(--muted); font: inherit; font-size: 11.5px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
+  background: linear-gradient(180deg, #48525A, #343D45); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 1px 0 var(--metal-negro);
+  transition: color .12s, box-shadow .12s, background .12s;
+}
+.info-pestanas [role="tab"] svg { width: 17px; height: 17px; flex: none; }
+.info-pestanas [role="tab"]:hover, .info-pestanas [role="tab"]:focus-visible { color: var(--ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 0 0 1px var(--edge); }
+.info-pestanas [role="tab"][aria-selected="true"] {
+  color: var(--ink); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 30%, #2A333B), color-mix(in srgb, var(--accent) 16%, #20272D));
+  box-shadow: inset 0 0 0 1px var(--accent), 0 0 8px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.info-pestanas [role="tab"][aria-selected="true"] svg { color: var(--accent); }
+/* Punto de estado: metas cumplidas o rotas, último intento fallido, pista nueva. */
+.info-pestanas .estado { display: none; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; }
+.info-pestanas [data-estado="ok"] .estado { display: block; background: var(--ok); }
+.info-pestanas [data-estado="rota"] .estado { display: block; background: var(--bad); box-shadow: 0 0 5px var(--bad); }
+.info-pestanas [data-estado="nueva"] .estado { display: block; background: var(--accent); box-shadow: 0 0 5px var(--accent); }
+.tira-flecha {
+  position: absolute; z-index: 2; top: 1px; bottom: 1px; width: 34px; padding: 0; border: 0; cursor: pointer; display: grid; place-items: center; color: var(--ink);
+}
+.tira-flecha[hidden] { display: none; }
+.tira-flecha.der { right: 1px; justify-content: end; padding-right: 3px; border-radius: 0 8px 8px 0; background: linear-gradient(90deg, transparent, #262E35 55%); }
+.tira-flecha.izq { left: 1px; justify-content: start; padding-left: 3px; border-radius: 8px 0 0 8px; background: linear-gradient(270deg, transparent, #262E35 55%); }
+.tira-flecha svg {
+  width: 22px; height: 22px; padding: 2px; border-radius: 50%; stroke-width: 2.4; background: rgba(5, 8, 10, .55); box-shadow: 0 0 0 1px var(--edge);
+  transition: color .12s, box-shadow .12s, transform .12s;
+}
+.tira-flecha.der svg { animation: empuje-der 1.1s ease-in-out 2; }
+.tira-flecha.izq svg { animation: empuje-izq 1.1s ease-in-out 2; }
+.tira-flecha:hover svg, .tira-flecha:focus-visible svg { color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.tira-flecha.der:hover svg { transform: translateX(2px); }
+.tira-flecha.izq:hover svg { transform: translateX(-2px); }
+.tira-flecha:active svg { transform: scale(.92); }
+@keyframes empuje-der { 50% { transform: translateX(3px); } }
+@keyframes empuje-izq { 50% { transform: translateX(-3px); } }
+/* Las bandas siguen un poco más allá de su último botón: así se puede sacar de debajo de un botón flotante. */
+.info-pestanas::after, .barra-edicion::after, .paleta:not(.borrar)::after { content: ""; flex: none; width: 36px; height: 1px; }
+
+/* Contenido de las pestañas */
+.info-cuerpo { display: grid; gap: 10px; align-content: start; font-size: 13.5px; }
+.info-cuerpo h4 { margin: 0; font-size: 14px; font-weight: 750; }
+.info-nota { margin: 0; font-size: 12.5px; color: var(--muted); }
+.marca { flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line); font-size: 11px; font-weight: 900; font-style: normal; line-height: 1; color: var(--bg); transition: background .3s, border-color .3s; }
+.marca.ok { background: var(--ok); border-color: var(--ok); }
+.marca.ok::after { content: "✓"; }
+.marca.rota { background: var(--bad); border-color: var(--bad); }
+.marca.rota::after { content: "✕"; }
+.marca.info { visibility: hidden; }
+.metas-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.meta-fila { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); transition: background .3s, border-color .3s; }
+.meta-fila.ok { border-color: color-mix(in srgb, var(--ok) 55%, transparent); background: color-mix(in srgb, var(--ok) 12%, var(--surface-2)); }
+.meta-fila.rota { border-color: color-mix(in srgb, var(--bad) 60%, transparent); background: color-mix(in srgb, var(--bad) 13%, var(--surface-2)); }
+.meta-fila small { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.m-nombre { font-weight: 650; }
+.m-valor { font-family: var(--f-code); font-size: 13.5px; }
+.meta-fila.ok .m-valor { color: var(--ok); }
+.meta-fila.rota .m-valor { color: var(--bad); }
+.enemigos-lista { display: grid; gap: 8px; }
+.enemigo-ficha { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: start; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); }
+.enemigo-ficha .retrato { width: 96px; height: 72px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px var(--metal-negro); background: var(--bg); }
+.enemigo-ficha code { font-family: var(--f-code); font-size: 12px; color: var(--accent); font-weight: 500; }
+.enemigo-ficha .cuenta { float: right; font-family: var(--f-code); font-size: 12.5px; color: var(--muted); }
+.enemigo-ficha dl { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 10px; font-size: 12.5px; }
+.enemigo-ficha dt { color: var(--muted); }
+.enemigo-ficha dd { margin: 0; }
+.enemigo-ficha .no { color: var(--muted); }
+.pista-partes { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.pista-partes li { padding: 8px 10px; border-radius: 8px; background: var(--surface-2); border-left: 3px solid var(--accent); line-height: 1.45; }
+.pista-partes .parte { font-family: var(--f-code); font-size: 11px; color: var(--accent); margin-right: 4px; }
+.info-nota.bloqueada { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; border: 1px dashed var(--line); }
+.info-nota.bloqueada svg { width: 16px; height: 16px; flex: none; }
+.info-cuerpo .btn small { opacity: .7; margin-left: 4px; font-family: var(--f-code); }
+.info-cuerpo .fila-botones:empty { display: none; }
+.intento { display: flex; gap: 10px; align-items: center; }
+.intento .marca { width: 24px; height: 24px; font-size: 14px; }
+.intento.rota h4 { color: var(--bad); }
+.intento.ok h4 { color: var(--ok); }
+.info-cuerpo .motivo { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); line-height: 1.45; }
+.economia { margin: 0; font-size: 11.5px; color: var(--muted); font-family: var(--f-code); }
 /* Círculo grande que se llena mientras se mantiene el botón. */
 .carga-pantalla {
   position: fixed; z-index: 98; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%; pointer-events: none;

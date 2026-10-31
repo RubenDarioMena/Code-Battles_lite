@@ -1,5 +1,12 @@
 # Code-battle-lite · progreso
 
+## Información del reto con pestañas (en curso) · 31 de octubre de 2026
+
+- La ficha ⓘ del editor tiene una tira de pestañas deslizable (dedo, rueda, arrastre con ratón) con flechas que avisan de que hay más: **Objetivo**, **Metas** en vivo (verde cumplida, rojo rota), **Enemigos** del reto con miniatura (`img/enemigos/*.png`, capturas del modelo actual con `cmg.retrato(tipo)`), **Pista** escalonada por frases (la primera a petición; cada intento fallido muestra y abre la siguiente; el aviso de fallo muestra la última parte) y **Último intento** (motivo, «Ir a la línea» en errores, economía mínima). Paleta, barra de edición y pestañas se deslizan 36 px más allá del último botón.
+- Versiones: `juego.js?v=16`, `layout.js?v=12`, `componentes.css?v=17`.
+- Verificación parcial: 87 de lógica; capturas en PC (metas en vivo hasta la victoria) y teléfono 390 × 844.
+- Pendiente: progreso de derribos necesarios para que las metas se pongan en verde durante el intento; en el teléfono emulado del navegador de pruebas un programa con `await` termina por el vigía a t = 0 (sin comprobar si ya pasaba antes); posible solape de CBL con el número del reto en PC durante un intento; comprobaciones de navegador de las pestañas.
+
 ## Cámara giratoria, campo girado, terreno con montañas y objetivo desde el código · 31 de octubre de 2026
 
 - **Girar con dos dedos** (War, todas las formas, vista 3D): además de pellizcar y desplazar, girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral de ~7° evita girar sin querer al pellizcar. La pista del inspector lo menciona.

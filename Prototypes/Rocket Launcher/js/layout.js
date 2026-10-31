@@ -255,14 +255,55 @@
   });
 
   // ---------- Barras de una línea ----------
-  // La paleta y la barra de edición se deslizan; con ratón, la rueda vertical las mueve en horizontal.
-  for (const barra of [$("paleta"), $("edicion")]) {
+  // La paleta, la barra de edición y las pestañas de información se deslizan; con ratón, la rueda vertical
+  // las mueve en horizontal. Al final dejan un margen para sacar un botón de debajo de los flotantes.
+  for (const barra of [$("paleta"), $("edicion"), $("info-pestanas")]) {
     barra.addEventListener("wheel", (ev) => {
       if (Math.abs(ev.deltaY) <= Math.abs(ev.deltaX) || barra.scrollWidth <= barra.clientWidth) return;
       ev.preventDefault();
       barra.scrollLeft += ev.deltaY;
     }, { passive: false });
   }
+
+  // Tiras con flechas: la flecha aparece mientras queda algo por ese lado y, al pulsarla, desliza la tira.
+  // Con ratón también se arrastra (un arrastre no cuenta como clic sobre una pestaña).
+  function tira(caja) {
+    const banda = caja.querySelector('[role="tablist"]'), izq = caja.querySelector(".tira-flecha.izq"), der = caja.querySelector(".tira-flecha.der");
+    const revisar = () => {
+      const max = banda.scrollWidth - banda.clientWidth;
+      izq.hidden = banda.scrollLeft <= 2;
+      der.hidden = banda.scrollLeft >= max - 2;
+    };
+    for (const [f, signo] of [[izq, -1], [der, 1]]) {
+      f.addEventListener("pointerdown", (ev) => ev.preventDefault());
+      f.addEventListener("click", () => banda.scrollBy({ left: signo * Math.max(80, banda.clientWidth * .6), behavior: "smooth" }));
+    }
+    banda.addEventListener("scroll", revisar, { passive: true });
+    new ResizeObserver(revisar).observe(banda);
+    let arr = null;
+    banda.addEventListener("pointerdown", (ev) => {
+      if (ev.pointerType !== "mouse" || ev.button !== 0) return;
+      arr = { id: ev.pointerId, x: ev.clientX, s: banda.scrollLeft, movido: false };
+      caja.classList.remove("arrastrada");
+    });
+    banda.addEventListener("pointermove", (ev) => {
+      if (!arr || ev.pointerId !== arr.id) return;
+      const dx = ev.clientX - arr.x;
+      if (!arr.movido && Math.abs(dx) < 5) return;
+      if (!arr.movido) { arr.movido = true; banda.setPointerCapture(ev.pointerId); caja.classList.add("arrastrada"); }
+      banda.scrollLeft = arr.s - dx;
+    });
+    const fin = (ev) => {
+      if (!arr || ev.pointerId !== arr.id) return;
+      arr = null;
+      // El clic llega justo después: la marca lo anula y se quita en el siguiente ciclo.
+      setTimeout(() => caja.classList.remove("arrastrada"), 0);
+    };
+    banda.addEventListener("pointerup", fin);
+    banda.addEventListener("pointercancel", fin);
+    revisar();
+  }
+  tira($("info-tira"));
 
   // ---------- Panel inferior: inspector del programa (por defecto) o consola ----------
   // Su barra se arrastra como el divisor: llevarla hasta abajo lo cierra del todo; un toque en la barra

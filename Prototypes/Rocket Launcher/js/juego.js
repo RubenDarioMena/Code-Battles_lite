@@ -704,6 +704,7 @@ onmessage = async (ev) => {
       const err = revisar(programas[l.id] || "");
       if (err) {
         abrirPrograma(l.id); lineaErr = { id: l.id, linea: err.linea }; marcasSucias = true;
+        ultimoAviso[claveReto()] = { resultado: "sintaxis", motivo: "error", texto: err.mensaje, linea: err.linea, id: l.id, cuando: Date.now() };
         mostrarBanner("fallo", err.linea ? `Línea ${err.linea} de ${l.id}` : `Programa de ${l.id}`, esc(err.mensaje), null, [["Ir a la línea", "primario", () => { ocultarBanner(); irALinea(err.linea); }]]);
         return;
       }
@@ -845,12 +846,16 @@ onmessage = async (ev) => {
       const comentados = def.lanzadores.filter(l => soloComentarios(codigos[l.id] || "")).map(l => l.id);
       let extra = comentados.length ? ` El programa de ${comentados.join(" y ")} está todo comentado: no hace nada.` : "";
       for (const p of acabados) if (!comentados.includes(p.id)) extra += ` El programa de ${p.id} terminó a los ${p.finT.toFixed(1)} s: desde entonces nadie volvió a apuntar.`;
-      mostrarBanner("fallo", "Aún no", esc(texto + extra), `Pista: ${def.pista || "revisa el registro y la consola."}`, [["Editar programa", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); }]]);
+      const pista = pistaTrasFallo();
+      ultimoAviso[claveReto()] = { resultado, motivo, texto: texto + extra, intento, t: r2(m.t), derribos: `${m.derribos}/${m.total}`, cpd: cpd == null ? null : r2(cpd), cuando: Date.now() };
+      mostrarBanner("fallo", "Aún no", esc(texto + extra), pista ? `Pista ${pista.n > 1 ? `${pista.i}/${pista.n}` : ""}: ${pista.texto}`.replace(" :", ":") : "Revisa el registro y la consola.", [["Editar programa", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); }]]);
     } else if (resultado === "error") {
+      pistaTrasFallo();
       mostrarBanner("fallo", linea ? `Error en la línea ${linea} de ${idProg}` : `Error en el programa de ${idProg}`, esc(texto), null,
         [["Ir a la línea", "primario", () => { ocultarBanner(); abrirPrograma(idProg); irALinea(linea); }]]);
     }
     pintarControles(); pintarProgs(); pintarResumen(); pintarEdicion(); metasClave = "";
+    if (!$("info-reto").hidden) pintarInfoReto();
   }
 
   function detener() { if (ejec) { consola("sistema", null, null, "Programa detenido."); terminar("detenido", "detenido", null); } }
@@ -1188,6 +1193,27 @@ onmessage = async (ev) => {
       return { grupo: g, cuerpo, cuerpoG, sombra, alt, rotores, mat };
     }
 
+    // Retrato de un tipo de enemigo con su modelo actual (placeholder de las fichas de información).
+    // Se usa una vez para generar img/enemigos/*.png: window.cmg.retrato("crawler") devuelve un PNG en data URL.
+    function retrato(tipo, w = 288, h = 216) {
+      const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      r.setPixelRatio(1); r.setSize(w, h, false);
+      const esc = new THREE.Scene(); esc.background = new THREE.Color(leerVar("bg") || "#0B0F13");
+      esc.add(hemi.clone(), sol.clone());
+      const piso = mesh(new THREE.PlaneGeometry(6, 6), M.suelo); piso.rotation.x = -Math.PI / 2;
+      const p = []; for (let i = -3; i <= 3; i++) p.push([i, .01, -3], [i, .01, 3], [-3, .01, i], [3, .01, i]);
+      const o = enemigoMesh({ id: "retrato", tipo }), aire = !TIPOS[tipo].suelo;
+      if (o.cuerpoG) { o.cuerpoG.position.y = 1.15; o.alt.scale.set(1, 1.15, 1); for (const rr of o.rotores) rr.rotation.y = .6; }
+      o.grupo.rotation.y = .35;
+      esc.add(piso, lineas(p, L.grid), o.grupo);
+      const c = new THREE.PerspectiveCamera(30, w / h, .1, 50);
+      c.position.set(-1.6, aire ? 2.2 : 1.55, aire ? 2.8 : 2.5); c.lookAt(0, aire ? .78 : .24, 0);
+      r.render(esc, c);
+      const url = r.domElement.toDataURL("image/png");
+      r.dispose(); r.forceContextLoss();
+      return url;
+    }
+
     function anillosDe(id) {
       if (anillos) { movil.remove(anillos); anillos.traverse(o => o.geometry && o.geometry.dispose()); anillos = null; }
       if (!mundo || !id) return;
@@ -1443,7 +1469,7 @@ onmessage = async (ev) => {
       const despues = suelo(px, py, w, h);
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, camara: () => ({ clave: camActual && camActual.k, ...cam }) };
+    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato, camara: () => ({ clave: camActual && camActual.k, ...cam }) };
   })();
 
   // ---------- Vista de plano (2D) ----------
@@ -1822,20 +1848,145 @@ onmessage = async (ev) => {
     $("b-reto").setAttribute("aria-expanded", si);
   }
   const cerrarHoja = () => { if (!$("hoja-reto").hidden) abrirHoja(false); };
-  // Objetivo del reto desde el editor: lo mismo que la hoja del reto, sin salir del código.
+  // ---------- Información del reto desde el editor ----------
+  // Pestañas: objetivo, metas en vivo, enemigos del reto, pista escalonada y último intento.
+  let infoPestana = "objetivo";
+  const MOTIVOS = { brecha: "Brecha", atascos: "Demasiados atascos", tiempo: "Fuera de tiempo", limite: "Tiempo agotado", derribos: "Pocos derribos", error: "Error en el programa", detenido: "Detenido", reinicio: "Reiniciado" };
+  // Estado de cada meta: «ok» (verde), «rota» (rojo) o «pendiente». Al acabar un intento todas quedan decididas.
+  function estadoMetas() {
+    const m = mundo, me = def.metas, acabado = m.fin === "victoria" || m.fin === "fallo";
+    const decide = (rota, ok) => rota ? "rota" : ok ? "ok" : acabado ? "rota" : "pendiente";
+    const filas = [{ k: "brechas", nombre: "Brechas", meta: `máximo ${me.brechasMax}`, valor: m.brechas, estado: decide(m.brechas > me.brechasMax, acabado && m.brechas <= me.brechasMax) }];
+    if (me.derribosMin != null) filas.push({ k: "derribos", nombre: "Derribos", meta: `mínimo ${me.derribosMin}`, valor: `${m.derribos}/${m.total}`, estado: decide(false, m.derribos >= me.derribosMin) });
+    else filas.push({ k: "derribos", nombre: "Derribados", meta: "para contar", valor: `${m.derribos}/${m.total}`, estado: "info" });
+    if (me.atascosMax != null) filas.push({ k: "atascos", nombre: "Atascos", meta: `máximo ${me.atascosMax}`, valor: m.atascos, estado: decide(m.atascos > me.atascosMax, acabado && m.atascos <= me.atascosMax) });
+    if (me.tiempoMax != null) filas.push({ k: "tiempo", nombre: "Tiempo", meta: `hasta ${me.tiempoMax} s`, valor: `${coma(m.t)} s`, estado: decide(m.t > me.tiempoMax + 1e-9, m.fin === "victoria") });
+    return filas;
+  }
+  // Pista escalonada: la pista del reto en partes (frases). La primera se puede pedir siempre;
+  // cada intento fallido muestra la siguiente y permite pedir una más.
+  const partesPista = () => (def.pista || "").split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/).map(t => t.trim()).filter(Boolean);
+  let pistas = guardado.leer("pistas", {});
+  const pistaDe = () => ({ vistas: 0, fallos: 0, ...(pistas[claveReto()] || {}) });
+  function guardarPista(p) { pistas = { ...pistas, [claveReto()]: p }; guardado.escribir("pistas", pistas); }
+  function pistaTrasFallo() {
+    const p = pistaDe(), n = partesPista().length;
+    p.fallos++; p.vistas = Math.min(n, Math.max(p.vistas, p.fallos));
+    guardarPista(p);
+    return p.vistas ? { n, i: p.vistas, texto: partesPista()[p.vistas - 1] } : null;
+  }
+  // Último intento: lo que guarda la telemetría, más el detalle del aviso y los errores de sintaxis previos.
+  let ultimoAviso = {};
+  function ultimoIntento() {
+    const t = [...telemetria].reverse().find(x => x.reto === retoIdx + 1 && x.motivo !== "reinicio");
+    const extra = ultimoAviso[claveReto()];
+    if (extra && (!t || extra.cuando >= Date.parse(t.inicio))) return extra;
+    return t ? { resultado: t.resultado, motivo: t.motivo, texto: t.mensaje, linea: t.linea, id: t.programa, intento: t.intento, t: t.tiempoJuego, cpd: t.costePorDerribo, derribos: `${t.derribos}/${t.enemigos}` } : null;
+  }
+  const marca = (estado) => `<i class="marca ${estado}" aria-hidden="true"></i>`;
+  const num = (v) => Number.isInteger(v) ? String(v) : coma(v);
+  const INFO = {
+    objetivo: () => `<section class="objetivo" aria-label="Objetivo"><p id="info-reto-txt">${esc(def.objetivo)}</p><div class="leccion" id="info-reto-leccion">${esc(def.leccion)}</div></section>`,
+    metas: () => {
+      const m = mundo, filas = estadoMetas();
+      const est = m.fin === "victoria" ? "Cumplido" : m.fin === "fallo" || m.fin === "error" ? "No cumplido" : m.activo ? "En curso" : m.fin ? "Detenido" : "Sin ejecutar";
+      return `<p class="info-nota">${esc(est)}${m.fin || m.activo ? "" : " · se marcan en vivo al ejecutar"}</p><ul class="metas-lista">${filas.map(f =>
+        `<li class="meta-fila ${f.estado}" data-meta="${f.k}">${marca(f.estado)}<span class="m-nombre">${f.nombre} <small>${esc(f.meta)}</small></span><b class="m-valor">${f.valor}</b></li>`).join("")}</ul>`;
+    },
+    enemigos: () => {
+      const tipos = new Map();
+      for (const o of def.oleadas) {
+        const tp = TIPOS[o.tipo], x = tipos.get(o.tipo) || { n: 0, hp: new Set(), vel: new Set() };
+        x.n += o.n; x.hp.add(o.hp ?? tp.hp); x.vel.add(o.vel ?? tp.vel); tipos.set(o.tipo, x);
+      }
+      const rango = (set, f) => [...set].sort((a, b) => a - b).map(f).join(" / ");
+      const vib = (def.sensores || []).map(s => s.id);
+      return `<div class="enemigos-lista">${[...tipos].map(([t, x]) => {
+        const tp = TIPOS[t], ven = ["cámara", ...(tp.frio ? [] : ["térmico"]), ...(tp.suelo ? vib : [])];
+        return `<article class="enemigo-ficha" data-tipo="${t}">
+          <img class="retrato" src="img/enemigos/${t}.png" alt="Modelo de ${esc(tp.nombre)}" width="96" height="72" loading="lazy">
+          <div><h4>${esc(tp.nombre[0].toUpperCase() + tp.nombre.slice(1))} <code>"${t}"</code> <span class="cuenta">× ${x.n}</span></h4>
+          <dl><dt>vida</dt><dd>${rango(x.hp, v => `${v} ${v === 1 ? "impacto" : "impactos"}`)}</dd><dt>velocidad</dt><dd>${rango(x.vel, num)} c/s</dd>
+          <dt>altura</dt><dd>${num(tp.z)} m${tp.suelo ? " · suelo" : ""}</dd><dt>lo ven</dt><dd>${ven.map(esc).join(" · ")}${tp.frio ? ' <span class="no">· el térmico no</span>' : ""}</dd></dl></div></article>`;
+      }).join("")}</div>${def.niebla ? `<p class="info-nota">Niebla: la cámara ve ${num(SENSOR.visual.niebla)} casillas y el térmico ${num(SENSOR.thermal.niebla)}.</p>` : ""}`;
+    },
+    pista: () => {
+      const partes = partesPista(), p = pistaDe(), n = partes.length, abiertas = Math.min(n, p.fallos + 1);
+      if (!n) return `<p class="info-nota">Este reto no tiene pista.</p>`;
+      const vistas = partes.slice(0, p.vistas).map((t, i) => `<li><span class="parte">${i + 1}/${n}</span> ${esc(t)}</li>`).join("");
+      const pie = p.vistas >= n ? `<p class="info-nota">Ya ves la pista completa.</p>`
+        : p.vistas < abiertas ? `<button class="btn chico" type="button" data-info-accion="ver-pista">${p.vistas ? "Ver la siguiente parte" : "Ver pista"} <small>${p.vistas + 1}/${n}</small></button>`
+        : `<p class="info-nota bloqueada"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>La parte ${p.vistas + 1}/${n} se desbloquea con otro intento fallido.</p>`;
+      return `${vistas ? `<ol class="pista-partes">${vistas}</ol>` : `<p class="info-nota">La pista viene en ${n} ${n === 1 ? "parte" : "partes"}. Pídela cuando la necesites; cada intento fallido abre la siguiente.</p>`}${pie}`;
+    },
+    intento: () => {
+      const u = ultimoIntento();
+      if (!u) return `<p class="info-nota">Aún no hay intentos en este reto.</p>`;
+      const titulo = u.resultado === "victoria" ? "Base intacta" : u.resultado === "error" || u.resultado === "sintaxis" ? (u.linea ? `Error en la línea ${u.linea} de ${u.id}` : `Error en el programa de ${u.id}`) : MOTIVOS[u.motivo] || "Intento";
+      const cls = u.resultado === "victoria" ? "ok" : u.resultado === "detenido" ? "pendiente" : "rota";
+      const rec = records[claveReto()];
+      return `<div class="intento ${cls}">${marca(cls)}<div><h4>${esc(titulo)}</h4>${u.intento ? `<p class="info-nota">Intento ${u.intento}${u.t != null ? ` · ${coma(u.t)} s` : ""}${u.derribos ? ` · ${u.derribos} derribados` : ""}</p>` : ""}</div></div>
+        ${u.texto ? `<p class="motivo">${esc(u.texto)}</p>` : ""}
+        <div class="fila-botones">${u.linea ? `<button class="btn chico primario" type="button" data-info-accion="linea">Ir a la línea ${u.linea}</button>` : ""}${cls === "rota" && partesPista().length ? `<button class="btn chico" type="button" data-info-accion="a-pista">Ver pista</button>` : ""}</div>
+        ${u.cpd != null || rec != null ? `<p class="economia">₵ por derribo ${u.cpd != null ? coma(u.cpd) : "—"}${rec != null ? ` · récord ${coma(rec)}` : ""}</p>` : ""}`;
+    },
+  };
+  // Punto de estado en las pestañas: metas (verde, rojo) e intento (rojo si falló).
+  function estadosPestanas() {
+    const filas = estadoMetas().filter(f => f.estado !== "info");
+    const m = filas.some(f => f.estado === "rota") ? "rota" : filas.length && filas.every(f => f.estado === "ok") ? "ok" : "";
+    const u = ultimoIntento(), i = !u ? "" : u.resultado === "victoria" ? "ok" : u.resultado === "detenido" ? "" : "rota";
+    const p = pistaDe(), n = partesPista().length, nueva = p.vistas < Math.min(n, p.fallos + 1) && p.fallos > 0 ? "nueva" : "";
+    for (const [k, v] of [["metas", m], ["intento", i], ["pista", nueva]]) $(`info-t-${k}`).dataset.estado = v;
+  }
   function pintarInfoReto() {
     $("info-reto-titulo").textContent = `${retoIdx === IDX_PROPIO ? "Tu escenario" : `Reto ${retoIdx + 1}`} · ${def.titulo}`;
-    $("info-reto-txt").textContent = def.objetivo;
-    $("info-reto-leccion").textContent = def.leccion;
+    for (const b of document.querySelectorAll("#info-pestanas [data-info]")) {
+      const si = b.dataset.info === infoPestana;
+      b.setAttribute("aria-selected", String(si)); b.tabIndex = si ? 0 : -1;
+    }
+    $("info-cuerpo").setAttribute("aria-labelledby", `info-t-${infoPestana}`);
+    $("info-cuerpo").innerHTML = INFO[infoPestana]();
+    estadosPestanas();
   }
-  function abrirInfoReto(si) {
+  // En vivo: las metas y los puntos se repintan con el marcador (pintarHud), solo con la ficha abierta.
+  function vivoInfoReto() {
+    if ($("info-reto").hidden) return;
+    if (infoPestana === "metas") $("info-cuerpo").innerHTML = INFO.metas();
+    estadosPestanas();
+  }
+  function elegirInfo(k, foco) {
+    infoPestana = k; pintarInfoReto();
+    const b = $(`info-t-${k}`); b.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (foco) b.focus();
+  }
+  function abrirInfoReto(si, pestana) {
+    if (pestana) infoPestana = pestana;
     if (si) pintarInfoReto();
     $("info-reto").hidden = !si;
     $("b-info-reto").setAttribute("aria-expanded", String(si));
+    if (si) $(`info-t-${infoPestana}`).scrollIntoView({ block: "nearest", inline: "nearest" });
   }
   $("b-info-reto").addEventListener("pointerdown", (ev) => ev.preventDefault());  // el código conserva el foco
   $("b-info-reto").addEventListener("click", () => abrirInfoReto($("info-reto").hidden));
   $("info-reto-cerrar").addEventListener("click", () => abrirInfoReto(false));
+  $("info-pestanas").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-info]");
+    if (b && !$("info-tira").classList.contains("arrastrada")) elegirInfo(b.dataset.info);
+  });
+  $("info-pestanas").addEventListener("keydown", (ev) => {
+    const ks = Object.keys(INFO), i = ks.indexOf(infoPestana);
+    const j = ev.key === "ArrowRight" ? i + 1 : ev.key === "ArrowLeft" ? i - 1 : ev.key === "Home" ? 0 : ev.key === "End" ? ks.length - 1 : null;
+    if (j == null) return;
+    ev.preventDefault(); elegirInfo(ks[(j + ks.length) % ks.length], true);
+  });
+  $("info-cuerpo").addEventListener("click", (ev) => {
+    const a = ev.target.closest("[data-info-accion]"); if (!a) return;
+    const acc = a.dataset.infoAccion;
+    if (acc === "ver-pista") { const p = pistaDe(); p.vistas = Math.min(partesPista().length, p.vistas + 1); guardarPista(p); pintarInfoReto(); }
+    else if (acc === "a-pista") elegirInfo("pista");
+    else if (acc === "linea") { const u = ultimoIntento(); abrirInfoReto(false); abrirPrograma(u.id); irALinea(u.linea); }
+  });
   document.addEventListener("pointerdown", (ev) => { if (!$("info-reto").hidden && !ev.target.closest("#info-reto, #b-info-reto")) abrirInfoReto(false); }, true);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("info-reto").hidden) { abrirInfoReto(false); $("b-info-reto").focus(); } });
   $("b-reto").addEventListener("click", () => abrirHoja($("hoja-reto").hidden));
@@ -1906,6 +2057,7 @@ onmessage = async (ev) => {
     const clave = [m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
     if (clave === metasClave) return;
     metasClave = clave;
+    vivoInfoReto();
     const cpd = m.derribos ? (coste() / m.derribos).toFixed(1) : "—", rec = records[claveReto()];
     let html = `<span class="meta${m.brechas > me.brechasMax ? " rota" : ""}">brechas <b>${m.brechas}</b> · máx ${me.brechasMax}</span>`;
     html += `<span class="meta${m.total && m.derribos === m.total ? " cumplida" : ""}">derribados <b>${m.derribos}/${m.total}</b>${me.derribosMin != null ? ` · mín ${me.derribosMin}` : ""}</span>`;
@@ -3135,6 +3287,8 @@ onmessage = async (ev) => {
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
     // Estado de la cámara 3D (clave de la postura, giro, inclinación, distancia y centro); lo usan las pruebas.
     camara: () => V3 && V3.camara(),
+    // Retrato PNG (data URL) del modelo actual de un tipo de enemigo; sirve para regenerar img/enemigos/.
+    retrato: (tipo) => V3 && TIPOS[tipo] ? V3.retrato(tipo) : null,
     funciones: () => [
       { grupo: "Lanzador", nombre: "autoTarget", firma: FIRMAS.autoTarget, nota: "→ posición" },
       { grupo: "Lanzador", nombre: "regularShoot", firma: FIRMAS.regularShoot, nota: "1 disparo/s" },

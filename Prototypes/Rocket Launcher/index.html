@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/componentes.css?v=16">
+<link rel="stylesheet" href="css/componentes.css?v=17">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=4">
 <link rel="stylesheet" href="css/layout.css?v=15">
 
@@ -161,17 +161,25 @@
         </div>
         <div class="asas" id="asas" aria-hidden="true" hidden><div class="asas-in" id="asas-in"></div></div>
         <!-- El objetivo del reto, a mano desde el código (en todos los modos) -->
-        <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Ver el objetivo del reto" data-tip="Objetivo del reto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg></button>
+        <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Información del reto" data-tip="Información del reto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg></button>
         <div class="info-reto marco" id="info-reto" role="dialog" aria-labelledby="info-reto-titulo" hidden>
-          <div class="hoja-cab">
-            <span class="placa">Objetivo</span>
+          <!-- Tira de pestañas: se desliza con el dedo, la rueda o arrastrando; las flechas avisan de que hay más -->
+          <div class="info-cab">
+            <div class="tira" id="info-tira">
+              <button class="tira-flecha izq" type="button" tabindex="-1" aria-hidden="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6l-6 6 6 6"/></svg></button>
+              <div class="info-pestanas" id="info-pestanas" role="tablist" aria-label="Información del reto">
+              <button type="button" role="tab" id="info-t-objetivo" data-info="objetivo" aria-selected="true" aria-controls="info-cuerpo" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Objetivo</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-metas" data-info="metas" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.6 1.6L8.5 5"/><path d="M4 12.5l1.6 1.6 2.9-3.1"/><path d="M4.5 18h3.5"/><path d="M11 6.5h9M11 12.5h9M11 18h9"/></svg><span>Metas</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-enemigos" data-info="enemigos" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="9" width="13" height="7" rx="2"/><path d="M4 18.5h16"/><path d="M8.5 9V7.5M15.5 9V7.5"/><circle cx="9.5" cy="12.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="12.5" r=".9" fill="currentColor"/></svg><span>Enemigos</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-pista" data-info="pista" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.5h6M10 20.5h4"/><path d="M12 3.5a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V17h5.2v-.7c0-.8.4-1.5 1-2A6 6 0 0 0 12 3.5z"/></svg><span>Pista</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-intento" data-info="intento" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v3.8h3.8"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>Último intento</span><i class="estado" aria-hidden="true"></i></button>
+              </div>
+              <button class="tira-flecha der" type="button" tabindex="-1" aria-hidden="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button>
+            </div>
             <button class="cerrar" id="info-reto-cerrar" type="button" aria-label="Cerrar">×</button>
           </div>
           <h3 id="info-reto-titulo"></h3>
-          <section class="objetivo" aria-label="Objetivo">
-            <p id="info-reto-txt"></p>
-            <div class="leccion" id="info-reto-leccion"></div>
-          </section>
+          <div class="info-cuerpo" id="info-cuerpo" role="tabpanel"></div>
         </div>
       </div>
       <!-- Panel inferior: inspector del programa (por defecto) o consola. Su barra se arrastra como el divisor. -->
@@ -378,8 +386,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
 <script src="../../shared/js/iconos.js?v=3" charset="utf-8"></script>
-<script src="js/juego.js?v=15" charset="utf-8"></script>
-<script src="js/layout.js?v=11" charset="utf-8"></script>
+<script src="js/juego.js?v=16" charset="utf-8"></script>
+<script src="js/layout.js?v=12" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=2" charset="utf-8"></script>
 <script src="../../shared/js/edicion.js?v=15" charset="utf-8"></script>
 <script src="js/seudo.js?v=2" charset="utf-8"></script>
