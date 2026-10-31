@@ -460,7 +460,7 @@ textarea.json { width: 100%; height: 8rem; font-family: var(--f-code); font-size
 
 /* Tooltip rápido */
 .tip {
-  position: fixed; z-index: 100; left: 0; top: 0; pointer-events: none; max-width: 260px;
+  position: fixed; z-index: 81; left: 0; top: 0; pointer-events: none; max-width: 260px;
   padding: 5px 9px 6px; border-radius: 6px; background: #05080A; color: var(--ink); border: 1px solid var(--metal);
   box-shadow: 0 6px 18px rgba(0, 0, 0, .5); display: grid; gap: 1px; animation: tip .08s ease-out;
 }

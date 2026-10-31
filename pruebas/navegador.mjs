@@ -164,8 +164,8 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await evaluar(() => window.cmg.codigo.blur());
   await page.waitForFunction(() => !document.querySelector('#app').classList.contains('teclado'));
   eq(await evaluar(() => document.querySelector('#simbolos').hidden), true, 'cerrar teclado restaura reparto');
-  eq(await evaluar(() => getComputedStyle(document.querySelector('#consola')).display === 'none' && getComputedStyle(document.querySelector('#b-pie')).display !== 'none'),
-    true, 'en el teléfono la consola empieza cerrada y deja su asa');
+  eq(await evaluar(() => getComputedStyle(document.querySelector('#pie-cuerpo')).display === 'none' && !document.querySelector('#consola').offsetParent && getComputedStyle(document.querySelector('#b-pie')).display !== 'none'),
+    true, 'en el teléfono el panel inferior (inspector/consola) empieza cerrado y deja su barra');
   eq(await evaluar(() => ['#paleta', '#edicion'].map(sel => new Set([...document.querySelectorAll(`${sel} button`)].filter(b => b.offsetParent).map(b => Math.round(b.getBoundingClientRect().top))).size)),
     [1, 1], 'la paleta y la barra de edición ocupan una línea cada una');
   eq(await evaluar(() => {
@@ -190,8 +190,43 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   eq(await evaluar(() => [...document.querySelectorAll('.variantes .variante span')].map(s => s.textContent)), ['If / else', 'If', 'If / else if'], 'mantener pulsado un atajo muestra sus variantes');
   await evaluar(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
+  // Sin teclado, mantener el dedo 2 s sobre una función abre las demás funciones (antes, un anillo se llena).
+  await evaluar(() => { const c = window.cmg.codigo; c.value = 'regularShoot(pos);\n'; c.dispatchEvent(new Event('input')); window.cmg.edicion.elegir(0, 0); });
+  const funcion = await page.evaluate(() => { const r = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === 'regularShoot').getBoundingClientRect(); return { x: r.left + 12, y: r.top + r.height / 2 }; });
+  await page.cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...funcion, id: 6 }] });
+  await page.waitForTimeout(1500);
+  const anillo = await evaluar(() => !document.querySelector('.anillo-carga').hidden && document.querySelector('.sugerencias').hidden);
+  await page.waitForFunction(() => !document.querySelector('.sugerencias').hidden);
+  await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  eq([anillo, await evaluar(() => [...document.querySelectorAll('.sugerencias .sug code')].some(c => c.textContent === 'burstFire(lugar)'))], [true, true], 'mantener 2 s una función muestra un anillo y luego todas las funciones');
+  await evaluar(() => [...document.querySelectorAll('.sugerencias .sug')].find(b => b.textContent.includes('burstFire(lugar)')).click());
+  eq(await evaluar(() => window.cmg.codigo.value), 'burstFire(pos);\n', 'elegir otra función conserva el argumento que encaja');
   await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: false });
   await page.click('#edicion .b-teclado');
+  // Modo pantalla completa: se activa manteniendo 2 s el botón; </> lleva al código y EJECUTAR a la batalla.
+  const pulsar = (sel, tipo) => page.evaluate(([s, t]) => document.querySelector(s).dispatchEvent(new PointerEvent(t, { bubbles: true, pointerId: 41, pointerType: 'touch', isPrimary: true })), [sel, tipo]);
+  eq(await evaluar(() => getComputedStyle(document.querySelector('#b-pantalla')).display !== 'none'), true, 'en el teléfono aparece el botón de pantalla completa junto a Ajustes');
+  await pulsar('#b-pantalla', 'pointerdown');
+  await page.waitForTimeout(600);
+  await pulsar('#b-pantalla', 'pointerup');
+  eq(await evaluar(() => document.querySelector('#app').dataset.pantallaCompleta), 'false', 'un toque corto no activa la pantalla completa');
+  await pulsar('#b-pantalla', 'pointerdown');
+  await page.waitForFunction(() => document.querySelector('#app').dataset.pantallaCompleta === 'true', null, { timeout: 4000 });
+  await pulsar('#b-pantalla', 'pointerup');
+  eq(await evaluar(() => [document.querySelector('#app').dataset.solo, document.querySelector('#b-pantalla').getAttribute('aria-pressed'), !document.querySelector('.aviso-pantalla').hidden]),
+    ['mapa', 'true', true], 'mantener 2 s activa la pantalla completa con la batalla y un aviso');
+  await page.click('#b-ver-codigo');
+  eq(await evaluar(() => [document.querySelector('#app').dataset.solo, getComputedStyle(document.querySelector('#progs')).display, !!document.querySelector('#b-ejecutar-cod').offsetParent, !!document.querySelector('#b-ver-mapa').offsetParent]),
+    ['codigo', 'none', true, true], 'el código a pantalla completa cambia los programas por EJECUTAR y ofrece volver al mapa');
+  await evaluar(() => { const c = window.cmg.codigo; c.value = 'regularShoot(autoTarget("crawler", "visual"));\n'; c.dispatchEvent(new Event('input')); window.__banco.seleccionar('LAU-01'); });
+  await page.click('#b-ejecutar-cod');
+  eq(await evaluar(() => [document.querySelector('#app').dataset.solo, window.cmg.ejecutando, document.querySelector('#inspector').dataset.estado]),
+    ['mapa', true, 'cerrado'], 'EJECUTAR corre el programa, pasa a la batalla y cierra el inspector');
+  await page.click('#b-ejecutar');
+  await pulsar('#b-pantalla', 'pointerdown');
+  await page.waitForFunction(() => document.querySelector('#app').dataset.pantallaCompleta === 'false', null, { timeout: 4000 });
+  await pulsar('#b-pantalla', 'pointerup');
+  eq(await evaluar(() => document.querySelector('#app').dataset.solo), '', 'mantener otra vez 2 s sale de la pantalla completa y recupera el reparto');
   await page.cdp('Emulation.clearDeviceMetricsOverride');
   console.log(`${checks} comprobaciones de navegador correctas`);
   return checks;
@@ -210,6 +245,10 @@ async function probarSinTeclado(page, eq) {
   const arrastrar = async (de, a) => { await page.mouse.move(de.x, de.y); await page.mouse.down(); await page.mouse.move(a.x, a.y, { steps: 8 }); await page.mouse.up(); };
 
   await page.fill('#codigo', 'if (true){\nyo.entregar("oro")\n}');
+  await page.keyboard.press('Control+Alt+A');
+  eq(await evaluar(() => window.cmg.edicion.activo), true, 'Ctrl+Alt+A activa el modo sin teclado');
+  await page.keyboard.press('Control+Alt+A');
+  eq(await evaluar(() => window.cmg.edicion.activo), false, 'Ctrl+Alt+A vuelve al teclado');
   await page.click('#b-teclado');
   eq(await evaluar(() => window.cmg.edicion.activo && !document.querySelector('#bloques').hidden && document.querySelector('#b-teclado').getAttribute('aria-pressed') === 'true' && document.activeElement !== window.cmg.codigo),
     true, 'el botón de teclado activa el modo sin teclado');

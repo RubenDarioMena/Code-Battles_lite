@@ -54,6 +54,8 @@
     app.style.setProperty("--b", `${primero === "mapa" ? 100 - p : p}fr`);
     app.dataset.mapaPorcentaje = p;
     app.dataset.solo = p === 0 ? "codigo" : p === 100 ? "mapa" : "";
+    // Panel que ocupa la esquina superior derecha: ahí va el botón de pantalla completa.
+    app.dataset.esquina = app.dataset.solo || (eje === "horizontal" ? (primero === "mapa" ? "codigo" : "mapa") : primero);
     for (const [panel, oculto] of [[$("zona-mapa"), p === 0], [zonaCodigo, p === 100]]) {
       if (oculto && panel.contains(document.activeElement)) document.activeElement.blur();
       panel.inert = oculto;
@@ -69,7 +71,10 @@
     const nuevoEje = orientacion === "auto" ? (f === "movil" ? "vertical" : "horizontal") : orientacion;
     primero = ordenPorEje[nuevoEje];
     actualizarAjustesPantalla(nuevoEje);
-    if (f === forma && nuevoEje === eje && app.dataset.primero === primero) return;
+    if (f === forma && nuevoEje === eje && app.dataset.primero === primero) {
+      if (aplicarPantalla()) aplicarReparto(repartoActual());
+      return;
+    }
     forma = f;
     eje = nuevoEje;
     app.dataset.forma = f;
@@ -85,7 +90,9 @@
     if (seleccion) { activo.focus({ preventScroll: true }); activo.setSelectionRange(...seleccion); }
     app.dispatchEvent(new Event("cmg:forma"));
     divisor.setAttribute("aria-orientation", eje === "vertical" ? "horizontal" : "vertical");
-    aplicarReparto(leer(claveReparto(), REPARTO[f]));
+    aplicarPantalla();
+    aplicarReparto(repartoActual());
+    aplicarPie();
     actualizarTeclado();
   }
 
@@ -105,6 +112,7 @@
     const posicion = eje === "vertical"
       ? (ev.clientY - arrastre.top - parseFloat(cs.paddingTop)) / (arrastre.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16) * 100
       : (ev.clientX - arrastre.left - parseFloat(cs.paddingLeft)) / (arrastre.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 16) * 100;
+    panelFS = null;
     aplicarReparto(recortar(primero === "mapa" ? posicion : 100 - posicion));
   });
   const soltar = () => {
@@ -115,7 +123,7 @@
   divisor.addEventListener("pointerup", soltar);
   divisor.addEventListener("pointercancel", soltar);
   divisor.addEventListener("lostpointercapture", soltar);
-  function restaurarReparto() { aplicarReparto(REPARTO[forma]); escribir(claveReparto(), REPARTO[forma]); }
+  function restaurarReparto() { panelFS = null; aplicarReparto(REPARTO[forma]); escribir(claveReparto(), REPARTO[forma]); }
   divisor.addEventListener("dblclick", restaurarReparto);
   divisor.addEventListener("keydown", (ev) => {
     const menos = eje === "vertical" ? "ArrowUp" : "ArrowLeft", mas = eje === "vertical" ? "ArrowDown" : "ArrowRight";
@@ -123,6 +131,7 @@
     ev.preventDefault();
     const actual = Number(app.dataset.mapaPorcentaje), signo = primero === "mapa" ? 1 : -1;
     const p = ev.key === "Home" ? (primero === "mapa" ? 0 : 100) : ev.key === "End" ? (primero === "mapa" ? 100 : 0) : Math.max(0, Math.min(100, actual + (ev.key === mas ? 2 : -2) * signo));
+    panelFS = null;
     aplicarReparto(p); escribir(claveReparto(), p);
   });
 
@@ -255,13 +264,192 @@
     }, { passive: false });
   }
 
-  // ---------- Consola plegable (teléfono) ----------
-  $("b-pie").addEventListener("click", () => {
-    const pie = $("pie"), abierto = pie.dataset.abierto !== "true";
-    pie.dataset.abierto = abierto;
-    $("b-pie").setAttribute("aria-expanded", abierto);
-    const con = $("consola"); con.scrollTop = con.scrollHeight;
+  // ---------- Panel inferior: inspector del programa (por defecto) o consola ----------
+  // Su barra se arrastra como el divisor: llevarla hasta abajo lo cierra del todo; un toque en la barra
+  // o el botón ▾/▴ lo cierra o lo recupera con su último alto. Alto y contenido se guardan por forma.
+  const pie = $("pie"), pieCuerpo = $("pie-cuerpo"), pieBarra = $("pie-barra"), pieAgarre = $("pie-agarre"), bPie = $("b-pie");
+  const PIE = { escritorio: 170, movil: 0 }, PIE_ABRIR = { escritorio: 170, movil: 130 }, PIE_MIN = 48;
+  let pieModo = leer("pie-modo", "inspector") === "consola" ? "consola" : "inspector";
+  const numero = (v, d) => Number.isFinite(Number(v)) ? Number(v) : d;
+  const altoPie = () => Math.max(0, numero(leer(`pie-alto-${forma}`, PIE[forma]), PIE[forma]));
+  const altoActual = () => pie.dataset.abierto === "true" ? pieCuerpo.getBoundingClientRect().height : 0;
+  // El editor conserva unas líneas a la vista.
+  const maxPie = () => Math.max(PIE_MIN, $("v-programa").getBoundingClientRect().height - pieBarra.offsetHeight - 90);
+  const marcarNuevo = (si) => pie.querySelector('[data-pie-modo="consola"]').classList.toggle("con-nuevo", si);
+  function aplicarPie(alto = altoPie()) {
+    const abierto = alto > 0;
+    pie.dataset.abierto = String(abierto);
+    pie.dataset.modo = pieModo;
+    if (abierto) pie.style.setProperty("--pie-alto", `${Math.round(alto)}px`);
+    bPie.setAttribute("aria-expanded", String(abierto));
+    bPie.setAttribute("aria-label", abierto ? "Cerrar el panel" : "Abrir el panel");
+    bPie.dataset.tip = abierto ? "Cerrar el panel" : "Abrir el panel";
+    bPie.textContent = abierto ? "▾" : "▴";
+    pieAgarre.setAttribute("aria-valuenow", String(Math.round(alto)));
+    pieAgarre.setAttribute("aria-valuetext", abierto ? `${Math.round(alto)} píxeles` : "cerrado");
+    for (const b of pie.querySelectorAll("[data-pie-modo]")) b.setAttribute("aria-pressed", String(b.dataset.pieModo === pieModo));
+    if (abierto && pieModo === "consola") { marcarNuevo(false); const c = $("consola"); c.scrollTop = c.scrollHeight; }
+    requestAnimationFrame(() => window.cmg && window.cmg.medirEditor());
+  }
+  function guardarPie(alto) {
+    escribir(`pie-alto-${forma}`, Math.round(alto));
+    if (alto > 0) escribir(`pie-ultimo-${forma}`, Math.round(alto));
+  }
+  function abrirPie(si) {
+    const alto = si ? Math.max(PIE_MIN, numero(leer(`pie-ultimo-${forma}`, PIE_ABRIR[forma]), PIE_ABRIR[forma])) : 0;
+    aplicarPie(alto); guardarPie(alto);
+  }
+  bPie.addEventListener("click", () => abrirPie(pie.dataset.abierto !== "true"));
+  pie.querySelector(".pie-modos").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-pie-modo]"); if (!b) return;
+    pieModo = b.dataset.pieModo; escribir("pie-modo", pieModo);
+    if (pie.dataset.abierto !== "true") abrirPie(true); else aplicarPie(altoActual());
   });
+  let piePulso = null;
+  pieBarra.addEventListener("pointerdown", (ev) => {
+    if (ev.target.closest("button") || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+    ev.preventDefault();
+    pieBarra.setPointerCapture(ev.pointerId);
+    piePulso = { id: ev.pointerId, y0: ev.clientY, alto0: altoActual(), max: maxPie(), movido: false, alto: null };
+    pieBarra.classList.add("arrastra");
+  });
+  pieBarra.addEventListener("pointermove", (ev) => {
+    if (!piePulso || ev.pointerId !== piePulso.id) return;
+    const d = piePulso.y0 - ev.clientY;
+    if (!piePulso.movido && Math.abs(d) < 5) return;
+    piePulso.movido = true;
+    const alto = Math.max(0, Math.min(piePulso.max, piePulso.alto0 + d));
+    piePulso.alto = alto < PIE_MIN * .7 ? 0 : Math.max(PIE_MIN, alto);
+    aplicarPie(piePulso.alto);
+  });
+  const soltarPie = (ev) => {
+    if (!piePulso || ev.pointerId !== piePulso.id) return;
+    const p = piePulso; piePulso = null;
+    pieBarra.classList.remove("arrastra");
+    if (p.movido) guardarPie(p.alto ?? p.alto0);
+    else if (ev.type === "pointerup") abrirPie(pie.dataset.abierto !== "true");
+  };
+  pieBarra.addEventListener("pointerup", soltarPie);
+  pieBarra.addEventListener("pointercancel", soltarPie);
+  pieAgarre.addEventListener("keydown", (ev) => {
+    const actual = altoActual();
+    let a = ev.key === "ArrowUp" ? actual + 24 : ev.key === "ArrowDown" ? actual - 24 : ev.key === "Home" ? 0 : ev.key === "End" ? maxPie() : null;
+    if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); abrirPie(actual === 0); return; }
+    if (a == null) return;
+    ev.preventDefault();
+    a = a < PIE_MIN ? 0 : Math.min(a, maxPie());
+    aplicarPie(a); guardarPie(a);
+  });
+  // Mensajes nuevos con la consola oculta: un punto en su botón.
+  new MutationObserver(() => {
+    const c = $("consola");
+    if (c.children.length === 1 && c.firstElementChild.classList.contains("vacia")) { marcarNuevo(false); return; }
+    if (pieModo !== "consola" || pie.dataset.abierto !== "true") marcarNuevo(true);
+  }).observe($("consola"), { childList: true });
+
+  // ---------- Modo pantalla completa (tabletas y teléfonos) ----------
+  // Mantener 2 s el botón de las cuatro esquinas lo activa o lo desactiva. Activo, la batalla y el código
+  // ocupan cada uno toda la pantalla y se salta de uno a otro con </>, EJECUTAR o el botón del mapa.
+  // El divisor sigue funcionando; esos botones vuelven a llevar a pantalla completa.
+  const MANTENER_MS = 2000;
+  const gruesa = matchMedia("(pointer: coarse)");
+  let pantallaActiva = leer("pantalla-completa", false) === true, panelFS = "mapa";
+  const pantallaPermitida = () => forma === "movil" || innerWidth <= 1100 || (gruesa.matches && innerWidth <= 1400);
+  const pantallaEfectiva = () => pantallaActiva && pantallaPermitida();
+  // Reparto al cambiar de forma: el panel a pantalla completa, o el guardado.
+  const repartoActual = () => pantallaEfectiva() && panelFS ? (panelFS === "mapa" ? 100 : 0) : leer(claveReparto(), REPARTO[forma]);
+  function aplicarPantalla() {
+    const ok = pantallaPermitida(), ef = pantallaActiva && ok, antes = app.dataset.pantallaCompleta === "true";
+    app.dataset.pantallaPermitida = String(ok);
+    app.dataset.pantallaCompleta = String(ef);
+    for (const b of document.querySelectorAll(".b-pantalla")) {
+      b.setAttribute("aria-pressed", String(ef));
+      b.dataset.tip = ef ? "Pantalla completa activa" : "Pantalla completa";
+      b.dataset.tipCod = ef ? "mantén pulsado 2 s para salir" : "mantén pulsado 2 s";
+    }
+    const est = $("ajustes-pantalla-estado");
+    est.textContent = ef ? "activo" : pantallaActiva ? "en pausa: pantalla grande" : "inactivo";
+    est.classList.toggle("activo", ef);
+    return ef !== antes;
+  }
+  function verPanel(panel) {
+    if (!pantallaEfectiva() || (panel !== "mapa" && panel !== "codigo")) return;
+    panelFS = panel;
+    aplicarReparto(panel === "mapa" ? 100 : 0);
+    requestAnimationFrame(() => window.cmg && window.cmg.medirEditor());
+  }
+  const $avisoPantalla = document.createElement("button");
+  $avisoPantalla.type = "button"; $avisoPantalla.className = "aviso-pantalla"; $avisoPantalla.hidden = true;
+  $avisoPantalla.setAttribute("role", "status");
+  document.body.append($avisoPantalla);
+  let tAvisoPantalla = 0, avisoDesde = 0;
+  function avisoPantalla(titulo, texto, info = false) {
+    $avisoPantalla.innerHTML = `<b></b>${texto ? " <span></span>" : ""}`;
+    $avisoPantalla.querySelector("b").textContent = titulo;
+    if (texto) $avisoPantalla.querySelector("span").textContent = texto;
+    $avisoPantalla.dataset.info = String(info);
+    $avisoPantalla.hidden = false;
+    avisoDesde = performance.now();
+    clearTimeout(tAvisoPantalla);
+    tAvisoPantalla = setTimeout(() => { $avisoPantalla.hidden = true; }, info ? 4200 : 2200);
+  }
+  const abrirInfoPantalla = () => { if (!$("info-pantalla").open) $("info-pantalla").showModal(); };
+  // Al soltar el dedo tras mantener el botón no se abre nada por accidente.
+  $avisoPantalla.addEventListener("click", () => {
+    if (performance.now() - avisoDesde < 700) return;
+    $avisoPantalla.hidden = true; if ($avisoPantalla.dataset.info === "true") abrirInfoPantalla(); });
+  function alternarPantalla() {
+    pantallaActiva = !pantallaActiva;
+    escribir("pantalla-completa", pantallaActiva);
+    aplicarPantalla();
+    if (pantallaActiva) { verPanel("mapa"); avisoPantalla("Full screen mode active.", "More details on settings.", true); }
+    else { panelFS = "mapa"; aplicarReparto(leer(claveReparto(), REPARTO[forma])); avisoPantalla("Full screen mode off.", ""); }
+  }
+  // Círculo grande que se llena mientras se mantiene el botón.
+  const $carga = document.createElement("div");
+  $carga.className = "carga-pantalla"; $carga.hidden = true; $carga.setAttribute("aria-hidden", "true");
+  $carga.innerHTML = `<svg viewBox="0 0 120 120"><circle class="fondo" cx="60" cy="60" r="52"/><circle class="relleno" cx="60" cy="60" r="52"/></svg>`
+    + `<span class="icono">${document.querySelector(".b-pantalla").innerHTML}</span><span class="txt"></span>`;
+  document.body.append($carga);
+  let mantener = null;
+  function empezarMantener(id) {
+    terminarMantener();
+    $carga.querySelector(".txt").textContent = pantallaActiva ? "Mantén para salir" : "Mantén para activar";
+    $carga.style.setProperty("--dur", `${MANTENER_MS}ms`);
+    $carga.hidden = false;
+    $carga.classList.remove("llena"); void $carga.offsetWidth; $carga.classList.add("llena");
+    const m = { id, hecho: false };
+    m.t = setTimeout(() => { m.hecho = true; $carga.hidden = true; if (navigator.vibrate) navigator.vibrate(20); alternarPantalla(); }, MANTENER_MS);
+    mantener = m;
+  }
+  function terminarMantener(pista = false) {
+    if (!mantener) return;
+    const m = mantener; mantener = null;
+    clearTimeout(m.t); $carga.hidden = true; $carga.classList.remove("llena");
+    if (pista && !m.hecho) avisoPantalla("Mantén pulsado 2 segundos", pantallaActiva ? "para salir de la pantalla completa." : "para activar la pantalla completa.");
+  }
+  for (const b of document.querySelectorAll(".b-pantalla")) {
+    b.addEventListener("pointerdown", (ev) => {
+      if (ev.pointerType === "mouse" && ev.button !== 0) return;
+      ev.preventDefault();
+      try { b.setPointerCapture(ev.pointerId); } catch { /* sin captura: basta con los eventos del botón */ }
+      empezarMantener(ev.pointerId);
+    });
+    b.addEventListener("pointerup", (ev) => { if (mantener && mantener.id === ev.pointerId) terminarMantener(true); });
+    b.addEventListener("pointercancel", (ev) => { if (mantener && mantener.id === ev.pointerId) terminarMantener(); });
+    b.addEventListener("contextmenu", (ev) => ev.preventDefault());
+    b.addEventListener("keydown", (ev) => {
+      if ((ev.key !== "Enter" && ev.key !== " ") || ev.repeat) return;
+      ev.preventDefault(); empezarMantener("tecla");
+    });
+    b.addEventListener("keyup", (ev) => { if ((ev.key === "Enter" || ev.key === " ") && mantener && mantener.id === "tecla") terminarMantener(true); });
+    b.addEventListener("blur", () => { if (mantener && mantener.id === "tecla") terminarMantener(); });
+  }
+  $("b-ver-codigo").addEventListener("click", () => verPanel("codigo"));
+  $("b-ver-mapa").addEventListener("click", () => verPanel("mapa"));
+  app.addEventListener("cmg:pantalla", (ev) => verPanel(ev.detail));
+  $("ajustes-pantalla-info").addEventListener("click", abrirInfoPantalla);
+  $("info-pantalla-cerrar").addEventListener("click", () => $("info-pantalla").close());
 
   // ---------- Tooltips rápidos ----------
   // Los iconos no llevan nombre: aparece al pasar el cursor (o al tocarlos en el teléfono).
@@ -276,11 +464,26 @@
     tip.hidden = false;
     const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
     let x = r.left + r.width / 2 - t.width / 2, y = r.top - t.height - 8;
-    if (y < 4) y = r.bottom + 8;
+    // Paleta y variantes: el nombre queda debajo de la paleta y del menú de variantes, sin taparlos.
+    const pal = el.closest(".paleta") || (el.closest(".variantes") && document.querySelector(".paleta:not([hidden])"));
+    if (pal) {
+      const v = document.querySelector(".variantes:not([hidden])");
+      const piso = Math.max(r.bottom, pal.getBoundingClientRect().bottom, v ? v.getBoundingClientRect().bottom : 0) + 8;
+      y = piso + t.height <= innerHeight - 4 ? piso : Math.max(4, Math.min(r.top, v ? v.getBoundingClientRect().top : r.top) - t.height - 8);
+      vigilarVariantes();
+    } else if (y < 4) y = r.bottom + 8;
     x = Math.max(6, Math.min(innerWidth - t.width - 6, x));
     tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   }
   function ocultarTip() { clearTimeout(tipT); tipDe = null; tip.hidden = true; }
+  // Si el menú de variantes se abre o se cierra con el nombre visible, el nombre se recoloca.
+  let vigiaVariantes = null;
+  function vigilarVariantes() {
+    const v = document.querySelector(".variantes");
+    if (!v || vigiaVariantes) return;
+    vigiaVariantes = new MutationObserver(() => { if (tipDe && !tip.hidden && tipDe.isConnected) mostrarTip(tipDe); });
+    vigiaVariantes.observe(v, { attributes: true, attributeFilter: ["hidden"] });
+  }
   document.addEventListener("pointerover", (ev) => {
     if (ev.pointerType === "touch") return;
     const el = ev.target.closest("[data-tip]");

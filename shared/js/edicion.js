@@ -437,6 +437,8 @@
     gesto = { id: ev.pointerId, x: ev.clientX, y: ev.clientY, o, antes: [a, b], dentro: a < b && o.pos >= a && o.pos < b, raton: ev.pointerType === "mouse" };
     // Con el dedo, una ficha sin elegir se levanta manteniéndola pulsada (si no, el dedo desplaza la vista).
     if (!gesto.raton && !gesto.dentro && o.ficha) gesto.largo = setTimeout(levantar, LARGO_MS);
+    // Con el dedo quieto 2 s se abre el menú de alternativas (como el clic derecho).
+    if (!gesto.raton) { ultimoTactil = performance.now(); programarMenu(gesto); }
   });
   function levantar() {
     if (!gesto || gesto.arrastre) return;
@@ -451,6 +453,7 @@
     if (gesto.arrastre) { gesto.arrastre.x = ev.clientX; gesto.arrastre.y = ev.clientY; moverArrastre(ev.clientX, ev.clientY); return; }
     if (Math.hypot(ev.clientX - gesto.x, ev.clientY - gesto.y) < (gesto.raton ? 5 : 9)) return;
     clearTimeout(gesto.largo);
+    cancelarMenu(gesto);
     if (gesto.lineas) return iniciarArrastre(ev, gesto.lineas, true);
     if (gesto.raton || gesto.dentro || gesto.levantado) {
       const r = gesto.dentro ? gesto.antes : E.atomo(estructura(), gesto.o.pos);
@@ -463,6 +466,7 @@
   window.addEventListener("pointerup", (ev) => {
     if (!gesto || ev.pointerId !== gesto.id) return;
     clearTimeout(gesto.largo);
+    cancelarMenu(gesto);
     const g = gesto; gesto = null;
     if (g.arrastre) return soltar(ev, g.arrastre);
     if (g.lineas) return elegir(...sinSalto(g.lineas));   // toque en un asa: elige la sentencia de esa línea
@@ -471,12 +475,48 @@
   window.addEventListener("pointercancel", (ev) => {
     if (!gesto || ev.pointerId !== gesto.id) return;
     clearTimeout(gesto.largo);
+    cancelarMenu(gesto);
     if (gesto.arrastre) terminarArrastre();
     gesto = null;
   });
   // Con la ficha levantada el dedo arrastra en vez de desplazar.
   $vista.addEventListener("touchmove", (ev) => { if (gesto && (gesto.arrastre || gesto.levantado)) ev.preventDefault(); }, { passive: false });
-  $vista.addEventListener("contextmenu", (ev) => { if (activo) ev.preventDefault(); });
+  // Clic derecho: alternativas del elemento. La pulsación larga del dedo dispara también «contextmenu»
+  // en Android; ahí manda el temporizador de 2 s, no el menú del sistema.
+  let ultimoTactil = -1e9;
+  $vista.addEventListener("contextmenu", (ev) => {
+    if (!activo) return;
+    ev.preventDefault();
+    if (performance.now() - ultimoTactil < 2500 || ev.pointerType === "touch") return;
+    $vista.focus({ preventScroll: true });
+    abrirAlternativas(objetivo(ev.clientX, ev.clientY).pos);
+  });
+
+  // Anillo que se llena mientras el dedo sigue quieto: el primer segundo no pasa nada,
+  // el segundo se llena el círculo y al completarlo se abre la lista.
+  const MENU_MS = 2000, ANILLO_MS = 1000;
+  const $anillo = document.createElement("div");
+  $anillo.className = "anillo-carga"; $anillo.hidden = true; $anillo.setAttribute("aria-hidden", "true");
+  $anillo.innerHTML = `<svg viewBox="0 0 48 48"><circle class="fondo" cx="24" cy="24" r="19"/><circle class="relleno" cx="24" cy="24" r="19"/></svg>`;
+  document.body.append($anillo);
+  function mostrarAnillo(x, y, ms) {
+    $anillo.style.setProperty("--dur", `${ms}ms`);
+    $anillo.style.transform = `translate(${Math.round(x - 26)}px, ${Math.round(Math.max(4, y - 92))}px)`;
+    $anillo.hidden = false;
+    $anillo.classList.remove("llena"); void $anillo.offsetWidth; $anillo.classList.add("llena");
+  }
+  function ocultarAnillo() { $anillo.hidden = true; $anillo.classList.remove("llena"); }
+  function programarMenu(g) {
+    g.anilloT = setTimeout(() => { if (gesto === g && !g.arrastre) mostrarAnillo(g.x, g.y, MENU_MS - ANILLO_MS); }, ANILLO_MS);
+    g.menuT = setTimeout(() => {
+      if (gesto !== g || g.arrastre) return;
+      clearTimeout(g.largo); ocultarAnillo();
+      gesto = null;
+      if (navigator.vibrate) navigator.vibrate(15);
+      abrirAlternativas(g.o.pos);
+    }, MENU_MS);
+  }
+  function cancelarMenu(g) { if (!g) return; clearTimeout(g.anilloT); clearTimeout(g.menuT); ocultarAnillo(); }
 
   // Un toque elige el elemento entero; el doble toque amplía hasta el siguiente límite semántico.
   // Un toque dentro de lo elegido espera un momento por si llega el segundo, así ampliar no parpadea.
@@ -508,6 +548,7 @@
   // las sentencias y líneas completas se mueven entre líneas (con Alt o Ctrl, se copian).
   function iniciarArrastre(ev, [a, b], lineas) {
     if (!editable() || a === b) { gesto = null; return; }
+    cancelarMenu(gesto);
     const v = $codigo.value;
     gesto.arrastre = { a, b, texto: v.slice(a, b), lineas, x: ev.clientX, y: ev.clientY, tactil: ev.pointerType !== "mouse", destino: null };
     const t = v.slice(a, b).replace(/\n$/, ""), primera = t.split("\n")[0].trim();
@@ -789,6 +830,102 @@
   addEventListener("resize", () => { if (sugerido) colocarSugerencias(); });
   if (window.visualViewport) visualViewport.addEventListener("resize", () => { if (sugerido) colocarSugerencias(); });
 
+  // ---------- Alternativas: clic derecho o mantener 2 s (sin teclado) ----------
+  // Otros elementos del mismo tipo que el elegido, o lo que encaja en su sitio: sobre una función, todas
+  // las funciones; sobre un operador, los de su familia; dentro de ( ), [ ] o { }, lo que cabe ahí.
+  const FAMILIAS = [
+    ["Comparar", [["===", "igual"], ["!==", "distinto"], [">", "mayor"], ["<", "menor"], [">=", "mayor o igual"], ["<=", "menor o igual"]]],
+    ["Combinar", [["&&", "y · se cumplen las dos"], ["||", "o · basta una"], ["??", "si no hay, usa el otro"]]],
+    ["Calcular", [["+", "suma"], ["-", "resta"], ["*", "multiplica"], ["/", "divide"], ["%", "resto"]]],
+    ["Asignar", [["=", "guarda"], ["+=", "suma y guarda"], ["-=", "resta y guarda"], ["*=", "multiplica y guarda"], ["??=", "solo si no hay"]]],
+  ];
+  const DECLARA = [["const", "no cambia"], ["let", "puede cambiar"]];
+  const LITERALES = [["true", "verdadero"], ["false", "falso"], ["null", "nada"]];
+  const opc = (ins, cls, nota, ver) => ({ ins, cls, nota, ver });
+  const funcionesDisponibles = () => (cmg.funciones ? cmg.funciones() : []) || [];
+  // Agrupa por el título que da el juego (lanzador, console, sensores…).
+  function gruposFunciones(lista, item) {
+    const g = new Map();
+    for (const f of lista) { const t = f.grupo || ""; if (!g.has(t)) g.set(t, []); g.get(t).push(item(f)); }
+    return [...g].map(([titulo, items]) => ({ titulo, items }));
+  }
+  function alternativas(pos) {
+    const e = estructura(), v = e.src;
+    const f = e.sig.find(x => x.a <= pos && pos < x.b);
+    const vars = variables(e, pos);
+    // 1. El nombre de una llamada (o su objeto): todas las funciones, con los argumentos que encajen.
+    const ll = f && e.nodos.filter(n => n.k === "llamada" && n.nombre && pos >= n.a && pos < n.nombre.b).sort((x, y) => (x.nombre.b - x.a) - (y.nombre.b - y.a))[0];
+    const lista = funcionesDisponibles();
+    if (ll && lista.length) {
+      const conAwait = ll.padre && ll.padre.k === "unaria" && ll.padre.op === "await";
+      const a = conAwait ? ll.padre.a : ll.a, viejo = cmg.firma(v.slice(ll.nombre.a, ll.nombre.b)) || [];
+      const args = ll.args.filter(x => x.k !== "vacio");
+      const grupos = gruposFunciones(lista, fn => {
+        const params = fn.firma || [], nombre = `${fn.objeto ? fn.objeto + "." : ""}${fn.nombre}`;
+        const dentro = params.map((p, i) => args[i] && viejo[i] === p ? v.slice(args[i].a, args[i].b) : `/* ${p} */`);
+        return opc(`${fn.await ? "await " : ""}${nombre}(${dentro.join(", ")})`, "fn", fn.nota || "", `${nombre}(${params.join(", ")})`);
+      });
+      return { a, b: ll.b, datos: { titulo: "Funciones", donde: "cambia la llamada, conserva los valores que encajan", grupos } };
+    }
+    // 2. Un operador: los de su familia.
+    if (f && f.k === "p") {
+      const fam = FAMILIAS.find(([, ops]) => ops.some(([o]) => o === f.v));
+      if (fam) return { a: f.a, b: f.b, datos: { titulo: `Operador · ${fam[0].toLowerCase()}`, grupos: [{ items: fam[1].map(([o, nota]) => opc(o, "op", nota)) }] } };
+    }
+    // 3. const / let.
+    if (f && f.k === "id" && DECLARA.some(([d]) => d === f.v)) return { a: f.a, b: f.b, datos: { titulo: "Declaración", grupos: [{ items: DECLARA.map(([d, nota]) => opc(d, "kw", nota)) }] } };
+    // 4. Un valor: lo que encaja en su sitio (argumento, condición, comparación) y los de su mismo tipo.
+    const t = f ? E.atomo(e, pos) : null;
+    if (t) {
+      let [a, b] = t;
+      const n = e.nodos.find(x => x.a === a && x.b === b && x.k !== "vacio" && x.k !== "programa");
+      if (!n || !["id", "num", "str", "lit", "hueco"].includes(n.k)) return null;
+      if (n.padre && n.padre.k === "decl" && n.padre.h[0] === n) return null;   // el nombre que se declara
+      // Una propiedad (obj.prop) se cambia entera.
+      const m = n.prop && n.padre && n.padre.k === "miembro" ? n.padre : n;
+      [a, b] = [m.a, m.b];
+      const c = E.contexto(e, a, b);
+      let datos = c && (c.tipo || c.hueco) ? cmg.sugerencias({ tipo: c.tipo, funcion: c.funcion, objeto: c.objeto, indice: c.indice, hueco: c.hueco, variables: vars }) : null;
+      if (!datos && n.k !== "num") datos = cmg.sugerencias({ tipo: "valor", variables: vars });
+      const grupos = [...(datos ? datos.grupos : [])];
+      if (n.k === "lit") grupos.unshift({ titulo: "Del mismo tipo", items: LITERALES.map(([l, nota]) => opc(l, "kw", nota)) });
+      if (!grupos.some(g => g.items.length) && n.k !== "num") return null;
+      return { a, b, numero: n.k === "num", c: c || undefined, datos: { titulo: datos ? datos.titulo : n.k === "num" ? "Número" : "Valor", donde: datos && datos.donde, grupos } };
+    }
+    // 5. Un hueco vacío entre ( ) o [ ]: los valores de ese argumento.
+    const vacio = e.nodos.find(x => x.k === "vacio" && x.a <= pos && pos <= x.b);
+    if (vacio) {
+      const c = E.contexto(e, vacio.a, vacio.a);
+      const datos = c && cmg.sugerencias({ tipo: c.tipo, funcion: c.funcion, objeto: c.objeto, indice: c.indice, hueco: c.hueco, variables: vars });
+      return datos ? { a: vacio.a, b: vacio.b, c, datos } : null;
+    }
+    // 6. Una línea vacía dentro de { }: las órdenes que caben ahí, como sentencias.
+    const l = E.lineaDe(e, pos), ini = E.inicioLinea(e, l), fin = E.finLinea(e, l);
+    if (!v.slice(ini, fin).trim() && lista.length) {
+      const s = sangriaEn(v, ini);
+      const grupos = gruposFunciones(lista, fn => {
+        const nombre = `${fn.objeto ? fn.objeto + "." : ""}${fn.nombre}`, params = fn.firma || [];
+        return opc(`${s}${fn.await ? "await " : ""}${nombre}(${params.map(p => `/* ${p} */`).join(", ")});`, "fn", fn.nota || "", `${nombre}(${params.join(", ")})`);
+      });
+      return { a: ini, b: fin, datos: { titulo: "Órdenes", donde: `línea ${l + 1}`, grupos } };
+    }
+    return null;
+  }
+  function abrirAlternativas(pos) {
+    if (!activo || $codigo.readOnly) { if ($codigo.readOnly) cmg.aviso("Detén el programa para editarlo."); return; }
+    const r = alternativas(pos);
+    if (!r) {
+      const t = E.atomo(estructura(), pos);
+      if (t) elegir(t[0], t[1]);
+      toast("No hay alternativas para este elemento.");
+      return;
+    }
+    elegir(r.a, r.b, { mostrar: true });
+    versionSug++;   // anula la lista automática que pediría elegir()
+    sinSugerir = "";
+    abrirSugerencias(r.datos, r.a, r.b, r.c || { vacio: false, hueco: null }, !!r.numero);
+  }
+
   // ---------- Barra de edición ----------
   const ICONOS = {
     teclado: '<rect x="2.5" y="6" width="19" height="12.5" rx="2.2"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M6.5 13.6h.01M17 13.6h.01M9.5 14.6h5"/><path class="tachado" d="M3.6 3.4l16.8 17.2"/>',
@@ -843,8 +980,10 @@
   function pintarBarra() {
     for (const b of document.querySelectorAll(".b-teclado")) {
       b.setAttribute("aria-pressed", String(activo));
-      b.setAttribute("aria-label", activo ? "Modo sin teclado activo: toca para escribir con teclado" : "Modo sin teclado");
+      b.setAttribute("aria-label", activo ? "Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)" : "Modo sin teclado (Ctrl+Alt+A)");
+      b.setAttribute("aria-keyshortcuts", "Control+Alt+A");
       b.dataset.tip = activo ? "Volver al teclado" : "Modo sin teclado";
+      b.dataset.tipCod = "Ctrl+Alt+A";
     }
     const quieto = $codigo.readOnly;
     for (const b of $barra.querySelectorAll("[data-accion]")) {
@@ -901,6 +1040,15 @@
   $codigo.addEventListener("input", () => { if (!activo) actualizarSugerencias(); });
 
   // ---------- Teclado físico ----------
+  // Ctrl+Alt+A activa o desactiva el modo sin teclado desde cualquier parte del juego.
+  document.addEventListener("keydown", (ev) => {
+    if (!ev.ctrlKey || !ev.altKey || ev.shiftKey || ev.metaKey || !(ev.code === "KeyA" || (ev.key || "").toLowerCase() === "a")) return;
+    if (document.querySelector("dialog[open]") || (cmg.seudo && cmg.seudo.activo)) return;
+    ev.preventDefault(); ev.stopPropagation();
+    activar(!activo, true);
+    if (activo && editorVisible()) $vista.focus({ preventScroll: true });
+    toast(activo ? "Modo sin teclado · Ctrl+Alt+A" : "Teclado · Ctrl+Alt+A");
+  }, true);
   // Sin teclado en PC: la vista toma el foco al hacer clic y entiende atajos de bloques.
   function atomoVecino(dir) {
     const [a, b] = sel(), e = estructura(), v = e.src;

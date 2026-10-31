@@ -696,7 +696,7 @@ onmessage = async (ev) => {
     if (edicion.mixto && $codigo.value.trim()) {
       mostrarBanner("fallo", "Aplica el borrador antes de ejecutar",
         "El borrador todavía no pertenece a los lanzadores. Usa Add para anexarlo o Replace para sustituir sus programas.", null,
-        [["Volver al borrador", "primario", () => { ocultarBanner(); abrirPestana("programa"); $codigo.focus(); }]]);
+        [["Volver al borrador", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); $codigo.focus(); }]]);
       return;
     }
     cerrarProgramas();
@@ -1712,7 +1712,7 @@ onmessage = async (ev) => {
     const programables = [...seleccionadas].filter(id => Object.hasOwn(programas, id));
     configurarEdicion(programables.length ? programables : [progSel]);
     historia.clear();
-    pintarMaquinas(); pintarInspector();
+    pintarMaquinas(); pintarInspector(); pintarPieIns();
     metasClave = "";
   }
 
@@ -1762,6 +1762,9 @@ onmessage = async (ev) => {
     const $e = $("b-ejecutar");
     $e.textContent = corriendo ? "■ Detener" : "▶ Ejecutar";
     $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo);
+    const $ec = $("b-ejecutar-cod");
+    $ec.textContent = corriendo ? "■ DETENER" : "▶ EJECUTAR";
+    $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
     const $p = $("b-pausa");
     $p.disabled = !corriendo; $p.textContent = pausa ? "Seguir" : "Pausa";
     $("b-vel").textContent = `${velocidad}×`;
@@ -1771,6 +1774,14 @@ onmessage = async (ev) => {
     $codigo.readOnly = corriendo;
   }
   $("b-ejecutar").addEventListener("click", () => ejec ? detener() : ejecutar());
+  // EJECUTAR del editor (pantalla completa): corre el código, pasa a la batalla y cierra el inspector.
+  // Si hay un error, la batalla muestra su aviso con el enlace a la línea.
+  $("b-ejecutar-cod").addEventListener("click", () => {
+    if (ejec) { detener(); return; }
+    ejecutar();
+    if (ejec) ponerInspector("cerrado");
+    verPanel("mapa");
+  });
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
   $("b-reiniciar").addEventListener("click", () => {
@@ -1923,7 +1934,7 @@ onmessage = async (ev) => {
     $("ins-tira").innerHTML = `
       <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadas.size > 1 ? ` · ${seleccionadas.size} seleccionadas` : ""}</h2><span class="estado ${cls}" data-estado>${esc(txt)}</span><span class="clase">${esc(clase)}</span>${rol}</div>
         <div class="ins-acc">${V3 && vista === "3d" ? `<button type="button" data-accion="centrar" aria-label="Centrar la cámara en ${esc(e.id)}" data-tip="Centrar la cámara">⌖</button>` : ""}<button type="button" data-accion="${abierto ? "plegar" : "abrir"}" aria-label="${abierto ? "Plegar la ficha" : "Abrir la ficha completa"}" data-tip="${abierto ? "Plegar la ficha" : "Ficha completa"}">${abierto ? "▴" : "▾"}</button><button type="button" data-accion="cerrar" aria-label="Cerrar el inspector" data-tip="Cerrar">×</button></div></div>
-      <div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>
+      ${abierto ? "" : `<div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>`}
       <div class="ins-pista">Mantén presionada una unidad, o toca aquí, para ver su ficha completa.</div>`;
     $("ins-cuerpo").innerHTML = `
       <div class="regla"></div>
@@ -1933,8 +1944,46 @@ onmessage = async (ev) => {
       <div class="regla"></div>
       <div class="leyenda-tk"><span class="tk-var">máquina</span><span class="tk-fn">función</span><span class="tk-prop">propiedad</span><span class="tk-num">número</span><span class="tk-str">texto</span>
         <span style="font-family:var(--f-body);font-weight:400">· doble toque: lo inserta en el programa de <b>${esc(progSel)}</b> · también se puede arrastrar</span></div>
-      <div class="pista-tk" id="pista-tk"></div>`;
+      <div class="pista-tk" id="pista-tk"></div>
+      ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa">Signos vitales</span></h3><div class="vitales" id="ins-vitales">${htmlVitales(e)}</div></div>` : ""}`;
   }
+
+  // Inspector del panel inferior (bajo el editor): sin nombre ni estado, solo lo que el programa
+  // abierto puede usar: funciones, propiedades, sus variables y constantes, y la red de sensores.
+  function variablesPrograma() {
+    const toks = lexico($codigo.value).filter(t => !["esp", "nl", "com"].includes(t[0])), out = new Map();
+    toks.forEach((t, i) => { if (["const", "let", "var"].includes(t[1]) && toks[i + 1] && toks[i + 1][0] === "id" && !out.has(toks[i + 1][1])) out.set(toks[i + 1][1], t[1]); });
+    return [...out];
+  }
+  function pintarPieIns() {
+    const $p = $("pie-ins"), e = mundo && mundo.porId[progSel];
+    if (!$p) return;
+    if (!e) { $p.innerHTML = `<p class="nota">Elige un lanzador para ver lo que su programa puede usar.</p>`; return; }
+    const vars = variablesPrograma(), red = mundo.sensores;
+    $p.innerHTML = `<div class="pie-ins-cols">`
+      + grupo("Funciones",
+        fila(tk("fn", "autoTarget(tipo, sensor)", "autoTarget(/* tipo de enemigo */, /* sensor */)", { fin: "// → posición {x, y, z} o null" }), nota("→ posición")),
+        fila(tk("fn", "regularShoot(lugar)", "regularShoot(/* lugar */);"), nota("1 disparo/s")),
+        fila(tk("fn", "burstFire(lugar)", "burstFire(/* lugar */);"), nota("ráfaga")),
+        fila(tk("fn", "stopFire()", "stopFire();")),
+        fila(tk("fn", "await esperar(segundos)", "await esperar(0.5);"), nota("pausa")))
+      + grupo("Propiedades",
+        fila(tk("prop", "missiles", "missiles"), `<span class="sep">=</span>`, tkValor(e.misiles, `${e.id}:missiles`), nota(`/ ${def.cargador}`)),
+        fila(tk("prop", "failureRate", "failureRate"), `<span class="sep">=</span>`, tkValor(r3(e.falla), `${e.id}:failureRate`)),
+        fila(tk("prop", "fireRate", "fireRate"), `<span class="sep">=</span>`, tkValor(cadencia(e.modo), `${e.id}:fireRate`)),
+        fila(tk("prop", "mode", "mode"), `<span class="sep">=</span>`, tkValor(e.modo, `${e.id}:mode`)),
+        fila(tk("prop", "jammed", "jammed"), `<span class="sep">=</span>`, tkValor(e.atascado, `${e.id}:jammed`)),
+        fila(tk("prop", "target", "target"), `<span class="sep">=</span>`, `<span class="nota" data-vivo="${e.id}:target">${esc(fmtLugar(e.lugar))}</span>`),
+        fila(tk("prop", "sensors", "sensors"), `<span class="sep">=</span>`, tk("str", '"visual"', '"visual"'), tk("str", '"thermal"', '"thermal"')))
+      + grupo("Variables y constantes", vars.length
+        ? fila(...vars.map(([n, k]) => `<span class="var-prog">${tk("var", n, n)}${nota(k)}</span>`))
+        : fila(nota("El programa todavía no declara ninguna (const o let).")))
+      + (red.length ? grupo("Red de sensores", ...red.map(x => fila(tk("fn", `${varDe(x.id)}.detect(tipo)`, `${varDe(x.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }),
+        tk("prop", `${varDe(x.id)}.count`, `${varDe(x.id)}.count`), `<span class="sep">=</span>`, tkValor(enRango(x).length, `${x.id}:count`)))) : "")
+      + `</div>`;
+  }
+  let tPieIns = 0;
+  $("codigo").addEventListener("input", () => { clearTimeout(tPieIns); tPieIns = setTimeout(pintarPieIns, 350); });
 
   // Signos vitales: gráficos propios que se leen de un vistazo (cargador, failureRate y su historia, vida).
   const historia = new Map();   // id de lanzador → [[t, failureRate], …] de los últimos 30 s de juego
@@ -1972,7 +2021,7 @@ onmessage = async (ev) => {
     const b = ev.target.closest("[data-accion]");
     if (!b) { if (insEstado === "tira" && ev.target.closest(".ins-tira")) abrirInspector(); return; }
     const a = b.dataset.accion;
-    if (a === "programa") { abrirPestana("programa"); abrirPrograma(seleccion); }
+    if (a === "programa") { verPanel("codigo"); abrirPestana("programa"); abrirPrograma(seleccion); }
     else if (a === "centrar") centrarEn(seleccion);
     else if (a === "abrir") abrirInspector();
     else if (a === "plegar") ponerInspector("tira");
@@ -2004,6 +2053,11 @@ onmessage = async (ev) => {
   function actualizarVivos() {
     const $i = $("inspector");
     muestrear();
+    for (const el of $("pie-ins").querySelectorAll("[data-vivo]")) {
+      const v = valorVivo(el.dataset.vivo); if (v == null) continue;
+      const txt = el.classList.contains("tk-str") ? JSON.stringify(v) : String(v);
+      if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
+    }
     const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion));
     if ([...seleccionadas].some(id => !unidadPorId(id))) { seleccionar([...seleccionadas].filter(id => unidadPorId(id))); return; }
     if (!e) return;
@@ -2097,7 +2151,7 @@ onmessage = async (ev) => {
     $codigo.setAttribute("aria-label", ids.length > 1 ? `Programa de ${ids.length} lanzadores en JavaScript` : `Programa de ${progSel} en JavaScript`);
     $("acciones-multi").hidden = !edicion.mixto;
     $("multi-estado").textContent = `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
-    pintarProgs(); medirEditor(); pintarEdicion(); marcasSucias = true;
+    pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); marcasSucias = true;
     // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
     $codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: claveDocumento() } }));
   }
@@ -2209,7 +2263,10 @@ onmessage = async (ev) => {
     $codigo.dispatchEvent(new CustomEvent("cmg:marcas"));
   }
   function pintarMarcasYa() { marcasSucias = false; pintarBanda(); pintarProgs(); }
+  // En modo pantalla completa, layout.js pone a pantalla completa el panel pedido.
+  const verPanel = (panel) => $("app").dispatchEvent(new CustomEvent("cmg:pantalla", { detail: panel }));
   function irALinea(l) {
+    verPanel("codigo");
     abrirPestana("programa");
     if (!sinTecladoActivo()) $codigo.focus();
     if (!l) return;
@@ -2878,6 +2935,16 @@ onmessage = async (ev) => {
   window.cmg = { insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
+    // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
+    funciones: () => [
+      { grupo: "Lanzador", nombre: "autoTarget", firma: FIRMAS.autoTarget, nota: "→ posición" },
+      { grupo: "Lanzador", nombre: "regularShoot", firma: FIRMAS.regularShoot, nota: "1 disparo/s" },
+      { grupo: "Lanzador", nombre: "burstFire", firma: FIRMAS.burstFire, nota: "ráfaga · sube el fallo" },
+      { grupo: "Lanzador", nombre: "stopFire", firma: FIRMAS.stopFire, nota: "deja de disparar" },
+      { grupo: "Tiempo", nombre: "esperar", firma: FIRMAS.esperar, await: true, nota: "pausa el programa" },
+      ...(mundo ? mundo.sensores.map(s => ({ grupo: "Red de sensores", objeto: varDe(s.id), nombre: "detect", firma: FIRMAS.detect, nota: "posición actual" })) : []),
+      ...[["log", "registro"], ["info", "información"], ["warn", "aviso"], ["error", "error"]].map(([n, nota]) => ({ grupo: "Consola", objeto: "console", nombre: n, firma: FIRMAS[n], nota })),
+    ],
     get claveDocumento() { return claveDocumento(); },
     // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
     datos: () => ({

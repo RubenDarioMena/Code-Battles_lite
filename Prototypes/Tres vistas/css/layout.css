@@ -206,3 +206,6 @@
 .bloques-texto .fn { color: var(--tk-fn); }
 .bloques-texto .hueco { background: var(--warn-soft); outline: 1px dashed var(--warn); }
 .atajo { position: relative; }
+
+/* El botón de las herramientas queda siempre a la vista: las pestañas se deslizan por debajo. */
+.tabs .plegar-barras { position: sticky; right: 0; z-index: 1; box-shadow: -10px 0 8px -2px var(--surface); }
