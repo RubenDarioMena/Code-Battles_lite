@@ -2350,15 +2350,48 @@ onmessage = async (ev) => {
       if (!prefijo.trim()) lineas[0] = prefijo + lineas[0];
       const utiles = lineas.filter(l => l.trim());
       const margen = utiles.length ? Math.min(...utiles.map(l => l.match(/^[ \t]*/)[0].length)) : 0;
-      contenido = lineas.map(l => l.trim() ? sangria + "    " + l.slice(margen) : "").join("\n");
+      contenido = lineas.map(l => l.trim() ? sangria + "  " + l.slice(margen) : "").join("\n");
       cierre = despues.split("\n").map((l, i) => i ? sangria + l : l).join("\n") + (saltoFinal ? "\n" : "");
     }
     return insertar(antes + contenido + cierre, antes.length, antes.length + contenido.length);
   }
+  // Lo que cabe en el hueco de una plantilla de sentencia: la expresión de una sentencia, sin su «;».
+  // Un nombre declarado, un argumento o un bloque no: la plantilla iría dentro de otra construcción.
+  function expresionEnvolvible() {
+    const E = window.ESTRUCTURA, v = $codigo.value;
+    let a = $codigo.selectionStart, b = $codigo.selectionEnd;
+    while (a < b && /\s/.test(v[a])) a++;
+    while (b > a && /\s/.test(v[b - 1])) b--;
+    if (a === b) return null;
+    if (!E) return { a, b, puntoYComa: false };
+    const est = E.analizar(v, lexico(v));
+    let n = est.nodos.find(x => x.a === a && x.b === b && x.k !== "vacio" && x.k !== "programa");
+    if (n && n.k === "sentencia") n = n.h[0];
+    if (!n || !n.padre || n.padre.k !== "sentencia" || n.padre.h[0] !== n) return null;
+    return { a: n.a, b: n.b, puntoYComa: n.padre.b > n.b };
+  }
+  // Un bloque (if, while…) envuelve sentencias completas: la selección se amplía a sus líneas.
+  function elegirLineasCompletas() {
+    const E = window.ESTRUCTURA, v = $codigo.value, a = $codigo.selectionStart, b = $codigo.selectionEnd;
+    if (!E) return;
+    const est = E.analizar(v, lexico(v));
+    const u0 = E.unidadLinea(est, E.lineaDe(est, a)), u1 = E.unidadLinea(est, E.lineaDe(est, Math.max(a, b - 1)));
+    $codigo.setSelectionRange(Math.min(u0[0], u1[0]), Math.max(u0[1], u1[1]));
+  }
   function insertarBloque(bloque, envolvente) {
-    if (envolvente && envolver(envolvente[0], envolvente[1], true)) return;
+    const elegido = $codigo.selectionStart !== $codigo.selectionEnd;
+    if (envolvente && elegido) { elegirLineasCompletas(); if (envolver(envolvente[0], envolvente[1], true)) return; }
     const hSeleccion = bloque.search(RE_HUECO);
-    if (hSeleccion >= 0 && envolver(bloque.slice(0, hSeleccion), bloque.slice(hSeleccion + bloque.slice(hSeleccion).match(RE_HUECO)[0].length))) return;
+    if (hSeleccion >= 0 && elegido) {
+      const x = expresionEnvolvible();
+      // Sin una expresión que envolver, la plantilla va en una línea nueva tras lo elegido.
+      if (!x) $codigo.setSelectionRange($codigo.selectionEnd, $codigo.selectionEnd);
+      else {
+        $codigo.setSelectionRange(x.a, x.b);
+        const despues = bloque.slice(hSeleccion + bloque.slice(hSeleccion).match(RE_HUECO)[0].length);
+        if (envolver(bloque.slice(0, hSeleccion), x.puntoYComa ? despues.replace(/;\s*$/, "") : despues)) return;
+      }
+    }
     const a = $codigo.selectionStart, v = $codigo.value;
     const ini = v.lastIndexOf("\n", a - 1) + 1;
     const fin = v.indexOf("\n", a) === -1 ? v.length : v.indexOf("\n", a);
@@ -2416,9 +2449,9 @@ onmessage = async (ev) => {
       { ico: "hacer", t: "Do … while", b: "do {\n  \n  await esperar(0.5);\n} while (/* condición */);", envolvente: ["do {\n", "\n} while (/* condición */);"] },
       { ico: "salir", t: "Salir del bucle", b: "break;" },
     ] },
-    { ico: "siNo", t: "If / else", b: "if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else {\n    \n}"], variantes: [
+    { ico: "siNo", t: "If / else", b: "if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else {\n  \n}"], variantes: [
       { ico: "si", t: "If", b: "if (/* condición */) {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n}"] },
-      { ico: "siSino", t: "If / else if", b: "if (/* condición */) {\n  \n} else if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else if (/* condición */) {\n    \n} else {\n    \n}"] },
+      { ico: "siSino", t: "If / else if", b: "if (/* condición */) {\n  \n} else if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else if (/* condición */) {\n  \n} else {\n  \n}"] },
     ] },
     { ico: "plan", t: "Si no hay (??)", operador: "??", variantes: [
       { ico: "y", t: "Y (&&)", operador: "&&", hueco: "condición" },
@@ -2481,8 +2514,14 @@ onmessage = async (ev) => {
     if (a.comentar) alternarComentario();
     else if (a.operador) insertarOperador(a);
     else if (a.enLinea) {
-      // Con algo elegido, «const pos = » lo toma como valor inicial.
-      if ($codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea)) envolver(a.enLinea, "");
+      // Con la expresión de una sentencia elegida, «const pos = » la toma como valor inicial.
+      // Con otra cosa elegida, la declaración va en una línea nueva con su valor por rellenar.
+      const x = $codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea) ? expresionEnvolvible() : null;
+      if (x) { $codigo.setSelectionRange(x.a, x.b); envolver(a.enLinea, ""); }
+      else if ($codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea)) {
+        $codigo.setSelectionRange($codigo.selectionEnd, $codigo.selectionEnd);
+        insertarBloque(a.enLinea + "/* valor */;");
+      }
       else insertar(a.enLinea);
     }
     else insertarBloque(textoAtajo(a), a.envolvente);

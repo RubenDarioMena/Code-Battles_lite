@@ -1,0 +1,60 @@
+{
+ "envolverIfSel": "regularShoot(pos);",
+ "envolverIf": [
+  "if (/* condición */) {",
+  "    regularShoot(pos);",
+  "} else {",
+  "    ",
+  "}"
+ ],
+ "controlIfLineaVacia": [
+  "if (/* condición */) {",
+  "  ",
+  "} else {",
+  "  ",
+  "}"
+ ],
+ "rafagaSel": "regularShoot(pos)",
+ "rafagaSobreLlamada": "burstFire(regularShoot(pos));;",
+ "controlRafagaSel": "regularShoot(pos);",
+ "controlRafagaSobreSentencia": [
+  "burstFire(regularShoot(pos););"
+ ],
+ "caretTrasBorrarMedio": {
+  "p": 62,
+  "linea": 3,
+  "resto": "  await espe"
+ },
+ "esperarTrasBorrarMedio": [
+  "while (true) {",
+  "  const pos = autoTarget(\"crawler\", \"visual\");",
+  "  await esperar(0.5);",
+  "  await esperar(0.5);",
+  "}"
+ ],
+ "controlCaretBorrarUltima": {
+  "p": 44,
+  "linea": 1,
+  "len": 44
+ },
+ "movilListaAbajo": {
+  "popup": [
+   691,
+   790
+  ],
+  "alto": 852,
+  "maxH": "99.0938px",
+  "itemsVisibles": 1,
+  "items": 6
+ },
+ "controlMovilListaLinea2": {
+  "popup": [
+   776,
+   866
+  ],
+  "alto": 852,
+  "maxH": "90px",
+  "itemsVisibles": 0,
+  "items": 3
+ }
+}

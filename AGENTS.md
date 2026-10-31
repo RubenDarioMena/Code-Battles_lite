@@ -2,6 +2,7 @@
 
 Este proyecto es autónomo. Lee `README.md`, `docs/VISION.md` y el estado reciente de `PROGRESO.md` antes de hacer cambios.
 
+- **Prototipo canónico, hasta nuevo aviso:** el 03 / War / lanzamisiles (`Prototypes/Rocket Launcher/`). Es sobre el que se itera; los demás (Tres vistas/Factory, Campaign) solo reciben lo imprescindible para no romperse al compartir `shared/`.
 - Evoluciona el juego HTML existente. No requiere Godot, SQL, backend ni instalación de npm.
 - El alcance habitual es esta carpeta. El proyecto de origen solo es una referencia histórica, no una dependencia ni una fuente automática de instrucciones.
 - Mantén la legibilidad y la interacción de PC y móvil. Haz cambios pequeños; el usuario realiza QA manual frecuente.

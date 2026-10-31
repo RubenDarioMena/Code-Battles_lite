@@ -1,0 +1,1432 @@
+[
+ {
+  "ej": "R1",
+  "pieza": "const",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "regularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "regularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "=",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "regularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "autoTarget",
+  "elegido": "autoTarget",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nregularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "(",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nregularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "\"crawler\"",
+  "elegido": "\"crawler\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(/* tipo de enemigo */, \"visual\");\nregularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": ",",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nregularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "\"visual\"",
+  "elegido": "\"visual\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", /* sensor */);\nregularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": ")",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nregularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": ";",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "regularShoot(pos);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "regularShoot",
+  "elegido": "regularShoot",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "(",
+  "elegido": "regularShoot(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\n;",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": ")",
+  "elegido": "regularShoot(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\n;",
+  "deshacer": true
+ },
+ {
+  "ej": "R1",
+  "pieza": ";",
+  "elegido": "regularShoot(pos);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "while",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "(",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "true",
+  "elegido": "true",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (/* condición */) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ")",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "{",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "const",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "=",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "autoTarget",
+  "elegido": "autoTarget",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = /* valor */;\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "(",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = /* valor */;\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "\"crawler\"",
+  "elegido": "\"crawler\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(/* tipo de enemigo */, \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ",",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = /* valor */;\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "\"visual\"",
+  "elegido": "\"visual\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", /* sensor */);\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ")",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = /* valor */;\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ";",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "regularShoot",
+  "elegido": "regularShoot",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "(",
+  "elegido": "regularShoot(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n ;\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(/* lugar */);\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ")",
+  "elegido": "regularShoot(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n ;\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ";",
+  "elegido": "regularShoot(pos);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "await",
+  "elegido": "await esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n ;\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "esperar",
+  "elegido": "esperar",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "(",
+  "elegido": "esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "0.5",
+  "elegido": "0.5",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(/* segundos */);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ")",
+  "elegido": "esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": ";",
+  "elegido": "await esperar(0.5);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R2",
+  "pieza": "}",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "const",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "=",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "autoTarget",
+  "elegido": "autoTarget",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "(",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "\"crawler\"",
+  "elegido": "\"crawler\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(/* tipo de enemigo */, \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ",",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "\"visual\"",
+  "elegido": "\"visual\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", /* sensor */);\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ")",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = /* valor */;\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ";",
+  "elegido": "const pos = autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "if",
+  "elegido": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "(",
+  "elegido": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (/* condición */) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ")",
+  "elegido": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "{",
+  "elegido": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "regularShoot",
+  "elegido": "regularShoot",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "(",
+  "elegido": "regularShoot(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n ;\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(/* lugar */);\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ")",
+  "elegido": "regularShoot(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n ;\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ";",
+  "elegido": "regularShoot(pos);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n} else {\n  stopFire();\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "}",
+  "elegido": "if (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "else",
+  "elegido": "else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} \nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "{",
+  "elegido": "else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} \nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "stopFire",
+  "elegido": "stopFire",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "(",
+  "elegido": "stopFire()",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n ;\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ")",
+  "elegido": "stopFire()",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n ;\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ";",
+  "elegido": "stopFire();",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n}\nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "}",
+  "elegido": "else {\n  stopFire();\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} \nawait esperar(0.5);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "await",
+  "elegido": "await esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\n;",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "esperar",
+  "elegido": "esperar",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "(",
+  "elegido": "esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": "0.5",
+  "elegido": "0.5",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}\nawait esperar(/* segundos */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ")",
+  "elegido": "esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R3",
+  "pieza": ";",
+  "elegido": "await esperar(0.5);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(\"crawler\", \"visual\");\nif (pos) {\n  regularShoot(pos);\n} else {\n  stopFire();\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "/* elegir un objetivo */",
+  "elegido": "/* elegir un objetivo */",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "const pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "const",
+  "elegido": "const pos = autoTarget(/* tipo de enemigo */, \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "=",
+  "elegido": "const pos = autoTarget(/* tipo de enemigo */, \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "autoTarget",
+  "elegido": "autoTarget",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = /* valor */;\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "(",
+  "elegido": "autoTarget(/* tipo de enemigo */, \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = /* valor */;\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "/* tipo de enemigo */",
+  "elegido": "/* tipo de enemigo */",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(\"visual\");\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": ",",
+  "elegido": "autoTarget(/* tipo de enemigo */, \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = /* valor */;\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "\"visual\"",
+  "elegido": "\"visual\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, /* sensor */);\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": ")",
+  "elegido": "autoTarget(/* tipo de enemigo */, \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = /* valor */;\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": ";",
+  "elegido": "const pos = autoTarget(/* tipo de enemigo */, \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\n\nregularShoot(/* lugar */);",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "regularShoot",
+  "elegido": "regularShoot",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "(",
+  "elegido": "regularShoot(/* lugar */)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\n;",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": "/* lugar */",
+  "elegido": "/* lugar */",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot();",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": ")",
+  "elegido": "regularShoot(/* lugar */)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\n;",
+  "deshacer": true
+ },
+ {
+  "ej": "R4",
+  "pieza": ";",
+  "elegido": "regularShoot(/* lugar */);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "while",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "true",
+  "elegido": "true",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (/* condición */) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "{",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "const",
+  "elegido": "const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "=",
+  "elegido": "const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "autoTarget",
+  "elegido": "autoTarget",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "autoTarget(\"drone\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "\"drone\"",
+  "elegido": "\"drone\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(/* tipo de enemigo */, \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ",",
+  "elegido": "autoTarget(\"drone\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "\"visual\"",
+  "elegido": "\"visual\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", /* sensor */) ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "autoTarget(\"drone\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "?",
+  "elegido": "autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = /* valor */;\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "?",
+  "elegido": "autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = /* valor */;\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "autoTarget",
+  "elegido": "autoTarget",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "\"crawler\"",
+  "elegido": "\"crawler\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(/* tipo de enemigo */, \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ",",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "\"visual\"",
+  "elegido": "\"visual\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", /* sensor */);\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "autoTarget(\"crawler\", \"visual\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ";",
+  "elegido": "const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "if",
+  "elegido": "if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (/* condición */) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "{",
+  "elegido": "if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "burstFire",
+  "elegido": "burstFire",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "burstFire(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n   ;\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "pos",
+  "elegido": "pos",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(/* lugar */);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "burstFire(pos)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n   ;\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ";",
+  "elegido": "burstFire(pos);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "}",
+  "elegido": "if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "else",
+  "elegido": "else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } \n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "{",
+  "elegido": "else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } \n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "console",
+  "elegido": "console",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ".",
+  "elegido": "console.warn(\"sin objetivo\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n   ;\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "warn",
+  "elegido": "warn",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "console.warn(\"sin objetivo\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n   ;\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "\"sin objetivo\"",
+  "elegido": "\"sin objetivo\"",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(/* mensaje */);\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "console.warn(\"sin objetivo\")",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n   ;\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ";",
+  "elegido": "console.warn(\"sin objetivo\");",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n  }\n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "}",
+  "elegido": "else {\n    console.warn(\"sin objetivo\");\n  }",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } \n  await esperar(0.5);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "await",
+  "elegido": "await esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n ;\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "esperar",
+  "elegido": "esperar",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "(",
+  "elegido": "esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "0.5",
+  "elegido": "0.5",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(/* segundos */);\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ")",
+  "elegido": "esperar(0.5)",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": ";",
+  "elegido": "await esperar(0.5);",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n}",
+  "deshacer": true
+ },
+ {
+  "ej": "R5",
+  "pieza": "}",
+  "elegido": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn(\"sin objetivo\");\n  }\n  await esperar(0.5);\n}",
+  "cambio": true,
+  "resto": false,
+  "err": "",
+  "resultado": "",
+  "deshacer": true
+ }
+]

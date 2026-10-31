@@ -178,8 +178,36 @@
   }
   // Quita [a, b) como un bloque: un argumento deja su hueco y una condición el suyo; las líneas
   // enteras se van con su salto y no quedan espacios dobles.
+  // Partes sin las que su construcción no se sostiene: el nombre declarado, lo que espera un await,
+  // el nombre de una función o el objeto/método de una llamada. Borrarlas borra la construcción
+  // (y su sentencia, si la ocupa entera), en vez de dejar «const =», «await;» o «();».
+  function contenedorNecesario(e, n) {
+    const pa = n.padre;
+    if (!pa) return null;
+    let x = null;
+    if (pa.k === "decl" && pa.h.includes(n)) {
+      const previo = e.sig[n.ia - 1];
+      if (!(previo && previo.k === "p" && previo.v === "=") || n.k === "hueco") x = pa;   // el valor inicial se queda en hueco
+    } else if (pa.k === "unaria" && pa.op === "await") x = pa;
+    else if (pa.k === "llamada" && pa.h[0] === n) x = pa;
+    else if (pa.k === "metodo" && pa.h[0] === n) x = pa.llamada;
+    else if (pa.k === "miembro") x = pa;
+    while (x && x.padre && x.padre.k === "sentencia" && x.padre.h[0] === x) x = x.padre;
+    return x;
+  }
   function quitar(a, b) {
     const e = estructura(), v = e.src, c = E.contexto(e, a, b);
+    // Operando de una operación binaria: se va con su operador y queda el otro («pos ?? x» → «pos»).
+    if (c && c.binaria && !c.vacio) {
+      const [izq, der] = c.binaria.h;
+      return c.nodo === der ? reemplazar(izq.b, der.b, "", izq.b) : reemplazar(izq.a, der.a, "", izq.a);
+    }
+    const sube = c && c.tipo !== "argumento" && c.tipo !== "elemento" ? contenedorNecesario(e, c.nodo) : null;
+    if (sube) return quitar(sube.a, sube.b);
+    if (c && c.nodo.padre && c.nodo.padre.k === "decl" && c.tipo == null) {   // valor inicial → hueco
+      const h = "/* valor */";
+      return reemplazar(a, b, h, a, a + h.length);
+    }
     if (c && c.tipo === "argumento" && !c.vacio) {
       const nombre = (cmg.firma(c.funcion) || [])[c.indice];
       if (nombre && !c.hueco) { const h = `/* ${nombre} */`; return reemplazar(a, b, h, a, a + h.length); }
@@ -195,7 +223,9 @@
     }
     if (sonLineas(a, b)) {
       const [la, lb] = lineasDe(a, b), ini = lb === v.length && la > 0 && !v.endsWith("\n") ? la - 1 : la;
-      return reemplazar(ini, lb, "", ini);
+      // El cursor queda al final de la línea anterior: lo siguiente que se inserte cae donde estaba lo borrado.
+      const cursor = ini === la && la > 0 ? la - 1 : ini;
+      return reemplazar(ini, lb, "", cursor, cursor);
     }
     let x = a, y = b;
     if (v[x - 1] === " " && (v[y] === " " || /[)\],;]/.test(v[y] || "") || y === v.length)) x--;
@@ -426,7 +456,16 @@
 
   // ---------- Toques: elegir, ampliar con doble toque y arrastrar ----------
   const DOBLE_MS = 380, LARGO_MS = 430;
-  let gesto = null, ultimoToque = null, tSimple = 0;
+  let gesto = null, ultimoToque = null, tSimple = 0, pendiente = null;
+  // Un botón (barra, paleta, sugerencias…) actúa sobre lo último que se tocó: la elección que esperaba
+  // un posible doble toque se aplica ya. Un cambio de texto la anula, su posición ya no vale.
+  function resolverPendiente() {
+    clearTimeout(tSimple); tSimple = 0;
+    const o = pendiente; pendiente = null;
+    if (o) simple(o, false);
+  }
+  document.addEventListener("pointerdown", (ev) => { if (pendiente && !$vista.contains(ev.target)) resolverPendiente(); }, true);
+  $codigo.addEventListener("input", () => { clearTimeout(tSimple); tSimple = 0; pendiente = null; });
   const $fantasma = document.createElement("div");
   $fantasma.className = "fantasma-bloque"; $fantasma.hidden = true; $fantasma.setAttribute("aria-hidden", "true");
   document.body.append($fantasma);
@@ -483,7 +522,7 @@
   function toque(g, ev) {
     const ahora = performance.now();
     const doble = ultimoToque && ahora - ultimoToque.t < DOBLE_MS && Math.hypot(ev.clientX - ultimoToque.x, ev.clientY - ultimoToque.y) < 26;
-    clearTimeout(tSimple);
+    clearTimeout(tSimple); pendiente = null;
     if (doble) {
       const base = ultimoToque.base;
       ultimoToque = { t: ahora, x: ev.clientX, y: ev.clientY, base: null };
@@ -495,7 +534,7 @@
     }
     ultimoToque = { t: ahora, x: ev.clientX, y: ev.clientY, base: g.antes };
     const [a, b] = g.antes, shift = ev.shiftKey;
-    if (a < b && g.o.pos >= a && g.o.pos < b && !shift) { tSimple = setTimeout(() => simple(g.o, false), DOBLE_MS); return; }
+    if (a < b && g.o.pos >= a && g.o.pos < b && !shift) { pendiente = g.o; tSimple = setTimeout(resolverPendiente, DOBLE_MS); return; }
     simple(g.o, shift);
   }
   function simple(o, extender) {
@@ -704,15 +743,33 @@
     const vv = window.visualViewport, barras = [$barra, $("paleta")].filter(x => x.getClientRects().length).map(x => x.getBoundingClientRect().bottom);
     const techo = Math.max(vv ? vv.offsetTop : 0, ...barras) + 4;
     const suelo = (vv ? vv.offsetTop + vv.height : innerHeight) - (app.classList.contains("teclado") ? 46 : 0) - 4;
+    $sug.classList.remove("hoja");
     $sug.style.maxHeight = "";
-    const m = $sug.getBoundingClientRect();
-    const abajo = suelo - r.bottom - 6, arriba = r.top - 6 - techo;
-    // Debajo mientras quepan unas cuantas opciones.
-    const enAbajo = abajo >= Math.min(m.height, 130) || abajo >= arriba;
-    const max = Math.max(90, Math.min(320, enAbajo ? abajo : arriba));
+    let m = $sug.getBoundingClientRect(), x, y, max;
+    const abajo = suelo - r.bottom - 6, arriba = r.top - 6 - techo, lado = cont.right - r.right - 10;
+    const minimo = Math.min(m.height, 110);   // la cabecera y dos opciones
+    if (lado >= m.width && suelo - techo >= minimo) {
+      // A la derecha de lo elegido, si cabe: no tapa las líneas siguientes.
+      max = Math.min(320, suelo - techo);
+      x = r.right + 10;
+      y = Math.max(techo, Math.min(suelo - Math.min(m.height, max), r.top - 8));
+    } else if (Math.max(abajo, arriba) >= minimo) {
+      // Debajo mientras quepan unas cuantas opciones; si no, encima. Nunca fuera de la pantalla.
+      // Si sobra sitio deja a la vista la línea vecina, la que más a menudo se toca después.
+      const enAbajo = abajo >= Math.min(m.height, 130) || abajo >= arriba;
+      const libre = enAbajo ? abajo : arriba, linea = Math.min(r.bottom - r.top, 26), salto = libre - linea >= minimo ? linea : 0;
+      max = Math.min(320, libre - salto);
+      x = Math.max(6, Math.min(innerWidth - m.width - 6, r.left - 8));
+      y = enAbajo ? r.bottom + 6 + salto : Math.max(techo, r.top - 6 - salto - Math.min(m.height, max));
+    } else {
+      // Sin sitio junto a la selección (teléfono): hoja a lo ancho apoyada en el borde inferior.
+      $sug.classList.add("hoja");
+      m = $sug.getBoundingClientRect();
+      max = Math.min(320, Math.max(minimo, suelo - techo));
+      x = 6;
+      y = suelo - Math.min(m.height, max);
+    }
     $sug.style.maxHeight = `${max}px`;
-    const h = Math.min(m.height, max), y = enAbajo ? r.bottom + 6 : Math.max(techo, r.top - 6 - h);
-    const x = Math.max(6, Math.min(innerWidth - m.width - 6, r.left - 8));
     $sug.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   }
   function siguienteHueco(desde) {
@@ -918,7 +975,9 @@
     elegir(ini + sangriaDe(e.src.slice(ini, fin)).length, fin, { mostrar: true });
   }
   $vista.addEventListener("keydown", (ev) => {
-    if (!activo || teclaSugerencias(ev)) return;
+    if (!activo) return;
+    if (pendiente && !["Shift", "Control", "Alt", "Meta"].includes(ev.key)) resolverPendiente();
+    if (teclaSugerencias(ev)) return;
     const mod = ev.ctrlKey || ev.metaKey, k = ev.key, l = k.length === 1 ? k.toLowerCase() : k;
     const acciones = [
       [k === "Backspace" || k === "Delete", borrar],

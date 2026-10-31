@@ -6,6 +6,8 @@ const ruta = (archivo) => require('node:path').join(__dirname, '../Prototypes/Ro
 const src = readFileSync(ruta('juego.js'), 'utf8');
 const bloque = (inicio, fin) => src.slice(src.indexOf(inicio), src.indexOf(fin, src.indexOf(inicio)));
 const ctx = vm.createContext({ console, Set, Map, Object, Promise, window: {} });
+// La estructura tolerante (shared/js/estructura.js) decide qué envuelve cada plantilla.
+vm.runInContext(readFileSync(require('node:path').join(__dirname, '../shared/js/estructura.js'), 'utf8'), ctx);
 vm.runInContext(`
 ${bloque('  const NOMBRES_HUECO =', '  const HUECO =')}
 const RE_ID = /[A-Za-z_$][\\w$]*/y, RE_NUM = /0x[0-9a-f]+|\\d*\\.?\\d+(?:e[+-]?\\d+)?/iy;
@@ -64,19 +66,19 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   const elegido = () => run('$codigo.value.slice($codigo.selectionStart,$codigo.selectionEnd)');
   const codigo = 'const pos = autoTarget("crawler", "visual");\nregularShoot(pos);';
   editar(codigo); atajo('whileTrue');
-  eq(run('$codigo.value'), 'while (true) {\n    const pos = autoTarget("crawler", "visual");\n    regularShoot(pos);\n}');
-  eq(elegido(), '    const pos = autoTarget("crawler", "visual");\n    regularShoot(pos);');
+  eq(run('$codigo.value'), 'while (true) {\n  const pos = autoTarget("crawler", "visual");\n  regularShoot(pos);\n}');
+  eq(elegido(), '  const pos = autoTarget("crawler", "visual");\n  regularShoot(pos);');
   editar('  uno();\n    dos();'); atajo('whileTrue');
-  eq(run('$codigo.value'), '  while (true) {\n      uno();\n        dos();\n  }');
+  eq(run('$codigo.value'), '  while (true) {\n    uno();\n      dos();\n  }');
   // Al seleccionar desde el principio de una línea, también se conserva su margen.
   editar('  uno();\n    dos();', 2); atajo('whileTrue');
-  eq(run('$codigo.value'), '  while (true) {\n      uno();\n        dos();\n  }');
+  eq(run('$codigo.value'), '  while (true) {\n    uno();\n      dos();\n  }');
   editar('uno();\ndos();',0,7); atajo('whileTrue');
-  eq(run('$codigo.value'), 'while (true) {\n    uno();\n}\ndos();');
+  eq(run('$codigo.value'), 'while (true) {\n  uno();\n}\ndos();');
   editar('uno();'); atajo('mientras');
-  eq(run('$codigo.value'), 'while (/* condición */) {\n    uno();\n}');
+  eq(run('$codigo.value'), 'while (/* condición */) {\n  uno();\n}');
   editar('uno();'); atajo('siNo');
-  eq(run('$codigo.value'), 'if (/* condición */) {\n    uno();\n} else {\n    \n}');
+  eq(run('$codigo.value'), 'if (/* condición */) {\n  uno();\n} else {\n  \n}');
   editar('pos'); atajo('disparo'); eq(run('$codigo.value'), 'regularShoot(pos);');
   editar('"crawler"'); atajo('apuntar'); eq(run('$codigo.value'), 'const pos = autoTarget("crawler", /* sensor */);');
   for (const [a,b] of [['(',')'],['[',']'],['{','}'],['"','"']]) {
@@ -111,6 +113,25 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   editar('while (true) {\n\n}', 15, 15); atajo('disparo');
   eq(run('$codigo.value'), 'while (true) {\n  regularShoot(/* lugar */);\n}');
   eq(elegido(), '/* lugar */');
+  // ED-06: una plantilla de sentencia envuelve solo la expresión de una sentencia y no repite el «;».
+  for (const [a, b] of [[0, 17], [0, 18]]) { editar('regularShoot(pos);', a, b); atajo('rafaga'); eq(run('$codigo.value'), 'burstFire(regularShoot(pos));'); }
+  editar('await esperar(0.5);', 0, 18); atajo('rafaga'); eq(run('$codigo.value'), 'burstFire(await esperar(0.5));');
+  // Un nombre de función, un argumento o un bloque no se envuelven: la plantilla va en una línea nueva.
+  editar('regularShoot(pos);', 0, 12); atajo('rafaga'); eq(run('$codigo.value'), 'regularShoot(pos);\nburstFire(/* lugar */);');
+  editar('regularShoot(pos);', 13, 16); atajo('disparo'); eq(run('$codigo.value'), 'regularShoot(pos);\nregularShoot(/* lugar */);');
+  editar('if (pos) {\n  burstFire(pos);\n}', 0, 30); atajo('disparo'); eq(run('$codigo.value'), 'if (pos) {\n  burstFire(pos);\n}\nregularShoot(/* lugar */);');
+  // Un bloque envuelve sentencias completas aunque se elija solo un nombre.
+  editar('const pos = autoTarget("crawler", "visual");', 12, 22); atajo('si');
+  eq(run('$codigo.value'), 'if (/* condición */) {\n  const pos = autoTarget("crawler", "visual");\n}');
+  editar('regularShoot(pos);', 0, 17); atajo('siNo'); eq(run('$codigo.value'), 'if (/* condición */) {\n  regularShoot(pos);\n} else {\n  \n}');
+  // ED-02: un operando de ?? solo es condición dentro de la condición de un if/while.
+  const tipoOperando = (texto, a, b) => { ctx.textoPrueba = texto; return JSON.parse(run(`{const E=window.ESTRUCTURA, e=E.analizar(textoPrueba, lexico(textoPrueba)), c=E.contexto(e, ${a}, ${b}); JSON.stringify(c && [c.tipo, !!c.binaria])}`)); };
+  eq(tipoOperando('if (pos ?? /* valor */) {}', 11, 22), ['condicion', true]);
+  eq(tipoOperando('const x = pos ?? /* valor */;', 17, 28), ['valor', true]);
+  eq(tipoOperando('if (/* condición */) {}', 4, 19), ['condicion', false]);
+  // ED-09: con dos sentencias en una línea, ampliar pasa por la línea antes que por el programa.
+  ctx.textoPrueba = 'const pos = 1;\nburstFire(regularShoot);(pos);';
+  eq(JSON.parse(run('{const E=window.ESTRUCTURA, e=E.analizar(textoPrueba, lexico(textoPrueba)); JSON.stringify(E.ampliar(e, 15, 39))}')), [15, 45]);
   eq(run('RE_HUECO.test("/* segundos */") && RE_HUECO.test("/* tipo de enemigo */") && !RE_HUECO.test("/* nota */")'), true);
 
   // Estructura para el modo sin teclado (js/estructura.js).

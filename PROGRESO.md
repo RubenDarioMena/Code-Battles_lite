@@ -1,5 +1,17 @@
 # Code-battle-lite · progreso
 
+## Correcciones del editor sin teclado (ED-01–ED-09) · 30 de octubre de 2026
+
+- Corregidas las nueve incidencias de la regresión del mismo día. Cambios en `shared/js/edicion.js` (selección pendiente, Borrar sin restos, operandos, cursor y colocación de la lista), `shared/js/estructura.js` (contexto de operandos y nivel «línea» en Ampliar), `shared/css/edicion.css` (animación solo de opacidad y hoja inferior compacta) y `Prototypes/Rocket Launcher/js/juego.js` (envolver con 2 espacios y según la categoría de lo elegido; Variable con la misma regla). Tres vistas recibe la sangría de 2 espacios y los módulos compartidos.
+- Versiones: `edicion.js?v=14`, `estructura.js?v=2`, `edicion.css?v=3`, `juego.js?v=13` (Rocket) y `juego.js?v=7` (Tres vistas).
+- Verificación actual en 8771 con la caché desactivada: **87 comprobaciones de lógica** (12 nuevas; la suite carga ahora `estructura.js`), **66 de navegador de Rocket** (9 nuevas), **43 de Tres vistas** y **23 del editor Factory**, todas correctas. Barrido de Borrar repetido: 0 restos en 143 borrados (antes 24/133); diagnóstico de SEL-01 sin reproducción. Detalle en [el reporte](docs/qa/editor-2026-10-30/REPORTE.md). Móvil emulado, sin tacto real; el piloto aleatorio no se repitió.
+
+## Regresión del editor sin teclado (Rocket Launcher) · 30 de octubre de 2026
+
+- Misión de QA sin correcciones al juego: regresión dirigida de WAR-SEL-01/EDIT-02/VIEW-03, barrido de Borrar sobre todas las fichas de R1–R5 y **primer piloto real R1–R5 × PC/móvil** del ciclo de recuperación (semilla `rocket-piloto-v1`): **10/10 recuperados exactos**, 7 locales y 3 con Deshacer, sin teclado.
+- [Reporte con prioridades, causa y propuesta por incidencia](docs/qa/editor-2026-10-30/REPORTE.md). P1: **ED-01** la selección pendiente de 380 ms hace que Borrar rápido vacíe el programa entero; **ED-02** los operandos de `??`/`&&`/`||` se clasifican como condición (`estructura.js:510`) y Borrar los rechaza o deja `/* condición */`. P2: lista de sugerencias que tapa el código y se coloca 80 ms tarde por `@keyframes tip`; lista fuera de pantalla en móvil (`max(90, …)`); envolver con 4 espacios; plantillas que envuelven sin respetar la categoría (`;;`, `);`, `if` en expresiones); 18 % de borrados con restos. P3: cursor tras borrar una línea intermedia y Ampliar sin nivel «línea».
+- Verificación actual: **75 comprobaciones de lógica y 57 de navegador correctas**; ninguna cubre estas incidencias. Ego restablece la emulación entre rondas: los intentos 2–5 se cerraron a 1224×670. Móvil emulado con ratón. Tokens no medidos. Sin commits.
+
 ## Skill de QA visual · 30 de octubre de 2026
 
 - Creada la skill personal `qa-regresion-visual` en `~/.codex/skills/`, con las capturas, cuatro vídeos, trazas y diagrama de War como assets históricos, más instrucciones reutilizables para recopilación, reproducción y recuperación. Diez ciclos por tanda como valor predeterminado ajustable.

@@ -183,6 +183,17 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
     const c = window.cmg.codigo;
     return [c.value.slice(c.selectionStart, c.selectionEnd), document.activeElement === c, document.querySelector('#app').classList.contains('teclado')];
   }), ['"visual"', false, false], 'sin teclado el toque elige el texto sin abrir el teclado');
+  // ED-04: en el teléfono la lista de sugerencias cabe en pantalla con al menos dos opciones a la vista.
+  await evaluar(() => { const c = window.cmg.codigo; c.value = '/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, "visual");\n\nregularShoot(/* lugar */);'; c.dispatchEvent(new Event('input')); });
+  const lugar = await page.evaluate(() => { const el = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === '/* lugar */'); el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await page.cdp('Input.synthesizeTapGesture', { ...lugar, tapCount: 1, duration: 40, gestureSourceType: 'touch' });
+  await page.waitForSelector('.sugerencias:not([hidden])');
+  eq(await evaluar(() => {
+    const s = document.querySelector('.sugerencias').getBoundingClientRect();
+    const vistas = [...document.querySelectorAll('.sugerencias .sug')].filter(e => { const r = e.getBoundingClientRect(); return r.top >= s.top && r.bottom <= Math.min(s.bottom, innerHeight); });
+    return s.top >= 0 && s.bottom <= innerHeight && vistas.length >= 2;
+  }), true, 'en el teléfono la lista de sugerencias cabe con dos opciones a la vista');
+  await evaluar(() => document.querySelector('.sugerencias .sug-x')?.click());
   // Mantener pulsado un atajo abre sus variantes.
   const atajoIf = await page.evaluate(() => { const r = document.querySelector('.atajo.con-variantes[aria-label^="If / else"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   await page.cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...atajoIf, id: 5 }] });
@@ -256,8 +267,66 @@ async function probarSinTeclado(page, eq) {
   await page.click('.variantes .variante[data-v="1"]');
   eq(await evaluar(() => window.cmg.codigo.value), 'stopFire();\nif (/* condición */) {\n  \n}', 'clic derecho en un atajo deja elegir su variante');
 
+  await probarRegresiones(page, eq, { evaluar, elegido, ficha, poner });
+
   await page.click('#b-teclado');
   eq(await evaluar(() => !window.cmg.edicion.activo && document.querySelector('#bloques').hidden && document.activeElement === window.cmg.codigo), true, 'el mismo botón vuelve al teclado');
+}
+
+// Regresiones del QA del editor sin teclado (docs/qa/editor-2026-10-30/REPORTE.md), con ratón real.
+async function probarRegresiones(page, eq, { evaluar, elegido, ficha, poner }) {
+  const valor = () => evaluar(() => window.cmg.codigo.value);
+  const borrarEn = async (texto, a, b) => { await poner(texto, a, b); await page.click('#edicion [data-accion="borrar"]'); return valor(); };
+  // Con los huecos como valores, ¿es JavaScript válido?
+  const analiza = t => page.evaluate(t => { try { window.acorn.parse(t.replace(new RegExp(window.cmg.reHueco.source, 'g'), '_h'), { ecmaVersion: 2022, allowAwaitOutsideFunction: true }); return true; } catch { return false; } }, t);
+
+  // ED-01: un botón pulsado antes de 380 ms actúa sobre lo recién tocado, no sobre la selección anterior.
+  const R5 = 'while (true) {\n  const pos = autoTarget("drone", "visual") ?? autoTarget("crawler", "visual");\n  if (pos) {\n    burstFire(pos);\n  } else {\n    console.warn("sin objetivo");\n  }\n  await esperar(0.5);\n}';
+  await poner(R5, 0, R5.length);
+  const consola = await ficha('console');
+  await page.mouse.click(consola.x, consola.y);
+  await page.click('#edicion [data-accion="borrar"]');
+  const inmediato = await valor(), selInmediata = await evaluar(() => [window.cmg.codigo.selectionStart, window.cmg.codigo.selectionEnd]);
+  await page.waitForTimeout(450);
+  eq([inmediato, await evaluar(() => [window.cmg.codigo.selectionStart, window.cmg.codigo.selectionEnd])],
+    [R5.replace('    console.warn("sin objetivo");\n', ''), selInmediata], 'un botón justo después de un toque actúa sobre lo recién tocado');
+
+  // ED-02: un operando de ?? se borra con su operador; el aviso de condición vacía queda para la condición entera.
+  eq([await borrarEn('if (pos ?? /* valor */) {\n  stopFire();\n}\n', 11, 22), await borrarEn('const x = pos ?? /* valor */;\n', 17, 28),
+    await borrarEn('if (pos ?? target) {\n  stopFire();\n}\n', 11, 17), await borrarEn('if (/* condición */) {\n  stopFire();\n}\n', 4, 19)],
+  ['if (pos) {\n  stopFire();\n}\n', 'const x = pos;\n', 'if (pos) {\n  stopFire();\n}\n', 'if (/* condición */) {\n  stopFire();\n}\n'], 'borrar un operando lógico deja el otro');
+
+  // ED-07: borrar una parte obligatoria no deja restos («const =», «await;», «();», «.warn(…)»).
+  const restos = [
+    await borrarEn('const pos = autoTarget("crawler", "visual");\nregularShoot(pos);\n', 6, 9),
+    await borrarEn('const pos = autoTarget("crawler", "visual");\nregularShoot(pos);\n', 12, 43),
+    await borrarEn('await esperar(0.5);\nstopFire();\n', 6, 18),
+    await borrarEn('stopFire();\nregularShoot(pos);\n', 0, 8),
+    await borrarEn('console.warn("x");\nstopFire();\n', 8, 12),
+  ];
+  eq(restos, ['regularShoot(pos);\n', 'const pos = /* valor */;\nregularShoot(pos);\n', 'stopFire();\n', 'regularShoot(pos);\n', 'stopFire();\n'], 'borrar una parte obligatoria quita su construcción');
+  const validos = [];
+  for (const t of restos) validos.push(await analiza(t));
+  eq(validos.every(Boolean), true, 'lo que queda tras borrar sigue siendo un programa válido');
+
+  // ED-08: borrar una línea intermedia y volver a insertar repone en el mismo sitio.
+  await borrarEn('while (true) {\n  regularShoot(pos);\n  stopFire();\n}\n', 17, 35);
+  await page.click('.atajo[aria-label^="Esperar"]');
+  eq(await valor(), 'while (true) {\n  await esperar(0.5);\n  stopFire();\n}\n', 'tras borrar una línea la paleta inserta en su lugar');
+
+  // ED-03: la lista aparece ya en su sitio y deja a la vista la línea siguiente.
+  await poner('const pos = autoTarget("crawler", "visual");\nregularShoot(pos);\nstopFire();\n');
+  const visual = await ficha('"visual"');
+  await page.mouse.click(visual.x, visual.y);
+  await page.waitForSelector('.sugerencias:not([hidden])');
+  const caja = () => evaluar(() => { const r = document.querySelector('.sugerencias').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top)]; });
+  const primera = await caja();
+  await page.waitForTimeout(200);
+  const siguiente = await ficha('regularShoot');
+  eq(primera, await caja(), 'la lista de sugerencias no se mueve tras abrirse');
+  eq(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.textContent, siguiente), 'regularShoot', 'la lista deja a la vista la línea siguiente');
+  await page.mouse.click(siguiente.x, siguiente.y);
+  eq(await elegido(), 'regularShoot', 'con la lista abierta un toque en la línea siguiente la elige');
 }
 
 // Seudocódigo (traído de Tres vistas) y orden de la barra de edición, en PC.

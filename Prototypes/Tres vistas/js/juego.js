@@ -1365,7 +1365,7 @@ onmessage = async (ev) => {
     { ico: "entregar", t: "Entregar", b: 'await yo.entregar(/* destino */);' },
     { ico: "repetir", t: "For", b: "for (let i = 0; i < 3; i++) {\n  \n}", envolvente: ["for (let i = 0; i < 3; i++) {\n", "\n}"] },
     { ico: "mientras", t: "While", b: "while (/* condición */) {\n  \n}", envolvente: ["while (/* condición */) {\n", "\n}"] },
-    { ico: "siNo", t: "If / else", b: "if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else {\n    \n}"] },
+    { ico: "siNo", t: "If / else", b: "if (/* condición */) {\n  \n} else {\n  \n}", envolvente: ["if (/* condición */) {\n", "\n} else {\n  \n}"] },
     { ico: "sensor", t: "Cuántos", b: "await yo.cuantos(/* lugar */, /* material */)", enLinea: true },
     { ico: "esperar", t: "Esperar", b: "await yo.esperar(/* segundos */);" },
     { ico: "aviso", t: "Console.warn", b: 'console.warn(/* mensaje */);' },
@@ -2114,7 +2114,7 @@ onmessage = async (ev) => {
       if (!prefijo.trim()) lineas[0] = prefijo + lineas[0];
       const utiles = lineas.filter(l => l.trim());
       const margen = utiles.length ? Math.min(...utiles.map(l => l.match(/^[ \t]*/)[0].length)) : 0;
-      contenido = lineas.map(l => l.trim() ? sangria + "    " + l.slice(margen) : "").join("\n");
+      contenido = lineas.map(l => l.trim() ? sangria + "  " + l.slice(margen) : "").join("\n");
       cierre = despues.split("\n").map((l, i) => i ? sangria + l : l).join("\n") + (saltoFinal ? "\n" : "");
     }
     return insertar(antes + contenido + cierre, antes.length, antes.length + contenido.length);

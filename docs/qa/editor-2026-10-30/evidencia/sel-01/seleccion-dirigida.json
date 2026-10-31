@@ -1,0 +1,57 @@
+{
+  "reproduccionesRapidas": 2,
+  "controlPausadoEnvuelveTodo": false,
+  "resultados": [
+    {
+      "id": "rapido-1",
+      "espera": 0,
+      "previa": [
+        0,
+        262
+      ],
+      "antesBoton": [
+        0,
+        262
+      ],
+      "codigo": "burstFire(while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n});\n",
+      "seleccion": [
+        131,
+        131
+      ]
+    },
+    {
+      "id": "rapido-2",
+      "espera": 0,
+      "previa": [
+        0,
+        262
+      ],
+      "antesBoton": [
+        0,
+        262
+      ],
+      "codigo": "burstFire(while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    console.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n});\n",
+      "seleccion": [
+        131,
+        131
+      ]
+    },
+    {
+      "id": "pausado",
+      "espera": 450,
+      "previa": [
+        0,
+        262
+      ],
+      "antesBoton": [
+        128,
+        135
+      ],
+      "codigo": "while (true) {\n  const pos = autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\");\n  if (failureRate >= 0.25) {\n    burstFire(console);.warn(failureRate);\n  }\n  if (failureRate >= 0.35) {\n    stopFire();\n  } else {\n    burstFire(pos);\n  }\n  await esperar(0.4);\n}\n",
+      "seleccion": [
+        138,
+        145
+      ]
+    }
+  ]
+}

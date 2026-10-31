@@ -1,0 +1,773 @@
+{
+  "sesion": "c4bcacca-4f2e-4795-b35b-c3e6f09384de",
+  "config": {
+    "semilla": "rocket-piloto-v1",
+    "intentos": 10,
+    "maxClics": 40,
+    "maxSegundos": 180,
+    "modalidad": "piloto",
+    "editor": "#codigo",
+    "botones": "#paleta button.atajo[data-i]",
+    "area": "#editor, #paleta, #simbolos, #acciones-edicion, #edicion, #bloques"
+  },
+  "rngSiguiente": 2674384559,
+  "version": {
+    "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+    "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "recursos": [
+      "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+      "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+      "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+      "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+      "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+      "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+    ]
+  },
+  "intentos": [
+    {
+      "numero": 1,
+      "ejercicio": "R1 · escritorio",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 4272557079,
+      "resultado": "recuperado",
+      "clasificacion": "limite-ui",
+      "recompensa": 1,
+      "nota": "Recuperado tras 1 desvío del agente. Ampliar desde la sentencia «burstFire(regularShoot);» saltó al programa completo: con dos sentencias en una línea no hay nivel «línea»; el asa del número sí la elige. Ráfaga sobre un nombre de función envuelve solo el nombre y añade «;» intermedio («burstFire(regularShoot);(pos);»).",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [
+        {
+          "elemento": "Nivel «línea» en Ampliar",
+          "motivo": "De sentencia salta a todo el programa cuando la línea tiene dos sentencias",
+          "ejercicio": "R1"
+        }
+      ],
+      "umbral": 2,
+      "clicsPrevios": 2,
+      "clicsReparacion": 11,
+      "duracionMs": 56341,
+      "usoTeclado": false,
+      "objetivoHash": "12a0e291c4ad1d9806ab24989d2caf05ad423706cb03a168f21c3ba3ebc63d15",
+      "finalHash": "12a0e291c4ad1d9806ab24989d2caf05ad423706cb03a168f21c3ba3ebc63d15",
+      "perturbacion": {
+        "punto": {
+          "offset": 49,
+          "caracter": "l",
+          "x": 891.46875,
+          "y": 334.4453125,
+          "linea": 2,
+          "columna": 5,
+          "candidatos": 62
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(9)",
+          "nombre": "Ráfaga",
+          "datos": {
+            "i": "10",
+            "tip": "Ráfaga",
+            "tipCod": "burstFire(/* lugar */);"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": "caso-01.json",
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=escritorio",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 1224,
+          "alto": 670,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 2,
+      "ejercicio": "R2 · escritorio",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 3029364869,
+      "resultado": "recuperado",
+      "clasificacion": "limite-ui",
+      "recompensa": 1,
+      "nota": "If/else de la paleta envolvió solo el nombre «autoTarget» dentro de una expresión (bloque if en el inicializador). Borrar el if deja «const pos = (\"crawler\", \"visual\")»: sin teclado no hay forma local de reponer el nombre. Recuperado con 2 Deshacer.",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [
+        {
+          "elemento": "Envolver con bloques solo sentencias completas",
+          "motivo": "If/else/While sobre un nombre de función genera un bloque dentro de una expresión",
+          "ejercicio": "R2"
+        }
+      ],
+      "umbral": 4,
+      "clicsPrevios": 4,
+      "clicsReparacion": 4,
+      "duracionMs": 27042,
+      "usoTeclado": false,
+      "objetivoHash": "c4e7ec982492c2a8ef31ef11dbb99db02bd7963ecb716e05be045ff15c2f0bd3",
+      "finalHash": "c4e7ec982492c2a8ef31ef11dbb99db02bd7963ecb716e05be045ff15c2f0bd3",
+      "perturbacion": {
+        "punto": {
+          "offset": 31,
+          "caracter": "t",
+          "x": 992.3046875,
+          "y": 334.4453125,
+          "linea": 2,
+          "columna": 17,
+          "candidatos": 102
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(3)",
+          "nombre": "If / else · mantén para 2 variantes",
+          "datos": {
+            "i": "3",
+            "tip": "If / else",
+            "tipCod": "if (/* condición */) { …"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": "caso-02.json",
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=escritorio",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 1224,
+          "alto": 670,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 3,
+      "ejercicio": "R3 · escritorio",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 941417339,
+      "resultado": "recuperado",
+      "clasificacion": "bug-sospechado",
+      "recompensa": 1,
+      "nota": "Hipótesis: la lista de sugerencias de «pos» (abierta debajo de la línea 2) tapaba la línea 4 en el momento del clic. Recuperado con Deshacer; sin vía local.",
+      "esperado": "El clic del inyector sobre la «s» de else (línea 4) elige esa ficha; y Borrar sobre el hueco /* valor */ de «pos ?? /* valor */» quita el operando o el hueco, porque la condición conserva «pos».",
+      "observado": "El clic al carácter no llegó al editor (sin evento en la traza; la selección siguió en «pos») y ?? se aplicó a «pos». Después Borrar sobre /* valor */ no cambió nada y avisó «La condición no puede quedar vacía».",
+      "faltantes": [],
+      "umbral": 1,
+      "clicsPrevios": 1,
+      "clicsReparacion": 4,
+      "duracionMs": 72317,
+      "usoTeclado": false,
+      "objetivoHash": "57ca250a3b83375eb86bff4c8fc5d1d248caeb7ad250fed5032554db21faebdd",
+      "finalHash": "57ca250a3b83375eb86bff4c8fc5d1d248caeb7ad250fed5032554db21faebdd",
+      "perturbacion": {
+        "punto": {
+          "offset": 81,
+          "caracter": "s",
+          "x": 809.125,
+          "y": 379.2421875,
+          "linea": 4,
+          "columna": 5,
+          "candidatos": 102
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(4)",
+          "nombre": "Si no hay (??) · mantén para 7 variantes",
+          "datos": {
+            "i": "4",
+            "tip": "Si no hay (??)",
+            "tipCod": "??"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": "caso-03.json",
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=escritorio",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 1224,
+          "alto": 670,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 4,
+      "ejercicio": "R4 · escritorio",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 1318161612,
+      "resultado": "recuperado",
+      "clasificacion": "evaluar",
+      "recompensa": 1,
+      "nota": "",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [],
+      "umbral": 3,
+      "clicsPrevios": 3,
+      "clicsReparacion": 2,
+      "duracionMs": 18519,
+      "usoTeclado": false,
+      "objetivoHash": "77d22dbc3b61f1e3000fa0c37851153c0b4f25563c331615ea390d1107d556dc",
+      "finalHash": "77d22dbc3b61f1e3000fa0c37851153c0b4f25563c331615ea390d1107d556dc",
+      "perturbacion": {
+        "punto": {
+          "offset": 108,
+          "caracter": ";",
+          "x": 985.5390625,
+          "y": 401.640625,
+          "linea": 4,
+          "columna": 26,
+          "candidatos": 106
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(10)",
+          "nombre": "Detener",
+          "datos": {
+            "i": "11",
+            "tip": "Detener",
+            "tipCod": "stopFire();"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": null,
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=escritorio",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 1224,
+          "alto": 670,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 5,
+      "ejercicio": "R5 · escritorio",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 3541357927,
+      "resultado": "recuperado",
+      "clasificacion": "evaluar",
+      "recompensa": 1,
+      "nota": "",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [],
+      "umbral": 2,
+      "clicsPrevios": 2,
+      "clicsReparacion": 2,
+      "duracionMs": 14581,
+      "usoTeclado": false,
+      "objetivoHash": "2309c13b6a77425d56a8acdbeb3be05d2ceb984be560d7a41a63b1b2e7f79e5e",
+      "finalHash": "2309c13b6a77425d56a8acdbeb3be05d2ceb984be560d7a41a63b1b2e7f79e5e",
+      "perturbacion": {
+        "punto": {
+          "offset": 79,
+          "caracter": "e",
+          "x": 918.3203125,
+          "y": 356.84375,
+          "linea": 2,
+          "columna": 65,
+          "candidatos": 170
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(5)",
+          "nombre": "Esperar",
+          "datos": {
+            "i": "5",
+            "tip": "Esperar",
+            "tipCod": "await esperar(0.5);"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": null,
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=escritorio",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 1224,
+          "alto": 670,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 6,
+      "ejercicio": "R1 · móvil",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 1643161350,
+      "resultado": "recuperado",
+      "clasificacion": "bug-sospechado",
+      "recompensa": 1,
+      "nota": "Recuperado localmente: asa línea 2 → Borrar → Disparo → pos pulsando el borde visible. Ego restableció la emulación entre rondas; se reaplicó 393×852 antes de cada gesto.",
+      "esperado": "If/else envuelve con la sangría del editor (UNIDAD de 2 espacios) y una llamada elegida sin «;» se envuelve como sentencia completa. En móvil, la lista de sugerencias cabe en pantalla.",
+      "observado": "Cuerpo con 4 espacios a nivel superior y «;» tras la llave de cierre. En 393×852 la lista de «lugar» se abrió en y=776–866 (fuera de pantalla): solo la franja y≈848–852 de «pos» era pulsable.",
+      "faltantes": [],
+      "umbral": 4,
+      "clicsPrevios": 4,
+      "clicsReparacion": 3,
+      "duracionMs": 152066,
+      "usoTeclado": false,
+      "objetivoHash": "12a0e291c4ad1d9806ab24989d2caf05ad423706cb03a168f21c3ba3ebc63d15",
+      "finalHash": "12a0e291c4ad1d9806ab24989d2caf05ad423706cb03a168f21c3ba3ebc63d15",
+      "perturbacion": {
+        "punto": {
+          "offset": 61,
+          "caracter": ")",
+          "x": 197.2109375,
+          "y": 647.4453125,
+          "linea": 2,
+          "columna": 17,
+          "candidatos": 62
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(3)",
+          "nombre": "If / else · mantén para 2 variantes",
+          "datos": {
+            "i": "3",
+            "tip": "If / else",
+            "tipCod": "if (/* condición */) { …"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": "caso-06.json",
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 7,
+      "ejercicio": "R2 · móvil",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 802394871,
+      "resultado": "recuperado",
+      "clasificacion": "limite-ui",
+      "recompensa": 1,
+      "nota": "Sensor de vibración envolvió la expresión «await esperar(0.5)» y dejó «;;» y una segunda declaración «const pos». Reparación local: asa → Borrar → Esperar → Subir. Tras borrar una línea intermedia el cursor queda al inicio de la siguiente («}») y la paleta inserta debajo de ella, fuera del while.",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [],
+      "umbral": 4,
+      "clicsPrevios": 4,
+      "clicsReparacion": 4,
+      "duracionMs": 36427,
+      "usoTeclado": false,
+      "objetivoHash": "c4e7ec982492c2a8ef31ef11dbb99db02bd7963ecb716e05be045ff15c2f0bd3",
+      "finalHash": "c4e7ec982492c2a8ef31ef11dbb99db02bd7963ecb716e05be045ff15c2f0bd3",
+      "perturbacion": {
+        "punto": {
+          "offset": 89,
+          "caracter": "t",
+          "x": 113.1953125,
+          "y": 805.640625,
+          "linea": 4,
+          "columna": 7,
+          "candidatos": 101
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(11)",
+          "nombre": "Sensor de vibración",
+          "datos": {
+            "i": "12",
+            "tip": "Sensor de vibración",
+            "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": "caso-07.json",
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 8,
+      "ejercicio": "R3 · móvil",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 3915020547,
+      "resultado": "recuperado",
+      "clasificacion": "evaluar",
+      "recompensa": 1,
+      "nota": "Variable sobre «pos» produjo «const const pos = pos = …». Reparación local con 3 Borrar (pos, =, const) sin Deshacer; Borrar ajustó los espacios correctamente.",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [],
+      "umbral": 2,
+      "clicsPrevios": 2,
+      "clicsReparacion": 7,
+      "duracionMs": 37576,
+      "usoTeclado": false,
+      "objetivoHash": "57ca250a3b83375eb86bff4c8fc5d1d248caeb7ad250fed5032554db21faebdd",
+      "finalHash": "57ca250a3b83375eb86bff4c8fc5d1d248caeb7ad250fed5032554db21faebdd",
+      "perturbacion": {
+        "punto": {
+          "offset": 8,
+          "caracter": "s",
+          "x": 130,
+          "y": 716.046875,
+          "linea": 1,
+          "columna": 9,
+          "candidatos": 82
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(6)",
+          "nombre": "Variable · mantén para 2 variantes",
+          "datos": {
+            "i": "6",
+            "tip": "Variable",
+            "tipCod": "const pos ="
+          }
+        }
+      },
+      "uso": null,
+      "detalle": null,
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 9,
+      "ejercicio": "R4 · móvil",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 2123831033,
+      "resultado": "recuperado",
+      "clasificacion": "evaluar",
+      "recompensa": 1,
+      "nota": "Ráfaga sobre el nombre «regularShoot» (mismo patrón que el intento 1). Reparación local: asa línea 4 → Borrar → Línea nueva → Disparo (el hueco /* lugar */ coincide con la referencia).",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [],
+      "umbral": 1,
+      "clicsPrevios": 1,
+      "clicsReparacion": 4,
+      "duracionMs": 24210,
+      "usoTeclado": false,
+      "objetivoHash": "77d22dbc3b61f1e3000fa0c37851153c0b4f25563c331615ea390d1107d556dc",
+      "finalHash": "77d22dbc3b61f1e3000fa0c37851153c0b4f25563c331615ea390d1107d556dc",
+      "perturbacion": {
+        "punto": {
+          "offset": 94,
+          "caracter": "t",
+          "x": 155.1953125,
+          "y": 805.640625,
+          "linea": 4,
+          "columna": 12,
+          "candidatos": 106
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(9)",
+          "nombre": "Ráfaga",
+          "datos": {
+            "i": "10",
+            "tip": "Ráfaga",
+            "tipCod": "burstFire(/* lugar */);"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": null,
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    },
+    {
+      "numero": 10,
+      "ejercicio": "R5 · móvil",
+      "semilla": "rocket-piloto-v1",
+      "rngInicio": 3098109882,
+      "resultado": "recuperado",
+      "clasificacion": "limite-ui",
+      "recompensa": 1,
+      "nota": "Disparo envolvió una sentencia if completa como argumento: «regularShoot(if (pos) {…});». Sin teclado no hay forma de «desenvolver»; Borrar sobre la llamada quitaría también el if. Recuperado con 1 Deshacer.",
+      "esperado": "",
+      "observado": "",
+      "faltantes": [
+        {
+          "elemento": "Desenvolver (quitar la envoltura y conservar el contenido)",
+          "motivo": "Las plantillas de la paleta envuelven sentencias o nombres en posiciones de expresión y la única vía de vuelta es Deshacer",
+          "ejercicio": "R5"
+        }
+      ],
+      "umbral": 1,
+      "clicsPrevios": 1,
+      "clicsReparacion": 1,
+      "duracionMs": 12394,
+      "usoTeclado": false,
+      "objetivoHash": "2309c13b6a77425d56a8acdbeb3be05d2ceb984be560d7a41a63b1b2e7f79e5e",
+      "finalHash": "2309c13b6a77425d56a8acdbeb3be05d2ceb984be560d7a41a63b1b2e7f79e5e",
+      "perturbacion": {
+        "punto": {
+          "offset": 98,
+          "caracter": "f",
+          "x": 88,
+          "y": 805.640625,
+          "linea": 3,
+          "columna": 4,
+          "candidatos": 105
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(8)",
+          "nombre": "Disparo",
+          "datos": {
+            "i": "9",
+            "tip": "Disparo",
+            "tipCod": "regularShoot(/* lugar */);"
+          }
+        }
+      },
+      "uso": null,
+      "detalle": "caso-10.json",
+      "contexto": {
+        "version": {
+          "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+          "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+          "recursos": [
+            "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+            "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+            "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+            "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+            "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+            "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+          ]
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "programa": [
+          "LAU-01"
+        ],
+        "clasesApp": "app"
+      }
+    }
+  ]
+}
