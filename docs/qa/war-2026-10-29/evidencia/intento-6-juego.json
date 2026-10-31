@@ -1,0 +1,12 @@
+{
+  "nivel": 1,
+  "movil": true,
+  "juego": {
+    "t": 37.74999999999999,
+    "fin": "fallo",
+    "brechas": 1,
+    "derribos": 0,
+    "atascos": 0,
+    "consola": "Brecha: oruga O1 cruzó la línea de la base."
+  }
+}

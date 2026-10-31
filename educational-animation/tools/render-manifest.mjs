@@ -14,12 +14,14 @@ const probe = JSON.parse(
   execFileSync('ffprobe', ['-v', 'error', '-print_format', 'json', '-show_streams', '-show_format', file], {encoding: 'utf8'}),
 );
 const video = probe.streams.find((s) => s.codec_type === 'video');
+// Con pnpm cada dependencia vive en el node_modules de su workspace.
 const version = (pkg) => {
-  try {
-    return JSON.parse(readFileSync(`node_modules/${pkg}/package.json`, 'utf8')).version;
-  } catch {
-    return null;
+  for (const dir of ['compositions/remotion', 'concepts/motion-canvas', '.']) {
+    try {
+      return JSON.parse(readFileSync(`${dir}/node_modules/${pkg}/package.json`, 'utf8')).version;
+    } catch {}
   }
+  return null;
 };
 
 const manifest = {
@@ -38,7 +40,7 @@ const manifest = {
     '@motion-canvas/core': version('@motion-canvas/core'),
     ffmpeg: execFileSync('ffmpeg', ['-version'], {encoding: 'utf8'}).split('\n')[0],
   },
-  command: `npm run ${process.env.npm_lifecycle_event ?? '?'}`,
+  command: `pnpm run ${process.env.npm_lifecycle_event ?? '?'}`,
   params: JSON.parse(readFileSync('shared/await-pilot.json', 'utf8')),
 };
 

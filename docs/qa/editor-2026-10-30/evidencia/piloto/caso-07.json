@@ -1,0 +1,1341 @@
+{
+  "resumen": {
+    "numero": 7,
+    "ejercicio": "R2 · móvil",
+    "semilla": "rocket-piloto-v1",
+    "rngInicio": 802394871,
+    "resultado": "recuperado",
+    "clasificacion": "limite-ui",
+    "recompensa": 1,
+    "nota": "Sensor de vibración envolvió la expresión «await esperar(0.5)» y dejó «;;» y una segunda declaración «const pos». Reparación local: asa → Borrar → Esperar → Subir. Tras borrar una línea intermedia el cursor queda al inicio de la siguiente («}») y la paleta inserta debajo de ella, fuera del while.",
+    "esperado": "",
+    "observado": "",
+    "faltantes": [],
+    "umbral": 4,
+    "clicsPrevios": 4,
+    "clicsReparacion": 4,
+    "duracionMs": 36427,
+    "usoTeclado": false,
+    "objetivoHash": "c4e7ec982492c2a8ef31ef11dbb99db02bd7963ecb716e05be045ff15c2f0bd3",
+    "finalHash": "c4e7ec982492c2a8ef31ef11dbb99db02bd7963ecb716e05be045ff15c2f0bd3",
+    "perturbacion": {
+      "punto": {
+        "offset": 89,
+        "caracter": "t",
+        "x": 113.1953125,
+        "y": 805.640625,
+        "linea": 4,
+        "columna": 7,
+        "candidatos": 101
+      },
+      "boton": {
+        "selector": "#paleta > button:nth-of-type(11)",
+        "nombre": "Sensor de vibración",
+        "datos": {
+          "i": "12",
+          "tip": "Sensor de vibración",
+          "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+        }
+      }
+    },
+    "uso": null,
+    "detalle": "caso-07.json",
+    "contexto": {
+      "version": {
+        "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+        "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+        "recursos": [
+          "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+          "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+          "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+          "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+          "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+          "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+          "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+          "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+          "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+          "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+          "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+          "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+          "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+        ]
+      },
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "programa": [
+        "LAU-01"
+      ],
+      "clasesApp": "app"
+    }
+  },
+  "numero": 7,
+  "ejercicio": "R2 · móvil",
+  "usoInicio": null,
+  "rngInicio": 802394871,
+  "umbral": 4,
+  "fase": "reparacion",
+  "pendiente": false,
+  "clicsPrevios": 4,
+  "clicsReparacion": 4,
+  "inicio": 179026.60000000056,
+  "secuencia": 25,
+  "traza": [
+    {
+      "orden": 1,
+      "ms": 0,
+      "fase": "espera",
+      "tipo": "inicio"
+    },
+    {
+      "orden": 2,
+      "ms": 64,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 80,
+      "y": 716,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          0,
+          106
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 3,
+      "ms": 117,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          0,
+          106
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 4,
+      "ms": 584,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 126,
+      "y": 783,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          0,
+          106
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 5,
+      "ms": 616,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          0,
+          106
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 6,
+      "ms": 1086,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 306,
+      "y": 738,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          40,
+          49
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 7,
+      "ms": 1151,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          40,
+          49
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 8,
+      "ms": 1634,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 96,
+      "y": 738,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          17,
+          61
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 9,
+      "ms": 1701,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          17,
+          61
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 10,
+      "ms": 1703,
+      "fase": "inyeccion",
+      "tipo": "antes-perturbacion",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          17,
+          61
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      },
+      "plan": {
+        "punto": {
+          "offset": 89,
+          "caracter": "t",
+          "x": 113.1953125,
+          "y": 805.640625,
+          "linea": 4,
+          "columna": 7,
+          "candidatos": 101
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(11)",
+          "nombre": "Sensor de vibración",
+          "datos": {
+            "i": "12",
+            "tip": "Sensor de vibración",
+            "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+          }
+        },
+        "inventario": [
+          {
+            "selector": "#paleta > button:nth-of-type(1)",
+            "nombre": "Comentar",
+            "datos": {
+              "i": "0",
+              "tip": "Comentar",
+              "tipCod": "// …  (Ctrl+/)"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(2)",
+            "nombre": "While true · mantén para 4 variantes",
+            "datos": {
+              "i": "2",
+              "tip": "While true",
+              "tipCod": "while (true) { …"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(3)",
+            "nombre": "If / else · mantén para 2 variantes",
+            "datos": {
+              "i": "3",
+              "tip": "If / else",
+              "tipCod": "if (/* condición */) { …"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(4)",
+            "nombre": "Si no hay (??) · mantén para 7 variantes",
+            "datos": {
+              "i": "4",
+              "tip": "Si no hay (??)",
+              "tipCod": "??"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(5)",
+            "nombre": "Esperar",
+            "datos": {
+              "i": "5",
+              "tip": "Esperar",
+              "tipCod": "await esperar(0.5);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(6)",
+            "nombre": "Variable · mantén para 2 variantes",
+            "datos": {
+              "i": "6",
+              "tip": "Variable",
+              "tipCod": "const pos ="
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(7)",
+            "nombre": "Apuntar",
+            "datos": {
+              "i": "8",
+              "tip": "Apuntar",
+              "tipCod": "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(8)",
+            "nombre": "Disparo",
+            "datos": {
+              "i": "9",
+              "tip": "Disparo",
+              "tipCod": "regularShoot(/* lugar */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(9)",
+            "nombre": "Ráfaga",
+            "datos": {
+              "i": "10",
+              "tip": "Ráfaga",
+              "tipCod": "burstFire(/* lugar */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(10)",
+            "nombre": "Detener",
+            "datos": {
+              "i": "11",
+              "tip": "Detener",
+              "tipCod": "stopFire();"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(11)",
+            "nombre": "Sensor de vibración",
+            "datos": {
+              "i": "12",
+              "tip": "Sensor de vibración",
+              "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(12)",
+            "nombre": "Aviso · mantén para 3 variantes",
+            "datos": {
+              "i": "14",
+              "tip": "Aviso",
+              "tipCod": "console.warn(/* mensaje */);"
+            }
+          }
+        ],
+        "rng": 3915020547
+      }
+    },
+    {
+      "orden": 11,
+      "ms": 1767,
+      "fase": "inyeccion",
+      "tipo": "clic",
+      "x": 113,
+      "y": 805,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          85,
+          103
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 12,
+      "ms": 1833,
+      "fase": "inyeccion",
+      "tipo": "tras-caracter",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          85,
+          103
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 13,
+      "ms": 2350,
+      "fase": "inyeccion",
+      "tipo": "clic",
+      "x": 300,
+      "y": 617,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Sensor de vibración",
+        "id": "",
+        "datos": {
+          "i": "12",
+          "tip": "Sensor de vibración",
+          "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          85,
+          103
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 14,
+      "ms": 2383,
+      "fase": "reparacion",
+      "tipo": "tras-perturbacion",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  const pos = VIB_01.detect(await esperar(0.5));;\n}",
+        "seleccion": [
+          111,
+          129
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Identifier 'pos' has already been declared (4:8)",
+          "posicion": 91
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 15,
+      "ms": 19667,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 32,
+      "y": 804,
+      "detalle": 1,
+      "elemento": "DIV",
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  const pos = VIB_01.detect(await esperar(0.5));;\n}",
+        "seleccion": [
+          83,
+          132
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Identifier 'pos' has already been declared (4:8)",
+          "posicion": 91
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 16,
+      "ms": 19736,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  const pos = VIB_01.detect(await esperar(0.5));;\n}",
+        "seleccion": [
+          83,
+          132
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Identifier 'pos' has already been declared (4:8)",
+          "posicion": 91
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 17,
+      "ms": 20300,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 299,
+      "y": 668,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Borrar",
+        "id": "",
+        "datos": {
+          "accion": "borrar",
+          "tip": "Borrar"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  const pos = VIB_01.detect(await esperar(0.5));;\n}",
+        "seleccion": [
+          83,
+          132
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Identifier 'pos' has already been declared (4:8)",
+          "posicion": 91
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 18,
+      "ms": 20300,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+        "seleccion": [
+          84,
+          84
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 19,
+      "ms": 20367,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+        "seleccion": [
+          83,
+          83
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 20,
+      "ms": 20916,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 225,
+      "y": 617,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Esperar",
+        "id": "",
+        "datos": {
+          "i": "5",
+          "tip": "Esperar",
+          "tipCod": "await esperar(0.5);"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}",
+        "seleccion": [
+          83,
+          83
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 21,
+      "ms": 20916,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}\nawait esperar(0.5);",
+        "seleccion": [
+          104,
+          104
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 22,
+      "ms": 20985,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}\nawait esperar(0.5);",
+        "seleccion": [
+          104,
+          104
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 23,
+      "ms": 35936,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 274,
+      "y": 668,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Subir línea",
+        "id": "",
+        "datos": {
+          "accion": "subir",
+          "tip": "Subir línea"
+        }
+      },
+      "antes": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n}\nawait esperar(0.5);",
+        "seleccion": [
+          104,
+          104
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 24,
+      "ms": 35937,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          106,
+          106
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 25,
+      "ms": 36001,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+        "seleccion": [
+          83,
+          104
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    }
+  ],
+  "inicial": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+    "seleccion": [
+      0,
+      0
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "usoTeclado": false,
+  "objetivo": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+    "seleccion": [
+      17,
+      61
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "perturbacion": {
+    "punto": {
+      "offset": 89,
+      "caracter": "t",
+      "x": 113.1953125,
+      "y": 805.640625,
+      "linea": 4,
+      "columna": 7,
+      "candidatos": 101
+    },
+    "boton": {
+      "selector": "#paleta > button:nth-of-type(11)",
+      "nombre": "Sensor de vibración",
+      "datos": {
+        "i": "12",
+        "tip": "Sensor de vibración",
+        "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+      }
+    },
+    "inventario": [
+      {
+        "selector": "#paleta > button:nth-of-type(1)",
+        "nombre": "Comentar",
+        "datos": {
+          "i": "0",
+          "tip": "Comentar",
+          "tipCod": "// …  (Ctrl+/)"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(2)",
+        "nombre": "While true · mantén para 4 variantes",
+        "datos": {
+          "i": "2",
+          "tip": "While true",
+          "tipCod": "while (true) { …"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(3)",
+        "nombre": "If / else · mantén para 2 variantes",
+        "datos": {
+          "i": "3",
+          "tip": "If / else",
+          "tipCod": "if (/* condición */) { …"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(4)",
+        "nombre": "Si no hay (??) · mantén para 7 variantes",
+        "datos": {
+          "i": "4",
+          "tip": "Si no hay (??)",
+          "tipCod": "??"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(5)",
+        "nombre": "Esperar",
+        "datos": {
+          "i": "5",
+          "tip": "Esperar",
+          "tipCod": "await esperar(0.5);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(6)",
+        "nombre": "Variable · mantén para 2 variantes",
+        "datos": {
+          "i": "6",
+          "tip": "Variable",
+          "tipCod": "const pos ="
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(7)",
+        "nombre": "Apuntar",
+        "datos": {
+          "i": "8",
+          "tip": "Apuntar",
+          "tipCod": "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(8)",
+        "nombre": "Disparo",
+        "datos": {
+          "i": "9",
+          "tip": "Disparo",
+          "tipCod": "regularShoot(/* lugar */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(9)",
+        "nombre": "Ráfaga",
+        "datos": {
+          "i": "10",
+          "tip": "Ráfaga",
+          "tipCod": "burstFire(/* lugar */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(10)",
+        "nombre": "Detener",
+        "datos": {
+          "i": "11",
+          "tip": "Detener",
+          "tipCod": "stopFire();"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(11)",
+        "nombre": "Sensor de vibración",
+        "datos": {
+          "i": "12",
+          "tip": "Sensor de vibración",
+          "tipCod": "const pos = VIB_01.detect(/* tipo de enemigo */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(12)",
+        "nombre": "Aviso · mantén para 3 variantes",
+        "datos": {
+          "i": "14",
+          "tip": "Aviso",
+          "tipCod": "console.warn(/* mensaje */);"
+        }
+      }
+    ],
+    "rng": 3915020547
+  },
+  "trasCaracter": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+    "seleccion": [
+      85,
+      103
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "trasPerturbacion": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  const pos = VIB_01.detect(await esperar(0.5));;\n}",
+    "seleccion": [
+      111,
+      129
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": false,
+      "mensaje": "Identifier 'pos' has already been declared (4:8)",
+      "posicion": 91
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "cambio": true,
+  "final": {
+    "codigo": "while (true) {\n  const pos = autoTarget(\"crawler\", \"visual\");\n  regularShoot(pos);\n  await esperar(0.5);\n}",
+    "seleccion": [
+      83,
+      104
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": true
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "duracionMs": 36427,
+  "version": {
+    "url": "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil",
+    "agente": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "recursos": [
+      "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+      "http://127.0.0.1:8771/shared/css/edicion.css?v=1",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+      "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+      "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=12",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+      "http://127.0.0.1:8771/shared/js/estructura.js?v=1",
+      "http://127.0.0.1:8771/shared/js/edicion.js?v=13",
+      "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+    ]
+  },
+  "config": {
+    "semilla": "rocket-piloto-v1",
+    "intentos": 10,
+    "maxClics": 40,
+    "maxSegundos": 180,
+    "modalidad": "piloto",
+    "editor": "#codigo",
+    "botones": "#paleta button.atajo[data-i]",
+    "area": "#editor, #paleta, #simbolos, #acciones-edicion, #edicion, #bloques"
+  },
+  "rngFin": 3915020547,
+  "usoFin": null
+}

@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "War: carrera de selección y recuperación",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [
+      1100,
+      600
+    ]
+  },
+  "participants": [
+    {
+      "id": "inputs",
+      "type": "external",
+      "label": "Inputs QA"
+    },
+    {
+      "id": "fichas",
+      "type": "frontend",
+      "label": "Fichas"
+    },
+    {
+      "id": "temporizador",
+      "type": "messagebus",
+      "label": "Espera 380 ms"
+    },
+    {
+      "id": "programa",
+      "type": "database",
+      "label": "Texto y selección"
+    }
+  ],
+  "messages": [
+    {
+      "from": "inputs",
+      "to": "fichas",
+      "y": 180,
+      "label": "1. Seleccionar el while",
+      "variant": "default"
+    },
+    {
+      "from": "fichas",
+      "to": "programa",
+      "y": 220,
+      "label": "2. Selección del bloque completo",
+      "variant": "default"
+    },
+    {
+      "from": "inputs",
+      "to": "fichas",
+      "y": 260,
+      "label": "3. Clic dentro: console",
+      "variant": "emphasis"
+    },
+    {
+      "from": "fichas",
+      "to": "temporizador",
+      "y": 300,
+      "label": "4. Diferir nueva selección",
+      "variant": "dashed"
+    },
+    {
+      "from": "inputs",
+      "to": "programa",
+      "y": 340,
+      "label": "5. Ráfaga antes de 380 ms",
+      "variant": "emphasis"
+    },
+    {
+      "from": "programa",
+      "to": "inputs",
+      "y": 380,
+      "label": "6. burstFire envuelve el while",
+      "variant": "return"
+    },
+    {
+      "from": "temporizador",
+      "to": "programa",
+      "y": 420,
+      "label": "7. Llega la selección pendiente",
+      "variant": "dashed"
+    },
+    {
+      "from": "inputs",
+      "to": "programa",
+      "y": 460,
+      "label": "8. Pulsar Deshacer",
+      "variant": "default"
+    },
+    {
+      "from": "programa",
+      "to": "inputs",
+      "y": 500,
+      "label": "9. Recuperar texto exacto",
+      "variant": "return"
+    }
+  ]
+}

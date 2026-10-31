@@ -1,0 +1,50 @@
+{
+ "listaTapa": [
+  {
+   "abierta": true,
+   "en809_379": "else"
+  },
+  {
+   "abierta": true,
+   "en809_379": "else"
+  },
+  {
+   "abierta": true,
+   "en809_379": "else"
+  },
+  {
+   "abierta": true,
+   "en809_379": "sugerencias"
+  },
+  {
+   "abierta": true,
+   "en809_379": "sugerencias"
+  }
+ ],
+ "clicElseConLista": "pos",
+ "huecoOperandoIf": {
+  "elegido": "/* valor */",
+  "resultado": "if (pos ?? /* valor */) {",
+  "toast": "La condición no puede quedar vacía: elige un valor o borra la sentencia."
+ },
+ "huecoOperandoWhile": {
+  "elegido": "/* valor */",
+  "resultado": "while (pos ?? /* valor */) {",
+  "toast": "La condición no puede quedar vacía: elige un valor o borra la sentencia."
+ },
+ "huecoOperandoConst": {
+  "elegido": "/* valor */",
+  "resultado": "const x = pos ?? /* valor */;",
+  "toast": "La condición no puede quedar vacía: elige un valor o borra la sentencia."
+ },
+ "controlCondicionVacia": {
+  "elegido": "/* condición */",
+  "resultado": "if (/* condición */) {",
+  "toast": "La condición no puede quedar vacía: elige un valor o borra la sentencia."
+ },
+ "operandoNormalIf": {
+  "elegido": "target",
+  "resultado": "if (pos ?? /* condición */) {",
+  "toast": "La condición no puede quedar vacía: elige un valor o borra la sentencia."
+ }
+}

@@ -445,7 +445,16 @@
       if (n.sel === false || n.a > a || n.b < b || n.b - n.a <= b - a) continue;
       if (!mejor || n.b - n.a < mejor.b - mejor.a) mejor = n;
     }
+    // Una línea con varias sentencias es un nivel propio entre la sentencia y lo que la contiene.
+    const [ua, ub] = recortar(est.src, unidadLinea(est, lineaDe(est, a)));
+    if (ua <= a && ub >= b && ub - ua > b - a && (!mejor || ub - ua < mejor.b - mejor.a)) return [ua, ub];
     return mejor ? [mejor.a, mejor.b] : null;
+  }
+  // [a, b) sin los espacios ni saltos de los extremos.
+  function recortar(src, [a, b]) {
+    while (a < b && /\s/.test(src[a])) a++;
+    while (b > a && /\s/.test(src[b - 1])) b--;
+    return [a, b];
   }
 
   // Líneas completas (con su salto) de la sentencia que empieza en la línea l. Una línea que empieza
@@ -485,6 +494,11 @@
   }
 
   const texto = (est, n) => est.src.slice(n.a, n.b);
+  function enCondicion(n) {
+    let x = n;
+    while (x.padre && ((x.padre.k === "binaria" && LOGICOS.has(x.padre.op)) || (x.padre.k === "unaria" && x.padre.op === "!") || x.padre.k === "grupo")) x = x.padre;
+    return !!x.padre && x.padre.cond === x;
+  }
   const llamadaDe = (n) => !n || !n.padre ? null : n.padre.k === "llamada" ? n.padre : n.padre.k === "metodo" ? n.padre.llamada : null;
 
   // Qué es lo seleccionado: argumento de una llamada (con su función y posición), condición,
@@ -507,9 +521,12 @@
       else if (callee && callee.k === "miembro" && callee.h[0]) r.objeto = texto(est, callee.h[0]);
     } else if (pa && pa.k === "lista" && pa.args.includes(n)) r.tipo = "elemento";
     else if (pa && pa.cond === n) r.tipo = "condicion";
-    else if (pa && ((pa.k === "binaria" && LOGICOS.has(pa.op)) || (pa.k === "unaria" && pa.op === "!"))) r.tipo = "condicion";
+    // Operando de &&, || o ??: es condición solo si la expresión lógica entera es la condición de un if/while.
+    else if (pa && ((pa.k === "binaria" && LOGICOS.has(pa.op)) || (pa.k === "unaria" && pa.op === "!"))) r.tipo = enCondicion(n) ? "condicion" : "valor";
     else if (pa && pa.k === "binaria" && COMPARA.has(pa.op)) r.tipo = "valor";
     else if (r.hueco) r.tipo = "hueco";
+    // Operando de una operación binaria completa: borrarlo quita también el operador y deja el otro.
+    if (pa && pa.k === "binaria" && pa.h.length === 2 && pa.h.includes(n)) r.binaria = pa;
     return r;
   }
 

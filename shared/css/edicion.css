@@ -104,8 +104,14 @@
 .sugerencias {
   position: fixed; left: 0; top: 0; z-index: 88; width: min(330px, calc(100vw - 12px)); overflow: auto; overscroll-behavior: contain;
   padding: 0 4px 4px; border-radius: 10px; background: var(--surface); border: 1px solid var(--metal); box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
-  font-size: 13px; animation: tip .08s ease-out;
+  font-size: 13px; animation: sug-entra .08s ease-out;
 }
+/* Solo opacidad: el transform coloca la lista y no debe animarse (la lista saltaba 80 ms después de abrirse). */
+@keyframes sug-entra { from { opacity: 0; } }
+/* En una pantalla sin sitio junto a la selección, la lista ocupa el ancho como una hoja inferior. */
+.sugerencias.hoja { width: calc(100vw - 12px); border-radius: 12px 12px 8px 8px; }
+.sugerencias.hoja .sug-cab { padding-top: 4px; padding-bottom: 3px; }
+.sugerencias.hoja .sug-g { padding: 3px 6px 0; font-size: 10px; }
 .sug-cab { position: sticky; top: 0; z-index: 1; display: flex; align-items: baseline; gap: 8px; padding: 7px 4px 5px 6px; background: var(--surface); border-bottom: 1px solid var(--line); margin-bottom: 2px; }
 .sug-cab b { flex: none; white-space: nowrap; font-family: var(--f-display); font-stretch: 112%; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; }
 .sug-cab span { min-width: 0; font-family: var(--f-code); font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

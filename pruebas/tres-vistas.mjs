@@ -73,7 +73,7 @@ export async function probarTresVistas(page, origen = 'http://127.0.0.1:8771') {
   await page.fill('#codigo', 'await yo.entregar("FUN");');
   await evaluar(() => window.cmg.codigo.select());
   await page.click('[data-js="4"]');
-  eq(await evaluar(() => window.cmg.codigo.value), 'while (/* condición */) {\n    await yo.entregar("FUN");\n}', 'while envuelve el código elegido');
+  eq(await evaluar(() => window.cmg.codigo.value), 'while (/* condición */) {\n  await yo.entregar("FUN");\n}', 'while envuelve el código elegido');
   await page.fill('#codigo', '"ENT-1"');
   await evaluar(() => window.cmg.codigo.select());
   await page.click('[data-js="1"]');
