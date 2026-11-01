@@ -5,11 +5,16 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
-const salida = join(root, 'docs/qa/war-2026-10-30/videos');
-const raw = join(root, '.qa-recuperacion/war-video-20261030');
+let salida = join(root, 'docs/qa/war-2026-10-30/videos');
+let raw = join(root, '.qa-recuperacion/war-video-20261030');
+// Elegir otra sesión antes de grabar para conservar la evidencia histórica.
+export function configurarSalida(directorio, originales) {
+  salida = resolve(directorio); raw = resolve(originales);
+}
 const pausa = ms => new Promise(r => setTimeout(r, ms));
 const fuente = async n => JSON.parse(await readFile(join(root, `docs/qa/war-2026-10-29/evidencia/caso-${String(n).padStart(2,'0')}.json`), 'utf8'));
-async function preparar(p, codigo, movil = false) {
+export async function preparar(p, codigo, movil = false) {
+  await p.cdp('Network.enable'); await p.cdp('Network.setCacheDisabled', { cacheDisabled: true });
   await p.goto('http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=' + (movil ? 'movil' : 'escritorio'));
   const ancho = movil ? 393 : 1366, alto = movil ? 852 : 900;
   await p.cdp('Emulation.setDeviceMetricsOverride', { width: ancho, height: alto, deviceScaleFactor: 1, mobile: movil });
@@ -25,7 +30,7 @@ async function preparar(p, codigo, movil = false) {
   await p.waitForTimeout(500);
 }
 async function estado(p) { return p.evaluate(() => { const c = cmg.codigo; let sintaxis = true; try { acorn.parse(c.value, {ecmaVersion:2022,allowAwaitOutsideFunction:true}); } catch { sintaxis = false; } return {codigo:c.value,seleccion:[c.selectionStart,c.selectionEnd],sintaxis,viewport:[innerWidth,innerHeight]}; }); }
-async function grabar(p, id, titulo, acciones) {
+export async function grabar(p, id, titulo, acciones) {
   const framesDir = join(raw,id); await mkdir(framesDir,{recursive:true}); await mkdir(salida,{recursive:true});
   await p.evaluate(({titulo}) => {
     document.querySelector('#qa-video-hud')?.remove(); document.querySelector('#qa-video-cursor')?.remove();

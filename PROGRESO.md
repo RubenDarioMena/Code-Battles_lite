@@ -1,5 +1,26 @@
 # Code-battle-lite · progreso
 
+## Desenvolver e inspector cerrado por defecto · 1 de noviembre de 2026
+
+- **Desenvolver** (P3 de la tanda de 20 ciclos): botón nuevo de la barra de edición, al final del grupo de líneas. Quita el `if`/`while`/`for`/`do` más cercano que contiene lo elegido y deja su contenido elegido, un nivel menos sangrado; Deshacer lo devuelve. Un `else` (o `else if`) que solo tiene plantilla se descarta; si tiene código, no cambia nada y avisa. En seudocódigo avisa de que está en JavaScript. Lógica en `shared/js/estructura.js` (`ESTRUCTURA.desenvolver`), botón en `shared/js/edicion.js`. Un orden de barra guardado recibe el botón en un grupo nuevo al final (Ajustes lo recoloca).
+- **Inspector cerrado por defecto**: causa, `abrirPrograma()` llamaba a `seleccionar(id)` y en el teléfono (ficha «completo») eso desplegaba la ficha al cargar el reto, al cambiar de pestaña de programa, al restaurar y al saltar a un error. Ahora abrir un programa, y la corrección de selección cuando desaparece una unidad, cambian de unidad conservando el estado del inspector (`inspeccionar: "conservar"`). Elegir en el campo, en los chips o en un enlace sigue abriéndolo.
+- Versiones: `juego.js?v=14` (Rocket), `edicion.js?v=16`, `estructura.js?v=3`, `seudo.js?v=3`; `pruebas/war-20-ciclos.mjs` exige las nuevas.
+- Verificación: **96 lógica** (9 de Desenvolver), **73 navegador War** dos veces seguidas (nuevas: Desenvolver + Deshacer, inspector cerrado al cargar y tras abrir programa, abierto al elegir), **43 Tres vistas**, **23 editor Factory**. La comprobación 18 («doble toque selecciona el mismo tipo visible») falló 2 de 6 ejecuciones y pasó al repetir: intermitente por tiempos del doble toque sintético, previa a estos cambios. Móvil emulado, no tacto real.
+
+## Corrección WAR-20-UI-01 (hoja móvil sobre el asa de línea) · 1 de noviembre de 2026
+
+- `shared/js/edicion.js` (v15): cuando la lista de sugerencias pasa a hoja inferior, primero desplaza la vista de bloques para subir lo elegido (como mucho hasta su borde superior) y vuelve a colocarla; si aún hace falta hoja, esta deja libre la columna de asas (números a la izquierda o borde derecho). Un toque en el número elige la línea con la lista abierta, sin cerrarla antes.
+- Hallado al reproducirlo con toque emulado: la hoja podía abrirse bajo el dedo y el clic de ese mismo toque elegía la opción de debajo (`missiles`). Ahora un clic en la lista solo cuenta si la pulsación empezó en ella (o viene del teclado).
+- Verificación: **87 lógica, 68 navegador War** (2 nuevas: hoja sin tapar números y toque en el número elige la línea; fallan con el `edicion.js` anterior), **43 Tres vistas, 23 editor Factory**. Comprobado además a mano en 393×660 y 393×600. Móvil emulado con CDP, no tacto real. `pruebas/war-20-ciclos.mjs` exige ahora `edicion.js?v=15`.
+- Desenvolver (P3) se implementó después: ver la entrada de arriba.
+
+## Verificación posterior y 20 ciclos aleatorios · 30 de octubre de 2026
+
+- Tanda válida con build actual y caché desactivada: **20/20 recuperaciones exactas**, 10 PC y 10 móvil emulado, 12 en nivel 4, fixtures R1–R5 y semilla `war-postfix-20-20261030-v1`. Tres recuperaciones con Borrar, dos terminando con borrado por línea y quince con Deshacer de la perturbación; 56 clics dentro del área y dos cierres de sugerencias fuera. Son pruebas de edición, no veinte partidas ni búsqueda de estrategia ganadora.
+- **87 comprobaciones de lógica y 66 de navegador War correctas**. Vídeos nuevos de SEL-01: 0/2 rápidos envuelven el while anterior (68/65 ms), controles pausados iguales y recuperación exacta. Tres MP4 decodificados completos y revisados por fotogramas.
+- Fricción **WAR-20-UI-01**: hoja móvil sobre el asa de línea (ciclo 14); un clic en el punto del número elige `missiles`. Vídeo dirigido confirma el efecto; cerrar lista → elegir línea → Borrar recupera el texto. No se confirma pérdida de datos ni se reabre ED-04. Carencia de desenvolver conserva interés; el ensayo local fue acotado y no agota alternativas manuales.
+- La primera tanda mezcló HTML actual en PC y antiguo en móvil por caché. Se conserva aparte y se excluye; se repitieron los veinte con verificación de versiones por intento. [Reporte, trazas, capturas, diagrama y vídeos](docs/qa/war-20-ciclos-2026-10-30/REPORTE.md). Recursos del producto sin cambios; adaptadores de QA nuevos y grabador con carpeta configurable. Sin commits/publicación, ratón y móvil emulado, tokens sin medir.
+
 ## Correcciones del editor sin teclado (ED-01–ED-09) · 30 de octubre de 2026
 
 - Corregidas las nueve incidencias de la regresión del mismo día. Cambios en `shared/js/edicion.js` (selección pendiente, Borrar sin restos, operandos, cursor y colocación de la lista), `shared/js/estructura.js` (contexto de operandos y nivel «línea» en Ampliar), `shared/css/edicion.css` (animación solo de opacidad y hoja inferior compacta) y `Prototypes/Rocket Launcher/js/juego.js` (envolver con 2 espacios y según la categoría de lo elegido; Variable con la misma regla). Tres vistas recibe la sangría de 2 espacios y los módulos compartidos.

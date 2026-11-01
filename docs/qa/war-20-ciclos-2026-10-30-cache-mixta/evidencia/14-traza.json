@@ -1,0 +1,1101 @@
+{
+  "nivel": 4,
+  "fixture": "R4",
+  "movil": true,
+  "pasos": [
+    {
+      "accion": "Borrar selección resultante",
+      "antes": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          13,
+          122
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      },
+      "despues": {
+        "codigo": "console.warn();",
+        "seleccion": [
+          13,
+          13
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "accion": "Deshacer reparación local",
+      "despues": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          13,
+          122
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "accion": "Deshacer perturbación",
+      "despues": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          107
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    }
+  ],
+  "overlay": [],
+  "numero": 14,
+  "ejercicio": "R4 · nivel 4 · móvil",
+  "usoInicio": null,
+  "rngInicio": 503599891,
+  "umbral": 1,
+  "fase": "reparacion",
+  "pendiente": false,
+  "clicsPrevios": 1,
+  "clicsReparacion": 3,
+  "inicio": 2758.7000000011176,
+  "secuencia": 17,
+  "traza": [
+    {
+      "orden": 1,
+      "ms": 0,
+      "fase": "espera",
+      "tipo": "inicio"
+    },
+    {
+      "orden": 2,
+      "ms": 77,
+      "fase": "espera",
+      "tipo": "clic",
+      "x": 159,
+      "y": 716,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          24
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 3,
+      "ms": 110,
+      "fase": "espera",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          24
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 4,
+      "ms": 112,
+      "fase": "inyeccion",
+      "tipo": "antes-perturbacion",
+      "antes": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          24
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      },
+      "plan": {
+        "punto": {
+          "offset": 35,
+          "caracter": "=",
+          "x": 146.8125,
+          "y": 738.4453125,
+          "linea": 2,
+          "columna": 11,
+          "candidatos": 106
+        },
+        "boton": {
+          "selector": "#paleta > button:nth-of-type(11)",
+          "nombre": "Aviso · mantén para 3 variantes",
+          "datos": {
+            "i": "14",
+            "tip": "Aviso",
+            "tipCod": "console.warn(/* mensaje */);"
+          }
+        },
+        "inventario": [
+          {
+            "selector": "#paleta > button:nth-of-type(1)",
+            "nombre": "Comentar",
+            "datos": {
+              "i": "0",
+              "tip": "Comentar",
+              "tipCod": "// …  (Ctrl+/)"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(2)",
+            "nombre": "While true · mantén para 4 variantes",
+            "datos": {
+              "i": "2",
+              "tip": "While true",
+              "tipCod": "while (true) { …"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(3)",
+            "nombre": "If / else · mantén para 2 variantes",
+            "datos": {
+              "i": "3",
+              "tip": "If / else",
+              "tipCod": "if (/* condición */) { …"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(4)",
+            "nombre": "Si no hay (??) · mantén para 7 variantes",
+            "datos": {
+              "i": "4",
+              "tip": "Si no hay (??)",
+              "tipCod": "??"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(5)",
+            "nombre": "Esperar",
+            "datos": {
+              "i": "5",
+              "tip": "Esperar",
+              "tipCod": "await esperar(0.5);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(6)",
+            "nombre": "Variable · mantén para 2 variantes",
+            "datos": {
+              "i": "6",
+              "tip": "Variable",
+              "tipCod": "const pos ="
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(7)",
+            "nombre": "Apuntar",
+            "datos": {
+              "i": "8",
+              "tip": "Apuntar",
+              "tipCod": "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(8)",
+            "nombre": "Disparo",
+            "datos": {
+              "i": "9",
+              "tip": "Disparo",
+              "tipCod": "regularShoot(/* lugar */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(9)",
+            "nombre": "Ráfaga",
+            "datos": {
+              "i": "10",
+              "tip": "Ráfaga",
+              "tipCod": "burstFire(/* lugar */);"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(10)",
+            "nombre": "Detener",
+            "datos": {
+              "i": "11",
+              "tip": "Detener",
+              "tipCod": "stopFire();"
+            }
+          },
+          {
+            "selector": "#paleta > button:nth-of-type(11)",
+            "nombre": "Aviso · mantén para 3 variantes",
+            "datos": {
+              "i": "14",
+              "tip": "Aviso",
+              "tipCod": "console.warn(/* mensaje */);"
+            }
+          }
+        ],
+        "rng": 4253409906
+      }
+    },
+    {
+      "orden": 5,
+      "ms": 161,
+      "fase": "inyeccion",
+      "tipo": "clic",
+      "x": 146,
+      "y": 738,
+      "detalle": 1,
+      "elemento": "SPAN",
+      "antes": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          109
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 6,
+      "ms": 214,
+      "fase": "inyeccion",
+      "tipo": "tras-caracter",
+      "despues": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          109
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 7,
+      "ms": 712,
+      "fase": "inyeccion",
+      "tipo": "clic",
+      "x": 354,
+      "y": 617,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Aviso · mantén para 3 variantes",
+        "id": "",
+        "datos": {
+          "i": "14",
+          "tip": "Aviso",
+          "tipCod": "console.warn(/* mensaje */);"
+        }
+      },
+      "antes": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          109
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 8,
+      "ms": 781,
+      "fase": "reparacion",
+      "tipo": "tras-perturbacion",
+      "despues": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          13,
+          122
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 9,
+      "ms": 1011,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 299,
+      "y": 668,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Borrar",
+        "id": "",
+        "datos": {
+          "accion": "borrar",
+          "tip": "Borrar"
+        }
+      },
+      "antes": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          13,
+          122
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          8
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 10,
+      "ms": 1012,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "console.warn();",
+        "seleccion": [
+          15,
+          15
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 11,
+      "ms": 1078,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "console.warn();",
+        "seleccion": [
+          13,
+          13
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 12,
+      "ms": 1660,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 86,
+      "y": 668,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Deshacer",
+        "id": "",
+        "datos": {
+          "accion": "deshacer",
+          "tip": "Deshacer"
+        }
+      },
+      "antes": {
+        "codigo": "console.warn();",
+        "seleccion": [
+          13,
+          13
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": true
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 13,
+      "ms": 1661,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          124,
+          124
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 14,
+      "ms": 1693,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          13,
+          122
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 15,
+      "ms": 1830,
+      "fase": "reparacion",
+      "tipo": "clic",
+      "x": 86,
+      "y": 668,
+      "detalle": 1,
+      "elemento": {
+        "nombre": "Deshacer",
+        "id": "",
+        "datos": {
+          "accion": "deshacer",
+          "tip": "Deshacer"
+        }
+      },
+      "antes": {
+        "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+        "seleccion": [
+          13,
+          122
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:0)",
+          "posicion": 38
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 16,
+      "ms": 1831,
+      "fase": "reparacion",
+      "tipo": "input",
+      "confiable": false,
+      "despues": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          109,
+          109
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    },
+    {
+      "orden": 17,
+      "ms": 1895,
+      "fase": "reparacion",
+      "tipo": "tras-gesto",
+      "despues": {
+        "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+        "seleccion": [
+          0,
+          107
+        ],
+        "direccion": "none",
+        "scroll": [
+          0,
+          0
+        ],
+        "soloLectura": false,
+        "sintaxis": {
+          "valida": false,
+          "mensaje": "Unexpected token (2:44)",
+          "posicion": 69
+        },
+        "viewport": {
+          "ancho": 393,
+          "alto": 852,
+          "escala": 1
+        },
+        "clasesApp": "app",
+        "programa": [
+          "LAU-01"
+        ]
+      }
+    }
+  ],
+  "inicial": {
+    "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+    "seleccion": [
+      109,
+      109
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      8
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": false,
+      "mensaje": "Unexpected token (2:44)",
+      "posicion": 69
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "usoTeclado": false,
+  "objetivo": {
+    "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+    "seleccion": [
+      0,
+      24
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      8
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": false,
+      "mensaje": "Unexpected token (2:44)",
+      "posicion": 69
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "perturbacion": {
+    "punto": {
+      "offset": 35,
+      "caracter": "=",
+      "x": 146.8125,
+      "y": 738.4453125,
+      "linea": 2,
+      "columna": 11,
+      "candidatos": 106
+    },
+    "boton": {
+      "selector": "#paleta > button:nth-of-type(11)",
+      "nombre": "Aviso · mantén para 3 variantes",
+      "datos": {
+        "i": "14",
+        "tip": "Aviso",
+        "tipCod": "console.warn(/* mensaje */);"
+      }
+    },
+    "inventario": [
+      {
+        "selector": "#paleta > button:nth-of-type(1)",
+        "nombre": "Comentar",
+        "datos": {
+          "i": "0",
+          "tip": "Comentar",
+          "tipCod": "// …  (Ctrl+/)"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(2)",
+        "nombre": "While true · mantén para 4 variantes",
+        "datos": {
+          "i": "2",
+          "tip": "While true",
+          "tipCod": "while (true) { …"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(3)",
+        "nombre": "If / else · mantén para 2 variantes",
+        "datos": {
+          "i": "3",
+          "tip": "If / else",
+          "tipCod": "if (/* condición */) { …"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(4)",
+        "nombre": "Si no hay (??) · mantén para 7 variantes",
+        "datos": {
+          "i": "4",
+          "tip": "Si no hay (??)",
+          "tipCod": "??"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(5)",
+        "nombre": "Esperar",
+        "datos": {
+          "i": "5",
+          "tip": "Esperar",
+          "tipCod": "await esperar(0.5);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(6)",
+        "nombre": "Variable · mantén para 2 variantes",
+        "datos": {
+          "i": "6",
+          "tip": "Variable",
+          "tipCod": "const pos ="
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(7)",
+        "nombre": "Apuntar",
+        "datos": {
+          "i": "8",
+          "tip": "Apuntar",
+          "tipCod": "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(8)",
+        "nombre": "Disparo",
+        "datos": {
+          "i": "9",
+          "tip": "Disparo",
+          "tipCod": "regularShoot(/* lugar */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(9)",
+        "nombre": "Ráfaga",
+        "datos": {
+          "i": "10",
+          "tip": "Ráfaga",
+          "tipCod": "burstFire(/* lugar */);"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(10)",
+        "nombre": "Detener",
+        "datos": {
+          "i": "11",
+          "tip": "Detener",
+          "tipCod": "stopFire();"
+        }
+      },
+      {
+        "selector": "#paleta > button:nth-of-type(11)",
+        "nombre": "Aviso · mantén para 3 variantes",
+        "datos": {
+          "i": "14",
+          "tip": "Aviso",
+          "tipCod": "console.warn(/* mensaje */);"
+        }
+      }
+    ],
+    "rng": 4253409906
+  },
+  "trasCaracter": {
+    "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+    "seleccion": [
+      0,
+      109
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      8
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": false,
+      "mensaje": "Unexpected token (2:44)",
+      "posicion": 69
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "trasPerturbacion": {
+    "codigo": "console.warn(/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */););",
+    "seleccion": [
+      13,
+      122
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      8
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": false,
+      "mensaje": "Unexpected token (2:0)",
+      "posicion": 38
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  },
+  "cambio": true,
+  "final": {
+    "codigo": "/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, \"visual\");\n\nregularShoot(/* lugar */);",
+    "seleccion": [
+      0,
+      107
+    ],
+    "direccion": "none",
+    "scroll": [
+      0,
+      0
+    ],
+    "soloLectura": false,
+    "sintaxis": {
+      "valida": false,
+      "mensaje": "Unexpected token (2:44)",
+      "posicion": 69
+    },
+    "viewport": {
+      "ancho": 393,
+      "alto": 852,
+      "escala": 1
+    },
+    "clasesApp": "app",
+    "programa": [
+      "LAU-01"
+    ]
+  }
+}

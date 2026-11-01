@@ -178,10 +178,26 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   eq(unidad(6), t3.slice(0, t3.indexOf('// nota')));
   const t4 = 'regularShoot(\n  pos\n);\nfoo();';
   eq([0, 1, 2, 3].map(l => E.fronteraValida(est(t4), l)), [true, false, false, true]);
+  // Desenvolver: quita la construcción más cercana y conserva su contenido un nivel menos sangrado.
+  const desenv = (t, sub) => {
+    const a = t.indexOf(sub), r = j(E.desenvolver(est(t), a, a + sub.length));
+    if (r.motivo) return r.motivo;
+    const nuevo = t.slice(0, r.a) + r.texto + t.slice(r.b);
+    return [nuevo, nuevo.slice(r.sel[0], r.sel[1])];
+  };
+  eq(desenv('const x = 1;\nwhile (true) {\n  regularShoot(pos);\n  stopFire();\n}\nfoo();', 'stopFire();'), ['const x = 1;\nregularShoot(pos);\nstopFire();\nfoo();', 'regularShoot(pos);\nstopFire();']);
+  eq(desenv('while (true) {\n  if (/* condición */) {\n    a();\n  } else {\n    \n  }\n}', 'a();'), ['while (true) {\n  a();\n}', 'a();']);
+  eq(desenv('if (/* condición */) {\n  a();\n} else if (/* condición */) {\n  \n} else {\n  \n}\n', 'a()'), ['a();\n', 'a();']);
+  eq(desenv('if (x) {\n  a();\n} else {\n  b();\n}', 'a();'), 'El else tiene código: bórralo o muévelo antes de desenvolver.');
+  eq(desenv('do {\n  a();\n} while (/* condición */);', 'do'), ['a();', 'a();']);
+  eq(desenv('for (let i = 0; i < 3; i++) {\n  a();\n}', 'i < 3'), ['a();', 'a();']);
+  eq(desenv('if (x) a();\nb();', 'a();'), ['a();\nb();', 'a();']);
+  eq(desenv('while (true) {\n}\nb();', 'while'), ['b();', '']);
+  eq(desenv('a();', 'a();'), 'Elige algo dentro de un if, while, for o do.');
   // Código roto o a medio escribir: el análisis no se rompe.
   for (const t of ['', '(', '}', 'if (', 'foo(, "a"', 'const = ;', '{ x: 1, ', '/* sin cierre', '"sin cierre', '} else {', '[1, , 3]', 'a +', 'new Foo(1']) {
     const e = est(t);
-    for (let p = 0; p <= t.length; p++) { E.atomo(e, p); E.ampliar(e, p, p); E.destino(e, p); E.contexto(e, p, p); }
+    for (let p = 0; p <= t.length; p++) { E.atomo(e, p); E.ampliar(e, p, p); E.destino(e, p); E.contexto(e, p, p); E.desenvolver(e, p, p); }
     for (let l = 0; l < e.lineas.length; l++) { E.unidadLinea(e, l); E.fronteraValida(e, l); }
   }
   checks++;

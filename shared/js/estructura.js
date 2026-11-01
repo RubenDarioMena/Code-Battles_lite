@@ -557,5 +557,39 @@
     return t;
   }
 
-  window.ESTRUCTURA = { analizar, atomo, ampliar, unidadLinea, fronteraValida, contexto, destino, enLista, lineaDe, inicioLinea, finLinea, fichaEn };
+  // Desenvolver: quita el if/while/for/do más cercano que contiene [a, b) y deja su contenido con un
+  // nivel menos de sangría. Un else con código no se descarta: sin cambio posible devuelve un motivo.
+  const ENVOLTURAS = new Set(["si", "mientras", "para", "hacer"]);
+  // ¿Solo plantilla? Huecos, comentarios, llaves y else/if vacíos (lo que añaden los atajos If / else).
+  const sinCodigo = (t) => !t.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|\b(?:if|else)\b|[\s{}();]/g, "");
+  function desenvolver(est, a, b) {
+    const src = est.src;
+    let n = null;
+    for (const x of est.nodos) if (ENVOLTURAS.has(x.k) && x.a <= a && x.b >= b && (!n || x.b - x.a < n.b - n.a)) n = x;
+    if (!n) return { motivo: "Elige algo dentro de un if, while, for o do." };
+    // El cuerpo: lo que sigue a la cabecera «( … )» (do: lo que sigue a la palabra).
+    let ini = n.ia + 1;
+    if (n.k !== "hacer" && est.sig[ini] && est.sig[ini].v === "(" && est.par[ini] > ini) ini = est.par[ini] + 1;
+    const cuerpo = n.h.find(c => c.ia === ini && c.k !== "sino");
+    const alt = n.h.find(c => c.k === "sino");
+    if (alt && !sinCodigo(src.slice(alt.a + 4, alt.b))) return { motivo: "El else tiene código: bórralo o muévelo antes de desenvolver." };
+    let dentro = !cuerpo ? "" : cuerpo.k === "bloque" ? src.slice(cuerpo.a + 1, src[cuerpo.b - 1] === "}" ? cuerpo.b - 1 : cuerpo.b) : src.slice(cuerpo.a, cuerpo.b);
+    const lineas = dentro.split("\n");
+    while (lineas.length && !lineas[0].trim()) lineas.shift();
+    while (lineas.length && !lineas[lineas.length - 1].trim()) lineas.pop();
+    // Líneas enteras si la construcción ocupa sus líneas; si no, solo su tramo.
+    const li = src.lastIndexOf("\n", n.a - 1) + 1, lf = src.indexOf("\n", n.b) < 0 ? src.length : src.indexOf("\n", n.b);
+    const solaIni = !src.slice(li, n.a).trim(), solaFin = !src.slice(n.b, lf).trim();
+    const desde = solaIni ? li : n.a, hasta = solaFin ? Math.min(src.length, lf + 1) : n.b;
+    const sangria = src.slice(li, n.a).match(/^[ \t]*/)[0];
+    const utiles = lineas.filter(l => l.trim());
+    const margen = utiles.length ? Math.min(...utiles.map(l => l.match(/^[ \t]*/)[0].length)) : 0;
+    const cuerpoTxt = lineas.map((l, i) => !l.trim() ? "" : (i === 0 && !solaIni ? "" : sangria) + l.slice(margen)).join("\n");
+    const salto = solaFin && hasta > lf && cuerpoTxt ? "\n" : "";
+    const texto = cuerpoTxt + salto;
+    const selA = desde + (cuerpoTxt && solaIni ? sangria.length : 0);
+    return { a: desde, b: hasta, texto, sel: [selA, desde + cuerpoTxt.length] };
+  }
+
+  window.ESTRUCTURA = { analizar, atomo, ampliar, unidadLinea, fronteraValida, contexto, destino, enLista, lineaDe, inicioLinea, finLinea, fichaEn, desenvolver };
 })();

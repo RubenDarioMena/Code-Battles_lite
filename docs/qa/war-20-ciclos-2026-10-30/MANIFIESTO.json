@@ -1,0 +1,940 @@
+{
+  "generado": "2026-10-31T04:34:31.711Z",
+  "semilla": "war-postfix-20-20261030-v1",
+  "config": {
+    "semilla": "war-postfix-20-20261030-v1",
+    "intentos": 20,
+    "maxClics": 40,
+    "maxSegundos": 180,
+    "modalidad": "piloto",
+    "editor": "#codigo",
+    "botones": "#paleta button.atajo[data-i]",
+    "area": "#editor, #paleta, #simbolos, #acciones-edicion, #edicion, #bloques"
+  },
+  "resultados": [
+    {
+      "numero": 1,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 2,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 3,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 4,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 5,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 6,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 7,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 8,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 9,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 10,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 1366,
+        "alto": 900,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 11,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 12,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 13,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 14,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 15,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 16,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 17,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 18,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 19,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    },
+    {
+      "numero": 20,
+      "resultado": "recuperado",
+      "viewport": {
+        "ancho": 393,
+        "alto": 852,
+        "escala": 1
+      },
+      "recursos": [
+        "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/base.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/componentes.css?v=14",
+        "http://127.0.0.1:8771/shared/css/edicion.css?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/css/layout.css?v=13",
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js",
+        "http://127.0.0.1:8771/shared/js/iconos.js?v=3",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/juego.js?v=13",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/layout.js?v=9",
+        "http://127.0.0.1:8771/shared/js/estructura.js?v=2",
+        "http://127.0.0.1:8771/shared/js/edicion.js?v=14",
+        "http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/js/seudo.js?v=2"
+      ]
+    }
+  ],
+  "hashes": [
+    {
+      "archivo": "Prototypes/Rocket Launcher/index.html",
+      "sha256": "e13c83535a6922ab98382f237026fd833fbf7b3b6e35292ef07ea9cbf30f8b92"
+    },
+    {
+      "archivo": "Prototypes/Rocket Launcher/js/juego.js",
+      "sha256": "680d629b828f9fe5bc958b50948d3d9b3bb8274a5c58865c197e5855a5421358"
+    },
+    {
+      "archivo": "shared/js/edicion.js",
+      "sha256": "01077ed8805890b63fe54eebcc820b7693f73ec86db26c9128cca72f213969f7"
+    },
+    {
+      "archivo": "shared/js/estructura.js",
+      "sha256": "4b2db07a495f2c7232200dc3880cc742cb7133e211a11abad123c9a1d9cd6cab"
+    },
+    {
+      "archivo": "shared/css/edicion.css",
+      "sha256": "d841a9da00ae24b1bf26165b11a400a21b041248f80abc1c549e7a6c7cb6c330"
+    }
+  ],
+  "evidencia": [
+    {
+      "archivo": "01-antes.png",
+      "sha256": "b09c8ec977be1c7009f710eb10775e669ceb73d822c516b0ec183efda174efff"
+    },
+    {
+      "archivo": "01-final.png",
+      "sha256": "a0c4f4a29f91b9e3518005f4c2413a541042b9ef4b9dfc8b9681cd5b617fd1c8"
+    },
+    {
+      "archivo": "01-local.png",
+      "sha256": "b4c46c0c592b6775b4daadfd21260bf1f3fafb6d7f69cdc9a341c121874367ce"
+    },
+    {
+      "archivo": "01-perturbacion.png",
+      "sha256": "73606314db8561d861ec1b8ee6f5c6073e263a5937d50b3a10af89d0eba769b6"
+    },
+    {
+      "archivo": "01-traza.json",
+      "sha256": "e2e01e8bcfc153fee52fc5cade61f95f5829a5ccd07114f39eaa141d77c2db57"
+    },
+    {
+      "archivo": "02-antes.png",
+      "sha256": "b55b33d31c376d7d7a423b3760eb6225b08036c004e7d58cdfa167ebd7c1016f"
+    },
+    {
+      "archivo": "02-final.png",
+      "sha256": "01573f2aef165a99682d07c7d9ce5d6586a6ab996f0c75cf5db71bd85545955c"
+    },
+    {
+      "archivo": "02-local.png",
+      "sha256": "8140ad27e49ba4185df4b6799de1db0cce646fbf2336db0ab938681e05fa42a6"
+    },
+    {
+      "archivo": "02-perturbacion.png",
+      "sha256": "3bef78231009659ddde65302dd6676fb3008bc5aec20af8c7a44a09c2cedcab4"
+    },
+    {
+      "archivo": "02-traza.json",
+      "sha256": "989fbaf1d5a33cb3b13b3cfed56b78f9971c1f3e194c3befdf37e9a044efab91"
+    },
+    {
+      "archivo": "03-antes.png",
+      "sha256": "1d0fc93eb226d5b636f5a1cf3535e13d7bc6ae7de8a4e3ec2d23dfbe4e9b0e90"
+    },
+    {
+      "archivo": "03-final.png",
+      "sha256": "dac603c1a847ce5eb155bbeaa778eb9e2d4fa1c70e1b3c0b2097ad73ceaf1548"
+    },
+    {
+      "archivo": "03-local.png",
+      "sha256": "4729d067872c6e39477961eee10301308c2a7d8d6420e30975f64fc0398479b7"
+    },
+    {
+      "archivo": "03-perturbacion.png",
+      "sha256": "f96a4256a383e9f4b2403abe4882ac26c847d80471b47b6ae6114bf6e64154b1"
+    },
+    {
+      "archivo": "03-traza.json",
+      "sha256": "124e744093637cc01762ca7d831f28891683804dc5377f44a4bc15ea9c8ac0a9"
+    },
+    {
+      "archivo": "04-antes.png",
+      "sha256": "f05918ef7d507bd73e329751e7feaf8e32bc7f66c841372e76df9d758769d081"
+    },
+    {
+      "archivo": "04-final.png",
+      "sha256": "0eccfc1bd01820b6b955d4d283577048a82a9a79e6af5b32cd025356f5278d16"
+    },
+    {
+      "archivo": "04-local.png",
+      "sha256": "6f5ba6042f9497a689bdd1b7c61539b7ab24bc9b7b1e327ff670dc8418518c22"
+    },
+    {
+      "archivo": "04-perturbacion.png",
+      "sha256": "9744082b206274864ea3a299abe2f14b17df82b1cafb81e564c880a94e00f100"
+    },
+    {
+      "archivo": "04-traza.json",
+      "sha256": "7e346e537fb0687d83292ba6ec2894237d8d2ccabdc902b46a130ff14d3a4c00"
+    },
+    {
+      "archivo": "05-antes.png",
+      "sha256": "d7e6cb73f5275e89df508c59046c82d3413c85b82216db52ec1110e1336553a7"
+    },
+    {
+      "archivo": "05-final.png",
+      "sha256": "6c9fdb85da44acde2be1a6a046b36444974ec2c006c950f7a6f15070615d3a99"
+    },
+    {
+      "archivo": "05-local.png",
+      "sha256": "f6da7b28acdea8aab1e560f8992a360fa07a555a67eef35559511c67b8b1870a"
+    },
+    {
+      "archivo": "05-perturbacion.png",
+      "sha256": "27d8891e601ab74b5b0afc952885ae7924154676bd1ae76c3017f00495b91c6b"
+    },
+    {
+      "archivo": "05-traza.json",
+      "sha256": "67f30ea8a6f66b2b5646543c88ca4c02e5de38c79d6ba8efe6ef949aaec03f35"
+    },
+    {
+      "archivo": "06-antes.png",
+      "sha256": "531fb9414583caf9b014b4aad4d32529b794539d92e54a253bdf68dec85f9650"
+    },
+    {
+      "archivo": "06-final.png",
+      "sha256": "1d52535def53ed145b9d65440ea9033b50ff97bd138fd43bd5baf849f6c4ad84"
+    },
+    {
+      "archivo": "06-local.png",
+      "sha256": "246eb7203a9dfc9b9cd784671f731ee358a4769fd920e5be08e9a70dee5dcb3b"
+    },
+    {
+      "archivo": "06-perturbacion.png",
+      "sha256": "742665bdca0b233f85a53c6236d89db715ef02d6ac023632c7408d71ba02e562"
+    },
+    {
+      "archivo": "06-traza.json",
+      "sha256": "9c9648487e8b94534f3cb4f22f8c89173a30f782c5ee3ca344a8636b788a490f"
+    },
+    {
+      "archivo": "07-antes.png",
+      "sha256": "841a068518af9e848c468bb34a648dc507413800add0beef7dbd9ea703b717d0"
+    },
+    {
+      "archivo": "07-final.png",
+      "sha256": "a12adbd71c97a3b661357a35713f4ce13a2fff6cca1823e25ed7ae3b1f4a266d"
+    },
+    {
+      "archivo": "07-local.png",
+      "sha256": "0c10dd21d7aad85f16dbf53bef0972592f5bb956161ac4a200676180b118d790"
+    },
+    {
+      "archivo": "07-perturbacion.png",
+      "sha256": "6425d571f3545bfca166a81358fa8cc85cf67d6a56b1771581c276f95c555d2e"
+    },
+    {
+      "archivo": "07-traza.json",
+      "sha256": "93fc6cc4cc9fd166ae5f4ce2e81f8872b07f0f1327121266f0048004668a056f"
+    },
+    {
+      "archivo": "08-antes.png",
+      "sha256": "1d0fc93eb226d5b636f5a1cf3535e13d7bc6ae7de8a4e3ec2d23dfbe4e9b0e90"
+    },
+    {
+      "archivo": "08-final.png",
+      "sha256": "bba64cf5afb0d3da5851a3cc8c78e5bd6e223e258c639b35d5c79873027d4713"
+    },
+    {
+      "archivo": "08-local.png",
+      "sha256": "41ea2276ca994665ab04e29c116350a5297912e99183ddc30e74951e0f37ddfb"
+    },
+    {
+      "archivo": "08-perturbacion.png",
+      "sha256": "a0eb9f3bc7bfb4b29e16155b9e18672c62c3d3cb0700cdc1bdfa134a8896af79"
+    },
+    {
+      "archivo": "08-traza.json",
+      "sha256": "8a5c92901defeada6a931b0285b3331b1412ae952e0dfddea61664ffbc6ab399"
+    },
+    {
+      "archivo": "09-antes.png",
+      "sha256": "f05918ef7d507bd73e329751e7feaf8e32bc7f66c841372e76df9d758769d081"
+    },
+    {
+      "archivo": "09-final.png",
+      "sha256": "c87886349f24fdfd8654851440e1e270d122b423398665e06c6981a45df35e0d"
+    },
+    {
+      "archivo": "09-local.png",
+      "sha256": "371642794602ce06988b677e63c8417dced7df04618f4e2b12e1ca9b9d0eec2c"
+    },
+    {
+      "archivo": "09-perturbacion.png",
+      "sha256": "2d2163ec6ec015bb9e10e8a548ae7b0fa11ffaccd97441a3fae8cd7436601964"
+    },
+    {
+      "archivo": "09-traza.json",
+      "sha256": "80a8ab66eb8a4890f3ec488bf95d8fae436f865a7e35be41675d00e92d2be183"
+    },
+    {
+      "archivo": "10-antes.png",
+      "sha256": "6303509972aaa6391c99da881807b0bf00a7d3c820fb395d2395618df5f6cd45"
+    },
+    {
+      "archivo": "10-final.png",
+      "sha256": "66cf3f5cba6ae5990a200bcabec7b0230c9fab9e0872d6985a5721328199d065"
+    },
+    {
+      "archivo": "10-local.png",
+      "sha256": "f740043451132d610ffcebdb913869b35761dbc12f40a399bb8ae202c083ff4c"
+    },
+    {
+      "archivo": "10-perturbacion.png",
+      "sha256": "f087c9bf483fb5a4c2ef0481bc06ad33ec45992f6110fed9a6e03c5ffb64c8cc"
+    },
+    {
+      "archivo": "10-traza.json",
+      "sha256": "9faa82fdb682a72e51223ddb954d4419afad879591b74c0a05d71410f9591574"
+    },
+    {
+      "archivo": "11-antes.png",
+      "sha256": "bb15c2e1d707bd252129e52e54fc0137729ea4e2f345d5d72402dbf88ddb2532"
+    },
+    {
+      "archivo": "11-final.png",
+      "sha256": "09eaf9629d48be7632dbaf265c85e8b76aceb5ff1ecab7bf6ecc0e78b080e0d1"
+    },
+    {
+      "archivo": "11-local.png",
+      "sha256": "0b549ee8e2094edbe5a498f4c4b4deb7cfe0048e1dcc88a8d752fce856cf6a26"
+    },
+    {
+      "archivo": "11-perturbacion.png",
+      "sha256": "447f3522096f65716329fd32eb35ca07fc17397677a506575b3b8e8ae35c03f1"
+    },
+    {
+      "archivo": "11-traza.json",
+      "sha256": "19144b1d1ae054e1ebe3034972b8fcd4eed5f45d57e1a9299550f616f866b3a8"
+    },
+    {
+      "archivo": "12-antes.png",
+      "sha256": "e6d42e3a6d86f2d4056a5ba84135f6012230513927d48826735a4b2ecb8a9315"
+    },
+    {
+      "archivo": "12-final.png",
+      "sha256": "4d3f10acd9d6baa1f5ed11a3ffc98c787c8325786ede999814bd5791e9d26c5f"
+    },
+    {
+      "archivo": "12-local.png",
+      "sha256": "de47fc1067c0dda90dca3bc4503c6e7621b9aa080125e4e1457302f0169752dd"
+    },
+    {
+      "archivo": "12-perturbacion.png",
+      "sha256": "c9bcde6f5df67d7cbf2f3f4bb004c45a5f36b0a2caf1de9a2b9f7874d8398b0b"
+    },
+    {
+      "archivo": "12-traza.json",
+      "sha256": "1edbf80c1985962ebdaa97312410969ff55270fdbd7569ecb27fb8477ef1c96d"
+    },
+    {
+      "archivo": "13-antes.png",
+      "sha256": "47865c6a8ea0becf2e046a104e4215c0962a29919241fb1b0bf6b675d2ec0983"
+    },
+    {
+      "archivo": "13-final.png",
+      "sha256": "6881071fc90c807ee2e5f463b4bdb3870d4aa4d01e882fd68ade76a833468554"
+    },
+    {
+      "archivo": "13-local.png",
+      "sha256": "64ed27266cafdbee78143622b31e68ea9d09a5162c744b90c240598839e306cc"
+    },
+    {
+      "archivo": "13-perturbacion.png",
+      "sha256": "7b789b0ff5e4076eeab4626f20e783e04ee7052393a2ca5a2a1fada5a18611c1"
+    },
+    {
+      "archivo": "13-traza.json",
+      "sha256": "7d66db608e8a2a1d37c7033ac3598a8b58070097d007230a23a1fcc94ba608a4"
+    },
+    {
+      "archivo": "14-antes.png",
+      "sha256": "8428548bfe41289d74cc7cc9f119a3b542a80914cf5a48c25d1be76c199779a9"
+    },
+    {
+      "archivo": "14-bloqueo-linea.png",
+      "sha256": "bc99a68ce9079555b72b1f0e5fc402a58514c3bcc475d8c29dc71f1bf095d7bb"
+    },
+    {
+      "archivo": "14-final.png",
+      "sha256": "06f76b46cc8ddb9ee38607b322b91e90dda05c0054d5e2c62f9ab62cbf755315"
+    },
+    {
+      "archivo": "14-local.png",
+      "sha256": "90f084da7e09d63c1a383a034ae920afbf8fee2d8e854ed025c5732f9e5338bf"
+    },
+    {
+      "archivo": "14-perturbacion.png",
+      "sha256": "7ecb59e77e39666fb2bb32f7708ead9e4075d6ec1ac8ebf0b91ee2c1e9284249"
+    },
+    {
+      "archivo": "14-traza.json",
+      "sha256": "54747462ec46cf23e1c0787ab8128f6c3fc0b9c8afec735028887a7f6a3867d5"
+    },
+    {
+      "archivo": "15-antes.png",
+      "sha256": "a90154d676fb2a4f419a6d5fcd883f202b663b22fa2ba73d231c3441576560fc"
+    },
+    {
+      "archivo": "15-final.png",
+      "sha256": "6c362d0531bb5c26fbad25adeedecdae5b248a25a1a975bba141fab4f812c2b2"
+    },
+    {
+      "archivo": "15-linea.png",
+      "sha256": "82f100b32f1a2580ff0c732f59e18227727db3f870af9f7ad05e6015eb5dacf6"
+    },
+    {
+      "archivo": "15-local.png",
+      "sha256": "cedf7f429a8d511c53abb25d15c29a5ae3e550d4be95e7d419d66433ee817ab6"
+    },
+    {
+      "archivo": "15-perturbacion.png",
+      "sha256": "cb3860a2623d16d09769d35f78745286220c1a661e2ff24c738afbc73f64540f"
+    },
+    {
+      "archivo": "15-traza.json",
+      "sha256": "fc282c9414137835777f4f9fbcb980e4f017529f297512aa2c03e7b488a832f4"
+    },
+    {
+      "archivo": "16-antes.png",
+      "sha256": "c560861bf05196723fc98392edd53561bff448df9c31dc85a9f7284b633ec0e0"
+    },
+    {
+      "archivo": "16-final.png",
+      "sha256": "1fc7465d837037db4eaf0d55ee11aca3efeaae19cb2c812ee1d4482e898b6f75"
+    },
+    {
+      "archivo": "16-local.png",
+      "sha256": "2149e6b2e126f3e7de7453be48454999ba7c70a52996b3d9475dd95cc99c642e"
+    },
+    {
+      "archivo": "16-perturbacion.png",
+      "sha256": "f14b00c7508eec77efb8a17f22622342f0a98438b7cd9020049b7f51616254e2"
+    },
+    {
+      "archivo": "16-traza.json",
+      "sha256": "08e0b03cc56b079d2c263d11c97fdabc48e04677441f593893128aa2a94ae198"
+    },
+    {
+      "archivo": "17-antes.png",
+      "sha256": "85ddb01fd014334f48eb053636d329e26311879e2d42f2612fb1b8a290f89869"
+    },
+    {
+      "archivo": "17-final.png",
+      "sha256": "92bb70679e5442abb1a22d614b1fb8118943899ff9256073d6e5ca2c5ef8e99d"
+    },
+    {
+      "archivo": "17-local.png",
+      "sha256": "3b5d026d6236927700007e3c47e152204af10c115fee3a70635cd40c202b6b0c"
+    },
+    {
+      "archivo": "17-perturbacion.png",
+      "sha256": "0973d84401abd89dc7a0f070a31c3b6742674a16ddf742c4cff0a765b9510bcb"
+    },
+    {
+      "archivo": "17-traza.json",
+      "sha256": "77af088e77ead7c0768d2498c54fc489d4d195421fdf62f85994307467060b68"
+    },
+    {
+      "archivo": "18-antes.png",
+      "sha256": "47865c6a8ea0becf2e046a104e4215c0962a29919241fb1b0bf6b675d2ec0983"
+    },
+    {
+      "archivo": "18-final.png",
+      "sha256": "6b0a120dc21590e990b5bab37cb4cf24772d186bd8a9ea16438836e5ba4997b0"
+    },
+    {
+      "archivo": "18-local.png",
+      "sha256": "8e3c7d711ac71e4cdfc40f288f2893c866f9b7e69718ec51dfbb6c1596c12f3c"
+    },
+    {
+      "archivo": "18-perturbacion.png",
+      "sha256": "0f0ff66c05be2df7bf7eb1ade9fb50ec2c94f1a5743e2c5c49e8aa296aba4095"
+    },
+    {
+      "archivo": "18-traza.json",
+      "sha256": "1c1871b2eb79d8ec1abfb6cdef5a4affba6a8f5848b558f5b9cef9790fe61f77"
+    },
+    {
+      "archivo": "19-antes.png",
+      "sha256": "8428548bfe41289d74cc7cc9f119a3b542a80914cf5a48c25d1be76c199779a9"
+    },
+    {
+      "archivo": "19-final.png",
+      "sha256": "04993fe35a72bababaef635285be88046047984ba5089df1e488bc942b7679c9"
+    },
+    {
+      "archivo": "19-local.png",
+      "sha256": "15bb44e18e7714fbb1db23369162061b6571a214ec5a35dc38cdf79f0b095ef7"
+    },
+    {
+      "archivo": "19-perturbacion.png",
+      "sha256": "1bbeada17d1b51c5f3c4eb7a7bf42e37391e17fb73ce95cbe35c8bd0b9fef29c"
+    },
+    {
+      "archivo": "19-traza.json",
+      "sha256": "ead35879cb7e19723a27b0ce5203b6041d009b5c4e60e0449f5f23d807841f87"
+    },
+    {
+      "archivo": "20-antes.png",
+      "sha256": "62d03c3b079d7149d5c8131f221cc55b8942d01679c8924efc5cd7af79c5a783"
+    },
+    {
+      "archivo": "20-final.png",
+      "sha256": "8869468322face3ce0a36c80160ce37fee53c07e340b12cf346a8446f0763d2f"
+    },
+    {
+      "archivo": "20-local.png",
+      "sha256": "4d202ceb3adfa820a93f323541bbca91c47d6012d9d779995bd34de6135238ed"
+    },
+    {
+      "archivo": "20-perturbacion.png",
+      "sha256": "7bbf1b87419c31359d14a41ac4f19e1a071a45e0d5c960370be186bbef4834f4"
+    },
+    {
+      "archivo": "20-traza.json",
+      "sha256": "d3971e50d736d7fe642c1c800563fa91320cd809fbbc7132a125ed94a4f6d832"
+    },
+    {
+      "archivo": "caso-14.json",
+      "sha256": "c77209349a68d9e15f0318e27d63056e9bdaf9b7d2090b47af5bf681d074be6c"
+    },
+    {
+      "archivo": "caso-14.png",
+      "sha256": "d1f879d09ec54b57506255e1960de365e95b3b9f6c15d0313f39cbba7fd0a617"
+    },
+    {
+      "archivo": "resumen.json",
+      "sha256": "3e2292a32e87d8ad29503cba45ae8d50fd4a8551f3a50a2b3ddf356ac0965aed"
+    }
+  ]
+}

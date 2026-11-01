@@ -152,6 +152,14 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
 
   await page.goto(`${url}?forma=movil&marco=1`);
   await page.cdp('Emulation.setDeviceMetricsOverride', { width: 393, height: 852, deviceScaleFactor: 1, mobile: true });
+  // El inspector empieza cerrado y abrir un programa no lo despliega; elegir la unidad sí.
+  await page.waitForFunction(() => !!window.__banco && !!window.cmg?.edicion);
+  eq(await evaluar(() => document.querySelector('#inspector').dataset.estado), 'cerrado', 'en el teléfono el inspector empieza cerrado');
+  await evaluar(() => window.__banco.abrirPrograma('LAU-01'));
+  eq(await evaluar(() => document.querySelector('#inspector').dataset.estado), 'cerrado', 'abrir un programa no despliega el inspector');
+  await evaluar(() => window.__banco.seleccionar('LAU-01'));
+  eq(await evaluar(() => document.querySelector('#inspector').dataset.estado), 'abierto', 'elegir la unidad abre su ficha');
+  await page.click('[aria-label="Cerrar el inspector"]');
   await evaluar(() => window.cmg.codigo.focus());
   await page.waitForFunction(() => document.querySelector('#app').classList.contains('teclado'));
   eq(await evaluar(() => {
@@ -193,6 +201,36 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
     const vistas = [...document.querySelectorAll('.sugerencias .sug')].filter(e => { const r = e.getBoundingClientRect(); return r.top >= s.top && r.bottom <= Math.min(s.bottom, innerHeight); });
     return s.top >= 0 && s.bottom <= innerHeight && vistas.length >= 2;
   }), true, 'en el teléfono la lista de sugerencias cabe con dos opciones a la vista');
+  await evaluar(() => document.querySelector('.sugerencias .sug-x')?.click());
+  // WAR-20-UI-01: sin sitio junto a lo elegido, la hoja inferior deja libres los números de línea
+  // y un toque en el número elige la línea con la lista abierta.
+  await page.cdp('Emulation.setDeviceMetricsOverride', { width: 393, height: 600, deviceScaleFactor: 1, mobile: true });
+  await evaluar(() => { const c = window.cmg.codigo; c.value = '/* elegir un objetivo */\nconst pos = autoTarget(/* tipo de enemigo */, "visual");\n\nregularShoot(/* lugar */);\nconsole.warn(/* mensaje */);'; c.dispatchEvent(new Event('input')); });
+  await page.waitForTimeout(150);
+  const mensaje = await page.evaluate(() => { const el = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === '/* mensaje */'); el.scrollIntoView({ block: 'end' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await page.cdp('Input.synthesizeTapGesture', { ...mensaje, tapCount: 1, duration: 40, gestureSourceType: 'touch' });
+  await page.waitForSelector('.sugerencias:not([hidden])');
+  const numero5 = await evaluar(() => {
+    const s = document.querySelector('.sugerencias'), d = [...document.querySelectorAll('#gutter div')].find(x => x.textContent === '5'), r = d.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    return { hoja: s.classList.contains('hoja'), libre: !!document.elementFromPoint(x, y)?.closest('#gutter'), x, y };
+  });
+  eq([numero5.hoja, numero5.libre], [true, true], 'en el teléfono la hoja de sugerencias no tapa los números de línea');
+  await page.cdp('Input.synthesizeTapGesture', { x: numero5.x, y: numero5.y, tapCount: 1, duration: 40, gestureSourceType: 'touch' });
+  await page.waitForTimeout(150);
+  eq(await evaluar(() => { const c = window.cmg.codigo; return c.value.slice(c.selectionStart, c.selectionEnd); }), 'console.warn(/* mensaje */);', 'tocar el número con la hoja abierta elige la línea');
+  // Desenvolver: quita el while que rodea lo elegido; Deshacer lo devuelve.
+  const envuelto = 'const pos = autoTarget("drone", "visual");\nwhile (true) {\n  regularShoot(pos);\n}';
+  await evaluar(() => { const c = window.cmg.codigo; c.value = 'const pos = autoTarget("drone", "visual");\nwhile (true) {\n  regularShoot(pos);\n}'; c.dispatchEvent(new Event('input')); });
+  const disparo = await page.evaluate(() => { const el = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === 'regularShoot'); el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await page.cdp('Input.synthesizeTapGesture', { ...disparo, tapCount: 1, duration: 40, gestureSourceType: 'touch' });
+  await page.waitForTimeout(450);
+  await page.click('#edicion [data-accion="desenvolver"]');
+  eq(await evaluar(() => { const c = window.cmg.codigo; return [c.value, c.value.slice(c.selectionStart, c.selectionEnd)]; }),
+    ['const pos = autoTarget("drone", "visual");\nregularShoot(pos);', 'regularShoot(pos);'], 'Desenvolver quita el while y deja elegido su contenido');
+  await page.click('#edicion [data-accion="deshacer"]');
+  eq(await evaluar(() => window.cmg.codigo.value), envuelto, 'Deshacer devuelve la envoltura');
+  await page.cdp('Emulation.setDeviceMetricsOverride', { width: 393, height: 852, deviceScaleFactor: 1, mobile: true });
   await evaluar(() => document.querySelector('.sugerencias .sug-x')?.click());
   // Mantener pulsado un atajo abre sus variantes.
   const atajoIf = await page.evaluate(() => { const r = document.querySelector('.atajo.con-variantes[aria-label^="If / else"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });

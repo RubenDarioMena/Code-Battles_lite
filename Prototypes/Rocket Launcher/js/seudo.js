@@ -619,6 +619,7 @@
     if (!activo()) return false;
     if (["deshacer", "rehacer", "teclado"].includes(id)) return false;
     if (quieto()) return "Detén el programa para editarlo.";
+    if (id === "desenvolver") return "Desenvolver está en JavaScript: cambia a JS para usarlo.";
     if (id === "pegar") {
       if (!portaBloque) return "No hay ningún bloque copiado.";
       agregar(conIds([portaBloque])[0]);

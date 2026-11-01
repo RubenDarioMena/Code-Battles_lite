@@ -247,6 +247,13 @@
     const t = E.atomo(estructura(), p - 1);
     if (t) quitar(t[0], t[1]);
   }
+  // Quita el if/while/for/do que rodea lo elegido y deja su contenido elegido, un nivel menos sangrado.
+  function desenvolver() {
+    if (!editable()) return;
+    const [a, b] = sel(), r = E.desenvolver(estructura(), a, b);
+    if (r.motivo) return toast(r.motivo);
+    reemplazar(r.a, r.b, r.texto, r.sel[0], r.sel[1]);
+  }
   function duplicar() {
     if (!editable()) return;
     const [a, b] = sel(), v = $codigo.value, c = a !== b ? E.contexto(estructura(), a, b) : null;
@@ -712,7 +719,7 @@
     $sug.setAttribute("aria-label", `Valores para ${datos.titulo.toLowerCase()}`);
     sugerido = { a, b, c, items, activo: -1 };
     $sug.hidden = false;
-    colocarSugerencias();
+    colocarSugerencias(true);
   }
   function cerrarSugerencias() { versionSug++; if (!$sug.hidden) { $sug.hidden = true; $sug.innerHTML = ""; } sugerido = null; }
   const METRICAS = ["fontFamily", "fontSize", "fontWeight", "fontStyle", "fontStretch", "fontVariantLigatures", "fontFeatureSettings", "lineHeight",
@@ -734,7 +741,7 @@
     espejo.remove();
     return res;
   }
-  function colocarSugerencias() {
+  function colocarSugerencias(desplazar = false) {
     if (!sugerido) return;
     const r = rectDe(sugerido.a, sugerido.b), cont = $editor.getBoundingClientRect();
     if (!r || r.bottom < cont.top || r.top > cont.bottom) { $sug.style.visibility = "hidden"; return; }
@@ -744,7 +751,7 @@
     const techo = Math.max(vv ? vv.offsetTop : 0, ...barras) + 4;
     const suelo = (vv ? vv.offsetTop + vv.height : innerHeight) - (app.classList.contains("teclado") ? 46 : 0) - 4;
     $sug.classList.remove("hoja");
-    $sug.style.maxHeight = "";
+    $sug.style.maxHeight = ""; $sug.style.width = "";
     let m = $sug.getBoundingClientRect(), x, y, max;
     const abajo = suelo - r.bottom - 6, arriba = r.top - 6 - techo, lado = cont.right - r.right - 10;
     const minimo = Math.min(m.height, 110);   // la cabecera y dos opciones
@@ -762,12 +769,21 @@
       x = Math.max(6, Math.min(innerWidth - m.width - 6, r.left - 8));
       y = enAbajo ? r.bottom + 6 + salto : Math.max(techo, r.top - 6 - salto - Math.min(m.height, max));
     } else {
-      // Sin sitio junto a la selección (teléfono): hoja a lo ancho apoyada en el borde inferior.
+      // Sin sitio junto a la selección (teléfono): hoja apoyada en el borde inferior. Deja libre la
+      // columna de asas de línea (números o borde derecho) para poder elegir una línea con la lista abierta.
       $sug.classList.add("hoja");
+      const izq = activo && asa === "numero" ? $gutter.getBoundingClientRect().right + 2 : 6;
+      const der = activo && asa === "borde" ? $asas.getBoundingClientRect().left - 2 : innerWidth - 6;
+      $sug.style.width = `${Math.round(der - izq)}px`;
       m = $sug.getBoundingClientRect();
       max = Math.min(320, Math.max(minimo, suelo - techo));
-      x = 6;
+      x = izq;
       y = suelo - Math.min(m.height, max);
+      // Si la vista de bloques puede desplazarse, sube lo elegido (como mucho hasta el borde superior
+      // de la vista) y vuelve a colocar la lista: suele caber ya debajo, sin tapar la línea.
+      const tapa = r.bottom + 6 - y, margen = $vista.scrollHeight - $vista.clientHeight - $vista.scrollTop;
+      const paso = Math.min(tapa, margen, r.top - $vista.getBoundingClientRect().top - 8);
+      if (activo && desplazar && paso > 0) { $vista.scrollTop += paso; return colocarSugerencias(); }
     }
     $sug.style.maxHeight = `${max}px`;
     $sug.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
@@ -828,8 +844,13 @@
     if (ev.key === "Escape") { sinSugerir = claveSel(); cerrarSugerencias(); return hecho(); }
     return false;
   }
-  $sug.addEventListener("pointerdown", (ev) => { if (!ev.target.closest("input, label")) ev.preventDefault(); });
+  // Un clic solo cuenta si la pulsación empezó en la lista: en el teléfono la hoja puede abrirse bajo
+  // el dedo que eligió el hueco, y el clic de ese mismo toque elegiría la opción de debajo.
+  let pulsadoEnSug = false;
+  $sug.addEventListener("pointerdown", (ev) => { pulsadoEnSug = true; if (!ev.target.closest("input, label")) ev.preventDefault(); });
   $sug.addEventListener("click", (ev) => {
+    if (ev.detail && !pulsadoEnSug) return;   // detail 0: activado con el teclado
+    pulsadoEnSug = false;
     if (ev.target.closest("[data-cerrar]")) { sinSugerir = claveSel(); return cerrarSugerencias(); }
     const p = ev.target.closest("[data-paso]");
     if (p) return pasoNumero(+p.dataset.paso);
@@ -838,6 +859,7 @@
     if (s && sugerido) ponerValor(sugerido.items[+s.dataset.i].ins);
   });
   document.addEventListener("pointerdown", (ev) => {
+    pulsadoEnSug = false;
     if (!$sug.hidden && !$sug.contains(ev.target) && !$vista.contains(ev.target) && ev.target !== $codigo) cerrarSugerencias();
   }, true);
   for (const tipo of ["select", "keyup", "pointerup", "focus"]) $codigo.addEventListener(tipo, () => { if (!activo) actualizarSugerencias(); });
@@ -860,6 +882,7 @@
     duplicar: '<rect x="3.5" y="3.5" width="11.5" height="11.5" rx="2"/><path d="M19 8.5h.5a1.5 1.5 0 0 1 1.5 1.5v9.5a1.5 1.5 0 0 1-1.5 1.5H10a1.5 1.5 0 0 1-1.5-1.5V19"/><path d="M9.25 6.5v5M6.75 9h5"/>',
     subir: '<path d="M12 19.5V5M6 11l6-6 6 6"/>',
     bajar: '<path d="M12 4.5V19M6 13l6 6 6-6"/>',
+    desenvolver: '<path d="M8 4H7a2 2 0 0 0-2 2v3.5L3 12l2 2.5V18a2 2 0 0 0 2 2h1M16 4h1a2 2 0 0 1 2 2v3.5l2 2.5-2 2.5V18a2 2 0 0 1-2 2h-1" stroke-dasharray="2.6 2.4"/><path d="M9.5 12h5"/>',
     linea: '<path d="M19.5 5v6.5a3 3 0 0 1-3 3H6"/><path d="M10 10.5l-4 4 4 4"/>',
   };
   const svg = (c) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${c}</svg>`;
@@ -869,9 +892,10 @@
     cortar: { t: "Cortar", fn: () => copiar(true) }, copiar: { t: "Copiar", fn: () => copiar(false) }, pegar: { t: "Pegar", fn: pegar }, borrar: { t: "Borrar", fn: borrar },
     ampliar: { t: "Ampliar selección", fn: ampliar }, reducir: { t: "Reducir selección", fn: reducir },
     duplicar: { t: "Duplicar", fn: duplicar }, subir: { t: "Subir línea", fn: () => moverLineas(-1) }, bajar: { t: "Bajar línea", fn: () => moverLineas(1) }, linea: { t: "Línea nueva", fn: lineaNueva },
+    desenvolver: { t: "Desenvolver: quita el if/while que lo rodea", fn: desenvolver },
   };
   // Grupos de la barra: el orden de grupos y de botones se cambia en Ajustes y se guarda por dispositivo.
-  const GRUPOS_BASE = [["teclado"], ["deshacer", "rehacer"], ["cortar", "copiar", "pegar", "borrar"], ["ampliar", "reducir"], ["duplicar", "subir", "bajar", "linea"]];
+  const GRUPOS_BASE = [["teclado"], ["deshacer", "rehacer"], ["cortar", "copiar", "pegar", "borrar"], ["ampliar", "reducir"], ["duplicar", "subir", "bajar", "linea", "desenvolver"]];
   function validarGrupos(g) {
     const vistos = new Set();
     const out = (Array.isArray(g) ? g : []).map(x => (Array.isArray(x) ? x : []).filter(id => Object.hasOwn(ACCIONES, id) && !vistos.has(id) && vistos.add(id))).filter(x => x.length);
@@ -1097,7 +1121,7 @@
 
   // ---------- Arranque ----------
   $editor.dataset.asa = asa;
-  window.cmg.edicion = { get activo() { return activo; }, activar, elegir, ampliar, reducir, deshacer, rehacer, copiar, pegar, borrar, duplicar, moverLineas, lineaNueva, get portapapeles() { return portapapeles; } };
+  window.cmg.edicion = { get activo() { return activo; }, activar, elegir, ampliar, reducir, deshacer, rehacer, copiar, pegar, borrar, duplicar, moverLineas, lineaNueva, desenvolver, get portapapeles() { return portapapeles; } };
   construirBarra();
   if (leer("sin-teclado", false) === true) activar(true);
 })();

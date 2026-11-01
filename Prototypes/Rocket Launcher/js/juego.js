@@ -1805,6 +1805,8 @@ onmessage = async (ev) => {
   }
   $("maquinas").addEventListener("click", (ev) => { const b = ev.target.closest(".maq-chip"); if (b) seleccionar(b.dataset.id); });
   // El inspector tiene tres estados: cerrado (nada elegido), tira (nombre y signos vitales) y abierto (ficha completa).
+  // Empieza cerrado y solo se abre al elegir una unidad en el campo, en sus chips o en un enlace; abrir un
+  // programa o corregir la selección cambia de unidad sin abrirlo (opción inspeccionar: "conservar").
   let insEstado = "cerrado";
   const inspectorCompleto = () => $("app").dataset.forma === "movil" && $("app").dataset.inspectorMovil !== "tira";
   function seleccionar(id, opciones = {}) {
@@ -1814,6 +1816,7 @@ onmessage = async (ev) => {
     if (V3) V3.anillosDe(seleccion);
     document.querySelectorAll(".maq-chip").forEach(b => b.setAttribute("aria-pressed", seleccionadas.has(b.dataset.id)));
     if (!seleccion || opciones.inspeccionar === false) insEstado = "cerrado";
+    else if (opciones.inspeccionar === "conservar") { /* mismo estado, con la unidad nueva */ }
     else if (inspectorCompleto()) insEstado = "abierto";
     else if (insEstado === "cerrado") insEstado = "tira";
     const programables = ids.filter(id => Object.hasOwn(programas, id));
@@ -2005,7 +2008,7 @@ onmessage = async (ev) => {
     const $i = $("inspector");
     muestrear();
     const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion));
-    if ([...seleccionadas].some(id => !unidadPorId(id))) { seleccionar([...seleccionadas].filter(id => unidadPorId(id))); return; }
+    if ([...seleccionadas].some(id => !unidadPorId(id))) { seleccionar([...seleccionadas].filter(id => unidadPorId(id)), { inspeccionar: "conservar" }); return; }
     if (!e) return;
     for (const el of $i.querySelectorAll("[data-vivo]")) {
       const v = valorVivo(el.dataset.vivo); if (v == null) continue;
@@ -2082,7 +2085,7 @@ onmessage = async (ev) => {
   $("progs").addEventListener("click", (ev) => { const b = ev.target.closest(".prog-tab"); if (b) abrirPrograma(b.dataset.id); });
   function abrirPrograma(id) {
     if (!Object.hasOwn(programas, id)) return;
-    seleccionar(id);
+    seleccionar(id, { inspeccionar: "conservar" });
     configurarEdicion([id], true);
   }
   function configurarEdicion(ids, forzar = false) {
