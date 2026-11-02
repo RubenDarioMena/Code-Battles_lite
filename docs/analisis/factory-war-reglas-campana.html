@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#11151d">
+<title>Factory + War · Reglas para una misma campaña</title>
+<style>
+  :root{color-scheme:dark;--bg:#11151d;--panel:#1a202b;--panel2:#232d3b;--ink:#f0f2f5;--muted:#b4bfce;--line:#3a4657;--factory:#efb679;--factory-soft:#352b23;--war:#8bc8ff;--war-soft:#203044;--accent:#b8d49a;--accent-soft:#283424;--code:#131923;--kw:#d4b4ff;--string:#b8d49a}
+  *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  h1,h2,h3,p,figure,pre{margin:0}h1{font-size:clamp(2.8rem,6.5vw,5.5rem);line-height:1.05;letter-spacing:-.055em;max-width:1000px;font-weight:700}h2{font-size:clamp(1.8rem,3.7vw,2.8rem);line-height:1.16;letter-spacing:-.035em;margin-bottom:22px;font-weight:650}h3{font-size:1.2rem;line-height:1.35;letter-spacing:-.015em;margin-bottom:12px}p+p{margin-top:14px}strong{font-weight:650}
+  a{color:var(--war);text-underline-offset:4px}a:hover{text-decoration-thickness:2px}button,select{font:inherit}button,summary,select{cursor:pointer}a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+  code{font:.86em/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}p code,td code,li code{padding:2px 5px;background:var(--panel2);border-radius:5px}pre{background:var(--code);border-radius:12px;padding:22px;overflow-x:auto;font-size:14px;line-height:1.8}pre code{font-size:inherit;overflow-wrap:normal}.kw{color:var(--kw)}.str{color:var(--string)}.fn{color:var(--war)}.num{color:var(--factory)}
+  .wrap{width:min(1160px,calc(100% - 72px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:28px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}.brand{font-weight:650;letter-spacing:.04em;color:var(--ink)}.brand span{background:var(--accent);color:var(--bg);padding:5px 8px;border-radius:5px;margin-right:10px}
+  .hero{padding:68px 0 42px}.eyebrow{display:block;font-size:12px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}.intro{font-size:clamp(1.1rem,2vw,1.35rem);line-height:1.6;max-width:830px;color:var(--muted);margin-top:28px}.intro strong{color:var(--ink)}.factory{color:var(--factory)}.war{color:var(--war)}.accent{color:var(--accent)}
+  .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.cols>*{min-width:0}.hero-art{margin-top:40px}.panel{background:var(--panel);border-radius:20px;padding:28px;min-width:0}.panel>pre{margin-top:18px}.art{padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}.art-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px}.art-head b{font-size:16px}.art svg{display:block;width:100%;height:auto;margin:14px 0}.art figcaption{font-size:15px;color:var(--muted)}svg text{font-family:system-ui,sans-serif;fill:var(--ink)}
+  .nav{display:flex;flex-wrap:wrap;gap:10px 24px;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px}.nav a{display:inline-flex;align-items:center;min-height:34px;color:var(--muted);text-decoration:none}.nav a:hover{color:var(--ink)}section{padding:62px 0;border-bottom:1px solid var(--line)}.section-no{display:block;margin-bottom:12px;font-size:13px;letter-spacing:.1em;color:var(--accent)}.lead{font-size:1.1rem;max-width:850px;color:var(--muted);margin-bottom:28px}.lead strong{color:var(--ink)}.small{font-size:14px;color:var(--muted)}.tag{display:inline-block;margin-bottom:14px;padding:3px 9px;border:1px solid var(--line);border-radius:30px;font-size:12px;font-weight:600;letter-spacing:.03em}
+  .callout{padding:20px 24px;margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;font-size:16px}.reading{max-width:850px}.reading h3{margin-top:30px}.table-wrap{overflow-x:auto;margin:26px 0 0}table{width:100%;border-collapse:collapse;text-align:left;font-size:15px}th,td{padding:16px 16px 16px 0;vertical-align:top;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}td:first-child{min-width:160px}th:last-child,td:last-child{padding-right:0}.comparison-table{min-width:650px}.comparison-table td:first-child{width:20%}.table-note{margin-top:10px;font-size:13px;color:var(--muted)}
+  .authority{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:28px 0}.authority article{padding:24px;border:1px solid var(--line);border-radius:16px}.authority p{font-size:16px;color:var(--muted)}.vocab{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:28px 0}.vocab article{background:var(--panel);border-radius:14px;padding:22px}.vocab h3{font-size:18px}.vocab p{font-size:15px;color:var(--muted)}.vocab .example{display:block;margin-top:14px;font-size:13px;color:var(--ink)}
+  .rule{display:grid;grid-template-columns:50px minmax(0,1fr);gap:18px;padding:28px 0;border-bottom:1px solid var(--line)}.rule:last-child{border-bottom:0}.rule-num{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;color:var(--accent);font-size:14px}.rule p{color:var(--muted);font-size:16px;max-width:960px}.rule strong{color:var(--ink)}.consequence{margin-top:14px;padding:12px 16px;background:var(--panel);border-radius:8px;font-size:14px;color:var(--ink)}
+  .states{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;align-items:center;margin-top:20px;font-size:14px}.state-row{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.state{padding:7px 11px;background:var(--panel2);border-radius:7px}.state-row .join{color:var(--muted)}
+  .lab{border:1px solid var(--line);border-radius:20px;background:var(--panel);overflow:hidden}.lab-controls{padding:24px 28px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line)}.lab-controls label{font-size:14px;color:var(--muted)}select{display:block;max-width:100%;min-height:46px;background:var(--code);color:var(--ink);padding:9px 38px 9px 12px;border:1px solid var(--line);border-radius:9px;margin-top:6px;font-size:16px}.lab-count{font-size:13px;color:var(--muted)}.lab-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}.lab-side{padding:26px 28px;min-width:0}.lab-side:first-child{border-right:1px solid var(--line)}.lab-side svg{width:100%;height:auto;display:block;margin:12px 0 18px}.lab-side h3{font-size:19px}.lab-side p{font-size:16px;color:var(--muted)}.lab-outcome{display:block;padding-top:16px;margin-top:18px;border-top:1px solid var(--line);font-size:14px}.lab-bottom{border-top:1px solid var(--line);padding:22px 28px;font-size:15px}.lab-bottom b{display:block;margin-bottom:6px;color:var(--accent)}
+  .pipeline{display:grid;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr) 30px minmax(0,1fr) 30px minmax(0,1fr);margin:28px 0;align-items:stretch}.station{padding:24px 18px;border-radius:15px;background:var(--panel);min-width:0}.station .n{display:block;font:13px ui-monospace,monospace;color:var(--muted);margin-bottom:18px}.station h3{font-size:18px}.station p{font-size:14px;color:var(--muted)}.arrow{align-self:center;text-align:center;color:var(--muted);font-size:23px}.mission{margin-top:30px}.mission ol{margin:16px 0 0;padding-left:22px}.mission li{margin:10px 0;font-size:16px}.decisions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:26px}.decision{border-top:3px solid var(--accent);padding-top:18px}.decision p{font-size:15px;color:var(--muted)}.decision h3{font-size:18px}
+  details{border-bottom:1px solid var(--line);padding:18px 0}summary{font-weight:600}details p{font-size:15px;color:var(--muted);margin-top:14px}.appendix{font-size:15px}.appendix .cols{margin:22px 0}.appendix p{color:var(--muted)}.appendix h3{font-size:18px}.source-list{padding-left:22px;margin:22px 0 0;font-size:14px;color:var(--muted)}.source-list li{margin:12px 0}.closing{padding:32px 0 55px;font-size:13px;color:var(--muted)}[hidden]{display:none!important}
+  @media(prefers-color-scheme:light){:root{color-scheme:light;--bg:#f4f3ef;--panel:#fff;--panel2:#e8edf0;--ink:#172334;--muted:#4d5d6c;--line:#c3ccd3;--factory:#8c4b12;--factory-soft:#fae9d6;--war:#1f5f96;--war-soft:#dfedf9;--accent:#3e6224;--accent-soft:#e5eedc;--code:#eaf0f3;--kw:#713fa6;--string:#326225}}
+  @media(max-width:850px){.wrap{width:calc(100% - 40px)}.vocab{grid-template-columns:repeat(2,minmax(0,1fr))}.decisions{grid-template-columns:1fr}.pipeline{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);row-gap:18px}.pipeline .bridge{display:none}.cols.programs{grid-template-columns:1fr}.hero{padding-top:45px}}
+  @media(max-width:600px){body{font-size:16px}.wrap{width:calc(100% - 32px)}h1{font-size:2.65rem}.top{font-size:11px;gap:12px;align-items:flex-start}.brand span{margin-right:6px}.hero{padding-top:34px}.cols,.authority,.vocab,.lab-board{grid-template-columns:1fr}.hero-art{margin-top:28px;gap:14px}.art,.panel{padding:22px}.nav{gap:8px 16px}.nav a{min-height:40px}section{padding:44px 0}.rule{grid-template-columns:36px minmax(0,1fr);gap:14px}.rule-num{width:34px;height:34px;font-size:12px}.states{grid-template-columns:1fr;gap:10px}.lab-controls,.lab-side,.lab-bottom{padding:22px}.lab-side:first-child{border-right:0;border-bottom:1px solid var(--line)}.lab-controls label{width:100%}select{width:100%;font-size:15px}.pipeline{grid-template-columns:1fr;gap:10px}.pipeline .bridge{display:block}.arrow{transform:rotate(90deg);line-height:1.2}.station{padding:20px}.station .n{margin-bottom:10px}pre{font-size:12px;padding:18px 14px}.callout{padding:18px}.lab-side h3{font-size:18px}.lab-count{display:none}.table-wrap{margin-top:20px}}
+  @media(max-width:600px){.lab-side svg text{font-size:22px}.art svg text{font-size:20px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  @media print{body{font-size:11pt;background:#fff;color:#172334}.wrap{width:100%}.nav,.lab{display:none}section{padding:25px 0}.hero{padding:25px 0}h1{font-size:36pt}.panel,.art,.rule,.station{break-inside:avoid}a{color:inherit}.cols,.authority{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand"><span>CBL</span> CODE BATTLE LITE</div><span>Notas de diseño · 1 de noviembre de 2026</span></header>
+<main>
+  <div class="hero">
+    <span class="eyebrow">Factory + War / Diseño de las reglas jugables</span>
+    <h1>Una campaña.<br>Un mismo <span class="accent">trato con las máquinas.</span></h1>
+    <p class="intro">La discrepancia central está en <strong>cuánto resuelve cada máquina por su cuenta y qué promete una orden</strong>. Factory automatiza un encargo completo. War mantiene un modo de disparo, pero deja al programa la actualización del lugar al que apunta. Para unirlas conviene definir ese reparto de responsabilidades antes de uniformar el código.</p>
+    <div class="cols hero-art">
+      <figure class="art"><div class="art-head"><b class="factory">Factory hoy</b><span>Encargo con final</span></div>
+        <svg viewBox="0 0 430 180" role="img" aria-labelledby="factory-title"><title id="factory-title">El robot resuelve el recorrido y transporta una pieza de la bodega a la fundidora</title>
+          <path d="M35 126 H400" stroke="var(--line)" stroke-width="2"/><path d="M98 122 H325" stroke="var(--factory)" stroke-width="2" stroke-dasharray="5 7"/>
+          <rect x="24" y="56" width="84" height="70" rx="6" fill="var(--panel2)"/><path d="M22 57 L66 29 L111 57" fill="none" stroke="var(--factory)" stroke-width="3"/><rect x="48" y="89" width="36" height="37" rx="3" fill="var(--code)"/><rect x="56" y="97" width="20" height="20" rx="2" fill="var(--factory)"/>
+          <g transform="translate(186 61)"><rect x="0" y="15" width="57" height="43" rx="10" fill="var(--factory)"/><rect x="10" y="23" width="37" height="13" rx="5" fill="var(--bg)"/><circle cx="20" cy="29" r="3" fill="var(--factory)"/><circle cx="37" cy="29" r="3" fill="var(--factory)"/><path d="M28 15 V2" stroke="var(--factory)" stroke-width="3"/><circle cx="28" cy="0" r="4" fill="var(--factory)"/><circle cx="12" cy="63" r="8" fill="var(--muted)"/><circle cx="46" cy="63" r="8" fill="var(--muted)"/><rect x="49" y="38" width="22" height="22" rx="2" fill="var(--factory-soft)" stroke="var(--factory)" stroke-width="2"/></g>
+          <rect x="326" y="62" width="75" height="64" rx="6" fill="var(--panel2)"/><path d="M339 62 V32 H354 V62 M367 62 V20 H382 V62" fill="var(--panel2)" stroke="var(--factory)" stroke-width="2"/><rect x="347" y="88" width="34" height="25" rx="4" fill="var(--factory-soft)"/>
+          <text x="66" y="158" text-anchor="middle" font-size="14">Bodega</text><text x="217" y="158" text-anchor="middle" font-size="14">Viajar + cargar</text><text x="364" y="158" text-anchor="middle" font-size="14">Fundidora</text>
+        </svg><figcaption>El jugador elige qué llevar y adónde. El robot resuelve el viaje. La fábrica procesa por su cuenta.</figcaption>
+      </figure>
+      <figure class="art"><div class="art-head"><b class="war">War hoy</b><span>Modo que permanece</span></div>
+        <svg viewBox="0 0 430 180" role="img" aria-labelledby="war-title"><title id="war-title">El lanzador dispara hacia una posición guardada mientras el enemigo sigue moviéndose</title>
+          <path d="M25 126 H404" stroke="var(--line)" stroke-width="2"/><path d="M101 91 Q208 2 339 84" fill="none" stroke="var(--war)" stroke-width="2" stroke-dasharray="5 7"/>
+          <path d="M68 122 L80 95 H121 L133 122" fill="var(--panel2)" stroke="var(--war)" stroke-width="2"/><rect x="80" y="69" width="62" height="22" rx="5" transform="rotate(-28 80 80)" fill="var(--war)"/><circle cx="101" cy="97" r="13" fill="var(--war-soft)" stroke="var(--war)" stroke-width="2"/>
+          <rect x="259" y="93" width="45" height="24" rx="7" fill="var(--war)"/><circle cx="268" cy="121" r="5" fill="var(--muted)"/><circle cx="294" cy="121" r="5" fill="var(--muted)"/><path d="M303 77 H337 M308 72 L303 77 L308 82" fill="none" stroke="var(--muted)" stroke-width="2"/>
+          <circle cx="345" cy="84" r="13" fill="none" stroke="var(--war)" stroke-width="2"/><path d="M345 64 V76 M345 92 V104 M325 84 H337 M353 84 H365" stroke="var(--war)" stroke-width="2"/>
+          <text x="100" y="158" text-anchor="middle" font-size="14">Modo activo</text><text x="300" y="158" text-anchor="middle" font-size="14">Posición que envejece</text>
+        </svg><figcaption>El jugador renueva dónde apuntar. El arma resuelve los disparos, la cadencia y la recarga automática.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Contenido"><a href="#discrepancias">Las discrepancias</a><a href="#contrato">Reglas comunes</a><a href="#situaciones">Casos concretos</a><a href="#campana">Primera campaña</a><a href="#debajo">Un poco de JS</a><a href="#evidencia">Evidencia</a></nav>
+
+  <section id="discrepancias">
+    <span class="section-no">01 / EL PROBLEMA DE DISEÑO</span><h2>La misma idea de “dar una orden”<br>hoy crea expectativas distintas.</h2>
+    <p class="lead">La pregunta útil es <strong>qué espera el jugador que ocurra después de esa línea</strong>. Las demos no discrepan en todo: ambas ya delegan ejecución mecánica en las máquinas. Lo desigual es dónde termina esa autonomía.</p>
+    <div class="table-wrap"><table class="comparison-table"><thead><tr><th>Situación jugable</th><th>Factory hoy</th><th>War hoy</th></tr></thead><tbody>
+      <tr><td><strong>Dar una orden</strong></td><td>«Recoge» incluye ir a la bodega e intentar cargar una pieza. Tiene un final.</td><td>«Disparo regular» configura un modo continuo. No significa «lanza uno y termina».</td></tr>
+      <tr><td><strong>Resolver los detalles</strong></td><td>El robot calcula el trayecto. La máquina procesa automáticamente lo recibido.</td><td>El sensor calcula una intercepción. El lanzador mantiene la cadencia y los reparadores actúan automáticamente.</td></tr>
+      <tr><td><strong>Mantener la intención</strong></td><td>El destino es un edificio fijo; el encargo sigue siendo útil durante el viaje.</td><td>La orden conserva coordenadas, aunque el enemigo se mueva. El programa debe volver a consultar y apuntar.</td></tr>
+      <tr><td><strong>Falta de recursos</strong></td><td>Una bodega vacía produce un viaje vacío. No espera a que aparezca material.</td><td>El modo puede permanecer activo sin misiles; la recarga automática permite volver a disparar.</td></tr>
+      <tr><td><strong>Destino lleno</strong></td><td>La entrega en una máquina llena derrama la pieza y libera las manos del robot.</td><td>No hay una entrega logística equivalente: la reposición de misiles ocurre automáticamente en cada lanzador.</td></tr>
+      <tr><td><strong>Qué cuenta como logro</strong></td><td>Una meta de cantidad cuenta material recibido; no exige que termine de procesarse. La victoria espera a que termine el programa.</td><td>La victoria depende de completar la defensa según las metas, aunque el programa siga en un bucle.</td></tr>
+    </tbody></table></div><p class="table-note">En pantallas estrechas, la tabla se desplaza horizontalmente.</p>
+    <div class="callout"><strong>Mi diagnóstico:</strong> Factory se organiza alrededor de encargos; War, alrededor de modos. Esa diferencia puede ser útil. La inconsistencia aparece cuando el juego no explica qué permanece, qué termina, qué se recupera solo y qué necesita otra decisión del jugador.</div>
+    <div class="reading"><h3>El roce más importante: la autonomía.</h3><p>En Factory aceptamos que «recoger» resuelva un recorrido entero. En War pedimos renovar una posición cada poco tiempo, aunque ya automatizamos la predicción del tiro. Ambas decisiones pueden enseñar programación, pero juntas necesitan una razón jugable: <strong>¿queremos enseñar prioridades y coordinación, o actualización continua del apuntado?</strong></p><p>Para la campaña, yo priorizaría decisiones que conecten sistemas: a quién defender, qué producir, cuánto reservar y cuándo arriesgar una ráfaga. Dejaría el apuntado a coordenadas como una herramienta explícita para retos que quieran enseñar ese control.</p></div>
+  </section>
+
+  <section id="contrato">
+    <span class="section-no">02 / PROPUESTA DE CONTRATO JUGABLE</span><h2>El jugador decide la intención.<br>La máquina ejecuta lo que prometió.</h2>
+    <p class="lead">Estas son <strong>recomendaciones para definir Campaign</strong>. No describen cambios ya implementados ni una decisión aprobada. Unificar no exige que un transporte y un arma hagan lo mismo: exige que sus reglas se puedan anticipar.</p>
+    <div class="authority">
+      <article><span class="tag">RESPONSABILIDAD DEL JUGADOR</span><h3>Elegir y coordinar.</h3><p>Qué recurso mover, a qué destino, qué enemigo priorizar, qué modo usar, qué reserva proteger y cómo responder a un bloqueo.</p></article>
+      <article><span class="tag">RESPONSABILIDAD DE LA MÁQUINA</span><h3>Ejecutar y explicar su estado.</h3><p>Recorrer una ruta, cargar o descargar, procesar una pieza, mantener una cadencia y mostrar por qué una intención no puede cumplirse.</p></article>
+    </div>
+    <h3>Cuatro clases de instrucciones, con el mismo significado en todo el juego.</h3>
+    <div class="vocab">
+      <article><h3>Consultar</h3><p>Obtener un dato. No cambia el mundo ni representa una decisión permanente.</p><span class="example">«¿Cuánto cobre queda?»</span></article>
+      <article><h3>Encargar</h3><p>Pedir una tarea que termina con un resultado. Una unidad atiende un encargo a la vez.</p><span class="example">«Ve y trae una pieza».</span></article>
+      <article><h3>Configurar</h3><p>Dejar activo un comportamiento hasta detenerlo, sustituirlo o perder su objetivo.</p><span class="example">«Defiende con tiro regular».</span></article>
+      <article><h3>Esperar</h3><p>Posponer la siguiente decisión de ese programa. Las demás máquinas siguen actuando.</p><span class="example">«Vuelve a revisar después».</span></article>
+    </div>
+    <div class="states" role="img" aria-label="Los encargos terminan con un resultado; los modos permanecen y pueden bloquearse por falta de recursos"><b>Encargo</b><div class="state-row"><span class="state">Recibido</span><span class="join">→</span><span class="state">En curso</span><span class="join">→</span><span class="state">Resultado: logrado o impedido</span></div><b>Modo</b><div class="state-row"><span class="state">Activo</span><span class="join">⇄</span><span class="state">Bloqueado por recursos o avería</span><span class="join">·</span><span>Permanece hasta una condición de cierre</span></div></div>
+
+    <article class="rule"><div class="rule-num">1</div><div><h3>Una orden siempre debe decir qué conserva y cuándo termina.</h3><p>Un encargo ocupa a la unidad hasta resolverse. Si recibe otro mientras sigue ocupada, <strong>rechaza el nuevo con un aviso y conserva el que ya realizaba</strong>; no acumula tareas invisibles. Un modo permanece y una nueva configuración lo sustituye. Repetir el mismo modo no debe reiniciar su cadencia, su reparación ni sus costes.</p><p>Encargar la entrega termina cuando se intenta descargar, no cuando la fundidora acaba de producir. Configurar disparo termina de configurarse ahora; los disparos y los impactos ocurren después.</p><div class="consequence">Decisión del jugador: dar el siguiente trabajo o cambiar una intención, sin adivinar qué órdenes quedaron pendientes.</div></div></article>
+
+    <article class="rule"><div class="rule-num">2</div><div><h3>Distinguir “ataca a ese enemigo” de “dispara a ese punto”.</h3><p><strong>Recomiendo seguimiento de una entidad como orden habitual de campaña.</strong> Elegido el enemigo, el arma ajusta el apuntado mientras siga visible para el sensor autorizado. Si muere o se pierde la observación, se detiene y el programa debe elegir de nuevo. No cambia de enemigo por su cuenta.</p><p>Disparar a coordenadas queda como otra orden, con un lugar fijo y sin seguimiento. Es lo más cercano al comportamiento actual de War. <strong>No cambiaría silenciosamente el significado de <code>regularShoot(pos)</code></strong>: los programas actuales deben conservarlo.</p><div class="consequence">Decisión del jugador: escoger prioridades y sensores. El seguimiento resuelve puntería; no le regala visión ni una política de selección.</div></div></article>
+
+    <article class="rule"><div class="rule-num">3</div><div><h3>La falta de espacio o material debe ser un bloqueo legible.</h3><p>En un encargo puntual, <strong>la unidad intenta la operación al llegar y devuelve el resultado</strong>. Si no hay material, no recoge; si el destino está lleno, conserva la carga. El encargo acaba con ese motivo. No espera para siempre ni pierde material en silencio.</p><p>En un modo continuo, la falta de suministro pausa su ejecución y conserva la intención. Puede reanudarse cuando vuelva el recurso, siempre que el objetivo siga siendo válido. Esa diferencia es consistente: un intento tiene final; un modo tiene persistencia.</p><div class="consequence">Decisión del jugador: esperar, reintentar o buscar otro destino. Los derrames pueden existir en un reto que los anuncie o una orden de descarte, no como consecuencia implícita de “entregar”.</div></div></article>
+
+    <article class="rule"><div class="rule-num">4</div><div><h3>Todo producto y todo disparo deben tener una procedencia.</h3><p><strong>La campaña reemplaza la recarga gratuita por un suministro explícito.</strong> El robot mueve piezas reales; la fábrica transforma entradas en salidas; el almacén sostiene una reserva; el lanzador consume una unidad al lanzar, no al recibir una orden.</p><p>Recoger y entregar transfieren la pieza cuando la operación se realiza, sin duplicarla. La producción entrega su salida al completar el proceso; si no cabe, retiene el producto y no inicia otro. Si varias unidades disputan el mismo recurso, resuelve una prioridad estable y visible del escenario.</p><div class="consequence">Decisión del jugador: equilibrar producción, transporte y consumo. La reserva debe permitir sobrevivir a los picos de una oleada.</div></div></article>
+
+    <article class="rule"><div class="rule-num">5</div><div><h3>Todas las unidades comparten mundo y reloj; cada una conserva su programa.</h3><p>Un robot viajando no debería impedir que otro programa revise amenazas. La fábrica puede seguir procesando y el arma disparando a la vez. <strong>Cada programa ordena a su propia unidad</strong>; puede consultar la información compartida que permitan los sensores y las reglas del escenario.</p><p>Esperar significa «esta unidad aplaza su siguiente decisión», no «se pausa toda la campaña». Una avería conserva el modo y muestra que está bloqueado; la recuperación solo lo reanuda si sigue teniendo recursos y objetivo válido.</p><div class="consequence">Decisión del jugador: coordinar responsabilidades y elegir ritmos de observación, sin convertir cada bucle en un mando global de todas las máquinas.</div></div></article>
+
+    <article class="rule"><div class="rule-num">6</div><div><h3>Las metas deben medir el mundo, no si el código terminó.</h3><p>La misión declara si cuenta <strong>recibir material, terminar productos, acumular una reserva o defender una oleada</strong>. Son hitos distintos. El cumplimiento de las metas puede terminar la misión aunque los programas continúen en sus bucles.</p><p>Esto evita una diferencia actual: en Factory, un <code>while (true)</code> no finaliza al alcanzar las entregas y puede seguir haciendo viajes vacíos. En una campaña de automatización sostenida, mantener programas activos es normal.</p><div class="consequence">Decisión del jugador: diseñar un sistema que cumpla una misión verificable, con condiciones de victoria y derrota visibles.</div></div></article>
+  </section>
+
+  <section id="situaciones">
+    <span class="section-no">03 / QUÉ CAMBIARÍA AL JUGAR</span><h2>La consistencia se prueba en los casos incómodos.</h2>
+    <p class="lead">Elige una situación para comparar una regla actual con la regla propuesta. Las escenas son esquemas: <strong>no ejecutan ni modifican las partidas</strong>.</p>
+    <div class="lab" id="rules-lab">
+      <div class="lab-controls"><label for="situation">Situación jugable<select id="situation"><option value="target">Enemigo en movimiento</option><option value="capacity">Fundidora llena</option><option value="supply">Sin munición</option><option value="finish">Metas cumplidas</option></select></label><span class="lab-count">Hoy / Propuesta para Campaign</span></div>
+      <div class="lab-board" aria-live="polite" aria-atomic="true">
+        <article class="lab-side"><span class="tag" id="current-source">WAR HOY</span><h3 id="current-title">Se conserva el lugar anterior.</h3>
+          <svg id="current-scene" viewBox="0 0 420 140" role="img" aria-label="Escena actual"><path d="M20 102 H400" stroke="var(--line)" stroke-width="2"/><rect x="30" y="60" width="68" height="42" rx="8" fill="var(--panel2)"/><text x="64" y="87" text-anchor="middle" font-size="13" id="current-unit">Arma</text><path id="current-route" d="M100 74 L330 74" stroke="var(--war)" stroke-width="2" fill="none" stroke-dasharray="5 6"/><rect id="current-object" x="242" y="66" width="42" height="30" rx="7" fill="var(--war)"/><g id="current-mark"><circle cx="340" cy="74" r="17" fill="none" stroke="var(--factory)" stroke-width="2"/><path d="M340 49 V62 M340 86 V99 M315 74 H328 M352 74 H365" stroke="var(--factory)" stroke-width="2"/></g><text x="225" y="129" text-anchor="middle" font-size="13" id="current-scene-label">La orden conserva coordenadas</text></svg>
+          <p id="current-text"></p><span class="lab-outcome" id="current-outcome"></span>
+        </article>
+        <article class="lab-side"><span class="tag accent">CAMPAIGN · RECOMENDACIÓN</span><h3 id="proposed-title">Se conserva la identidad elegida.</h3>
+          <svg id="proposed-scene" viewBox="0 0 420 140" role="img" aria-label="Escena propuesta"><path d="M20 102 H400" stroke="var(--line)" stroke-width="2"/><rect x="30" y="60" width="68" height="42" rx="8" fill="var(--panel2)"/><text x="64" y="87" text-anchor="middle" font-size="13" id="proposed-unit">Arma</text><path id="proposed-route" d="M100 74 L249 74" stroke="var(--accent)" stroke-width="2" fill="none"/><rect id="proposed-object" x="242" y="66" width="42" height="30" rx="7" fill="var(--war)"/><g id="proposed-mark"><circle cx="263" cy="81" r="24" fill="none" stroke="var(--accent)" stroke-width="2"/></g><text x="225" y="129" text-anchor="middle" font-size="13" id="proposed-scene-label">El arma ajusta la puntería</text></svg>
+          <p id="proposed-text"></p><span class="lab-outcome accent" id="proposed-outcome"></span>
+        </article>
+      </div>
+      <div class="lab-bottom"><b>La decisión interesante para el jugador</b><span id="player-decision"></span></div>
+    </div>
+    <noscript><p class="callout">Propuesta: seguir una entidad mientras sea visible; conservar la carga si la entrega está impedida; reponer munición desde la fábrica; evaluar las metas aunque los programas sigan activos.</p></noscript>
+  </section>
+
+  <section id="campana">
+    <span class="section-no">04 / HACER QUE LA UNIÓN IMPORTE</span><h2>Una economía que llega al frente.</h2>
+    <p class="lead">Combinar las demos cobra sentido cuando una decisión en la fábrica cambia la defensa. Empezaría con <strong>una cadena corta y una oleada</strong>, antes de abrir más sistemas.</p>
+    <div class="pipeline" role="img" aria-label="Cadena propuesta: robot transporta materiales; fábrica los transforma; reserva almacena munición; lanzador consume esa munición">
+      <article class="station"><span class="n">01 / TRANSPORTE</span><h3 class="factory">Robot</h3><p>Decide a qué entrada llevar cada material. Un viaje compite con otro por su tiempo.</p></article><div class="arrow" aria-hidden="true">→</div>
+      <article class="station"><span class="n">02 / PRODUCCIÓN</span><h3 class="factory">Fábrica</h3><p>Una receta transforma materiales en munición. Importan capacidad y tiempo de proceso.</p></article><div class="arrow bridge" aria-hidden="true">→</div>
+      <article class="station"><span class="n">03 / RESERVA</span><h3>Almacén</h3><p>Separa el ritmo de producción del ritmo de consumo. Hace visibles los cuellos de botella.</p></article><div class="arrow" aria-hidden="true">→</div>
+      <article class="station"><span class="n">04 / CONSUMO</span><h3 class="war">Lanzador</h3><p>Priorizar objetivos y usar ráfagas cambia cuánto tiempo dura la reserva.</p></article>
+    </div>
+    <p class="small">Cadena propuesta. Hoy Factory contabiliza placas de cobre y obleas de silicio y solo recoge de bodegas; War repone misiles automáticamente. Faltan recetas de munición, acceso a salidas de producción y una conexión de suministro. El diagrama no afirma que ya existan.</p>
+    <div class="cols mission">
+      <article class="panel"><span class="tag">RETO DE CAMPAÑA PROPUESTO</span><h3>«Mantén abierta la línea».</h3><ol><li>La reserva inicial permite empezar a defender, pero no cubrir toda la oleada.</li><li>El robot alimenta una receta sencilla y lleva la munición terminada a la reserva.</li><li>El lanzador elige objetivos y decide cuándo compensa gastar más rápido.</li><li>La misión termina al completar la oleada sin superar las brechas permitidas.</li></ol></article>
+      <article class="panel"><span class="tag">LO QUE APRENDE EL JUGADOR</span><h3>Coordinar, no solo repetir.</h3><p>Una fábrica rápida no basta si el transporte es el cuello de botella. Una defensa agresiva puede vaciar la reserva. Una reserva mayor compra margen para cambiar de ruta o recuperarse de un atasco.</p><p>Variables, condiciones y bucles responden a esas necesidades: «¿queda espacio?», «¿a quién priorizo?», «¿me alcanza para una ráfaga?».</p><p class="small">Las cantidades, recetas y tiempos son decisiones de balance pendientes. No hace falta fijarlos para acordar primero el significado de las órdenes.</p></article>
+    </div>
+    <div class="reading"><h3>El coste de esta propuesta también importa.</h3><p>El seguimiento de entidades elimina parte del ejercicio actual de War de renovar coordenadas. Conservar la carga ante una entrada llena reduce la penalización de Factory. La logística real añade posibilidades de bloqueo mutuo o reservas agotadas. Son cambios de diseño, no mejoras automáticas: conviene probar un reto pequeño y comprobar qué decisiones interesantes sobreviven.</p></div>
+    <h3 style="margin-top:34px">Tres decisiones para cerrar antes de ampliar la campaña.</h3>
+    <div class="decisions">
+      <article class="decision"><h3>¿Qué automatismo es básico?</h3><p>Mi opción: ruta, procesamiento, cadencia y seguimiento de la entidad elegida. Selección de objetivos, prioridades y suministro quedan en el programa.</p></article>
+      <article class="decision"><h3>¿Qué castiga el error?</h3><p>Mi opción: primero tiempo perdido y estados de bloqueo; pérdida de material solo cuando la misión o la orden la hagan explícita.</p></article>
+      <article class="decision"><h3>¿Qué define una victoria?</h3><p>Mi opción: metas del mundo declaradas por misión, compatibles con automatismos y programas que siguen activos.</p></article>
+    </div>
+    <div class="callout"><strong>Mi recomendación global:</strong> unificar la promesa de las órdenes, los bloqueos, el suministro y las metas. Mantener la diferencia útil entre encargos finitos y modos persistentes. Elegir después nombres y sintaxis que hagan visibles esas reglas.</div>
+  </section>
+
+  <section id="debajo" class="appendix">
+    <span class="section-no">05 / APARTADO BREVE: CÓMO SE REFLEJA EN JS</span><h2>El código hace visible el contrato.</h2>
+    <div class="cols programs">
+      <article><h3 class="factory">Factory: «espera el resultado del encargo».</h3><pre><code><span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="kw">await</span> yo.<span class="fn">recoger</span>(<span class="str">"ENT-1"</span>, <span class="str">"cobre"</span>);
+  <span class="kw">await</span> yo.<span class="fn">entregar</span>(<span class="str">"FUN"</span>);
+}</code></pre></article>
+      <article><h3 class="war">War: «configura y vuelve a decidir».</h3><pre><code><span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="kw">const</span> pos = <span class="fn">autoTarget</span>(<span class="str">"crawler"</span>, <span class="str">"visual"</span>);
+  <span class="fn">regularShoot</span>(pos);
+  <span class="kw">await</span> <span class="fn">esperar</span>(<span class="num">0.5</span>);
+}</code></pre></article>
+    </div>
+    <p><code>while (true)</code> repite las instrucciones. <code>const pos</code> da un nombre a un dato obtenido en esa vuelta; no lo convierte en un seguimiento en vivo. <code>yo.</code> indica la máquina que recibe la llamada. War ya acepta <code>yo.autoTarget(...)</code> y <code>yo.regularShoot(...)</code>: la diferencia de aspecto es menor que la diferencia de comportamiento.</p>
+    <p><code>await</code> suspende ese programa hasta obtener una respuesta pendiente; no garantiza éxito ni implica que pasen segundos. Factory comunica todas las llamadas de <code>yo</code> mediante respuestas asíncronas, incluso <code>yo.cuantos(...)</code>, que no avanza el reloj. War lee una instantánea y configura modos inmediatamente; <code>esperar</code> sí pide tiempo de juego. Ambos usan ejecución separada y un paso fijo de 0,05 s. Añadir <code>await</code> a <code>regularShoot</code> no haría que esperase un disparo.</p>
+    <details><summary>Cómo pudo pensar el modelo que hizo cada demo — hipótesis.</summary><p>Factory parece partir de un robot educativo: bloques de «recoge / entrega / repite» que se convierten en una secuencia con esperas. War parece partir de un controlador: consulta un sensor, usa ese dato para ajustar un modo y revisa de nuevo. Esa lectura encaja con sus generadores y APIs, pero no tenemos los prompts ni el razonamiento original. No permite identificar al modelo ni afirmar sus motivos.</p><p>Mi interpretación es que cada demo resolvió bien un ejercicio local y dejó implícitas reglas que solo se vuelven problemáticas al juntarlas. JavaScript permite ambos estilos; no obliga a tener recarga gratuita, derrames, apuntado fijo o victorias condicionadas al final del programa. Esas son decisiones jugables.</p></details>
+  </section>
+
+  <section id="evidencia">
+    <span class="section-no">06 / BASE Y ALCANCE</span><h2>Comportamientos comprobados.<br>Recomendaciones por validar jugando.</h2>
+    <p class="small">Lectura del estado local del 1 de noviembre de 2026. Las reglas actuales se sustentan en estos archivos; las recomendaciones de Campaign son propuestas y no se han implementado ni probado como juego.</p>
+    <ul class="source-list">
+      <li><a href="../../Prototypes/Tres%20vistas/js/juego.js">Factory · juego.js</a>, líneas 479–553: procesamiento, transporte, carga, rechazo y derrames; 587–607: evaluación de metas y fin del programa; 643–690: consultas y respuestas.</li>
+      <li><a href="../../Prototypes/Rocket%20Launcher/js/juego.js">War · juego.js</a>, líneas 245–291 y 482–563: sensores, posición calculada, modo persistente, recarga y disparos; 606–645: reparación y victoria; 725–796: programas por unidad.</li>
+      <li>Los mecanismos de JavaScript se encuentran en Factory, líneas 212–280 y 314–339, y War, líneas 220–352. Los rangos pueden desplazarse al editar el proyecto.</li>
+      <li><a href="../VISION.md">Visión</a>, <a href="../../README.md">README</a> y <a href="../../campaign/index.html">Campaign actual</a>: la campaña todavía muestra «Próximamente». War sigue siendo el prototipo canónico.</li>
+    </ul>
+  </section>
+</main>
+<footer class="closing">Documento de análisis y propuesta. Ilustraciones esquemáticas. Funciona sin recursos de red; las referencias locales requieren conservarlo dentro del repositorio. No modifica las reglas, los programas ni las partidas guardadas.</footer>
+</div>
+<script>
+(() => {
+  "use strict";
+  const root = document.getElementById("rules-lab");
+  const get = id => root.querySelector("#" + id);
+  const cases = {
+    target: {
+      source:"WAR HOY", currentTitle:"Se conserva el lugar anterior.", currentText:"autoTarget calcula una posición. regularShoot la conserva y sigue disparando allí. Si el programa no consulta otra vez, la orden no acompaña al enemigo.", currentOutcome:"El jugador debe renovar el apuntado periódicamente.",
+      proposedTitle:"Se conserva la identidad elegida.", proposedText:"Una orden nueva de ataque a entidad ajustaría la puntería mientras esa entidad siga observable. Si se pierde o muere, el arma se detiene hasta recibir otra elección.", proposedOutcome:"El seguimiento no selecciona otro enemigo ni atraviesa la niebla.",
+      decision:"Elegir prioridades y sensores. El tiro a coordenadas sigue disponible para ejercicios de control explícito.", currentUnit:"Arma", proposedUnit:"Arma", currentLabel:"La orden conserva coordenadas", proposedLabel:"El arma ajusta la puntería", kind:"target"
+    },
+    capacity: {
+      source:"FACTORY HOY", currentTitle:"La pieza se derrama al entregar.", currentText:"El robot llega con la carga. Si la entrada de la máquina está llena, la entrega produce un derrame, pierde esa pieza y el robot queda con las manos libres.", currentOutcome:"Una orden de entregar puede destruir el recurso.",
+      proposedTitle:"La carga sigue en manos del robot.", proposedText:"El encargo termina con el motivo «destino lleno» y conserva la pieza. El programa elige esperar, reintentar o dirigirse a otra entrada. No queda esperando indefinidamente.", proposedOutcome:"Hay tiempo perdido; la pérdida de material debe ser explícita.",
+      decision:"Repartir el flujo entre destinos y capacidad. La consulta previa ayuda, pero lo que manda es el espacio disponible al llegar.", currentUnit:"Robot", proposedUnit:"Robot", currentLabel:"FUN llena → pieza en el suelo", proposedLabel:"FUN llena → carga conservada", kind:"capacity"
+    },
+    supply: {
+      source:"WAR HOY", currentTitle:"La recarga vuelve por sí sola.", currentText:"Al agotarse los misiles, el modo de disparo puede seguir configurado. Cada lanzador repone munición automáticamente y vuelve a disparar si sus demás condiciones lo permiten.", currentOutcome:"La fábrica no participa en ese suministro.",
+      proposedTitle:"El modo espera a la cadena de suministro.", proposedText:"Sin munición, el modo queda bloqueado y visible. Se reanuda al recibir unidades producidas y transportadas, si el objetivo sigue siendo válido. No aparece munición gratis.", proposedOutcome:"El mismo modo continúa; cada disparo consume una unidad real.",
+      decision:"Producir a tiempo, mantener una reserva y decidir si una ráfaga compensa su mayor consumo.", currentUnit:"Arma", proposedUnit:"Arma", currentLabel:"Recarga automática local", proposedLabel:"Reserva real → munición", kind:"supply"
+    },
+    finish: {
+      source:"FACTORY HOY", currentTitle:"El bucle puede impedir la victoria.", currentText:"Factory comprueba la victoria cuando el programa acaba y el robot queda libre. Un while infinito continúa aunque ya se hayan recibido las piezas requeridas y puede hacer viajes vacíos.", currentOutcome:"War ya puede ganar con programas que siguen activos.",
+      proposedTitle:"Las metas del mundo cierran la misión.", proposedText:"Si se cumplen las metas declaradas y las restricciones de la misión, esta termina aunque los programas sigan repitiendo. «Recibido» y «producido» se miden por separado.", proposedOutcome:"Los bucles de automatización pueden seguir siendo continuos.",
+      decision:"Construir un sistema que mantenga el objetivo. La victoria no depende de un detalle oculto sobre el cierre del código.", currentUnit:"Bucle", proposedUnit:"Bucle", currentLabel:"Meta lograda · programa sigue", proposedLabel:"Meta lograda → misión cumplida", kind:"finish"
+    }
+  };
+  function render() {
+    const c = cases[get("situation").value];
+    const text = {
+      "current-source":c.source,"current-title":c.currentTitle,"current-text":c.currentText,"current-outcome":c.currentOutcome,
+      "proposed-title":c.proposedTitle,"proposed-text":c.proposedText,"proposed-outcome":c.proposedOutcome,
+      "player-decision":c.decision,"current-unit":c.currentUnit,"proposed-unit":c.proposedUnit,
+      "current-scene-label":c.currentLabel,"proposed-scene-label":c.proposedLabel
+    };
+    for (const [id,value] of Object.entries(text)) get(id).textContent = value;
+    get("current-scene").setAttribute("aria-label",c.currentLabel);
+    get("proposed-scene").setAttribute("aria-label",c.proposedLabel);
+    for (const prefix of ["current","proposed"]) {
+      const proposed = prefix === "proposed";
+      const object = get(prefix+"-object");
+      const route = get(prefix+"-route");
+      const mark = get(prefix+"-mark");
+      object.setAttribute("x", c.kind === "capacity" ? (proposed ? "105" : "299") : "242");
+      object.setAttribute("y", c.kind === "capacity" ? (proposed ? "66" : "88") : "66");
+      object.setAttribute("width",c.kind === "capacity" ? "20" : "42");
+      object.setAttribute("height",c.kind === "capacity" ? "20" : "30");
+      object.setAttribute("rx",c.kind === "capacity" ? "2" : "7");
+      object.setAttribute("fill",c.kind === "capacity" ? "var(--factory)" : c.kind === "finish" ? "var(--accent)" : "var(--war)");
+      route.setAttribute("d",c.kind === "target" ? (proposed ? "M100 74 L242 74" : "M100 74 L330 74") : c.kind === "supply" ? (proposed ? "M242 81 L104 81" : "M270 60 Q280 14 313 32 Q351 58 303 63") : c.kind === "finish" ? "M100 81 L235 81" : "M137 80 L265 80");
+      mark.toggleAttribute("hidden",c.kind !== "target");
+    }
+  }
+  get("situation").addEventListener("change",render);
+  render();
+})();
+</script>
+</body>
+</html>

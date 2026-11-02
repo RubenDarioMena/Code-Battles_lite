@@ -1,5 +1,10 @@
 # Code-battle-lite · progreso
 
+## Plan de unificación Factory + War · 2 de noviembre de 2026
+
+- Nuevo [plan para el agente ejecutor](docs/PLAN-UNIFICACION.md): llevar Factory a la base de War por etapas, como catálogo de máquinas en un mismo mundo (no como modo aparte), con el runtime de War para todos (un encargo es una espera que decide la simulación) y el Factory original congelado como oráculo hasta la paridad. Incluye estado de partida comparado, arquitectura objetivo, invariantes, ocho etapas (0–7) con criterio de hecho, decisiones pendientes del usuario y riesgos.
+- Solo documentación: reglas, APIs, editor y guardados sin cambios. No se ejecutaron pruebas; los datos del documento se comprobaron leyendo el código actual.
+
 ## `??` y operadores ajustados a la estructura, «Apuntar» en un hueco y EJECUTAR flotante · 2 de noviembre de 2026
 
 - Bugs del vídeo de QA (War): el atajo «Si no hay (??)» y sus variantes (`&&`, `||`, `!`, comparaciones) usaban el texto elegido tal cual. Ahora el operando se ajusta con `ESTRUCTURA`. Una sentencia o declaración aporta su expresión (`const pos = X;` → `X ?? /* valor */;`, también eligiendo `pos` o la línea entera). El nombre de una función o el objeto de `a.b` arrastran la llamada entera. Sin selección se usa la expresión que acaba en el cursor (tras el `;`, la de esa sentencia). Sin nada que tomar se escriben dos huecos. Lo que no es una expresión (un `while`…) avisa y no cambia el código. Se añaden paréntesis cuando hacen falta: `(a || b) ?? x`, `(a ?? b) && x`.
@@ -8,6 +13,13 @@
 - Pantalla completa: con las herramientas plegadas (`.cabecera-editor.plegada`), un botón **▶ EJECUTAR** (`#b-ejecutar-flot`) flota abajo a la izquierda del código. Hace lo mismo que el de la barra (ejecuta y pasa al mapa; DETENER mientras corre) y se oculta con el teclado del teléfono abierto.
 - Versiones: `juego.js?v=19`, `componentes.css?v=18`, `layout.css?v=16`.
 - Verificación: `node pruebas/interaccion.cjs` (**123 comprobaciones**, 27 nuevas de operadores y hueco). Navegador integrado en **8771**: `??` tras el `;` y con `autoTarget` elegido, y «Apuntar» en el hueco, con los botones reales de la paleta. Tableta emulada 768×1024 en pantalla completa: el botón aparece al plegar, ejecuta, pasa al mapa, alterna DETENER y se oculta al desplegar; consola sin errores. No se ejecutó `pruebas/navegador.mjs` (Ego Browser), ni tacto real.
+
+## Análisis jugable de Factory + War para Campaign · 1 de noviembre de 2026
+
+- Nuevo [HTML ilustrado de reglas para la campaña](docs/analisis/factory-war-reglas-campana.html), autónomo y sin recursos de red. El centro es jugable: autonomía, encargos frente a modos persistentes, seguimiento frente a coordenadas, bloqueos, suministro y metas. JavaScript y la hipótesis sobre el diseño de las demos quedan en un apartado breve. Cuatro situaciones permiten comparar la regla actual y la recomendación.
+- Recomendaciones por validar: seguimiento de entidades mediante una orden nueva (conservar el significado actual de `regularShoot`), mantener la carga ante una entrada llena, conectar producción y munición, programas por unidad y victoria por metas del mundo aun con bucles activos. Se explican sus costes educativos y los sistemas que aún faltan. No son decisiones aprobadas ni implementaciones de Campaign; reglas, APIs, editor y guardados del juego sin cambios.
+- Verificación de esta entrega: `node pruebas/interaccion.cjs` (**96 comprobaciones**), `node --check` del script extraído del HTML, 30 identificadores únicos, 11 enlaces locales válidos y ausencia de recursos externos. Ego Browser en **8771**: cuatro situaciones actualizan texto e ilustración; sin desbordamiento de página a 1440, 768, 390 y 320 px en claro/oscuro. Capturas de PC y móvil emulado revisadas visualmente; no prueba de balance de las reglas propuestas.
+- Límite de interacción: el selector se verificó con `selectOption`; no se confirmó su cambio con flechas/Home sintéticos de Ego. Pendiente teclado físico y tacto real. Documento local, sin publicación ni commits.
 
 ## Fusión de `main` en `trunk` · 1 de noviembre de 2026
 

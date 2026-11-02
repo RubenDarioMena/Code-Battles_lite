@@ -1,0 +1,839 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Encargos y modos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: un marco de 1080px con columna de lectura de 68ch; figuras, tablas y reglas usan todo el marco y se apilan en el teléfono. */
+:root {
+  color-scheme: dark;
+  --fondo: #0b0f13;
+  --superficie: #121920;
+  --codigo: #0e1419;
+  --texto: #e3e9e8;
+  --texto-2: #c3cdcc;
+  --suave: #98a5a8;
+  --tenue: #6b787e;
+  --linea: #25303a;
+  --linea-2: #34424c;
+  --factory: #8bd4b8;
+  --factory-velo: rgba(139, 212, 184, .16);
+  --factory-borde: #34443f;
+  --factory-fondo: #15221e;
+  --war: #e9ad80;
+  --war-velo: rgba(233, 173, 128, .13);
+  --war-borde: #4a3b33;
+  --war-fondo: #241c18;
+  --campana: #aab3cc;
+  --campana-velo: rgba(170, 179, 204, .13);
+  --espera: #ecc75f;
+  --espera-velo: rgba(236, 199, 95, .13);
+  --espera-borde: rgba(236, 199, 95, .5);
+  --bad: #f07a70;
+  --bad-velo: rgba(240, 122, 112, .12);
+  --tk-fn: #cfa2ff;
+  --tk-str: #9bd56b;
+  --tk-num: #f27ab0;
+  --tk-kw: #c9d1cf;
+  --tk-var: #7fa3ff;
+  --tk-prop: #63d2e0;
+  --tk-com: #7d8b94;
+  --f-texto: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --f-codigo: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font: 16px/1.65 var(--f-texto);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.marco { max-width: 1080px; margin-inline: auto; }
+.prosa { max-width: 68ch; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(42px, 7vw, 70px); line-height: 1.02; letter-spacing: -.05em; font-weight: 680; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.15; letter-spacing: -.035em; font-weight: 640; }
+h3 { font-size: 19px; line-height: 1.3; letter-spacing: -.015em; font-weight: 640; }
+p { margin: 0; }
+b, strong { font-weight: 640; color: var(--texto); }
+code, .mono { font-family: var(--f-codigo); font-size: .9em; }
+p code, li code, dd code, td code, .fila code {
+  background: var(--codigo); border: 1px solid var(--linea); border-radius: 4px; padding: .05em .32em; white-space: nowrap;
+}
+.aw { color: var(--espera); background: var(--espera-velo); box-shadow: inset 0 0 0 1px var(--espera-borde); border-radius: 4px; padding: 0 .28em; }
+p .aw, li .aw { font-family: var(--f-codigo); font-size: .9em; }
+.kw { color: var(--tk-kw); font-weight: 600; } .fn { color: var(--tk-fn); } .str { color: var(--tk-str); }
+.num { color: var(--tk-num); } .var { color: var(--tk-var); } .prop { color: var(--tk-prop); } .com { color: var(--tk-com); font-style: italic; }
+.obj { color: var(--tk-var); }
+.ceja { font: 11px/1.4 var(--f-codigo); text-transform: uppercase; letter-spacing: .16em; color: var(--campana); }
+.ceja.f { color: var(--factory); } .ceja.w { color: var(--war); }
+a { color: var(--campana); }
+:focus-visible { outline: 2px solid var(--espera); outline-offset: 3px; }
+
+/* Cabecera */
+.cabecera { display: flex; flex-wrap: wrap; gap: 12px 20px; justify-content: space-between; align-items: center; padding-block: 22px; border-bottom: 1px solid var(--linea); font-size: 15px; letter-spacing: -.02em; }
+.marca { display: flex; align-items: center; gap: 10px; }
+.marca b { color: var(--factory); font-weight: 400; }
+.sello { font: 700 12px var(--f-codigo); color: #101b19; background: #94d8bd; padding: 8px 7px; border-radius: 3px; }
+.cabecera .etq { font: 11px var(--f-codigo); color: var(--suave); letter-spacing: .06em; }
+
+/* Secciones */
+section { padding-block: 56px; border-top: 1px solid var(--linea); display: grid; gap: 22px; }
+section.hero { border-top: 0; padding-block: 48px 40px; }
+.lead { font-size: 18px; line-height: 1.6; color: var(--texto-2); max-width: 66ch; }
+.cabeza { display: grid; gap: 12px; }
+
+/* Duelo de fragmentos */
+.duelo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tarjeta { min-width: 0; border: 1px solid var(--factory-borde); border-radius: 12px; padding: 18px; background: linear-gradient(140deg, var(--factory-fondo), var(--superficie) 70%); display: grid; gap: 14px; align-content: start; }
+.tarjeta.w { border-color: var(--war-borde); background: linear-gradient(140deg, var(--war-fondo), var(--superficie) 70%); }
+.tarjeta-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.tarjeta-top h3 { font-size: 17px; }
+.tarjeta p { font-size: 15px; color: var(--texto-2); }
+.lineas { background: var(--codigo); border: 1px solid var(--linea); border-radius: 8px; padding: 10px 0; overflow-x: auto; font: 14px/1.75 var(--f-codigo); }
+.l { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-inline: 14px; min-width: max-content; }
+.l code { white-space: pre; font-size: 1em; }
+.l.cab { font: 10px/1.4 var(--f-codigo); text-transform: uppercase; letter-spacing: .12em; color: var(--tenue); padding-bottom: 6px; }
+.dur { font: 11px/1 var(--f-codigo); padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.dur.larga { color: var(--espera); background: var(--espera-velo); box-shadow: inset 0 0 0 1px var(--espera-borde); }
+.dur.cero { color: var(--suave); box-shadow: inset 0 0 0 1px var(--linea-2); }
+.leyenda { font-size: 14px; color: var(--suave); }
+
+/* Lectura corta */
+.corta { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.corta li { min-width: 0; padding-top: 14px; border-top: 1px solid var(--linea-2); font-size: 15px; color: var(--texto-2); }
+.corta li b { display: block; font-size: 16px; margin-bottom: 6px; }
+
+/* Glosario */
+.glosario { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.pieza { min-width: 0; display: grid; gap: 8px; align-content: start; padding: 14px; border: 1px solid var(--linea); border-radius: 10px; font-size: 14px; color: var(--texto-2); }
+.pieza code { font-size: 13px; color: var(--texto); }
+.pieza b { font-size: 14.5px; }
+
+/* Protagonistas */
+.prota { display: grid; gap: 18px; }
+.prota + .prota { margin-top: 26px; }
+.prota-cab { display: flex; align-items: center; gap: 18px; }
+.icono { flex: none; width: 112px; height: 56px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.icono .ruta { stroke-dasharray: 3 5; opacity: .55; }
+.icono .relleno { fill: currentColor; fill-opacity: .14; }
+.icono.f { color: var(--factory); } .icono.w { color: var(--war); }
+.prota-texto { display: grid; gap: 12px; max-width: 70ch; color: var(--texto-2); }
+.analogia { font-size: 14px; color: var(--suave); }
+.lamina { background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; padding: 16px; display: grid; gap: 12px; }
+.conmutador { display: flex; flex-wrap: wrap; gap: 8px; }
+.conmutador button { font: 13px/1 var(--f-texto); color: var(--suave); background: transparent; border: 1px solid var(--linea-2); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+.conmutador button:hover { color: var(--texto); border-color: var(--suave); }
+.lamina.f .conmutador button[aria-pressed="true"] { color: var(--fondo); background: var(--factory); border-color: var(--factory); }
+.lamina.w .conmutador button[aria-pressed="true"] { color: var(--fondo); background: var(--war); border-color: var(--war); }
+.desliza { overflow-x: auto; }
+.desliza svg { display: block; width: 100%; min-width: 660px; height: auto; font-family: var(--f-texto); }
+.pie { font-size: 14px; color: var(--texto-2); max-width: 80ch; }
+svg .rejilla { stroke: var(--linea); stroke-width: 1; }
+svg .eje { stroke: var(--tenue); stroke-width: 1; }
+svg .et { fill: var(--suave); font-size: 12px; font-weight: 600; }
+svg .eje-t { fill: var(--tenue); font-size: 11px; font-family: var(--f-codigo); }
+svg .nota { fill: var(--suave); font-size: 11px; }
+svg .nota-war { fill: var(--war); font-size: 11px; }
+svg .r-espera { fill: var(--espera-velo); stroke: var(--espera); stroke-dasharray: 4 3; }
+svg .t-espera { fill: var(--espera); font-size: 11px; font-family: var(--f-codigo); }
+svg .r-camina { fill: var(--factory-velo); stroke: var(--factory); }
+svg .t-camina { fill: var(--factory); font-size: 11px; }
+svg .r-opera { fill: var(--factory); }
+svg .t-opera { fill: var(--fondo); font-size: 11px; font-weight: 700; }
+svg .p-ok { fill: var(--tk-str); }
+svg .t-str { fill: var(--tk-str); font-size: 11px; font-family: var(--f-codigo); }
+svg .r-neutro { fill: var(--codigo); stroke: var(--linea-2); }
+svg .r-mal { fill: var(--bad-velo); stroke: var(--bad); }
+svg .t-mono { fill: var(--texto-2); font-size: 11px; font-family: var(--f-codigo); }
+svg .t-mal { fill: var(--bad); font-size: 12px; font-weight: 700; }
+svg .l-mal { stroke: var(--bad); stroke-width: 1.2; }
+svg .r-war { fill: var(--war); }
+svg .r-banda { fill: var(--war-velo); stroke: var(--war); stroke-opacity: .5; }
+svg .marca-war { stroke: var(--war); stroke-opacity: .6; stroke-dasharray: 2 3; }
+svg .p-misil { fill: var(--war); }
+svg .t-misil { fill: var(--war); font-size: 11px; }
+svg .l-pos { fill: none; stroke: var(--tk-var); stroke-width: 2; stroke-linejoin: round; }
+svg .p-pos { fill: var(--tk-var); }
+svg .l-tope { stroke: var(--linea-2); stroke-dasharray: 3 4; }
+
+/* Discrepancias */
+.chips-leyenda { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 14px; color: var(--suave); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 12px/1 var(--f-codigo); padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+.chip.comun { color: var(--campana); background: var(--campana-velo); box-shadow: inset 0 0 0 1px var(--campana); }
+.chip.varia { color: var(--suave); box-shadow: inset 0 0 0 1px var(--linea-2); }
+.chip .r { color: var(--texto); }
+.tabla { display: grid; }
+.grupo-t { font: 11px/1.4 var(--f-codigo); text-transform: uppercase; letter-spacing: .14em; color: var(--campana); padding: 26px 0 10px; }
+.fila { display: grid; grid-template-columns: 180px minmax(0, 1fr) minmax(0, 1fr) 132px; gap: 18px; padding: 14px 0; border-top: 1px solid var(--linea); align-items: start; font-size: 14.5px; color: var(--texto-2); }
+.fila.cab { border-top: 0; padding: 0 0 8px; font: 11px/1.4 var(--f-codigo); text-transform: uppercase; letter-spacing: .12em; }
+.fila.cab .cf { color: var(--factory); } .fila.cab .cw { color: var(--war); } .fila.cab .cc { color: var(--campana); }
+.fila .nombre { font-weight: 640; color: var(--texto); font-size: 15px; line-height: 1.4; }
+.fila .nombre small { display: block; font: 600 11px/1.5 var(--f-codigo); color: var(--bad); margin-top: 4px; letter-spacing: .02em; }
+.fila > * { min-width: 0; }
+.fila .ver { justify-self: end; }
+.lbl { display: none; }
+
+/* Razonamiento */
+.dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.mente { min-width: 0; border: 1px solid var(--factory-borde); border-radius: 12px; padding: 20px; display: grid; gap: 14px; align-content: start; }
+.mente.w { border-color: var(--war-borde); }
+.mente h3 { font-size: 18px; }
+.cadena { list-style: none; margin: 0; padding: 0; display: grid; }
+.cadena li { position: relative; padding: 0 0 16px 26px; font-size: 14.5px; color: var(--texto-2); }
+.cadena li::before { content: ""; position: absolute; left: 3px; top: .55em; width: 9px; height: 9px; border-radius: 50%; background: var(--factory); }
+.mente.w .cadena li::before { background: var(--war); }
+.cadena li::after { content: ""; position: absolute; left: 7px; top: 1.35em; bottom: 0; width: 1px; background: var(--linea-2); }
+.cadena li:last-child { padding-bottom: 0; }
+.cadena li:last-child::after { display: none; }
+.cadena li b { display: block; font-size: 13px; font-family: var(--f-codigo); font-weight: 600; color: var(--suave); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+
+/* Reglamento */
+.reglas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.regla { min-width: 0; background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; padding: 20px; display: grid; gap: 14px; align-content: start; }
+.regla.ancha { grid-column: 1 / -1; }
+.regla.clave { border-color: var(--espera-borde); }
+.regla .id { font: 600 12px/1 var(--f-codigo); color: var(--campana); letter-spacing: .06em; }
+.regla h3 { font-size: 20px; }
+.regla.clave h3 { font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -.025em; }
+.regla > p { color: var(--texto-2); font-size: 15px; max-width: 75ch; }
+.cambios { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 14px; font-size: 14.5px; color: var(--texto-2); }
+.cambios dt { font: 600 12px/1.9 var(--f-codigo); text-transform: uppercase; letter-spacing: .08em; }
+.cambios dt.f { color: var(--factory); } .cambios dt.w { color: var(--war); }
+.cambios dd { margin: 0; }
+.clases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.clase { min-width: 0; border: 1px solid var(--linea-2); border-radius: 10px; padding: 14px; display: grid; gap: 8px; align-content: start; font-size: 14px; color: var(--texto-2); }
+.clase h4 { margin: 0; font-size: 16px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.clase h4 .dur { font-size: 10.5px; }
+.clase .ej { display: flex; flex-wrap: wrap; gap: 6px; }
+.clase .ej code { font-size: 12px; background: var(--codigo); border: 1px solid var(--linea); border-radius: 4px; padding: 2px 6px; }
+.bloque { background: var(--codigo); border: 1px solid var(--linea); border-radius: 8px; padding: 14px 16px; margin: 0; overflow-x: auto; font: 13.5px/1.7 var(--f-codigo); white-space: pre; color: var(--texto); }
+.decisiones { border: 1px solid var(--campana); border-radius: 12px; padding: 20px; display: grid; gap: 12px; background: var(--campana-velo); }
+.decisiones ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--texto-2); font-size: 15px; }
+
+/* Mapa mixto */
+.programas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.programa { min-width: 0; display: grid; gap: 8px; align-content: start; }
+.programa .ceja { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.propuesta { font: 11px/1.4 var(--f-codigo); color: var(--suave); text-transform: none; letter-spacing: 0; }
+.prueba { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--texto-2); font-size: 15px; max-width: 80ch; }
+.arco { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; counter-reset: paso; }
+.arco li { min-width: 0; counter-increment: paso; border-top: 2px solid var(--linea-2); padding-top: 12px; display: grid; gap: 6px; align-content: start; font-size: 14px; color: var(--texto-2); }
+.arco li::before { content: counter(paso); font: 600 12px var(--f-codigo); color: var(--tenue); }
+.arco li.f { border-top-color: var(--factory); } .arco li.w { border-top-color: var(--war); } .arco li.m { border-image: linear-gradient(90deg, var(--factory), var(--war)) 1; }
+.arco li b { font-size: 15px; }
+.arco .modo { font: 11px var(--f-codigo); color: var(--suave); }
+
+/* Por detrás */
+.detras { padding-block: 40px; }
+.detras h2 { font-size: 22px; }
+.detras ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--texto-2); font-size: 15px; max-width: 78ch; }
+.fuentes { font: 12px/1.7 var(--f-codigo); color: var(--suave); }
+.cierre { border-top: 1px solid var(--linea); padding-top: 22px; font-size: 14px; color: var(--suave); }
+
+@media (max-width: 900px) {
+  .glosario { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .glosario .pieza:last-child { grid-column: 1 / -1; }
+  .arco { grid-template-columns: 1fr; }
+  .fila { grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr); }
+  .fila .ver { grid-column: 2 / -1; justify-self: start; }
+}
+@media (max-width: 760px) {
+  .duelo, .corta, .dos, .reglas, .programas, .clases { grid-template-columns: 1fr; }
+  .fila { grid-template-columns: 1fr; gap: 6px; }
+  .fila.cab { display: none; }
+  .fila .ver { grid-column: auto; }
+  .lbl { display: inline; font: 600 11px var(--f-codigo); text-transform: uppercase; letter-spacing: .08em; margin-right: 6px; }
+  .lbl.f { color: var(--factory); } .lbl.w { color: var(--war); }
+  .prota-cab { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .lineas { font-size: 13px; }
+  .lead { font-size: 17px; }
+}
+@media (max-width: 480px) {
+  .glosario { grid-template-columns: 1fr; }
+  .cambios { grid-template-columns: 1fr; gap: 2px; }
+  .cambios dd { margin-bottom: 8px; }
+}
+</style>
+
+<div class="marco">
+  <header class="cabecera">
+    <span class="marca"><span class="sello">CBL</span> Code Battle <b>Lite</b></span>
+    <span class="etq">nota de diseño · campaña</span>
+  </header>
+
+  <section class="hero">
+    <div class="cabeza">
+      <p class="ceja">Factory + War → Campaign</p>
+      <h1>Encargos y modos</h1>
+    </div>
+    <p class="lead">En Factory cada orden lleva <code>await</code>. En War solo lo lleva <code>esperar</code>. Ese <code>await</code> es la parte visible de una diferencia más grande: los dos juegos tienen reglas distintas sobre qué es una orden, cuándo pasa el tiempo, cómo se mira el mundo y cuándo se gana. La campaña va a juntar las dos mecánicas, así que necesita un solo reglamento.</p>
+
+    <div class="duelo">
+      <article class="tarjeta">
+        <div class="tarjeta-top"><span class="ceja f">Factory</span><h3>R1, robot de carga</h3></div>
+        <div class="lineas">
+          <div class="l cab"><span>código</span><span>tiempo de juego</span></div>
+          <div class="l"><code><span class="kw">while</span> (<span class="kw">true</span>) {</code><span></span></div>
+          <div class="l"><code>  <span class="aw">await</span> <span class="obj">yo</span>.<span class="fn">recoger</span>(<span class="str">"ENT-1"</span>, <span class="str">"cobre"</span>);</code><span class="dur larga">≈ 1,5 s</span></div>
+          <div class="l"><code>  <span class="aw">await</span> <span class="obj">yo</span>.<span class="fn">entregar</span>(<span class="str">"FUN"</span>);</code><span class="dur larga">≈ 1,5 s</span></div>
+          <div class="l"><code>}</code><span></span></div>
+        </div>
+        <p>Cada orden es un <b>encargo</b>: R1 camina, hace algo y termina. El programa se queda en esa línea hasta que R1 responde cómo le fue.</p>
+      </article>
+      <article class="tarjeta w">
+        <div class="tarjeta-top"><span class="ceja w">War</span><h3>LAU-01, lanzador</h3></div>
+        <div class="lineas">
+          <div class="l cab"><span>código</span><span>tiempo de juego</span></div>
+          <div class="l"><code><span class="kw">while</span> (<span class="kw">true</span>) {</code><span></span></div>
+          <div class="l"><code>  <span class="kw">const</span> <span class="var">pos</span> = <span class="fn">autoTarget</span>(<span class="str">"crawler"</span>, <span class="str">"visual"</span>);</code><span class="dur cero">0 s</span></div>
+          <div class="l"><code>  <span class="fn">regularShoot</span>(<span class="var">pos</span>);</code><span class="dur cero">0 s</span></div>
+          <div class="l"><code>  <span class="aw">await</span> <span class="fn">esperar</span>(<span class="num">0.5</span>);</code><span class="dur larga">0,5 s</span></div>
+          <div class="l"><code>}</code><span></span></div>
+        </div>
+        <p>Cada orden cambia un <b>modo</b>: el lanzador sigue disparando solo. El programa espera únicamente en <code>esperar</code>, que es cuando deja correr el reloj.</p>
+      </article>
+    </div>
+    <p class="leyenda">El resaltado <span class="aw mono">await</span> marca, en toda la página, las líneas donde el programa se detiene. Los tiempos salen de los retos «Primer viaje» (Factory) y «Prioridades» (War).</p>
+  </section>
+
+  <section>
+    <h2>Mi lectura, en corto</h2>
+    <ul class="corta">
+      <li><b>Cada demo partió de su protagonista.</b> Un robot que camina hace encargos que duran. Un lanzador fijo cambia de modo y sigue solo. El <code>await</code> cae donde el programa tiene que esperar a que algo termine, y eso pasa en lugares distintos.</li>
+      <li><b>Las dos decisiones son buenas para su juego.</b> El choque llega al juntarlas: el mismo jugador recibiría dos reglas para <code>await</code>, para leer el mundo, para nombrar las cosas y para ganar un reto.</li>
+      <li><b>Propuesta: un reglamento común.</b> Tres clases de órdenes (encargos, modos y lecturas) y una regla que el jugador pueda deducir: <span class="aw">await</span> va en las líneas donde pasa tiempo de juego.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="cabeza">
+      <p class="ceja">Para leer lo que sigue</p>
+      <h2>Cinco piezas de JavaScript</h2>
+    </div>
+    <div class="glosario">
+      <div class="pieza"><code><span class="fn">entregar</span>(<span class="str">"FUN"</span>)</code><b>Llamar a una función</b><span>Un botón con nombre. Entre paréntesis van los datos que necesita. Al terminar puede devolver un valor, como <code>"ok"</code>.</span></div>
+      <div class="pieza"><code><span class="kw">const</span> <span class="var">pos</span> = …</code><b>Guardar un valor</b><span>Una caja con etiqueta. Guarda lo que había en ese momento. Si el mundo cambia después, la caja no se entera.</span></div>
+      <div class="pieza"><code><span class="kw">while</span> (<span class="kw">true</span>) { … }</code><b>Repetir para siempre</b><span>Hace lo de adentro de las llaves, vuelve arriba y empieza otra vez, sin fin.</span></div>
+      <div class="pieza"><code><span class="kw">null</span></code><b>Nada</b><span>Lo que devuelve una función cuando no encontró lo que pediste. <code>autoTarget</code> lo devuelve si no ve ningún enemigo de ese tipo.</span></div>
+      <div class="pieza"><code><span class="aw">await</span></code><b>Esperar a que termine</b><span>Detiene esa línea hasta que la acción acaba y entrega su resultado. Sin <code>await</code>, el programa pasa a la siguiente línea enseguida.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cabeza">
+      <p class="ceja">Las dos mecánicas</p>
+      <h2>Dos protagonistas, dos tipos de orden</h2>
+    </div>
+
+    <div class="prota">
+      <div class="prota-cab">
+        <svg class="icono f" viewBox="0 0 112 56" aria-hidden="true">
+          <rect class="relleno" x="3" y="18" width="22" height="30" rx="2"/>
+          <path d="M9 48V36h10v12"/>
+          <path class="ruta" d="M27 46H84"/>
+          <rect class="relleno" x="46" y="30" width="18" height="13" rx="2"/>
+          <rect x="49" y="21" width="12" height="9" rx="1"/>
+          <circle cx="50" cy="46" r="2.5"/><circle cx="60" cy="46" r="2.5"/>
+          <path class="relleno" d="M86 48V24l8-6v6l8-6v6l8-6v30z"/>
+        </svg>
+        <div class="prota-texto">
+          <h3>Factory · R1 hace encargos</h3>
+          <p>R1 tiene cuerpo. Para recoger camina hasta la puerta de la bodega a 4 casillas por segundo y tarda 0,5 s en cargar. Lleva una unidad como máximo y no puede hacer dos cosas a la vez. Cada orden es un encargo con principio y fin, y su resultado solo se conoce al final: <code>"ok"</code>, <code>"viaje_vacio"</code> si la bodega estaba vacía, <code>"derrame"</code> si la máquina estaba llena.</p>
+          <p>Por eso cada orden lleva <span class="aw">await</span>: el programa se queda en la línea hasta que R1 termina. Es un juego de planificación. El orden de los viajes importa y el reloj avanza al ritmo de tus encargos.</p>
+          <p class="analogia">Se parece a pedir en un mostrador: pides, esperas a que te entreguen y luego pides lo siguiente. En Scratch es «tocar sonido hasta que termine».</p>
+        </div>
+      </div>
+
+      <figure class="lamina f" data-fig style="margin:0">
+        <div class="conmutador" role="group" aria-label="Variante de la línea de tiempo de Factory">
+          <button type="button" id="fx-a" data-variante="a" aria-pressed="true">Con await</button>
+          <button type="button" id="fx-b" data-variante="b" aria-pressed="false">Sin await</button>
+        </div>
+        <div class="desliza">
+          <svg viewBox="0 0 760 228" role="img" aria-label="Línea de tiempo de Factory: tu programa y R1 durante 6 segundos de juego">
+            <g>
+              <line class="rejilla" x1="130" y1="26" x2="130" y2="184"/><line class="rejilla" x1="230" y1="26" x2="230" y2="184"/><line class="rejilla" x1="330" y1="26" x2="330" y2="184"/><line class="rejilla" x1="430" y1="26" x2="430" y2="184"/><line class="rejilla" x1="530" y1="26" x2="530" y2="184"/><line class="rejilla" x1="630" y1="26" x2="630" y2="184"/><line class="rejilla" x1="730" y1="26" x2="730" y2="184"/>
+            </g>
+            <text class="et" x="16" y="63">Tu programa</text>
+            <text class="et" x="16" y="133">R1</text>
+            <line class="eje" x1="130" y1="184" x2="730" y2="184"/>
+            <g>
+              <line class="eje" x1="130" y1="184" x2="130" y2="190"/><text class="eje-t" x="130" y="205" text-anchor="middle">0 s</text>
+              <line class="eje" x1="230" y1="184" x2="230" y2="190"/><text class="eje-t" x="230" y="205" text-anchor="middle">1 s</text>
+              <line class="eje" x1="330" y1="184" x2="330" y2="190"/><text class="eje-t" x="330" y="205" text-anchor="middle">2 s</text>
+              <line class="eje" x1="430" y1="184" x2="430" y2="190"/><text class="eje-t" x="430" y="205" text-anchor="middle">3 s</text>
+              <line class="eje" x1="530" y1="184" x2="530" y2="190"/><text class="eje-t" x="530" y="205" text-anchor="middle">4 s</text>
+              <line class="eje" x1="630" y1="184" x2="630" y2="190"/><text class="eje-t" x="630" y="205" text-anchor="middle">5 s</text>
+              <line class="eje" x1="730" y1="184" x2="730" y2="190"/><text class="eje-t" x="730" y="205" text-anchor="middle">6 s</text>
+            </g>
+            <text class="nota" x="730" y="223" text-anchor="end">tiempo de juego</text>
+
+            <g data-capa="a">
+              <rect class="r-espera" x="132" y="47" width="146" height="24" rx="5"/><text class="t-espera" x="205" y="63" text-anchor="middle">await recoger</text>
+              <rect class="r-espera" x="282" y="47" width="146" height="24" rx="5"/><text class="t-espera" x="355" y="63" text-anchor="middle">await entregar</text>
+              <rect class="r-espera" x="432" y="47" width="146" height="24" rx="5"/><text class="t-espera" x="505" y="63" text-anchor="middle">await recoger</text>
+              <rect class="r-espera" x="582" y="47" width="146" height="24" rx="5"/><text class="t-espera" x="655" y="63" text-anchor="middle">await entregar</text>
+              <circle class="p-ok" cx="280" cy="59" r="4"/><text class="t-str" x="280" y="39" text-anchor="middle">"ok"</text>
+              <circle class="p-ok" cx="430" cy="59" r="4"/><text class="t-str" x="430" y="39" text-anchor="middle">"ok"</text>
+              <circle class="p-ok" cx="580" cy="59" r="4"/><text class="t-str" x="580" y="39" text-anchor="middle">"ok"</text>
+              <circle class="p-ok" cx="730" cy="59" r="4"/><text class="t-str" x="730" y="39" text-anchor="middle">"ok"</text>
+
+              <rect class="r-camina" x="132" y="116" width="96" height="26" rx="5"/><text class="t-camina" x="180" y="133" text-anchor="middle">camina a ENT-1</text>
+              <rect class="r-opera" x="230" y="116" width="48" height="26" rx="5"/><text class="t-opera" x="254" y="133" text-anchor="middle">carga</text>
+              <rect class="r-camina" x="282" y="116" width="96" height="26" rx="5"/><text class="t-camina" x="330" y="133" text-anchor="middle">camina a FUN</text>
+              <rect class="r-opera" x="380" y="116" width="48" height="26" rx="5"/><text class="t-opera" x="404" y="133" text-anchor="middle">deja</text>
+              <rect class="r-camina" x="432" y="116" width="96" height="26" rx="5"/><text class="t-camina" x="480" y="133" text-anchor="middle">camina a ENT-1</text>
+              <rect class="r-opera" x="530" y="116" width="48" height="26" rx="5"/><text class="t-opera" x="554" y="133" text-anchor="middle">carga</text>
+              <rect class="r-camina" x="582" y="116" width="96" height="26" rx="5"/><text class="t-camina" x="630" y="133" text-anchor="middle">camina a FUN</text>
+              <rect class="r-opera" x="680" y="116" width="48" height="26" rx="5"/><text class="t-opera" x="704" y="133" text-anchor="middle">deja</text>
+              <text class="nota" x="180" y="162" text-anchor="middle">1 s</text>
+              <text class="nota" x="254" y="162" text-anchor="middle">0,5 s</text>
+            </g>
+
+            <g data-capa="b" hidden>
+              <rect class="r-neutro" x="132" y="33" width="150" height="20" rx="5"/><text class="t-mono" x="141" y="47">línea 2 · recoger</text>
+              <rect class="r-mal" x="132" y="59" width="150" height="20" rx="5"/><text class="t-mono" x="141" y="73">línea 3 · entregar</text>
+              <text class="t-mal" x="300" y="55">✕ Falta await en la línea 2</text>
+              <text class="nota" x="300" y="73">R1 seguía con recoger cuando llegó la orden de la línea 3</text>
+              <rect class="r-camina" x="132" y="116" width="10" height="26" rx="3"/>
+              <text class="nota" x="154" y="133">R1 no llega a moverse: el intento termina con error en t = 0</text>
+            </g>
+          </svg>
+        </div>
+        <p class="pie" data-capa="a">Cada encargo dura 1 s de caminata y 0,5 s de carga o descarga. Tu programa pasa casi todo el tiempo detenido en un <span class="aw">await</span> mientras R1 trabaja, y así debe ser.</p>
+        <p class="pie" data-capa="b" hidden>Sin <code>await</code>, la línea 3 llega cuando R1 todavía va camino a ENT-1. El juego lo para con: «Falta await en la línea 2: R1 seguía con recoger("ENT-1", "cobre") cuando llegó la orden de la línea 3.»</p>
+      </figure>
+    </div>
+
+    <div class="prota">
+      <div class="prota-cab">
+        <svg class="icono w" viewBox="0 0 112 56" aria-hidden="true">
+          <path d="M4 50h46"/>
+          <rect class="relleno" x="12" y="34" width="28" height="16" rx="3"/>
+          <path d="M26 38L46 20" stroke-width="4"/>
+          <circle class="relleno" cx="88" cy="32" r="18"/>
+          <path d="M88 32V17"/>
+          <circle cx="75" cy="19" r="1.6"/><circle cx="88" cy="12" r="1.6"/><circle cx="101" cy="19" r="1.6"/>
+        </svg>
+        <div class="prota-texto">
+          <h3>War · LAU-01 cambia de modo</h3>
+          <p>LAU-01 no se mueve. Tiene un modo (quieto, normal o ráfaga) y un lugar al que apunta. <code>regularShoot(pos)</code> lo pone en modo normal hacia <code>pos</code>, y desde ahí dispara 1 misil por segundo él solo hasta que le des otra orden. La orden vuelve al instante y la siguiente reemplaza a la anterior.</p>
+          <p><code>autoTarget</code> también es instantáneo: mira con un sensor y devuelve dónde estará el enemigo, o <code>null</code> si no ve ninguno. Lo único que deja correr el reloj es <span class="aw">await</span> <code>esperar(0.5)</code>. Es un juego de reacción: los enemigos avanzan y tú eliges cada cuánto vuelves a mirar.</p>
+          <p class="analogia">Se parece a un termostato: lo ajustas, trabaja solo y lo revisas cada tanto. En Scratch es «iniciar sonido»: arranca y el programa sigue.</p>
+        </div>
+      </div>
+
+      <figure class="lamina w" data-fig style="margin:0">
+        <div class="conmutador" role="group" aria-label="Variante de la línea de tiempo de War">
+          <button type="button" id="wx-a" data-variante="a" aria-pressed="true">Con bucle y espera</button>
+          <button type="button" id="wx-b" data-variante="b" aria-pressed="false">Sin bucle</button>
+          <button type="button" id="wx-c" data-variante="c" aria-pressed="false">Sin espera</button>
+        </div>
+        <div class="desliza">
+          <svg viewBox="0 0 760 262" role="img" aria-label="Línea de tiempo de War: tu programa, LAU-01 y la antigüedad de pos durante 3 segundos de juego">
+            <g>
+              <line class="rejilla" x1="130" y1="26" x2="130" y2="226"/><line class="rejilla" x1="230" y1="26" x2="230" y2="226"/><line class="rejilla" x1="330" y1="26" x2="330" y2="226"/><line class="rejilla" x1="430" y1="26" x2="430" y2="226"/><line class="rejilla" x1="530" y1="26" x2="530" y2="226"/><line class="rejilla" x1="630" y1="26" x2="630" y2="226"/><line class="rejilla" x1="730" y1="26" x2="730" y2="226"/>
+            </g>
+            <text class="et" x="16" y="62">Tu programa</text>
+            <text class="et" x="16" y="130">LAU-01</text>
+            <text class="et" x="16" y="188">Antigüedad</text>
+            <text class="et" x="16" y="203">de pos</text>
+            <line class="l-tope" x1="130" y1="166" x2="730" y2="166"/>
+            <line class="rejilla" x1="130" y1="214" x2="730" y2="214"/>
+            <text class="eje-t" x="122" y="169" text-anchor="end">3 s</text>
+            <text class="eje-t" x="122" y="217" text-anchor="end">0 s</text>
+            <line class="eje" x1="130" y1="226" x2="730" y2="226"/>
+            <g>
+              <line class="eje" x1="130" y1="226" x2="130" y2="232"/><text class="eje-t" x="130" y="246" text-anchor="middle">0 s</text>
+              <line class="eje" x1="230" y1="226" x2="230" y2="232"/><text class="eje-t" x="230" y="246" text-anchor="middle">0,5</text>
+              <line class="eje" x1="330" y1="226" x2="330" y2="232"/><text class="eje-t" x="330" y="246" text-anchor="middle">1 s</text>
+              <line class="eje" x1="430" y1="226" x2="430" y2="232"/><text class="eje-t" x="430" y="246" text-anchor="middle">1,5</text>
+              <line class="eje" x1="530" y1="226" x2="530" y2="232"/><text class="eje-t" x="530" y="246" text-anchor="middle">2 s</text>
+              <line class="eje" x1="630" y1="226" x2="630" y2="232"/><text class="eje-t" x="630" y="246" text-anchor="middle">2,5</text>
+              <line class="eje" x1="730" y1="226" x2="730" y2="232"/><text class="eje-t" x="730" y="246" text-anchor="middle">3 s</text>
+            </g>
+            <text class="nota" x="730" y="260" text-anchor="end">tiempo de juego</text>
+
+            <g data-capa="a">
+              <text class="nota-war" x="130" y="36">mira y ordena: 0 s de juego</text>
+              <rect class="r-war" x="128" y="44" width="5" height="28" rx="1"/><rect class="r-espera" x="137" y="46" width="88" height="24" rx="5"/><text class="t-espera" x="181" y="62" text-anchor="middle">esperar(0.5)</text>
+              <rect class="r-war" x="228" y="44" width="5" height="28" rx="1"/><rect class="r-espera" x="237" y="46" width="88" height="24" rx="5"/><text class="t-espera" x="281" y="62" text-anchor="middle">esperar(0.5)</text>
+              <rect class="r-war" x="328" y="44" width="5" height="28" rx="1"/><rect class="r-espera" x="337" y="46" width="88" height="24" rx="5"/><text class="t-espera" x="381" y="62" text-anchor="middle">esperar(0.5)</text>
+              <rect class="r-war" x="428" y="44" width="5" height="28" rx="1"/><rect class="r-espera" x="437" y="46" width="88" height="24" rx="5"/><text class="t-espera" x="481" y="62" text-anchor="middle">esperar(0.5)</text>
+              <rect class="r-war" x="528" y="44" width="5" height="28" rx="1"/><rect class="r-espera" x="537" y="46" width="88" height="24" rx="5"/><text class="t-espera" x="581" y="62" text-anchor="middle">esperar(0.5)</text>
+              <rect class="r-war" x="628" y="44" width="5" height="28" rx="1"/><rect class="r-espera" x="637" y="46" width="88" height="24" rx="5"/><text class="t-espera" x="681" y="62" text-anchor="middle">esperar(0.5)</text>
+
+              <text class="nota" x="130" y="104">modo normal: dispara solo, 1 misil por segundo, a la última pos que recibió</text>
+              <rect class="r-banda" x="130" y="112" width="600" height="28" rx="5"/>
+              <line class="marca-war" x1="230" y1="112" x2="230" y2="140"/><line class="marca-war" x1="330" y1="112" x2="330" y2="140"/><line class="marca-war" x1="430" y1="112" x2="430" y2="140"/><line class="marca-war" x1="530" y1="112" x2="530" y2="140"/><line class="marca-war" x1="630" y1="112" x2="630" y2="140"/>
+              <circle class="p-misil" cx="140" cy="126" r="6"/><text class="t-misil" x="151" y="130">misil</text>
+              <circle class="p-misil" cx="340" cy="126" r="6"/><text class="t-misil" x="351" y="130">misil</text>
+              <circle class="p-misil" cx="540" cy="126" r="6"/><text class="t-misil" x="551" y="130">misil</text>
+
+              <polyline class="l-pos" points="130,214 230,206 230,214 330,206 330,214 430,206 430,214 530,206 530,214 630,206 630,214 730,206"/>
+              <text class="nota" x="236" y="198">nunca pasa de 0,5 s</text>
+            </g>
+
+            <g data-capa="b" hidden>
+              <rect class="r-war" x="128" y="44" width="5" height="28" rx="1"/>
+              <text class="nota" x="142" y="62">mira y ordena una sola vez; después el programa termina</text>
+              <text class="nota" x="130" y="104">sigue disparando a la pos de t = 0, aunque la oruga ya se movió</text>
+              <rect class="r-banda" x="130" y="112" width="600" height="28" rx="5"/>
+              <circle class="p-misil" cx="140" cy="126" r="6"/><text class="t-misil" x="151" y="130">misil</text>
+              <circle class="p-misil" cx="340" cy="126" r="6"/><text class="t-misil" x="351" y="130">misil</text>
+              <circle class="p-misil" cx="540" cy="126" r="6"/><text class="t-misil" x="551" y="130">misil</text>
+              <polyline class="l-pos" points="130,214 730,166"/>
+              <text class="nota" x="726" y="158" text-anchor="end">a los 3 s, pos ya es vieja</text>
+            </g>
+
+            <g data-capa="c" hidden>
+              <line class="l-mal" x1="130" y1="44" x2="130" y2="72"/><line class="l-mal" x1="132" y1="44" x2="132" y2="72"/><line class="l-mal" x1="134" y1="44" x2="134" y2="72"/><line class="l-mal" x1="136" y1="44" x2="136" y2="72"/><line class="l-mal" x1="138" y1="44" x2="138" y2="72"/><line class="l-mal" x1="140" y1="44" x2="140" y2="72"/>
+              <text class="t-mal" x="152" y="56">✕ 4000 órdenes y lecturas sin esperar</text>
+              <text class="nota" x="152" y="73">todas en t = 0; el juego corta el intento</text>
+              <text class="nota" x="130" y="130">el reloj no avanza, así que no sale ningún misil</text>
+              <circle class="p-pos" cx="130" cy="214" r="3.5"/>
+              <text class="nota" x="142" y="209">el reloj se queda en 0</text>
+            </g>
+          </svg>
+        </div>
+        <p class="pie" data-capa="a">Tu programa trabaja en instantes que no gastan tiempo, cada 0,5 s. Entre medio, el lanzador dispara solo hacia la última posición que recibió. La foto que guarda <code>pos</code> nunca tiene más de medio segundo.</p>
+        <p class="pie" data-capa="b" hidden>Así empieza el reto «Primer blanco»: sin bucle, el programa mira una vez y termina. El lanzador sigue disparando al mismo lugar. Es la primera lección de War: <code>autoTarget</code> mira solo en el instante en que lo llamas.</p>
+        <p class="pie" data-capa="c" hidden>Sin <code>esperar</code>, el bucle gira miles de veces en el mismo instante y el reloj no puede avanzar. El juego corta: «El programa de LAU-01 dio 4000 órdenes y lecturas sin esperar. ¿Falta await esperar(...) dentro del bucle?»</p>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="cabeza">
+      <p class="ceja">El centro del asunto</p>
+      <h2>Las discrepancias, mecánica por mecánica</h2>
+      <p class="lead">Doce diferencias, agrupadas. La última columna dice si la campaña necesita una regla común o si puede variar de un reto a otro sin confundir al jugador, y qué regla del reglamento la resuelve.</p>
+    </div>
+    <div class="chips-leyenda">
+      <span class="chip comun">Regla común</span><span>las dos versiones chocarían en el mismo mapa</span>
+      <span class="chip varia">Puede variar</span><span>es diseño de cada reto, con una semántica compartida</span>
+    </div>
+
+    <div class="tabla">
+      <div class="fila cab"><span>Mecánica</span><span class="cf">Factory hoy</span><span class="cw">War hoy</span><span class="cc">Campaña</span></div>
+
+      <p class="grupo-t">Órdenes y tiempo</p>
+      <div class="fila">
+        <span class="nombre">Qué es una orden</span>
+        <span><span class="lbl f">Factory</span>Un encargo. R1 camina, hace algo y termina. Mientras trabaja no acepta otro.</span>
+        <span><span class="lbl w">War</span>Un modo. El lanzador sigue solo hasta nueva orden; la siguiente reemplaza a la anterior.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R1</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Cuándo pasa el tiempo</span>
+        <span><span class="lbl f">Factory</span>Durante cada encargo y en <code>yo.esperar</code>. El ritmo lo marcan tus viajes.</span>
+        <span><span class="lbl w">War</span>Solo en <code>esperar(s)</code>. Tú decides cada cuánto vuelves a mirar.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R2</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Qué devuelve una orden</span>
+        <span><span class="lbl f">Factory</span>Cómo terminó el encargo, al final: <code>"ok"</code>, <code>"viaje_vacio"</code>, <code>"rechazado"</code>, <code>"derrame"</code>…</span>
+        <span><span class="lbl w">War</span>Si la orden se pudo dar, al instante: <code>"ok"</code>, <code>"sin_misiles"</code>, <code>"atascado"</code>. Si el misil acertó, lo ves después en el mapa.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R3</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Si te equivocas con await</span>
+        <span><span class="lbl f">Factory</span>Si falta, error: «Falta await en la línea 2: R1 seguía con recoger…».</span>
+        <span><span class="lbl w">War</span>Si falta <code>esperar</code>, error tras 4000 órdenes. Si sobra (<code>await regularShoot(pos)</code>), funciona igual y nadie avisa.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R2</span></span></span>
+      </div>
+
+      <p class="grupo-t">Información</p>
+      <div class="fila">
+        <span class="nombre">Cómo se mira el mundo</span>
+        <span><span class="lbl f">Factory</span><code>yo.cuantos(lugar, material)</code>: exacto, de cualquier edificio y a cualquier distancia. Siempre devuelve un número y lleva <code>await</code>.</span>
+        <span><span class="lbl w">War</span>Sensores con alcance y niebla. El térmico no ve drones fríos; la vibración solo oye el suelo. <code>autoTarget</code> puede devolver <code>null</code>. Sin <code>await</code>.</span>
+        <span class="ver"><span class="chip varia">Varía <span class="r">R4</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">El dato envejece</span>
+        <span><span class="lbl f">Factory</span>Casi nunca importa: mientras R1 camina, el mapa cambia poco.</span>
+        <span><span class="lbl w">War</span>Es la lección del primer reto: <code>pos</code> es una foto y el enemigo sigue avanzando.</span>
+        <span class="ver"><span class="chip varia">Varía</span></span>
+      </div>
+
+      <p class="grupo-t">La partida</p>
+      <div class="fila">
+        <span class="nombre">Cuándo se gana<small>el choque más grande</small></span>
+        <span><span class="lbl f">Factory</span>Cuando tu programa termina con las metas cumplidas. Un <code>while (true)</code> nunca gana: a los 300 s el juego corta con «¿Hay un bucle que nunca termina?».</span>
+        <span><span class="lbl w">War</span>Cuando no quedan enemigos, aunque el programa siga. <code>while (true)</code> es la forma normal.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R5</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Si el programa termina</span>
+        <span><span class="lbl f">Factory</span>R1 se queda quieto y se evalúa el reto.</span>
+        <span><span class="lbl w">War</span>El lanzador conserva su último modo y sigue disparando al mismo lugar.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R5</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Azar y riesgo</span>
+        <span><span class="lbl f">Factory</span>No hay azar en las reglas. Cambia el escenario: el cobre tapado varía en cada intento.</span>
+        <span><span class="lbl w">War</span><code>failureRate</code> con semilla: la ráfaga dispara más y se atasca más; reparar tarda más si falló con <code>failureRate</code> alto.</span>
+        <span class="ver"><span class="chip varia">Varía <span class="r">R6</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Recursos</span>
+        <span><span class="lbl f">Factory</span>R1 lleva 1 unidad. Las máquinas tienen un hueco de entrada y tiempo de proceso; con el hueco lleno, lo entregado se derrama.</span>
+        <span><span class="lbl w">War</span>Cargador de 8 misiles; el depósito DEP-01 repone 1 por segundo, solo. ₵10 por misil y ₵40 por reparación.</span>
+        <span class="ver"><span class="chip varia">Varía</span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Qué número se mejora</span>
+        <span><span class="lbl f">Factory</span>Tiempo de juego, contra tu récord.</span>
+        <span><span class="lbl w">War</span>Coste por derribo.</span>
+        <span class="ver"><span class="chip varia">Varía</span></span>
+      </div>
+
+      <p class="grupo-t">Programas y nombres</p>
+      <div class="fila">
+        <span class="nombre">Cuántos programas y quién manda a quién</span>
+        <span><span class="lbl f">Factory</span>Un robot, un programa. Los edificios solo se leen.</span>
+        <span><span class="lbl w">War</span>Un programa por lanzador. Se lee cualquier máquina (<code>LAU_02.jammed</code>) y se ordena solo a la propia. El reparador y el depósito van solos.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R7</span></span></span>
+      </div>
+      <div class="fila">
+        <span class="nombre">Cómo se nombran las cosas</span>
+        <span><span class="lbl f">Factory</span><code>yo.</code> obligatorio. Lugares como texto con guion: <code>"ENT-1"</code>. Verbos en español.</span>
+        <span><span class="lbl w">War</span>Lo propio sin prefijo (<code>yo.</code> es opcional). Otras máquinas como variables con guion bajo: <code>LAU_02</code>. Lugares como posiciones <code>{x, y, z}</code>. Nombres en inglés, salvo <code>esperar</code>.</span>
+        <span class="ver"><span class="chip comun">Común <span class="r">R8</span></span></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cabeza">
+      <p class="ceja">De la ficción a la regla</p>
+      <h2>Cómo llegó cada modelo a su versión</h2>
+      <p class="lead">Es una reconstrucción desde el código: retos, pistas, mensajes de error y comentarios. No hay registro de lo que pensaron. Lo que sí se ve es que nadie fijó un reglamento común, y cada uno resolvió bien su propio juego.</p>
+    </div>
+    <div class="dos">
+      <article class="mente">
+        <p class="ceja f">Factory</p>
+        <h3>JavaScript como guion para un actor</h3>
+        <ol class="cadena">
+          <li><b>Protagonista</b>Un robot con cuerpo que camina y carga de a una unidad.</li>
+          <li><b>Juego</b>Logística: planificar viajes, no derramar, ganarle al reloj.</li>
+          <li><b>Verbo</b>Un encargo con resultado. Para saber si salió <code>"ok"</code> o <code>"derrame"</code> hay que esperar a que termine.</li>
+          <li><b>Final</b>El reto termina cuando termina el plan. La solución ideal es un programa exacto: repetir 3 veces, ni una más.</li>
+          <li><b>JavaScript</b><code>await</code> en cada encargo, como <code>await fetch(url)</code> en la web: pides y esperas la respuesta. Además partió de bloques tipo Scratch, donde cada bloque termina antes del siguiente, y el JS se genera a partir de ellos.</li>
+        </ol>
+      </article>
+      <article class="mente w">
+        <p class="ceja w">War</p>
+        <h3>JavaScript como firmware de una máquina</h3>
+        <ol class="cadena">
+          <li><b>Protagonista</b>Una máquina fija con modos y medidores: <code>failureRate</code>, <code>missiles</code>, <code>jammed</code>.</li>
+          <li><b>Juego</b>Reacción en tiempo real: enemigos que avanzan, sensores con límites, riesgo de atasco.</li>
+          <li><b>Verbo</b>Un ajuste. La máquina sigue sola; lo que importa es corregirla a tiempo.</li>
+          <li><b>Final</b>El reto termina cuando termina la oleada. El programa no necesita terminar nunca.</li>
+          <li><b>JavaScript</b>El bucle de control de robots y videojuegos: mirar, decidir, ajustar, esperar un instante. Un solo <code>await</code> por vuelta. Partió del texto: sus programas de partida son líneas de JS.</li>
+        </ol>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="cabeza">
+      <p class="ceja">Propuesta</p>
+      <h2>Un reglamento para la campaña</h2>
+      <p class="lead">Ocho reglas. Casi todas ya se cumplen en uno de los dos juegos; cada tarjeta dice qué cambiaría en el otro. War es el prototipo canónico, así que, donde los dos difieren sin una razón de juego, la propuesta se inclina por War.</p>
+    </div>
+
+    <div class="reglas">
+      <article class="regla ancha">
+        <span class="id">R1</span>
+        <h3>Tres clases de órdenes</h3>
+        <p>Lo que se mueve hace encargos. Lo que está fijo tiene modos. Todo se puede leer. La clase de cada orden se ve en la paleta y en el inspector, con el mismo color en los dos juegos.</p>
+        <div class="clases">
+          <div class="clase">
+            <h4>Encargos <span class="dur larga">duran · await</span></h4>
+            <span>Ocupan a quien los hace y devuelven cómo terminaron. Dar otro mientras tanto es un error.</span>
+            <div class="ej"><code>recoger</code><code>entregar</code><code>esperar</code><code class="com">reparar</code></div>
+          </div>
+          <div class="clase">
+            <h4>Modos <span class="dur cero">0 s · sin await</span></h4>
+            <span>La máquina sigue sola. La orden siguiente reemplaza a la anterior. Devuelven si se pudieron aplicar.</span>
+            <div class="ej"><code>regularShoot</code><code>burstFire</code><code>stopFire</code></div>
+          </div>
+          <div class="clase">
+            <h4>Lecturas <span class="dur cero">0 s · sin await</span></h4>
+            <span>Una foto del momento. No cambian nada y pueden quedar viejas.</span>
+            <div class="ej"><code>autoTarget</code><code>detect</code><code>failureRate</code><code>cuantos</code></div>
+          </div>
+        </div>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd><code>recoger</code>, <code>entregar</code> y <code>esperar</code> ya son encargos. <code>yo.cuantos</code> pasa a ser lectura.</dd>
+          <dt class="w">War</dt><dd>Ya cumple. El reparador y el depósito serían las primeras máquinas en recibir encargos (<code class="com">reparar</code> es una propuesta).</dd>
+        </dl>
+      </article>
+
+      <article class="regla ancha clave">
+        <span class="id">R2</span>
+        <h3><span class="aw">await</span> va en las líneas donde pasa tiempo de juego</h3>
+        <p>Mientras tu programa no está en un <code>await</code>, el mundo está quieto. Con esta regla el jugador deduce dónde va <code>await</code> en vez de memorizar una lista, y la regla es la misma en la fábrica y en el frente.</p>
+        <pre class="bloque"><span class="com">// Factory hoy: el sensor no gasta tiempo, pero lleva await</span>
+<span class="kw">while</span> (<span class="aw">await</span> <span class="obj">yo</span>.<span class="fn">cuantos</span>(<span class="str">"ENT-1"</span>, <span class="str">"cobre"</span>) &gt; <span class="num">0</span>) { … }
+
+<span class="com">// Con la regla: lectura sin await, como autoTarget en War</span>
+<span class="kw">while</span> (<span class="obj">yo</span>.<span class="fn">cuantos</span>(<span class="str">"ENT-1"</span>, <span class="str">"cobre"</span>) &gt; <span class="num">0</span>) { … }</pre>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd>Se cumple salvo en <code>yo.cuantos</code>. Los programas guardados siguen funcionando: en JavaScript, <code>await</code> delante de un número no rompe nada, solo sobra.</dd>
+          <dt class="w">War</dt><dd>Ya se cumple. Falta un aviso suave cuando sobra, por ejemplo «regularShoot no gasta tiempo; este await sobra», para que el jugador no concluya que <code>await</code> es decorativo.</dd>
+        </dl>
+      </article>
+
+      <article class="regla">
+        <span class="id">R3</span>
+        <h3>Un encargo dice cómo terminó; un modo dice si arrancó</h3>
+        <p>Mismo vocabulario en los dos: <code>"ok"</code> o un motivo en español con guion bajo, como ya hacen. El inspector lista los resultados posibles de cada orden.</p>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd>Ya cumple.</dd>
+          <dt class="w">War</dt><dd>Ya cumple. Conviene decir en pantalla que el <code>"ok"</code> de <code>regularShoot</code> significa «apuntando», no «acertó».</dd>
+        </dl>
+      </article>
+
+      <article class="regla">
+        <span class="id">R4</span>
+        <h3><code>null</code> es «no lo veo»; <code>0</code> es «lo veo y no hay»</h3>
+        <p>Las lecturas pueden tener alcance. Las primeras misiones usan lecturas perfectas, como Factory. Después llegan el alcance, la niebla y los puntos ciegos, como War.</p>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd><code>yo.cuantos</code> siempre ve. Con sensores en el mapa podría devolver <code>null</code> fuera de alcance.</dd>
+          <dt class="w">War</dt><dd>Ya cumple con <code>autoTarget</code> y <code>detect</code>.</dd>
+        </dl>
+      </article>
+
+      <article class="regla">
+        <span class="id">R5</span>
+        <h3>El final lo decide el mundo</h3>
+        <p>Un reto termina cuando sus metas se cumplen o se rompen, siga o no el programa. Si el programa termina antes, los robots se quedan quietos y las máquinas conservan su último modo. Así <code>while (true)</code> vale en los dos.</p>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd>Hoy gana solo si el programa termina, para que un <code>for</code> demasiado largo pague sus viajes de más. Ese castigo se conserva con una meta explícita «el programa termina» en los retos que la necesiten.</dd>
+          <dt class="w">War</dt><dd>Ya cumple.</dd>
+        </dl>
+      </article>
+
+      <article class="regla">
+        <span class="id">R6</span>
+        <h3>El azar va con semilla y se lee como propiedad</h3>
+        <p>Si una máquina puede fallar, su riesgo es un número que el programa puede leer, como <code>failureRate</code>, y la misma semilla repite el mismo resultado.</p>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd>Hoy no tiene azar. Si lo gana (una fundidora rápida que se atasca), sigue este molde.</dd>
+          <dt class="w">War</dt><dd>Ya cumple.</dd>
+        </dl>
+      </article>
+
+      <article class="regla">
+        <span class="id">R7</span>
+        <h3>Cada máquina programable tiene su programa</h3>
+        <p>Se lee todo; se ordena solo lo propio. El encargo de un robot no detiene a los demás, y el reloj avanza cuando todos los programas están en un <code>await</code>.</p>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd>Hoy hay un solo robot. Con varios, cada uno lleva su programa.</dd>
+          <dt class="w">War</dt><dd>Ya cumple con dos lanzadores.</dd>
+        </dl>
+      </article>
+
+      <article class="regla">
+        <span class="id">R8</span>
+        <h3>Un nombre por cosa, escrito igual que en el mapa</h3>
+        <p>Lo propio, sin prefijo o con <code>yo.</code>. Lo ajeno, por su nombre. Hoy el mapa dice <code>LAU-01</code> y el código <code>LAU_01</code>, y en Factory los lugares son texto. Propuesta: cada cosa del mapa es una variable con el nombre que muestra el mapa, y sirve para leer (<code>LAU_01.missiles</code>) y como destino (<code>yo.entregar(LAU_01)</code>). El texto se sigue aceptando por compatibilidad.</p>
+        <dl class="cambios">
+          <dt class="f">Factory</dt><dd>Aceptar órdenes sin <code>yo.</code> y destinos como variables.</dd>
+          <dt class="w">War</dt><dd>Mostrar en el mapa el mismo nombre que se escribe.</dd>
+        </dl>
+      </article>
+    </div>
+
+    <div class="decisiones">
+      <h3>Decisiones que te tocan a ti</h3>
+      <ul>
+        <li><b>Idioma de la API.</b> Factory habla español; War, inglés con <code>esperar</code>. Hace falta uno solo. Me inclino por inglés: encaja con las palabras de JavaScript (<code>while</code>, <code>if</code>, <code>const</code>) y con War, y el seudocódigo ES/EN ya existe en los dos para quien lo prefiera en español. A favor del español: el primer contacto de un principiante es más amable.</li>
+        <li><b>Nombres como variables o como texto</b> (R8). Las variables unifican leer y ordenar; el texto es más simple para la primera misión.</li>
+        <li><b>Cuándo llega la percepción limitada</b> (R4): desde el principio o como progresión.</li>
+        <li><b>Si Factory tendrá riesgo y azar</b> (R6), o si eso queda para el frente.</li>
+        <li><b>Qué número se mejora en un reto mixto</b>: tiempo, coste o los dos.</li>
+        <li><b>Si un cargador lleno se derrama</b> cuando un robot le entrega misiles, como la entrada de una fundidora.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="cabeza">
+      <p class="ceja">Las dos mecánicas en un mapa</p>
+      <h2>Un reto mixto con todas las reglas</h2>
+      <p class="lead">En War ya están las piezas de Factory, pero automáticas: el depósito DEP-01 repone misiles solo y el reparador acude solo a cada atasco. En la campaña, ese trabajo de apoyo puede pasar a manos del jugador.</p>
+    </div>
+    <div class="programas">
+      <div class="programa">
+        <p class="ceja f">R1 · robot de apoyo <span class="propuesta">propuesta: reparar, FAB y entregar a un lanzador no existen hoy</span></p>
+<pre class="bloque"><span class="com">// Encargos: cada línea gasta tiempo, lleva await</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="kw">if</span> (<span class="obj">LAU_01</span>.<span class="prop">jammed</span>) {
+    <span class="aw">await</span> <span class="fn">reparar</span>(<span class="obj">LAU_01</span>);
+  } <span class="kw">else if</span> (<span class="obj">LAU_01</span>.<span class="prop">missiles</span> &lt; <span class="num">3</span>) {
+    <span class="aw">await</span> <span class="fn">recoger</span>(<span class="obj">FAB</span>, <span class="str">"misil"</span>);
+    <span class="aw">await</span> <span class="fn">entregar</span>(<span class="obj">LAU_01</span>);
+  } <span class="kw">else</span> {
+    <span class="aw">await</span> <span class="fn">esperar</span>(<span class="num">1</span>);
+  }
+}</pre>
+      </div>
+      <div class="programa">
+        <p class="ceja w">LAU-01 · lanzador <span class="propuesta">igual que hoy en War</span></p>
+<pre class="bloque"><span class="com">// Modos y lecturas: instantáneos, sin await</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="kw">const</span> <span class="var">pos</span> = <span class="fn">autoTarget</span>(<span class="str">"drone"</span>, <span class="str">"visual"</span>)
+           ?? <span class="fn">autoTarget</span>(<span class="str">"crawler"</span>, <span class="str">"visual"</span>);
+  <span class="fn">regularShoot</span>(<span class="var">pos</span>);
+  <span class="aw">await</span> <span class="fn">esperar</span>(<span class="num">0.5</span>);
+}</pre>
+      </div>
+    </div>
+    <ul class="prueba">
+      <li><b>R1 y R2 a la vista.</b> El robot lleva <code>await</code> en cada línea porque camina; el lanzador solo en <code>esperar</code> porque está fijo. El jugador ve la regla funcionando en el mismo mapa, con dos protagonistas.</li>
+      <li><b>R7.</b> Dos programas y un solo reloj. R1 lee <code>LAU_01.missiles</code> sin poder darle órdenes al lanzador.</li>
+      <li><b>R5.</b> El reto termina cuando pasa la oleada, aunque los dos bucles sigan.</li>
+      <li><b>Recursos que se cruzan.</b> El cargador del lanzador funciona como el hueco de entrada de una fundidora, y el misil pasa a ser un material más.</li>
+    </ul>
+
+    <h3 style="margin-top:12px">Un orden posible para la campaña</h3>
+    <ol class="arco">
+      <li class="f"><b>Encargos</b><span class="modo">Factory</span><span>Secuencia y <code>await</code> de encargo. El jugador aprende que cada viaje dura.</span></li>
+      <li class="f"><b>Sensores</b><span class="modo">Factory</span><span><code>if</code> y <code>while</code> con lecturas sin <code>await</code>.</span></li>
+      <li class="w"><b>Vigilancia</b><span class="modo">War</span><span>Bucle, modos y <code>esperar</code>. La foto envejece.</span></li>
+      <li class="m"><b>Abastecer el frente</b><span class="modo">mixto</span><span>Un robot lleva misiles y repara; los lanzadores disparan.</span></li>
+      <li class="m"><b>Coordinación</b><span class="modo">mixto</span><span>Varias máquinas, cada una con su programa, leyendo a las otras.</span></li>
+    </ol>
+  </section>
+
+  <section class="detras">
+    <h2>Por detrás, en breve</h2>
+    <ul>
+      <li>Los dos juegos corren tu código en un Web Worker, un espacio aparte del resto de la página, y paran el reloj del juego mientras tu código piensa.</li>
+      <li>Factory le pregunta al juego en cada llamada y espera la respuesta. Por eso hasta el sensor, que no gasta tiempo, necesita <code>await</code>.</li>
+      <li>War recibe una foto del mundo cada vez que tu programa despierta. Por eso lee al instante y solo espera en <code>esperar</code>.</li>
+      <li>Para el reglamento, el esquema de War alcanza para los dos: un encargo es una espera cuya duración decide la simulación. Llevarlo a <code>shared/</code> permitiría robots y lanzadores en el mismo mapa, reproducibles con la misma semilla.</li>
+    </ul>
+    <p class="fuentes">Fuentes en el repositorio · Prototypes/Tres vistas/js/juego.js: retos 24–122, runtime 212–271, generador 319–324, órdenes 517–541, victoria 588–609, falta de await 650 · Prototypes/Rocket Launcher/js/juego.js: constantes 8–28, retos 82–170, runtime 220–359, lanzador 546–580, victoria 628–645, órdenes y reloj 744–796</p>
+    <p class="cierre">Nada de esto está implementado. Cambiar la API del jugador o las reglas de victoria pide una decisión explícita y documentarla, como indica AGENTS.md.</p>
+  </section>
+</div>
+
+<script>
+document.querySelectorAll("[data-fig]").forEach((fig) => {
+  const botones = fig.querySelectorAll("[data-variante]");
+  botones.forEach((b) => b.addEventListener("click", () => {
+    const v = b.dataset.variante;
+    botones.forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    fig.querySelectorAll("[data-capa]").forEach((el) => el.toggleAttribute("hidden", el.dataset.capa !== v));
+  }));
+});
+</script>
+
+</body></html>
