@@ -62,6 +62,9 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - La paleta y la barra de edición ocupan una línea cada una y se deslizan (con ratón, la rueda las mueve). En el teléfono la consola empieza cerrada: solo queda su asa.
 - Seudocódigo (botones JS/Seudo junto a la letra o Ajustes → Lenguaje del programa, en español o inglés): el mismo programa como frases con valores que se eligen, ladrillos que se tocan o arrastran y la barra de edición sobre el renglón elegido. Se guarda y ejecuta como JavaScript; lo que aún no tiene seudocódigo se queda en JavaScript con un aviso.
 - Mantener pulsado un atajo con la esquina marcada (o clic derecho) abre sus variantes: while/for/do…while/break, if/if-else/else if, operadores, `let`/asignación y niveles de `console`.
+- Ctrl+Alt+A activa o desactiva el modo sin teclado. Sin teclado, el clic derecho (o mantener el dedo 2 s, con un anillo que se llena) abre las alternativas del elemento: todas las funciones sobre una llamada, operadores de su familia, `const`/`let`, literales y los valores que encajan en su sitio.
+- Modo pantalla completa (tableta y teléfono): mantener 2 s el botón de cuatro esquinas. La batalla y el código ocupan cada uno la pantalla; `</>`, ▶ EJECUTAR y el botón del mapa saltan entre ellos. Explicación en Ajustes.
+- Bajo el editor, un panel arrastrable alterna entre Inspector (lo que el programa puede usar) y Consola.
 - Ajustes ofrece distribución automática o fija; posiciones del mapa independientes para izquierda/derecha y arriba/abajo, con vistas previas.
 - El divisor permite ocupar toda la pantalla con uno de los paneles y recuperar el otro mediante el asa.
 - Al escribir en móvil se prioriza la paleta. Las barras auxiliares se pliegan juntas; su botón flota con borde rojo. Las coordenadas manuales se activan en Ajustes.

@@ -279,11 +279,26 @@
     tip.hidden = false;
     const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
     let x = r.left + r.width / 2 - t.width / 2, y = r.top - t.height - 8;
-    if (y < 4) y = r.bottom + 8;
+    // Paleta y variantes: el nombre queda debajo de la paleta y del menú de variantes, sin taparlos.
+    const pal = el.closest(".paleta") || (el.closest(".variantes") && document.querySelector(".paleta:not([hidden])"));
+    if (pal) {
+      const v = document.querySelector(".variantes:not([hidden])");
+      const piso = Math.max(r.bottom, pal.getBoundingClientRect().bottom, v ? v.getBoundingClientRect().bottom : 0) + 8;
+      y = piso + t.height <= innerHeight - 4 ? piso : Math.max(4, Math.min(r.top, v ? v.getBoundingClientRect().top : r.top) - t.height - 8);
+      vigilarVariantes();
+    } else if (y < 4) y = r.bottom + 8;
     x = Math.max(6, Math.min(innerWidth - t.width - 6, x));
     tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   }
   function ocultarTip() { clearTimeout(tipT); tipDe = null; tip.hidden = true; }
+  // Si el menú de variantes se abre o se cierra con el nombre visible, el nombre se recoloca.
+  let vigiaVariantes = null;
+  function vigilarVariantes() {
+    const v = document.querySelector(".variantes");
+    if (!v || vigiaVariantes) return;
+    vigiaVariantes = new MutationObserver(() => { if (tipDe && !tip.hidden && tipDe.isConnected) mostrarTip(tipDe); });
+    vigiaVariantes.observe(v, { attributes: true, attributeFilter: ["hidden"] });
+  }
   document.addEventListener("pointerover", (ev) => {
     if (ev.pointerType === "touch") return;
     const el = ev.target.closest("[data-tip]");

@@ -2303,6 +2303,13 @@ onmessage = async (ev) => {
   window.cmg = {
     codigo: $codigo, insertar, envolver, alternarComentario, medirEditor, abrirPestana,
     prefijoUI: "cmg-banco02-ui-", lexico, clasificar, sugerencias, firma: f => FIRMAS[f] || null, reHueco: RE_HUECO,
+    funciones: () => [
+      { grupo: "Robot", objeto: "yo", nombre: "recoger", firma: FIRMAS.recoger, await: true, nota: "toma material de una bodega" },
+      { grupo: "Robot", objeto: "yo", nombre: "entregar", firma: FIRMAS.entregar, await: true, nota: "deja lo que lleva" },
+      { grupo: "Robot", objeto: "yo", nombre: "cuantos", firma: FIRMAS.cuantos, await: true, nota: "→ número" },
+      { grupo: "Robot", objeto: "yo", nombre: "esperar", firma: FIRMAS.esperar, await: true, nota: "pausa" },
+      ...[["log", "registro"], ["info", "información"], ["warn", "aviso"], ["error", "error"]].map(([n, nota]) => ({ grupo: "Consola", objeto: "console", nombre: n, firma: FIRMAS[n], nota })),
+    ],
     aviso, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
     get claveDocumento() { return `reto-${retoIdx}`; },
     // Los ids de pantalla se regeneran al cargar un reto; no forman parte del documento.

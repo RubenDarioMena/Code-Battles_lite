@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/componentes.css?v=14">
-<link rel="stylesheet" href="../../shared/css/edicion.css?v=3">
-<link rel="stylesheet" href="css/layout.css?v=13">
+<link rel="stylesheet" href="css/componentes.css?v=17">
+<link rel="stylesheet" href="../../shared/css/edicion.css?v=4">
+<link rel="stylesheet" href="css/layout.css?v=15">
 
 </head>
 <body>
@@ -27,6 +27,8 @@
         <span class="chev" aria-hidden="true">▾</span>
       </button>
       <a class="probar" id="b-probar" href="probar.html" title="Ver el juego en teléfono y en PC a la vez">⧉ Probar en dispositivos</a>
+      <button class="mini ver-codigo" id="b-ver-codigo" type="button" aria-label="Ver el código a pantalla completa" data-tip="Código a pantalla completa">&lt;/&gt;</button>
+      <button class="mini b-pantalla" id="b-pantalla" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
       <button class="mini ajustes-abrir" id="b-ajustes" type="button" aria-label="Ajustes" aria-haspopup="dialog" aria-controls="ajustes" title="Ajustes">⚙</button>
     </header>
 
@@ -103,6 +105,8 @@
     <div id="detalles-editor">
       <div class="barra-prog">
         <div class="progs" id="progs" aria-label="Programa de cada lanzador"></div>
+        <!-- Pantalla completa: ejecuta y pasa a la batalla -->
+        <button class="btn primario ejecutar-cod" id="b-ejecutar-cod" type="button">▶ EJECUTAR</button>
         <div class="herramientas">
           <span class="modos-codigo" role="group" aria-label="Vista del programa">
             <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
@@ -122,6 +126,10 @@
       </div>
     </div>
     </div>
+    <!-- Pantalla completa: flota bajo el botón de las herramientas cuando el código ocupa la esquina superior derecha -->
+    <button class="mini b-pantalla flotante" id="b-pantalla-cod" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+    <!-- Pantalla completa: vuelve directamente al mapa; flota bajo el botón de pantalla completa -->
+    <button class="mini ver-mapa flotante" id="b-ver-mapa" type="button" aria-label="Ver el mapa a pantalla completa" data-tip="Ver el mapa"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
 
     <section class="vista" id="v-programa" role="tabpanel" aria-labelledby="t-programa">
       <div class="paleta" id="paleta" role="toolbar" aria-label="Insertar en el código"></div>
@@ -152,9 +160,41 @@
           </div>
         </div>
         <div class="asas" id="asas" aria-hidden="true" hidden><div class="asas-in" id="asas-in"></div></div>
+        <!-- El objetivo del reto, a mano desde el código (en todos los modos) -->
+        <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Información del reto" data-tip="Información del reto"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg></button>
+        <div class="info-reto marco" id="info-reto" role="dialog" aria-labelledby="info-reto-titulo" hidden>
+          <!-- Tira de pestañas: se desliza con el dedo, la rueda o arrastrando; las flechas avisan de que hay más -->
+          <div class="info-cab">
+            <div class="tira" id="info-tira">
+              <button class="tira-flecha izq" type="button" tabindex="-1" aria-hidden="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6l-6 6 6 6"/></svg></button>
+              <div class="info-pestanas" id="info-pestanas" role="tablist" aria-label="Información del reto">
+              <button type="button" role="tab" id="info-t-objetivo" data-info="objetivo" aria-selected="true" aria-controls="info-cuerpo" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Objetivo</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-metas" data-info="metas" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.6 1.6L8.5 5"/><path d="M4 12.5l1.6 1.6 2.9-3.1"/><path d="M4.5 18h3.5"/><path d="M11 6.5h9M11 12.5h9M11 18h9"/></svg><span>Metas</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-enemigos" data-info="enemigos" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="9" width="13" height="7" rx="2"/><path d="M4 18.5h16"/><path d="M8.5 9V7.5M15.5 9V7.5"/><circle cx="9.5" cy="12.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="12.5" r=".9" fill="currentColor"/></svg><span>Enemigos</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-pista" data-info="pista" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.5h6M10 20.5h4"/><path d="M12 3.5a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V17h5.2v-.7c0-.8.4-1.5 1-2A6 6 0 0 0 12 3.5z"/></svg><span>Pista</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-intento" data-info="intento" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v3.8h3.8"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>Último intento</span><i class="estado" aria-hidden="true"></i></button>
+              </div>
+              <button class="tira-flecha der" type="button" tabindex="-1" aria-hidden="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button>
+            </div>
+            <button class="cerrar" id="info-reto-cerrar" type="button" aria-label="Cerrar">×</button>
+          </div>
+          <h3 id="info-reto-titulo"></h3>
+          <div class="info-cuerpo" id="info-cuerpo" role="tabpanel"></div>
+        </div>
       </div>
-      <div class="pie" id="pie" data-abierto="false">
-        <button class="pie-asa" id="b-pie" type="button" aria-expanded="false" aria-controls="pie">Consola <span aria-hidden="true">▴</span></button>
+      <!-- Panel inferior: inspector del programa (por defecto) o consola. Su barra se arrastra como el divisor. -->
+      <div class="pie" id="pie" data-abierto="true" data-modo="inspector">
+        <div class="pie-barra" id="pie-barra">
+          <span class="pie-modos" role="group" aria-label="Contenido del panel">
+            <button type="button" data-pie-modo="inspector" aria-pressed="true">Inspector</button>
+            <button type="button" data-pie-modo="consola" aria-pressed="false">Consola<i class="nuevo" aria-hidden="true"></i></button>
+          </span>
+          <span class="pie-agarre" id="pie-agarre" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="pie-cuerpo" aria-label="Alto del panel inferior: arrastra o usa las flechas"><span></span></span>
+          <button class="mini pie-asa" id="b-pie" type="button" aria-expanded="true" aria-controls="pie-cuerpo" aria-label="Cerrar el panel" data-tip="Cerrar el panel">▾</button>
+        </div>
+        <div class="pie-cuerpo" id="pie-cuerpo">
+        <div class="pie-ins" id="pie-ins" aria-label="Lo que el programa puede usar"></div>
+        <div class="pie-con" id="pie-con">
         <div class="consola" id="consola" aria-live="polite"><div class="vacia">Aquí aparecen los console.log / warn / error y lo que reportan las máquinas.</div></div>
         <details class="caja" id="caja-avisos">
           <summary>Cómo se muestra cada console</summary>
@@ -169,6 +209,8 @@
             <button class="link" id="b-copiar-prog" type="button">Copiar a los demás lanzadores</button>
             <button class="link" id="b-restaurar" type="button">Restaurar programa inicial</button>
           </span>
+        </div>
+        </div>
         </div>
       </div>
     </section>
@@ -289,6 +331,13 @@
     </div>
     <p class="nota" id="ajustes-posicion-nota">Ambas posiciones se guardan por separado. Automática usa la que corresponde al tamaño de la pantalla.</p>
     <label class="check"><input type="checkbox" id="ajustes-coordenadas"> Mostrar coordenadas manuales</label>
+    <label class="check"><input type="checkbox" id="ajustes-telemetria" checked> Enviar datos anónimos de uso (retos, intentos y su código) para mejorar el juego</label>
+    <div class="ajuste-pantalla" id="ajustes-pantalla">
+      <p>Modo pantalla completa <span class="estado" id="ajustes-pantalla-estado">inactivo</span></p>
+      <p class="nota">Para tabletas y teléfonos: salta de la batalla al código con un toque. Se activa y se desactiva manteniendo pulsado 2 segundos el botón de las cuatro esquinas.</p>
+      <label class="check"><input type="checkbox" id="ajustes-girar-campo" checked> Con la pantalla en vertical, girar el campo 90°</label>
+      <button class="btn chico" id="ajustes-pantalla-info" type="button" aria-haspopup="dialog" aria-controls="info-pantalla">¿Cómo funciona?</button>
+    </div>
     <p>Arrastra el divisor hasta un extremo para ver solo el mapa o solo el código. Arrástralo de vuelta para recuperar ambos.</p>
     <button class="btn chico" id="ajustes-reparto" type="button">Restaurar reparto de pantalla</button>
     <p class="nota">También puedes hacer doble clic en el divisor para restaurar el reparto.</p>
@@ -306,6 +355,23 @@
   <div class="fila-botones"><button class="btn chico" id="orden-restaurar" type="button">Restaurar el orden de fábrica</button></div>
 </dialog>
 
+<!-- Explicación del modo pantalla completa (se abre desde Ajustes o desde el aviso) -->
+<dialog id="info-pantalla" class="ajustes info-pantalla" aria-labelledby="info-pantalla-titulo">
+  <header class="hoja-cab">
+    <h2 id="info-pantalla-titulo">Modo pantalla completa</h2>
+    <button class="cerrar" id="info-pantalla-cerrar" type="button" aria-label="Cerrar" autofocus>×</button>
+  </header>
+  <p>Pensado para tabletas y teléfonos: la batalla y el código ocupan, cada uno, toda la pantalla, y se pasa de uno a otro con un toque.</p>
+  <ul class="info-lista">
+    <li><b>Activar o desactivar:</b> mantén pulsado 2 segundos el botón de las cuatro esquinas, arriba a la derecha. El círculo se llena mientras mantienes el dedo. Con el modo activo, el icono brilla en blanco.</li>
+    <li><b>De la batalla al código:</b> el botón <code>&lt;/&gt;</code>, junto a Ajustes, pone el editor a pantalla completa.</li>
+    <li><b>Del código a la batalla:</b> <b>▶ EJECUTAR</b>, en lugar de las pestañas de programas, corre el código, muestra la batalla y cierra el inspector si estaba abierto. El botón del mapa, que flota bajo el de pantalla completa, vuelve a la batalla sin ejecutar.</li>
+    <li><b>Campo girado:</b> con la pantalla en vertical, la batalla se gira 90° para aprovechar el alto: la base queda abajo y los enemigos llegan desde arriba. Al girar el teléfono a horizontal vuelve la vista normal. Cada postura recuerda dónde dejaste la cámara. Se desactiva en Ajustes.</li>
+    <li><b>El divisor sigue funcionando:</b> arrástralo para ver ambos paneles; los botones vuelven a llevarte a pantalla completa mientras el modo siga activo.</li>
+  </ul>
+  <p class="nota">El botón solo aparece en pantallas de tableta o teléfono.</p>
+</dialog>
+
 <dialog id="confirmar-replace" aria-labelledby="replace-titulo" aria-describedby="replace-texto">
   <form method="dialog">
     <h2 id="replace-titulo">¿Sustituir los programas?</h2>
@@ -321,10 +387,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
 <script src="../../shared/js/iconos.js?v=3" charset="utf-8"></script>
-<script src="js/juego.js?v=14" charset="utf-8"></script>
-<script src="js/layout.js?v=9" charset="utf-8"></script>
+<script src="js/juego.js?v=18" charset="utf-8"></script>
+<script src="js/layout.js?v=12" charset="utf-8"></script>
+<script src="js/remota.js?v=1" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=3" charset="utf-8"></script>
-<script src="../../shared/js/edicion.js?v=16" charset="utf-8"></script>
+<script src="../../shared/js/edicion.js?v=17" charset="utf-8"></script>
 <script src="js/seudo.js?v=3" charset="utf-8"></script>
 
 </body>

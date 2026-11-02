@@ -208,6 +208,9 @@
     };
   }
 
+  // Avisos para quien escuche fuera del juego (telemetría remota): nunca interrumpen la partida.
+  const avisar = (tipo, detalle) => { try { window.dispatchEvent(new CustomEvent(tipo, { detail: detalle })); } catch { /* sin oyentes */ } };
+
   // ---------- Almacenamiento local (comodidad del jugador) ----------
   const guardado = {
     leer(k, def) { try { const v = localStorage.getItem(`${CLAVE}:${k}`); return v == null ? def : JSON.parse(v); } catch { return def; } },
@@ -696,7 +699,7 @@ onmessage = async (ev) => {
     if (edicion.mixto && $codigo.value.trim()) {
       mostrarBanner("fallo", "Aplica el borrador antes de ejecutar",
         "El borrador todavía no pertenece a los lanzadores. Usa Add para anexarlo o Replace para sustituir sus programas.", null,
-        [["Volver al borrador", "primario", () => { ocultarBanner(); abrirPestana("programa"); $codigo.focus(); }]]);
+        [["Volver al borrador", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); $codigo.focus(); }]]);
       return;
     }
     cerrarProgramas();
@@ -704,6 +707,8 @@ onmessage = async (ev) => {
       const err = revisar(programas[l.id] || "");
       if (err) {
         abrirPrograma(l.id); lineaErr = { id: l.id, linea: err.linea }; marcasSucias = true;
+        ultimoAviso[claveReto()] = { resultado: "sintaxis", motivo: "error", texto: err.mensaje, linea: err.linea, id: l.id, cuando: Date.now() };
+        avisar("cmg:intento", { reto: retoIdx + 1, titulo: def.titulo, intento: intento + 1, resultado: "sintaxis", motivo: "error", mensaje: err.mensaje, linea: err.linea, programa: l.id, codigos: { ...programas } });
         mostrarBanner("fallo", err.linea ? `Línea ${err.linea} de ${l.id}` : `Programa de ${l.id}`, esc(err.mensaje), null, [["Ir a la línea", "primario", () => { ocultarBanner(); irALinea(err.linea); }]]);
         return;
       }
@@ -827,6 +832,7 @@ onmessage = async (ev) => {
     });
     insercion = { dobleClic: 0, arrastre: 0, atajo: 0 };
     guardado.escribir("telemetria", telemetria);
+    avisar("cmg:intento", telemetria[telemetria.length - 1]);
     const stats = `${m.derribos}/${m.total} derribados · ${m.consumidos} misiles · precisión ${m.consumidos ? Math.round(m.impactos / m.consumidos * 100) : 0} % · ${m.atascos} ${m.atascos === 1 ? "atasco" : "atascos"} · ${coma(m.t)} s`;
     if (resultado === "victoria") {
       if (!hechos.includes(claveReto())) { hechos.push(claveReto()); guardado.escribir("hechos", hechos); }
@@ -845,12 +851,16 @@ onmessage = async (ev) => {
       const comentados = def.lanzadores.filter(l => soloComentarios(codigos[l.id] || "")).map(l => l.id);
       let extra = comentados.length ? ` El programa de ${comentados.join(" y ")} está todo comentado: no hace nada.` : "";
       for (const p of acabados) if (!comentados.includes(p.id)) extra += ` El programa de ${p.id} terminó a los ${p.finT.toFixed(1)} s: desde entonces nadie volvió a apuntar.`;
-      mostrarBanner("fallo", "Aún no", esc(texto + extra), `Pista: ${def.pista || "revisa el registro y la consola."}`, [["Editar programa", "primario", ocultarBanner]]);
+      const pista = pistaTrasFallo();
+      ultimoAviso[claveReto()] = { resultado, motivo, texto: texto + extra, intento, t: r2(m.t), derribos: `${m.derribos}/${m.total}`, cpd: cpd == null ? null : r2(cpd), cuando: Date.now() };
+      mostrarBanner("fallo", "Aún no", esc(texto + extra), pista ? `Pista ${pista.n > 1 ? `${pista.i}/${pista.n}` : ""}: ${pista.texto}`.replace(" :", ":") : "Revisa el registro y la consola.", [["Editar programa", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); }]]);
     } else if (resultado === "error") {
+      pistaTrasFallo();
       mostrarBanner("fallo", linea ? `Error en la línea ${linea} de ${idProg}` : `Error en el programa de ${idProg}`, esc(texto), null,
         [["Ir a la línea", "primario", () => { ocultarBanner(); abrirPrograma(idProg); irALinea(linea); }]]);
     }
     pintarControles(); pintarProgs(); pintarResumen(); pintarEdicion(); metasClave = "";
+    if (!$("info-reto").hidden) pintarInfoReto();
   }
 
   function detener() { if (ejec) { consola("sistema", null, null, "Programa detenido."); terminar("detenido", "detenido", null); } }
@@ -915,16 +925,22 @@ onmessage = async (ev) => {
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     const escena = new THREE.Scene();
+    // Bruma del horizonte: solo toca lo que queda más allá del campo, para que el terreno se pierda a lo lejos.
+    const horizonte = new THREE.Fog(0xffffff, 60, 140);
     const camara = new THREE.PerspectiveCamera(38, 1.6, 0.1, 500);
-    const cam = { yaw: 0, pitch: 1.02, dist: 33, x: COLS / 2, z: ROWS / 2 + .5 };
-    const cam0 = { ...cam };
+    // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
+    // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.
+    const camaras = {};
+    let camActual = null, cam = null, cam0 = null, anchoCampo = 1, altoCampo = 1;
     const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.85);
     const sol = new THREE.DirectionalLight(0xffffff, 0.55); sol.position.set(-12, 30, 18);
     escena.add(hemi, sol);
-    const lam = (k, extra) => new THREE.MeshLambertMaterial({ color: 0xffffff, ...extra, userData: { k } });
+    const lam = (k, extra = {}) => { const { hacia, u, ...resto } = extra; return new THREE.MeshLambertMaterial({ color: 0xffffff, ...resto, userData: { k, hacia, u } }); };
     const bas = (k, extra) => new THREE.MeshBasicMaterial({ color: 0xffffff, ...extra, userData: { k } });
     const M = {
       suelo: lam("suelo"), base: bas("accent", { transparent: true, opacity: .1, depthWrite: false }),
+      // Terreno de alrededor: el suelo sigue más allá del campo, algo más oscuro, y las montañas son columnas de casillas.
+      afuera: lam("suelo", { hacia: "bg", u: .45 }),
       edificio: lam("building"), techo: lam("building-top"), borde: lam("edge"), acento: lam("accent"), mal: lam("bad"),
       enemigo: lam("enemigo"), frio: lam("enemigo-frio", { transparent: true, opacity: .72 }), golpe: lam("bad"),
       misil: bas("misil"), explosion: bas("explosion", { transparent: true, opacity: .4, depthWrite: false }),
@@ -938,6 +954,7 @@ onmessage = async (ev) => {
     const L = {
       grid: new THREE.LineBasicMaterial({ color: 0xffffff, userData: { k: "grid" } }),
       grid2: new THREE.LineBasicMaterial({ color: 0xffffff, userData: { k: "grid-2" } }),
+      gridFuera: new THREE.LineBasicMaterial({ color: 0xffffff, userData: { k: "grid", hacia: "bg", u: .25 } }),
       brecha: new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: .4, gapSize: .25, userData: { k: "bad" } }),
       altura: new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: .12, gapSize: .1, transparent: true, opacity: .55, userData: { k: "ink" } }),
       estela: new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .7, userData: { k: "misil" } }),
@@ -948,9 +965,12 @@ onmessage = async (ev) => {
       for (const m of [...Object.values(M), ...Object.values(L), ...Object.values(D)]) {
         m.color.set(leerVar(m.userData.k) || "#888");
         if (m.userData.claro) m.color.lerp(blanco, m.userData.claro);
+        if (m.userData.hacia) m.color.lerp(new THREE.Color(leerVar(m.userData.hacia) || "#888"), m.userData.u);
       }
       escena.background = new THREE.Color(leerVar("bg") || "#e9ece6");
       if (escena.fog) escena.fog.color.copy(escena.background);
+      horizonte.color.copy(escena.background);
+      pintarMontes();
     }
     const G = {
       caja: (w, h, d) => new THREE.BoxGeometry(w, h, d),
@@ -1039,17 +1059,79 @@ onmessage = async (ev) => {
     }
     function limpiar(grupo) { while (grupo.children.length) { const c = grupo.children.pop(); c.traverse(o => { if (o.geometry && !Object.values(G).includes(o.geometry)) o.geometry.dispose(); }); } }
 
+    // ---------- Terreno de alrededor ----------
+    // El campo de 32 × 18 sigue siendo el único sitio jugable; alrededor, el suelo y su cuadrícula continúan
+    // hasta perderse en la bruma del horizonte, y detrás (al norte) hay una cordillera escalonada.
+    // Las montañas son columnas de casillas de 1 m con alturas de 0,5 en 0,5 m: la misma cuadrícula que el
+    // campo, baratas de pintar (una sola malla instanciada) y fáciles de usar para colisiones en retos futuros.
+    const TERRENO = { x0: -48, x1: COLS + 48, z0: -40, z1: ROWS + 34 };
+    const MONTES = { x0: -40, x1: COLS + 40, z0: -30, z1: -2 };
+    const PICOS = [[-30, -17, 12, 13], [-14, -13, 10, 11], [0, -19, 13, 15], [12, -12, 8, 9], [22, -20, 13, 17], [33, -13, 9, 10], [45, -18, 12, 14], [58, -14, 10, 11], [70, -20, 12, 13]];
+    // Ruido suave y fijo por casilla (sin Math.random): el paisaje es siempre el mismo.
+    const hash = (i, j) => { const n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); };
+    function ruido(x, z, paso) {
+      const i = Math.floor(x / paso), j = Math.floor(z / paso), u = x / paso - i, v = z / paso - j;
+      const su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
+      const a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1);
+      return a + (b - a) * su + (c - a) * sv + (a - b - c + d) * su * sv;
+    }
+    function alturaMonte(i, j) {
+      const x = i + .5, z = j + .5, lejos = -z - 2;  // casillas detrás del borde norte del campo
+      // Laderas: suben desde el borde del campo; picos: conos suaves repartidos a lo largo.
+      let h = Math.min(1, lejos / 9) * (2 + 5 * ruido(x, z, 7));
+      for (const [cx, cz, r, a] of PICOS) {
+        const t = 1 - Math.hypot(x - cx, (z - cz) * 1.3) / r;
+        if (t > 0) h = Math.max(h, a * t * t * (3 - 2 * t) * Math.min(1, lejos / 5));
+      }
+      h += (ruido(x, z, 3) - .5) * 1.6;
+      return Math.max(0, Math.round(h));  // terrazas de 1 m
+    }
+    const celdasMonte = [];
+    for (let i = MONTES.x0; i < MONTES.x1; i++) for (let j = MONTES.z0; j < MONTES.z1; j++) {
+      const h = alturaMonte(i, j); if (h >= 1) celdasMonte.push([i, j, h]);
+    }
+    let montes = null;
+    const matMonte = new THREE.MeshLambertMaterial({ color: 0xffffff });  // el color va en cada columna
+    function pintarMontes() {
+      if (!montes) return;
+      const bajo = new THREE.Color(leerVar("building") || "#26313A"), alto = new THREE.Color(leerVar("edge") || "#5C6B75");
+      const nieve = new THREE.Color(leerVar("ink") || "#DCE3E6"), c = new THREE.Color();
+      celdasMonte.forEach(([i, j, h], n) => {
+        c.copy(bajo).lerp(alto, Math.min(1, h / 12) * .85);
+        if (h >= 12) c.lerp(nieve, .5);
+        c.multiplyScalar(h % 2 ? .8 : .88);  // terrazas alternas: se leen las curvas de nivel
+        montes.setColorAt(n, c);
+      });
+      if (montes.instanceColor) montes.instanceColor.needsUpdate = true;
+    }
+    function construirTerreno() {
+      const { x0, x1, z0, z1 } = TERRENO;
+      const afuera = mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), M.afuera);
+      afuera.rotation.x = -Math.PI / 2; afuera.position.set((x0 + x1) / 2, -.02, (z0 + z1) / 2); afuera.raycast = () => {};
+      const p = [];
+      for (let i = x0; i <= x1; i++) p.push([i, -.01, z0], [i, -.01, z1]);
+      for (let j = z0; j <= z1; j++) p.push([x0, -.01, j], [x1, -.01, j]);
+      const red = lineas(p, L.gridFuera); red.raycast = () => {};
+      montes = new THREE.InstancedMesh(G.caja(1, 1, 1), matMonte, celdasMonte.length);
+      const m = new THREE.Matrix4();
+      celdasMonte.forEach(([i, j, h], n) => { m.makeScale(1, h, 1); m.setPosition(i + .5, h / 2 - .02, j + .5); montes.setMatrixAt(n, m); });
+      montes.raycast = () => {};
+      pintarMontes();
+      fijo.add(afuera, red, montes);
+    }
+
     function construir() {
       limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
       prepararVisual();
       const suelo = mesh(new THREE.PlaneGeometry(COLS, ROWS), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(COLS / 2, 0, ROWS / 2); fijo.add(suelo);
+      construirTerreno();
       const p1 = [], p2 = [];
       for (let i = 0; i <= COLS; i++) (i % 4 ? p1 : p2).push([i, .01, 0], [i, .01, ROWS]);
       for (let j = 0; j <= ROWS; j++) (j % 3 ? p1 : p2).push([0, .01, j], [COLS, .01, j]);
       fijo.add(lineas(p1, L.grid), lineas(p2, L.grid2));
       const zona = mesh(new THREE.PlaneGeometry(LINEA_BASE, ROWS), M.base); zona.rotation.x = -Math.PI / 2; zona.position.set(LINEA_BASE / 2, .015, ROWS / 2); fijo.add(zona);
       const br = lineas([[LINEA_BASE, .03, 0], [LINEA_BASE, .03, ROWS]], L.brecha); br.computeLineDistances(); fijo.add(br);
-      escena.fog = mundo.def.niebla ? new THREE.Fog(0xffffff, 10, 34) : null;
+      escena.fog = mundo.def.niebla ? new THREE.Fog(0xffffff, 10, 34) : horizonte;
       for (const l of mundo.lanzadores) {
         const g = new THREE.Group(); g.position.set(l.cx, 0, l.cy); g.userData.id = l.id;
         const base = mesh(G.caja(1.1, .45, 1.1), M.edificio); base.position.y = .225;
@@ -1114,6 +1196,27 @@ onmessage = async (ev) => {
       alt.computeLineDistances();
       g.add(cuerpoG, sombra, alt);
       return { grupo: g, cuerpo, cuerpoG, sombra, alt, rotores, mat };
+    }
+
+    // Retrato de un tipo de enemigo con su modelo actual (placeholder de las fichas de información).
+    // Se usa una vez para generar img/enemigos/*.png: window.cmg.retrato("crawler") devuelve un PNG en data URL.
+    function retrato(tipo, w = 288, h = 216) {
+      const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      r.setPixelRatio(1); r.setSize(w, h, false);
+      const esc = new THREE.Scene(); esc.background = new THREE.Color(leerVar("bg") || "#0B0F13");
+      esc.add(hemi.clone(), sol.clone());
+      const piso = mesh(new THREE.PlaneGeometry(6, 6), M.suelo); piso.rotation.x = -Math.PI / 2;
+      const p = []; for (let i = -3; i <= 3; i++) p.push([i, .01, -3], [i, .01, 3], [-3, .01, i], [3, .01, i]);
+      const o = enemigoMesh({ id: "retrato", tipo }), aire = !TIPOS[tipo].suelo;
+      if (o.cuerpoG) { o.cuerpoG.position.y = 1.15; o.alt.scale.set(1, 1.15, 1); for (const rr of o.rotores) rr.rotation.y = .6; }
+      o.grupo.rotation.y = .35;
+      esc.add(piso, lineas(p, L.grid), o.grupo);
+      const c = new THREE.PerspectiveCamera(30, w / h, .1, 50);
+      c.position.set(-1.6, aire ? 2.2 : 1.55, aire ? 2.8 : 2.5); c.lookAt(0, aire ? .78 : .24, 0);
+      r.render(esc, c);
+      const url = r.domElement.toDataURL("image/png");
+      r.dispose(); r.forceContextLoss();
+      return url;
     }
 
     function anillosDe(id) {
@@ -1227,21 +1330,59 @@ onmessage = async (ev) => {
       }
     }
 
-    function colocarCamara() {
-      const cp = Math.cos(cam.pitch);
-      camara.position.set(cam.x + cam.dist * cp * Math.sin(cam.yaw), cam.dist * Math.sin(cam.pitch), cam.z + cam.dist * cp * Math.cos(cam.yaw));
-      camara.lookAt(cam.x, 0, cam.z);
+    function colocarCamara(c = cam) {
+      const cp = Math.cos(c.pitch);
+      camara.position.set(c.x + c.dist * cp * Math.sin(c.yaw), c.dist * Math.sin(c.pitch), c.z + c.dist * cp * Math.cos(c.yaw));
+      camara.lookAt(c.x, 0, c.z);
+      camara.updateMatrixWorld();
     }
-    // En pantallas estrechas la cámara se aleja para que quepan las 32 columnas.
-    let camaraMovida = false;
+    // Campo girado 90°: la base queda abajo y los enemigos llegan desde arriba. Se usa en pantalla completa
+    // con la pantalla en vertical (se puede desactivar en Ajustes); al girar a horizontal vuelve la normal.
+    const app = $("app");
+    function claveCamara() {
+      if (innerHeight <= innerWidth) return "horizontal";
+      const girar = app.dataset.pantallaCompleta === "true" && app.dataset.girarCampo !== "false" && altoCampo > anchoCampo;
+      return girar ? "girada" : "vertical";
+    }
+    // Distancia mínima para que las cuatro esquinas del campo quepan en pantalla (con margen para el HUD).
+    function encuadrar(c, mx, my) {
+      const esquinas = [[0, 0], [COLS, 0], [0, ROWS], [COLS, ROWS]].map(([x, z]) => new THREE.Vector3(x, 0, z));
+      let lo = 6, hi = 160;
+      for (let k = 0; k < 24; k++) {
+        c.dist = (lo + hi) / 2; colocarCamara(c);
+        const cabe = esquinas.every(e => { const q = e.clone().project(camara); return Math.abs(q.x) <= mx && Math.abs(q.y) <= my && q.z < 1; });
+        if (cabe) hi = c.dist; else lo = c.dist;
+      }
+      c.dist = hi;
+      return c;
+    }
+    function camaraInicial(k) {
+      // En pantallas estrechas la cámara se aleja para que quepan las 32 columnas.
+      // Algo inclinada y mirando un poco más al norte: deja ver la cordillera detrás del campo.
+      if (k !== "girada") return { yaw: 0, pitch: .93, dist: camara.aspect < 1.5 ? 33 * 1.5 / camara.aspect : 33, x: COLS / 2, z: ROWS / 2 - .8 };
+      return encuadrar({ yaw: -Math.PI / 2, pitch: .98, dist: 30, x: COLS / 2 - .6, z: ROWS / 2 }, .98, .8);
+    }
+    function elegirCamara() {
+      const k = claveCamara();
+      const c = camaras[k] || (camaras[k] = { k, cam: null, movida: false });
+      c.cam0 = camaraInicial(k);
+      if (!c.cam) c.cam = { ...c.cam0 };
+      else if (!c.movida) Object.assign(c.cam, c.cam0);
+      camActual = c; cam = c.cam; cam0 = c.cam0;
+    }
+    const moverCamara = () => { if (camActual) camActual.movida = true; };
     function tamano(w, h) {
+      anchoCampo = w; altoCampo = h;
       renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
-      cam0.dist = camara.aspect < 1.5 ? 33 * 1.5 / camara.aspect : 33;
-      if (!camaraMovida) cam.dist = cam0.dist;
+      elegirCamara();
     }
+    // Activar o salir de pantalla completa, o cambiar el ajuste, cambia de cámara sin cambiar de tamaño.
+    new MutationObserver(() => { if (cam) elegirCamara(); }).observe(app, { attributes: true, attributeFilter: ["data-pantalla-completa", "data-girar-campo"] });
     function render() {
+      if (!cam) elegirCamara();
       colocarCamara();
-      if (escena.fog) { escena.fog.near = cam.dist * .55; escena.fog.far = cam.dist * 1.75; }
+      if (escena.fog === horizonte) { horizonte.near = cam.dist + 24; horizonte.far = cam.dist + 110; }
+      else if (escena.fog) { escena.fog.near = cam.dist * .55; escena.fog.far = cam.dist * 1.75; }
       renderer.render(escena, camara);
     }
     const v = new THREE.Vector3();
@@ -1263,8 +1404,11 @@ onmessage = async (ev) => {
       const punto = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
       return punto ? { x: punto.x, y: punto.z, z: 0 } : null;
     }
-    function centrar(x, y) { cam.x = x; cam.z = y + 1; cam.dist = Math.min(cam.dist, 22); camaraMovida = true; }
-    function recentrar() { Object.assign(cam, cam0); camaraMovida = false; }
+    function centrar(x, y) {
+      // Acerca la cámara a la unidad un poco hacia el lado desde el que mira.
+      cam.x = x + Math.sin(cam.yaw); cam.z = y + Math.cos(cam.yaw); cam.dist = Math.min(cam.dist, 22); moverCamara();
+    }
+    function recentrar() { Object.assign(cam, cam0); camActual.movida = false; }
 
     // Cámara: rueda presionada = orbitar · botón derecho o dos dedos = desplazar.
     // El botón izquierdo y la selección táctil se manejan juntos en el campo.
@@ -1275,19 +1419,31 @@ onmessage = async (ev) => {
       if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return;
       canvas.setPointerCapture(ev.pointerId);
       punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
-      gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null };
-      camaraMovida = true;
+      gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false };
     });
     canvas.addEventListener("pointermove", (ev) => {
       const p = punteros.get(ev.pointerId); if (!p || !gesto) return;
       const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
       p.x = ev.clientX; p.y = ev.clientY;
       gesto.movido += Math.abs(dx) + Math.abs(dy);
+      if (dx || dy) moverCamara();
       if (punteros.size >= 2) {
-        const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+        const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
         if (gesto.dist0) cam.dist = Math.min(70, Math.max(8, cam.dist * gesto.dist0 / d));
         gesto.dist0 = d;
         desplazar(dx / 2, dy / 2);
+        // Girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral pequeño evita
+        // girar sin querer al pellizcar para acercar.
+        if (gesto.ang0 != null) {
+          const da = Math.atan2(Math.sin(ang - gesto.ang0), Math.cos(ang - gesto.ang0));
+          gesto.giro += da;
+          if (gesto.girando || Math.abs(gesto.giro) > .12) {
+            const r = canvas.getBoundingClientRect();
+            girar(gesto.girando ? da : gesto.giro, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, r.width, r.height);
+            gesto.girando = true;
+          }
+        }
+        gesto.ang0 = ang;
       } else if (gesto.tactil && arrastreCampo && arrastreCampo.cajaTactil) return;
       else if (gesto.desplazar || gesto.tactil) desplazar(dx, dy);
       else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(.28, cam.pitch + dy * .005)); }
@@ -1296,18 +1452,29 @@ onmessage = async (ev) => {
       punteros.delete(ev.pointerId);
       if (gesto && punteros.size === 0) {
         gesto = null;
-      } else if (gesto) gesto.dist0 = null;
+      } else if (gesto) { gesto.dist0 = null; gesto.ang0 = null; }
     };
     canvas.addEventListener("pointerup", soltar);
     canvas.addEventListener("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); camaraMovida = true; cam.dist = Math.min(70, Math.max(8, cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
+    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(70, Math.max(8, cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
+    const limitar = () => { cam.x = Math.min(COLS + 4, Math.max(-4, cam.x)); cam.z = Math.min(ROWS + 4, Math.max(-6, cam.z)); };
     function desplazar(dx, dy) {
       const k = cam.dist * .0022;
       const sx = Math.cos(cam.yaw), sz = -Math.sin(cam.yaw);
-      cam.x = Math.min(COLS, Math.max(0, cam.x - (dx * sx + dy * Math.sin(cam.yaw)) * k));
-      cam.z = Math.min(ROWS + 4, Math.max(-2, cam.z - (dx * sz + dy * Math.cos(cam.yaw)) * k));
+      cam.x -= (dx * sx + dy * Math.sin(cam.yaw)) * k;
+      cam.z -= (dx * sz + dy * Math.cos(cam.yaw)) * k;
+      limitar();
     }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores };
+    // El giro mantiene fijo el punto del suelo que queda entre los dedos.
+    function girar(da, px, py, w, h) {
+      colocarCamara();
+      const antes = suelo(px, py, w, h);
+      cam.yaw = Math.atan2(Math.sin(cam.yaw + da), Math.cos(cam.yaw + da));
+      colocarCamara();
+      const despues = suelo(px, py, w, h);
+      if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
+    }
+    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato, camara: () => ({ clave: camActual && camActual.k, ...cam }) };
   })();
 
   // ---------- Vista de plano (2D) ----------
@@ -1330,6 +1497,11 @@ onmessage = async (ev) => {
     const c = ctx2, P = (x) => ox + x * T, Q = (y) => oy + y * T;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.fillStyle = col.bg; c.fillRect(0, 0, W, H);
+    // El suelo sigue más allá del campo: la cuadrícula continúa, tenue, hasta los bordes.
+    c.strokeStyle = col.grid; c.globalAlpha = .45; c.lineWidth = 1; c.beginPath();
+    for (let x = ox - Math.floor(ox / T) * T; x <= W; x += T) { c.moveTo(Math.round(x) + .5, 0); c.lineTo(Math.round(x) + .5, H); }
+    for (let y = oy - Math.floor(oy / T) * T; y <= H; y += T) { c.moveTo(0, Math.round(y) + .5); c.lineTo(W, Math.round(y) + .5); }
+    c.stroke(); c.globalAlpha = 1;
     c.fillStyle = col.suelo; c.fillRect(ox, oy, COLS * T, ROWS * T);
     c.fillStyle = col.base; c.fillRect(ox, oy, LINEA_BASE * T, ROWS * T);
     c.lineWidth = 1;
@@ -1681,6 +1853,147 @@ onmessage = async (ev) => {
     $("b-reto").setAttribute("aria-expanded", si);
   }
   const cerrarHoja = () => { if (!$("hoja-reto").hidden) abrirHoja(false); };
+  // ---------- Información del reto desde el editor ----------
+  // Pestañas: objetivo, metas en vivo, enemigos del reto, pista escalonada y último intento.
+  let infoPestana = "objetivo";
+  const MOTIVOS = { brecha: "Brecha", atascos: "Demasiados atascos", tiempo: "Fuera de tiempo", limite: "Tiempo agotado", derribos: "Pocos derribos", error: "Error en el programa", detenido: "Detenido", reinicio: "Reiniciado" };
+  // Estado de cada meta: «ok» (verde), «rota» (rojo) o «pendiente». Al acabar un intento todas quedan decididas.
+  function estadoMetas() {
+    const m = mundo, me = def.metas, acabado = m.fin === "victoria" || m.fin === "fallo";
+    const decide = (rota, ok) => rota ? "rota" : ok ? "ok" : acabado ? "rota" : "pendiente";
+    const filas = [{ k: "brechas", nombre: "Brechas", meta: `máximo ${me.brechasMax}`, valor: m.brechas, estado: decide(m.brechas > me.brechasMax, acabado && m.brechas <= me.brechasMax) }];
+    if (me.derribosMin != null) filas.push({ k: "derribos", nombre: "Derribos", meta: `mínimo ${me.derribosMin}`, valor: `${m.derribos}/${m.total}`, estado: decide(false, m.derribos >= me.derribosMin) });
+    else filas.push({ k: "derribos", nombre: "Derribados", meta: "para contar", valor: `${m.derribos}/${m.total}`, estado: "info" });
+    if (me.atascosMax != null) filas.push({ k: "atascos", nombre: "Atascos", meta: `máximo ${me.atascosMax}`, valor: m.atascos, estado: decide(m.atascos > me.atascosMax, acabado && m.atascos <= me.atascosMax) });
+    if (me.tiempoMax != null) filas.push({ k: "tiempo", nombre: "Tiempo", meta: `hasta ${me.tiempoMax} s`, valor: `${coma(m.t)} s`, estado: decide(m.t > me.tiempoMax + 1e-9, m.fin === "victoria") });
+    return filas;
+  }
+  // Pista escalonada: la pista del reto en partes (frases). La primera se puede pedir siempre;
+  // cada intento fallido muestra la siguiente y permite pedir una más.
+  const partesPista = () => (def.pista || "").split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/).map(t => t.trim()).filter(Boolean);
+  let pistas = guardado.leer("pistas", {});
+  const pistaDe = () => ({ vistas: 0, fallos: 0, ...(pistas[claveReto()] || {}) });
+  function guardarPista(p) { pistas = { ...pistas, [claveReto()]: p }; guardado.escribir("pistas", pistas); }
+  function pistaTrasFallo() {
+    const p = pistaDe(), n = partesPista().length;
+    p.fallos++; p.vistas = Math.min(n, Math.max(p.vistas, p.fallos));
+    guardarPista(p);
+    return p.vistas ? { n, i: p.vistas, texto: partesPista()[p.vistas - 1] } : null;
+  }
+  // Último intento: lo que guarda la telemetría, más el detalle del aviso y los errores de sintaxis previos.
+  let ultimoAviso = {};
+  function ultimoIntento() {
+    const t = [...telemetria].reverse().find(x => x.reto === retoIdx + 1 && x.motivo !== "reinicio");
+    const extra = ultimoAviso[claveReto()];
+    if (extra && (!t || extra.cuando >= Date.parse(t.inicio))) return extra;
+    return t ? { resultado: t.resultado, motivo: t.motivo, texto: t.mensaje, linea: t.linea, id: t.programa, intento: t.intento, t: t.tiempoJuego, cpd: t.costePorDerribo, derribos: `${t.derribos}/${t.enemigos}` } : null;
+  }
+  const marca = (estado) => `<i class="marca ${estado}" aria-hidden="true"></i>`;
+  const num = (v) => Number.isInteger(v) ? String(v) : coma(v);
+  const INFO = {
+    objetivo: () => `<section class="objetivo" aria-label="Objetivo"><p id="info-reto-txt">${esc(def.objetivo)}</p><div class="leccion" id="info-reto-leccion">${esc(def.leccion)}</div></section>`,
+    metas: () => {
+      const m = mundo, filas = estadoMetas();
+      const est = m.fin === "victoria" ? "Cumplido" : m.fin === "fallo" || m.fin === "error" ? "No cumplido" : m.activo ? "En curso" : m.fin ? "Detenido" : "Sin ejecutar";
+      return `<p class="info-nota">${esc(est)}${m.fin || m.activo ? "" : " · se marcan en vivo al ejecutar"}</p><ul class="metas-lista">${filas.map(f =>
+        `<li class="meta-fila ${f.estado}" data-meta="${f.k}">${marca(f.estado)}<span class="m-nombre">${f.nombre} <small>${esc(f.meta)}</small></span><b class="m-valor">${f.valor}</b></li>`).join("")}</ul>`;
+    },
+    enemigos: () => {
+      const tipos = new Map();
+      for (const o of def.oleadas) {
+        const tp = TIPOS[o.tipo], x = tipos.get(o.tipo) || { n: 0, hp: new Set(), vel: new Set() };
+        x.n += o.n; x.hp.add(o.hp ?? tp.hp); x.vel.add(o.vel ?? tp.vel); tipos.set(o.tipo, x);
+      }
+      const rango = (set, f) => [...set].sort((a, b) => a - b).map(f).join(" / ");
+      const vib = (def.sensores || []).map(s => s.id);
+      return `<div class="enemigos-lista">${[...tipos].map(([t, x]) => {
+        const tp = TIPOS[t], ven = ["cámara", ...(tp.frio ? [] : ["térmico"]), ...(tp.suelo ? vib : [])];
+        return `<article class="enemigo-ficha" data-tipo="${t}">
+          <img class="retrato" src="img/enemigos/${t}.png" alt="Modelo de ${esc(tp.nombre)}" width="96" height="72" loading="lazy">
+          <div><h4>${esc(tp.nombre[0].toUpperCase() + tp.nombre.slice(1))} <code>"${t}"</code> <span class="cuenta">× ${x.n}</span></h4>
+          <dl><dt>vida</dt><dd>${rango(x.hp, v => `${v} ${v === 1 ? "impacto" : "impactos"}`)}</dd><dt>velocidad</dt><dd>${rango(x.vel, num)} c/s</dd>
+          <dt>altura</dt><dd>${num(tp.z)} m${tp.suelo ? " · suelo" : ""}</dd><dt>lo ven</dt><dd>${ven.map(esc).join(" · ")}${tp.frio ? ' <span class="no">· el térmico no</span>' : ""}</dd></dl></div></article>`;
+      }).join("")}</div>${def.niebla ? `<p class="info-nota">Niebla: la cámara ve ${num(SENSOR.visual.niebla)} casillas y el térmico ${num(SENSOR.thermal.niebla)}.</p>` : ""}`;
+    },
+    pista: () => {
+      const partes = partesPista(), p = pistaDe(), n = partes.length, abiertas = Math.min(n, p.fallos + 1);
+      if (!n) return `<p class="info-nota">Este reto no tiene pista.</p>`;
+      const vistas = partes.slice(0, p.vistas).map((t, i) => `<li><span class="parte">${i + 1}/${n}</span> ${esc(t)}</li>`).join("");
+      const pie = p.vistas >= n ? `<p class="info-nota">Ya ves la pista completa.</p>`
+        : p.vistas < abiertas ? `<button class="btn chico" type="button" data-info-accion="ver-pista">${p.vistas ? "Ver la siguiente parte" : "Ver pista"} <small>${p.vistas + 1}/${n}</small></button>`
+        : `<p class="info-nota bloqueada"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>La parte ${p.vistas + 1}/${n} se desbloquea con otro intento fallido.</p>`;
+      return `${vistas ? `<ol class="pista-partes">${vistas}</ol>` : `<p class="info-nota">La pista viene en ${n} ${n === 1 ? "parte" : "partes"}. Pídela cuando la necesites; cada intento fallido abre la siguiente.</p>`}${pie}`;
+    },
+    intento: () => {
+      const u = ultimoIntento();
+      if (!u) return `<p class="info-nota">Aún no hay intentos en este reto.</p>`;
+      const titulo = u.resultado === "victoria" ? "Base intacta" : u.resultado === "error" || u.resultado === "sintaxis" ? (u.linea ? `Error en la línea ${u.linea} de ${u.id}` : `Error en el programa de ${u.id}`) : MOTIVOS[u.motivo] || "Intento";
+      const cls = u.resultado === "victoria" ? "ok" : u.resultado === "detenido" ? "pendiente" : "rota";
+      const rec = records[claveReto()];
+      return `<div class="intento ${cls}">${marca(cls)}<div><h4>${esc(titulo)}</h4>${u.intento ? `<p class="info-nota">Intento ${u.intento}${u.t != null ? ` · ${coma(u.t)} s` : ""}${u.derribos ? ` · ${u.derribos} derribados` : ""}</p>` : ""}</div></div>
+        ${u.texto ? `<p class="motivo">${esc(u.texto)}</p>` : ""}
+        <div class="fila-botones">${u.linea ? `<button class="btn chico primario" type="button" data-info-accion="linea">Ir a la línea ${u.linea}</button>` : ""}${cls === "rota" && partesPista().length ? `<button class="btn chico" type="button" data-info-accion="a-pista">Ver pista</button>` : ""}</div>
+        ${u.cpd != null || rec != null ? `<p class="economia">₵ por derribo ${u.cpd != null ? coma(u.cpd) : "—"}${rec != null ? ` · récord ${coma(rec)}` : ""}</p>` : ""}`;
+    },
+  };
+  // Punto de estado en las pestañas: metas (verde, rojo) e intento (rojo si falló).
+  function estadosPestanas() {
+    const filas = estadoMetas().filter(f => f.estado !== "info");
+    const m = filas.some(f => f.estado === "rota") ? "rota" : filas.length && filas.every(f => f.estado === "ok") ? "ok" : "";
+    const u = ultimoIntento(), i = !u ? "" : u.resultado === "victoria" ? "ok" : u.resultado === "detenido" ? "" : "rota";
+    const p = pistaDe(), n = partesPista().length, nueva = p.vistas < Math.min(n, p.fallos + 1) && p.fallos > 0 ? "nueva" : "";
+    for (const [k, v] of [["metas", m], ["intento", i], ["pista", nueva]]) $(`info-t-${k}`).dataset.estado = v;
+  }
+  function pintarInfoReto() {
+    $("info-reto-titulo").textContent = `${retoIdx === IDX_PROPIO ? "Tu escenario" : `Reto ${retoIdx + 1}`} · ${def.titulo}`;
+    for (const b of document.querySelectorAll("#info-pestanas [data-info]")) {
+      const si = b.dataset.info === infoPestana;
+      b.setAttribute("aria-selected", String(si)); b.tabIndex = si ? 0 : -1;
+    }
+    $("info-cuerpo").setAttribute("aria-labelledby", `info-t-${infoPestana}`);
+    $("info-cuerpo").innerHTML = INFO[infoPestana]();
+    estadosPestanas();
+  }
+  // En vivo: las metas y los puntos se repintan con el marcador (pintarHud), solo con la ficha abierta.
+  function vivoInfoReto() {
+    if ($("info-reto").hidden) return;
+    if (infoPestana === "metas") $("info-cuerpo").innerHTML = INFO.metas();
+    estadosPestanas();
+  }
+  function elegirInfo(k, foco) {
+    infoPestana = k; pintarInfoReto();
+    const b = $(`info-t-${k}`); b.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (foco) b.focus();
+  }
+  function abrirInfoReto(si, pestana) {
+    if (pestana) infoPestana = pestana;
+    if (si) pintarInfoReto();
+    $("info-reto").hidden = !si;
+    $("b-info-reto").setAttribute("aria-expanded", String(si));
+    if (si) $(`info-t-${infoPestana}`).scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+  $("b-info-reto").addEventListener("pointerdown", (ev) => ev.preventDefault());  // el código conserva el foco
+  $("b-info-reto").addEventListener("click", () => abrirInfoReto($("info-reto").hidden));
+  $("info-reto-cerrar").addEventListener("click", () => abrirInfoReto(false));
+  $("info-pestanas").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-info]");
+    if (b && !$("info-tira").classList.contains("arrastrada")) elegirInfo(b.dataset.info);
+  });
+  $("info-pestanas").addEventListener("keydown", (ev) => {
+    const ks = Object.keys(INFO), i = ks.indexOf(infoPestana);
+    const j = ev.key === "ArrowRight" ? i + 1 : ev.key === "ArrowLeft" ? i - 1 : ev.key === "Home" ? 0 : ev.key === "End" ? ks.length - 1 : null;
+    if (j == null) return;
+    ev.preventDefault(); elegirInfo(ks[(j + ks.length) % ks.length], true);
+  });
+  $("info-cuerpo").addEventListener("click", (ev) => {
+    const a = ev.target.closest("[data-info-accion]"); if (!a) return;
+    const acc = a.dataset.infoAccion;
+    if (acc === "ver-pista") { const p = pistaDe(); p.vistas = Math.min(partesPista().length, p.vistas + 1); guardarPista(p); pintarInfoReto(); }
+    else if (acc === "a-pista") elegirInfo("pista");
+    else if (acc === "linea") { const u = ultimoIntento(); abrirInfoReto(false); abrirPrograma(u.id); irALinea(u.linea); }
+  });
+  document.addEventListener("pointerdown", (ev) => { if (!$("info-reto").hidden && !ev.target.closest("#info-reto, #b-info-reto")) abrirInfoReto(false); }, true);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("info-reto").hidden) { abrirInfoReto(false); $("b-info-reto").focus(); } });
   $("b-reto").addEventListener("click", () => abrirHoja($("hoja-reto").hidden));
   $("hoja-reto").addEventListener("click", (ev) => { if (ev.target.closest("[data-cerrar-hoja]")) abrirHoja(false); });
 
@@ -1712,7 +2025,7 @@ onmessage = async (ev) => {
     const programables = [...seleccionadas].filter(id => Object.hasOwn(programas, id));
     configurarEdicion(programables.length ? programables : [progSel]);
     historia.clear();
-    pintarMaquinas(); pintarInspector();
+    pintarMaquinas(); pintarInspector(); pintarPieIns();
     metasClave = "";
   }
 
@@ -1721,6 +2034,7 @@ onmessage = async (ev) => {
     cerrarProgramas();
     retoIdx = i; guardado.escribir("reto", i);
     def = defActual();
+    avisar("cmg:reto", { reto: i + 1, titulo: def.titulo });
     intento = telemetria.filter(t => t.reto === i + 1).length;
     if (!semillaFija) semilla = intento + 1;
     programas = cargarProgramas();
@@ -1737,6 +2051,7 @@ onmessage = async (ev) => {
     pintarPaleta();
     $("objetivo-txt").textContent = def.objetivo;
     $("leccion").textContent = def.leccion;
+    if (!$("info-reto").hidden) pintarInfoReto();
     ocultarBanner(); limpiarConsola(); cerrarAvisos();
     pintarRetos(); pintarProgs(); abrirPrograma(progSel); pintarResumen(); pintarEventosYa(); pintarControles(); pintarEscenario();
   }
@@ -1748,6 +2063,7 @@ onmessage = async (ev) => {
     const clave = [m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
     if (clave === metasClave) return;
     metasClave = clave;
+    vivoInfoReto();
     const cpd = m.derribos ? (coste() / m.derribos).toFixed(1) : "—", rec = records[claveReto()];
     let html = `<span class="meta${m.brechas > me.brechasMax ? " rota" : ""}">brechas <b>${m.brechas}</b> · máx ${me.brechasMax}</span>`;
     html += `<span class="meta${m.total && m.derribos === m.total ? " cumplida" : ""}">derribados <b>${m.derribos}/${m.total}</b>${me.derribosMin != null ? ` · mín ${me.derribosMin}` : ""}</span>`;
@@ -1762,6 +2078,9 @@ onmessage = async (ev) => {
     const $e = $("b-ejecutar");
     $e.textContent = corriendo ? "■ Detener" : "▶ Ejecutar";
     $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo);
+    const $ec = $("b-ejecutar-cod");
+    $ec.textContent = corriendo ? "■ DETENER" : "▶ EJECUTAR";
+    $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
     const $p = $("b-pausa");
     $p.disabled = !corriendo; $p.textContent = pausa ? "Seguir" : "Pausa";
     $("b-vel").textContent = `${velocidad}×`;
@@ -1771,6 +2090,14 @@ onmessage = async (ev) => {
     $codigo.readOnly = corriendo;
   }
   $("b-ejecutar").addEventListener("click", () => ejec ? detener() : ejecutar());
+  // EJECUTAR del editor (pantalla completa): corre el código, pasa a la batalla y cierra el inspector.
+  // Si hay un error, la batalla muestra su aviso con el enlace a la línea.
+  $("b-ejecutar-cod").addEventListener("click", () => {
+    if (ejec) { detener(); return; }
+    ejecutar();
+    if (ejec) ponerInspector("cerrado");
+    verPanel("mapa");
+  });
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
   $("b-reiniciar").addEventListener("click", () => {
@@ -1801,7 +2128,7 @@ onmessage = async (ev) => {
   // ---------- Máquinas e inspector ----------
   function pintarMaquinas() {
     $("maquinas").innerHTML = mundo.maquinas.map(e => `<button type="button" class="maq-chip" data-id="${e.id}" aria-pressed="${seleccionadas.has(e.id)}" style="--rol:var(--rol-${funcionDe(e).principal})">${e.id}</button>`).join("")
-      + `<span class="fila-bajo" style="align-self:center">En el campo: toca para elegir, mantén presionado para abrir la ficha. Doble toque en el suelo y arrastra para seleccionar en cuadro.</span>`;
+      + `<span class="fila-bajo" style="align-self:center">En el campo: toca para elegir, mantén presionado para abrir la ficha. Doble toque en el suelo y arrastra para seleccionar en cuadro. Con dos dedos: acerca, desplaza y gira.</span>`;
   }
   $("maquinas").addEventListener("click", (ev) => { const b = ev.target.closest(".maq-chip"); if (b) seleccionar(b.dataset.id); });
   // El inspector tiene tres estados: cerrado (nada elegido), tira (nombre y signos vitales) y abierto (ficha completa).
@@ -1926,7 +2253,7 @@ onmessage = async (ev) => {
     $("ins-tira").innerHTML = `
       <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadas.size > 1 ? ` · ${seleccionadas.size} seleccionadas` : ""}</h2><span class="estado ${cls}" data-estado>${esc(txt)}</span><span class="clase">${esc(clase)}</span>${rol}</div>
         <div class="ins-acc">${V3 && vista === "3d" ? `<button type="button" data-accion="centrar" aria-label="Centrar la cámara en ${esc(e.id)}" data-tip="Centrar la cámara">⌖</button>` : ""}<button type="button" data-accion="${abierto ? "plegar" : "abrir"}" aria-label="${abierto ? "Plegar la ficha" : "Abrir la ficha completa"}" data-tip="${abierto ? "Plegar la ficha" : "Ficha completa"}">${abierto ? "▴" : "▾"}</button><button type="button" data-accion="cerrar" aria-label="Cerrar el inspector" data-tip="Cerrar">×</button></div></div>
-      <div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>
+      ${abierto ? "" : `<div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>`}
       <div class="ins-pista">Mantén presionada una unidad, o toca aquí, para ver su ficha completa.</div>`;
     $("ins-cuerpo").innerHTML = `
       <div class="regla"></div>
@@ -1936,8 +2263,46 @@ onmessage = async (ev) => {
       <div class="regla"></div>
       <div class="leyenda-tk"><span class="tk-var">máquina</span><span class="tk-fn">función</span><span class="tk-prop">propiedad</span><span class="tk-num">número</span><span class="tk-str">texto</span>
         <span style="font-family:var(--f-body);font-weight:400">· doble toque: lo inserta en el programa de <b>${esc(progSel)}</b> · también se puede arrastrar</span></div>
-      <div class="pista-tk" id="pista-tk"></div>`;
+      <div class="pista-tk" id="pista-tk"></div>
+      ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa">Signos vitales</span></h3><div class="vitales" id="ins-vitales">${htmlVitales(e)}</div></div>` : ""}`;
   }
+
+  // Inspector del panel inferior (bajo el editor): sin nombre ni estado, solo lo que el programa
+  // abierto puede usar: funciones, propiedades, sus variables y constantes, y la red de sensores.
+  function variablesPrograma() {
+    const toks = lexico($codigo.value).filter(t => !["esp", "nl", "com"].includes(t[0])), out = new Map();
+    toks.forEach((t, i) => { if (["const", "let", "var"].includes(t[1]) && toks[i + 1] && toks[i + 1][0] === "id" && !out.has(toks[i + 1][1])) out.set(toks[i + 1][1], t[1]); });
+    return [...out];
+  }
+  function pintarPieIns() {
+    const $p = $("pie-ins"), e = mundo && mundo.porId[progSel];
+    if (!$p) return;
+    if (!e) { $p.innerHTML = `<p class="nota">Elige un lanzador para ver lo que su programa puede usar.</p>`; return; }
+    const vars = variablesPrograma(), red = mundo.sensores;
+    $p.innerHTML = `<div class="pie-ins-cols">`
+      + grupo("Funciones",
+        fila(tk("fn", "autoTarget(tipo, sensor)", "autoTarget(/* tipo de enemigo */, /* sensor */)", { fin: "// → posición {x, y, z} o null" }), nota("→ posición")),
+        fila(tk("fn", "regularShoot(lugar)", "regularShoot(/* lugar */);"), nota("1 disparo/s")),
+        fila(tk("fn", "burstFire(lugar)", "burstFire(/* lugar */);"), nota("ráfaga")),
+        fila(tk("fn", "stopFire()", "stopFire();")),
+        fila(tk("fn", "await esperar(segundos)", "await esperar(0.5);"), nota("pausa")))
+      + grupo("Propiedades",
+        fila(tk("prop", "missiles", "missiles"), `<span class="sep">=</span>`, tkValor(e.misiles, `${e.id}:missiles`), nota(`/ ${def.cargador}`)),
+        fila(tk("prop", "failureRate", "failureRate"), `<span class="sep">=</span>`, tkValor(r3(e.falla), `${e.id}:failureRate`)),
+        fila(tk("prop", "fireRate", "fireRate"), `<span class="sep">=</span>`, tkValor(cadencia(e.modo), `${e.id}:fireRate`)),
+        fila(tk("prop", "mode", "mode"), `<span class="sep">=</span>`, tkValor(e.modo, `${e.id}:mode`)),
+        fila(tk("prop", "jammed", "jammed"), `<span class="sep">=</span>`, tkValor(e.atascado, `${e.id}:jammed`)),
+        fila(tk("prop", "target", "target"), `<span class="sep">=</span>`, `<span class="nota" data-vivo="${e.id}:target">${esc(fmtLugar(e.lugar))}</span>`),
+        fila(tk("prop", "sensors", "sensors"), `<span class="sep">=</span>`, tk("str", '"visual"', '"visual"'), tk("str", '"thermal"', '"thermal"')))
+      + grupo("Variables y constantes", vars.length
+        ? fila(...vars.map(([n, k]) => `<span class="var-prog">${tk("var", n, n)}${nota(k)}</span>`))
+        : fila(nota("El programa todavía no declara ninguna (const o let).")))
+      + (red.length ? grupo("Red de sensores", ...red.map(x => fila(tk("fn", `${varDe(x.id)}.detect(tipo)`, `${varDe(x.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }),
+        tk("prop", `${varDe(x.id)}.count`, `${varDe(x.id)}.count`), `<span class="sep">=</span>`, tkValor(enRango(x).length, `${x.id}:count`)))) : "")
+      + `</div>`;
+  }
+  let tPieIns = 0;
+  $("codigo").addEventListener("input", () => { clearTimeout(tPieIns); tPieIns = setTimeout(pintarPieIns, 350); });
 
   // Signos vitales: gráficos propios que se leen de un vistazo (cargador, failureRate y su historia, vida).
   const historia = new Map();   // id de lanzador → [[t, failureRate], …] de los últimos 30 s de juego
@@ -1975,7 +2340,7 @@ onmessage = async (ev) => {
     const b = ev.target.closest("[data-accion]");
     if (!b) { if (insEstado === "tira" && ev.target.closest(".ins-tira")) abrirInspector(); return; }
     const a = b.dataset.accion;
-    if (a === "programa") { abrirPestana("programa"); abrirPrograma(seleccion); }
+    if (a === "programa") { verPanel("codigo"); abrirPestana("programa"); abrirPrograma(seleccion); }
     else if (a === "centrar") centrarEn(seleccion);
     else if (a === "abrir") abrirInspector();
     else if (a === "plegar") ponerInspector("tira");
@@ -2007,6 +2372,11 @@ onmessage = async (ev) => {
   function actualizarVivos() {
     const $i = $("inspector");
     muestrear();
+    for (const el of $("pie-ins").querySelectorAll("[data-vivo]")) {
+      const v = valorVivo(el.dataset.vivo); if (v == null) continue;
+      const txt = el.classList.contains("tk-str") ? JSON.stringify(v) : String(v);
+      if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
+    }
     const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion));
     if ([...seleccionadas].some(id => !unidadPorId(id))) { seleccionar([...seleccionadas].filter(id => unidadPorId(id)), { inspeccionar: "conservar" }); return; }
     if (!e) return;
@@ -2100,7 +2470,7 @@ onmessage = async (ev) => {
     $codigo.setAttribute("aria-label", ids.length > 1 ? `Programa de ${ids.length} lanzadores en JavaScript` : `Programa de ${progSel} en JavaScript`);
     $("acciones-multi").hidden = !edicion.mixto;
     $("multi-estado").textContent = `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
-    pintarProgs(); medirEditor(); pintarEdicion(); marcasSucias = true;
+    pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); marcasSucias = true;
     // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
     $codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: claveDocumento() } }));
   }
@@ -2212,7 +2582,10 @@ onmessage = async (ev) => {
     $codigo.dispatchEvent(new CustomEvent("cmg:marcas"));
   }
   function pintarMarcasYa() { marcasSucias = false; pintarBanda(); pintarProgs(); }
+  // En modo pantalla completa, layout.js pone a pantalla completa el panel pedido.
+  const verPanel = (panel) => $("app").dispatchEvent(new CustomEvent("cmg:pantalla", { detail: panel }));
   function irALinea(l) {
+    verPanel("codigo");
     abrirPestana("programa");
     if (!sinTecladoActivo()) $codigo.focus();
     if (!l) return;
@@ -2920,6 +3293,20 @@ onmessage = async (ev) => {
   window.cmg = { insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
+    // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
+    // Estado de la cámara 3D (clave de la postura, giro, inclinación, distancia y centro); lo usan las pruebas.
+    camara: () => V3 && V3.camara(),
+    // Retrato PNG (data URL) del modelo actual de un tipo de enemigo; sirve para regenerar img/enemigos/.
+    retrato: (tipo) => V3 && TIPOS[tipo] ? V3.retrato(tipo) : null,
+    funciones: () => [
+      { grupo: "Lanzador", nombre: "autoTarget", firma: FIRMAS.autoTarget, nota: "→ posición" },
+      { grupo: "Lanzador", nombre: "regularShoot", firma: FIRMAS.regularShoot, nota: "1 disparo/s" },
+      { grupo: "Lanzador", nombre: "burstFire", firma: FIRMAS.burstFire, nota: "ráfaga · sube el fallo" },
+      { grupo: "Lanzador", nombre: "stopFire", firma: FIRMAS.stopFire, nota: "deja de disparar" },
+      { grupo: "Tiempo", nombre: "esperar", firma: FIRMAS.esperar, await: true, nota: "pausa el programa" },
+      ...(mundo ? mundo.sensores.map(s => ({ grupo: "Red de sensores", objeto: varDe(s.id), nombre: "detect", firma: FIRMAS.detect, nota: "posición actual" })) : []),
+      ...[["log", "registro"], ["info", "información"], ["warn", "aviso"], ["error", "error"]].map(([n, nota]) => ({ grupo: "Consola", objeto: "console", nombre: n, firma: FIRMAS[n], nota })),
+    ],
     get claveDocumento() { return claveDocumento(); },
     // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
     datos: () => ({

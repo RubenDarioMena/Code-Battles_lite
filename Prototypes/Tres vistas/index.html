@@ -9,11 +9,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap">
 <link rel="stylesheet" href="css/base.css?v=1">
-<link rel="stylesheet" href="css/componentes.css?v=4">
-<link rel="stylesheet" href="../../shared/css/edicion.css?v=3">
-<link rel="stylesheet" href="css/layout.css?v=6">
+<link rel="stylesheet" href="css/componentes.css?v=6">
+<link rel="stylesheet" href="../../shared/css/edicion.css?v=4">
+<link rel="stylesheet" href="css/layout.css?v=7">
 </head>
 <body>
+<aside class="aviso-war" id="aviso-war" role="status">
+  <span><b class="largo">War es la versión más actualizada del juego.</b><b class="corto">War es la versión más actual.</b><span class="extra"> Factory es un prototipo anterior.</span></span>
+  <a href="../Rocket%20Launcher/">Ir a War</a>
+  <button type="button" id="aviso-war-cerrar" aria-label="Cerrar aviso">×</button>
+</aside>
+<script>
+  (() => { const a = document.getElementById("aviso-war");
+    try { if (sessionStorage.getItem("cmg-aviso-war") === "0") a.hidden = true; } catch {}
+    document.getElementById("aviso-war-cerrar").addEventListener("click", () => { a.hidden = true; try { sessionStorage.setItem("cmg-aviso-war", "0"); } catch {} }); })();
+</script>
 <div class="app" id="app" data-forma="escritorio">
   <section class="zona-mapa marco" id="zona-mapa" aria-label="Planta de recogida">
     <header class="cabeza">
@@ -276,9 +286,9 @@
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
 <script src="../../shared/js/iconos.js?v=3"></script>
 <script src="js/iconos.js?v=2"></script>
-<script src="js/juego.js?v=7"></script>
-<script src="js/layout.js?v=3"></script>
+<script src="js/juego.js?v=8"></script>
+<script src="js/layout.js?v=4"></script>
 <script src="../../shared/js/estructura.js?v=3"></script>
-<script src="../../shared/js/edicion.js?v=16"></script>
+<script src="../../shared/js/edicion.js?v=17"></script>
 </body>
 </html>
