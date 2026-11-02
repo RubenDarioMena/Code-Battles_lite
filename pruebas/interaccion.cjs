@@ -24,6 +24,9 @@ function insertar(texto, desde, hasta) {
 }
 ${bloque('  function envolver(antes, despues', '  // Comenta o descomenta')}
 ${bloque('  const ATAJOS =', '  const codAtajo =')}
+let avisado = '';
+const esc = s => String(s), avisoEditor = html => { avisado = html; };
+${bloque('  // Operando de un operador', '  function usarAtajo')}
 let ejec = null, edicion = {ids:['A','B'],mixto:true}, programas = {A:'uno();',B:'dos();'}, aplicandoMulti = false;
 const borradoresMulti = new Map();
 const claveEdicion = ids => [...ids].sort().join('|');
@@ -81,6 +84,26 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   eq(run('$codigo.value'), 'if (/* condición */) {\n  uno();\n} else {\n  \n}');
   editar('pos'); atajo('disparo'); eq(run('$codigo.value'), 'regularShoot(pos);');
   editar('"crawler"'); atajo('apuntar'); eq(run('$codigo.value'), 'const pos = autoTarget("crawler", /* sensor */);');
+  // Con un hueco elegido, «Apuntar» lo rellena con su valor; no abre otra línea con un segundo «const pos».
+  editar('const pos = autoTarget("crawler", "visual") ?? /* valor */;', 47, 58); atajo('apuntar');
+  eq(run('$codigo.value'), 'const pos = autoTarget("crawler", "visual") ?? autoTarget(/* tipo de enemigo */, /* sensor */);');
+  eq(elegido(), '/* tipo de enemigo */');
+  // «??» se ajusta a la estructura: nunca tras el «;» ni partiendo una llamada.
+  const operador = (ico, texto, a, b = a) => { editar(texto, a, b); run(`{const a=ATAJOS.flatMap(a=>a==="|"?[]:[a,...(a.variantes||[])]).find(a=>a.ico===${JSON.stringify(ico)}); insertarOperador(a);}`); return run('$codigo.value'); };
+  const linea = 'const pos = autoTarget("crawler", "visual");';
+  for (const [a, b] of [[linea.length], [linea.length + 3], [12, 22], [6, 9], [0, linea.length], [12, 42], [linea.length - 1]]) {
+    eq(operador('plan', linea + '   ', a, b), 'const pos = autoTarget("crawler", "visual") ?? /* valor */;   ');
+    eq(elegido(), '/* valor */');
+  }
+  eq(operador('plan', 'regularShoot(pos);', 16), 'regularShoot(pos ?? /* valor */);');
+  eq(operador('plan', 'const p = s1.detect("crawler");', 13, 19), 'const p = s1.detect("crawler") ?? /* valor */;');
+  eq(operador('plan', 'f("a", "b");', 7, 10), 'f("a", "b" ?? /* valor */);');
+  eq(operador('plan', 'if (a || b) {}', 4, 10), 'if ((a || b) ?? /* valor */) {}');
+  eq(operador('y', 'if (a ?? b) {}', 4, 10), 'if ((a ?? b) && /* condición */) {}');
+  eq(operador('y', 'if (a && b) {}', 4, 10), 'if (a && b && /* condición */) {}');
+  eq(operador('no', 'if (listo) {}', 4, 9), 'if (!listo) {}');
+  eq(operador('plan', '', 0), '/* valor */ ?? /* valor */'); eq(elegido(), '/* valor */');
+  run("avisado=''"); eq(operador('plan', 'while (true) {\n  x();\n}', 0, 5), 'while (true) {\n  x();\n}'); eq(run('avisado.includes("??")'), true);
   for (const [a,b] of [['(',')'],['[',']'],['{','}'],['"','"']]) {
     editar('pos'); ctx.apertura=a; ctx.cierre=b;
     run('envolver(apertura,cierre)'); eq(run('$codigo.value'),a+'pos'+b); eq(elegido(),'pos');

@@ -2078,9 +2078,10 @@ onmessage = async (ev) => {
     const $e = $("b-ejecutar");
     $e.textContent = corriendo ? "■ Detener" : "▶ Ejecutar";
     $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo);
-    const $ec = $("b-ejecutar-cod");
-    $ec.textContent = corriendo ? "■ DETENER" : "▶ EJECUTAR";
-    $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
+    for (const $ec of [$("b-ejecutar-cod"), $("b-ejecutar-flot")]) {
+      $ec.textContent = corriendo ? "■ DETENER" : "▶ EJECUTAR";
+      $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
+    }
     const $p = $("b-pausa");
     $p.disabled = !corriendo; $p.textContent = pausa ? "Seguir" : "Pausa";
     $("b-vel").textContent = `${velocidad}×`;
@@ -2092,12 +2093,15 @@ onmessage = async (ev) => {
   $("b-ejecutar").addEventListener("click", () => ejec ? detener() : ejecutar());
   // EJECUTAR del editor (pantalla completa): corre el código, pasa a la batalla y cierra el inspector.
   // Si hay un error, la batalla muestra su aviso con el enlace a la línea.
-  $("b-ejecutar-cod").addEventListener("click", () => {
+  // Con las herramientas plegadas, el mismo botón flota abajo a la izquierda del código.
+  function ejecutarDesdeCodigo() {
     if (ejec) { detener(); return; }
     ejecutar();
     if (ejec) ponerInspector("cerrado");
     verPanel("mapa");
-  });
+  }
+  $("b-ejecutar-cod").addEventListener("click", ejecutarDesdeCodigo);
+  $("b-ejecutar-flot").addEventListener("click", ejecutarDesdeCodigo);
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
   $("b-reiniciar").addEventListener("click", () => {
@@ -2757,6 +2761,16 @@ onmessage = async (ev) => {
   function insertarBloque(bloque, envolvente) {
     const elegido = $codigo.selectionStart !== $codigo.selectionEnd;
     if (envolvente && elegido) { elegirLineasCompletas(); if (envolver(envolvente[0], envolvente[1], true)) return; }
+    // Con un hueco elegido, una plantilla «const x = valor;» lo rellena con su valor en vez de abrir otra línea.
+    const valor = bloque.match(/^(?:const|let|var)\s+[\w$]+\s*=\s*([^\n]+?);?\s*$/);
+    if (valor && elegido) {
+      const v = $codigo.value.slice($codigo.selectionStart, $codigo.selectionEnd).trim();
+      if (RE_HUECO.test(v) && v.match(RE_HUECO)[0] === v) {
+        const h = valor[1].search(RE_HUECO), m = h >= 0 ? valor[1].slice(h).match(RE_HUECO)[0] : "";
+        if (h >= 0) insertar(valor[1], h, h + m.length); else insertar(valor[1]);
+        return;
+      }
+    }
     const hSeleccion = bloque.search(RE_HUECO);
     if (hSeleccion >= 0 && elegido) {
       const x = expresionEnvolvible();
@@ -2870,17 +2884,63 @@ onmessage = async (ev) => {
       return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}" data-i="${i}" aria-label="${esc(a.t + mas)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
     }).join("");
   }
-  // Operadores: con algo elegido lo usan de primer operando y dejan elegido el hueco del segundo;
-  // «!» lo niega. Sin selección se escriben donde está el cursor.
+  // Operando de un operador: la expresión elegida, ajustada para no partir el código.
+  // Una sentencia o declaración aporta su expresión («const pos = X;» → X); el nombre de una función
+  // o el objeto de «a.b» arrastran la llamada entera. Sin selección, la expresión que acaba en el cursor.
+  const EXPRESIONES = new Set(["id", "num", "str", "lit", "hueco", "binaria", "unaria", "llamada", "miembro", "ternaria", "asignacion", "flecha", "grupo", "lista", "objeto"]);
+  const PREC_OP = { "??": 1, "||": 2, "&&": 3, "==": 7, "!=": 7, "===": 7, "!==": 7, "<": 8, ">": 8, "<=": 8, ">=": 8, "+": 10, "-": 10, "*": 11, "/": 11, "%": 11, "**": 12 };
+  function operandoDe(n, asignar) {
+    if (n && n.k === "id" && n.padre && n.padre.k === "decl" && n.padre.h[0] === n) n = n.padre;
+    if (n && (n.k === "sentencia" || n.k === "salto")) n = n.h[0];
+    else if (n && n.k === "decl") n = !asignar && n.h.length === 2 ? n.h[1] : null;
+    while (n && n.padre && (n.padre.h[0] === n && (n.padre.k === "llamada" || n.padre.k === "miembro" || n.padre.k === "metodo")))
+      n = n.padre.k === "metodo" ? n.padre.padre : n.padre;
+    return n && EXPRESIONES.has(n.k) ? n : null;
+  }
+  function operandoOperador(asignar) {
+    const E = window.ESTRUCTURA, v = $codigo.value;
+    let a = $codigo.selectionStart, b = $codigo.selectionEnd;
+    if (!E) return a === b ? null : { a, b, n: null };
+    const est = E.analizar(v, lexico(v)), util = x => x.k !== "vacio" && x.k !== "programa";
+    let n;
+    if (a !== b) {
+      while (a < b && /\s/.test(v[a])) a++;
+      while (b > a && /\s/.test(v[b - 1])) b--;
+      // La construcción más pequeña que cubre lo elegido.
+      n = est.nodos.filter(x => util(x) && x.a <= a && x.b >= b).sort((x, y) => (x.b - x.a) - (y.b - y.a))[0];
+    } else {
+      while (a > 0 && /[ \t]/.test(v[a - 1])) a--;
+      n = est.nodos.filter(x => x.b === a && (EXPRESIONES.has(x.k) || x.k === "sentencia" || x.k === "decl" || x.k === "salto"))
+        .sort((x, y) => (y.b - y.a) - (x.b - x.a))[0];
+    }
+    n = operandoDe(n, asignar);
+    return n ? { a: n.a, b: n.b, n } : null;
+  }
+  // «a || b ?? c» no es válido y «a ?? b && c» cambia de sentido: el operando lleva paréntesis si hace falta.
+  function conParentesis(texto, n, op) {
+    if (!n || op === "=") return texto;
+    const logicos = ["??", "||", "&&"];
+    const baja = ["ternaria", "asignacion", "flecha", "secuencia"].includes(n.k)
+      || n.k === "binaria" && (PREC_OP[n.op] < PREC_OP[op] || logicos.includes(n.op) && logicos.includes(op) && (n.op === "??") !== (op === "??"));
+    return baja ? `(${texto})` : texto;
+  }
+  // Operadores: el operando (lo elegido o lo que acaba en el cursor) va primero y queda elegido el hueco
+  // del segundo; «!» lo niega. Sin operando, ambos lados son huecos.
   function insertarOperador(a) {
-    const s = $codigo.selectionStart, e = $codigo.selectionEnd;
-    if (s === e) return insertar(a.prefijo ? a.operador : ` ${a.operador} `);
-    const elegido = $codigo.value.slice(s, e);
+    const hueco = `/* ${a.hueco || "valor"} */`, op = operandoOperador(a.operador === "=");
+    if (!op && $codigo.selectionStart !== $codigo.selectionEnd)
+      return avisoEditor(`Elige un valor para usar <code>${esc(a.operador)}</code>: una variable, una llamada o una expresión.`);
+    if (!op) {
+      const texto = a.prefijo ? a.operador + hueco : `${hueco} ${a.operador} ${hueco}`;
+      return insertar(texto, a.prefijo ? a.operador.length : 0, (a.prefijo ? a.operador.length : 0) + hueco.length);
+    }
+    $codigo.setSelectionRange(op.a, op.b);
+    const elegido = $codigo.value.slice(op.a, op.b);
     if (a.prefijo) {
       const negado = a.operador + (/[\s&|<>=!?+\-*/%]/.test(elegido.replace(/^\/\*.*\*\/$/, "")) ? `(${elegido})` : elegido);
       return insertar(negado, 0, negado.length);
     }
-    const hueco = `/* ${a.hueco || "valor"} */`, texto = `${elegido} ${a.operador} ${hueco}`;
+    const operando = conParentesis(elegido, op.n, a.operador), texto = `${operando} ${a.operador} ${hueco}`;
     if (RE_HUECO.test(elegido) && elegido.match(RE_HUECO)[0] === elegido) return insertar(texto, 0, elegido.length);
     insertar(texto, texto.length - hueco.length, texto.length);
   }

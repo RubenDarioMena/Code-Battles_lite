@@ -1,5 +1,14 @@
 # Code-battle-lite · progreso
 
+## `??` y operadores ajustados a la estructura, «Apuntar» en un hueco y EJECUTAR flotante · 2 de noviembre de 2026
+
+- Bugs del vídeo de QA (War): el atajo «Si no hay (??)» y sus variantes (`&&`, `||`, `!`, comparaciones) usaban el texto elegido tal cual. Ahora el operando se ajusta con `ESTRUCTURA`. Una sentencia o declaración aporta su expresión (`const pos = X;` → `X ?? /* valor */;`, también eligiendo `pos` o la línea entera). El nombre de una función o el objeto de `a.b` arrastran la llamada entera. Sin selección se usa la expresión que acaba en el cursor (tras el `;`, la de esa sentencia). Sin nada que tomar se escriben dos huecos. Lo que no es una expresión (un `while`…) avisa y no cambia el código. Se añaden paréntesis cuando hacen falta: `(a || b) ?? x`, `(a ?? b) && x`.
+- Con un hueco elegido, una plantilla `const x = valor;` («Apuntar», «Sensor de vibración») rellena el hueco con su valor y elige su primer hueco. Antes abría otra línea con un segundo `const pos`.
+- No se restringen por tipo las sugerencias de «Valor»: decisión de diseño, se prefieren muchas opciones mientras la mecánica cambie.
+- Pantalla completa: con las herramientas plegadas (`.cabecera-editor.plegada`), un botón **▶ EJECUTAR** (`#b-ejecutar-flot`) flota abajo a la izquierda del código. Hace lo mismo que el de la barra (ejecuta y pasa al mapa; DETENER mientras corre) y se oculta con el teclado del teléfono abierto.
+- Versiones: `juego.js?v=19`, `componentes.css?v=18`, `layout.css?v=16`.
+- Verificación: `node pruebas/interaccion.cjs` (**123 comprobaciones**, 27 nuevas de operadores y hueco). Navegador integrado en **8771**: `??` tras el `;` y con `autoTarget` elegido, y «Apuntar» en el hueco, con los botones reales de la paleta. Tableta emulada 768×1024 en pantalla completa: el botón aparece al plegar, ejecuta, pasa al mapa, alterna DETENER y se oculta al desplegar; consola sin errores. No se ejecutó `pruebas/navegador.mjs` (Ego Browser), ni tacto real.
+
 ## Fusión de `main` en `trunk` · 1 de noviembre de 2026
 
 - `trunk` (Desenvolver, inspector cerrado, hoja móvil) y `main` (pantalla completa, panel inferior, información del reto, telemetría, VFX) habían divergido: el enlace de githack a `trunk` no tenía las 9 commits de `main`. Fusionado `origin/main` en `auto-testing-ui`; conflictos solo en `?v=` y en este archivo. Versiones: `juego.js?v=18`, `edicion.js?v=17`, `estructura.js?v=3`, `seudo.js?v=3`.

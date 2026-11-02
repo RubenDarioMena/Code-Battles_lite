@@ -213,6 +213,9 @@
 .app[data-pantalla-completa="true"] .ver-codigo { display: grid; place-items: center; }
 .app[data-pantalla-completa="true"] .barra-prog .progs { display: none; }
 .app[data-pantalla-completa="true"] .ejecutar-cod { display: inline-flex; justify-content: center; }
+/* Con las herramientas plegadas, EJECUTAR flota abajo a la izquierda del código. */
+.app[data-pantalla-completa="true"] .cabecera-editor.plegada ~ #v-programa .ejecutar-flot { display: inline-flex; }
+.app.teclado[data-forma="movil"] .cabecera-editor.plegada ~ #v-programa .ejecutar-flot { display: none; }
 /* El botón del mapa flota bajo el de pantalla completa (o en su sitio, si ese no está en esta esquina). */
 .app[data-pantalla-completa="true"] .ver-mapa { display: grid; }
 #b-ver-mapa { position: absolute; top: 50px; right: 10px; z-index: 46; }
