@@ -190,7 +190,7 @@
     return { ...JSON.parse(JSON.stringify(reto)), serie: "factory", mapa: { cols: 9, rows: 7 }, fin: "mundo", limite: 300, mejora: "tiempo",
       robots: [{ id: "R1", ...reto.robot }], lanzadores: [], sensores: [], reparadores: 0, oleadas: [],
       inicial: { R1: generar({ cuerpo: reto.inicial || [] }).codigo.replaceAll("await yo.recoger", "await pickUp").replaceAll("await yo.entregar", "await deliver").replaceAll("await yo.esperar", "await wait").replaceAll("await yo.cuantos", "count").trimEnd().split("\n") },
-      herramientas: { programa: ["js", "pseudo", "bloques"], mapa: ["2d"] } };
+      herramientas: { programa: ["js", "pseudo", "bloques"], mapa: ["3d", "2d"] } };
   }
   window.FACTORY_RETOS = { RETOS: RETOS.map(adaptar), propio: adaptar(PROPIO_BASE), normalizar: d => adaptar(normalizarReto(d)), generar };
 })();

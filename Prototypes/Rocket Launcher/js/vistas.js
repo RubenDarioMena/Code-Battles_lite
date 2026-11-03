@@ -2,7 +2,10 @@
 (() => {
   "use strict";
   function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual }) {
-    if (ES_FACTORY || typeof THREE === "undefined") return null;
+    if (typeof THREE === "undefined" || (ES_FACTORY && !window.FACTORY_3D)) return null;
+    // Factory usa el mismo visor con su propio contenido (factory-3d.js) y un mapa más pequeño.
+    const ZOOM = ES_FACTORY ? [2.5, 30] : [8, 70];
+    let factory = null, ahoraPrevio = null;
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -53,6 +56,7 @@
       if (escena.fog) escena.fog.color.copy(escena.background);
       horizonte.color.copy(escena.background);
       pintarMontes();
+      if (factory) factory.colores();
     }
     const G = {
       caja: (w, h, d) => new THREE.BoxGeometry(w, h, d),
@@ -186,7 +190,7 @@
       });
       if (montes.instanceColor) montes.instanceColor.needsUpdate = true;
     }
-    function construirTerreno() {
+    function construirTerreno(conMontes = true) {
       const { x0, x1, z0, z1 } = TERRENO;
       const afuera = mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), M.afuera);
       afuera.rotation.x = -Math.PI / 2; afuera.position.set((x0 + x1) / 2, -.02, (z0 + z1) / 2); afuera.raycast = () => {};
@@ -194,6 +198,7 @@
       for (let i = x0; i <= x1; i++) p.push([i, -.01, z0], [i, -.01, z1]);
       for (let j = z0; j <= z1; j++) p.push([x0, -.01, j], [x1, -.01, j]);
       const red = lineas(p, L.gridFuera); red.raycast = () => {};
+      if (!conMontes) { fijo.add(afuera, red); return; }
       montes = new THREE.InstancedMesh(G.caja(1, 1, 1), matMonte, celdasMonte.length);
       const m = new THREE.Matrix4();
       celdasMonte.forEach(([i, j, h], n) => { m.makeScale(1, h, 1); m.setPosition(i + .5, h / 2 - .02, j + .5); montes.setMatrixAt(n, m); });
@@ -206,11 +211,18 @@
       limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
       prepararVisual();
       const suelo = mesh(new THREE.PlaneGeometry(estado.cols, estado.rows), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(estado.cols / 2, 0, estado.rows / 2); fijo.add(suelo);
-      construirTerreno();
+      construirTerreno(!ES_FACTORY);
       const p1 = [], p2 = [];
       for (let i = 0; i <= estado.cols; i++) (i % 4 ? p1 : p2).push([i, .01, 0], [i, .01, estado.rows]);
       for (let j = 0; j <= estado.rows; j++) (j % 3 ? p1 : p2).push([0, .01, j], [estado.cols, .01, j]);
       fijo.add(lineas(p1, L.grid), lineas(p2, L.grid2));
+      if (ES_FACTORY) {
+        escena.fog = horizonte;
+        factory = window.FACTORY_3D.construir({ estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
+        window.FACTORY_3D.ultimo = factory;
+        aplicarColores(); anillosDe(estado.seleccion);
+        return;
+      }
       const zona = mesh(new THREE.PlaneGeometry(LINEA_BASE, estado.rows), M.base); zona.rotation.x = -Math.PI / 2; zona.position.set(LINEA_BASE / 2, .015, estado.rows / 2); fijo.add(zona);
       const br = lineas([[LINEA_BASE, .03, 0], [LINEA_BASE, .03, estado.rows]], L.brecha); br.computeLineDistances(); fijo.add(br);
       escena.fog = estado.mundo.def.niebla ? new THREE.Fog(0xffffff, 10, 34) : horizonte;
@@ -310,7 +322,9 @@
       const anillo = (r, mat, x, z, w = .05) => { const a = mesh(new THREE.RingGeometry(r - w, r + w, 96), mat); a.rotation.x = -Math.PI / 2; a.position.set(x, .04, z); grupo.add(a); };
       if (e && e.clase === "lanzador") { anillo(alcance("visual"), M.rVisual, e.cx, e.cy); anillo(alcance("thermal"), M.rTermico, e.cx, e.cy); }
       else if (e && e.clase === "vibracion") anillo(e.alcance, M.rVibra, e.cx, e.cy);
-      if (e) anillo(radioDe(e), M.sel, e.cx, e.cy, .06);
+      // El robot de carga se mueve: su anillo lo sigue (ver actualizar).
+      if (e && e.clase === "robot") { anillo(radioDe(e), M.sel, 0, 0, .06); grupo.userData.sigueMaquina = id; }
+      else if (e) anillo(radioDe(e), M.sel, e.cx, e.cy, .06);
       else { const en = estado.mundo.enemigos.find(x => x.id === id); if (!en) return; anillo(.6, M.sel, 0, 0, .06); grupo.userData.sigue = id; }
       anillos = grupo; movil.add(grupo);
       for (const otro of estado.seleccionadas) {
@@ -331,6 +345,12 @@
     }
 
     function actualizar(off, ahora) {
+      if (factory) {
+        const dt = ahoraPrevio == null ? 0 : Math.min(.1, Math.max(0, (ahora - ahoraPrevio) / 1000)); ahoraPrevio = ahora;
+        window.FACTORY_3D.actualizar(factory, { estado, camara, altoPx: () => altoCampo }, dt);
+        if (anillos && anillos.userData.sigueMaquina) { const u = estado.mundo.porId[anillos.userData.sigueMaquina]; if (u) anillos.position.set(u.cx, 0, u.cy); }
+        return;
+      }
       const t = estado.mundo.t + off;
       for (const l of estado.mundo.lanzadores) {
         const o = objetos.get(l.id);
@@ -441,6 +461,7 @@
     function camaraInicial(k) {
       // En pantallas estrechas la cámara se aleja para que quepan las 32 columnas.
       // Algo inclinada y mirando un poco más al norte: deja ver la cordillera detrás del campo.
+      if (ES_FACTORY) return encuadrar({ yaw: k === "girada" ? -Math.PI / 2 : 0, pitch: .9, dist: 12, x: estado.cols / 2, z: estado.rows / 2 }, .92, .82);
       if (k !== "girada") return { yaw: 0, pitch: .93, dist: camara.aspect < 1.5 ? 33 * 1.5 / camara.aspect : 33, x: estado.cols / 2, z: estado.rows / 2 - .8 };
       return encuadrar({ yaw: -Math.PI / 2, pitch: .98, dist: 30, x: estado.cols / 2 - .6, z: estado.rows / 2 }, .98, .8);
     }
@@ -463,7 +484,7 @@
     function render() {
       if (!cam) elegirCamara();
       colocarCamara();
-      if (escena.fog === horizonte) { horizonte.near = cam.dist + 24; horizonte.far = cam.dist + 110; }
+      if (escena.fog === horizonte) { horizonte.near = cam.dist + (ES_FACTORY ? 8 : 24); horizonte.far = cam.dist + (ES_FACTORY ? 40 : 110); }
       else if (escena.fog) { escena.fog.near = cam.dist * .55; escena.fog.far = cam.dist * 1.75; }
       renderer.render(escena, camara);
     }
@@ -488,7 +509,7 @@
     }
     function centrar(x, y) {
       // Acerca la cámara a la unidad un poco hacia el lado desde el que mira.
-      cam.x = x + Math.sin(cam.yaw); cam.z = y + Math.cos(cam.yaw); cam.dist = Math.min(cam.dist, 22); moverCamara();
+      cam.x = x + Math.sin(cam.yaw); cam.z = y + Math.cos(cam.yaw); cam.dist = Math.min(cam.dist, ES_FACTORY ? 5 : 22); moverCamara();
     }
     function recentrar() { Object.assign(cam, cam0); camActual.movida = false; }
 
@@ -511,7 +532,7 @@
       if (dx || dy) moverCamara();
       if (punteros.size >= 2) {
         const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-        if (gesto.dist0) cam.dist = Math.min(70, Math.max(8, cam.dist * gesto.dist0 / d));
+        if (gesto.dist0) cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * gesto.dist0 / d));
         gesto.dist0 = d;
         desplazar(dx / 2, dy / 2);
         // Girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral pequeño evita
@@ -538,7 +559,7 @@
     };
     canvas.addEventListener("pointerup", soltar);
     canvas.addEventListener("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(70, Math.max(8, cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
+    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
     const limitar = () => { cam.x = Math.min(estado.cols + 4, Math.max(-4, cam.x)); cam.z = Math.min(estado.rows + 4, Math.max(-6, cam.z)); };
     function desplazar(dx, dy) {
       const k = cam.dist * .0022;
@@ -556,7 +577,7 @@
       const despues = suelo(px, py, w, h);
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato, camara: () => ({ clave: camActual && camActual.k, ...cam }) };
+    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato, camara: () => ({ clave: camActual && camActual.k, ...cam, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }) };
   }
   function crearPlano(estado, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 }) {
   function dibujar2D(off) {

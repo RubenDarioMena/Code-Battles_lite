@@ -40,6 +40,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `js/war.js`, `js/factory.js` | Reglas de combate y logística. |
 | `js/war-retos.js`, `js/factory-retos.js` | Retos y normalización de escenarios. |
 | `js/vistas.js`, `js/factory-vista.js` | Mapa 3D/plano y dibujo de logística. |
+| `js/factory-3d.js`, `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil, barra de símbolos y tooltips. |
 | `js/seudo.js` | Vistas del JS: seudocódigo ES/EN para ambas series y bloques de Factory, edición y arrastre. |
@@ -83,6 +84,7 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - Victoria al cumplir metas; las entregas llenas conservan la carga. `count` devuelve 0 para edificio vacío y null si no existe. [Reglamento completo](docs/REGLAMENTO.md).
 - Importación única de programas y preferencias desde `cmg-banco02:*`, sin escribir en ese banco. Los programas comunes usan `cmg-banco03:prog-factory-*`; el árbol antiguo se convierte a JS cuando era la fuente activa.
 - Récord por tiempo con versión de reglas, telemetría local separada y stock determinista por intento. War conserva sus claves y telemetría remota.
+- Vista 3D (por defecto) o plano, recordada por serie. R1 es el transporte T1 de Blender: el brazo alcanza el edificio al recoger o entregar y lleva la caja con el color del material. El nivel de detalle (LOD0–2) depende del tamaño del robot en pantalla. El cargador glTF r128 se descarga solo en Factory.
 - Comparación histórica: 28 casos, con [13 diferencias aprobadas](pruebas/factory-deltas.json) y 15 resultados idénticos. El [oráculo original](pruebas/factory-oraculo.md) se conserva.
 - El Factory original (`Prototypes/Tres vistas/`) está retirado: sus URL y `Prototypes/02_tres_vistas.html` redirigen aquí conservando query y hash. Su código queda en el historial de git (`b76411b`).
 
@@ -120,6 +122,7 @@ node --check pruebas/navegador.mjs
 node --check pruebas/factory-comun.mjs
 node --check pruebas/factory-editor-comun.mjs
 node --check pruebas/factory-vistas-comunes.mjs
+node --check pruebas/factory-3d.mjs
 node --check pruebas/entrada.mjs
 node --check scripts/preparar-netlify.mjs
 node --check pruebas/publicacion.mjs
@@ -140,11 +143,13 @@ const { probar } = await import("file:///Users/rubenmena/Documents/Dev/Code-batt
 const { probarFactoryComun } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-comun.mjs");
 const { probarFactoryVistas } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-vistas-comunes.mjs");
 const { probarFactoryEditorComun } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-editor-comun.mjs");
+const { probarFactory3D } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-3d.mjs");
 const { probarEntrada } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/entrada.mjs");
 await probar(task.page("p1")); // War / Rocket Launcher
 await probarFactoryComun(task.page("p1"));
 await probarFactoryVistas(task.page("p1"));
 await probarFactoryEditorComun(task.page("p1"));
+await probarFactory3D(task.page("p1"));
 await probarEntrada(task.page("p1")); // generar dist/ primero
 await task.finish({ keep: [] });
 JS

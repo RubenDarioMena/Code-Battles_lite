@@ -198,7 +198,7 @@
   let telemetria = guardado.leer(ES_FACTORY ? "factory-telemetria" : "telemetria", []);
   let logistica = null, combate = null;
   let ruteo = { ...RUTEO_DEF, ...guardado.leer("ruteo", {}) };
-  let vista = ES_FACTORY ? "2d" : guardado.leer("vista", "3d");
+  let vista = guardado.leer(ES_FACTORY ? "factory-vista" : "vista", "3d");
   let colores = guardado.leer("colores", true);
   let tamLetra = guardado.leer("letra", 14);
   let semillaFija = !!guardado.leer("semillaFija", false);
@@ -1051,9 +1051,9 @@
   // Vista 3D o plano
   function aplicarVista(v) {
     vista = V3 ? v : "2d";
-    if (!ES_FACTORY) guardado.escribir("vista", v);
+    guardado.escribir(ES_FACTORY ? "factory-vista" : "vista", v);
     $("c3d").hidden = vista !== "3d"; $("c2d").hidden = vista !== "2d";
-    $("sin3d").hidden = ES_FACTORY || !!V3;
+    $("sin3d").hidden = !!V3;
     $("b-centrar").hidden = vista !== "3d";
     document.querySelectorAll("[data-vista]").forEach(b => b.setAttribute("aria-pressed", b.dataset.vista === vista));
     tamanoCampo();
@@ -2352,7 +2352,6 @@
   if (ES_FACTORY) {
     document.title = "Code Battle Lite · Factory";
     document.documentElement.dataset.serie = "factory";
-    document.querySelectorAll('[data-vista="3d"]').forEach(b => b.disabled = true);
     document.querySelector(".fila-sem").hidden = true;
     document.querySelector(".coordenadas-manuales").hidden = true;
     $("t-escenario").textContent = "Tu reto";

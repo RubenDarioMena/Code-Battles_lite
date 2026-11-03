@@ -136,7 +136,7 @@
     } else if (verbo === "esperar") {
       r.tarea = { wps: [], op: args[0], fin: () => "ok" };
     }
-    if (r.tarea) r.tarea.op0 = r.tarea.op;
+    if (r.tarea) Object.assign(r.tarea, { op0: r.tarea.op, verbo, lugar: args[0] });  // verbo y lugar: solo para el dibujo 3D
   }
 
   function sensor(lugar, mat) {
