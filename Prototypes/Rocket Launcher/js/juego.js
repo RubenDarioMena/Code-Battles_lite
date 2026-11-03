@@ -6,26 +6,15 @@
   "use strict";
 
   // ---------- Constantes del mundo ----------
-  const COLS = 32, ROWS = 18;      // casillas de 1 m
+  const ES_FACTORY = new URLSearchParams(location.search).get("serie") === "factory";
+  let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
-  const DT = 0.05;                 // paso fijo de simulación (tiempo de juego)
+  const DT = window.NUCLEO.DT;                 // paso fijo de simulación (tiempo de juego)
   const VIGIA_MS = 2500;           // bucle sin await
   const MAX_ORDENES = 4000;        // mensajes seguidos sin esperar
   const T_LIMITE = 400;            // tiempo de juego máximo de un intento
   const CLAVE = "cmg-banco03";
-  const TIPOS = {
-    crawler: { nombre: "oruga", suelo: true, z: 0, vel: 0.8, hp: 2, frio: false, letra: "O" },
-    drone: { nombre: "dron", suelo: false, z: 2.5, vel: 2.0, hp: 1, frio: false, letra: "D" },
-    stealth: { nombre: "dron frío", suelo: false, z: 2.0, vel: 1.5, hp: 1, frio: true, letra: "F" },
-  };
-  const SENSOR = {
-    visual: { nombre: "cámara", alcance: 14, niebla: 5.5 },
-    thermal: { nombre: "térmico", alcance: 11, niebla: 7 },
-  };
-  const LAU = { cadencia: 1, cadenciaRafaga: 2.2, cargador: 8, suministro: 1, fallaBase: 0.02, fallaRafaga: 0.04, subida: 0.06, bajada: 0.1, bajadaParado: 0.2 };
-  const MISIL = { vel: 14, radio: 1.3 };
-  const REP = { vel: 4, tBase: 1.5, tPorFallo: 12 };  // reparar tarda más si el fallo llegó con failureRate alto
-  const COSTE = { misil: 10, reparacion: 40 };
+  const { TIPOS, SENSOR, LAU, MISIL, REP, COSTE } = window.WAR;
   const NIVELES = ["log", "info", "warn", "error"];
 
   // ---------- Funciones de los robots (provisionales) ----------
@@ -37,6 +26,7 @@
     vibracion: { principal: "rastreo" },
     reparador: { principal: "utilitaria" },
     deposito: { principal: "fabrica" },
+    robot: { principal: "utilitaria" }, bodega: { principal: "fabrica" }, fundidora: { principal: "fabrica" },
   };
   const funcionDe = (e) => FUNCION_DE[e.clase] || null;
   const RADIO_DE = { lanzador: .9, vibracion: .6, deposito: 1.2, reparador: .5 };
@@ -77,139 +67,13 @@
     return p.a;
   }
 
-  // ---------- Retos ----------
-  // Las coordenadas son casillas; las oleadas entran por el borde derecho y avanzan hacia la izquierda.
-  const RETOS = [
-    {
-      titulo: "Primer blanco",
-      objetivo: "Seis orugas avanzan hacia la base. Que ninguna cruce la línea roja.",
-      leccion: "Bucle con espera. autoTarget mira solo en el instante en que lo llamas.",
-      pista: "autoTarget mira una vez y regularShoot sigue disparando a ese mismo lugar. Mételos en while (true) { … await esperar(0.5); } para volver a apuntar.",
-      lanzadores: [{ id: "LAU-01", x: 6, y: 9 }],
-      oleadas: [{ tipo: "crawler", n: 6, t: 1, cada: 3.5, carriles: [9, 6, 12, 8, 11, 7] }],
-      metas: { brechasMax: 0 },
-      inicial: { "LAU-01": ['const pos = autoTarget("crawler", "visual");', "regularShoot(pos);"] },
-    },
-    {
-      titulo: "Prioridades",
-      objetivo: "Primero orugas lentas; luego drones rápidos que vuelan a 2,5 m. Defiende la base sin brechas.",
-      leccion: "if / else o ?? para decidir a quién apuntar primero.",
-      pista: "autoTarget devuelve null si no ve ese tipo. Pide primero «drone» y, si no hay, «crawler»: con if/else o con ??.",
-      lanzadores: [{ id: "LAU-01", x: 6, y: 9 }],
-      oleadas: [
-        { tipo: "crawler", n: 7, t: 0, cada: 2.2, carriles: [8, 11, 6, 12, 9, 7, 10] },
-        { tipo: "drone", n: 6, t: 10, cada: 1.4, carriles: [9, 7, 11, 5, 13, 9] },
-      ],
-      metas: { brechasMax: 0 },
-      inicial: { "LAU-01": ["while (true) {", '  const pos = autoTarget("crawler", "visual");', "  regularShoot(pos);", "  await esperar(0.5);", "}"] },
-    },
-    {
-      titulo: "Niebla",
-      objetivo: "Con niebla la cámara ve 4,5 casillas y el térmico 7. Llegan orugas blindadas (3 impactos), drones y drones fríos, que el térmico no ve. VIB-01 escucha el suelo desde lejos.",
-      leccion: "Elegir el sensor según el enemigo, y la red de sensores (VIB_01.detect).",
-      pista: "Los drones fríos solo salen en la cámara. Las orugas blindadas necesitan 3 impactos: empieza antes con VIB_01.detect(\"crawler\"), que las oye lejos.",
-      niebla: true,
-      lanzadores: [{ id: "LAU-01", x: 6, y: 9 }],
-      sensores: [{ id: "VIB-01", x: 17, y: 9, alcance: 8 }],
-      oleadas: [
-        { tipo: "crawler", n: 6, t: 0, cada: 1.6, carriles: [9, 7, 11, 8, 10, 9], hp: 3 },
-        { tipo: "stealth", n: 2, t: 15, cada: 3, carriles: [9, 10] },
-        { tipo: "drone", n: 3, t: 20, cada: 1.8, carriles: [6, 12, 9] },
-      ],
-      metas: { brechasMax: 0 },
-      inicial: { "LAU-01": ["while (true) {", '  const pos = autoTarget("drone", "visual") ?? autoTarget("crawler", "visual");', "  regularShoot(pos);", "  await esperar(0.5);", "}"] },
-    },
-    {
-      titulo: "Enjambre",
-      objetivo: "Dos enjambres de 18 drones casi pegados; deja pasar como mucho 1. A 1 disparo por segundo no alcanza. La ráfaga dispara 2,2 por segundo, pero cada segundo en ráfaga sube failureRate, y cuanto más alto esté al fallar, más tarda REP-01 en reparar el atasco.",
-      leccion: "Leer una propiedad de la máquina (failureRate) para cambiar de modo.",
-      pista: "El programa de partida espera a 0,35 para parar: es tarde. Prueba ráfaga mientras failureRate esté bajo, y regularShoot o stopFire hasta que se enfríe. Mira el globo de console.warn y el tiempo de cada reparación.",
-      lanzadores: [{ id: "LAU-01", x: 6, y: 9 }],
-      reparadores: 1, cargador: 10, suministro: 2,
-      oleadas: [
-        { tipo: "crawler", n: 2, t: 0, cada: 6, carriles: [8, 10] },
-        { tipo: "drone", n: 18, t: 6, cada: 0.5, carriles: [7, 9, 11, 8, 10, 12, 6, 9, 11], vel: 2.4 },
-        { tipo: "drone", n: 18, t: 30, cada: 0.5, carriles: [10, 8, 12, 6, 9, 11, 7, 9, 8], vel: 2.4 },
-      ],
-      metas: { brechasMax: 1 },
-      inicial: { "LAU-01": [
-        "while (true) {",
-        '  const pos = autoTarget("drone", "visual") ?? autoTarget("crawler", "visual");',
-        "  if (failureRate >= 0.25) {",
-        "    console.warn(failureRate);",
-        "  }",
-        "  if (failureRate >= 0.35) {",
-        "    stopFire();",
-        "  } else {",
-        "    burstFire(pos);",
-        "  }",
-        "  await esperar(0.4);",
-        "}",
-      ] },
-    },
-    {
-      titulo: "Dos lanzadores",
-      objetivo: "Dos enjambres a la vez, uno por el norte y otro por el sur; deja pasar como mucho 1. LAU-01 y LAU-02 tienen cada uno su programa y comparten un solo robot reparador. Si uno se atasca, el otro puede leerlo (LAU_01.jammed) y cubrirlo.",
-      leccion: "Un programa por máquina; leer el estado de otra máquina.",
-      pista: "Las órdenes solo valen para la máquina dueña del programa, pero puedes leer las demás: LAU_02.jammed, LAU_02.failureRate. «Copiar a los demás lanzadores» ahorra escribir dos veces.",
-      lanzadores: [{ id: "LAU-01", x: 6, y: 5 }, { id: "LAU-02", x: 6, y: 13 }],
-      sensores: [{ id: "VIB-01", x: 17, y: 9, alcance: 8 }],
-      reparadores: 1, cargador: 12, suministro: 1.5,
-      oleadas: [
-        { tipo: "crawler", n: 4, t: 0, cada: 2.5, carriles: [3, 15, 5, 13], hp: 3 },
-        { tipo: "drone", n: 12, t: 10, cada: 0.4, carriles: [2, 4, 3, 5], vel: 2.4 },
-        { tipo: "drone", n: 12, t: 10.2, cada: 0.4, carriles: [15, 13, 16, 14], vel: 2.4 },
-        { tipo: "stealth", n: 3, t: 24, cada: 1.5, carriles: [8, 10, 9] },
-      ],
-      metas: { brechasMax: 1 },
-      inicial: {
-        "LAU-01": ["while (true) {", '  const pos = autoTarget("drone", "visual") ?? autoTarget("crawler", "visual");', "  regularShoot(pos);", "  await esperar(0.5);", "}"],
-        "LAU-02": ["while (true) {", '  const pos = autoTarget("drone", "visual") ?? autoTarget("crawler", "visual");', "  regularShoot(pos);", "  await esperar(0.5);", "}"],
-      },
-    },
-  ];
-  const PROPIO_BASE = {
-    titulo: "Tu escenario",
-    objetivo: "Escribe aquí tu enunciado: qué tiene que lograr el programa.",
-    leccion: "Escenario propio · se edita en la pestaña Escenario.",
-    pista: "Cambia oleadas, sensores y metas en la pestaña Escenario.",
-    lanzadores: [{ id: "LAU-01", x: 6, y: 9 }],
-    sensores: [{ id: "VIB-01", x: 17, y: 9, alcance: 8 }],
-    reparadores: 1, cargador: 8, suministro: 1, niebla: false,
-    oleadas: [
-      { tipo: "crawler", n: 3, t: 0, cada: 4, carriles: [8, 10, 9] },
-      { tipo: "drone", n: 6, t: 8, cada: 0.8, carriles: [7, 9, 11, 8, 10, 9] },
-    ],
-    metas: { brechasMax: 0 },
-    inicial: {},
-  };
-  const POS_LANZADORES = { 1: [{ id: "LAU-01", x: 6, y: 9 }], 2: [{ id: "LAU-01", x: 6, y: 5 }, { id: "LAU-02", x: 6, y: 13 }] };
-
-  function normalizar(d) {
-    const num = (v, def, min, max) => { const n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def; };
-    const metas = { ...(d.metas || {}) };
-    for (const k of ["brechasMax", "atascosMax", "derribosMin", "tiempoMax"]) metas[k] = metas[k] == null || metas[k] === "" ? null : num(metas[k], null, 0, 999);
-    if (metas.brechasMax == null) metas.brechasMax = 0;
-    return {
-      titulo: String(d.titulo || "Tu escenario").slice(0, 60), objetivo: String(d.objetivo || ""), leccion: String(d.leccion || ""), pista: String(d.pista || ""),
-      lanzadores: (d.lanzadores && d.lanzadores.length ? d.lanzadores : POS_LANZADORES[1]).slice(0, 2).map(l => ({ id: l.id, x: num(l.x, 6, 1, COLS - 2), y: num(l.y, 9, 0, ROWS - 1) })),
-      sensores: (d.sensores || []).slice(0, 2).map(s => ({ id: s.id, x: num(s.x, 17, 4, COLS - 2), y: num(s.y, 9, 0, ROWS - 1), alcance: num(s.alcance, 8, 2, 16) })),
-      reparadores: Math.round(num(d.reparadores, 1, 0, 3)),
-      cargador: Math.round(num(d.cargador, LAU.cargador, 1, 40)),
-      suministro: num(d.suministro, LAU.suministro, 0, 5),
-      niebla: !!d.niebla,
-      oleadas: (d.oleadas || []).filter(o => TIPOS[o.tipo]).slice(0, 12).map(o => ({
-        tipo: o.tipo, n: Math.round(num(o.n, 1, 0, 40)), t: num(o.t, 0, 0, 300), cada: num(o.cada, 1, 0.1, 60),
-        carriles: (Array.isArray(o.carriles) ? o.carriles : [9]).map(c => Math.round(num(c, 9, 0, ROWS - 1))),
-        ...(o.hp ? { hp: Math.round(num(o.hp, 1, 1, 9)) } : {}), ...(o.vel ? { vel: num(o.vel, 1, 0.2, 5) } : {}),
-      })),
-      metas,
-      inicial: d.inicial || {},
-    };
-  }
+  const { RETOS: RETOS_WAR, PROPIO_BASE, POS_LANZADORES, normalizar } = window.WAR_RETOS;
 
   // Avisos para quien escuche fuera del juego (telemetría remota): nunca interrumpen la partida.
   const avisar = (tipo, detalle) => { try { window.dispatchEvent(new CustomEvent(tipo, { detail: detalle })); } catch { /* sin oyentes */ } };
+
+  const RETOS = ES_FACTORY ? window.FACTORY_RETOS.RETOS : RETOS_WAR;
+  const programablesDe = d => d.robots || d.lanzadores;
 
   // ---------- Almacenamiento local (comodidad del jugador) ----------
   const guardado = {
@@ -221,151 +85,15 @@
   // Las lecturas (autoTarget, propiedades, VIB_01.detect) salen de una instantánea del mundo que llega
   // cada vez que el programa despierta; las órdenes se mandan sin esperar respuesta. El tiempo de juego
   // solo avanza mientras todos los programas están en `await esperar(...)`.
-  const WORKER_SRC = `
-const AF = Object.getPrototypeOf(async function () {}).constructor;
-let SNAP = null, PROPIA = null, NOMBRES = [], TIPOS = [], SENSORES = [], CONF = {}, OFF = null, seq = 0, espera = null;
-const PROPS_LAU = ["failureRate", "missiles", "mode", "jammed", "fireRate", "sensors", "target"];
-const nombreVar = (id) => id.replace(/-/g, "_");
-function lineaDe(e) {
-  const s = String((e && e.stack) || "");
-  const m = s.match(/<anonymous>:(\\d+):\\d+/) || s.match(/> Function:(\\d+):\\d+/) || s.match(/(?:eval code|anonymous)[^\\n]*?:(\\d+):\\d+/);
-  return m ? +m[1] : null;
-}
-const redondo = (x) => typeof x === "number" ? Math.round(x * 1000) / 1000 : x;
-function fmt(v) {
-  if (typeof v === "string") return v;
-  if (typeof v === "number") return String(redondo(v));
-  if (v === undefined) return "undefined";
-  try { return JSON.stringify(v, (k, x) => redondo(x)); } catch (_) { return String(v); }
-}
-const q = (v) => typeof v === "string" ? JSON.stringify(v) : fmt(v);
-const copia = (v) => v && typeof v === "object" ? JSON.parse(JSON.stringify(v)) : v;
-function fallo(linea, msg) { const e = new Error(msg); e.__linea = linea; return e; }
-const lista = (a) => a.map(x => '"' + x + '"').join(", ");
-function apuntarAPI(linea, id, tipo, sensor) {
-  if (!TIPOS.includes(tipo)) throw fallo(linea, "autoTarget necesita el tipo de enemigo como primer argumento: " + lista(TIPOS) + ". Recibió " + q(tipo) + ".");
-  if (sensor === "vibration" || sensor === "vibracion") {
-    const vib = NOMBRES.find(n => n.startsWith("VIB"));
-    throw fallo(linea, "El sensor de vibración no va montado en el lanzador: es de la red de sensores. " + (vib ? "Usa " + nombreVar(vib) + '.detect("crawler").' : "En este mapa no hay ninguno."));
-  }
-  if (!SENSORES.includes(sensor)) throw fallo(linea, "autoTarget necesita el sensor como segundo argumento: " + lista(SENSORES) + ". Recibió " + q(sensor) + ".");
-  const v = SNAP.auto[id][sensor][tipo];
-  postMessage({ type: "lee", linea, maquina: id, que: (id === PROPIA ? "" : nombreVar(id) + ".") + "autoTarget(" + q(tipo) + ", " + q(sensor) + ")", valor: v, fn: "autoTarget" });
-  return copia(v);
-}
-function detectarAPI(linea, id, tipo) {
-  if (tipo !== undefined && !TIPOS.includes(tipo)) throw fallo(linea, nombreVar(id) + ".detect acepta un tipo de enemigo (" + lista(TIPOS) + ") o nada. Recibió " + q(tipo) + ".");
-  const v = SNAP.vib[id][tipo || "*"];
-  postMessage({ type: "lee", linea, maquina: id, que: nombreVar(id) + ".detect(" + (tipo === undefined ? "" : q(tipo)) + ")", valor: v, fn: "detect" });
-  return copia(v);
-}
-function lugarDe(linea, fn, lugar) {
-  if (lugar == null) return null;
-  if (typeof lugar !== "object" || !Number.isFinite(+lugar.x) || !Number.isFinite(+lugar.y))
-    throw fallo(linea, fn + " necesita un lugar con x e y, como el que devuelve autoTarget(). Recibió " + q(lugar) + ".");
-  return { x: +lugar.x, y: +lugar.y, z: Number.isFinite(+lugar.z) ? +lugar.z : 0, id: typeof lugar.id === "string" ? lugar.id : null };
-}
-function orden(linea, id, verbo, args) {
-  if (id !== PROPIA) throw fallo(linea, "Las órdenes de " + id + " van en su propio programa. Desde aquí puedes leer " + nombreVar(id) + ".failureRate, " + nombreVar(id) + ".jammed…");
-  const d = SNAP.maq[id];
-  let res = "ok", lugar = null;
-  if (verbo === "stopFire") { d.mode = "idle"; d.target = null; d.fireRate = 0; }
-  else {
-    lugar = lugarDe(linea, verbo, args[0]);
-    if (!lugar) { d.mode = "idle"; d.target = null; d.fireRate = 0; res = "sin_objetivo"; }
-    else {
-      const modo = verbo === "burstFire" ? "burst" : "regular";
-      if (modo === "burst" && d.mode !== "burst") d.failureRate = Math.max(d.failureRate, CONF.fallaRafaga);
-      d.mode = modo; d.target = lugar; d.fireRate = modo === "burst" ? CONF.cadenciaRafaga : CONF.cadencia;
-      res = d.jammed ? "atascado" : d.missiles < 1 ? "sin_misiles" : "ok";
-    }
-  }
-  postMessage({ type: "cmd", linea, verbo, lugar, res });
-  return res;
-}
-function esperarAPI(linea, s) {
-  if (typeof s !== "number" || !(s >= 0.05) || s > 30) throw fallo(linea, "esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió " + q(s) + ".");
-  if (espera) throw fallo(linea, "Falta await en la línea " + espera.linea + ": el programa seguía esperando cuando llegó otra espera en la línea " + linea + ".");
-  const id = ++seq;
-  postMessage({ type: "espera", id, linea, s });
-  return new Promise((resolve) => { espera = { id, resolve, linea }; });
-}
-function consola(linea, nivel, a) { postMessage({ type: "consola", linea, nivel, texto: a.map(fmt).join(" ") }); }
-function maquina(id, linea) {
-  const o = {};
-  if (id.startsWith("LAU")) {
-    o.autoTarget = (t, s) => apuntarAPI(linea, id, t, s);
-    o.regularShoot = (...a) => orden(linea, id, "regularShoot", a);
-    o.burstFire = (...a) => orden(linea, id, "burstFire", a);
-    o.stopFire = (...a) => orden(linea, id, "stopFire", a);
-    for (const p of PROPS_LAU) Object.defineProperty(o, p, { enumerable: true, get: () => copia(SNAP.maq[id][p]) });
-  } else if (id.startsWith("VIB")) {
-    o.detect = (t) => detectarAPI(linea, id, t);
-    Object.defineProperty(o, "count", { enumerable: true, get: () => SNAP.maq[id].count });
-  }
-  Object.defineProperty(o, "id", { enumerable: true, value: id });
-  return new Proxy(o, { get(t, p) {
-    if (typeof p === "symbol" || p in t || p === "then" || p === "toJSON") return t[p];
-    throw fallo(linea, nombreVar(id) + "." + String(p) + " no existe. " + nombreVar(id) + " tiene: " + Object.keys(t).join(", ") + ".");
-  } });
-}
-function __L(linea) {
-  const o = {
-    autoTarget: (t, s) => apuntarAPI(linea, PROPIA, t, s),
-    regularShoot: (...a) => orden(linea, PROPIA, "regularShoot", a),
-    burstFire: (...a) => orden(linea, PROPIA, "burstFire", a),
-    stopFire: (...a) => orden(linea, PROPIA, "stopFire", a),
-    esperar: (s) => esperarAPI(linea, s),
-    log: (...a) => consola(linea, "log", a),
-    console: { log: (...a) => consola(linea, "log", a), info: (...a) => consola(linea, "info", a), warn: (...a) => consola(linea, "warn", a), error: (...a) => consola(linea, "error", a) },
-  };
-  Object.defineProperty(o, "yo", { get: () => maquina(PROPIA, linea) });
-  for (const id of NOMBRES) Object.defineProperty(o, nombreVar(id), { get: () => maquina(id, linea) });
-  return o;
-}
-// Sin instrumentar (dentro de plantillas de texto, por ejemplo) también funcionan, solo que sin línea.
-function instalarGlobales() {
-  const base = __L(null);
-  for (const k of ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log", "console"]) self[k] = base[k];
-  Object.defineProperty(self, "yo", { configurable: true, get: () => maquina(PROPIA, null) });
-  for (const id of NOMBRES) Object.defineProperty(self, nombreVar(id), { configurable: true, get: () => maquina(id, null) });
-  for (const p of PROPS_LAU) Object.defineProperty(self, p, { configurable: true, get: () => copia(SNAP.maq[PROPIA][p]) });
-}
-onmessage = async (ev) => {
-  const m = ev.data;
-  if (m.type === "despierta") {
-    SNAP = m.snap;
-    const e = espera;
-    if (e && e.id === m.id) { espera = null; e.resolve("ok"); }
-    return;
-  }
-  if (m.type !== "run") return;
-  SNAP = m.snap; PROPIA = m.propia; NOMBRES = m.nombres; TIPOS = m.tipos; SENSORES = m.sensores; CONF = m.conf;
-  if (OFF === null) {
-    try { await new AF("\\nthrow new Error('x')")(); } catch (e) { const n = lineaDe(e); OFF = n == null ? NaN : n - 2; }
-  }
-  instalarGlobales();
-  let fn;
-  try { fn = new AF("__L", m.codigo); }
-  catch (e) { postMessage({ type: "error", mensaje: "Error de sintaxis: " + e.message, linea: null }); return; }
-  try { await fn(__L); postMessage({ type: "done" }); }
-  catch (e) {
-    let linea = e && e.__linea;
-    if (linea == null) { const n = lineaDe(e); if (n != null && !isNaN(OFF)) linea = n - OFF; }
-    const msg = String((e && e.message) || e).replace(/__L\\((?:\\d+|null)\\)\\./g, "");
-    postMessage({ type: "error", mensaje: msg, linea: linea == null ? null : linea });
-  }
-};
-`;
-  const WORKER_URL = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
+  const WORKER_URL = window.RUNTIME.url;
 
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
   const KW = new Set("await async break case catch class const continue default delete do else false finally for function if in instanceof let new null of return switch this throw true try typeof undefined var void while".split(" "));
-  const FN_PROPIAS = new Set(["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
-  const FN_MIEMBRO = new Set(["autoTarget", "regularShoot", "burstFire", "stopFire", "detect", "log", "info", "warn", "error"]);
+  const FN_PROPIAS = new Set(ES_FACTORY ? ["pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos", "log"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
+  const FN_MIEMBRO = new Set(["pickUp", "deliver", "wait", "count", "recoger", "entregar", "cuantos", "esperar", "autoTarget", "regularShoot", "burstFire", "stopFire", "detect", "log", "info", "warn", "error"]);
   const PROPS = new Set(["failureRate", "missiles", "mode", "jammed", "fireRate", "sensors", "target", "count"]);
   // Nombres de los huecos /* … */ que dejan las plantillas y el modo sin teclado.
-  const NOMBRES_HUECO = "tipo de enemigo|tipo|sensor|lugar|condición|segundos|mensaje|valor";
+  const NOMBRES_HUECO = "tipo de enemigo|tipo|sensor|lugar|material|condición|segundos|mensaje|valor";
   const HUECO = new RegExp(`^\\/\\*\\s*(${NOMBRES_HUECO})\\s*\\*\\/$`);
   const RE_ID = /[A-Za-z_$][\w$]*/y, RE_NUM = /0x[0-9a-f]+|\d*\.?\d+(?:e[+-]?\d+)?/iy;
   function lexico(src) {
@@ -396,12 +124,21 @@ onmessage = async (ev) => {
 
   // Cada llamada de la API lleva su número de línea, para iluminarla y para los mensajes de error.
   function instrumentar(src) {
+    const locales = new Set();
+    if (ES_FACTORY && window.acorn) {
+      try {
+        const ast = acorn.parse(src, { ecmaVersion: 2022, allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true });
+        const binding = n => { if (!n) return; if (n.type === "Identifier") locales.add(n.name); else if (n.type === "RestElement") binding(n.argument); else if (n.type === "AssignmentPattern") binding(n.left); else if (n.type === "ArrayPattern") n.elements.forEach(binding); else if (n.type === "ObjectPattern") n.properties.forEach(p => binding(p.value || p.argument)); };
+        const walk = n => { if (!n || typeof n !== "object") return; if (n.type === "VariableDeclarator") binding(n.id); if (n.type === "Property" && n.method) binding(n.key); if (/Function/.test(n.type || "")) { binding(n.id); (n.params || []).forEach(binding); } if (n.type === "CatchClause") binding(n.param); for (const v of Object.values(n)) if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === "object") walk(v); };
+        walk(ast);
+      } catch (_) { /* El worker conserva el diagnóstico de sintaxis. */ }
+    }
     const toks = lexico(src); let linea = 1, out = "";
     toks.forEach(([k, t], i) => {
       if (k === "id") {
         const prev = vecino(toks, i, -1), sig = vecino(toks, i, 1);
         const miembro = prev && prev[1] === ".";
-        if (!miembro && ((FN_PROPIAS.has(t) && sig && sig[1] === "(") || (esObjeto(t) && sig && sig[1] === "."))) { out += `__L(${linea}).${t}`; return; }
+        if (!miembro && !locales.has(t) && ((FN_PROPIAS.has(t) && sig && sig[1] === "(") || (esObjeto(t) && sig && sig[1] === "."))) { out += `__L(${linea}).${t}`; return; }
       }
       out += t;
       for (const ch of t) if (ch === "\n") linea++;
@@ -424,241 +161,44 @@ onmessage = async (ev) => {
   }
 
   // ---------- Simulación (determinista: paso fijo y una semilla para los fallos) ----------
-  function mulberry32(a) {
-    return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  }
-  const r2 = (v) => Math.round(v * 100) / 100, r3 = (v) => Math.round(v * 1000) / 1000;
-  const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");  // decimales en los textos para personas
-  const cadencia = (modo) => modo === "burst" ? LAU.cadenciaRafaga : modo === "regular" ? LAU.cadencia : 0;
-  const alcance = (sensor) => mundo.def.niebla ? SENSOR[sensor].niebla : SENSOR[sensor].alcance;
-
-  function crearMundo(def, semilla) {
-    const pendientes = []; let orden = 0;
-    for (const o of def.oleadas) {
-      const tp = TIPOS[o.tipo];
-      const carriles = o.carriles.length ? o.carriles : [9];
-      for (let i = 0; i < o.n; i++) pendientes.push({ tipo: o.tipo, nace: o.t + i * o.cada, y: carriles[i % carriles.length] + .5, hp: o.hp || tp.hp, vel: o.vel || tp.vel, orden: orden++ });
-    }
-    pendientes.sort((a, b) => a.nace - b.nace || a.orden - b.orden);
-    const cuenta = {};
-    for (const p of pendientes) { cuenta[p.tipo] = (cuenta[p.tipo] || 0) + 1; p.id = TIPOS[p.tipo].letra + cuenta[p.tipo]; }
-    const lanzadores = def.lanzadores.map(l => ({
-      id: l.id, clase: "lanzador", cx: l.x + .5, cy: l.y + .5, modo: "idle", lugar: null, cd: 0, misiles: def.cargador, carga: 0,
-      falla: LAU.fallaBase, riesgo: 0, umbral: 1, tReparar: 0, atascado: false, yaw: Math.PI, sinMisiles: false,
-      st: { consumidos: 0, lanzados: 0, impactos: 0, derribos: 0, atascos: 0, tRafaga: 0, fallaMax: LAU.fallaBase },
-    }));
-    const sensores = def.sensores.map(s => ({ id: s.id, clase: "vibracion", cx: s.x + .5, cy: s.y + .5, alcance: s.alcance, st: { lecturas: 0 } }));
-    const deposito = { id: "DEP-01", clase: "deposito", cx: 1.5, cy: 9.5 };
-    const reparadores = [];
-    for (let i = 0; i < def.reparadores; i++) {
-      const bx = 2.4, by = 7.4 + i * 1.1;
-      reparadores.push({ id: `REP-0${i + 1}`, clase: "reparador", cx: bx, cy: by, bx, by, estado: "base", objetivo: null, t: 0, st: { reparaciones: 0 } });
-    }
-    const maquinas = [...lanzadores, ...sensores, deposito, ...reparadores];
-    const rng = mulberry32((semilla * 2654435761) >>> 0);
-    for (const l of lanzadores) l.umbral = .75 + rng() / 2;
-    return {
-      def, semilla, rng, t: 0, activo: false, fin: null,
-      lanzadores, sensores, deposito, reparadores, maquinas, porId: Object.fromEntries(maquinas.map(e => [e.id, e])),
-      colaReparar: [], pendientes, enemigos: [], misiles: [], explosiones: [], derribados: [], sigMisil: 1,
-      brechas: 0, derribos: 0, consumidos: 0, impactos: 0, atascos: 0, reparaciones: 0, total: pendientes.length, detalleAtascos: [],
-      eventos: [], uso: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 },
-    };
-  }
-
-  function visible(l, e, sensor) {
-    if (sensor === "thermal" && TIPOS[e.tipo].frio) return false;
-    return Math.hypot(e.x - l.cx, e.y - l.cy) <= alcance(sensor) + 1e-9;
-  }
-  // Dónde estará el enemigo cuando llegue el próximo misil de ese lanzador.
-  function predecir(l, e) {
-    const espera = Math.max(0, l.cd);
-    let t = espera, px = e.x, py = e.y;
-    for (let k = 0; k < 4; k++) { px = e.x + e.vx * t; py = e.y + e.vy * t; t = espera + Math.hypot(px - l.cx, py - l.cy) / MISIL.vel; }
-    return { x: px, y: py };
-  }
-  // El más avanzado (el más cerca de la base) de ese tipo que vea ese sensor, salvo los que ya tienen
-  // en el aire misiles suficientes para derribarlos.
-  function apuntar(l, sensor, tipo, pend) {
-    let mejor = null;
-    for (const e of mundo.enemigos) {
-      if (e.tipo !== tipo || !visible(l, e, sensor) || (pend[e.id] || 0) >= e.hp) continue;
-      if (!mejor || e.x < mejor.x - 1e-9) mejor = e;
-    }
-    if (!mejor) return null;
-    const p = predecir(l, mejor);
-    return { x: r2(p.x), y: r2(p.y), z: mejor.z, id: mejor.id, tipo: mejor.tipo };
-  }
-  // La vibración da la posición actual (sin predicción) del enemigo de suelo más avanzado.
-  function enRango(s) { return mundo.enemigos.filter(e => TIPOS[e.tipo].suelo && Math.hypot(e.x - s.cx, e.y - s.cy) <= s.alcance + 1e-9); }
-  function detectar(s, tipo) {
-    let mejor = null;
-    for (const e of enRango(s)) if ((!tipo || e.tipo === tipo) && (!mejor || e.x < mejor.x - 1e-9)) mejor = e;
-    return mejor ? { x: r2(mejor.x), y: r2(mejor.y), z: 0 } : null;
-  }
-
-  function instantanea() {
-    const pend = {};
-    for (const mi of mundo.misiles) if (mi.objetivo) pend[mi.objetivo] = (pend[mi.objetivo] || 0) + 1;
-    const maq = {}, auto = {}, vib = {};
-    for (const l of mundo.lanzadores) {
-      maq[l.id] = { failureRate: r3(l.falla), missiles: l.misiles, mode: l.modo, jammed: l.atascado, fireRate: cadencia(l.modo), sensors: ["visual", "thermal"], target: l.lugar ? { ...l.lugar } : null };
-      auto[l.id] = {};
-      for (const s of Object.keys(SENSOR)) { auto[l.id][s] = {}; for (const tp of Object.keys(TIPOS)) auto[l.id][s][tp] = apuntar(l, s, tp, pend); }
-    }
-    for (const s of mundo.sensores) {
-      vib[s.id] = { "*": detectar(s, null) };
-      for (const tp of Object.keys(TIPOS)) vib[s.id][tp] = TIPOS[tp].suelo ? detectar(s, tp) : null;
-      maq[s.id] = { count: enRango(s).length };
-    }
-    return { t: r2(mundo.t), maq, auto, vib };
-  }
-
+  const r2 = v => Math.round(v * 100) / 100, r3 = v => Math.round(v * 1000) / 1000;
+  const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");
+  const cadencia = window.WAR.cadencia;
+  const alcance = sensor => combate.alcance(sensor);
+  const enRango = sensor => combate.enRango(sensor);
+  const coste = () => combate.coste();
+  const crearMundo = (def, semilla) => def.serie === "factory" ? window.FACTORY.crear(def, semilla) : window.WAR.crear(def, semilla);
+  const instantanea = () => ES_FACTORY ? { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: window.FACTORY.instantanea(mundo) } : combate.instantanea();
+  const paso = dt => (logistica || combate).paso(dt);
+  const evaluar = () => (logistica || combate).evaluar();
   function registrar(maquina, linea, que, resultado, clase) {
     mundo.eventos.push({ t: +mundo.t.toFixed(2), maquina, linea: linea ?? "", que, resultado, clase });
     eventosSucios = true;
-  }
-
-  function paso(dt) {
-    const m = mundo;
-    m.t += dt;
-    while (m.pendientes.length && m.pendientes[0].nace <= m.t + 1e-9) {
-      const p = m.pendientes.shift(), tp = TIPOS[p.tipo];
-      m.enemigos.push({ id: p.id, tipo: p.tipo, x: COLS + .4, y: p.y, z: tp.z, vx: -p.vel, vy: 0, hp: p.hp, hpMax: p.hp, golpeT: -9 });
-    }
-    for (const e of m.enemigos) { e.x += e.vx * dt; e.y += e.vy * dt; }
-    for (const e of m.enemigos) {
-      if (e.x > LINEA_BASE) continue;
-      e.fuera = true; m.brechas++;
-      registrar("—", null, `${TIPOS[e.tipo].nombre} ${e.id}`, "brecha", "bad");
-      avisoSistema(`Brecha: ${TIPOS[e.tipo].nombre} ${e.id} cruzó la línea de la base.`);
-    }
-    m.enemigos = m.enemigos.filter(e => !e.fuera);
-    for (const l of m.lanzadores) pasoLanzador(l, dt);
-    for (const mi of m.misiles) if (m.t >= mi.t0 + mi.dur - 1e-9) explotar(mi);
-    m.misiles = m.misiles.filter(mi => !mi.hecho);
-    for (const r of m.reparadores) pasoReparador(r, dt);
-    m.explosiones = m.explosiones.filter(x => m.t - x.t0 < 0.8);
-    m.derribados = m.derribados.filter(x => m.t - x.t0 < 1.2);
-    evaluar();
-  }
-
-  function pasoLanzador(l, dt) {
-    const m = mundo;
-    if (l.modo === "burst" && !l.atascado) { l.falla = Math.min(0.95, l.falla + LAU.subida * dt); l.st.tRafaga += dt; }
-    else l.falla = Math.max(LAU.fallaBase, l.falla - (l.modo === "idle" || l.atascado ? LAU.bajadaParado : LAU.bajada) * dt);
-    l.st.fallaMax = Math.max(l.st.fallaMax, l.falla);
-    if (l.misiles < m.def.cargador) { l.carga += m.def.suministro * dt; if (l.carga >= 1 - 1e-9) { l.misiles++; l.carga -= 1; } }
-    else l.carga = 0;
-    l.cd = Math.max(l.cd - dt, -dt);
-    if (l.lugar) l.yaw = Math.atan2(l.lugar.y - l.cy, l.lugar.x - l.cx);
-    if (l.modo === "idle" || !l.lugar || l.atascado || l.cd > 1e-9) return;
-    if (l.misiles < 1) {
-      if (!l.sinMisiles) { l.sinMisiles = true; registrar(l.id, null, "disparo", "sin_misiles", "warn"); globo(l.id, "sistema", "Sin misiles: espero al suministro"); }
-      return;
-    }
-    l.sinMisiles = false;
-    l.misiles--; l.st.consumidos++; m.consumidos++;
-    l.cd += 1 / cadencia(l.modo);
-    // failureRate es la probabilidad media de fallo por disparo. Se acumula como riesgo contra un umbral
-    // aleatorio entre 0,75 y 1,25: en promedio falla 1 de cada 1/failureRate disparos, pero sin rachas extremas.
-    l.riesgo += l.falla;
-    if (l.riesgo >= l.umbral) {
-      l.riesgo = 0; l.umbral = .75 + m.rng() / 2;
-      l.atascado = true; l.st.atascos++; m.atascos++;
-      l.tReparar = REP.tBase + REP.tPorFallo * l.falla;
-      m.detalleAtascos.push({ t: r2(m.t), id: l.id, falla: r3(l.falla), tReparar: r2(l.tReparar) });
-      m.colaReparar.push(l.id);
-      m.explosiones.push({ x: l.cx, y: l.cy, z: 1, t0: m.t, atasco: true });
-      registrar(l.id, null, `fallo con failureRate ${l.falla.toFixed(2)}`, "atasco", "bad");
-      globo(l.id, "sistema", m.reparadores.length ? `¡Atasco con fallo al ${Math.round(l.falla * 100)} %! Reparar: ${coma(l.tReparar)} s` : `¡Atasco! No hay robot reparador.`);
-      return;
-    }
-    const L = l.lugar, d = Math.hypot(L.x - l.cx, L.y - l.cy);
-    m.misiles.push({ id: m.sigMisil++, de: l.id, x0: l.cx, y0: l.cy, z0: 1, x1: L.x, y1: L.y, z1: L.z || 0, t0: m.t, dur: Math.max(0.12, d / MISIL.vel), objetivo: L.id || null, arco: 0.6 + d * 0.16 });
-    l.st.lanzados++;
-  }
-
-  function explotar(mi) {
-    const m = mundo;
-    mi.hecho = true;
-    let golpe = false;
-    for (const e of m.enemigos) {
-      if (Math.hypot(e.x - mi.x1, e.y - mi.y1, e.z - mi.z1) > MISIL.radio) continue;
-      e.hp--; e.golpeT = m.t; golpe = true;
-      if (e.hp <= 0) {
-        e.muerto = true; m.derribos++;
-        const l = m.porId[mi.de]; if (l) l.st.derribos++;
-        m.derribados.push({ x: e.x, y: e.y, z: e.z, t0: m.t, tipo: e.tipo });
-        registrar(mi.de, null, `${TIPOS[e.tipo].nombre} ${e.id}`, "derribado", "ok");
-      }
-    }
-    if (golpe) { m.impactos++; const l = m.porId[mi.de]; if (l) l.st.impactos++; }
-    m.explosiones.push({ x: mi.x1, y: mi.y1, z: mi.z1, t0: m.t, golpe });
-    m.enemigos = m.enemigos.filter(e => !e.muerto);
-  }
-
-  function moverHacia(e, x, y, d) {
-    const dx = x - e.cx, dy = y - e.cy, dist = Math.hypot(dx, dy);
-    if (dist <= d) { e.cx = x; e.cy = y; return true; }
-    e.cx += dx / dist * d; e.cy += dy / dist * d; return false;
-  }
-  function pasoReparador(r, dt) {
-    const m = mundo;
-    if ((r.estado === "base" || r.estado === "volver") && m.colaReparar.length) { r.objetivo = m.colaReparar.shift(); r.estado = "ir"; }
-    if (r.estado === "ir") {
-      const l = m.porId[r.objetivo];
-      if (moverHacia(r, l.cx - .9, l.cy + .7, REP.vel * dt)) { r.estado = "reparar"; r.t = l.tReparar; }
-    } else if (r.estado === "volver") {
-      if (moverHacia(r, r.bx, r.by, REP.vel * dt)) r.estado = "base";
-    } else if (r.estado === "reparar") {
-      r.t -= dt;
-      if (r.t <= 1e-9) {
-        const l = m.porId[r.objetivo];
-        l.atascado = false; m.reparaciones++; r.st.reparaciones++;
-        registrar(r.id, null, `reparar ${l.id}`, "reparado", "ok");
-        globo(l.id, "sistema", "Reparado");
-        r.objetivo = null;
-        if (m.colaReparar.length) { r.objetivo = m.colaReparar.shift(); r.estado = "ir"; } else r.estado = "volver";
-      }
-    }
-  }
-
-  const coste = () => mundo.consumidos * COSTE.misil + mundo.reparaciones * COSTE.reparacion;
-  function evaluar() {
-    const m = mundo;
-    if (!m.activo || m.fin) return;
-    const me = m.def.metas;
-    if (m.brechas > me.brechasMax) {
-      const quietos = m.lanzadores.every(l => !l.st.consumidos);
-      const peor = m.detalleAtascos.reduce((a, x) => !a || x.falla > a.falla ? x : a, null);
-      const atascos = peor ? ` Hubo ${m.atascos} ${m.atascos === 1 ? "atasco" : "atascos"}; el peor, con failureRate ${peor.falla.toFixed(2)}, tardó ${coma(peor.tReparar)} s en repararse.` : "";
-      return terminar("fallo", "brecha", `Hubo ${m.brechas} ${m.brechas === 1 ? "brecha" : "brechas"} (máximo ${me.brechasMax}).` + (quietos ? " Ningún lanzador llegó a disparar." : atascos));
-    }
-    if (me.atascosMax != null && m.atascos > me.atascosMax) return terminar("fallo", "atascos", `Hubo ${m.atascos} atascos (máximo ${me.atascosMax}).`);
-    if (me.tiempoMax != null && m.t > me.tiempoMax + 1e-9) return terminar("fallo", "tiempo", `Se acabaron los ${me.tiempoMax} s y quedan enemigos.`);
-    if (m.t > T_LIMITE) return terminar("fallo", "limite", `La defensa sigue después de ${T_LIMITE} s de juego.`);
-    if (!m.pendientes.length && !m.enemigos.length && !m.misiles.length) {
-      if (me.derribosMin != null && m.derribos < me.derribosMin) return terminar("fallo", "derribos", `Derribaste ${m.derribos}; la meta pedía ${me.derribosMin}.`);
-      terminar("victoria", null, null);
-    }
   }
 
   // ---------- Estado ----------
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
   const varDe = (id) => id.replace(/-/g, "_");
-  const nombresVar = () => mundo ? [...mundo.lanzadores, ...mundo.sensores].map(e => varDe(e.id)) : [];
+  const nombresVar = () => mundo ? (ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => varDe(e.id)) : [];
   const RUTEO_DEF = { log: "globo", info: "globo", warn: "globo", error: "pantalla" };
   const IDX_PROPIO = RETOS.length;
 
-  let retoIdx = Math.min(IDX_PROPIO, Math.max(0, guardado.leer("reto", 0) | 0));
-  let propio = normalizar(guardado.leer("propio", PROPIO_BASE));
+  const retoFactoryInicial = () => {
+    const q = new URLSearchParams(location.search).get("reto");
+    if (q === "propio") return IDX_PROPIO;
+    if (q != null && /^\d+$/.test(q)) return Number(q);
+    let viejo = 0; try { viejo = JSON.parse(localStorage.getItem("cmg-banco02:reto")) || 0; } catch (_) { /* Sin selección antigua. */ }
+    return guardado.leer("factory-reto", viejo);
+  };
+  let retoIdx = Math.min(IDX_PROPIO, Math.max(0, (ES_FACTORY ? retoFactoryInicial() : guardado.leer("reto", 0)) | 0));
+  let propio = ES_FACTORY ? window.FACTORY_RETOS.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(localStorage.getItem("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
   let hechos = guardado.leer("hechos", []);
   let records = guardado.leer("records", {});
-  let telemetria = guardado.leer("telemetria", []);
+  let telemetria = guardado.leer(ES_FACTORY ? "factory-telemetria" : "telemetria", []);
+  let logistica = null, combate = null;
   let ruteo = { ...RUTEO_DEF, ...guardado.leer("ruteo", {}) };
-  let vista = guardado.leer("vista", "3d");
+  let vista = ES_FACTORY ? "2d" : guardado.leer("vista", "3d");
   let colores = guardado.leer("colores", true);
   let tamLetra = guardado.leer("letra", 14);
   let semillaFija = !!guardado.leer("semillaFija", false);
@@ -674,11 +214,11 @@ onmessage = async (ev) => {
   let eventosSucios = false, marcasSucias = false;
   const globos = new Map();   // id de máquina → { nivel, texto, hasta }
 
-  const defActual = () => retoIdx === IDX_PROPIO ? propio : normalizar(RETOS[retoIdx]);
-  const claveReto = () => retoIdx === IDX_PROPIO ? "propio" : String(retoIdx);
+  const defActual = () => retoIdx === IDX_PROPIO ? propio : ES_FACTORY ? RETOS[retoIdx] : normalizar(RETOS[retoIdx]);
+  const claveReto = () => (ES_FACTORY ? "factory-" : "") + (retoIdx === IDX_PROPIO ? "propio" : String(retoIdx));
 
   // ---------- Ciclo de los programas (lockstep) ----------
-  const algunoCorre = () => !!ejec && [...ejec.progs.values()].some(p => p.estado === "corre");
+  const algunoCorre = () => window.RUNTIME.algunoCorre(ejec);
   function soloComentarios(src) { return lexico(src).every(([k]) => k === "com" || k === "esp" || k === "nl"); }
 
   // Antes de ejecutar: huecos /* … */ sin rellenar y errores de sintaxis, con su línea.
@@ -703,8 +243,8 @@ onmessage = async (ev) => {
       return;
     }
     cerrarProgramas();
-    for (const l of def.lanzadores) {
-      const err = revisar(programas[l.id] || "");
+    for (const l of programablesDe(def)) {
+      const err = ES_FACTORY ? null : revisar(programas[l.id] || "");
       if (err) {
         abrirPrograma(l.id); lineaErr = { id: l.id, linea: err.linea }; marcasSucias = true;
         ultimoAviso[claveReto()] = { resultado: "sintaxis", motivo: "error", texto: err.mensaje, linea: err.linea, id: l.id, cuando: Date.now() };
@@ -715,14 +255,14 @@ onmessage = async (ev) => {
     }
     intento++;
     if (!semillaFija) semilla = intento;
-    nuevoMundo();
+    nuevoMundo(intento);
     mundo.activo = true;
     limpiarConsola(); ocultarBanner(); cerrarAvisos();
     lineaCorre = {}; lineaErr = null; marcasSucias = true;
     const snap = instantanea();
-    const nombres = [...mundo.lanzadores, ...mundo.sensores].map(e => e.id);
+    const nombres = (ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id);
     ejec = { progs: new Map(), inicio: new Date().toISOString(), codigos: {} };
-    for (const l of mundo.lanzadores) {
+    for (const l of mundo.programables) {
       const codigo = programas[l.id] || "";
       const w = new Worker(WORKER_URL);
       const p = { id: l.id, worker: w, estado: "corre", desde: performance.now(), mensajes: 0, espera: null, despertar: 0 };
@@ -730,11 +270,12 @@ onmessage = async (ev) => {
       w.onerror = (ev) => { ev.preventDefault(); errorPrograma(p, ev.message || "Error en el programa.", null); };
       ejec.progs.set(l.id, p);
       ejec.codigos[l.id] = codigo;
-      w.postMessage({ type: "run", codigo: instrumentar(codigo), propia: l.id, nombres, tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
+      w.postMessage({ type: "run", serie: def.serie, codigo: instrumentar(codigo), propia: l.id, nombres, tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
         conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga }, snap });
     }
     pausa = false;
     pintarControles(); pintarProgs(); pintarEdicion();
+    if (ES_FACTORY) evaluar();
   }
 
   const fmtLugar = (l) => l ? `{x: ${r2(l.x)}, y: ${r2(l.y)}, z: ${r2(l.z || 0)}${l.id ? `, id: "${l.id}"` : ""}}` : "null";
@@ -743,6 +284,22 @@ onmessage = async (ev) => {
 
   function alMensaje(p, m) {
     if (!ejec || ejec.progs.get(p.id) !== p || !mundo.activo) return;
+    if (ES_FACTORY && m.type === "encargo") {
+      if (p.encargo) return errorPrograma(p, `Falta await en la línea ${p.encargo.linea}: R1 seguía con ${p.encargo.texto} cuando llegó la orden de la línea ${m.linea}.`, p.encargo.linea);
+      p.encargo = m; p.estado = "encargo"; p.sensoresSeguidos = 0;
+      mundo.verbos[m.verbo] = (mundo.verbos[m.verbo] || 0) + 1;
+      lineaCorre[p.id] = m.linea; marcasSucias = true;
+      logistica.iniciarOrden(m.verbo, m.args);
+      return;
+    }
+    if (ES_FACTORY && m.type === "lecturaFactory") {
+      mundo.verbos.cuantos = (mundo.verbos.cuantos || 0) + 1;
+      if ((p.sensoresSeguidos = (p.sensoresSeguidos || 0) + 1) > 500)
+        return errorPrograma(p, "R1 consultó el sensor 500 veces sin hacer nada más: el bucle no avanza. ¿Falta una orden dentro del «while»?", m.linea);
+      mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: m.linea, orden: m.texto, resultado: String(m.valor), sensor: true });
+      lineaCorre[p.id] = m.linea; marcasSucias = eventosSucios = true;
+      return;
+    }
     if (m.type === "lee") {
       contarUso(p.id, m.fn);
       const s = mundo.porId[m.maquina]; if (s && s.st && s.st.lecturas != null) s.st.lecturas++;
@@ -757,13 +314,26 @@ onmessage = async (ev) => {
       p.estado = "espera"; p.espera = m.id; p.despertar = mundo.t + m.s;
       lineaCorre[p.id] = m.linea; marcasSucias = true;
     } else if (m.type === "done") {
-      p.estado = "fin"; p.finT = mundo.t; lineaCorre[p.id] = null; marcasSucias = true; pintarProgs();
+      p.acabado = true; p.estado = p.encargo ? "encargo" : "fin"; p.finT = mundo.t; lineaCorre[p.id] = null; marcasSucias = true; pintarProgs();
     } else if (m.type === "error") {
       return errorPrograma(p, m.mensaje, m.linea);
     }
+    if (ES_FACTORY && m.type === "done") { evaluar(); return; }
     if ((m.type === "lee" || m.type === "cmd" || m.type === "consola") && ++p.mensajes > MAX_ORDENES)
       return errorPrograma(p, `El programa de ${p.id} dio ${MAX_ORDENES} órdenes y lecturas sin esperar. ¿Falta await esperar(...) dentro del bucle?`, m.linea);
     if ((m.type === "espera" || m.type === "done") && !algunoCorre()) avanzar();
+  }
+
+  function terminarEncargo(resultado) {
+    const p = ejec && ejec.progs.get("R1"), orden = p && p.encargo;
+    if (!orden) return;
+    p.encargo = null;
+    mundo.resultados[resultado] = (mundo.resultados[resultado] || 0) + 1;
+    mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: orden.linea, orden: orden.texto, resultado });
+    eventosSucios = true;
+    consola(resultado === "ok" ? "log" : "warn", p.id, orden.linea, `${esc(orden.texto)} → <b>${esc(resultado)}</b>`);
+    p.estado = p.acabado ? "fin" : "corre"; p.desde = performance.now();
+    p.worker.postMessage({ type: "despierta", id: orden.id, resultado, snap: instantanea() });
   }
 
   function aplicarOrden(id, m) {
@@ -778,21 +348,11 @@ onmessage = async (ev) => {
     registrar(id, m.linea, `${m.verbo}(${arg})`, m.res, m.res === "ok" ? "ok" : "warn");
   }
 
-  function despertarProgramas() {
-    if (!ejec) return false;
-    const listos = [...ejec.progs.values()].filter(p => p.estado === "espera" && p.despertar <= mundo.t + 1e-9);
-    if (!listos.length) return false;
-    const snap = instantanea();
-    for (const p of listos) { p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0; p.worker.postMessage({ type: "despierta", id: p.espera, snap }); }
-    return true;
-  }
+  const despertarProgramas = () => window.RUNTIME.despertar(ejec, mundo, instantanea);
 
   let acum = 0;
   function avanzar() {
-    while (acum >= DT && mundo.activo && !mundo.fin && !algunoCorre()) {
-      if (despertarProgramas()) break;
-      paso(DT); acum -= DT;
-    }
+    acum = window.NUCLEO.avanzar(acum, mundo, { algunoCorre, despertarProgramas, paso });
   }
 
   function errorPrograma(p, mensaje, linea) {
@@ -807,7 +367,7 @@ onmessage = async (ev) => {
     if (ejec) for (const p of ejec.progs.values()) p.worker.terminate();
     ejec = null;
     pausa = false;
-    if (mundo) mundo.activo = false;
+    if (mundo) { mundo.activo = false; if (ES_FACTORY) mundo.robot.tarea = null; }
   }
 
   function terminar(resultado, motivo, texto, linea, idProg) {
@@ -820,6 +380,7 @@ onmessage = async (ev) => {
     cerrarProgramas();
     if (resultado !== "error") { lineaCorre = {}; marcasSucias = true; }
     const lineas = Object.values(codigos).reduce((a, c) => a + c.split("\n").filter(l => l.trim() && !/^\s*(\/\/|\/\*|\*)/.test(l)).length, 0);
+    if (ES_FACTORY) return terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio);
     const cpd = m.derribos ? coste() / m.derribos : null;
     const lanz = Object.fromEntries(m.lanzadores.map(l => [l.id, { ...l.st, fallaMax: r3(l.st.fallaMax), tRafaga: r2(l.st.tRafaga) }]));
     telemetria.push({
@@ -863,13 +424,33 @@ onmessage = async (ev) => {
     if (!$("info-reto").hidden) pintarInfoReto();
   }
 
+  function terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio) {
+    mundo.revelado = true;
+    const t = { sandbox: "factory", reto: retoIdx + 1, clave: claveReto(), titulo: def.titulo, intento, inicio,
+      resultado, motivo, mensaje: texto, linea: linea ?? null, programa: idProg ?? null, tiempoJuego: r2(mundo.t),
+      rechazos: mundo.rechazos, derrames: mundo.derrames, viajesVacios: mundo.vacios, stockOculto: mundo.stockOculto, codigos };
+    telemetria.push(t); guardado.escribir("factory-telemetria", telemetria);
+    if (resultado === "victoria") {
+      if (!hechos.includes(claveReto())) { hechos.push(claveReto()); guardado.escribir("hechos", hechos); }
+      const anterior = records[claveReto()];
+      if (!anterior || anterior.regla !== "comun-v1" || mundo.t < anterior.valor - 1e-9) { records[claveReto()] = { medida: "tiempo", regla: "comun-v1", valor: r2(mundo.t) }; guardado.escribir("records", records); }
+      mostrarBanner("victoria", "Reto cumplido", `Todo entregado. <b>${coma(mundo.t)} s</b>`, `Intento ${intento}`, [["Otra vez", "primario", ocultarBanner]]);
+    } else if (resultado === "fallo" || resultado === "error") {
+      pistaTrasFallo();
+      mostrarBanner("fallo", resultado === "error" ? (linea ? `Error en la línea ${linea}` : "Error en el programa") : "Aún no", esc(texto), def.pista,
+        [["Editar programa", "primario", () => { ocultarBanner(); verPanel("codigo"); if (linea) irALinea(linea); }]]);
+    }
+    pintarControles(); pintarProgs(); pintarResumen(); pintarEdicion(); pintarRetos(); metasClave = "";
+    if (!$("info-reto").hidden) pintarInfoReto();
+  }
+
   function detener() { if (ejec) { consola("sistema", null, null, "Programa detenido."); terminar("detenido", "detenido", null); } }
 
   function vigia(now) {
     if (!ejec) return;
     for (const p of ejec.progs.values()) {
       if (p.estado === "corre" && now - p.desde > VIGIA_MS)
-        return errorPrograma(p, `El programa de ${p.id} giró ${VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`, lineaCorre[p.id] ?? null);
+        return errorPrograma(p, (ES_FACTORY ? "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.…." : `El programa de ${p.id} giró ${VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`), lineaCorre[p.id] ?? null);
     }
   }
 
@@ -919,563 +500,12 @@ onmessage = async (ev) => {
 
   // ---------- Vista 3D ----------
   const leerVar = (k) => getComputedStyle(document.documentElement).getPropertyValue(`--${k}`).trim();
-  const V3 = (() => {
-    if (typeof THREE === "undefined") return null;
-    let renderer;
-    try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    const escena = new THREE.Scene();
-    // Bruma del horizonte: solo toca lo que queda más allá del campo, para que el terreno se pierda a lo lejos.
-    const horizonte = new THREE.Fog(0xffffff, 60, 140);
-    const camara = new THREE.PerspectiveCamera(38, 1.6, 0.1, 500);
-    // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
-    // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.
-    const camaras = {};
-    let camActual = null, cam = null, cam0 = null, anchoCampo = 1, altoCampo = 1;
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.85);
-    const sol = new THREE.DirectionalLight(0xffffff, 0.55); sol.position.set(-12, 30, 18);
-    escena.add(hemi, sol);
-    const lam = (k, extra = {}) => { const { hacia, u, ...resto } = extra; return new THREE.MeshLambertMaterial({ color: 0xffffff, ...resto, userData: { k, hacia, u } }); };
-    const bas = (k, extra) => new THREE.MeshBasicMaterial({ color: 0xffffff, ...extra, userData: { k } });
-    const M = {
-      suelo: lam("suelo"), base: bas("accent", { transparent: true, opacity: .1, depthWrite: false }),
-      // Terreno de alrededor: el suelo sigue más allá del campo, algo más oscuro, y las montañas son columnas de casillas.
-      afuera: lam("suelo", { hacia: "bg", u: .45 }),
-      edificio: lam("building"), techo: lam("building-top"), borde: lam("edge"), acento: lam("accent"), mal: lam("bad"),
-      enemigo: lam("enemigo"), frio: lam("enemigo-frio", { transparent: true, opacity: .72 }), golpe: lam("bad"),
-      misil: bas("misil"), explosion: bas("explosion", { transparent: true, opacity: .4, depthWrite: false }),
-      humo: bas("edge", { transparent: true, opacity: .5, depthWrite: false }),
-      sombra: bas("ink", { transparent: true, opacity: .16, depthWrite: false }), mira: bas("accent"),
-      rVisual: bas("s-visual", { transparent: true, opacity: .75, side: THREE.DoubleSide }), rTermico: bas("s-termico", { transparent: true, opacity: .75, side: THREE.DoubleSide }),
-      rVibra: bas("s-vibra", { transparent: true, opacity: .75, side: THREE.DoubleSide }), sel: bas("sel", { side: THREE.DoubleSide }),
-      ...Object.fromEntries(Object.keys(FUNCIONES).map(f => [`rol-${f}`, lam(`rol-${f}`)])),
-    };
-    const rolM = (e) => M[`rol-${funcionDe(e).principal}`];
-    const L = {
-      grid: new THREE.LineBasicMaterial({ color: 0xffffff, userData: { k: "grid" } }),
-      grid2: new THREE.LineBasicMaterial({ color: 0xffffff, userData: { k: "grid-2" } }),
-      gridFuera: new THREE.LineBasicMaterial({ color: 0xffffff, userData: { k: "grid", hacia: "bg", u: .25 } }),
-      brecha: new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: .4, gapSize: .25, userData: { k: "bad" } }),
-      altura: new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: .12, gapSize: .1, transparent: true, opacity: .55, userData: { k: "ink" } }),
-      estela: new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .7, userData: { k: "misil" } }),
-      miraAlt: new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: .15, gapSize: .1, userData: { k: "accent" } }),
-    };
-    const blanco = new THREE.Color(0xffffff);
-    function aplicarColores() {
-      for (const m of [...Object.values(M), ...Object.values(L), ...Object.values(D)]) {
-        m.color.set(leerVar(m.userData.k) || "#888");
-        if (m.userData.claro) m.color.lerp(blanco, m.userData.claro);
-        if (m.userData.hacia) m.color.lerp(new THREE.Color(leerVar(m.userData.hacia) || "#888"), m.userData.u);
-      }
-      escena.background = new THREE.Color(leerVar("bg") || "#e9ece6");
-      if (escena.fog) escena.fog.color.copy(escena.background);
-      horizonte.color.copy(escena.background);
-      pintarMontes();
-    }
-    const G = {
-      caja: (w, h, d) => new THREE.BoxGeometry(w, h, d),
-      esfera: new THREE.SphereGeometry(1, 16, 12), disco: new THREE.CircleGeometry(1, 24),
-      rotor: new THREE.CylinderGeometry(.15, .15, .025, 12), toro: new THREE.TorusGeometry(.48, .045, 6, 28),
-      plano: new THREE.PlaneGeometry(1, 1),
-    };
-    // Halo y brillo son calcos aditivos sobre el suelo, pintados una vez en un canvas: no hay luces simuladas.
-    function textura(pintar, n = 128) {
-      const cv = document.createElement("canvas"); cv.width = cv.height = n;
-      pintar(cv.getContext("2d"), n / 2);
-      return new THREE.CanvasTexture(cv);
-    }
-    const blancoA = (a) => `rgba(255,255,255,${a})`;
-    const tex = {
-      punto: textura((c, h) => {
-        const g = c.createRadialGradient(h, h, 0, h, h, h);
-        g.addColorStop(0, blancoA(1)); g.addColorStop(.35, blancoA(.42)); g.addColorStop(1, blancoA(0));
-        c.fillStyle = g; c.fillRect(0, 0, 2 * h, 2 * h);
-      }),
-      // Cono de faro con el vértice en el centro y apuntando a la derecha (+x).
-      cono: textura((c, h) => {
-        const g = c.createRadialGradient(h, h, 0, h, h, h);
-        g.addColorStop(0, blancoA(.9)); g.addColorStop(.45, blancoA(.35)); g.addColorStop(1, blancoA(0));
-        c.fillStyle = g;
-        for (const [a, alfa] of [[.5, .35], [.34, .5], [.2, .6]]) { c.globalAlpha = alfa; c.beginPath(); c.moveTo(h, h); c.arc(h, h, h, -a, a); c.closePath(); c.fill(); }
-      }),
-      halo: null,
-    };
-    let D = {};
-    const decal = (k, map, alfa) => new THREE.MeshBasicMaterial({ color: 0xffffff, map, transparent: true, opacity: Math.min(1, alfa), depthWrite: false, blending: THREE.AdditiveBlending, userData: { k } });
-    function prepararVisual() {
-      for (const m of Object.values(D)) m.dispose();
-      if (tex.halo) tex.halo.dispose();
-      const paradas = HALO[visual.halo] || HALO.medio;
-      tex.halo = textura((c, h) => {
-        const g = c.createRadialGradient(h, h, 0, h, h, h);
-        for (const [d, a] of paradas) g.addColorStop(FR + d, blancoA(a));
-        c.fillStyle = g; c.fillRect(0, 0, 2 * h, 2 * h);
-      }, 256);
-      const k = INTENSIDAD[visual.intensidad];
-      D = {};
-      for (const f of [...Object.keys(FUNCIONES), "mal"]) {
-        const c = f === "mal" ? "bad" : `rol-${f}`;
-        D[`halo-${f}`] = decal(c, tex.halo, .85 * k);
-        D[`punto-${f}`] = decal(c, tex.punto, .4 * k);
-        D[`cono-${f}`] = decal(c, tex.cono, .32 * k);
-        D[`aura-${f}`] = decal(c, tex.punto, .24 * k);
-        D[`luz-${f}`] = new THREE.MeshBasicMaterial({ color: 0xffffff, userData: { k: c, claro: .55 } });
-      }
-    }
-    // Los calcos no cuentan al elegir con el puntero: tocar su brillo es tocar el suelo.
-    const calco = (g, m) => { const o = mesh(g, m); o.raycast = () => {}; o.renderOrder = 1; return o; };
-    function halo(e) {
-      const f = funcionDe(e), R = radioDe(e) / FR, g = new THREE.Group();
-      // RingGeometry proyecta la textura en planta respecto al radio exterior: los sectores encajan.
-      const sector = (mat, t0, dt) => { const m = calco(new THREE.RingGeometry(R * .4, R, 48, 1, t0, dt), mat); m.rotation.x = -Math.PI / 2; g.add(m); return m; };
-      const sec = f.secundaria;
-      const principal = sector(D[`halo-${f.principal}`], sec ? ARCO[1] : 0, Math.PI * 2 - (sec ? ARCO[1] - ARCO[0] : 0));
-      const secundaria = sec ? sector(D[`halo-${sec}`], ARCO[0], ARCO[1] - ARCO[0]) : null;
-      g.position.y = .025;
-      return { g, principal, secundaria, mat: principal.material };
-    }
-    // Brillo: pilotos (luces y charcos pequeños), faros (cono en el suelo) o aura (charco amplio).
-    function brillo(e, g) {
-      const f = funcionDe(e).principal, r = radioDe(e), out = { luces: [], suelo: null };
-      if (visual.brillo === "no") return out;
-      const plano = (mat, x, z, s) => { const m = calco(G.plano, mat); m.rotation.x = -Math.PI / 2; m.position.set(x, .02, z); m.scale.setScalar(s); return m; };
-      for (const [x, y, z] of LUCES[e.clase] || []) {
-        const luz = calco(G.esfera, D[`luz-${f}`]); luz.scale.setScalar(.055); luz.position.set(x, y, z); g.add(luz); out.luces.push(luz);
-        if (visual.brillo === "pilotos") g.add(plano(D[`punto-${f}`], x * 1.15, z * 1.15, r * 1.1));
-      }
-      if (visual.brillo === "aura") g.add(plano(D[`aura-${f}`], 0, 0, r * 3.4));
-      if (visual.brillo === "faros") { out.suelo = new THREE.Group(); out.suelo.add(plano(D[`cono-${f}`], 0, 0, r * 5)); g.add(out.suelo); }
-      return out;
-    }
-    const fijo = new THREE.Group(), movil = new THREE.Group();
-    escena.add(fijo, movil);
-    const objetos = new Map();  // id → { grupo, ... }
-    const misiles = new Map(), efectos = new Map();
-    let anillos = null;
-    const mesh = (g, m) => new THREE.Mesh(g, m);
-    function lineas(puntos, mat) {
-      const g = new THREE.BufferGeometry().setFromPoints(puntos.map(p => new THREE.Vector3(...p)));
-      const l = new THREE.LineSegments(g, mat); return l;
-    }
-    function limpiar(grupo) { while (grupo.children.length) { const c = grupo.children.pop(); c.traverse(o => { if (o.geometry && !Object.values(G).includes(o.geometry)) o.geometry.dispose(); }); } }
-
-    // ---------- Terreno de alrededor ----------
-    // El campo de 32 × 18 sigue siendo el único sitio jugable; alrededor, el suelo y su cuadrícula continúan
-    // hasta perderse en la bruma del horizonte, y detrás (al norte) hay una cordillera escalonada.
-    // Las montañas son columnas de casillas de 1 m con alturas de 0,5 en 0,5 m: la misma cuadrícula que el
-    // campo, baratas de pintar (una sola malla instanciada) y fáciles de usar para colisiones en retos futuros.
-    const TERRENO = { x0: -48, x1: COLS + 48, z0: -40, z1: ROWS + 34 };
-    const MONTES = { x0: -40, x1: COLS + 40, z0: -30, z1: -2 };
-    const PICOS = [[-30, -17, 12, 13], [-14, -13, 10, 11], [0, -19, 13, 15], [12, -12, 8, 9], [22, -20, 13, 17], [33, -13, 9, 10], [45, -18, 12, 14], [58, -14, 10, 11], [70, -20, 12, 13]];
-    // Ruido suave y fijo por casilla (sin Math.random): el paisaje es siempre el mismo.
-    const hash = (i, j) => { const n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); };
-    function ruido(x, z, paso) {
-      const i = Math.floor(x / paso), j = Math.floor(z / paso), u = x / paso - i, v = z / paso - j;
-      const su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
-      const a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1);
-      return a + (b - a) * su + (c - a) * sv + (a - b - c + d) * su * sv;
-    }
-    function alturaMonte(i, j) {
-      const x = i + .5, z = j + .5, lejos = -z - 2;  // casillas detrás del borde norte del campo
-      // Laderas: suben desde el borde del campo; picos: conos suaves repartidos a lo largo.
-      let h = Math.min(1, lejos / 9) * (2 + 5 * ruido(x, z, 7));
-      for (const [cx, cz, r, a] of PICOS) {
-        const t = 1 - Math.hypot(x - cx, (z - cz) * 1.3) / r;
-        if (t > 0) h = Math.max(h, a * t * t * (3 - 2 * t) * Math.min(1, lejos / 5));
-      }
-      h += (ruido(x, z, 3) - .5) * 1.6;
-      return Math.max(0, Math.round(h));  // terrazas de 1 m
-    }
-    const celdasMonte = [];
-    for (let i = MONTES.x0; i < MONTES.x1; i++) for (let j = MONTES.z0; j < MONTES.z1; j++) {
-      const h = alturaMonte(i, j); if (h >= 1) celdasMonte.push([i, j, h]);
-    }
-    let montes = null;
-    const matMonte = new THREE.MeshLambertMaterial({ color: 0xffffff });  // el color va en cada columna
-    function pintarMontes() {
-      if (!montes) return;
-      const bajo = new THREE.Color(leerVar("building") || "#26313A"), alto = new THREE.Color(leerVar("edge") || "#5C6B75");
-      const nieve = new THREE.Color(leerVar("ink") || "#DCE3E6"), c = new THREE.Color();
-      celdasMonte.forEach(([i, j, h], n) => {
-        c.copy(bajo).lerp(alto, Math.min(1, h / 12) * .85);
-        if (h >= 12) c.lerp(nieve, .5);
-        c.multiplyScalar(h % 2 ? .8 : .88);  // terrazas alternas: se leen las curvas de nivel
-        montes.setColorAt(n, c);
-      });
-      if (montes.instanceColor) montes.instanceColor.needsUpdate = true;
-    }
-    function construirTerreno() {
-      const { x0, x1, z0, z1 } = TERRENO;
-      const afuera = mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), M.afuera);
-      afuera.rotation.x = -Math.PI / 2; afuera.position.set((x0 + x1) / 2, -.02, (z0 + z1) / 2); afuera.raycast = () => {};
-      const p = [];
-      for (let i = x0; i <= x1; i++) p.push([i, -.01, z0], [i, -.01, z1]);
-      for (let j = z0; j <= z1; j++) p.push([x0, -.01, j], [x1, -.01, j]);
-      const red = lineas(p, L.gridFuera); red.raycast = () => {};
-      montes = new THREE.InstancedMesh(G.caja(1, 1, 1), matMonte, celdasMonte.length);
-      const m = new THREE.Matrix4();
-      celdasMonte.forEach(([i, j, h], n) => { m.makeScale(1, h, 1); m.setPosition(i + .5, h / 2 - .02, j + .5); montes.setMatrixAt(n, m); });
-      montes.raycast = () => {};
-      pintarMontes();
-      fijo.add(afuera, red, montes);
-    }
-
-    function construir() {
-      limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
-      prepararVisual();
-      const suelo = mesh(new THREE.PlaneGeometry(COLS, ROWS), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(COLS / 2, 0, ROWS / 2); fijo.add(suelo);
-      construirTerreno();
-      const p1 = [], p2 = [];
-      for (let i = 0; i <= COLS; i++) (i % 4 ? p1 : p2).push([i, .01, 0], [i, .01, ROWS]);
-      for (let j = 0; j <= ROWS; j++) (j % 3 ? p1 : p2).push([0, .01, j], [COLS, .01, j]);
-      fijo.add(lineas(p1, L.grid), lineas(p2, L.grid2));
-      const zona = mesh(new THREE.PlaneGeometry(LINEA_BASE, ROWS), M.base); zona.rotation.x = -Math.PI / 2; zona.position.set(LINEA_BASE / 2, .015, ROWS / 2); fijo.add(zona);
-      const br = lineas([[LINEA_BASE, .03, 0], [LINEA_BASE, .03, ROWS]], L.brecha); br.computeLineDistances(); fijo.add(br);
-      escena.fog = mundo.def.niebla ? new THREE.Fog(0xffffff, 10, 34) : horizonte;
-      for (const l of mundo.lanzadores) {
-        const g = new THREE.Group(); g.position.set(l.cx, 0, l.cy); g.userData.id = l.id;
-        const base = mesh(G.caja(1.1, .45, 1.1), M.edificio); base.position.y = .225;
-        const tapa = mesh(G.caja(.92, .06, .92), rolM(l)); tapa.position.y = .48;
-        const torre = new THREE.Group(); torre.position.y = .55;
-        const pod = mesh(G.caja(.8, .38, .6), M.borde); pod.position.set(.1, .24, 0); pod.rotation.z = .5;
-        const frente = mesh(G.caja(.05, .3, .5), rolM(l)); frente.position.set(.5, .45, 0); frente.rotation.z = .5;
-        torre.add(pod, frente);
-        g.add(base, tapa, torre); fijo.add(g);
-        objetos.set(l.id, { grupo: g, torre, pod, alto: 1.4 });
-      }
-      for (const s of mundo.sensores) {
-        const g = new THREE.Group(); g.position.set(s.cx, 0, s.cy); g.userData.id = s.id;
-        const poste = mesh(new THREE.CylinderGeometry(.06, .08, 1.3, 8), M.borde); poste.position.y = .65;
-        const cabeza = mesh(new THREE.CylinderGeometry(.28, .28, .1, 16), rolM(s)); cabeza.position.y = 1.3;
-        const pie = mesh(new THREE.CylinderGeometry(.35, .4, .08, 16), M.edificio); pie.position.y = .04;
-        g.add(poste, cabeza, pie); fijo.add(g);
-        objetos.set(s.id, { grupo: g, alto: 1.6 });
-      }
-      { const d = mundo.deposito, g = new THREE.Group(); g.position.set(d.cx, 0, d.cy); g.userData.id = d.id;
-        const c = mesh(G.caja(1.4, .7, 1.7), M.edificio); c.position.y = .35;
-        const t = mesh(G.caja(1.2, .05, 1.5), rolM(d)); t.position.y = .72;
-        const m1 = mesh(G.caja(.9, .14, .14), M.misil); m1.position.set(0, .82, -.3);
-        const m2 = m1.clone(); m2.position.z = .3;
-        g.add(c, t, m1, m2); fijo.add(g); objetos.set(d.id, { grupo: g, alto: 1.1 }); }
-      for (const r of mundo.reparadores) {
-        const g = new THREE.Group(); g.userData.id = r.id;
-        const c = mesh(G.caja(.46, .32, .46), rolM(r)); c.position.y = .2;
-        const a = mesh(G.caja(.04, .35, .04), M.borde); a.position.set(.12, .5, .12);
-        g.add(c, a); movil.add(g); objetos.set(r.id, { grupo: g, alto: .9 });
-      }
-      for (const e of mundo.maquinas) {
-        const o = objetos.get(e.id);
-        if (visual.halo !== "no") { o.halo = halo(e); o.grupo.add(o.halo.g); }
-        o.brillo = brillo(e, o.grupo);
-      }
-      for (const l of mundo.lanzadores) {
-        const mira = mesh(G.toro, M.mira); mira.rotation.x = Math.PI / 2; mira.visible = false;
-        const alt = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 1, 0)]), L.miraAlt); alt.visible = false;
-        movil.add(mira, alt); objetos.get(l.id).mira = mira; objetos.get(l.id).miraAlt = alt;
-      }
-      aplicarColores();
-      anillosDe(seleccion);
-    }
-
-    function enemigoMesh(e) {
-      const g = new THREE.Group(); g.userData.id = e.id;
-      const tp = TIPOS[e.tipo], mat = tp.frio ? M.frio : M.enemigo;
-      if (tp.suelo) {
-        const cuerpo = mesh(G.caja(.82, .4, .6), mat); cuerpo.position.y = .3;
-        const o1 = mesh(G.caja(.9, .2, .14), M.borde); o1.position.set(0, .1, .3);
-        const o2 = o1.clone(); o2.position.z = -.3;
-        g.add(cuerpo, o1, o2);
-        return { grupo: g, cuerpo, mat };
-      }
-      const cuerpo = mesh(G.esfera, mat); cuerpo.scale.setScalar(.22);
-      const brazo1 = mesh(G.caja(.85, .04, .06), M.borde), brazo2 = brazo1.clone(); brazo2.rotation.y = Math.PI / 2;
-      const rotores = [[.4, 0], [-.4, 0], [0, .4], [0, -.4]].map(([x, z]) => { const r = mesh(G.rotor, M.borde); r.position.set(x, .06, z); return r; });
-      const cuerpoG = new THREE.Group(); cuerpoG.add(cuerpo, brazo1, brazo2, ...rotores);
-      const sombra = mesh(G.disco, M.sombra); sombra.rotation.x = -Math.PI / 2; sombra.scale.setScalar(.36); sombra.position.y = .02;
-      const alt = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0)]), L.altura);
-      alt.computeLineDistances();
-      g.add(cuerpoG, sombra, alt);
-      return { grupo: g, cuerpo, cuerpoG, sombra, alt, rotores, mat };
-    }
-
-    // Retrato de un tipo de enemigo con su modelo actual (placeholder de las fichas de información).
-    // Se usa una vez para generar img/enemigos/*.png: window.cmg.retrato("crawler") devuelve un PNG en data URL.
-    function retrato(tipo, w = 288, h = 216) {
-      const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-      r.setPixelRatio(1); r.setSize(w, h, false);
-      const esc = new THREE.Scene(); esc.background = new THREE.Color(leerVar("bg") || "#0B0F13");
-      esc.add(hemi.clone(), sol.clone());
-      const piso = mesh(new THREE.PlaneGeometry(6, 6), M.suelo); piso.rotation.x = -Math.PI / 2;
-      const p = []; for (let i = -3; i <= 3; i++) p.push([i, .01, -3], [i, .01, 3], [-3, .01, i], [3, .01, i]);
-      const o = enemigoMesh({ id: "retrato", tipo }), aire = !TIPOS[tipo].suelo;
-      if (o.cuerpoG) { o.cuerpoG.position.y = 1.15; o.alt.scale.set(1, 1.15, 1); for (const rr of o.rotores) rr.rotation.y = .6; }
-      o.grupo.rotation.y = .35;
-      esc.add(piso, lineas(p, L.grid), o.grupo);
-      const c = new THREE.PerspectiveCamera(30, w / h, .1, 50);
-      c.position.set(-1.6, aire ? 2.2 : 1.55, aire ? 2.8 : 2.5); c.lookAt(0, aire ? .78 : .24, 0);
-      r.render(esc, c);
-      const url = r.domElement.toDataURL("image/png");
-      r.dispose(); r.forceContextLoss();
-      return url;
-    }
-
-    function anillosDe(id) {
-      if (anillos) { movil.remove(anillos); anillos.traverse(o => o.geometry && o.geometry.dispose()); anillos = null; }
-      if (!mundo || !id) return;
-      const e = mundo.porId[id];
-      const grupo = new THREE.Group();
-      // La selección es el mismo círculo del halo, pero nítido y claro.
-      const anillo = (r, mat, x, z, w = .05) => { const a = mesh(new THREE.RingGeometry(r - w, r + w, 96), mat); a.rotation.x = -Math.PI / 2; a.position.set(x, .04, z); grupo.add(a); };
-      if (e && e.clase === "lanzador") { anillo(alcance("visual"), M.rVisual, e.cx, e.cy); anillo(alcance("thermal"), M.rTermico, e.cx, e.cy); }
-      else if (e && e.clase === "vibracion") anillo(e.alcance, M.rVibra, e.cx, e.cy);
-      if (e) anillo(radioDe(e), M.sel, e.cx, e.cy, .06);
-      else { const en = mundo.enemigos.find(x => x.id === id); if (!en) return; anillo(.6, M.sel, 0, 0, .06); grupo.userData.sigue = id; }
-      anillos = grupo; movil.add(grupo);
-      for (const otro of seleccionadas) {
-        if (otro === id) continue;
-        const u = mundo.porId[otro] || mundo.enemigos.find(e => e.id === otro);
-        if (!u) continue;
-        const r = u.clase ? radioDe(u) : .6;
-        const a = mesh(new THREE.RingGeometry(r - .06, r + .06, 64), M.sel);
-        a.rotation.x = -Math.PI / 2;
-        a.userData.unidad = otro;
-        grupo.add(a);
-      }
-    }
-
-    function posMisil(mi, t) {
-      const u = Math.min(1, Math.max(0, (t - mi.t0) / mi.dur));
-      return [mi.x0 + (mi.x1 - mi.x0) * u, mi.z0 + (mi.z1 - mi.z0) * u + mi.arco * 4 * u * (1 - u), mi.y0 + (mi.y1 - mi.y0) * u];
-    }
-
-    function actualizar(off, ahora) {
-      const t = mundo.t + off;
-      for (const l of mundo.lanzadores) {
-        const o = objetos.get(l.id);
-        o.torre.rotation.y = -l.yaw;
-        o.pod.material = l.atascado ? M.mal : M.borde;
-        if (l.lugar && !l.atascado && l.modo !== "idle") {
-          o.mira.visible = true; o.mira.position.set(l.lugar.x, (l.lugar.z || 0) + .03, l.lugar.y);
-          const z = l.lugar.z || 0;
-          o.miraAlt.visible = z > 0.05;
-          if (z > .05) { o.miraAlt.position.set(l.lugar.x, 0, l.lugar.y); o.miraAlt.scale.set(1, z, 1); o.miraAlt.computeLineDistances(); }
-        } else { o.mira.visible = false; o.miraAlt.visible = false; }
-      }
-      for (const r of mundo.reparadores) { const o = objetos.get(r.id); o.grupo.position.set(r.cx, 0, r.cy); o.grupo.rotation.y = r.estado === "reparar" ? ahora / 160 : 0; }
-      for (const e of mundo.maquinas) {
-        const o = objetos.get(e.id), mal = e.clase === "lanzador" && e.atascado;
-        if (o.halo) {
-          o.halo.g.visible = !seleccionadas.has(e.id);
-          o.halo.principal.material = mal ? D["halo-mal"] : o.halo.mat;
-          if (o.halo.secundaria) o.halo.secundaria.visible = !mal;
-          o.halo.g.rotation.y = -o.grupo.rotation.y;
-        }
-        const b = o.brillo;
-        if (b.suelo) b.suelo.rotation.y = -direccionDe(e, ahora) - o.grupo.rotation.y;
-        // Las luces de sensores y reparadores parpadean; las de los lanzadores se apagan al atascarse.
-        const on = mal ? false : e.clase === "vibracion" ? ahora % 1600 < 1100 : e.clase === "reparador" && e.estado !== "base" ? ahora % 500 < 300 : true;
-        for (const luz of b.luces) luz.visible = on;
-      }
-      const vivos = new Set();
-      for (const e of mundo.enemigos) {
-        vivos.add(e.id);
-        let o = objetos.get(e.id);
-        if (!o) { o = enemigoMesh(e); objetos.set(e.id, o); movil.add(o.grupo); }
-        const x = e.x + e.vx * off, y = e.y + e.vy * off;
-        o.grupo.position.set(x, 0, y);
-        o.cuerpo.material = mundo.t - e.golpeT < .25 ? M.golpe : o.mat;
-        if (o.cuerpoG) {
-          o.cuerpoG.position.y = e.z;
-          o.alt.scale.set(1, e.z, 1);
-          for (const r of o.rotores) r.rotation.y = ahora / 40;
-        }
-      }
-      for (const [id, o] of objetos) if (o.mat && !vivos.has(id)) { movil.remove(o.grupo); objetos.delete(id); }
-      const enVuelo = new Set();
-      for (const mi of mundo.misiles) {
-        enVuelo.add(mi.id);
-        let o = misiles.get(mi.id);
-        if (!o) {
-          const bola = mesh(G.esfera, M.misil); bola.scale.setScalar(.12);
-          const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(30), 3));
-          const estela = new THREE.Line(g, L.estela); estela.frustumCulled = false;
-          o = { bola, estela }; misiles.set(mi.id, o); movil.add(bola, estela);
-        }
-        const p = posMisil(mi, t); o.bola.position.set(...p);
-        const arr = o.estela.geometry.attributes.position.array;
-        for (let k = 0; k < 10; k++) { const q = posMisil(mi, t - k * .03); arr[k * 3] = q[0]; arr[k * 3 + 1] = q[1]; arr[k * 3 + 2] = q[2]; }
-        o.estela.geometry.attributes.position.needsUpdate = true;
-      }
-      for (const [id, o] of misiles) if (!enVuelo.has(id)) { movil.remove(o.bola, o.estela); o.estela.geometry.dispose(); misiles.delete(id); }
-      const vistos = new Set();
-      for (const x of mundo.explosiones) {
-        const k = `${x.t0}|${x.x}|${x.y}`; vistos.add(k);
-        let o = efectos.get(k);
-        if (!o) { o = mesh(G.esfera, (x.atasco ? M.humo : M.explosion).clone()); efectos.set(k, o); movil.add(o); }
-        const u = Math.min(1, (t - x.t0) / (x.atasco ? .8 : .35));
-        o.position.set(x.x, x.atasco ? 1 + u * .8 : x.z, x.y);
-        o.scale.setScalar((x.atasco ? .5 : MISIL.radio) * (.25 + .75 * Math.min(1, u * 1.4)));
-        o.material.opacity = (x.atasco ? .55 : .42) * (1 - Math.max(0, (t - x.t0 - .25) / .5));
-      }
-      for (const [k, o] of efectos) if (!vistos.has(k)) { movil.remove(o); o.material.dispose(); efectos.delete(k); }
-      if (anillos && anillos.userData.sigue) {
-        const en = mundo.enemigos.find(x => x.id === anillos.userData.sigue);
-        if (en) anillos.position.set(en.x + en.vx * off, en.z, en.y); else anillos.visible = false;
-      }
-      if (anillos) for (const a of anillos.children) {
-        if (!a.userData.unidad) continue;
-        const u = mundo.porId[a.userData.unidad] || mundo.enemigos.find(e => e.id === a.userData.unidad);
-        a.visible = !!u;
-        if (u) a.position.set((u.cx ?? u.x) - anillos.position.x, .04 - anillos.position.y, (u.cy ?? u.y) - anillos.position.z);
-      }
-    }
-
-    function colocarCamara(c = cam) {
-      const cp = Math.cos(c.pitch);
-      camara.position.set(c.x + c.dist * cp * Math.sin(c.yaw), c.dist * Math.sin(c.pitch), c.z + c.dist * cp * Math.cos(c.yaw));
-      camara.lookAt(c.x, 0, c.z);
-      camara.updateMatrixWorld();
-    }
-    // Campo girado 90°: la base queda abajo y los enemigos llegan desde arriba. Se usa en pantalla completa
-    // con la pantalla en vertical (se puede desactivar en Ajustes); al girar a horizontal vuelve la normal.
-    const app = $("app");
-    function claveCamara() {
-      if (innerHeight <= innerWidth) return "horizontal";
-      const girar = app.dataset.pantallaCompleta === "true" && app.dataset.girarCampo !== "false" && altoCampo > anchoCampo;
-      return girar ? "girada" : "vertical";
-    }
-    // Distancia mínima para que las cuatro esquinas del campo quepan en pantalla (con margen para el HUD).
-    function encuadrar(c, mx, my) {
-      const esquinas = [[0, 0], [COLS, 0], [0, ROWS], [COLS, ROWS]].map(([x, z]) => new THREE.Vector3(x, 0, z));
-      let lo = 6, hi = 160;
-      for (let k = 0; k < 24; k++) {
-        c.dist = (lo + hi) / 2; colocarCamara(c);
-        const cabe = esquinas.every(e => { const q = e.clone().project(camara); return Math.abs(q.x) <= mx && Math.abs(q.y) <= my && q.z < 1; });
-        if (cabe) hi = c.dist; else lo = c.dist;
-      }
-      c.dist = hi;
-      return c;
-    }
-    function camaraInicial(k) {
-      // En pantallas estrechas la cámara se aleja para que quepan las 32 columnas.
-      // Algo inclinada y mirando un poco más al norte: deja ver la cordillera detrás del campo.
-      if (k !== "girada") return { yaw: 0, pitch: .93, dist: camara.aspect < 1.5 ? 33 * 1.5 / camara.aspect : 33, x: COLS / 2, z: ROWS / 2 - .8 };
-      return encuadrar({ yaw: -Math.PI / 2, pitch: .98, dist: 30, x: COLS / 2 - .6, z: ROWS / 2 }, .98, .8);
-    }
-    function elegirCamara() {
-      const k = claveCamara();
-      const c = camaras[k] || (camaras[k] = { k, cam: null, movida: false });
-      c.cam0 = camaraInicial(k);
-      if (!c.cam) c.cam = { ...c.cam0 };
-      else if (!c.movida) Object.assign(c.cam, c.cam0);
-      camActual = c; cam = c.cam; cam0 = c.cam0;
-    }
-    const moverCamara = () => { if (camActual) camActual.movida = true; };
-    function tamano(w, h) {
-      anchoCampo = w; altoCampo = h;
-      renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
-      elegirCamara();
-    }
-    // Activar o salir de pantalla completa, o cambiar el ajuste, cambia de cámara sin cambiar de tamaño.
-    new MutationObserver(() => { if (cam) elegirCamara(); }).observe(app, { attributes: true, attributeFilter: ["data-pantalla-completa", "data-girar-campo"] });
-    function render() {
-      if (!cam) elegirCamara();
-      colocarCamara();
-      if (escena.fog === horizonte) { horizonte.near = cam.dist + 24; horizonte.far = cam.dist + 110; }
-      else if (escena.fog) { escena.fog.near = cam.dist * .55; escena.fog.far = cam.dist * 1.75; }
-      renderer.render(escena, camara);
-    }
-    const v = new THREE.Vector3();
-    function proyectar(x, alto, y, w, h) {
-      v.set(x, alto, y).project(camara);
-      return { x: (v.x + 1) / 2 * w, y: (1 - v.y) / 2 * h, visible: v.z < 1 && v.z > -1 };
-    }
-    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-    function elegir(px, py, w, h) {
-      ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
-      ray.setFromCamera(ndc, camara);
-      const hits = ray.intersectObjects([...fijo.children, ...movil.children], true);
-      for (const hit of hits) { let o = hit.object; while (o && !o.userData.id) o = o.parent; if (o) return o.userData.id; }
-      return null;
-    }
-    function suelo(px, py, w, h) {
-      ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
-      ray.setFromCamera(ndc, camara);
-      const punto = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
-      return punto ? { x: punto.x, y: punto.z, z: 0 } : null;
-    }
-    function centrar(x, y) {
-      // Acerca la cámara a la unidad un poco hacia el lado desde el que mira.
-      cam.x = x + Math.sin(cam.yaw); cam.z = y + Math.cos(cam.yaw); cam.dist = Math.min(cam.dist, 22); moverCamara();
-    }
-    function recentrar() { Object.assign(cam, cam0); camActual.movida = false; }
-
-    // Cámara: rueda presionada = orbitar · botón derecho o dos dedos = desplazar.
-    // El botón izquierdo y la selección táctil se manejan juntos en el campo.
-    const canvas = $("c3d"), punteros = new Map();
-    let gesto = null;
-    canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
-    canvas.addEventListener("pointerdown", (ev) => {
-      if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return;
-      canvas.setPointerCapture(ev.pointerId);
-      punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
-      gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false };
-    });
-    canvas.addEventListener("pointermove", (ev) => {
-      const p = punteros.get(ev.pointerId); if (!p || !gesto) return;
-      const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
-      p.x = ev.clientX; p.y = ev.clientY;
-      gesto.movido += Math.abs(dx) + Math.abs(dy);
-      if (dx || dy) moverCamara();
-      if (punteros.size >= 2) {
-        const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-        if (gesto.dist0) cam.dist = Math.min(70, Math.max(8, cam.dist * gesto.dist0 / d));
-        gesto.dist0 = d;
-        desplazar(dx / 2, dy / 2);
-        // Girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral pequeño evita
-        // girar sin querer al pellizcar para acercar.
-        if (gesto.ang0 != null) {
-          const da = Math.atan2(Math.sin(ang - gesto.ang0), Math.cos(ang - gesto.ang0));
-          gesto.giro += da;
-          if (gesto.girando || Math.abs(gesto.giro) > .12) {
-            const r = canvas.getBoundingClientRect();
-            girar(gesto.girando ? da : gesto.giro, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, r.width, r.height);
-            gesto.girando = true;
-          }
-        }
-        gesto.ang0 = ang;
-      } else if (gesto.tactil && arrastreCampo && arrastreCampo.cajaTactil) return;
-      else if (gesto.desplazar || gesto.tactil) desplazar(dx, dy);
-      else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(.28, cam.pitch + dy * .005)); }
-    });
-    const soltar = (ev) => {
-      punteros.delete(ev.pointerId);
-      if (gesto && punteros.size === 0) {
-        gesto = null;
-      } else if (gesto) { gesto.dist0 = null; gesto.ang0 = null; }
-    };
-    canvas.addEventListener("pointerup", soltar);
-    canvas.addEventListener("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(70, Math.max(8, cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
-    const limitar = () => { cam.x = Math.min(COLS + 4, Math.max(-4, cam.x)); cam.z = Math.min(ROWS + 4, Math.max(-6, cam.z)); };
-    function desplazar(dx, dy) {
-      const k = cam.dist * .0022;
-      const sx = Math.cos(cam.yaw), sz = -Math.sin(cam.yaw);
-      cam.x -= (dx * sx + dy * Math.sin(cam.yaw)) * k;
-      cam.z -= (dx * sz + dy * Math.cos(cam.yaw)) * k;
-      limitar();
-    }
-    // El giro mantiene fijo el punto del suelo que queda entre los dedos.
-    function girar(da, px, py, w, h) {
-      colocarCamara();
-      const antes = suelo(px, py, w, h);
-      cam.yaw = Math.atan2(Math.sin(cam.yaw + da), Math.cos(cam.yaw + da));
-      colocarCamara();
-      const despues = suelo(px, py, w, h);
-      if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
-    }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato, camara: () => ({ clave: camActual && camActual.k, ...cam }) };
-  })();
+  const estadoVista = {
+    get mundo() { return mundo; }, get seleccionadas() { return seleccionadas; }, get seleccion() { return seleccion; },
+    get arrastreCampo() { return arrastreCampo; }, get cols() { return COLS; }, get rows() { return ROWS; },
+    get col() { return col; }, get geo2() { return geo2; }, set geo2(g) { geo2 = g; },
+  };
+  const V3 = window.VISTAS.crear3D(estadoVista, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual });
 
   // ---------- Vista de plano (2D) ----------
   const $c2d = $("c2d"), ctx2 = $c2d.getContext("2d");
@@ -1488,138 +518,7 @@ onmessage = async (ev) => {
   const rgba = (hex, a) => `rgba(${rgb(hex).join(",")},${a})`;
   const mezclaBlanco = (hex, u) => `rgb(${rgb(hex).map(v => Math.round(v + (255 - v) * u)).join(",")})`;
   let geo2 = { T: 10, ox: 0, oy: 0 };
-  function dibujar2D(off) {
-    const dpr = window.devicePixelRatio || 1, W = $c2d.clientWidth, H = $c2d.clientHeight;
-    if (!W || !H) return;
-    if ($c2d.width !== Math.round(W * dpr) || $c2d.height !== Math.round(H * dpr)) { $c2d.width = Math.round(W * dpr); $c2d.height = Math.round(H * dpr); }
-    const T = Math.min(W / COLS, (H - 40) / ROWS), ox = (W - T * COLS) / 2, oy = Math.max(36, (H - T * ROWS) / 2);
-    geo2 = { T, ox, oy };
-    const c = ctx2, P = (x) => ox + x * T, Q = (y) => oy + y * T;
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.fillStyle = col.bg; c.fillRect(0, 0, W, H);
-    // El suelo sigue más allá del campo: la cuadrícula continúa, tenue, hasta los bordes.
-    c.strokeStyle = col.grid; c.globalAlpha = .45; c.lineWidth = 1; c.beginPath();
-    for (let x = ox - Math.floor(ox / T) * T; x <= W; x += T) { c.moveTo(Math.round(x) + .5, 0); c.lineTo(Math.round(x) + .5, H); }
-    for (let y = oy - Math.floor(oy / T) * T; y <= H; y += T) { c.moveTo(0, Math.round(y) + .5); c.lineTo(W, Math.round(y) + .5); }
-    c.stroke(); c.globalAlpha = 1;
-    c.fillStyle = col.suelo; c.fillRect(ox, oy, COLS * T, ROWS * T);
-    c.fillStyle = col.base; c.fillRect(ox, oy, LINEA_BASE * T, ROWS * T);
-    c.lineWidth = 1;
-    for (const [paso2, color] of [[1, col.grid], [4, col["grid-2"]]]) {
-      c.strokeStyle = color; c.beginPath();
-      for (let i = 0; i <= COLS; i += paso2) { c.moveTo(Math.round(P(i)) + .5, oy); c.lineTo(Math.round(P(i)) + .5, oy + ROWS * T); }
-      for (let j = 0; j <= ROWS; j += paso2 === 4 ? 3 : 1) { c.moveTo(ox, Math.round(Q(j)) + .5); c.lineTo(ox + COLS * T, Math.round(Q(j)) + .5); }
-      c.stroke();
-    }
-    c.fillStyle = col.muted; c.font = `500 ${Math.max(8, T * .38)}px "JetBrains Mono", monospace`; c.textAlign = "center"; c.textBaseline = "bottom";
-    for (let i = 0; i <= COLS; i += 4) c.fillText(i, P(i), oy - 2);
-    c.strokeStyle = col.bad; c.setLineDash([5, 4]); c.lineWidth = 2; c.beginPath(); c.moveTo(P(LINEA_BASE), oy); c.lineTo(P(LINEA_BASE), oy + ROWS * T); c.stroke(); c.setLineDash([]);
-    if (mundo.def.niebla) { c.fillStyle = col.surface; c.globalAlpha = .28; c.fillRect(ox, oy, COLS * T, ROWS * T); c.globalAlpha = 1; }
-    // Alcances de la máquina elegida
-    const sel = seleccion && mundo.porId[seleccion];
-    const aro = (x, y, r, color, dash) => { c.strokeStyle = color; c.lineWidth = 1.5; c.setLineDash(dash || []); c.beginPath(); c.arc(P(x), Q(y), r * T, 0, Math.PI * 2); c.stroke(); c.setLineDash([]); };
-    if (sel && sel.clase === "lanzador") { aro(sel.cx, sel.cy, alcance("visual"), col["s-visual"]); aro(sel.cx, sel.cy, alcance("thermal"), col["s-termico"], [6, 4]); }
-    if (sel && sel.clase === "vibracion") aro(sel.cx, sel.cy, sel.alcance, col["s-vibra"], [3, 3]);
-    // Halo y brillo bajo las máquinas: calcos aditivos con las mismas medidas que en 3D.
-    const rol = (e) => col[`rol-${funcionDe(e).principal}`];
-    const ahora = performance.now(), k = INTENSIDAD[visual.intensidad];
-    c.globalCompositeOperation = "lighter";
-    const charco = (x, y, r, color, alfa) => {
-      const g = c.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, rgba(color, Math.min(1, alfa))); g.addColorStop(.35, rgba(color, Math.min(1, alfa * .42))); g.addColorStop(1, rgba(color, 0));
-      c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-    };
-    for (const e of mundo.maquinas) {
-      const x = P(e.cx), y = Q(e.cy), r = radioDe(e), f = funcionDe(e), mal = e.clase === "lanzador" && e.atascado;
-      const paradas = HALO[visual.halo];
-      if (paradas && !seleccionadas.has(e.id)) {
-        const R = r / FR * T;
-        const sector = (color, a0, a1) => {
-          const g = c.createRadialGradient(x, y, 0, x, y, R);
-          for (const [dd, a] of paradas) g.addColorStop(FR + dd, rgba(color, Math.min(1, a * .85 * k)));
-          c.fillStyle = g; c.beginPath(); c.moveTo(x, y); c.arc(x, y, R, a0, a1); c.closePath(); c.fill();
-        };
-        const sec = !mal && f.secundaria;
-        // En pantalla el ángulo va al revés que en 3D (y hacia abajo).
-        sector(mal ? col.bad : rol(e), sec ? -ARCO[0] - Math.PI * 2 : 0, sec ? -ARCO[1] : Math.PI * 2);
-        if (sec) sector(col[`rol-${sec}`], -ARCO[1], -ARCO[0]);
-      }
-      if (visual.brillo === "aura") charco(x, y, r * 1.7 * T, rol(e), .24 * k);
-      else if (visual.brillo === "pilotos" && !mal) for (const [lx, , lz] of LUCES[e.clase] || []) charco(P(e.cx + lx * 1.15), Q(e.cy + lz * 1.15), r * .55 * T, rol(e), .4 * k);
-      else if (visual.brillo === "faros") {
-        const a = direccionDe(e, ahora), L = r * 2.5 * T, g = c.createRadialGradient(x, y, 0, x, y, L);
-        g.addColorStop(0, rgba(rol(e), Math.min(1, .5 * k))); g.addColorStop(.45, rgba(rol(e), Math.min(1, .2 * k))); g.addColorStop(1, rgba(rol(e), 0));
-        c.fillStyle = g; c.beginPath(); c.moveTo(x, y); c.arc(x, y, L, a - .42, a + .42); c.closePath(); c.fill();
-      }
-    }
-    c.globalCompositeOperation = "source-over";
-    // Edificios
-    const caja = (x, y, w, h, relleno, borde) => { c.fillStyle = relleno; c.strokeStyle = borde; c.lineWidth = 1.5; c.beginPath(); c.roundRect(P(x - w / 2), Q(y - h / 2), w * T, h * T, T * .18); c.fill(); c.stroke(); };
-    const d = mundo.deposito; caja(d.cx, d.cy, 1.4, 1.7, col.building, rol(d));
-    c.fillStyle = col.misil; c.fillRect(P(d.cx - .45), Q(d.cy - .35), .9 * T, .14 * T); c.fillRect(P(d.cx - .45), Q(d.cy + .2), .9 * T, .14 * T);
-    for (const s of mundo.sensores) {
-      c.fillStyle = rol(s); c.beginPath(); c.arc(P(s.cx), Q(s.cy), T * .32, 0, Math.PI * 2); c.fill();
-    }
-    for (const l of mundo.lanzadores) {
-      caja(l.cx, l.cy, 1.1, 1.1, col.building, l.atascado ? col.bad : rol(l));
-      c.strokeStyle = l.atascado ? col.bad : col.ink; c.lineWidth = Math.max(2, T * .18); c.lineCap = "round";
-      c.beginPath(); c.moveTo(P(l.cx), Q(l.cy)); c.lineTo(P(l.cx + Math.cos(l.yaw) * .7), Q(l.cy + Math.sin(l.yaw) * .7)); c.stroke(); c.lineCap = "butt";
-      if (l.lugar && !l.atascado && l.modo !== "idle") {
-        const x = P(l.lugar.x), y = Q(l.lugar.y), r = T * .45;
-        c.strokeStyle = col.accent; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.moveTo(x - r * 1.4, y); c.lineTo(x + r * 1.4, y); c.moveTo(x, y - r * 1.4); c.lineTo(x, y + r * 1.4); c.stroke();
-        if ((l.lugar.z || 0) > .05) { c.fillStyle = col.accent; c.font = `700 ${Math.max(9, T * .42)}px "JetBrains Mono", monospace`; c.textAlign = "left"; c.textBaseline = "bottom"; c.fillText(`↑${r2(l.lugar.z)}`, x + r, y - r * .6); }
-      }
-    }
-    for (const r of mundo.reparadores) { c.fillStyle = rol(r); c.fillRect(P(r.cx) - T * .23, Q(r.cy) - T * .23, T * .46, T * .46); }
-    // Luces: puntos claros encima de cada máquina (pilotos y faros); se apagan con el atasco.
-    if (visual.brillo === "pilotos" || visual.brillo === "faros") for (const e of mundo.maquinas) {
-      if (e.clase === "lanzador" && e.atascado) continue;
-      if (e.clase === "vibracion" && ahora % 1600 >= 1100) continue;
-      c.fillStyle = mezclaBlanco(rol(e), .55);
-      for (const [lx, , lz] of LUCES[e.clase] || []) { c.beginPath(); c.arc(P(e.cx + lx), Q(e.cy + lz), Math.max(1.5, T * .07), 0, Math.PI * 2); c.fill(); }
-    }
-    // Selección: el mismo círculo del halo, nítido y claro, con un filo oscuro para leerse sobre cualquier color.
-    for (const e of mundo.maquinas) {
-      if (!seleccionadas.has(e.id)) continue;
-      c.beginPath(); c.arc(P(e.cx), Q(e.cy), radioDe(e) * T, 0, Math.PI * 2);
-      c.strokeStyle = "rgba(0,0,0,.6)"; c.lineWidth = 4; c.stroke(); c.strokeStyle = col.sel; c.lineWidth = 2; c.stroke();
-    }
-    // Enemigos: la sombra desplazada indica la altura.
-    for (const e of mundo.enemigos) {
-      const x = P(e.x + e.vx * off), y = Q(e.y + e.vy * off), tp = TIPOS[e.tipo], golpe = mundo.t - e.golpeT < .25;
-      const color = golpe ? col.bad : tp.frio ? col["enemigo-frio"] : col.enemigo;
-      if (tp.suelo) {
-        c.fillStyle = color; c.beginPath(); c.roundRect(x - T * .4, y - T * .3, T * .8, T * .6, T * .1); c.fill();
-        for (let k = 0; k < e.hpMax; k++) { c.fillStyle = k < e.hp ? col.surface : col.edge; c.fillRect(x - T * .3 + k * T * .22, y - T * .06, T * .14, T * .12); }
-      } else {
-        const sx = x + e.z * T * .28, sy = y + e.z * T * .28;
-        c.fillStyle = col.ink; c.globalAlpha = .16; c.beginPath(); c.ellipse(sx, sy, T * .32, T * .2, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-        c.strokeStyle = color; c.lineWidth = 1; c.setLineDash([2, 2]); c.beginPath(); c.moveTo(x, y); c.lineTo(sx, sy); c.stroke(); c.setLineDash([]);
-        c.beginPath(); c.moveTo(x, y - T * .36); c.lineTo(x + T * .36, y); c.lineTo(x, y + T * .36); c.lineTo(x - T * .36, y); c.closePath();
-        if (tp.frio) { c.strokeStyle = color; c.lineWidth = 2; c.stroke(); } else { c.fillStyle = color; c.fill(); }
-      }
-      if (seleccionadas.has(e.id)) { c.beginPath(); c.arc(x, y, T * .62, 0, Math.PI * 2); c.strokeStyle = "rgba(0,0,0,.6)"; c.lineWidth = 4; c.stroke(); c.strokeStyle = col.sel; c.lineWidth = 2; c.stroke(); }
-    }
-    const t = mundo.t + off;
-    for (const mi of mundo.misiles) {
-      const u = Math.min(1, Math.max(0, (t - mi.t0) / mi.dur));
-      const x = P(mi.x0 + (mi.x1 - mi.x0) * u), y = Q(mi.y0 + (mi.y1 - mi.y0) * u);
-      c.strokeStyle = col.misil; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P(mi.x0 + (mi.x1 - mi.x0) * Math.max(0, u - .18)), Q(mi.y0 + (mi.y1 - mi.y0) * Math.max(0, u - .18))); c.lineTo(x, y); c.stroke();
-      c.fillStyle = col.misil; c.beginPath(); c.arc(x, y, T * .14, 0, Math.PI * 2); c.fill();
-    }
-    // Explosiones: llena = en el suelo, con borde discontinuo y altura = en el aire.
-    for (const x of mundo.explosiones) {
-      const u = Math.min(1, (t - x.t0) / .35), a = 1 - Math.max(0, (t - x.t0 - .25) / .5);
-      if (x.atasco) { c.fillStyle = col.edge; c.globalAlpha = .5 * a; c.beginPath(); c.arc(P(x.x), Q(x.y), T * .7 * u, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; continue; }
-      const r = MISIL.radio * T * (.25 + .75 * Math.min(1, u * 1.4));
-      c.globalAlpha = .38 * a; c.fillStyle = col.explosion; c.beginPath(); c.arc(P(x.x), Q(x.y), r, 0, Math.PI * 2); c.fill(); c.globalAlpha = Math.max(0, a);
-      if (x.z > .05) {
-        c.strokeStyle = col.explosion; c.setLineDash([4, 3]); c.lineWidth = 1.5; c.stroke(); c.setLineDash([]);
-        c.fillStyle = col.ink; c.font = `600 ${Math.max(8, T * .36)}px "JetBrains Mono", monospace`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(`↑${r2(x.z)}`, P(x.x), Q(x.y));
-      }
-      c.globalAlpha = 1;
-    }
-  }
+  const dibujar2D = window.VISTAS.crearPlano(estadoVista, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 });
   function proyectar2D(x, y) { return { x: geo2.ox + x * geo2.T, y: geo2.oy + y * geo2.T, visible: true }; }
   function elegir2D(px, py) {
     const x = (px - geo2.ox) / geo2.T, y = (py - geo2.oy) / geo2.T;
@@ -1841,9 +740,9 @@ onmessage = async (ev) => {
 
   // ---------- Retos y mundo en pantalla ----------
   function pintarRetos() {
-    const chips = RETOS.map((r, i) => [i, r.titulo]).concat([[IDX_PROPIO, `✎ ${propio.titulo}`]]);
+    const chips = RETOS.map((r, i) => [i, r.titulo]).concat(ES_FACTORY ? [] : [[IDX_PROPIO, `✎ ${propio.titulo}`]]);
     $("retos").innerHTML = chips.map(([i, t]) => {
-      const clave = i === IDX_PROPIO ? "propio" : String(i), hecho = hechos.includes(clave);
+      const clave = (ES_FACTORY ? "factory-" : "") + (i === IDX_PROPIO ? "propio" : String(i)), hecho = hechos.includes(clave);
       return `<button type="button" class="reto-btn${hecho ? " hecho" : ""}" aria-pressed="${i === retoIdx}" data-i="${i}"><span class="n">${hecho ? "✓" : i === IDX_PROPIO ? "+" : i + 1}</span>${esc(t)}</button>`;
     }).join("");
   }
@@ -1859,6 +758,10 @@ onmessage = async (ev) => {
   const MOTIVOS = { brecha: "Brecha", atascos: "Demasiados atascos", tiempo: "Fuera de tiempo", limite: "Tiempo agotado", derribos: "Pocos derribos", error: "Error en el programa", detenido: "Detenido", reinicio: "Reiniciado" };
   // Estado de cada meta: «ok» (verde), «rota» (rojo) o «pendiente». Al acabar un intento todas quedan decididas.
   function estadoMetas() {
+    if (ES_FACTORY) return def.metas.map((meta, i) => {
+      const e = mundo.porId[meta.id], valor = meta.tipo === "vaciar" ? e.stock[meta.mat] || 0 : e.recibido[meta.mat] || 0;
+      return { k: `factory-${i}`, nombre: `${esc(meta.id)} ← ${esc(meta.mat)}`, meta: meta.tipo === "vaciar" ? "vaciar" : `mínimo ${meta.n}`, valor: meta.tipo === "vaciar" ? valor : `${valor}/${meta.n}`, estado: logistica.metaCumplida(meta) ? "ok" : mundo.fin ? "rota" : "pendiente" };
+    });
     const m = mundo, me = def.metas, acabado = m.fin === "victoria" || m.fin === "fallo";
     const decide = (rota, ok) => rota ? "rota" : ok ? "ok" : acabado ? "rota" : "pendiente";
     const filas = [{ k: "brechas", nombre: "Brechas", meta: `máximo ${me.brechasMax}`, valor: m.brechas, estado: decide(m.brechas > me.brechasMax, acabado && m.brechas <= me.brechasMax) }];
@@ -1899,6 +802,7 @@ onmessage = async (ev) => {
         `<li class="meta-fila ${f.estado}" data-meta="${f.k}">${marca(f.estado)}<span class="m-nombre">${f.nombre} <small>${esc(f.meta)}</small></span><b class="m-valor">${f.valor}</b></li>`).join("")}</ul>`;
     },
     enemigos: () => {
+      if (ES_FACTORY) return `<p class="info-nota">Este reto no tiene enemigos.</p>`;
       const tipos = new Map();
       for (const o of def.oleadas) {
         const tp = TIPOS[o.tipo], x = tipos.get(o.tipo) || { n: 0, hp: new Set(), vel: new Set() };
@@ -1927,13 +831,15 @@ onmessage = async (ev) => {
     intento: () => {
       const u = ultimoIntento();
       if (!u) return `<p class="info-nota">Aún no hay intentos en este reto.</p>`;
-      const titulo = u.resultado === "victoria" ? "Base intacta" : u.resultado === "error" || u.resultado === "sintaxis" ? (u.linea ? `Error en la línea ${u.linea} de ${u.id}` : `Error en el programa de ${u.id}`) : MOTIVOS[u.motivo] || "Intento";
+      const titulo = u.resultado === "victoria" ? (ES_FACTORY ? "Reto cumplido" : "Base intacta") : u.resultado === "error" || u.resultado === "sintaxis" ? (u.linea ? `Error en la línea ${u.linea} de ${u.id}` : `Error en el programa de ${u.id}`) : MOTIVOS[u.motivo] || "Intento";
       const cls = u.resultado === "victoria" ? "ok" : u.resultado === "detenido" ? "pendiente" : "rota";
-      const rec = records[claveReto()];
+      const rec = ES_FACTORY ? (records[claveReto()]?.regla === "comun-v1" ? records[claveReto()].valor : null) : records[claveReto()];
+
       return `<div class="intento ${cls}">${marca(cls)}<div><h4>${esc(titulo)}</h4>${u.intento ? `<p class="info-nota">Intento ${u.intento}${u.t != null ? ` · ${coma(u.t)} s` : ""}${u.derribos ? ` · ${u.derribos} derribados` : ""}</p>` : ""}</div></div>
         ${u.texto ? `<p class="motivo">${esc(u.texto)}</p>` : ""}
         <div class="fila-botones">${u.linea ? `<button class="btn chico primario" type="button" data-info-accion="linea">Ir a la línea ${u.linea}</button>` : ""}${cls === "rota" && partesPista().length ? `<button class="btn chico" type="button" data-info-accion="a-pista">Ver pista</button>` : ""}</div>
-        ${u.cpd != null || rec != null ? `<p class="economia">₵ por derribo ${u.cpd != null ? coma(u.cpd) : "—"}${rec != null ? ` · récord ${coma(rec)}` : ""}</p>` : ""}`;
+        ${ES_FACTORY && rec != null ? `<p class="economia">Récord: ${coma(rec)} s</p>` : ""}
+        ${!ES_FACTORY && (u.cpd != null || rec != null) ? `<p class="economia">₵ por derribo ${u.cpd != null ? coma(u.cpd) : "—"}${rec != null ? ` · récord ${coma(rec)}` : ""}</p>` : ""}`;
     },
   };
   // Punto de estado en las pestañas: metas (verde, rojo) e intento (rojo si falló).
@@ -1998,13 +904,21 @@ onmessage = async (ev) => {
   $("hoja-reto").addEventListener("click", (ev) => { if (ev.target.closest("[data-cerrar-hoja]")) abrirHoja(false); });
 
   function textoInicial(d, id) {
+    if (d.serie === "factory") return (d.inicial[id] || []).join("\n") + "\n";
     const lineas = d.inicial[id] || [];
     if (!lineas.length) return `/* Programa de ${id}.\n * Doble clic en el inspector inserta nombres, funciones y valores. */\n\n`;
     return `/* Programa de ${id} · el código de partida está comentado.\n * Quita las // (Ctrl+/ o el botón «//») o escribe el tuyo. */\n` + lineas.map(l => "// " + l).join("\n") + "\n";
   }
   function cargarProgramas() {
-    const g = guardado.leer(`prog-${claveReto()}`, null) || {};
-    return Object.fromEntries(def.lanzadores.map(l => [l.id, typeof g[l.id] === "string" ? g[l.id] : textoInicial(def, l.id)]));
+    let g = guardado.leer(`prog-${claveReto()}`, null);
+    if (ES_FACTORY && g == null) {
+      // Importación única y de solo lectura; nunca escribimos en cmg-banco02.
+      try { const viejo = JSON.parse(localStorage.getItem(`cmg-banco02:prog-${retoIdx}`)); if (viejo) g = { R1: (viejo.fuente !== "texto" || (viejo.comentado != null && viejo.texto === viejo.comentado)) && viejo.modelo ? window.FACTORY_RETOS.generar(viejo.modelo).codigo : viejo.texto }; } catch { /* dato antiguo inválido */ }
+      g ||= { R1: textoInicial(def, "R1") };
+      guardado.escribir(`prog-${claveReto()}`, g);
+    }
+    g ||= {};
+    return Object.fromEntries(programablesDe(def).map(l => [l.id, typeof g[l.id] === "string" ? g[l.id] : textoInicial(def, l.id)]));
   }
   let tGuardar = 0;
   function guardarProgramas() {
@@ -2013,13 +927,26 @@ onmessage = async (ev) => {
     tGuardar = setTimeout(() => guardado.escribir(clave, copia), 300);
   }
 
-  function nuevoMundo() {
-    mundo = crearMundo(def, semilla);
+  function guardarFactoryAhora() {
+    clearTimeout(tGuardar);
+    guardado.escribir(`prog-${claveReto()}`, { ...programas });
+  }
+  addEventListener("pagehide", () => { if (ES_FACTORY && def) guardarFactoryAhora(); });
+
+  function nuevoMundo(nIntento = intento + 1) {
+    COLS = def.mapa?.cols || 32; ROWS = def.mapa?.rows || 18;
+    mundo = crearMundo(def, ES_FACTORY ? nIntento : semilla);
+    if (ES_FACTORY) logistica = window.FACTORY.conectar(mundo, {
+      terminarOrden: terminarEncargo, terminar,
+      programaAcabado: () => !!ejec && [...ejec.progs.values()].every(p => p.acabado),
+      llamadaPendiente: () => !!ejec && [...ejec.progs.values()].some(p => p.encargo),
+    });
+    else combate = window.WAR.conectar(mundo, { registrar, terminar, avisoSistema, globo });
     if (V3) V3.construir();
     for (const o of etiquetas.values()) { o.etq.remove(); o.g.remove(); }
     etiquetas.clear(); globos.clear();
     seleccionadas = new Set([...seleccionadas].filter(id => unidadPorId(id)));
-    if (!seleccionadas.size) seleccionadas.add(def.lanzadores[0].id);
+    if (!seleccionadas.size) seleccionadas.add(programablesDe(def)[0].id);
     seleccion = [...seleccionadas][0];
     if (V3) V3.anillosDe(seleccion);
     const programables = [...seleccionadas].filter(id => Object.hasOwn(programas, id));
@@ -2030,17 +957,18 @@ onmessage = async (ev) => {
   }
 
   function elegirReto(i) {
+    if (ES_FACTORY && def && programas.R1 !== undefined) guardarFactoryAhora();
     clearTimeout(tFicha); cancelarArrastre(); ultimoToque = null;
     cerrarProgramas();
-    retoIdx = i; guardado.escribir("reto", i);
+    retoIdx = i; guardado.escribir(ES_FACTORY ? "factory-reto" : "reto", i);
     def = defActual();
-    avisar("cmg:reto", { reto: i + 1, titulo: def.titulo });
+    if (!ES_FACTORY) avisar("cmg:reto", { reto: i + 1, titulo: def.titulo });
     intento = telemetria.filter(t => t.reto === i + 1).length;
     if (!semillaFija) semilla = intento + 1;
     programas = cargarProgramas();
     borradoresMulti.clear();
-    progSel = def.lanzadores[0].id;
-    seleccion = def.lanzadores[0].id;
+    progSel = programablesDe(def)[0].id;
+    seleccion = programablesDe(def)[0].id;
     seleccionadas = new Set([seleccion]);
     edicion = { ids: [], mixto: false };
     lineaCorre = {}; lineaErr = null;
@@ -2058,6 +986,12 @@ onmessage = async (ev) => {
 
   let metasClave = "";
   function pintarHud() {
+    if (ES_FACTORY) {
+      $("reloj").textContent = `t ${mundo.t.toFixed(1)} s`;
+      const html = estadoMetas().map(f => `<span class="meta${f.estado === "ok" ? " cumplida" : f.estado === "rota" ? " rota" : ""}">${f.nombre} <b>${f.valor}</b></span>`).join("");
+      if (html !== metasClave) { metasClave = html; $("metas").innerHTML = html; vivoInfoReto(); }
+      return;
+    }
     const m = mundo, me = def.metas;
     $("reloj").textContent = `t ${m.t.toFixed(1)} s${m.def.niebla ? " · niebla" : ""}`;
     const clave = [m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
@@ -2117,9 +1051,9 @@ onmessage = async (ev) => {
   // Vista 3D o plano
   function aplicarVista(v) {
     vista = V3 ? v : "2d";
-    guardado.escribir("vista", v);
+    if (!ES_FACTORY) guardado.escribir("vista", v);
     $("c3d").hidden = vista !== "3d"; $("c2d").hidden = vista !== "2d";
-    $("sin3d").hidden = !!V3;
+    $("sin3d").hidden = ES_FACTORY || !!V3;
     $("b-centrar").hidden = vista !== "3d";
     document.querySelectorAll("[data-vista]").forEach(b => b.setAttribute("aria-pressed", b.dataset.vista === vista));
     tamanoCampo();
@@ -2171,6 +1105,9 @@ onmessage = async (ev) => {
   const tkValor = (v, vivo) => typeof v === "number" ? tk("num", v, String(v), { vivo, clave: vivo }) : typeof v === "boolean" ? tk("kw", v, String(v), { vivo, clave: vivo }) : tk("str", JSON.stringify(v), JSON.stringify(v), { vivo, clave: vivo });
 
   function estadoDe(e) {
+    if (e.clase === "robot") return [e.tarea ? "activo" : "", e.carga ? `carga: ${e.carga}` : e.tarea ? "trabajando" : "manos vacías"];
+    if (e.clase === "bodega") return ["", "almacenando"];
+    if (e.clase === "fundidora") return [e.procesando ? "activo" : "", e.procesando ? "procesando" : "en espera"];
     if (e.clase === "lanzador") {
       if (e.atascado) return ["mal", "atascado"];
       if (e.sinMisiles && e.modo !== "idle") return ["alerta", "sin misiles"];
@@ -2184,6 +1121,9 @@ onmessage = async (ev) => {
     return ["mal", `vida ${e.hp}/${e.hpMax}`];
   }
   const metricasDe = (e) => {
+    if (e.clase === "robot") return [["viajes", e.viajes], ["vacíos", mundo.vacios], ["rechazos", mundo.rechazos]];
+    if (e.clase === "bodega") return Object.entries(e.stock).map(([mat, n]) => [mat, e.oculto && !mundo.revelado ? "?" : n]);
+    if (e.clase === "fundidora") return [["entrada", `${e.entrada}/${e.cap}`], ["producido", e.producido], ["rechazos", e.rechazos]];
     if (e.clase === "lanzador") {
       const s = e.st;
       return [["lanzados", s.lanzados], ["impactos", s.impactos], ["precisión", s.lanzados ? `${Math.round(s.impactos / s.lanzados * 100)} %` : "—"], ["derribos", s.derribos], ["atascos", s.atascos], ["en ráfaga", `${s.tRafaga.toFixed(1)} s`], ["fallo máx", `${Math.round(s.fallaMax * 100)} %`], ["₵ gastado", s.consumidos * COSTE.misil]];
@@ -2202,7 +1142,11 @@ onmessage = async (ev) => {
     if (!e) { $("ins-tira").innerHTML = ""; $("ins-cuerpo").innerHTML = ""; return; }
     const propioProg = e.id === progSel, pre = propioProg ? "" : `${varDe(e.id)}.`;
     let clase, c1 = "", c2 = "", botones = "";
-    if (e.clase === "lanzador") {
+    if (["robot", "bodega", "fundidora"].includes(e.clase)) {
+      clase = e.clase === "robot" ? "Robot de carga" : e.nombre;
+      c1 = htmlFactoryAPI();
+      c2 = grupo("Datos", ...metricasDe(e).map(([k, v]) => fila(nota(esc(k)), esc(v))));
+    } else if (e.clase === "lanzador") {
       clase = "Lanzamisiles";
       const ajeno = propioProg ? null : `Solo desde el programa de ${e.id}`;
       c1 = grupo("Nombre", fila(tk("var", varDe(e.id), varDe(e.id)), nota(`en pantalla ${e.id}${propioProg ? " · en su programa no hace falta escribirlo" : ""}`)))
@@ -2278,7 +1222,15 @@ onmessage = async (ev) => {
     toks.forEach((t, i) => { if (["const", "let", "var"].includes(t[1]) && toks[i + 1] && toks[i + 1][0] === "id" && !out.has(toks[i + 1][1])) out.set(toks[i + 1][1], t[1]); });
     return [...out];
   }
+  const varFactory = id => /^[A-Za-z_$][\w$]*$/.test(varDe(id)) && mundo.entidades.filter(e => varDe(e.id) === varDe(id)).length === 1 && !FN_PROPIAS.has(varDe(id)) && !KW.has(varDe(id)) && !(varDe(id) in window) ? varDe(id) : JSON.stringify(id);
+  function htmlFactoryAPI() {
+    return grupo("Encargos de R1", fila(tk("fn", "await pickUp(lugar, material)", "await pickUp(/* lugar */, /* material */);")),
+      fila(tk("fn", "await deliver(lugar)", "await deliver(/* lugar */);")), fila(tk("fn", "await wait(segundos)", "await wait(1);")))
+      + grupo("Lecturas", ...mundo.entidades.flatMap(e => window.FACTORY.MATERIALES.map(mat => fila(tk("fn", `count("${e.id}", "${mat}")`, `count(${varFactory(e.id)}, ${JSON.stringify(mat)})`)))))
+      + grupo("Lugares", ...mundo.entidades.map(e => fila(tk("var", e.id, varFactory(e.id)))));
+  }
   function pintarPieIns() {
+    if (ES_FACTORY) { $("pie-ins").innerHTML = htmlFactoryAPI(); return; }
     const $p = $("pie-ins"), e = mundo && mundo.porId[progSel];
     if (!$p) return;
     if (!e) { $p.innerHTML = `<p class="nota">Elige un lanzador para ver lo que su programa puede usar.</p>`; return; }
@@ -2329,6 +1281,7 @@ onmessage = async (ev) => {
       <div class="traza-pie"><span>−${VENTANA} s</span><span>escala 0–${r3(max)}</span><span>ahora</span></div>`;
   }
   function htmlVitales(e) {
+    if (["robot", "bodega", "fundidora"].includes(e.clase)) return metricasDe(e).map(([k, v]) => vital(esc(k), esc(v))).join("");
     if (e.clase === "lanzador") {
       return vital("Misiles", `${e.misiles}/${def.cargador}`, celdas(e.misiles, def.cargador))
         + vital("failureRate", r3(e.falla), `<div class="medidor"><i style="width:${Math.min(100, Math.round(e.falla * 100))}%"></i></div>`)
@@ -2447,8 +1400,8 @@ onmessage = async (ev) => {
 
   // ---------- Programas ----------
   function pintarProgs() {
-    const varios = def.lanzadores.length > 1;
-    $("progs").innerHTML = def.lanzadores.map(l => {
+    const varios = programablesDe(def).length > 1;
+    $("progs").innerHTML = programablesDe(def).map(l => {
       const p = ejec && ejec.progs.get(l.id);
       const est = lineaErr && lineaErr.id === l.id ? "error" : p ? (p.estado === "corre" ? "corre" : p.estado === "espera" ? "espera" : "") : "";
       return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span>Programa de ${l.id}</button>`;
@@ -3047,6 +2000,8 @@ onmessage = async (ev) => {
   // sus sensores, los enemigos del reto, sus propiedades y la red de sensores.
   const FIRMAS = {
     autoTarget: ["tipo de enemigo", "sensor"], detect: ["tipo de enemigo"], regularShoot: ["lugar"], burstFire: ["lugar"], stopFire: [],
+    pickUp: ["lugar", "material"], deliver: ["lugar"], wait: ["segundos"], count: ["lugar", "material"],
+    recoger: ["lugar", "material"], entregar: ["lugar"], cuantos: ["lugar", "material"],
     esperar: ["segundos"], log: ["mensaje"], info: ["mensaje"], warn: ["mensaje"], error: ["mensaje"],
   };
   const OPERADORES_COND = [["&&", "y · se cumplen las dos", "condición"], ["||", "o · basta una", "condición"], ["!", "no · lo contrario", "condición"],
@@ -3056,6 +2011,12 @@ onmessage = async (ev) => {
       : c.tipo === "argumento" ? (FIRMAS[c.funcion] || [])[c.indice]
       : c.tipo === "condicion" ? "condición" : c.tipo === "valor" ? "valor" : null;
     if (!clase || !def) return null;
+    if (ES_FACTORY && ["lugar", "material", "valor", "condición"].includes(clase)) {
+      const items = clase === "lugar" ? mundo.entidades.map(e => ({ ins: varFactory(e.id), cls: "var", nota: e.nombre }))
+        : clase === "material" ? window.FACTORY.MATERIALES.map(m => ({ ins: JSON.stringify(m), cls: "str" }))
+        : mundo.entidades.flatMap(e => window.FACTORY.MATERIALES.map(mat => ({ ins: `count(${varFactory(e.id)}, ${JSON.stringify(mat)})${clase === "condición" ? " > 0" : ""}`, cls: "fn" })));
+      return { titulo: clase, grupos: [{ items }, { titulo: "Del programa", items: (c.variables || []).map(v => ({ ins: v, cls: "var" })) }] };
+    }
     const it = (ins, cls, nota, ver) => ({ ins, cls, nota, ver });
     const enReto = new Set(def.oleadas.map(o => o.tipo));
     const vars = (c.variables || []).map(v => it(v, "var", "variable del programa"));
@@ -3131,7 +2092,7 @@ onmessage = async (ev) => {
   // ---------- Registro y telemetría ----------
   function pintarEventosYa() {
     eventosSucios = false;
-    $("eventos").innerHTML = mundo.eventos.slice(-250).map(e =>
+    $("eventos").innerHTML = mundo.eventos.slice(-250).map(e => ES_FACTORY ? { ...e, maquina: "R1", que: e.orden, clase: e.sensor ? "sensor" : e.resultado === "ok" ? "ok" : "warn" } : e).map(e =>
       `<tr><td>${e.t.toFixed(2)}</td><td>${esc(e.maquina)}</td><td>${e.linea}</td><td>${esc(e.que)}</td><td class="${e.clase}">${esc(e.resultado)}</td></tr>`).join("")
       || `<tr><td colspan="5" style="color:var(--muted)">Todavía no hay eventos en este intento.</td></tr>`;
   }
@@ -3139,10 +2100,10 @@ onmessage = async (ev) => {
     const delReto = telemetria.filter(t => t.reto === retoIdx + 1);
     const victorias = delReto.filter(t => t.resultado === "victoria");
     const primera = delReto.findIndex(t => t.resultado === "victoria");
-    const rec = records[claveReto()];
+    const rec = ES_FACTORY && records[claveReto()]?.regla !== "comun-v1" ? null : records[claveReto()];
     const vistas = ["3d", "2d"].map(v => delReto.filter(t => t.vista === v).length).join(" / ");
     const dobles = delReto.reduce((a, t) => a + ((t.inserciones && t.inserciones.dobleClic) || 0), 0);
-    const datos = [["Intentos", delReto.length], ["Cumplidos", victorias.length], ["Récord ₵/derribo", rec != null ? rec.toFixed(1) : "—"], ["Intentos hasta cumplir", primera >= 0 ? primera + 1 : "—"], ["3D / plano", vistas], ["Inserciones con doble clic", dobles]];
+    const datos = [["Intentos", delReto.length], ["Cumplidos", victorias.length], [ES_FACTORY ? "Récord tiempo (s)" : "Récord ₵/derribo", rec != null ? (ES_FACTORY ? rec.valor : rec).toFixed(1) : "—"], ["Intentos hasta cumplir", primera >= 0 ? primera + 1 : "—"], ["3D / plano", vistas], ["Inserciones con doble clic", dobles]];
     $("resumen").innerHTML = datos.map(([k, v]) => `<div class="dato"><span>${k}</span><b>${v}</b></div>`).join("");
     $("json").value = JSON.stringify(telemetria, null, 2);
   }
@@ -3156,11 +2117,15 @@ onmessage = async (ev) => {
   $("b-borrar").addEventListener("click", (ev) => {
     if (!confirmarBorrado) { confirmarBorrado = true; ev.target.textContent = "¿Seguro? Toca otra vez"; setTimeout(() => { confirmarBorrado = false; ev.target.textContent = "Borrar telemetría"; }, 3000); return; }
     confirmarBorrado = false; ev.target.textContent = "Borrar telemetría";
-    telemetria = []; guardado.escribir("telemetria", telemetria); intento = 0; pintarResumen(); pintarControles();
+    telemetria = []; guardado.escribir(ES_FACTORY ? "factory-telemetria" : "telemetria", telemetria); intento = 0; pintarResumen(); pintarControles();
   });
 
   // ---------- Órdenes (ayuda) ----------
   function pintarAyuda() {
+    if (ES_FACTORY) {
+      $("v-ayuda").innerHTML = `<h3>Robot de carga</h3><p><code>await pickUp(lugar, material)</code> lleva a R1 hasta una bodega y carga una pieza. <code>await deliver(lugar)</code> la lleva al destino. <code>await wait(segundos)</code> deja pasar tiempo mientras las máquinas trabajan.</p><p><code>count(lugar, material)</code> consulta las existencias sin avanzar el reloj.</p><p>Se gana al cumplir las metas, aunque el programa siga en un bucle. Usa await en los encargos: el robot tarda en viajar y operar; durante esa espera las máquinas siguen trabajando. Las lecturas no avanzan el reloj: 0 significa edificio vacío y null, edificio inexistente. Una entrega llena devuelve «lleno» y conserva la carga. Los nombres españoles y yo. siguen aceptados.</p>`;
+      return;
+    }
     const f = (firma, texto, cls = "") => `<div class="firma ${cls}"><code>${firma}</code><p>${texto}</p></div>`;
     const k = (tipo, t, ins) => tk(tipo, t, ins ?? t);
     $("v-ayuda").innerHTML = `
@@ -3237,6 +2202,7 @@ onmessage = async (ev) => {
     </div>`;
   // `d` es el escenario que se muestra: el del reto o un borrador que todavía no se guardó.
   function pintarEscenario(d = def) {
+    if (ES_FACTORY) return formularioFactory.pintar(d);
     const propioSel = retoIdx === IDX_PROPIO, dis = propioSel ? "" : "disabled";
     const me = d.metas, num = (v) => v == null ? "" : v;
     $("esc-aviso").hidden = propioSel;
@@ -3297,11 +2263,12 @@ onmessage = async (ev) => {
     });
   }
   function guardarPropio(nuevo, jugar) {
-    propio = nuevo; guardado.escribir("propio", propio);
+    propio = nuevo; guardado.escribir(ES_FACTORY ? "factory-propio" : "propio", propio);
     if (jugar || retoIdx === IDX_PROPIO) { elegirReto(IDX_PROPIO); abrirPestana("escenario"); }
     pintarRetos();
   }
   $("v-escenario").addEventListener("click", (ev) => {
+    if (ES_FACTORY) return;
     const id = ev.target.id;
     if (ev.target.dataset.quitar != null) { const d = leerEscenario(); d.oleadas.splice(+ev.target.dataset.quitar, 1); pintarEscenario(d); return; }
     if (id === "esc-mas") { const d = leerEscenario(); d.oleadas.push({ tipo: "drone", n: 4, t: 0, cada: 1, carriles: [9] }); pintarEscenario(d); return; }
@@ -3348,9 +2315,9 @@ onmessage = async (ev) => {
   new MutationObserver(() => leerColores()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   window.__banco = {
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, RETOS, instrumentar, lexico, normalizar,
-    turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
+    turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
   }; // para depurar y probar desde la consola
-  window.cmg = { insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
+  window.cmg = { serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
@@ -3358,7 +2325,10 @@ onmessage = async (ev) => {
     camara: () => V3 && V3.camara(),
     // Retrato PNG (data URL) del modelo actual de un tipo de enemigo; sirve para regenerar img/enemigos/.
     retrato: (tipo) => V3 && TIPOS[tipo] ? V3.retrato(tipo) : null,
-    funciones: () => [
+    funciones: () => ES_FACTORY ? [
+      ...["pickUp", "deliver", "wait", "count"].map(nombre => ({ grupo: "Robot", nombre, firma: FIRMAS[nombre], await: nombre !== "count" })),
+      ...["log", "info", "warn", "error"].map(nombre => ({ grupo: "Consola", objeto: "console", nombre, firma: FIRMAS[nombre] })),
+    ] : [
       { grupo: "Lanzador", nombre: "autoTarget", firma: FIRMAS.autoTarget, nota: "→ posición" },
       { grupo: "Lanzador", nombre: "regularShoot", firma: FIRMAS.regularShoot, nota: "1 disparo/s" },
       { grupo: "Lanzador", nombre: "burstFire", firma: FIRMAS.burstFire, nota: "ráfaga · sube el fallo" },
@@ -3370,13 +2340,46 @@ onmessage = async (ev) => {
     get claveDocumento() { return claveDocumento(); },
     // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
     datos: () => ({
+      lugares: ES_FACTORY ? mundo.entidades.map(e => ({ id: e.id, expresion: varFactory(e.id), tipo: e.tipo })) : [],
+      materiales: window.FACTORY.MATERIALES, ladrillos: def.ladrillos,
       tipos: Object.entries(TIPOS).map(([id, t]) => ({ id, nombre: t.nombre, enReto: def.oleadas.some(o => o.tipo === id) })),
       sensores: Object.entries(SENSOR).map(([id, x]) => ({ id, nombre: x.nombre, alcance: def.niebla ? x.niebla : x.alcance })),
       red: mundo ? mundo.sensores.map(x => varDe(x.id)) : [],
-      otras: def.lanzadores.map(l => l.id).filter(id => !edicion.ids.includes(id)).map(varDe),
+      otras: programablesDe(def).map(l => l.id).filter(id => !edicion.ids.includes(id)).map(varDe),
     }),
     inicial: () => edicion.mixto ? null : { texto: textoInicial(def, progSel), codigo: (def.inicial[progSel] || []).join("\n") + ((def.inicial[progSel] || []).length ? "\n" : "") },
     get marcas() { return { corre: (!edicion.mixto && lineaCorre[progSel]) || null, err: !edicion.mixto && lineaErr && lineaErr.id === progSel ? lineaErr.linea : null }; } };
+  if (ES_FACTORY) {
+    document.title = "Code Battle Lite · Factory";
+    document.documentElement.dataset.serie = "factory";
+    document.querySelectorAll('[data-vista="3d"]').forEach(b => b.disabled = true);
+    document.querySelector(".fila-sem").hidden = true;
+    document.querySelector(".coordenadas-manuales").hidden = true;
+    $("t-escenario").textContent = "Tu reto";
+    document.querySelectorAll('[data-modo-codigo="bloques"]').forEach(b => b.hidden = false);
+    $("info-t-enemigos").hidden = true;
+    document.querySelector('a[href="probar.html"]').href = "probar.html?serie=factory";
+    $("c2d").setAttribute("aria-label", "Plano de la fábrica");
+    $("progs").setAttribute("aria-label", "Programas de las máquinas");
+    ATAJOS.splice(0, ATAJOS.length,
+      { ico: "comentar", t: "Comentar", cod: "// …", comentar: true }, "|",
+      { ico: "para", t: "For", b: "for (let i = 0; i < 3; i++) {\n  \n}", envolvente: ["for (let i = 0; i < 3; i++) {\n", "\n}"] },
+      { ico: "mientras", t: "While", b: "while (/* condición */) {\n  \n}", envolvente: ["while (/* condición */) {\n", "\n}"] }, "|",
+      { ico: "recoger", t: "Recoger", b: "await pickUp(/* lugar */, /* material */);" },
+      { ico: "entregar", t: "Entregar", b: "await deliver(/* lugar */);" },
+      { ico: "sensor", t: "Cuántos", b: "const cantidad = count(/* lugar */, /* material */);" },
+      { ico: "esperar", t: "Esperar", b: "await wait(1);" });
+  }
+  for (const enlace of document.querySelectorAll("[data-serie]")) {
+    const url = new URL(location.href); url.searchParams.set("serie", enlace.dataset.serie);
+    enlace.href = url.pathname + url.search + url.hash;
+    enlace.setAttribute("aria-current", enlace.dataset.serie === (ES_FACTORY ? "factory" : "war") ? "page" : "false");
+  }
+  const formularioFactory = ES_FACTORY ? window.FACTORY_FORM.crear({
+    retoActual: () => def, propioSel: () => retoIdx === IDX_PROPIO,
+    guardar: d => guardarPropio(d, true), abrirPestana,
+    copiarPrograma: () => guardado.escribir("prog-factory-propio", { ...programas }),
+  }) : null;
   pintarRuteo();
   pintarAyuda();
   def = defActual();

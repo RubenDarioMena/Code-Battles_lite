@@ -1,0 +1,6288 @@
+{
+  "version": 1,
+  "origen": {
+    "commit": "b76411b31a020dbf8a3b5039f82f03c37017b25e",
+    "archivo": "Prototypes/Tres vistas/js/juego.js",
+    "sha256": "f88d1d21cf4ce0a530df917a9d53019f87ea789d252bc647294c44ef8df53349"
+  },
+  "metodo": "Factory original, Web Workers reales, paso fijo 0.05, velocidad oficial 4×; dos pasadas idénticas. Sin reloj simulado.",
+  "casos": [
+    {
+      "id": "reto-0-inicial",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "await yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n",
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: FUN 2 de cobre.",
+        "linea": null,
+        "t": 2.8999999999999977,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 1,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 1
+        },
+        "resultados": {
+          "ok": 2
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 1,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 2,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-0-victoria",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 3; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 8.699999999999989,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 6
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-1-inicial",
+      "reto": 1,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 3; i++) {\n  await yo.recoger(\"ENT-1\", \"cobre\");\n  await yo.entregar(\"FUN\");\n}\n",
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: ENS 3 de silicio.",
+        "linea": null,
+        "t": 10.700000000000017,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 1,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 6
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-1-victoria",
+      "reto": 1,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 3; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}\nfor (let i = 0; i < 3; i++) {\nawait yo.recoger(\"ENT-1\", \"silicio\");\nawait yo.entregar(\"ENS\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 22.400000000000183,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 5,
+          "carga": null,
+          "viajes": 6
+        },
+        "resultados": {
+          "ok": 12
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 12.65,
+            "linea": 6,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.6,
+            "linea": 7,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 16.55,
+            "linea": 6,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 18.5,
+            "linea": 7,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.45,
+            "linea": 6,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 22.4,
+            "linea": 7,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-2-inicial",
+      "reto": 2,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 4; i++) {\n  await yo.recoger(\"ENT-1\", \"cobre\");\n  await yo.entregar(\"FUN\");\n}\nfor (let i = 0; i < 4; i++) {\n  await yo.recoger(\"ENT-1\", \"silicio\");\n  await yo.entregar(\"ENS\");\n}\n",
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "derrame",
+        "mensaje": "Se derramó cobre en FUN: su entrada estaba llena. Este reto no admite derrames.",
+        "linea": null,
+        "t": 10.700000000000017,
+        "intento": 1,
+        "derrames": 1,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 4,
+            "valor": 2,
+            "cumplida": false
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 4,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 1,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 5,
+          "derrame": 1
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "derrame"
+          }
+        ]
+      },
+      "cambiaEtapa3": [
+        "carga-conservada"
+      ]
+    },
+    {
+      "id": "reto-2-victoria",
+      "reto": 2,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 4; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\nawait yo.recoger(\"ENT-1\", \"silicio\");\nawait yo.entregar(\"ENS\");\nawait yo.esperar(3);\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 42.19999999999974,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 4,
+            "valor": 4,
+            "cumplida": true
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 4,
+            "valor": 4,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 5,
+          "carga": null,
+          "viajes": 8
+        },
+        "resultados": {
+          "ok": 20
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.8,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 13.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 15.65,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.6,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.6,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          },
+          {
+            "t": 22.55,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 24.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 26.45,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 28.4,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 31.4,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          },
+          {
+            "t": 33.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 35.3,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 37.25,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 39.2,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 42.2,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-3-inicial",
+      "reto": 3,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 4; i++) {\n  await yo.recoger(\"ENT-2\", \"cobre\");\n  await yo.entregar(\"FUN\");\n}\nfor (let i = 0; i < 2; i++) {\n  await yo.recoger(\"ENT-1\", \"silicio\");\n  await yo.entregar(\"ENS\");\n}\n",
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "tiempo",
+        "mensaje": "Se acabaron los 18 s. Faltó: ENS 1 de silicio.",
+        "linea": null,
+        "t": 18.05000000000012,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 4,
+            "valor": 4,
+            "cumplida": true
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 2,
+            "valor": 1,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 5,
+          "y": 2,
+          "carga": null,
+          "viajes": 5
+        },
+        "resultados": {
+          "ok": 10
+        },
+        "eventos": [
+          {
+            "t": 1.2,
+            "linea": 2,
+            "orden": "recoger(\"ENT-2\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 3.15,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.1,
+            "linea": 2,
+            "orden": "recoger(\"ENT-2\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.05,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9,
+            "linea": 2,
+            "orden": "recoger(\"ENT-2\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.95,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 12.9,
+            "linea": 2,
+            "orden": "recoger(\"ENT-2\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.85,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 15.8,
+            "linea": 6,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17,
+            "linea": 7,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-3-victoria",
+      "reto": 3,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 2; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}\nfor (let i = 0; i < 2; i++) {\nawait yo.recoger(\"ENT-1\", \"silicio\");\nawait yo.entregar(\"ENS\");\n}\nfor (let i = 0; i < 2; i++) {\nawait yo.recoger(\"ENT-2\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 15.650000000000087,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 4,
+            "valor": 4,
+            "cumplida": true
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 2,
+            "valor": 2,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 6
+        },
+        "resultados": {
+          "ok": 12
+        },
+        "eventos": [
+          {
+            "t": 1.2,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.15,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 3.1,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.05,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5,
+            "linea": 6,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.2,
+            "linea": 7,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.4,
+            "linea": 6,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.6,
+            "linea": 7,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.8,
+            "linea": 10,
+            "orden": "recoger(\"ENT-2\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.75,
+            "linea": 11,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 13.7,
+            "linea": 10,
+            "orden": "recoger(\"ENT-2\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 15.65,
+            "linea": 11,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-4-inicial",
+      "reto": 4,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 5; i++) {\n  await yo.recoger(\"ENT-1\", \"cobre\");\n  await yo.entregar(\"FUN\");\n}\n",
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: ENT-1 aún tiene 2 de cobre.",
+        "linea": null,
+        "t": 14.500000000000071,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": 7,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 2,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 5
+        },
+        "resultados": {
+          "ok": 10
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-4-victoria",
+      "reto": 4,
+      "intento": 1,
+      "codigo": "while (await yo.cuantos(\"ENT-1\", \"cobre\") > 0) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 20.300000000000153,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": 7,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 0,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 7
+        },
+        "resultados": {
+          "ok": 14
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "7",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 15.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 18.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.3,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.3,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-5-inicial",
+      "reto": 5,
+      "intento": 1,
+      "codigo": "while (await yo.cuantos(\"MUELLE\", \"cobre\") > 0) {\n  await yo.recoger(\"MUELLE\", \"cobre\");\n  await yo.entregar(\"FUN\");\n}\n",
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "derrame",
+        "mensaje": "Se derramó cobre en FUN: su entrada estaba llena. Este reto no admite derrames.",
+        "linea": null,
+        "t": 12.850000000000048,
+        "intento": 1,
+        "derrames": 1,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "MUELLE",
+            "mat": "cobre",
+            "valor": 2,
+            "cumplida": false
+          },
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 2,
+          "carga": null,
+          "viajes": 4
+        },
+        "resultados": {
+          "ok": 7,
+          "derrame": 1
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.65,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.65,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.05,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.05,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 7.75,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.45,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.45,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 11.15,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 12.85,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "derrame"
+          }
+        ]
+      },
+      "cambiaEtapa3": [
+        "carga-conservada"
+      ]
+    },
+    {
+      "id": "reto-5-victoria",
+      "reto": 5,
+      "intento": 1,
+      "codigo": "while (await yo.cuantos(\"MUELLE\", \"cobre\") > 0) {\n  await yo.recoger(\"MUELLE\", \"cobre\");\n  if (await yo.cuantos(\"FUN\", \"cobre\") < 1) {\n    await yo.entregar(\"FUN\");\n  } else {\n    await yo.entregar(\"BOD\");\n  }\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 20.400000000000155,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "MUELLE",
+            "mat": "cobre",
+            "valor": 0,
+            "cumplida": true
+          },
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 4,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 5,
+          "carga": null,
+          "viajes": 6
+        },
+        "resultados": {
+          "ok": 12
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 0.95,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 2.65,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.65,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 6.05,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.05,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 7.75,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.75,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 9.7,
+            "linea": 6,
+            "orden": "entregar(\"BOD\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.7,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 11.65,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.65,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 13.35,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 13.35,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 15.05,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 15.05,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 16.75,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 16.75,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 18.45,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 18.45,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 20.4,
+            "linea": 6,
+            "orden": "entregar(\"BOD\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.4,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "reto-6-inicial",
+      "reto": 6,
+      "intento": 1,
+      "codigo": "",
+      "escenario": {
+        "titulo": "Tu reto · oráculo",
+        "objetivo": "Lleva 3 de cobre de la bodega ENT-1 a la fundidora FUN.",
+        "leccion": "Secuencia y bucle for.",
+        "pista": "Cada par de bloques es un viaje. Repítelo o mételo en un «repeat».",
+        "ladrillos": [
+          "recoger",
+          "entregar",
+          "repetir"
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5
+        },
+        "entidades": [
+          {
+            "id": "ENT-1",
+            "tipo": "bodega",
+            "nombre": "Bodega",
+            "x": 1,
+            "y": 3,
+            "puerta": {
+              "x": 2,
+              "y": 3
+            },
+            "stock": {
+              "cobre": 3
+            }
+          },
+          {
+            "id": "FUN",
+            "tipo": "maquina",
+            "nombre": "Fundidora",
+            "x": 7,
+            "y": 3,
+            "puerta": {
+              "x": 6,
+              "y": 3
+            },
+            "acepta": "cobre",
+            "cap": 3,
+            "tProceso": 3
+          }
+        ],
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3
+          }
+        ],
+        "inicial": [],
+        "maxDerrames": null,
+        "maxVacios": null,
+        "tiempoMax": null
+      },
+      "categoria": "inicial",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: FUN 3 de cobre.",
+        "linea": null,
+        "t": 0,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {},
+        "eventos": []
+      }
+    },
+    {
+      "id": "reto-6-victoria",
+      "reto": 6,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 3; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "escenario": {
+        "titulo": "Tu reto · oráculo",
+        "objetivo": "Lleva 3 de cobre de la bodega ENT-1 a la fundidora FUN.",
+        "leccion": "Secuencia y bucle for.",
+        "pista": "Cada par de bloques es un viaje. Repítelo o mételo en un «repeat».",
+        "ladrillos": [
+          "recoger",
+          "entregar",
+          "repetir"
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5
+        },
+        "entidades": [
+          {
+            "id": "ENT-1",
+            "tipo": "bodega",
+            "nombre": "Bodega",
+            "x": 1,
+            "y": 3,
+            "puerta": {
+              "x": 2,
+              "y": 3
+            },
+            "stock": {
+              "cobre": 3
+            }
+          },
+          {
+            "id": "FUN",
+            "tipo": "maquina",
+            "nombre": "Fundidora",
+            "x": 7,
+            "y": 3,
+            "puerta": {
+              "x": 6,
+              "y": 3
+            },
+            "acepta": "cobre",
+            "cap": 3,
+            "tProceso": 3
+          }
+        ],
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3
+          }
+        ],
+        "inicial": [],
+        "maxDerrames": null,
+        "maxVacios": null,
+        "tiempoMax": null
+      },
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 8.699999999999989,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 6
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stock-intento-2",
+      "reto": 4,
+      "intento": 2,
+      "codigo": "while (await yo.cuantos(\"ENT-1\", \"cobre\") > 0) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 8.699999999999989,
+        "intento": 2,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": 3,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 0,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 6
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "stock-intento-3",
+      "reto": 4,
+      "intento": 3,
+      "codigo": "while (await yo.cuantos(\"ENT-1\", \"cobre\") > 0) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 17.400000000000112,
+        "intento": 3,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": 6,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 0,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 6
+        },
+        "resultados": {
+          "ok": 12
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 15.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "stock-intento-4",
+      "reto": 4,
+      "intento": 4,
+      "codigo": "while (await yo.cuantos(\"ENT-1\", \"cobre\") > 0) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 11.60000000000003,
+        "intento": 4,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": 4,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 0,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 4
+        },
+        "resultados": {
+          "ok": 8
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "stock-intento-5",
+      "reto": 4,
+      "intento": 5,
+      "codigo": "while (await yo.cuantos(\"ENT-1\", \"cobre\") > 0) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "victoria",
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "linea": null,
+        "t": 14.500000000000071,
+        "intento": 5,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": 5,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 0,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 5
+        },
+        "resultados": {
+          "ok": 10
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "derrame-con-limite",
+      "reto": 2,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 4; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "categoria": "derrame",
+      "cambiaEtapa3": [
+        "carga-conservada"
+      ],
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "derrame",
+        "mensaje": "Se derramó cobre en FUN: su entrada estaba llena. Este reto no admite derrames.",
+        "linea": null,
+        "t": 10.700000000000017,
+        "intento": 1,
+        "derrames": 1,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 4,
+            "valor": 2,
+            "cumplida": false
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 4,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 1,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 5,
+          "derrame": 1
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "derrame"
+          }
+        ]
+      }
+    },
+    {
+      "id": "derrame-sin-limite",
+      "reto": 6,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 5; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}",
+      "escenario": {
+        "titulo": "Tu reto · oráculo",
+        "objetivo": "Lleva 3 de cobre de la bodega ENT-1 a la fundidora FUN.",
+        "leccion": "Secuencia y bucle for.",
+        "pista": "Cada par de bloques es un viaje. Repítelo o mételo en un «repeat».",
+        "ladrillos": [
+          "recoger",
+          "entregar",
+          "repetir"
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5
+        },
+        "entidades": [
+          {
+            "id": "ENT-1",
+            "tipo": "bodega",
+            "nombre": "Bodega",
+            "x": 1,
+            "y": 3,
+            "puerta": {
+              "x": 2,
+              "y": 3
+            },
+            "stock": {
+              "cobre": 5
+            }
+          },
+          {
+            "id": "FUN",
+            "tipo": "maquina",
+            "nombre": "Fundidora",
+            "x": 7,
+            "y": 3,
+            "puerta": {
+              "x": 6,
+              "y": 3
+            },
+            "acepta": "cobre",
+            "cap": 1,
+            "tProceso": 30
+          }
+        ],
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3
+          }
+        ],
+        "inicial": [],
+        "maxDerrames": null,
+        "maxVacios": null,
+        "tiempoMax": null
+      },
+      "categoria": "derrame",
+      "cambiaEtapa3": [
+        "carga-conservada"
+      ],
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: FUN 1 de cobre.",
+        "linea": null,
+        "t": 14.500000000000071,
+        "intento": 1,
+        "derrames": 3,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 2,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 5
+        },
+        "resultados": {
+          "ok": 7,
+          "derrame": 3
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "derrame"
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "derrame"
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "derrame"
+          }
+        ]
+      }
+    },
+    {
+      "id": "viaje-vacio",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "await yo.recoger(\"ENT-1\", \"silicio\");",
+      "categoria": "vacio",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: FUN 3 de cobre.",
+        "linea": null,
+        "t": 1.4500000000000006,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 1,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 2,
+          "y": 3,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {
+          "viaje_vacio": 1
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 1,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "viaje_vacio"
+          }
+        ]
+      }
+    },
+    {
+      "id": "viaje-vacio-prohibido",
+      "reto": 4,
+      "intento": 1,
+      "codigo": "await yo.recoger(\"ENT-1\", \"silicio\");",
+      "categoria": "vacio",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "vacio",
+        "mensaje": "R1 hizo un viaje vacío a ENT-1: ya no quedaba silicio. Este reto no admite viajes vacíos.",
+        "linea": null,
+        "t": 1.4500000000000006,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 1,
+        "stockOculto": 7,
+        "metas": [
+          {
+            "tipo": "vaciar",
+            "id": "ENT-1",
+            "mat": "cobre",
+            "valor": 7,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 2,
+          "y": 3,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {
+          "viaje_vacio": 1
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 1,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "viaje_vacio"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sin-await",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");",
+      "categoria": "sin-await",
+      "resultado": {
+        "fin": "error",
+        "motivo": "error",
+        "mensaje": "Falta await en la línea 1: R1 seguía con recoger(\"ENT-1\", \"cobre\") cuando llegó la orden de la línea 2.",
+        "linea": 1,
+        "t": 0,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {},
+        "eventos": []
+      }
+    },
+    {
+      "id": "bucle-sin-await",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "while (true) {}",
+      "categoria": "vigia",
+      "resultado": {
+        "fin": "error",
+        "motivo": "error",
+        "mensaje": "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.….",
+        "linea": null,
+        "t": 0,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {},
+        "eventos": []
+      }
+    },
+    {
+      "id": "bucle-con-metas",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "for (let i = 0; i < 3; i++) {\nawait yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"FUN\");\n}\nwhile (true) { await yo.esperar(60); }",
+      "categoria": "no-termina",
+      "cambiaEtapa3": [
+        "victoria-por-metas"
+      ],
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "limite",
+        "mensaje": "El programa sigue después de 300 s de juego. ¿Hay un bucle que nunca termina?",
+        "linea": null,
+        "t": 300.00000000003394,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 3,
+            "cumplida": true
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": null,
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 10
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 68.7,
+            "linea": 5,
+            "orden": "esperar(60)",
+            "resultado": "ok"
+          },
+          {
+            "t": 128.7,
+            "linea": 5,
+            "orden": "esperar(60)",
+            "resultado": "ok"
+          },
+          {
+            "t": 188.7,
+            "linea": 5,
+            "orden": "esperar(60)",
+            "resultado": "ok"
+          },
+          {
+            "t": 248.7,
+            "linea": 5,
+            "orden": "esperar(60)",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "limite-sensores",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "while (await yo.cuantos(\"ENT-1\", \"cobre\") > 0) {}",
+      "categoria": "sensores",
+      "resultado": {
+        "fin": "error",
+        "motivo": "error",
+        "mensaje": "R1 consultó el sensor 500 veces sin hacer nada más: el bucle no avanza. ¿Falta una orden dentro del «while»?",
+        "linea": 1,
+        "t": 0,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {},
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "lugar-inexistente",
+      "reto": 0,
+      "intento": 1,
+      "codigo": "await yo.cuantos(\"NO-EXISTE\", \"cobre\");",
+      "categoria": "validacion",
+      "resultado": {
+        "fin": "error",
+        "motivo": "error",
+        "mensaje": "No hay ningún edificio \"NO-EXISTE\". En este mapa hay \"ENT-1\", \"FUN\".",
+        "linea": 1,
+        "t": 0,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 4,
+          "y": 5,
+          "carga": null,
+          "viajes": 0
+        },
+        "resultados": {},
+        "eventos": []
+      }
+    },
+    {
+      "id": "rechazo-conserva-carga",
+      "reto": 1,
+      "intento": 1,
+      "codigo": "await yo.recoger(\"ENT-1\", \"cobre\");\nawait yo.entregar(\"ENS\");",
+      "categoria": "rechazo",
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: FUN 3 de cobre, ENS 3 de silicio.",
+        "linea": null,
+        "t": 2.8999999999999977,
+        "intento": 1,
+        "derrames": 0,
+        "vacios": 0,
+        "stockOculto": null,
+        "metas": [
+          {
+            "id": "FUN",
+            "mat": "cobre",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          },
+          {
+            "id": "ENS",
+            "mat": "silicio",
+            "n": 3,
+            "valor": 0,
+            "cumplida": false
+          }
+        ],
+        "robot": {
+          "x": 6,
+          "y": 5,
+          "carga": "cobre",
+          "viajes": 1
+        },
+        "resultados": {
+          "ok": 1,
+          "rechazado": 1
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 1,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 2,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "rechazado"
+          }
+        ]
+      }
+    }
+  ]
+}

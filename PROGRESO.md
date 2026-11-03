@@ -1,4 +1,64 @@
+## Unificación · etapas 4 y 5: resto de Factory y retirada del original · 3 de noviembre de 2026
+
+- **Etapa 4.** Seis retos y «Tu reto» (editor de enunciado, metas y mapa en `factory-form.js`) en `?serie=factory`; bloques, seudocódigo y JS sobre el texto JS como fuente, con `ladrillos` por reto; récord por tiempo (`comun-v1`) y telemetría local. Lección de «Hasta vaciar»: `count` lee al instante y no necesita `await` (cierra 3.7 en Factory; War ya lo explica en «Primer blanco»). Móvil: los ladrillos de la paleta son solo icono (nombre en `aria-label`); antes la etiqueta asomaba junto al último botón, muy visible con los tres ladrillos de Factory y también presente en War.
+- **Etapa 5.** `Prototypes/Tres vistas/index.html`, su `probar.html` y `Prototypes/02_tres_vistas.html` redirigen a `Rocket Launcher/?serie=factory` (o a su probador) conservando query y hash. La portada apunta Factory a la nueva entrada; desaparece con el original la franja «War es la versión más actualizada». Borrados `Prototypes/Tres vistas/css`, `js`, `pruebas/tres-vistas.mjs` y `pruebas/factory-editor.mjs`: quedan en el historial (`b76411b`). `factory-oraculo.mjs` y su documentación indican que regenerar el oráculo exige un checkout de ese commit. `server.ps1` ya no exige el original.
+- Versiones: `layout.css?v=18`, `factory-retos.js?v=5`.
+- **Verificación actual** (Ego Browser, 8771, caché desactivada): oráculo común **28/28** (13 deltas aprobados, 15 exactos); vistas comunes **31** (seis soluciones con el mismo tiempo en bloques, seudocódigo y JS, ida y vuelta de los iniciales, importación de árbol y texto desde `cmg-banco02`, Tu reto); editor común **18**; API **7**; `factory-reglas.cjs` correcto; **123 lógica**; **90 War** a la primera. Récord tipado y telemetría local comprobados en los seis retos. Paquete: `preparar-netlify` y `publicacion.mjs` (**8 páginas, 42 referencias**); `entrada.mjs` **8** sobre `dist/`. Enlaces antiguos con `?forma=` y hash llegan a la nueva entrada y al reto guardado en `cmg-banco02:reto`. Capturas revisadas a 1400 × 900 y 390 × 844 ([móvil](docs/qa/unificacion-2026-11-03/etapa4-movil.png)). `node --check` y `git diff --check` correctos.
+- **Límites:** emulación de Chromium, sin dispositivos físicos. En móvil, `pickUp` y `deliver` comparten casi el mismo icono. `pruebas/telemetria.mjs` sigue sin poder ejecutarse en este checkout (falta `@netlify/blobs`); Factory no envía telemetría remota. El plan de unificación queda cerrado; Campaign y el primer reto mixto se planificarán aparte.
+
+## Unificación · etapas 3.4–3.7: API y reglamento · 3 de noviembre de 2026
+
+- `yo.` opcional, edificios como variables reutilizables y API `pickUp/deliver/wait/count`; alias españoles conservados. Inspector, sugerencias y paleta enseñan la API principal. Nuevo `docs/REGLAMENTO.md` explica encargos, modos, lecturas, tiempo, metas, resultados y compatibilidad.
+- Verificación actual: 8 casos comunes correctos (deltas de victoria/null explícitos), 6 casos de API en navegador, todos ganan en 8,7 s; 123 comprobaciones de lógica. Una función local llamada `count` conserva su significado. Sintaxis correcta. Versiones juego23, runtime2, factory3, factory-retos3.
+
+## Unificación · etapa 3.3: lecturas null/0 · 3 de noviembre de 2026
+
+- `cuantos` devuelve `null` para lugar inexistente y `0` para un material ausente en un edificio existente. Material inválido sigue siendo error. `await` en lecturas sigue aceptado.
+- Verificación: pruebas puras de ambos valores y validación de encargos; expectativa del caso histórico `lugar-inexistente` actualizada explícitamente en el arnés común (ahora termina incompleto tras leer `null`).
+
+## Unificación · etapa 3.2: entregas rechazadas · 3 de noviembre de 2026
+
+- Destino lleno devuelve `lleno`; material incompatible devuelve `rechazado`. Ambos conservan carga y procedencia, cuentan rechazos y no crean derrames. Retos y límites pasan a «Sin entregas rechazadas»; `maxDerrames` antiguo se importa como `maxRechazos`.
+- Verificación actual: `node pruebas/factory-reglas.cjs`, encargos con paso fijo, devolución a bodega, conservación, rechazo por material y límite. Récords bajo `comun-v1`, separados de reglas anteriores.
+
+## Unificación · etapa 3.1: victoria por metas · 3 de noviembre de 2026
+
+- Factory gana al alcanzar las metas del mundo, incluso con código pendiente. Récords separados con regla `metas-v1`.
+- Verificación: 8 casos en el runtime común; el bucle continuo ahora coincide con la solución finita (8,7 s). Los otros siete conservan la referencia histórica. Fixture original intacto; delta explícito en el arnés común.
+
 # Code-battle-lite · progreso
+
+## Unificación · etapa 2 completada · 3 de noviembre de 2026
+
+- Trasladados combate y constantes a `war.js`, datos/normalización a `war-retos.js`, Worker y despertar de programas a `runtime.js`, paso fijo compartido a `nucleo.js`, y visores 3D/plano a `vistas.js`. `juego.js` conserva coordinación, editor e interfaz y pasa de ~3.400 a ~2.350 líneas. Los visores reciben estado y colaboradores explícitos; las familias usan el mismo ciclo y runtime. Sin nuevas reglas en este traslado.
+- Versiones: `juego.js?v=21`; cinco módulos nuevos `?v=1`. El empaquetador ya copia la carpeta completa del juego: no necesita otra excepción en la lista permitida.
+- Verificación actual: **123 lógica, 90 navegador War, 8 casos exactos de paridad Factory, 43 Tres vistas y 23 editor Factory**. War pasó en la repetición tras el fallo conocido de doble toque emulado. **8 páginas/53 referencias locales** del paquete estático verificadas; sintaxis y diff correctos. La prueba adicional `pruebas/telemetria.mjs` no arrancó: este checkout no tiene instalado `@netlify/blobs`; la función remota no fue modificada. No se instalaron dependencias.
+- Usuario confirmó para etapas 3/4: **JS como fuente; «Sin entregas rechazadas»; `pickUp`, `deliver`, `wait`, `count` y alias españoles; `null` para lugar inexistente; `await` en lecturas aceptado sin aviso; telemetría Factory local; mantener la ruta de War**. Estas decisiones se implementan después de este traslado.
+
+## Unificación · etapa 1 completada · 3 de noviembre de 2026
+
+- «Primer viaje» disponible dentro de War mediante `Prototypes/Rocket Launcher/?serie=factory`, también desde el selector de series en la hoja de retos. Misma interfaz, editor, inspector, ficha de metas, selección y pantalla completa. La portada y Factory original siguen intactos.
+- Nuevos módulos `factory-retos.js`, `factory.js` y `factory-vista.js`: datos y reglas de logística trasladados del original, con mapa 9×7 por reto y dibujo plano. R1 es una máquina programable propia; no se incluye en la colección de lanzadores. El Web Worker y ciclo de War reciben encargos, resultados e instantáneas; las lecturas no avanzan el reloj. Se conserva el fin por programa, derrame, mensajes y límites de la fase de paridad.
+- Importación de solo lectura de `cmg-banco02:prog-0`; copia independiente en `cmg-banco03:prog-factory-0`, selección `factory-reto`, telemetría local separada y récord tipado de tiempo con regla `paridad`. Sin envío remoto de la nueva serie.
+- Versiones: `juego.js?v=20`, `seudo.js?v=4`, `remota.js?v=2`, módulos nuevos `?v=1`. JS de Factory en esta etapa; bloques/seudocódigo y resto de retos se incorporan después.
+- Verificación actual: **8 casos de Primer viaje idénticos al oráculo** con Worker real (incluidos eventos, tiempos exactos, errores y líneas); comprobado que no escribe en banco 02. **123 lógica y 90 navegador War correctas**, sin modificar suites; primer intento War falló en el doble toque emulado ya conocido y el segundo pasó completo. Sintaxis y diff correctos. Capturas revisadas a [1400×900](docs/qa/unificacion-2026-11-03/etapa1-pc.png) y [390×844](docs/qa/unificacion-2026-11-03/etapa1-movil.png). Emulación de Chromium; no dispositivos físicos.
+- Continúa la etapa 2: separación de responsabilidades conservando las reglas. Pendientes las decisiones de etapas 3/4 planteadas al usuario. Sin commits ni publicación.
+
+## Unificación · etapa 0 completada · 3 de noviembre de 2026
+
+- Inicio solicitado por el usuario. Leídos el plan revisado, la visión, el progreso y los dos análisis. `git fetch --prune origin`: `auto-testing-ui` (rama de trabajo) y `trunk` coinciden con sus remotos en `b76411b`; `main` y su rama Claude están 4 commits detrás, y la rama del plan VFX 14 detrás, sin commits exclusivos pendientes. No hizo falta pull ni fusión. Conservados los cambios locales previos del plan, este progreso y `docs/Vision/`.
+- `AGENTS.md` y `CLAUDE.md` fijan War como base de la unificación y Factory original como referencia congelada; solo recibe arreglos que impidan usarlo. README y plan enlazan el oráculo y distinguen esta preparación de la etapa 1 jugable, aún pendiente.
+- Nuevo [oráculo de Factory](pruebas/factory-oraculo.md): `pruebas/factory-oraculo.mjs` ejecuta programas en el navegador y los Web Workers originales mediante `window.__banco`/`window.cmg`, sin extraer ni duplicar la simulación. El [fixture JSON](pruebas/factory-oraculo.json) identifica el commit completo `b76411b31a020dbf8a3b5039f82f03c37017b25e` y SHA-256 de la fuente.
+- **28 casos y 56 ejecuciones**: inicial y victoria de cada uno de los seis retos y un reto propio explícito; los cinco stocks de «Hasta vaciar»; derrame con/sin límite, viaje vacío permitido/prohibido, falta de `await`, vigía, bucle que cumple metas pero no termina, límite de sensores, lugar inexistente y material rechazado. Guarda fin, motivo, mensaje/línea, tiempo sin redondear, intento, stock, metas, carga/posición, resultados y eventos. Marcados todos los casos que derraman (incluidos iniciales) y el bucle continuo para los cambios de etapa 3.
+- **Verificación actual**: las dos pasadas completas en Ego Browser, origen **8771**, coincidieron exactamente en todos los campos. Velocidad oficial 4× y paso fijo sin sustituciones del reloj. `node pruebas/interaccion.cjs`: **123 correctas**. War: **90 comprobaciones correctas** en la segunda ejecución; la primera falló en la 18, doble toque emulado, intermitencia ya registrada antes de esta etapa. Suite sin editar. `node --check pruebas/factory-oraculo.mjs`, identidad de la fuente/fixture, identificadores únicos, marcas de etapa 3 y `git diff --check` correctos.
+- El arnés solo admite localhost/127.0.0.1:8771 y restaura las claves de Factory al acabar, incluso ante errores controlados. No sobrescribe un fixture existente. Las suites de interacción de Factory (43/23) no se repitieron en esta etapa: aquí se ejecutó el oráculo nuevo de reglas/runtime. No cambia ningún CSS/JS del producto, así que no hay versiones `?v=` ni lista de publicación que actualizar.
+- **Límites y siguiente paso**: etapa 1, «Primer viaje» dentro de War, todavía sin implementar; el oráculo no demuestra paridad de una versión migrada. La prueba de War usó ratón y tacto/teclado emulados, no dispositivos físicos. Campaign, decisiones de etapa 3 y retirada del original siguen fuera de esta entrega. Sin commits, push ni publicación.
+
+## Plan de unificación revisado y visión de Campaign · 3 de noviembre de 2026
+
+- [Plan de unificación](docs/PLAN-UNIFICACION.md) reescrito con el feedback del autor del 2 de noviembre. Queda acotado a Factory + War: nueva tabla de decisiones del autor y lista de cambios respecto al plan anterior. Etapa 3: reglas ya aprobadas, aplicadas una a una después de la paridad con el oráculo (victoria por metas del mundo, carga que se queda en el robot ante destino lleno, `null` frente a `0`, `yo.` opcional, máquinas como variables, API en inglés con alias). Salen del plan el primer reto mixto y Campaign. Pendiente nuevo: qué hacer con el reto «Sin derrames».
+- Nueva carpeta [`docs/Vision/2026-11-03/`](docs/Vision/2026-11-03/VISION-CAMPANA.md) (markdown y [HTML](docs/Vision/2026-11-03/vision-campana.html)): principio central, narrativa, escala, armas y sensores, Control Maestro, bandas y túneles, producción adaptable, matriz de decisiones y una ruta de pruebas propuesta (no decidida) hacia Campaign. Nada de esto se implementa todavía.
+- Solo documentación. HTML revisado en el navegador a 1024 y 390 px (sin desbordamiento horizontal; el filtro de la matriz funciona).
 
 ## Plan de unificación Factory + War · 2 de noviembre de 2026
 

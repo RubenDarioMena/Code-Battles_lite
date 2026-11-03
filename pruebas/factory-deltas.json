@@ -1,0 +1,1160 @@
+{
+  "regla": "comun-v1",
+  "referencia": "factory-oraculo.json",
+  "casos": {
+    "reto-2-inicial": {
+      "motivo": "Destino lleno: fallo por rechazo, carga conservada, mismo instante.",
+      "cambios": {
+        "motivo": "rechazo",
+        "mensaje": "Entrega de cobre rechazada en FUN: su entrada estaba llena. R1 conserva la carga. Este reto no admite entregas rechazadas.",
+        "derrames": 0,
+        "robot": {
+          "x": 6,
+          "y": 1,
+          "carga": "cobre",
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 5,
+          "lleno": 1
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "lleno"
+          }
+        ]
+      }
+    },
+    "reto-2-victoria": {
+      "motivo": "Victoria en la última entrega: no se ejecuta la espera final de 3 s.",
+      "cambios": {
+        "t": 39.19999999999991,
+        "resultados": {
+          "ok": 19
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.8,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 13.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 15.65,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.6,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.6,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          },
+          {
+            "t": 22.55,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 24.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 26.45,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 28.4,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 31.4,
+            "linea": 6,
+            "orden": "esperar(3)",
+            "resultado": "ok"
+          },
+          {
+            "t": 33.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 35.3,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 37.25,
+            "linea": 4,
+            "orden": "recoger(\"ENT-1\", \"silicio\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 39.2,
+            "linea": 5,
+            "orden": "entregar(\"ENS\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "reto-4-victoria": {
+      "motivo": "Victoria en la última entrega: se omite la lectura final del bucle; mismo tiempo.",
+      "cambios": {
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "7",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 15.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 18.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 20.3,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "reto-5-inicial": {
+      "motivo": "Destino lleno: fallo por rechazo, carga conservada, mismo instante.",
+      "cambios": {
+        "motivo": "rechazo",
+        "mensaje": "Entrega de cobre rechazada en FUN: su entrada estaba llena. R1 conserva la carga. Este reto no admite entregas rechazadas.",
+        "derrames": 0,
+        "robot": {
+          "x": 6,
+          "y": 2,
+          "carga": "cobre",
+          "viajes": 4
+        },
+        "resultados": {
+          "ok": 7,
+          "lleno": 1
+        },
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.65,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.65,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.05,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.05,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 7.75,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.45,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.45,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 11.15,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 12.85,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "lleno"
+          }
+        ]
+      }
+    },
+    "reto-5-victoria": {
+      "motivo": "Victoria en la última entrega: se omite la lectura final del bucle; mismo tiempo.",
+      "cambios": {
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 0.95,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 2.65,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.65,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 6.05,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.05,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 7.75,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.75,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 9.7,
+            "linea": 6,
+            "orden": "entregar(\"BOD\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 9.7,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 11.65,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.65,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 13.35,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 13.35,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 15.05,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 15.05,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "0",
+            "sensor": true
+          },
+          {
+            "t": 16.75,
+            "linea": 4,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 16.75,
+            "linea": 1,
+            "orden": "cuantos(\"MUELLE\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 18.45,
+            "linea": 2,
+            "orden": "recoger(\"MUELLE\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 18.45,
+            "linea": 3,
+            "orden": "cuantos(\"FUN\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 20.4,
+            "linea": 6,
+            "orden": "entregar(\"BOD\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "stock-intento-2": {
+      "motivo": "Victoria en la última entrega: se omite la lectura final del bucle; mismo tiempo.",
+      "cambios": {
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "stock-intento-3": {
+      "motivo": "Victoria en la última entrega: se omite la lectura final del bucle; mismo tiempo.",
+      "cambios": {
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "6",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 15.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 17.4,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "stock-intento-4": {
+      "motivo": "Victoria en la última entrega: se omite la lectura final del bucle; mismo tiempo.",
+      "cambios": {
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "stock-intento-5": {
+      "motivo": "Victoria en la última entrega: se omite la lectura final del bucle; mismo tiempo.",
+      "cambios": {
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "5",
+            "sensor": true
+          },
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "4",
+            "sensor": true
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "3",
+            "sensor": true
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "2",
+            "sensor": true
+          },
+          {
+            "t": 10.15,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 11.6,
+            "linea": 1,
+            "orden": "cuantos(\"ENT-1\", \"cobre\")",
+            "resultado": "1",
+            "sensor": true
+          },
+          {
+            "t": 13.05,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 14.5,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "derrame-con-limite": {
+      "motivo": "Destino lleno: fallo por rechazo, carga conservada, mismo instante.",
+      "cambios": {
+        "motivo": "rechazo",
+        "mensaje": "Entrega de cobre rechazada en FUN: su entrada estaba llena. R1 conserva la carga. Este reto no admite entregas rechazadas.",
+        "derrames": 0,
+        "robot": {
+          "x": 6,
+          "y": 1,
+          "carga": "cobre",
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 5,
+          "lleno": 1
+        },
+        "eventos": [
+          {
+            "t": 0.95,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.85,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 6.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.75,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 10.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "lleno"
+          }
+        ]
+      }
+    },
+    "derrame-sin-limite": {
+      "motivo": "La carga conservada hace que las recogidas siguientes sean manos_llenas (instantáneas); las entregas siguientes tardan solo la operación. No se pierden piezas.",
+      "cambios": {
+        "t": 9.700000000000003,
+        "derrames": 0,
+        "robot": {
+          "x": 6,
+          "y": 3,
+          "carga": "cobre",
+          "viajes": 3
+        },
+        "resultados": {
+          "ok": 5,
+          "lleno": 3,
+          "manos_llenas": 2
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "lleno"
+          },
+          {
+            "t": 8.7,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "manos_llenas"
+          },
+          {
+            "t": 9.2,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "lleno"
+          },
+          {
+            "t": 9.2,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "manos_llenas"
+          },
+          {
+            "t": 9.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "lleno"
+          }
+        ]
+      }
+    },
+    "bucle-con-metas": {
+      "motivo": "Victoria en la última entrega, idéntica a la solución finita, sin ejecutar las esperas posteriores.",
+      "cambios": {
+        "fin": "victoria",
+        "motivo": null,
+        "mensaje": null,
+        "t": 8.699999999999989,
+        "resultados": {
+          "ok": 6
+        },
+        "eventos": [
+          {
+            "t": 1.45,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 2.9,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 4.35,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 5.8,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 7.25,
+            "linea": 2,
+            "orden": "recoger(\"ENT-1\", \"cobre\")",
+            "resultado": "ok"
+          },
+          {
+            "t": 8.7,
+            "linea": 3,
+            "orden": "entregar(\"FUN\")",
+            "resultado": "ok"
+          }
+        ]
+      }
+    },
+    "lugar-inexistente": {
+      "motivo": "La lectura devuelve null y el programa termina incompleto, sin error de ejecución.",
+      "cambios": {
+        "fin": "fallo",
+        "motivo": "incompleto",
+        "mensaje": "El programa terminó y falta: FUN 3 de cobre.",
+        "linea": null,
+        "eventos": [
+          {
+            "t": 0,
+            "linea": 1,
+            "orden": "cuantos(\"NO-EXISTE\", \"cobre\")",
+            "resultado": "null",
+            "sensor": true
+          }
+        ]
+      }
+    }
+  }
+}

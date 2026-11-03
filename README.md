@@ -1,6 +1,6 @@
 # Code Battle Lite
 
-Juegos de programación para escritorio y móvil con una entrada común: **Factory** (Tres vistas), **War** (Rocket Launcher) y **Campaign** (próximamente). Factory programa un robot de recogida con bloques, seudocódigo o JavaScript; War controla lanzadores con JavaScript o seudocódigo.
+Juegos de programación para escritorio y móvil con una entrada común: **Factory** y **War**, sobre la aplicación común de Rocket Launcher, y **Campaign** (próximamente). Factory programa un robot de recogida con bloques, seudocódigo o JavaScript; War controla lanzadores con JavaScript o seudocódigo.
 
 ## Ejecutar
 
@@ -12,8 +12,8 @@ python3 -m http.server 8770 --bind 0.0.0.0
 
 - [Entrada común](http://localhost:8770/).
 - War / Rocket Launcher: [abrir defensa](http://localhost:8770/Prototypes/Rocket%20Launcher/).
-- Factory / Tres vistas: [abrir recogida](http://localhost:8770/Prototypes/Tres%20vistas/). El enlace anterior `Prototypes/02_tres_vistas.html` redirige aquí conservando los parámetros.
-- Cada carpeta incluye `probar.html` para ver teléfono y PC a la vez.
+- Factory: [abrir recogida](http://localhost:8770/Prototypes/Rocket%20Launcher/?serie=factory). `?reto=0` a `?reto=5` elige un reto; `?reto=propio`, el editable.
+- `Prototypes/Rocket Launcher/probar.html` muestra teléfono y PC a la vez; acepta `?serie=factory`.
 - Para probar desde otro dispositivo de la misma Wi-Fi: `http://IP-DEL-EQUIPO:8770/`.
 - Recarga después de editar. El servidor debe permanecer abierto.
 - `?forma=movil` y `?forma=escritorio` fuerzan el formato; `?marco=1` activa el teclado simulado del probador.
@@ -26,25 +26,29 @@ pwsh -NoProfile -File ./server.ps1 -Root "." -Port 8770 -NoBrowser
 
 Sirve la entrada y ambos juegos. Mantén como raíz la carpeta completa: los juegos usan los recursos de `shared/`. PowerShell sigue pendiente de comprobación en Windows.
 
-Ambos prototipos cargan Acorn 8.11.3 y las fuentes Archivo/JetBrains Mono desde CDN. Rocket Launcher también usa Three.js r128. Se necesita conexión para cargarlos; todavía no son aplicaciones offline.
+La aplicación carga Acorn 8.11.3 y las fuentes Archivo/JetBrains Mono desde CDN. War usa Three.js r128. Se necesita conexión para cargarlos; todavía no son aplicaciones offline.
 
 ## Estructura
 
-Cada prototipo vive en su propia carpeta bajo `Prototypes/`, con `index.html`, `probar.html`, `css/` y `js/`. Las rutas de esta tabla son relativas a la carpeta del prototipo:
+La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguientes son relativas a esa carpeta:
 
 | Archivo | Responsabilidad |
 | --- | --- |
 | `index.html` | Mapa, editor, inspector, Ajustes y diálogos. |
-| `js/juego.js` | Retos, simulación de paso fijo, programas en Web Workers, dibujo del mapa, selección y editor. |
+| `js/juego.js` | Aplicación, selección, editor, guardado e integración de las familias. |
+| `js/nucleo.js`, `js/runtime.js` | Paso fijo, lockstep, Web Workers, esperas y encargos. |
+| `js/war.js`, `js/factory.js` | Reglas de combate y logística. |
+| `js/war-retos.js`, `js/factory-retos.js` | Retos y normalización de escenarios. |
+| `js/vistas.js`, `js/factory-vista.js` | Mapa 3D/plano y dibujo de logística. |
+| `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil, barra de símbolos y tooltips. |
-| `js/iconos.js` | Solo Factory: iconos de recogida que complementan los compartidos. |
-| `js/seudo.js` | Solo Rocket Launcher. Seudocódigo ES/EN traído de Tres vistas: traducción JavaScript ↔ árbol, renglones editables, ladrillos y arrastre. |
+| `js/seudo.js` | Vistas del JS: seudocódigo ES/EN para ambas series y bloques de Factory, edición y arrastre. |
 | `css/base.css` | Colores, tipografía y apariencia común. |
 | `css/componentes.css` | Estilos de componentes. |
 | `css/layout.css` | Reparto y adaptación a pantalla/teclado. |
 | `probar.html` | Probador con marcos de dispositivos y teclado simulado. |
 
-Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Factory aporta sus sugerencias, su adaptador del árbol y capturas completas para deshacer sin perder la sincronía. Las claves de preferencias de Factory y War permanecen separadas.
+Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
 
 En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
@@ -72,19 +76,19 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - El idioma alternativo de la interfaz y Python siguen deshabilitados; el seudocódigo ES/EN ya está disponible.
 - La traducción conserva `let`/`const`/`var`, las reasignaciones y el nombre y alcance del contador de un `for`. Bloques independientes, comparaciones con coerción (`==`/`!=`) y llamadas calculadas no representables se conservan en JavaScript con aviso.
 
-## Factory / Tres vistas
+## Factory
 
-- Conserva los seis retos de recogida, el reto propio y la API `yo.recoger`, `yo.entregar`, `yo.esperar` y `yo.cuantos`.
-- Bloques y pseudocódigo comparten un árbol editable, con paletas propias EN/ES, valores seleccionables y arrastre. JavaScript conserva el texto libre, la traducción del subconjunto admitido y la confirmación antes de descartar texto no traducible.
-- Interfaz de Rocket Launcher: marcos, paneles ajustables y reordenables, herramientas plegables, inspector desplazable con cierre fijo y consola móvil plegable. El mapa conserva el plano 2D de este prototipo.
-- JavaScript incluye los controles de edición de War: modo sin teclado, selección semántica, arrastre de valores/líneas, asas configurables, sugerencias de edificios/materiales/sensores, variantes por pulsación larga y barra reordenable. Al escribir en móvil aparece la barra de símbolos.
-- La barra común sirve también a bloques y seudocódigo: cortar, copiar, pegar, borrar, duplicar, mover y ampliar/reducir la selección. Deshacer/rehacer recupera modelo y texto juntos, con historial por reto durante la sesión. Las filas de seudocódigo usan placas y chips como War.
-- Se guarda la última edición al cambiar de reto o abandonar el juego para volver al inicio. Las barras ocupan una línea y la consola móvil empieza cerrada.
-- Ajustes permite elegir el modo, el idioma de los bloques, el tamaño de letra y la distribución. En teléfonos bajos, idioma y letra quedan en Ajustes, y la consola espera a desplegarse. Las preferencias de pantalla usan `cmg-banco02-ui-*`; los programas, retos y registros conservan `cmg-banco02:*`.
+- Seis retos y «Tu reto», sobre el mapa 9 × 7 y el runtime común. Bloques, seudocódigo y JS son vistas del mismo programa; lo que no se puede representar se conserva en JS con aviso.
+- API principal `pickUp`, `deliver`, `wait`, `count`; `yo.` opcional y alias españoles compatibles. Edificios como `ENT_1` o `FUN`, referencias reutilizables y IDs de texto aceptados.
+- Victoria al cumplir metas; las entregas llenas conservan la carga. `count` devuelve 0 para edificio vacío y null si no existe. [Reglamento completo](docs/REGLAMENTO.md).
+- Importación única de programas y preferencias desde `cmg-banco02:*`, sin escribir en ese banco. Los programas comunes usan `cmg-banco03:prog-factory-*`; el árbol antiguo se convierte a JS cuando era la fuente activa.
+- Récord por tiempo con versión de reglas, telemetría local separada y stock determinista por intento. War conserva sus claves y telemetría remota.
+- Comparación histórica: 28 casos, con [13 diferencias aprobadas](pruebas/factory-deltas.json) y 15 resultados idénticos. El [oráculo original](pruebas/factory-oraculo.md) se conserva.
+- El Factory original (`Prototypes/Tres vistas/`) está retirado: sus URL y `Prototypes/02_tres_vistas.html` redirigen aquí conservando query y hash. Su código queda en el historial de git (`b76411b`).
 
 ## Preparar Netlify
 
-El repositorio incluye `netlify.toml`. Para conectar el repo en Netlify, usa la raíz del repositorio como base; el comando es `node scripts/preparar-netlify.mjs` y el directorio publicado es `dist`. No requiere `npm install` ni backend. El comando usa Node.js 22 y copia una lista permitida: entrada, Campaign, ambos juegos, recursos compartidos y el enlace heredado del prototipo.
+El repositorio incluye `netlify.toml`. Para conectar el repo en Netlify, usa la raíz del repositorio como base; el comando es `node scripts/preparar-netlify.mjs` y el directorio publicado es `dist`. No requiere `npm install` ni backend. El comando usa Node.js 22 y copia una lista permitida: entrada, Campaign, aplicación común, recursos compartidos y entradas heredadas.
 
 Para una subida manual o una revisión local del paquete:
 
@@ -99,6 +103,8 @@ La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage e
 
 ## Verificar
 
+El [oráculo histórico y sus deltas](pruebas/factory-oraculo.md) verifican las reglas migradas; las suites comunes cubren las tres vistas, importación y edición. Estado de cada etapa en [PROGRESO.md](PROGRESO.md) y el [plan](docs/PLAN-UNIFICACION.md).
+
 ```bash
 node pruebas/interaccion.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
@@ -107,12 +113,13 @@ node --check shared/js/iconos.js
 node --check shared/js/estructura.js
 node --check shared/js/edicion.js
 node --check "Prototypes/Rocket Launcher/js/seudo.js"
-node --check "Prototypes/Tres vistas/js/juego.js"
-node --check "Prototypes/Tres vistas/js/layout.js"
-node --check "Prototypes/Tres vistas/js/iconos.js"
+node pruebas/factory-reglas.cjs
+node --check "Prototypes/Rocket Launcher/js/runtime.js"
+node --check "Prototypes/Rocket Launcher/js/factory.js"
 node --check pruebas/navegador.mjs
-node --check pruebas/tres-vistas.mjs
-node --check pruebas/factory-editor.mjs
+node --check pruebas/factory-comun.mjs
+node --check pruebas/factory-editor-comun.mjs
+node --check pruebas/factory-vistas-comunes.mjs
 node --check pruebas/entrada.mjs
 node --check scripts/preparar-netlify.mjs
 node --check pruebas/publicacion.mjs
@@ -130,12 +137,14 @@ En otra terminal, con Ego Browser instalado y desde esta carpeta:
 ego-browser nodejs <<'JS'
 const task = await taskSpace("Code Battle Lite QA " + Date.now());
 const { probar } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/navegador.mjs");
-const { probarTresVistas } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/tres-vistas.mjs");
-const { probarFactoryEditor } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-editor.mjs");
+const { probarFactoryComun } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-comun.mjs");
+const { probarFactoryVistas } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-vistas-comunes.mjs");
+const { probarFactoryEditorComun } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-editor-comun.mjs");
 const { probarEntrada } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/entrada.mjs");
 await probar(task.page("p1")); // War / Rocket Launcher
-await probarTresVistas(task.page("p1"));
-await probarFactoryEditor(task.page("p1"));
+await probarFactoryComun(task.page("p1"));
+await probarFactoryVistas(task.page("p1"));
+await probarFactoryEditorComun(task.page("p1"));
 await probarEntrada(task.page("p1")); // generar dist/ primero
 await task.finish({ keep: [] });
 JS

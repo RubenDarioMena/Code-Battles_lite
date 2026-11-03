@@ -120,6 +120,9 @@
 .app[data-forma="movil"] .paleta { padding: 4px; gap: 4px; }
 .app[data-forma="movil"] .atajo { width: 40px; height: 40px; }
 .app[data-forma="movil"] .atajo svg { width: 26px; height: 26px; }
+/* Ladrillos solo con icono (el nombre sigue en aria-label): sin etiqueta que asome junto al último. */
+.app[data-forma="movil"] .paleta-seudo .ladrillo { padding: 0; justify-content: center; }
+.app[data-forma="movil"] .paleta-seudo .ladrillo span { display: none; }
 .app[data-forma="movil"] .mini { min-height: 30px; min-width: 32px; padding: 2px 6px; }
 .app[data-forma="movil"] #v-programa > .editor { min-height: 5rem; }
 /* Panel inferior: en el teléfono empieza cerrado; solo queda su barra y el código gana ese espacio. */
@@ -191,9 +194,9 @@
 /* Seudocódigo: ocupa el sitio del editor; la barra de edición actúa sobre el renglón elegido. */
 #v-programa > .prog { flex: 1 1 auto; min-height: 9rem; }
 .app[data-forma="movil"] #v-programa > .prog { min-height: 5rem; }
-.app[data-modo="pseudo"] .barra-edicion { display: flex; }
-.app[data-modo="pseudo"] .b-teclado, .app[data-modo="pseudo"] .grupo-ed.solo-teclado,
-.app[data-modo="pseudo"] .barra-edicion [data-accion="linea"] { display: none; }
+.app:is([data-modo="pseudo"], [data-modo="bloques"]) .barra-edicion { display: flex; }
+.app:is([data-modo="pseudo"], [data-modo="bloques"]) .b-teclado, .app:is([data-modo="pseudo"], [data-modo="bloques"]) .grupo-ed.solo-teclado,
+.app:is([data-modo="pseudo"], [data-modo="bloques"]) .barra-edicion [data-accion="linea"] { display: none; }
 .app[data-forma="movil"] .modos-codigo .mini { min-width: 0; }
 
 /* El botón de las herramientas queda siempre a la vista: las pestañas se deslizan por debajo. */

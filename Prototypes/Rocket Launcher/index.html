@@ -11,7 +11,8 @@
 <link rel="stylesheet" href="css/base.css?v=3">
 <link rel="stylesheet" href="css/componentes.css?v=18">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=4">
-<link rel="stylesheet" href="css/layout.css?v=16">
+<link rel="stylesheet" href="css/factory.css?v=1">
+<link rel="stylesheet" href="css/layout.css?v=18">
 
 </head>
 <body>
@@ -67,6 +68,7 @@
           <span class="placa">Retos</span>
           <button class="cerrar" type="button" data-cerrar-hoja aria-label="Cerrar">×</button>
         </div>
+        <nav class="fila-botones" aria-label="Series de retos"><a class="btn chico" data-serie="war" href="?serie=war">War</a><a class="btn chico" data-serie="factory" href="?serie=factory">Factory</a></nav>
         <nav class="retos" id="retos" aria-label="Retos"></nav>
         <div class="regla"></div>
         <section class="objetivo" aria-label="Objetivo">
@@ -110,6 +112,7 @@
         <div class="herramientas">
           <span class="modos-codigo" role="group" aria-label="Vista del programa">
             <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
+            <button class="mini" type="button" data-modo-codigo="bloques" hidden aria-pressed="false">Bloques</button>
             <button class="mini" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-tip="Seudocódigo">Seudo</button>
           </span>
           <button class="mini b-teclado" type="button" id="b-teclado" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"></button>
@@ -270,6 +273,7 @@
   <section>
     <h3>Lenguaje del programa</h3>
     <div class="seg" role="group" aria-label="Lenguaje del programa">
+      <button class="btn chico" type="button" data-modo-codigo="bloques" hidden aria-pressed="false">Bloques</button>
       <button class="btn chico" type="button" data-modo-codigo="pseudo" aria-pressed="false">Seudocódigo</button>
       <button class="btn chico" type="button" data-modo-codigo="js" aria-pressed="true">JavaScript</button>
       <button class="btn chico" type="button" aria-pressed="false" disabled>Python</button>
@@ -389,12 +393,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/acorn@8.11.3/dist/acorn.js"></script>
 <script src="../../shared/js/iconos.js?v=3" charset="utf-8"></script>
-<script src="js/juego.js?v=19" charset="utf-8"></script>
+<script src="js/factory-retos.js?v=5" charset="utf-8"></script>
+<script src="js/factory.js?v=3" charset="utf-8"></script>
+<script src="js/factory-vista.js?v=1" charset="utf-8"></script>
+<script src="js/war.js?v=1" charset="utf-8"></script>
+<script src="js/war-retos.js?v=2" charset="utf-8"></script>
+<script src="js/nucleo.js?v=1" charset="utf-8"></script>
+<script src="js/runtime.js?v=3" charset="utf-8"></script>
+<script src="js/vistas.js?v=1" charset="utf-8"></script>
+<script src="js/factory-form.js?v=1" charset="utf-8"></script>
+<script src="js/juego.js?v=26" charset="utf-8"></script>
 <script src="js/layout.js?v=12" charset="utf-8"></script>
-<script src="js/remota.js?v=1" charset="utf-8"></script>
+<script src="js/remota.js?v=2" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=3" charset="utf-8"></script>
 <script src="../../shared/js/edicion.js?v=17" charset="utf-8"></script>
-<script src="js/seudo.js?v=3" charset="utf-8"></script>
+<script src="js/seudo.js?v=5" charset="utf-8"></script>
 
 </body>
 </html>

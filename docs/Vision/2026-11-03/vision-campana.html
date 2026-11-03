@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#11151d">
+<title>Visión de War Factory</title>
+<style>
+  :root{color-scheme:dark;--bg:#11151d;--panel:#1a202b;--panel2:#232d3b;--ink:#f0f2f5;--muted:#b4bfce;--line:#3a4657;--factory:#efb679;--factory-soft:#352b23;--war:#8bc8ff;--war-soft:#203044;--accent:#b8d49a;--accent-soft:#283424;--code:#131923;--kw:#d4b4ff;--kw-soft:#2c2540;--string:#b8d49a}
+  @media(prefers-color-scheme:light){:root{color-scheme:light;--bg:#f4f3ef;--panel:#fff;--panel2:#e8edf0;--ink:#172334;--muted:#4d5d6c;--line:#c3ccd3;--factory:#8c4b12;--factory-soft:#fae9d6;--war:#1f5f96;--war-soft:#dfedf9;--accent:#3e6224;--accent-soft:#e5eedc;--code:#eaf0f3;--kw:#713fa6;--kw-soft:#efe6f8;--string:#326225}}
+  *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  h1,h2,h3,p,figure,pre,ul,ol{margin:0}h1{font-size:clamp(2.6rem,6vw,5rem);line-height:1.05;letter-spacing:-.05em;max-width:1000px;font-weight:700}h2{font-size:clamp(1.7rem,3.5vw,2.6rem);line-height:1.16;letter-spacing:-.035em;margin-bottom:20px;font-weight:650}h3{font-size:1.15rem;line-height:1.35;letter-spacing:-.015em;margin-bottom:10px}p+p{margin-top:14px}strong{font-weight:650}
+  a{color:var(--war);text-underline-offset:4px}button{font:inherit;cursor:pointer}a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+  code{font:.86em/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}p code,td code,li code{padding:2px 5px;background:var(--panel2);border-radius:5px}pre{background:var(--code);border-radius:12px;padding:20px;overflow-x:auto;font-size:14px;line-height:1.8;margin-top:16px}pre code{font-size:inherit;overflow-wrap:normal}.kw{color:var(--kw)}.str{color:var(--string)}.fn{color:var(--war)}.cm{color:var(--muted)}
+  .wrap{width:min(1160px,calc(100% - 72px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:28px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}.brand{font-weight:650;letter-spacing:.04em;color:var(--ink)}.brand span{background:var(--accent);color:var(--bg);padding:5px 8px;border-radius:5px;margin-right:10px}
+  .hero{padding:64px 0 40px}.eyebrow{display:block;font-size:12px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}.intro{font-size:clamp(1.1rem,2vw,1.3rem);line-height:1.6;max-width:830px;color:var(--muted);margin-top:26px}.intro strong{color:var(--ink)}.accent{color:var(--accent)}.factory{color:var(--factory)}.war{color:var(--war)}
+  .notice{margin-top:30px;padding:18px 22px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:15px;max-width:830px}.notice strong{color:var(--accent)}
+  .nav{display:flex;flex-wrap:wrap;gap:8px 22px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px}.nav a{display:inline-flex;align-items:center;min-height:36px;color:var(--muted);text-decoration:none}.nav a:hover{color:var(--ink)}
+  section{padding:58px 0;border-bottom:1px solid var(--line)}.section-no{display:block;margin-bottom:12px;font-size:13px;letter-spacing:.1em;color:var(--accent)}.lead{font-size:1.1rem;max-width:850px;color:var(--muted);margin-bottom:26px}.lead strong{color:var(--ink)}
+  .grid{display:grid;gap:20px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid>*{min-width:0}
+  .card{background:var(--panel);border-radius:18px;padding:24px}.card p,.card li{font-size:15.5px;color:var(--muted)}.card strong{color:var(--ink)}.card ul{padding-left:20px;margin-top:10px}.card li{margin:5px 0}.card.featured{outline:2px solid var(--accent)}
+  .pill{display:inline-block;margin-bottom:12px;padding:3px 10px;border-radius:30px;font-size:12px;font-weight:650;letter-spacing:.02em;white-space:nowrap}
+  .s-decidido{background:var(--accent-soft);color:var(--accent)}.s-direccion{background:var(--war-soft);color:var(--war)}.s-propuesta{background:var(--factory-soft);color:var(--factory)}.s-exploracion{background:var(--kw-soft);color:var(--kw)}.s-pendiente{background:var(--panel2);color:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:6px}.legend div{display:flex;align-items:baseline;gap:10px;font-size:14px;color:var(--muted);max-width:340px}.legend .pill{margin:0}
+  .examples{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px}.examples div{padding:16px 18px;border:1px solid var(--line);border-radius:12px;font-size:15px}
+  .callout{padding:20px 24px;margin-top:26px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;font-size:16px}
+  .rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.rule{border-top:3px solid var(--accent);padding-top:16px}.rule h3{font-size:17px}.rule p{font-size:15px;color:var(--muted)}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:24px}.compare>div{padding:24px}.compare>div:first-child{border-right:1px solid var(--line)}.compare h3{font-size:18px}.compare p{font-size:15.5px;color:var(--muted)}
+  .compare svg{display:block;width:100%;height:auto;margin:6px 0 14px}svg text{font-family:system-ui,sans-serif;fill:var(--ink)}
+  .alts{counter-reset:alt}.alt{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:16px;align-items:start;padding:22px 0;border-bottom:1px solid var(--line)}.alt:last-child{border-bottom:0}.alt-l{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;color:var(--accent);font-weight:650}.alt p{font-size:15.5px;color:var(--muted);max-width:820px}.alt .pill{margin:0}
+  .route{list-style:none;padding:0;margin-top:10px;position:relative}.route li{position:relative;display:grid;grid-template-columns:52px minmax(0,1fr);gap:18px;padding:0 0 26px}.route li::before{content:"";position:absolute;left:21px;top:44px;bottom:0;width:2px;background:var(--line)}.route li:last-child::before{display:none}.route li:last-child{padding-bottom:0}
+  .step{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:var(--panel2);font:600 15px ui-monospace,monospace;color:var(--ink)}.route li.base .step{background:var(--accent);color:var(--bg)}
+  .route h3{margin:8px 0 6px}.route p{font-size:15.5px;color:var(--muted)}.route .decides{display:inline-block;margin-top:8px;padding:6px 12px;background:var(--panel);border-radius:8px;font-size:14px;color:var(--ink)}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}.filters button{min-height:38px;padding:6px 14px;border:1px solid var(--line);border-radius:30px;background:transparent;color:var(--muted);font-size:14px}.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left;font-size:15px;min-width:560px}th,td{padding:13px 14px 13px 0;vertical-align:top;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}td .pill{margin:0}td:last-child{color:var(--muted)}
+  .questions{columns:2;column-gap:36px;padding-left:20px;margin-top:20px}.questions li{break-inside:avoid;margin:0 0 10px;font-size:15.5px;color:var(--muted)}
+  .closing{padding:40px 0 60px}.closing p{font-size:1.15rem;max-width:850px;color:var(--muted)}.closing strong{color:var(--ink)}.foot{margin-top:28px;font-size:13px;color:var(--muted)}
+  [hidden]{display:none!important}
+  @media(max-width:900px){.g3,.rules,.examples{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){body{font-size:16px}.wrap{width:calc(100% - 32px)}.top{font-size:11px;align-items:flex-start}.hero{padding-top:36px}h1{font-size:2.5rem}section{padding:42px 0}.g2,.g3,.rules,.examples,.compare{grid-template-columns:1fr}.compare>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.card,.compare>div{padding:20px}.alt{grid-template-columns:36px minmax(0,1fr)}.alt .pill{grid-column:2;justify-self:start}.alt-l{width:34px;height:34px}.route li{grid-template-columns:40px minmax(0,1fr);gap:14px}.step{width:36px;height:36px;font-size:13px}.route li::before{left:17px;top:36px}.questions{columns:1}pre{font-size:12px;padding:16px 14px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  @media print{body{background:#fff;color:#172334;font-size:11pt}.nav,.filters{display:none}section{padding:24px 0}.card,.rule,.alt,.route li{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand"><span>CBL</span> CODE BATTLE LITE</div><span>Visión · 3 de noviembre de 2026</span></header>
+<main>
+  <div class="hero">
+    <span class="eyebrow">War Factory / Hacia Campaign</span>
+    <h1>Pocas líneas de código.<br><span class="accent">Un mundo que cambia.</span></h1>
+    <p class="intro">Factory y War son dos caras de un mismo principio: <strong>usar código para controlar sistemas que interactúan con un mundo</strong>. Esta página reúne lo que el autor ya decidió, lo que prefiere y lo que quiere explorar para la campaña, y propone en qué orden probarlo.</p>
+    <p class="notice"><strong>Nada de esto se implementa todavía.</strong> El trabajo actual es la unificación técnica de Factory y War (<a href="../../PLAN-UNIFICACION.md">PLAN-UNIFICACION.md</a>). Texto completo en <a href="VISION-CAMPANA.md">VISION-CAMPANA.md</a>.</p>
+  </div>
+  <nav class="nav" aria-label="Contenido"><a href="#principio">Principio</a><a href="#estados">Cómo leer</a><a href="#historia">Historia</a><a href="#reglas">Reglas decididas</a><a href="#combate">Combate</a><a href="#control">Control Maestro</a><a href="#logistica">Logística</a><a href="#produccion">Producción</a><a href="#ruta">Ruta de pruebas</a><a href="#matriz">Matriz</a></nav>
+
+  <section id="principio">
+    <span class="section-no">01 / PRINCIPIO CENTRAL</span>
+    <h2>Un programa pequeño, consecuencias<br>grandes, visibles y comprensibles.</h2>
+    <p class="lead">El jugador no escribe código solo para dar órdenes: <strong>observa cómo unas pocas líneas producen comportamientos complejos</strong>. La programación es una herramienta que transforma el mundo, no una barrera que impide jugar. La relación causa-efecto debe ser clara aunque los sistemas crezcan.</p>
+    <div class="examples">
+      <div>Robots que cambian sus rutas de suministro.</div>
+      <div>Fábricas que cambian su producción.</div>
+      <div>Torretas que cambian sus prioridades.</div>
+      <div>Grupos de máquinas que se coordinan.</div>
+      <div>Robots industriales que responden a una emergencia militar.</div>
+      <div>Sistemas enteros que cambian al modificar una función.</div>
+    </div>
+    <div class="callout"><strong>Aprender por consecuencias.</strong> Un <code>await</code> cambia la temporalidad; un <code>while (true)</code> mantiene viva una máquina; un <code>if</code> cambia un comportamiento; una variable guarda un dato que envejece; una función reutilizable gobierna varios robots; una decisión de producción afecta a la defensa; un sensor distinto cambia la efectividad del mismo arma.</div>
+  </section>
+
+  <section id="estados">
+    <span class="section-no">02 / CÓMO LEER</span>
+    <h2>Cinco estados, para no confundir<br>una idea con una decisión.</h2>
+    <div class="legend">
+      <div><span class="pill s-decidido">Decidido</span>Confirmado por el autor.</div>
+      <div><span class="pill s-direccion">Dirección</span>El sentido está confirmado; los detalles no.</div>
+      <div><span class="pill s-propuesta">Propuesta</span>Preferida, sujeta a prototipos.</div>
+      <div><span class="pill s-exploracion">Exploración</span>Se conserva sin obligaciones técnicas.</div>
+      <div><span class="pill s-pendiente">Pendiente</span>Necesita una decisión, a menudo tras un prototipo.</div>
+    </div>
+    <p class="lead" style="margin-top:24px">No se fija todavía: el tamaño del mapa, si Campaign será de casillas pequeñas o un mundo abierto, cantidades, límites de construcción, costes, resistencias ni recetas.</p>
+  </section>
+
+  <section id="historia">
+    <span class="section-no">03 / HISTORIA Y ESCALA</span>
+    <h2>Una frontera, una instalación,<br>dos responsabilidades.</h2>
+    <p class="lead">Tres visiones narrativas conviven. La preferida integra <strong>fabricar</strong> y <strong>defender</strong> en un mismo sistema: la fábrica sostiene la capacidad de combate y la defensa genera demanda de producción, mantenimiento y logística.</p>
+    <div class="grid g3">
+      <article class="card featured"><span class="pill s-propuesta">Propuesta preferida</span><h3>Instalación militar en una frontera</h3><p>Dos polos políticos en conflicto. El jugador administra una organización industrial y militar relativamente autónoma, con economía propia y posibles contratos o subsidios estatales.</p><ul><li>Integra Factory y War de forma natural.</li><li>Justifica fabricar armas y da contexto a los costes.</li><li>Pocos entornos, enemigos y tecnologías al principio.</li><li>Mapa persistente y reconocible.</li></ul></article>
+      <article class="card"><span class="pill s-exploracion">Alternativa abierta</span><h3>Mundo poshumano</h3><p>Los humanos ya no protagonizan. Facciones de robots compiten; el jugador pertenece a una.</p><ul><li>Sin sociedades humanas que representar.</li><li>Conflictos fáciles de justificar.</li><li>Enemigos solo robóticos.</li></ul></article>
+      <article class="card"><span class="pill s-exploracion">Antecedente</span><h3>Codemageddon original</h3><p>Cómo una IA podría dominar a la humanidad, por métodos pacíficos, pasivos, políticos, coercitivos o militares. Árbol de decisiones «tipo JEV» con respuestas libres interpretadas. Interesante, pero demasiado grande para ahora.</p></article>
+    </div>
+    <div class="grid g2" style="margin-top:20px">
+      <article class="card"><span class="pill s-propuesta">Propuesta</span><h3>Escala moderada</h3><p>Mucho más acotada que Factorio o Age of Empires. Espacio para producción, almacenes, logística, defensas, murallas, un frente y redes de control. <strong>9 × 7 y 32 × 18 son parámetros de las demos</strong>, no el mapa de Campaign.</p></article>
+      <article class="card"><span class="pill s-direccion">Dirección</span><h3>Campaña compacta</h3><p>Pocos enemigos y escenarios, cada mecánica con consecuencias claras. Los enemigos ganan profundidad combinando sensores, locomoción, armas y estrategia; la fábrica, con funciones y programas nuevos más que con máquinas nuevas. Historia local que refleje tensiones mayores.</p></article>
+    </div>
+  </section>
+
+  <section id="reglas">
+    <span class="section-no">04 / REGLAS YA DECIDIDAS</span>
+    <h2>Lo que la unificación ya fija<br>y Campaign hereda.</h2>
+    <div class="rules">
+      <div class="rule"><span class="pill s-decidido">Decidido</span><h3>Encargos, modos y lecturas</h3><p>Los encargos consumen tiempo y se esperan; los modos se configuran al instante y siguen; las lecturas no avanzan el reloj. Los tutoriales explican qué introduce <code>await</code>.</p></div>
+      <div class="rule"><span class="pill s-decidido">Decidido</span><h3>Se gana en el mundo</h3><p>La victoria depende de las metas cumplidas, no de que el programa termine. Un <code>while (true)</code> eficiente es lo deseable.</p></div>
+      <div class="rule"><span class="pill s-decidido">Decidido</span><h3><code>null</code> no es <code>0</code></h3><p><code>0</code>: existe y está vacía. <code>null</code>: destruida o inexistente. En un sensor, sigue siendo «no vio nada». Se documenta por operación.</p></div>
+      <div class="rule"><span class="pill s-decidido">Decidido</span><h3>Destino lleno</h3><p>La carga se queda en el robot y el resultado dice que no pudo entregar. Nada se derrama por sorpresa.</p></div>
+      <div class="rule"><span class="pill s-decidido">Provisional</span><h3>API en inglés</h3><p>Selector de idiomas más adelante. Máquinas por nombre o variable; una máquina no repite su nombre, <code>yo.</code> ni <code>self.</code>.</p></div>
+      <div class="rule"><span class="pill s-decidido">Decidido</span><h3>Suministro automático temporal</h3><p>La recarga y la reparación automáticas de War son simplificaciones. En Campaign, la munición sale de los almacenes y los reparadores los gestiona el jugador.</p></div>
+      <div class="rule"><span class="pill s-direccion">Dirección</span><h3>Azar industrial bajo</h3><p>Averías raras y previsibles. Los ataques sí dañan. La gestión no debe eclipsar las batallas.</p></div>
+      <div class="rule"><span class="pill s-direccion">Dirección</span><h3>Economía relevante</h3><p>Costes de fabricación, suministro y mantenimiento como métricas. Eficiencia económica en retos mixtos; fórmula pendiente; sin mercado todavía.</p></div>
+      <div class="rule"><span class="pill s-direccion">Dirección</span><h3>Percepción progresiva</h3><p>Primero consultas fiables, después sensores con alcances y límites. Gestionar sensores es un reto añadido, no un peaje inicial.</p></div>
+    </div>
+  </section>
+
+  <section id="combate">
+    <span class="section-no">05 / ARMAS, SENSORES Y PROYECTILES</span>
+    <h2>Una plataforma, varias tecnologías.</h2>
+    <p class="lead">Los misiles actuales (destino fijo, explosión al llegar, radio de daño, predicción de <code>autoTarget</code>) <strong>se conservan como base</strong>, sin motor físico. Sobre ellos, sensores, frecuencia de actualización y tipo de arma pasan a ser piezas separables.</p>
+    <div class="compare">
+      <div>
+        <span class="pill s-direccion">Seguimiento por posición</span>
+        <svg viewBox="0 0 420 120" role="img" aria-labelledby="pos-t"><title id="pos-t">El misil va a una coordenada fija mientras el enemigo sigue avanzando</title>
+          <path d="M20 100 H400" stroke="var(--line)" stroke-width="2"/><path d="M50 86 Q190 0 300 84" fill="none" stroke="var(--war)" stroke-width="2" stroke-dasharray="5 7"/>
+          <circle cx="50" cy="88" r="12" fill="var(--war-soft)" stroke="var(--war)" stroke-width="2"/><circle cx="300" cy="86" r="11" fill="none" stroke="var(--war)" stroke-width="2"/><path d="M300 70 V78 M300 94 V102 M284 86 H292 M308 86 H316" stroke="var(--war)" stroke-width="2"/>
+          <rect x="345" y="76" width="34" height="18" rx="6" fill="var(--muted)"/><path d="M332 85 H342" stroke="var(--muted)" stroke-width="2"/>
+          <text x="300" y="118" text-anchor="middle" font-size="13">pos guardada</text><text x="362" y="66" text-anchor="middle" font-size="13">enemigo</text></svg>
+        <p>Para enemigos lentos o estándar. El sensor da coordenadas y el disparo va hacia ellas. Lección: una posición envejece.</p>
+      </div>
+      <div>
+        <span class="pill s-propuesta">Seguimiento por identidad</span>
+        <svg viewBox="0 0 420 120" role="img" aria-labelledby="id-t"><title id="id-t">El sistema conserva el objetivo y corrige hacia su posición mientras lo ve</title>
+          <path d="M20 100 H400" stroke="var(--line)" stroke-width="2"/><path d="M50 86 Q200 -6 352 80" fill="none" stroke="var(--factory)" stroke-width="2" stroke-dasharray="5 7"/>
+          <circle cx="50" cy="88" r="12" fill="var(--factory-soft)" stroke="var(--factory)" stroke-width="2"/>
+          <rect x="345" y="76" width="34" height="18" rx="6" fill="var(--factory)"/><circle cx="362" cy="85" r="24" fill="none" stroke="var(--factory)" stroke-width="1.5" stroke-dasharray="3 4"/>
+          <text x="362" y="44" text-anchor="middle" font-size="13">objetivo #7</text></svg>
+        <p>Para enemigos ágiles o articulados. El sistema conserva el objetivo y actualiza su posición, <strong>sin visión perfecta</strong>: sigue limitado por el alcance del sensor.</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:20px">
+      <article class="card"><span class="pill s-propuesta">Propuesta aprobada</span><h3>Configuraciones de ejemplo</h3><ul><li>Torreta económica con sensor estándar y proyectiles convencionales.</li><li>Sensor de actualización más rápida.</li><li>Percepción que conserva la identidad del objetivo.</li><li>Láser de impacto casi instantáneo.</li><li>Seguimiento o predicción avanzados.</li></ul></article>
+      <article class="card"><span class="pill s-exploracion">Exploración</span><h3>Cinemática inversa</h3><p>IK para las patas de robots articulados, sobre todo cuadrúpedos: locomoción convincente sin un simulador sofisticado. <strong>IK no implica física de cuerpos rígidos</strong>, colisiones complejas ni dinámica avanzada. Se evaluará con pruebas gráficas.</p></article>
+    </div>
+  </section>
+
+  <section id="control">
+    <span class="section-no">06 / PROGRAMAS Y CONTROL MAESTRO</span>
+    <h2>Escribir un comportamiento una vez<br>y gobernar a muchos.</h2>
+    <div class="grid g2">
+      <article class="card"><span class="pill s-direccion">Dirección</span><h3>Programación local</h3><p>Cada máquina tiene su programa y llama a sus funciones directamente, sin referenciarse a sí misma.</p>
+        <span class="pill s-propuesta" style="margin-top:18px">Propuesta preferida</span><h3>Reutilización</h3><p>Programas con nombre, usados como funciones, plantillas o comportamientos asignables. Sin copiar y pegar entre robots.</p>
+<pre><code><span class="cm">// conceptual, no sintaxis definitiva</span>
+<span class="kw">async function</span> <span class="fn">recogerCobre</span>() {
+  <span class="kw">await</span> <span class="fn">recoger</span>(ENT_1, <span class="str">"cobre"</span>);
+  <span class="kw">await</span> <span class="fn">entregar</span>(FUN);
+}
+grupoCobre.<span class="fn">recogerCobre</span>();</code></pre></article>
+      <article class="card"><span class="pill s-propuesta">Propuesta preferida para Campaign</span><h3>Control Maestro físico</h3><p>Un edificio del mundo, no un editor invisible.</p><ul><li>Alcance inalámbrico; fibra óptica y enlaces físicos, tendidos con una construcción sencilla.</li><li>Coordina máquinas y grupos, con posibles límites de concurrencia.</li><li>Vulnerable a ataques; uno solo o una red redundante.</li><li>El primero llega pronto; más alcance y redundancia cuestan más.</li><li>No se ataca hasta que el jugador sepa protegerlo.</li></ul>
+        <span class="pill s-propuesta" style="margin-top:14px">Propuesta</span><p>Un indicador visual distingue robots autónomos, coordinados y cambios de control (referencia: <em>I, Robot</em>).</p></article>
+    </div>
+    <div class="callout"><strong>Pendiente de prototipo: ¿quién manda?</strong> Si un robot tiene programa local y el maestro le da órdenes: ¿manda el local, el maestro, lo elige el jugador, el maestro envía señales a las que reaccionan los programas locales, o activa una rutina temporal? Ejemplo: ante un ataque extraordinario, el controlador recluta robots industriales. Pausar, sustituir o interrumpir se decide jugando, no antes.</div>
+  </section>
+
+  <section id="logistica">
+    <span class="section-no">07 / LOGÍSTICA</span>
+    <h2>Bandas eficientes y frágiles.<br>Robots adaptables.</h2>
+    <p class="lead">Las bandas transportadoras <strong>se permiten</strong>: son difíciles de justificar ausentes cuando hay que mover munición en volumen. Pero no deben ser la respuesta óptima a todo. No se castiga construirlas; se dan motivos positivos para usar robots.</p>
+    <div class="grid g3">
+      <article class="card"><span class="pill s-decidido">Decidido conceptualmente</span><h3>Banda convencional</h3><p>Eficiente en rutas fijas. Puede destruirse en un ataque y <strong>no se repara durante el mismo combate</strong>. Una sola línea es un punto vulnerable: invita a rutas alternativas y reservas.</p></article>
+      <article class="card"><span class="pill s-propuesta">Propuesta definida</span><h3>Túnel reforzado</h3><p>La misma cinta bajo tierra, en un búnker. Se construye igual, con indicador visual claro. Coste extremadamente alto, resistencia muy superior; solo ciertos proyectiles especializados podrían destruirlo. Para corredores críticos: munición de torretas y murallas.</p></article>
+      <article class="card"><span class="pill s-direccion">Dirección</span><h3>Robots logísticos</h3><p>Adaptabilidad, coordinación, comportamientos reutilizables y cambios de producción. Pueden convivir con las bandas: ellas mueven el volumen común; los robots, lo variable.</p></article>
+    </div>
+    <p class="lead" style="margin-top:22px;margin-bottom:0">Pendiente del túnel, sin inventar valores: costes, resistencia, qué lo destruye, sistema de construcción, reparación después del combate y daños parciales.</p>
+  </section>
+
+  <section id="produccion">
+    <span class="section-no">08 / PRODUCCIÓN ADAPTABLE</span>
+    <h2>Cambiar lo que fabrica una fábrica<br><span class="accent">cambiando unas líneas.</span></h2>
+    <p class="lead">El objetivo real: los robots superan a una fábrica rígida cuando la producción tiene que cambiar. Una fábrica de bandas necesita reconstruirse para fabricar otra cosa; una fábrica de robots programables cambia una función, unos parámetros o la asignación de un grupo en el Control Maestro. <strong>El jugador no solo mejora velocidad o coste: mejora la inteligencia organizativa de su fábrica.</strong></p>
+    <div class="callout" style="margin-top:0;margin-bottom:22px">Reserva del autor: sin «alquimia injustificada». Cambiar el orden de procesar materias primas no debería, sin más, producir armas completamente distintas. Se busca flexibilidad programada con realismo relativo.</div>
+    <div class="alts">
+      <div class="alt"><span class="alt-l">A</span><div><h3>Obsolescencia y contramedidas</h3><p>Convencional, después láser, después contramedidas contra el láser: el jugador vuelve a combinar tecnologías y la fábrica se adapta. Cambios creíbles; ninguna arma sustituye para siempre a las anteriores.</p></div><span class="pill s-exploracion">Exploración</span></div>
+      <div class="alt"><span class="alt-l">B</span><div><h3>Materias comunes, tecnologías finales variadas</h3><p>Componentes metálicos, electrónicos o energéticos compartidos; solo las etapas finales cambian. Mucha variedad sin cadenas nuevas. El reto es distribuir lo común hacia productos distintos.</p></div><span class="pill s-exploracion">Exploración · realista</span></div>
+      <div class="alt"><span class="alt-l">C</span><div><h3>Restricción de tamaño</h3><p>Poco espacio favorece máquinas multifunción y robots. Riesgo: que parezca prohibición en vez de alternativa superior. Complemento posible, no justificación principal.</p></div><span class="pill s-exploracion">Con reservas</span></div>
+      <div class="alt"><span class="alt-l">D</span><div><h3>Mercado y demanda variable</h3><p>Contratos y precios cambian con el conflicto: hoy proyectiles, mañana sensores o componentes para drones. Se reorganiza con programas, no reconstruyendo. Une flexibilidad y economía.</p></div><span class="pill s-exploracion">Exploración</span></div>
+      <div class="alt"><span class="alt-l">E</span><div><h3>Elementos fantásticos</h3><p>Combinar cuatro elementos fundamentales en secuencias que dan armas con propiedades únicas. Mucho potencial de experimentación; choca con el realismo deseado. Se conserva.</p></div><span class="pill s-exploracion">Baja preferencia</span></div>
+    </div>
+    <h3 style="margin-top:34px">Preguntas abiertas</h3>
+    <ul class="questions">
+      <li>Qué productos podrán fabricarse.</li><li>Cuántos procesos industriales compartidos existirán.</li><li>Qué máquinas podrán cambiar sus operaciones.</li><li>Qué cambios productivos serán plausibles.</li><li>Qué ventajas cuantitativas tendrán los robots.</li><li>Cuándo conviene una banda y cuándo un robot.</li><li>Cuánto podrá automatizar el Control Maestro.</li><li>Qué partes seguirán siendo especializadas.</li><li>Cómo cambiará la demanda durante la campaña.</li><li>Si la producción cambiará también durante los combates.</li>
+    </ul>
+  </section>
+
+  <section id="ruta">
+    <span class="section-no">09 / RUTA DE PRUEBAS</span>
+    <h2>Una pregunta por prototipo,<br>de camino a Campaign.</h2>
+    <p class="lead"><span class="pill s-propuesta" style="margin:0 8px 0 0">Propuesta de orden</span>No es una decisión del autor. Cada prueba aísla una pregunta y decide algo antes de la siguiente; nunca se juntan todas las mecánicas en el primer escenario mixto.</p>
+    <ol class="route">
+      <li class="base"><span class="step">0</span><div><h3>Base común</h3><p>War y Factory en un mismo mundo, con las reglas aprobadas (plan de unificación).</p><span class="decides">Requisito de todo lo demás</span></div></li>
+      <li><span class="step">1</span><div><h3>Abastecer un lanzador</h3><p>Un robot lleva munición de un almacén a un lanzador, sin recarga automática, contra una oleada. ¿Es interesante el transporte como cuello de botella? ¿Se lee bien?</p><span class="decides">Si el suministro explícito sustituye la recarga gratuita</span></div></li>
+      <li><span class="step">2</span><div><h3>Máquina destruible</h3><p>¿Qué pasa con referencias, programas y consultas cuando una máquina deja de existir? ¿Se entiende <code>null</code>?</p><span class="decides">Semántica de destrucción y desmontaje</span></div></li>
+      <li><span class="step">3</span><div><h3>Un comportamiento, varios robots</h3><p>¿Un cambio en una función compartida cambia visiblemente a todo un grupo?</p><span class="decides">Modelo de reutilización y grupos</span></div></li>
+      <li><span class="step">4</span><div><h3>Control Maestro mínimo</h3><p>Un edificio con alcance y una orden de emergencia que recluta robots industriales.</p><span class="decides">Prioridad local/maestro y señal visual</span></div></li>
+      <li><span class="step">5</span><div><h3>Banda frente a robots</h3><p>Misma producción con una banda vulnerable y con robots; después, un túnel reforzado.</p><span class="decides">Papel de las bandas y coste relativo del túnel</span></div></li>
+      <li><span class="step">6</span><div><h3>Cambiar la producción con pocas líneas</h3><p>Maqueta de las alternativas B y A, con D como contexto. ¿Se siente como ventaja real? ¿Es plausible?</p><span class="decides">Modelo de producción adaptable</span></div></li>
+      <li><span class="step">7</span><div><h3>Sensores y armas intercambiables</h3><p>Configuraciones distintas y seguimiento por identidad contra un enemigo ágil.</p><span class="decides">Catálogo inicial de tecnologías de combate</span></div></li>
+      <li><span class="step">8</span><div><h3>Laboratorio gráfico de IK</h3><p>Un cuadrúpedo con cinemática inversa, sin física de cuerpos rígidos.</p><span class="decides">Cuánta física hace falta</span></div></li>
+      <li><span class="step">9</span><div><h3>Maqueta de instalación</h3><p>Producción, almacenes, logística, defensas, frente y redes en un mapa moderado, sin perder legibilidad.</p><span class="decides">Tamaño y persistencia del mapa</span></div></li>
+      <li><span class="step">10</span><div><h3>Arco narrativo corto</h3><p>¿Qué visión sostiene mejor lo aprendido en las pruebas anteriores?</p><span class="decides">Dirección narrativa</span></div></li>
+    </ol>
+  </section>
+
+  <section id="matriz">
+    <span class="section-no">10 / MATRIZ DE DECISIONES</span>
+    <h2>Todo en una tabla.</h2>
+    <div class="filters" role="group" aria-label="Filtrar por estado">
+      <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-f="decidido" aria-pressed="false">Decidido</button>
+      <button type="button" data-f="direccion" aria-pressed="false">Dirección</button>
+      <button type="button" data-f="propuesta" aria-pressed="false">Propuesta</button>
+      <button type="button" data-f="exploracion" aria-pressed="false">Exploración</button>
+      <button type="button" data-f="pendiente" aria-pressed="false">Pendiente</button>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Tema</th><th>Estado</th><th>Dirección</th></tr></thead>
+      <tbody id="matriz-filas"></tbody>
+    </table></div>
+  </section>
+
+  <div class="closing">
+    <p>La fábrica y la guerra son <strong>dos manifestaciones de un mismo principio</strong>. A largo plazo, modificar unas pocas funciones del Control Maestro debería transformar visiblemente la producción de toda una fábrica. Hoy, la prioridad es otra: unificar bien Factory y War y dejar una base estable desde la cual experimentar. La historia, la escala del mapa, la complejidad de la producción y la magnitud de las batallas siguen abiertas a propósito.</p>
+    <p class="foot">Feedback del autor del 2 de noviembre de 2026, ordenado el 3 de noviembre. Fuente: <a href="VISION-CAMPANA.md">VISION-CAMPANA.md</a>.</p>
+  </div>
+</main>
+</div>
+<script>
+(() => {
+  const filas = [
+    ["Unificar Factory y War", "decidido", "Decidido", "Una base técnica compartida"],
+    ["War como base de migración", "decidido", "Decidido para el plan", "Migración progresiva"],
+    ["await y temporalidad", "decidido", "Decidido", "Enseñar claramente su función"],
+    ["while (true) y victoria", "decidido", "Decidido", "Se gana al cumplir las metas del mundo"],
+    ["null y 0", "decidido", "Decidido conceptualmente", "No son equivalentes; significado según cada API"],
+    ["Carga ante destino lleno", "decidido", "Decidido", "Permanece en el robot"],
+    ["Azar industrial", "direccion", "Dirección", "Mínimo y comprensible"],
+    ["Economía", "direccion", "Dirección", "Costes relevantes"],
+    ["Idioma principal de la API", "decidido", "Decidido provisionalmente", "Inglés"],
+    ["Sensores limitados", "direccion", "Dirección", "Progresión gradual"],
+    ["Proyectiles actuales", "decidido", "Decidido conservar", "Simulación simplificada"],
+    ["Sensores y armas intercambiables", "propuesta", "Propuesta aprobada", "Separación de tecnologías"],
+    ["Seguimiento por identidad", "propuesta", "Propuesta", "Para unidades ágiles"],
+    ["Cinemática inversa", "exploracion", "Exploración", "Sin compromiso de físicas complejas"],
+    ["Programación local", "direccion", "Dirección", "Cada máquina ejecuta su programa"],
+    ["Reutilización de funciones", "propuesta", "Propuesta preferida", "Código compartido y grupos"],
+    ["Control Maestro físico", "propuesta", "Propuesta preferida", "Redes, comunicaciones y redundancia"],
+    ["Prioridad local/remota", "pendiente", "Pendiente", "Necesita prototipo"],
+    ["Suministro automático actual", "decidido", "Decidido", "Solo simplificación de War"],
+    ["Logística de campaña", "direccion", "Dirección", "Gestionada por el jugador"],
+    ["Bandas transportadoras", "decidido", "Decidido conceptualmente", "Permitidas, con limitaciones"],
+    ["Destrucción de bandas", "decidido", "Decidido conceptualmente", "No reparables durante el combate"],
+    ["Túneles reforzados", "propuesta", "Propuesta definida", "Muy caros, muy resistentes"],
+    ["Producción adaptable", "exploracion", "Exploración prioritaria", "Evaluar alternativas"],
+    ["Cambiar producción por código", "decidido", "Principio central", "Debe sentirse como ventaja real"],
+    ["Historia de frontera militar", "propuesta", "Propuesta preferida", "Narrativa local y acotada"],
+    ["Mundo poshumano", "exploracion", "Alternativa abierta", "No descartar"],
+    ["Historia original sobre IA", "exploracion", "Antecedente abierto", "Preservar como referencia"],
+    ["Tamaño definitivo del mapa", "pendiente", "Pendiente", "No fijar"],
+    ["Campaign completa", "pendiente", "Fuera del alcance actual", "Solo registrar la visión"]
+  ];
+  const cuerpo = document.getElementById("matriz-filas");
+  cuerpo.innerHTML = filas.map(([tema, clase, estado, dir]) =>
+    `<tr data-s="${clase}"><td><strong>${tema}</strong></td><td><span class="pill s-${clase}">${estado}</span></td><td>${dir}</td></tr>`).join("");
+  const botones = document.querySelectorAll(".filters button");
+  botones.forEach(b => b.addEventListener("click", () => {
+    botones.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    cuerpo.querySelectorAll("tr").forEach(tr => { tr.hidden = b.dataset.f !== "todos" && tr.dataset.s !== b.dataset.f; });
+  }));
+})();
+</script>
+</body>
+</html>

@@ -67,6 +67,9 @@ a { color: var(--accent); font-size: 13px; }
 <script>
 (() => {
   "use strict";
+  const parametros = new URLSearchParams(location.search);
+  const urlJuego = new URL("index.html", location.href); urlJuego.search = parametros.toString(); urlJuego.searchParams.set("marco", "1");
+  if (parametros.get("serie") === "factory") { document.title = "Factory · Probar en dispositivos"; document.querySelector('a[href="index.html"]').href = "index.html?serie=factory"; }
   const TELEFONOS = { "iPhone 15": [393, 852], "iPhone SE": [375, 667], "Pixel 8": [412, 915] };
   const PCS = { "Portátil": [1366, 768], "Escritorio": [1920, 1080], "Tableta": [1024, 768] };
   const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(`cmg-probar-${k}`)) ?? d; } catch { return d; } };
@@ -86,6 +89,7 @@ a { color: var(--accent); font-size: 13px; }
   function puesto(nombre, [w, h], pc) {
     const p = document.createElement("div"); p.className = "puesto";
     p.innerHTML = `<div class="caja"><div class="dispositivo${pc ? " pc" : ""}"><iframe title="${nombre}" width="${w}" height="${h}" src="index.html?marco=1"></iframe></div></div><div class="nombre">${nombre} · ${w} × ${h}</div>`;
+    p.querySelector("iframe").src = urlJuego.href;
     p.dataset.w = w + (pc ? 28 : 24); p.dataset.h = h + (pc ? 44 : 24);
     return p;
   }

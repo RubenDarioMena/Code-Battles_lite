@@ -7,10 +7,11 @@
   "use strict";
   const cmg = window.cmg;
   if (!cmg) return;
+  const factory = cmg.serie === "factory";
   const $ = (id) => document.getElementById(id);
   const app = $("app"), $codigo = cmg.codigo, $prog = $("prog"), $paleta = $("paleta-seudo"), $editor = $("editor");
-  const leer = (k, d) => { try { const v = localStorage.getItem(`cmg-juego-${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
-  const escribir = (k, v) => { try { localStorage.setItem(`cmg-juego-${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
+  const leer = (k, d) => { try { const v = localStorage.getItem(`cmg-juego-${factory ? "factory-" : ""}${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const escribir = (k, v) => { try { localStorage.setItem(`cmg-juego-${factory ? "factory-" : ""}${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
 
   // ---------- Textos (kw = orden, kc = control, tx = texto, slot = valor que se elige) ----------
@@ -52,9 +53,16 @@
       paleta: { apuntar: "aim", oir: "listen", disparo: "shoot", rafaga: "burst", detener: "stop", esperar: "wait", aviso: "report", siempre: "forever", repetir: "repeat", mientras: "while", si: "if / else", salir: "exit" },
     },
   };
+  if (factory) for (const [idioma, tx] of Object.entries(TXT)) {
+    tx.recoger = [["kw", "pickUp"], ["slot", "lugar"], ["slot", "mat"]];
+    tx.entregar = [["kw", "deliver"], ["slot", "lugar"]];
+    tx.contar = [["slot", "var"], ["tx", "←"], ["kw", "count"], ["slot", "lugar"], ["slot", "mat"]];
+    tx.esperar[0][1] = "wait";
+    Object.assign(tx.paleta, { recoger: "pickUp", entregar: "deliver", contar: "count", esperar: "wait" });
+  }
   const COND = [["slot", "cond.que"], ["slot", "cond.op"], ["slot", "cond.n"]];
-  const CATEGORIA = { apuntar: "sentido", oir: "sentido", disparo: "accion", rafaga: "accion", detener: "accion", aviso: "accion", esperar: "espera", siempre: "control", repetir: "control", mientras: "control", si: "control", salir: "control" };
-  const ICONO = { apuntar: "apuntar", oir: "sensor", disparo: "disparo", rafaga: "rafaga", detener: "detener", esperar: "esperar", aviso: "aviso", siempre: "whileTrue", repetir: "para", mientras: "mientras", si: "siNo", salir: "salir" };
+  const CATEGORIA = { recoger: "accion", entregar: "accion", contar: "sentido", apuntar: "sentido", oir: "sentido", disparo: "accion", rafaga: "accion", detener: "accion", aviso: "accion", esperar: "espera", siempre: "control", repetir: "control", mientras: "control", si: "control", salir: "control" };
+  const ICONO = { recoger: "recoger", entregar: "entregar", contar: "sensor", apuntar: "apuntar", oir: "sensor", disparo: "disparo", rafaga: "rafaga", detener: "detener", esperar: "esperar", aviso: "aviso", siempre: "whileTrue", repetir: "para", mientras: "mientras", si: "siNo", salir: "salir" };
   const LADRILLOS = ["apuntar", "oir", "disparo", "rafaga", "detener", "esperar", "|", "siempre", "repetir", "mientras", "si", "salir", "|", "aviso"];
   const OPS = ["existe", "noexiste", ">", ">=", "<", "<=", "==", "!="];
   const OP_JS = { ">": ">", ">=": ">=", "<": "<", "<=": "<=", "==": "===", "!=": "!==" };
@@ -108,7 +116,9 @@
         else if (n.t === "disparo") emit(`regularShoot(${n.lugar});`, n.id, nivel);
         else if (n.t === "rafaga") emit(`burstFire(${n.lugar});`, n.id, nivel);
         else if (n.t === "detener") emit("stopFire();", n.id, nivel);
-        else if (n.t === "esperar") emit(`await esperar(${n.s});`, n.id, nivel);
+        else if (n.t === "esperar") emit(`${n.espera === false ? "" : "await "}${n.fn || (factory ? "wait" : "esperar")}(${n.s});`, n.id, nivel);
+        else if (n.t === "recoger" || n.t === "entregar") emit(`${n.espera === false ? "" : "await "}${n.fn || (n.t === "recoger" ? "pickUp" : "deliver")}(${n.lugar}${n.t === "recoger" ? ", " + q(n.mat) : ""});`, n.id, nivel);
+        else if (n.t === "contar") emit(`${declarar()} = ${n.espera ? "await " : ""}${n.fn || "count"}(${n.lugar}, ${q(n.mat)});`, n.id, nivel);
         else if (n.t === "aviso") emit(`console.${n.nivel}(${n.valor});`, n.id, nivel);
         else if (n.t === "salir") emit("break;", n.id, nivel);
         else if (n.t === "siempre" || n.t === "mientras") {
@@ -150,8 +160,23 @@
     const nombre = (e) => e && (e.type === "Identifier" || (e.type === "MemberExpression" && !e.computed && nombre(e.object) && e.property.type === "Identifier"));
     const llamada = (e, fn) => e && e.type === "CallExpression" && e.callee.type === "Identifier" && e.callee.name === fn;
     const apunta = (e) => llamada(e, "autoTarget") && e.arguments.length === 2 && str(e.arguments[0]) && str(e.arguments[1]) ? { tipo: e.arguments[0].value, sensor: e.arguments[1].value } : null;
+    const robotCall = e => {
+      if (!factory || !e) return null;
+      const espera = e.type === "AwaitExpression"; const c = espera ? e.argument : e;
+      if (c.type !== "CallExpression") return null;
+      const f = c.callee.type === "Identifier" ? c.callee.name : c.callee.type === "MemberExpression" && !c.callee.computed && c.callee.object.name === "yo" ? c.callee.property.name : null;
+      const t = {pickUp:"recoger",recoger:"recoger",deliver:"entregar",entregar:"entregar",wait:"esperar",esperar:"esperar",count:"contar",cuantos:"contar"}[f];
+      if (!t) return null;
+      const [a,b] = c.arguments;
+      if (t === "esperar") return c.arguments.length === 1 && num(a) ? { t, s:a.value, fn:texto(c.callee), espera } : null;
+      if (!(str(a) || nombre(a)) || c.arguments.length !== (t === "entregar" ? 1 : 2) || (t !== "entregar" && !str(b))) return null;
+      return {t, lugar:texto(a), mat:b?.value, fn:texto(c.callee), espera};
+    };
+    const lectura = e => robotCall(e)?.t === "contar";
     // Lo que se guarda en una variable: apuntar (con alternativa ??) o escuchar a la red de sensores.
     function valorVariable(v, init, s) {
+      const robot = robotCall(init);
+      if (robot?.t === "contar") return { ...robot, var:v };
       const a = apunta(init);
       if (a) return { t: "apuntar", var: v, ...a, alt: null };
       if (init && init.type === "LogicalExpression" && init.operator === "??") {
@@ -166,7 +191,7 @@
     function cond(e) {
       if (nombre(e)) return { que: texto(e), op: "existe", n: 0 };
       if (e.type === "UnaryExpression" && e.operator === "!" && nombre(e.argument)) return { que: texto(e.argument), op: "noexiste", n: 0 };
-      if (e.type === "BinaryExpression" && OPS_AST[e.operator] && nombre(e.left) && (num(e.right) || str(e.right))) return { que: texto(e.left), op: OPS_AST[e.operator], n: e.right.value };
+      if (e.type === "BinaryExpression" && OPS_AST[e.operator] && (nombre(e.left) || lectura(e.left)) && (num(e.right) || str(e.right))) return { que: texto(e.left), op: OPS_AST[e.operator], n: e.right.value };
       if (e.type === "LogicalExpression") no(e, `«${e.operator}» en una condición`);
       no(e, "esta condición");
     }
@@ -183,6 +208,8 @@
         }
         if (s.type === "ExpressionStatement") {
           const e = s.expression;
+          const robot = robotCall(e);
+          if (robot && robot.t !== "contar") { out.push(robot); continue; }
           if (e.type === "AssignmentExpression" && e.operator === "=" && e.left.type === "Identifier") { out.push({ ...valorVariable(e.left.name, e.right, s), declaracion: null }); continue; }
           const arg = e.arguments && e.arguments[0];
           const lugar = (a) => a && (nombre(a) || (a.type === "Literal" && a.value === null));
@@ -222,13 +249,19 @@
   }
 
   // ---------- Estado ----------
-  let modo = leer("modo", "js") === "pseudo" ? "pseudo" : "js";
+  if (factory) {
+    for (const [k, viejo] of [["modo", "modo"], ["idioma-seudo", "idioma"]]) {
+      if (leer(k, null) == null) try { const v = JSON.parse(localStorage.getItem(`cmg-banco02:${viejo}`)); if (v != null) escribir(k, v); } catch (_) { /* Preferencia inválida. */ }
+    }
+  }
+  let modo = leer("modo", factory ? "bloques" : "js");
+  if (!["js", "pseudo", ...(factory ? ["bloques"] : [])].includes(modo)) modo = "js";
   let idioma = leer("idioma-seudo", "es") === "en" ? "en" : "es";
   let modelo = raizDe([]), texto = null, mapa = [], conComentarios = false;
   let cursor = { padre: "raiz", rama: "cuerpo", idx: 0 }, elegido = null, abierto = null, portaBloque = null;
   const pilaAmpliar = [];
   const quieto = () => $codigo.readOnly;
-  const activo = () => modo === "pseudo";
+  const activo = () => modo !== "js";
   const datos = () => cmg.datos();
 
   // ---------- Sincronía con el texto ----------
@@ -286,6 +319,12 @@
       mientras: { cond: { que: v, op: "existe", n: 0 }, cuerpo: [] },
       si: { cond: { que: "failureRate", op: ">=", n: 0.35 }, cuerpo: [], sino: [] },
     }[t];
+    if (factory) {
+      const lugar = d.lugares.find(x => x.tipo === "bodega")?.expresion || '"ENT-1"';
+      const destino = d.lugares.find(x => x.tipo === "maquina")?.expresion || '"FUN"';
+      const propio = { recoger:{lugar,mat:"cobre"}, entregar:{lugar:destino}, contar:{var:"cantidad",lugar,mat:"cobre"}, esperar:{s:1}, aviso:{valor:'"Hola"',nivel:"log"}, mientras:{cond:{que:`count(${lugar}, "cobre")`,op:">",n:0},cuerpo:[]}, si:{cond:{que:`count(${destino}, "cobre")`,op:"<",n:1},cuerpo:[],sino:[]} }[t];
+      return conIds([{t,...(propio || base)}])[0];
+    }
     return conIds([{ t, ...base }])[0];
   }
   function insertarEn(n, padre, rama, idx) {
@@ -362,6 +401,14 @@
   function opciones(campo, n) {
     const d = datos(), vars = variables(), tx = TXT[idioma];
     const o = (v, nota, ver) => ({ v, nota, ver });
+    if (factory) {
+      if (campo === "lugar") return [...d.lugares.map(x => o(x.expresion, x.tipo)), ...vars.map(v => o(v, "variable"))];
+      if (campo === "mat") return d.materiales.map(v => o(v));
+      if (campo === "cond.que" || campo === "valor") return [...d.lugares.flatMap(x => d.materiales.map(m => o(`count(${x.expresion}, ${JSON.stringify(m)})`, "lectura"))), ...vars.map(v => o(v))];
+      if (campo === "cond.n" || campo === "n") return [0,1,2,3,4,5,6,7,8,10,20,30].map(v => o(v));
+      if (campo === "s") return [.05,.1,.5,1,2,3,6,9,15,30,60].map(v => o(v));
+      if (campo === "var") return [...new Set([...vars,"cantidad","stock"])].map(v => o(v));
+    }
     switch (campo) {
       case "var": return [...new Set([...vars, "pos", "objetivo", "dron", "oruga"])].map(v => o(v));
       case "tipo": case "alt": return [...(campo === "alt" ? [o(null, "sin alternativa", tx.ninguno)] : []), ...d.tipos.map(t => o(t.id, t.nombre + (t.enReto ? " · en este reto" : "")))];
@@ -453,7 +500,7 @@
   function pintar() {
     if (!activo()) return;
     const scroll = $prog.scrollTop;
-    const aviso = conComentarios ? `<div class="seudo-nota">Los comentarios del JavaScript no se ven aquí; al editar en seudocódigo se quitan.</div>` : "";
+    const aviso = conComentarios ? `<div class="seudo-nota">Los comentarios del JavaScript no se ven aquí; al editar en esta vista se quitan.</div>` : "";
     $prog.innerHTML = aviso + `<div class="inicio" data-accion="inicio">${esc(TXT[idioma].inicio)}</div>` + htmlLista(modelo.cuerpo, "raiz", "cuerpo");
     $prog.classList.toggle("quieto", quieto());
     $prog.scrollTop = scroll;
@@ -461,7 +508,7 @@
   }
   function pintarPaleta() {
     const I = window.ICONOS || {}, tx = TXT[idioma], d = datos();
-    $paleta.innerHTML = LADRILLOS.map(t => {
+    $paleta.innerHTML = (factory ? (d.ladrillos || []).concat(d.ladrillos?.includes("mientras") ? ["contar"] : []) : LADRILLOS).map(t => {
       if (t === "|") return `<span class="sep-pal" aria-hidden="true"></span>`;
       if (t === "oir" && !d.red.length) return "";
       const ico = I[ICONO[t]] || { svg: "", c1: "#7FA3FF" };
@@ -639,7 +686,7 @@
 
   // ---------- Modo ----------
   function aplicarModo(nuevo) {
-    if (nuevo === "pseudo") {
+    if (nuevo !== "js") {
       try {
         const r = arbolDe($codigo.value);
         modelo = r.arbol; conComentarios = r.comentarios; texto = $codigo.value;
@@ -654,14 +701,15 @@
     modo = nuevo;
     escribir("modo", modo);
     app.dataset.modo = modo;
+    $prog.classList.toggle("v-bloques", modo === "bloques");
     cerrarHueco();
-    $prog.hidden = modo !== "pseudo";
-    $paleta.hidden = modo !== "pseudo";
-    $editor.hidden = modo === "pseudo";
-    $("paleta").hidden = modo === "pseudo";
-    if (modo === "pseudo" && document.activeElement === $codigo) $codigo.blur();
+    $prog.hidden = modo === "js";
+    $paleta.hidden = modo === "js";
+    $editor.hidden = modo !== "js";
+    $("paleta").hidden = modo !== "js";
+    if (modo !== "js" && document.activeElement === $codigo) $codigo.blur();
     for (const b of document.querySelectorAll("[data-modo-codigo]")) b.setAttribute("aria-pressed", String(b.dataset.modoCodigo === modo));
-    if (modo === "pseudo") { pintarPaleta(); pintar(); }
+    if (modo !== "js") { pintarPaleta(); pintar(); }
     else cmg.medirEditor();
     app.dispatchEvent(new Event("cmg:modo"));
   }

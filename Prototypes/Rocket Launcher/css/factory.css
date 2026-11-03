@@ -1,0 +1,13 @@
+/* Bloques de Factory: misma estructura y edición que el seudocódigo común. */
+.prog-seudo.v-bloques .fila { padding: 7px 10px; min-height: 42px; border-radius: 8px; background: color-mix(in srgb, var(--c-accion) 25%, var(--surface)); font-weight: 680; }
+.prog-seudo.v-bloques .fila.control { background: color-mix(in srgb, var(--c-control) 25%, var(--surface)); }
+.prog-seudo.v-bloques .fila.espera { background: color-mix(in srgb, var(--c-espera) 25%, var(--surface)); }
+.prog-seudo.v-bloques .contenedor > .cuerpo { border-left: 12px solid color-mix(in srgb, var(--c-control) 45%, var(--surface)); margin: 0; padding: 5px 0 5px 8px; box-shadow: none; }
+.prog-seudo.v-bloques .contenedor > .fila.cabeza { border-bottom-left-radius: 0; }
+.prog-seudo.v-bloques .contenedor > .fila.sino { border-radius: 0 8px 8px 0; }
+.prog-seudo.v-bloques .contenedor > .fila.pie { border-top-left-radius: 0; min-height: 14px; height: 14px; padding: 0; width: 46%; font-size: 0; }
+.prog-seudo.v-bloques .slot { border-radius: 999px; background: var(--surface); }
+[data-serie="factory"] .filas-f { display: flex; flex-direction: column; gap: 10px; }
+[data-serie="factory"] .fila-f { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
+[data-serie="factory"] .fila-f .campo-f { flex: 1 1 90px; min-width: 0; }
+[data-serie="factory"] .fila-f input, [data-serie="factory"] .fila-f select { width: 100%; min-width: 0; }
