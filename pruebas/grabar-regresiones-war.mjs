@@ -21,7 +21,7 @@ export async function preparar(p, codigo, movil = false) {
   await p.waitForFunction(({ ancho, alto }) => innerWidth === ancho && innerHeight === alto && !!window.cmg?.edicion, { ancho, alto });
   if (await p.evaluate(() => document.querySelector('#b-barras').getAttribute('aria-expanded') === 'false')) await p.click('#b-barras');
   await p.click('loc=role:tab[name="PROGRAMA"]');
-  await p.click('.modos-codigo [data-modo-codigo="js"]');
+  await p.selectOption('#sel-lenguaje', 'js');
   await p.click('#b-reto'); await p.click('.reto-btn[data-i="3"]');
   if (!await p.evaluate(() => document.querySelector('#hoja-reto').hidden)) await p.click('#b-reto');
   if (await p.evaluate(() => cmg.edicion.activo)) await p.click(movil ? '#edicion .b-teclado' : '#b-teclado');

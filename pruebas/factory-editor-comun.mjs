@@ -7,7 +7,7 @@ export async function probarFactoryEditorComun(page) {
   await page.goto(url);await page.waitForFunction(()=>!!window.cmg?.seudo);
   await page.evaluate(()=>{__banco.elegirReto(0);cmg.seudo.aplicarModo('js');cmg.edicion.activar(false);});
   await page.fill('#codigo','await deliver(FUN);');
-  await page.click('[data-modo-codigo="bloques"] >> nth=0');
+  await page.selectOption('#sel-lenguaje', 'bloques');
   eq(await page.evaluate(()=>[...document.querySelectorAll('#paleta-seudo [data-ladrillo]')].map(x=>x.dataset.ladrillo)),['recoger','entregar','repetir'],'ladrillos por reto');
   await page.click('#paleta-seudo [data-ladrillo="recoger"]');
   eq(await page.evaluate(()=>cmg.seudo.modelo.cuerpo.length),2,'insertar bloque actualiza el árbol');
@@ -17,7 +17,7 @@ export async function probarFactoryEditorComun(page) {
   await page.click('#edicion [data-accion="rehacer"]');
   eq(await page.evaluate(()=>cmg.seudo.modelo.cuerpo.length),2,'rehacer recupera árbol');
   await page.click('#prog .fila.simple >> nth=0');await page.click('#edicion [data-accion="copiar"]');
-  await page.click('[data-modo-codigo="pseudo"] >> nth=0');await page.click('#edicion [data-accion="pegar"]');
+  await page.selectOption('#sel-lenguaje', 'pseudo');await page.click('#edicion [data-accion="pegar"]');
   eq(await page.evaluate(()=>cmg.seudo.modelo.cuerpo.length),3,'copiar y pegar entre vistas');
   await page.click('#edicion [data-accion="cortar"]');
   eq(await page.evaluate(()=>cmg.seudo.modelo.cuerpo.length),2,'cortar bloque');
@@ -26,7 +26,7 @@ export async function probarFactoryEditorComun(page) {
   await page.click('#prog [data-campo="lugar"] >> nth=0');
   await page.click('.sugerencias:not([hidden]) [data-i="0"]');
   eq(await page.evaluate(()=>cmg.codigo.value.includes('deliver(ENT_1)')),true,'editar destino desde sus opciones');
-  await page.click('[data-modo-codigo="js"] >> nth=0');
+  await page.selectOption('#sel-lenguaje', 'js');
   await page.fill('#codigo','');await page.click('#b-teclado');
   await page.click('#paleta [data-i="5"]');
   await page.waitForSelector('.sugerencias:not([hidden]) .sug[data-i]');
@@ -42,7 +42,7 @@ export async function probarFactoryEditorComun(page) {
   await page.fill('#codigo','await wait(2);');
   await page.evaluate(()=>{__banco.elegirReto(1);__banco.elegirReto(0);});
   eq(await page.evaluate(()=>cmg.codigo.value),'await wait(2);','cambio inmediato de reto conserva texto');
-  await page.click('[data-modo-codigo="bloques"] >> nth=0');
+  await page.selectOption('#sel-lenguaje', 'bloques');
   await page.reload();await page.waitForFunction(()=>!!window.cmg?.seudo);
   eq(await page.evaluate(()=>[document.querySelector('#app').dataset.modo,cmg.codigo.value]),['bloques','await wait(2);'],'persisten modo por serie y JS');
   // Arrastre real de ratón y táctil emulado, heredado del editor común.

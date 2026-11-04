@@ -1,3 +1,10 @@
+## Arreglo · Factory en negro en Netlify y desplegable de lenguaje · 4 de noviembre de 2026
+
+- **Causa de la pantalla negra.** Factory buscaba el enlace con `a[href="probar.html"]`. En Netlify, «Pretty URLs» reescribe ese `href` como `probar`, así que el selector no encontraba nada y el `TypeError` cortaba el arranque de Factory (juego.js, rama `ES_FACTORY`). Por eso no había mapa ni inspector, Ejecutar no hacía nada, la paleta seguía siendo la de War y Python no aparecía. En local y en `dist/` no se veía, porque nadie reescribe el HTML.
+- **Arreglo.** El enlace se busca por id (`#b-probar`) y se le añade `serie=factory` sobre la URL que tenga. `probar.html` tenía el mismo patrón con `a[href="index.html"]` y ahora usa `#abrir-solo`. La regresión está en `pruebas/python-juego.mjs`: reescribe el `href` como Netlify y comprueba que Factory arranca sin errores.
+- **Desplegable de lenguaje (D7) en la cabecera del juego.** Sustituye a los botones JS/Bloques/Seudo/Py por `<select id="sel-lenguaje">` con JavaScript y Python. Debajo, en «Vistas de JavaScript», están Seudocódigo y, solo en Factory, Bloques. Con varias unidades en lenguajes distintos muestra «Varios lenguajes». El comportamiento no cambia: Python convierte o recupera; JS, Seudo y Bloques vuelven a JavaScript y aplican la vista. Ajustes conserva sus botones. Las pruebas que pulsaban los botones de la cabecera ahora eligen en el desplegable.
+- Versiones: `juego.js?v=33`, `componentes.css?v=21`, `layout.css?v=21`.
+
 ## Editor · E5–E7: Python se ejecuta, listas y conversión desde JS · 4 de noviembre de 2026
 
 - **Se retiró `?python=1`.** Py (cabecera) y Python (Ajustes) están siempre. Cambio visible declarado: las capturas de War y Factory ya no son las de E4b, porque el botón Py aparece en la cabecera.

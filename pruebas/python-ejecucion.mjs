@@ -68,17 +68,17 @@ export async function probarPythonEjecucion(page, origen = 'http://127.0.0.1:877
 
   // ---------- E7: Py convierte el JS de la unidad ----------
   await page.evaluate(() => { const b = window.__banco; b.elegirReto(0); delete b.fuentes['LAU-01']; b.programas['LAU-01'] = 'while (true) {\n  const pos = autoTarget("crawler", "visual"); // mira\n  if (pos) regularShoot(pos);\n  await esperar(0.5);\n}\n'; b.abrirPrograma('LAU-01'); });
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
+  await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value]), ['python', 'while True:\n    pos = auto_target("crawler", "visual")  # mira\n    if pos:\n        regular_shoot(pos)\n    await wait(0.5)\n'], 'Py convierte el programa JavaScript por el árbol');
   const convertido = await page.evaluate(() => cmg.codigo.value);
   const a = await correr(0, 'LAU-01', 'js', 'while (true) {\n  const pos = autoTarget("crawler", "visual"); // mira\n  if (pos) regularShoot(pos);\n  await esperar(0.5);\n}\n');
   const b = await correr(0, 'LAU-01', 'python', convertido);
   eq([b.fin, b.t, b.eventos.map(e => ({ ...e, linea: 0 }))], [a.fin, a.t, a.eventos.map(e => ({ ...e, linea: 0 }))], 'el programa convertido hace lo mismo que el JavaScript');
   await page.evaluate(() => { const b = window.__banco; b.elegirReto(0); delete b.fuentes['LAU-01']; b.programas['LAU-01'] = 'const datos = { a: 1 };\n'; b.abrirPrograma('LAU-01'); });
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
+  await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value.includes('no se pudo convertir'), document.body.textContent.includes('Los objetos { … } (diccionarios) aún no están en el Python del juego.'), window.__banco.programas['LAU-01']]),
     ['python', true, true, 'const datos = { a: 1 };\n'], 'si no cabe, lo explica y el JavaScript se conserva');
-  await page.click('.herramientas [data-modo-codigo="js"]');
+  await page.selectOption('#sel-lenguaje', 'js');
 
   // ---------- Factory: equivalencia y errores ----------
   await abrir('factory');

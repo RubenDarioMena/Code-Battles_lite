@@ -116,7 +116,7 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 
 ## Vistas y lenguaje
 
-- El editor se reutilizará como IDE, donde Seudo y Bloques no son prioridad. El usuario prevé **quitar Bloques y probablemente Seudo** (D8, pendiente). Hasta que se decida, el juego conserva sus botones JS/Seudo/Bloques sin cambios.
+- El editor se reutilizará como IDE, donde Seudo y Bloques no son prioridad. El usuario prevé **quitar Bloques y probablemente Seudo** (D8, pendiente). Hasta que se decida, el juego los conserva como «Vistas de JavaScript» dentro del desplegable de lenguaje de la cabecera (`#sel-lenguaje`, que sustituye a los botones JS/Seudo/Bloques/Py). Ajustes mantiene sus botones.
 - Desde E3 las vistas son **opcionales** en el componente (`opciones.vistas`). El juego las pide; una instancia autónoma no las tiene salvo que las pida, y la demo ya no carga `seudo.js`.
 - El selector del editor muestra solo **lenguajes del documento**, es decir, los adaptadores que ofrece el anfitrión. Cambiar de lenguaje es pedirle al anfitrión el documento en el otro lenguaje: convertirlo, abrir otro archivo o explicar por qué no. El editor no convierte.
 - Seudo y Bloques usan el árbol de `seudo.js`, que entra desde JS y **sale como JS**. Sobre un documento Python el componente no los crea.

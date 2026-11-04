@@ -213,8 +213,8 @@ El proveedor recibe el lenguaje en `funciones(lenguaje)`, `vocabulario(lenguaje)
 E4b lo puso detrás de `?python=1`; desde E5 el flag ya no existe y Python siempre está disponible.
 
 - La instancia del juego recibe `adaptadores: { js, python }`.
-- El botón **Py** de la cabecera y el botón **Python** de la hoja de Ajustes pasan las unidades elegidas a Python.
-- JS, Seudo y Bloques las devuelven a JavaScript; Seudo y Bloques, además, aplican su vista.
+- **Python** en el desplegable de lenguaje de la cabecera (`#sel-lenguaje`, D7) o en la hoja de Ajustes pasa las unidades elegidas a Python.
+- JavaScript, Seudocódigo y Bloques (estos dos, en el grupo «Vistas de JavaScript» del desplegable) las devuelven a JavaScript; Seudo y Bloques, además, aplican su vista.
 
 **Guardado.**
 - `programas` y `prog-<reto>` siguen siendo solo JS, así que copiar a un escenario propio no cambia.

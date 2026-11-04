@@ -318,6 +318,14 @@
 .mini { border: 1px solid var(--line); background: var(--surface-2); border-radius: 6px; padding: 3px 8px; min-width: 34px; min-height: 32px; cursor: pointer; font-size: 12.5px; font-weight: 650; color: var(--muted); }
 .mini:hover { color: var(--ink); }
 .mini[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+/* Lenguaje del programa: <select> nativo (D7) con el aspecto de los botones pequeños. */
+select.mini.lenguaje {
+  appearance: none; -webkit-appearance: none; max-width: 11em; min-width: 0; padding: 3px 24px 3px 9px; color: var(--ink); text-overflow: ellipsis;
+  background: linear-gradient(45deg, transparent 50%, currentColor 50%) no-repeat right 12px center / 5px 5px,
+              linear-gradient(-45deg, transparent 50%, currentColor 50%) no-repeat right 7px center / 5px 5px, var(--surface-2);
+}
+select.mini.lenguaje:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select.mini.lenguaje option, select.mini.lenguaje optgroup { color: var(--ink); background: var(--surface); }
 
 /* ---------- Pie: consola y ajustes ---------- */
 /* Panel inferior: inspector del programa o consola, con una barra que se arrastra como el divisor. */

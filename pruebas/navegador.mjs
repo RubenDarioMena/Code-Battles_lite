@@ -446,7 +446,7 @@ async function probarSeudo(page, eq) {
   // El reto puede tener un programa guardado de una ejecución anterior de QA.
   const partida = await evaluar(() => window.cmg.inicial().texto);
   await page.fill('#codigo', partida);
-  await page.click('.modos-codigo [data-modo-codigo="pseudo"]');
+  await page.selectOption('#sel-lenguaje', 'pseudo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.modo, document.querySelector('#editor').hidden, [...document.querySelectorAll('#prog .fila')].slice(0, 2).map(f => f.textContent.replace(/\s+/g, ' ').trim())]),
     ['pseudo', true, ['repite siempre', 'pos ← apunta a drone con visual · si no hay: crawler']], 'el programa de partida se lee en seudocódigo');
   eq(await codigo(), partida, 'entrar en seudocódigo no cambia el JavaScript');
@@ -466,10 +466,10 @@ async function probarSeudo(page, eq) {
   await page.waitForFunction(() => !!document.querySelector('#prog .fila.corre'));
   eq(await evaluar(() => document.querySelector('#prog').classList.contains('quieto')), true, 'al ejecutar se ilumina el renglón y la edición se bloquea');
   await page.click('#b-ejecutar');
-  await page.click('.modos-codigo [data-modo-codigo="js"]');
+  await page.selectOption('#sel-lenguaje', 'js');
   const raro = 'let x = 1;\nwhile (x < 3) { x++; }\n';
   await page.fill('#codigo', raro);
-  await page.click('.modos-codigo [data-modo-codigo="pseudo"]');
+  await page.selectOption('#sel-lenguaje', 'pseudo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.modo, window.cmg.codigo.value]), ['js', raro], 'lo que no tiene seudocódigo se queda intacto en JavaScript');
 
   // Review: la traducción debe preservar declaraciones, asignaciones y contadores.

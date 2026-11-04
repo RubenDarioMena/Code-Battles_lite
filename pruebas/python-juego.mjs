@@ -14,17 +14,17 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.evaluate(() => localStorage.setItem('cmg-banco03:fuentes-0', JSON.stringify({ 'LAU-01': { lenguaje: 'python', texto: 'print("sí")\n', enUso: true } })));
   await page.goto(url('')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   await page.evaluate(() => window.__banco.elegirReto(0));
-  eq(await page.evaluate(() => [document.querySelector('.herramientas [data-lenguaje-programa]').hidden, document.querySelector('[data-lenguaje-programa].btn').disabled, cmg.editor.documento().lenguaje, cmg.codigo.value]),
+  eq(await page.evaluate(() => [!document.querySelector('#sel-lenguaje option[value="python"]'), document.querySelector('[data-lenguaje-programa].btn').disabled, cmg.editor.documento().lenguaje, cmg.codigo.value]),
     [false, false, 'python', 'print("sí")\n'], 'sin flag, Py está a la vista y la fuente Python en uso se abre');
 
   // La unidad pasa a Python con su propio documento; el JS se conserva. El de partida se convierte (E7).
   await page.goto(url('')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-0'); localStorage.removeItem('cmg-banco03:prog-0'); window.__banco.elegirReto(0); window.cmg.edicion.activar(false); });
   const js = await page.evaluate(() => cmg.codigo.value);
-  eq(await page.evaluate(() => [document.querySelector('.herramientas [data-lenguaje-programa]').hidden, cmg.editor.documento().lenguaje]), [false, 'js'], 'Py a la vista y la unidad sigue en JavaScript');
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
-  eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value, cmg.codigo.getAttribute('aria-label'), document.querySelector('.herramientas [data-lenguaje-programa]').getAttribute('aria-pressed'), document.querySelector('.herramientas [data-modo-codigo="js"]').getAttribute('aria-pressed')]),
-    ['python', '# Programa de LAU-01 · el código de partida está comentado.\n# Quita los # (Ctrl+/ o el botón de comentar) o escribe el tuyo.\n# pos = auto_target("crawler", "visual")\n# regular_shoot(pos)\n', 'Programa de LAU-01 en Python', 'true', 'false'], 'Py abre el programa de partida convertido a Python');
+  eq(await page.evaluate(() => [!document.querySelector('#sel-lenguaje option[value="python"]'), cmg.editor.documento().lenguaje]), [false, 'js'], 'Py a la vista y la unidad sigue en JavaScript');
+  await page.selectOption('#sel-lenguaje', 'python');
+  eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value, cmg.codigo.getAttribute('aria-label'), document.querySelector('#sel-lenguaje').value, document.querySelector('#sel-lenguaje').selectedOptions[0].textContent]),
+    ['python', '# Programa de LAU-01 · el código de partida está comentado.\n# Quita los # (Ctrl+/ o el botón de comentar) o escribe el tuyo.\n# pos = auto_target("crawler", "visual")\n# regular_shoot(pos)\n', 'Programa de LAU-01 en Python', 'python', 'Python'], 'Py abre el programa de partida convertido a Python');
   eq(await page.evaluate(() => [...document.querySelectorAll('#paleta .atajo')].map(a => a.dataset.tipCod).filter(t => /auto_target|regular_shoot|wait|while True/.test(t))),
     ['while True: …', 'await wait(0.5)', 'pos = auto_target(__tipo_de_enemigo__, __sensor__)', 'regular_shoot(__lugar__)'], 'la paleta del lanzador en Python (nombres D1, huecos D4)');
   eq(await page.evaluate(() => [...document.querySelectorAll('#ins-cuerpo .tk-fn')].map(t => t.textContent).slice(0, 2)), ['auto_target(tipo, sensor)', 'regular_shoot(lugar)'], 'el inspector muestra los nombres Python');
@@ -42,11 +42,11 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   eq(await page.evaluate(() => [document.querySelector('#banner h2').textContent, document.querySelector('#banner').textContent.includes("NameError: name 'pos' is not defined")]), ['Error en la línea 6 de LAU-01', true], 'Ejecutar corre Python y el error trae la línea de Python');
   await page.evaluate(() => document.querySelector('#banner .acciones button:last-child').click());
   // Volver a JS recupera el programa JS; volver a Python, el Python.
-  await page.click('.herramientas [data-modo-codigo="js"]');
+  await page.selectOption('#sel-lenguaje', 'js');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value]), ['js', js], 'JS vuelve al programa JavaScript');
   await page.waitForTimeout(450);
   eq((await leer('fuentes-0'))['LAU-01'].enUso, false, 'la fuente Python queda guardada, fuera de uso');
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
+  await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => cmg.codigo.value), py, 'Py recupera lo escrito en Python');
   // Recargar conserva el lenguaje de la unidad.
   await page.waitForTimeout(450);
@@ -54,18 +54,18 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.evaluate(() => window.__banco.elegirReto(0));
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value]), ['python', py], 'al recargar, la unidad sigue en Python');
   // Seudo desde Python vuelve a JavaScript y aplica la vista.
-  await page.click('.herramientas [data-modo-codigo="pseudo"]');
+  await page.selectOption('#sel-lenguaje', 'pseudo');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, document.querySelector('#app').dataset.modo]), ['js', 'pseudo'], 'Seudo desde Python vuelve a JS y abre el seudocódigo');
   await page.evaluate(() => cmg.seudo.aplicarModo('js'));
 
   // Varias unidades: lenguajes distintos no aceptan borrador; Copiar a los demás copia en su lenguaje.
   await page.evaluate(() => { const b = window.__banco; b.elegirReto(4); b.programas['LAU-01'] = '// uno'; b.programas['LAU-02'] = '// dos'; b.abrirPrograma('LAU-01'); });
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
+  await page.selectOption('#sel-lenguaje', 'python');
   await page.evaluate(() => window.__banco.seleccionar(['LAU-01', 'LAU-02']));
   eq(await page.evaluate(() => [document.querySelector('#acciones-multi').hidden, document.querySelector('#multi-estado').textContent.includes('lenguajes distintos')]), [false, true], 'dos unidades en lenguajes distintos lo avisan');
   await page.click('#b-add');
   eq(await page.evaluate(() => [window.__banco.programas['LAU-01'], window.__banco.programas['LAU-02']]), ['// uno', '// dos'], 'y no aplican el borrador');
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
+  await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, document.querySelector('#multi-estado').textContent.includes('lenguajes distintos')]), ['python', false], 'Py pasa las dos a Python');
   await page.evaluate(() => { cmg.codigo.value = 'await wait(1)'; cmg.codigo.dispatchEvent(new Event('input')); window.cmg.confirmarReplace = false; });
   await page.click('#b-add');
@@ -77,7 +77,7 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   // Factory con Python: paleta del robot y el mismo almacenamiento.
   await page.goto(url('?serie=factory')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-factory-0'); window.__banco.elegirReto(0); });
-  await page.click('.herramientas [data-lenguaje-programa="python"]');
+  await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, [...document.querySelectorAll('#paleta .atajo')].map(a => a.dataset.tipCod).slice(1)]),
     ['python', ['for i in range(3): …', 'while __condicion__: …', 'await pick_up(__lugar__, __material__)', 'await deliver(__lugar__)', 'cantidad = count(__lugar__, __material__)', 'await wait(1)']], 'Factory: la paleta del robot en Python');
   await page.evaluate(() => { const c = cmg.codigo; c.focus(); c.setSelectionRange(c.value.length, c.value.length); });
@@ -90,8 +90,18 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.waitForFunction(() => document.querySelector('.sugerencias:not([hidden])')?.textContent.includes('material'));
   eq(await page.evaluate(() => [cmg.codigo.value.split('\n').at(-1), cmg.codigo.value.slice(cmg.codigo.selectionStart, cmg.codigo.selectionEnd)]), ['await pick_up(ENT_1, __material__)', '__material__'], 'elegir el lugar pasa al hueco del material');
   await page.evaluate(() => { cmg.editor.modoSinTeclado(false); cmg.seudo?.aplicarModo('js'); });
-  await page.click('.herramientas [data-modo-codigo="js"]');
+  await page.selectOption('#sel-lenguaje', 'js');
   eq(await page.evaluate(() => cmg.editor.documento().lenguaje), 'js', 'Factory vuelve a JavaScript');
   await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-factory-0'); localStorage.removeItem('cmg-banco03:fuentes-0'); localStorage.removeItem('cmg-banco03:fuentes-4'); });
+
+  // Netlify (Pretty URLs) reescribe «probar.html» como «probar»: Factory debe arrancar igual (antes: pantalla negra).
+  const errores = [], alError = e => errores.push(e.message);
+  page.on('pageerror', alError);
+  const reescribir = async r => { const res = await r.fetch(); await r.fulfill({ response: res, body: (await res.text()).replace(/href="probar\.html"/g, 'href="probar"') }); };
+  await page.route(/Rocket%20Launcher\/index\.html/, reescribir);
+  await page.goto(url('?serie=factory')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
+  eq(await page.evaluate(() => [document.getElementById('titulo').textContent, document.getElementById('b-probar').getAttribute('href').endsWith('probar?serie=factory'), !!document.querySelector('#sel-lenguaje option[value="python"]')]).then(r => [...r, errores.length]),
+    ['Primer viaje', true, true, 0], 'Factory arranca aunque el enlace a probar.html venga sin .html');
+  await page.unroute(/Rocket%20Launcher\/index\.html/, reescribir); page.off('pageerror', alError);
   return checks;
 }

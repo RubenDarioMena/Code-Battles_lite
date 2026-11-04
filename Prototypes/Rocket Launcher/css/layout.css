@@ -180,8 +180,8 @@
 /* Seudocódigo: ocupa el sitio del editor; la barra de edición actúa sobre el renglón elegido. */
 #v-programa > .prog { flex: 1 1 auto; min-height: 9rem; }
 .app[data-forma="movil"] #v-programa > .prog { min-height: 5rem; }
-.app[data-forma="movil"] .modos-codigo .mini { min-width: 0; }
-/* En el teléfono la pestaña dice solo la unidad («R1», «LAU-01»): JS, Seudo y Py caben sin recortarla. */
+.app[data-forma="movil"] select.mini.lenguaje { max-width: 8.5em; }
+/* En el teléfono la pestaña dice solo la unidad («R1», «LAU-01»): el desplegable de lenguaje cabe sin recortarla. */
 .app[data-forma="movil"] .prog-tab .prog-pre { display: none; }
 
 /* El botón de las herramientas queda siempre a la vista: las pestañas se deslizan por debajo. */

@@ -59,7 +59,7 @@ a { color: var(--accent); font-size: 13px; }
   <span class="etq">PC</span>
   <div class="seg" id="pc" role="group" aria-label="Pantalla de PC"></div>
   <button class="btn" type="button" id="recargar">Recargar</button>
-  <a href="index.html">Abrir el juego solo</a>
+  <a id="abrir-solo" href="index.html">Abrir el juego solo</a>
   <span class="nota">En el teléfono, toca el código: aparece un teclado simulado y el editor sube. Escribe con el teclado del PC.</span>
 </div>
 <div class="mesa" id="mesa"></div>
@@ -68,7 +68,7 @@ a { color: var(--accent); font-size: 13px; }
   "use strict";
   const parametros = new URLSearchParams(location.search);
   const urlJuego = new URL("index.html", location.href); urlJuego.search = parametros.toString(); urlJuego.searchParams.set("marco", "1");
-  if (parametros.get("serie") === "factory") { document.title = "Factory · Probar en dispositivos"; document.querySelector('a[href="index.html"]').href = "index.html?serie=factory"; }
+  if (parametros.get("serie") === "factory") { document.title = "Factory · Probar en dispositivos"; const solo = document.getElementById("abrir-solo"); if (solo) { const u = new URL(solo.href, location.href); u.searchParams.set("serie", "factory"); solo.href = u.pathname + u.search; } }
   const TELEFONOS = { "iPhone 15": [393, 852], "iPhone SE": [375, 667], "Pixel 8": [412, 915] };
   const PCS = { "Portátil": [1366, 768], "Escritorio": [1920, 1080], "Tableta": [1024, 768] };
   const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(`cmg-probar-${k}`)) ?? d; } catch { return d; } };

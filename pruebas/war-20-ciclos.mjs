@@ -18,7 +18,7 @@ export async function tanda(p,desde,hasta){
   if(!build.some(s=>s.endsWith('/juego.js?v=14')) || !build.some(s=>s.endsWith('/edicion.js?v=16')))throw new Error('Build anterior: no iniciar intento.');
   if(await p.evaluate(()=>document.querySelector('#b-barras').getAttribute('aria-expanded')==='false'))await p.click('#b-barras');
   await p.click('loc=role:tab[name="PROGRAMA"]');
-  await p.click('.modos-codigo [data-modo-codigo="js"]');
+  await p.selectOption('#sel-lenguaje', 'js');
   await p.click('#b-reto');await p.click('.reto-btn[data-i="'+(nivel-1)+'"]');
   if(!await p.evaluate(()=>document.querySelector('#hoja-reto').hidden))await p.click('#b-reto');
   const teclado=movil?'#edicion .b-teclado':'#b-teclado';

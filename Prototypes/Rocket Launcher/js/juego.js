@@ -1496,14 +1496,39 @@
     pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); pintarLenguaje(); marcasSucias = true;
   }
   const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}${edicion.lenguaje === "python" ? ":python" : ""}`;
-  // Lenguaje de la unidad: Py en la cabecera y Python en Ajustes. JS/Seudo/Bloques
-  // vuelven a JavaScript; el programa Python se conserva para cuando se vuelva a elegir.
+  // Lenguaje de la unidad: el desplegable de la cabecera y Python en Ajustes. JavaScript, Seudo y
+  // Bloques vuelven a JavaScript; el programa Python se conserva para cuando se vuelva a elegir.
+  function pintarSelectorLenguaje() {
+    const $selLenguaje = $("sel-lenguaje");
+    if (!$selLenguaje) return;
+    const varios = PYTHON && !!edicion.variosLenguajes, py = PYTHON && edicion.lenguaje === "python" && !varios;
+    const modoVista = $("app").dataset.modo || "js";
+    const opciones = [["js", "JavaScript"], ...(PYTHON ? [["python", "Python"]] : [])];
+    const vistas = [["pseudo", "Seudocódigo"], ...(ES_FACTORY ? [["bloques", "Bloques"]] : [])];
+    const html = (varios ? `<option value="varios" disabled>Varios lenguajes</option>` : "")
+      + opciones.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")
+      + `<optgroup label="Vistas de JavaScript">${vistas.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</optgroup>`;
+    if ($selLenguaje.dataset.html !== html) { $selLenguaje.innerHTML = html; $selLenguaje.dataset.html = html; }
+    $selLenguaje.value = varios ? "varios" : py ? "python" : (modoVista === "js" ? "js" : modoVista);
+  }
   function pintarLenguaje() {
+    pintarSelectorLenguaje();
     if (!PYTHON) return;
     const py = edicion.lenguaje === "python" && !edicion.variosLenguajes;
     for (const b of document.querySelectorAll("[data-lenguaje-programa]")) { b.hidden = false; b.disabled = false; b.setAttribute("aria-pressed", String(py)); }
     if (py) for (const b of document.querySelectorAll("[data-modo-codigo]")) b.setAttribute("aria-pressed", "false");
     $("app").dataset.lenguaje = py ? "python" : "js";
+  }
+  const $selLenguaje = $("sel-lenguaje");
+  if ($selLenguaje) {
+    $selLenguaje.addEventListener("change", () => {
+      const v = $selLenguaje.value;
+      if (v === "python") cambiarLenguaje("python");
+      else if (PYTHON && edicion.lenguaje === "python") { if (cambiarLenguaje("js")) editorPrograma.fachada.seudo?.aplicarModo(v); }
+      else editorPrograma.fachada.seudo?.aplicarModo(v);
+      pintarSelectorLenguaje();
+    });
+    $("app").addEventListener("cmg:modo", pintarSelectorLenguaje);
   }
   function cambiarLenguaje(lenguaje) {
     if (!PYTHON || !def) return false;
@@ -2055,7 +2080,9 @@
     $("t-escenario").textContent = "Tu reto";
     document.querySelectorAll('[data-modo-codigo="bloques"]').forEach(b => b.hidden = false);
     $("info-t-enemigos").hidden = true;
-    document.querySelector('a[href="probar.html"]').href = "probar.html?serie=factory";
+    // Por id y no por href: Netlify (Pretty URLs) reescribe «probar.html» como «probar» y el selector fallaba,
+    // cortando el arranque de Factory (pantalla negra, sin inspector ni Ejecutar).
+    const probar = $("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "factory"); probar.href = u.pathname + u.search; }
     $("c2d").setAttribute("aria-label", "Plano de la fábrica");
     $("progs").setAttribute("aria-label", "Programas de las máquinas");
     ATAJOS.splice(0, ATAJOS.length,

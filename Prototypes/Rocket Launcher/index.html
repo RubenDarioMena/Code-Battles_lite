@@ -8,10 +8,10 @@
 <link rel="stylesheet" href="../../shared/editor/tema.css?v=1">
 <link rel="stylesheet" href="../../shared/editor/editor.css?v=1">
 <link rel="stylesheet" href="css/base.css?v=4">
-<link rel="stylesheet" href="css/componentes.css?v=20">
+<link rel="stylesheet" href="css/componentes.css?v=21">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=6">
 <link rel="stylesheet" href="css/factory.css?v=1">
-<link rel="stylesheet" href="css/layout.css?v=20">
+<link rel="stylesheet" href="css/layout.css?v=21">
 
 </head>
 <body>
@@ -109,12 +109,10 @@
         <!-- Pantalla completa: ejecuta y pasa a la batalla -->
         <button class="btn primario ejecutar-cod" id="b-ejecutar-cod" type="button">▶ EJECUTAR</button>
         <div class="herramientas">
-          <span class="modos-codigo" role="group" aria-label="Vista del programa">
-            <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
-            <button class="mini" type="button" data-modo-codigo="bloques" hidden aria-pressed="false">Bloques</button>
-            <button class="mini" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-tip="Seudocódigo">Seudo</button>
-            <button class="mini" type="button" data-lenguaje-programa="python" hidden aria-pressed="false" data-tip="Python">Py</button>
-          </span>
+          <!-- Lenguaje del programa: <select> nativo (D7). Seudo y Bloques son vistas del JavaScript; juego.js rellena las opciones. -->
+          <select class="mini lenguaje" id="sel-lenguaje" aria-label="Lenguaje del programa" data-tip="Lenguaje del programa">
+            <option value="js">JavaScript</option>
+          </select>
           <button class="mini b-teclado" type="button" id="b-teclado" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"></button>
           <button class="mini" type="button" id="b-colores" aria-pressed="true" data-tip="Colores del código">◐</button>
           <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña" data-tip="Letra más pequeña">A−</button>
@@ -409,7 +407,7 @@
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=4" charset="utf-8"></script>
-<script src="js/juego.js?v=32" charset="utf-8"></script>
+<script src="js/juego.js?v=33" charset="utf-8"></script>
 <script src="js/layout.js?v=14" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
 

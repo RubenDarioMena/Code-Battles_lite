@@ -7,7 +7,7 @@ async function abrir(page) {
   await page.cdp('Emulation.setDeviceMetricsOverride', { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false });
   await page.waitForFunction(() => !!window.cmg?.edicion);
   await page.click('loc=role:tab[name="PROGRAMA"]');
-  await page.click('.modos-codigo [data-modo-codigo="js"]');
+  await page.selectOption('#sel-lenguaje', 'js');
   if (await page.evaluate(() => cmg.edicion.activo)) await page.click('#b-teclado');
 }
 
