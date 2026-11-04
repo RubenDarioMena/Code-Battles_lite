@@ -2,19 +2,16 @@
 const { readFileSync } = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
-const ruta = (archivo) => require('node:path').join(__dirname, '../Prototypes/Rocket Launcher/js', archivo);
-const src = readFileSync(ruta('juego.js'), 'utf8');
-const bloque = (inicio, fin) => src.slice(src.indexOf(inicio), src.indexOf(fin, src.indexOf(inicio)));
+const path = require('node:path');
 const ctx = vm.createContext({ console, Set, Map, Object, Promise, window: {} });
-// La estructura tolerante (shared/js/estructura.js) decide qué envuelve cada plantilla.
-vm.runInContext(readFileSync(require('node:path').join(__dirname, '../shared/js/estructura.js'), 'utf8'), ctx);
+for (const archivo of [
+  'shared/js/estructura.js', 'shared/editor/javascript.js',
+  'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js',
+]) vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8'), ctx, { filename: archivo });
 vm.runInContext(`
-${bloque('  const NOMBRES_HUECO =', '  const HUECO =')}
-const RE_ID = /[A-Za-z_$][\\w$]*/y, RE_NUM = /0x[0-9a-f]+|\\d*\\.?\\d+(?:e[+-]?\\d+)?/iy;
+var lexico = window.CMGEditorJS.lexico;
+const RE_HUECO = window.CMGEditorJS.RE_HUECO;
 let $codigo = {value:'', readOnly:false, setSelectionRange(a,b) { this.selectionStart=a; this.selectionEnd=b; }};
-${bloque('  function lexico(src)', '  // Vecino significativo')}
-${bloque('  function rangoCodigo(pos, triple)', '  $codigo.addEventListener("mousedown"')}
-${bloque('  const RE_HUECO =', '  function seleccionarHueco()')}
 function insertar(texto, desde, hasta) {
   if ($codigo.readOnly) return false;
   const a = $codigo.selectionStart, b = $codigo.selectionEnd;
@@ -22,20 +19,21 @@ function insertar(texto, desde, hasta) {
   $codigo.setSelectionRange(a + (desde ?? texto.length), a + (hasta ?? desde ?? texto.length));
   return true;
 }
-${bloque('  function envolver(antes, despues', '  // Comenta o descomenta')}
-${bloque('  const ATAJOS =', '  const codAtajo =')}
 let avisado = '';
-const esc = s => String(s), avisoEditor = html => { avisado = html; };
-${bloque('  // Operando de un operador', '  function usarAtajo')}
-let ejec = null, edicion = {ids:['A','B'],mixto:true}, programas = {A:'uno();',B:'dos();'}, aplicandoMulti = false;
+const { rangoCodigo, envolver, insertarBloque, insertarOperador } = window.CMGEditorJS.crearEdicion({
+  codigo: $codigo, insertar, aviso: html => { avisado = html; }, escapar: s => String(s),
+  estructura: () => window.ESTRUCTURA,
+});
+const { atajos: ATAJOS, textoAtajo } = window.CMGPaleta.crear();
+let ejec = null, edicion = {ids:['A','B'],mixto:true}, programas = {A:'uno();',B:'dos();'};
 const borradoresMulti = new Map();
 const claveEdicion = ids => [...ids].sort().join('|');
 let aceptado = true, guardados = 0, refrescos = 0;
-const confirmarReemplazo = async () => aceptado;
-const guardarProgramas = () => guardados++;
-const configurarEdicion = () => refrescos++;
-const pintarInspector = () => {};
-${bloque('  async function aplicarMulti(reemplazar)', '  $("b-add").addEventListener')}
+const aplicarMulti = window.CMGProgramas.crearAplicador({
+  estado: () => ({ ejec, edicion, programas, texto: $codigo.value }),
+  confirmarReemplazo: async () => aceptado,
+  alAplicar(ids) { borradoresMulti.delete(claveEdicion(ids)); guardados++; refrescos++; },
+});
 `, ctx);
 const run = code => vm.runInContext(code, ctx);
 const selection = (text, pos, triple) => {
@@ -158,7 +156,6 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   eq(run('RE_HUECO.test("/* segundos */") && RE_HUECO.test("/* tipo de enemigo */") && !RE_HUECO.test("/* nota */")'), true);
 
   // Estructura para el modo sin teclado (js/estructura.js).
-  vm.runInContext(readFileSync(require('node:path').join(__dirname, '../shared/js/estructura.js'), 'utf8'), ctx);
   const E = ctx.window.ESTRUCTURA;
   const est = (t) => E.analizar(t, ctx.lexico(t));
   const j = (x) => x == null ? x : JSON.parse(JSON.stringify(x));   // objetos de otro contexto vm
@@ -226,3 +223,4 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   checks++;
   console.log(`${checks} comprobaciones correctas`);
 })().catch(e => { console.error(e); process.exitCode=1; });
+

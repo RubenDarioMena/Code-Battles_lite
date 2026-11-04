@@ -1,0 +1,52 @@
+{
+  "base": "a50fde2b495c281ef806bdbf71ff88ca0860e602",
+  "contrato_sobre": "0319866715be18abbf48fa2e82234e27433a65e0",
+  "fecha": "2026-11-04",
+  "fuente_historica": "PROGRESO.md: Factory en 3D con el transporte T1, 3 de noviembre de 2026",
+  "suites": [
+    {
+      "archivo": "pruebas/interaccion.cjs",
+      "referencia": 123,
+      "actual": 123,
+      "estado": "ejecutada"
+    },
+    {
+      "archivo": "pruebas/navegador.mjs",
+      "referencia": 90,
+      "actual": null,
+      "estado": "pendiente_navegador"
+    },
+    {
+      "archivo": "pruebas/factory-editor-comun.mjs",
+      "referencia": 18,
+      "actual": null,
+      "estado": "pendiente_navegador"
+    },
+    {
+      "archivo": "pruebas/factory-vistas-comunes.mjs",
+      "referencia": 31,
+      "actual": null,
+      "estado": "pendiente_navegador"
+    },
+    {
+      "archivo": "pruebas/factory-comun.mjs",
+      "referencia": "28/28",
+      "actual": null,
+      "estado": "pendiente_navegador"
+    },
+    {
+      "archivo": "pruebas/factory-api.mjs",
+      "referencia": 7,
+      "actual": null,
+      "estado": "pendiente_navegador"
+    }
+  ],
+  "capturas": {
+    "estado": "pendiente",
+    "formatos": [
+      "pc",
+      "movil"
+    ]
+  },
+  "limitacion": "Chromium no arranca en el sandbox: setsockopt Operation not permitted. La compuerta de navegador de E0 sigue pendiente."
+}

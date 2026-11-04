@@ -1,3 +1,11 @@
+## Editor · E0: contrato y red de pruebas preparados · 4 de noviembre de 2026
+
+- Continuación autorizada tras D1/D2, sobre `trunk` en `0319866`. `shared/editor/CONTRATO.md` documenta API actuales, puertos, rangos UTF-16, líneas desde 0/1, estructura tolerante, sugerencias reales, fachada `cmg`, eventos, historial, preferencias, dependencias DOM y ciclo de vida previsto para E1. Distingue explícitamente lo implementado de `CMGEditor.crear` todavía pendiente.
+- `pruebas/interaccion.cjs` ya no recorta `juego.js`. Léxico, huecos y operaciones JS en `shared/editor/javascript.js`; catálogo de atajos en `js/paleta.js`; Add/Replace en `js/programas.js`. El juego y las pruebas cargan los mismos módulos de producción. Expectativas de las 123 comprobaciones conservadas literalmente; solo cambió el arnés. Estructura se resuelve al operar, respetando su carga actual posterior a juego.js. Sin cambios de CSS; juego29 y módulos nuevos v1.
+- Verificación actual: 123 lógica; nuevo `editor-contrato.cjs` correcto (carga sin DOM/juego/almacenamiento, aislamiento de puertos/paletas, UTF-16, estructura diferida y confirmaciones asíncronas ante cambio de reto/ejecución, cancelación y error); D1/D2 e integridad de dependencias correctos; reglas Factory correctas; sintaxis, expectativas y diff correctos; paquete con 8 páginas y 50 referencias locales.
+- `shared/editor/REFERENCIA-E0.json` registra cifras históricas: War 90, editor 18, vistas 31, paridad 28/28 y API 7. **No se han vuelto a ejecutar estas suites ni comparado capturas.** Intento Chromium headless con perfil temporal: `setsockopt: Operation not permitted`; no se solicitó otra espera de permisos. La compuerta de navegador/QA visual de E0 permanece pendiente; el usuario revisará manualmente esta entrega y D1/D2.
+- Siguiente etapa: E1, instancia de editor con marcado propio, adaptador JS completo, preferencias inyectadas y destruir; después E2 con dos interfaces independientes. Esta entrega prepara la separación y conserva las fachadas actuales; no implementa todavía la extracción completa ni edición/ejecución Python.
+
 ## Editor · decisiones D1/D2 y dependencias locales · 3 de noviembre de 2026
 
 - Plan subido primero a `trunk` en `b11039e`, incorporando la condición del usuario de no usar CDN. D1/D2 son las decisiones sobre nombres y await, distintas de las etapas E1/E2.

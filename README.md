@@ -36,6 +36,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | --- | --- |
 | `index.html` | Mapa, editor, inspector, Ajustes y diálogos. |
 | `js/juego.js` | Aplicación, selección, editor, guardado e integración de las familias. |
+| `js/paleta.js`, `js/programas.js` | Catálogo de atajos y aplicación de borradores Add/Replace, cargados también por las pruebas. |
 | `js/nucleo.js`, `js/runtime.js` | Paso fijo, lockstep, Web Workers, esperas y encargos. |
 | `js/war.js`, `js/factory.js` | Reglas de combate y logística. |
 | `js/war-retos.js`, `js/factory-retos.js` | Retos y normalización de escenarios. |
@@ -109,6 +110,8 @@ El [oráculo histórico y sus deltas](pruebas/factory-oraculo.md) verifican las 
 
 ```bash
 node pruebas/interaccion.cjs
+node pruebas/editor-contrato.cjs
+node pruebas/editor-lenguajes.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
 node --check "Prototypes/Rocket Launcher/js/layout.js"
 node --check shared/js/iconos.js
@@ -173,3 +176,5 @@ Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISIO
 ## Editor y lenguajes
 
 [Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas; la edición y ejecución Python siguen pendientes de E4/E5.
+
+E0 prepara el [contrato real del editor](shared/editor/CONTRATO.md): las operaciones JS viven en `shared/editor/javascript.js` y la suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas; la extracción de la interfaz sigue en E1.
