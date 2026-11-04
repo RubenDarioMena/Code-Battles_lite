@@ -5,7 +5,8 @@
   const ICONO_PANTALLA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>';
   const plantilla = `
     <div class="editor-herramientas">
-      <span class="modos-codigo" role="group" aria-label="Vista del programa">
+      <select class="mini lenguaje" id="lenguaje" aria-label="Lenguaje del documento" data-tip="Lenguaje del documento"></select>
+      <span class="modos-codigo" id="modos-codigo" role="group" aria-label="Vista del programa" hidden>
         <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
         <button class="mini" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-tip="Seudocódigo">Seudo</button>
       </span>
@@ -25,7 +26,7 @@
       <div class="area" id="area">
         <div class="espejo" id="espejo" aria-hidden="true"></div>
         <div class="banda" id="banda"></div><pre class="resaltado" id="resaltado" aria-hidden="true"></pre>
-        <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Código JavaScript"></textarea>
+        <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Código"></textarea>
         <div class="bloques" id="bloques" tabindex="0" role="group" aria-label="Código sin teclado" hidden>
           <div class="bloques-in" id="bloques-in"><div class="bloques-capa" id="bloques-capa" aria-hidden="true"></div><div class="bloques-texto" id="bloques-texto"></div></div>
         </div>
@@ -41,6 +42,7 @@
     </dialog>
     <dialog id="orden-barra" class="orden-barra"><button id="orden-cerrar" type="button">Cerrar</button><div id="orden-grupos" class="orden-grupos"></div><button id="orden-restaurar" type="button">Restaurar orden</button></dialog>`;
   const TAMANOS = [12, 13, 14, 16, 18];
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   // El criterio del juego (ventana estrecha o tableta en vertical), más el teléfono en horizontal,
   // que en el juego queda como PC, y un hueco muy estrecho para el editor aunque la ventana sea grande.
   const formaPorAncho = ancho => {
@@ -52,7 +54,7 @@
     const { raiz, proveedor = {}, alCambiar = () => {}, alAviso } = opciones;
     if (!raiz || raiz.dataset.cmgEditor) throw Error("La raíz del editor debe estar libre.");
     const adaptadores = opciones.adaptadores || { js: window.CMGAdaptadorJS };
-    const adaptador = adaptadores[opciones.documento?.lenguaje || "js"];
+    let adaptador = adaptadores[opciones.documento?.lenguaje || "js"];
     if (!adaptador) throw Error("Lenguaje del documento no disponible.");
     const uid = "cmg-editor-" + ++secuencia, nodos = new Map(), propios = [], reemplazos = [];
     raiz.dataset.cmgEditor = uid; raiz.classList.add("cmg-editor");
@@ -97,8 +99,8 @@
     const datosVacios = () => ({ lugares: [], materiales: [], ladrillos: [], tipos: [], sensores: [], red: [], otras: [] });
     const cmg = {
       codigo, serie: opciones.serie || "", get claveDocumento() { return doc.id; },
-      lexico: adaptador.lexico, clasificar: (f, i) => adaptador.clasificar(f, i, proveedor.vocabulario?.() || {}),
-      reHueco: adaptador.hueco.re, funciones: () => proveedor.funciones?.() || [],
+      get lenguaje() { return adaptador.id; },
+      funciones: () => proveedor.funciones?.() || [],
       firma: nombre => proveedor.firma?.(nombre) || proveedor.funciones?.().find(f => f.nombre === nombre)?.firma || null,
       sugerencias: c => proveedor.sugerencias?.(c) || null,
       datos: () => opciones.datos?.() || datosVacios(), inicial: () => opciones.inicial?.() || null,
@@ -106,8 +108,50 @@
       alternarEjecucion: () => opciones.alEjecutar?.(),
       alDesplazar: () => ui.pintarBanda(),
     };
-    const ui = window.CMGEditorUI.crear({ opciones: { ...opciones, proveedor }, cmg, $, ambito, vida, adaptador, marcasActuales });
-    Object.assign(cmg, ui);
+    // Vistas derivadas del árbol (Seudo y, en Factory, Bloques). Las pide el juego; una instancia autónoma
+    // solo las tiene con opciones.vistas. Hoy el árbol solo entra y sale como JS.
+    const vistas = new Set(opciones.vistas || (opciones.adoptar ? ["pseudo"] : []));
+    const iconos = opciones.iconos || window.ICONOS || {};
+    const historiales = new Map();
+    // El interior (texto, paleta, edición y vistas) depende del adaptador. Cambiar de lenguaje lo rehace
+    // con sus propios recursos; el marcado, el documento y los historiales se conservan.
+    let ui = null, interior = null, vistasPedidas = !opciones.aplazarVistas;
+    function montarInterior() {
+      const vidaInterior = window.CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
+      Object.assign(cmg, {
+        lexico: adaptador.lexico, clasificar: (f, i) => adaptador.clasificar(f, i, proveedor.vocabulario?.() || {}), reHueco: adaptador.hueco.re,
+      });
+      delete cmg.edicion; delete cmg.seudo;
+      ui = window.CMGEditorUI.crear({ opciones: { ...opciones, proveedor }, cmg, $, ambito, vida: vidaInterior, adaptador, marcasActuales });
+      Object.assign(cmg, ui);
+      vidaInterior.escuchar(codigo, "scroll", ui.pintarBanda);
+      const dependencias = { cmg, $, ambito, preferencias, vida: vidaInterior, adaptador, iconos, historiales };
+      window.CMGEdicion.crear(dependencias);
+      interior = { vida: vidaInterior, dependencias };
+      if (vistasPedidas) iniciarVistas();
+      const $modos = $("modos-codigo");
+      if ($modos) $modos.hidden = !vistas.size || !vistasPosibles();
+      const $sel = $("lenguaje");
+      if ($sel) $sel.value = adaptador.id;
+      codigo.setAttribute("aria-label", "Código " + window.CMGLenguajes.describir(adaptador.id, adaptador).nombre);
+      raiz.dataset.lenguaje = adaptador.id;
+    }
+    // Las vistas escriben JS: sobre otro lenguaje no se crean hasta que exista «árbol → ese lenguaje».
+    const vistasPosibles = () => adaptador.id === "js" && !!window.CMGSeudo;
+    function iniciarVistas() {
+      vistasPedidas = true;
+      if (!cmg.seudo && !vida.destruida && vistas.size && vistasPosibles())
+        window.CMGSeudo.crear({ ...interior.dependencias, preferencias: opciones.preferenciasVistas || preferencias });
+      return cmg.seudo;
+    }
+    function desmontarInterior() {
+      // Se sale del modo sin teclado y de las vistas para que el marcado quede como al crearlo.
+      const sinTeclado = !!cmg.edicion?.activo;
+      if (cmg.seudo?.activo) cmg.seudo.aplicarModo("js");
+      if (sinTeclado) cmg.edicion.activar(false);
+      interior.vida.destruir();
+      return { sinTeclado };
+    }
 
     vida.escuchar(codigo, "input", () => {
       if (codigo.readOnly) return;
@@ -119,19 +163,12 @@
       }
       ui.medirEditor();
     });
-    vida.escuchar(codigo, "scroll", ui.pintarBanda);
-    const iconos = opciones.iconos || window.ICONOS || {};
-    const dependencias = { cmg, $, ambito, preferencias, vida, adaptador, iconos };
-    window.CMGEdicion.crear(dependencias);
-    function iniciarVistas() {
-      if (!cmg.seudo && !vida.destruida) window.CMGSeudo.crear({ ...dependencias, preferencias: opciones.preferenciasVistas || preferencias });
-      return cmg.seudo;
-    }
-    if (!opciones.aplazarVistas) iniciarVistas();
+    montarInterior();
     const autonomo = !opciones.adoptar ? montarAutonomo() : null;
     codigo.readOnly = !!opciones.soloLectura?.();
     codigo.dispatchEvent(new CustomEvent("cmg:estado"));
-    ui.atajos(proveedor.atajos?.() || adaptador.plantillas || []);
+    const atajosActuales = () => proveedor.atajos?.(adaptador.id) || adaptador.plantillas || [];
+    ui.atajos(atajosActuales());
     // Lo que en el juego aporta su propia interfaz (layout.js y juego.js): forma, letra, ajustes,
     // tooltips y pantalla completa. Solo para instancias autónomas.
     function montarAutonomo() {
@@ -160,6 +197,39 @@
         const t = TAMANOS[Math.max(0, Math.min(TAMANOS.length - 1, i + paso))];
         raiz.style.setProperty("--code-size", t + "px"); preferencias.escribir("letra", t); ui.medirEditor();
       };
+      // Lenguaje: el selector lista los adaptadores que el anfitrión ofrece. Cambiarlo es pedirle al
+      // anfitrión el documento en el otro lenguaje (convertirlo, abrir otro archivo…); el editor no convierte.
+      const $lenguaje = $("lenguaje");
+      const ofrecidos = () => {
+        const pedidos = opciones.lenguajes || Object.keys(adaptadores);
+        return window.CMGLenguajes.disponibles(adaptadores, pedidos.includes(adaptador.id) ? pedidos : [adaptador.id, ...pedidos]);
+      };
+      let pidiendo = false;
+      const pintarLenguajes = () => {
+        const lista = ofrecidos();
+        $lenguaje.innerHTML = lista.map(l => `<option value="${esc(l.id)}">${esc(l.nombre)}</option>`).join("");
+        $lenguaje.value = adaptador.id;
+        $lenguaje.disabled = pidiendo || lista.length < 2 || !opciones.alCambiarLenguaje;
+      };
+      pintarLenguajes();
+      vida.escuchar(raiz, "cmg:lenguaje", pintarLenguajes);
+      vida.escuchar($lenguaje, "change", async () => {
+        const pedido = $lenguaje.value, desde = { ...doc };
+        $lenguaje.value = adaptador.id;
+        if (pedido === adaptador.id || pidiendo) return;
+        pidiendo = true; pintarLenguajes();
+        let r;
+        try { r = await opciones.alCambiarLenguaje({ documento: desde, lenguaje: pedido }); }
+        catch (e) { r = { motivo: e?.message || String(e) }; }
+        pidiendo = false;
+        if (vida.destruida) return;
+        pintarLenguajes();
+        if (r?.motivo) return cmg.aviso(esc(r.motivo));
+        if (!r) return;
+        // Si se editó mientras el anfitrión preparaba el documento, su respuesta ya no vale.
+        if (doc.id !== desde.id || doc.revision !== desde.revision) return cmg.aviso("El documento cambió mientras se preparaba el otro lenguaje; vuelve a elegirlo.");
+        editor.abrir(r);
+      });
       vida.escuchar($("b-menos"), "click", () => letra(-1));
       vida.escuchar($("b-mas"), "click", () => letra(1));
       const $ajustes = $("ajustes");
@@ -220,16 +290,27 @@
     const editor = {
       codigo, fachada: cmg, iniciarVistas,
       documento: () => ({ ...doc }),
+      // Abrir un documento de otro lenguaje rehace el interior con su adaptador.
+      // Cada documento conserva su historial; la conversión, si la hay, es del anfitrión.
       abrir(documento) {
         if (vida.destruida) return;
-        if (documento.lenguaje !== adaptador.id) throw Error("Conversión de lenguaje todavía no disponible.");
+        const lenguaje = documento.lenguaje || adaptador.id, otro = lenguaje !== adaptador.id;
+        if (otro && !adaptadores[lenguaje]) throw Error("Lenguaje del documento no disponible: " + lenguaje);
         const previo = revisiones.get(documento.id);
-        const revision = Math.max(documento.revision || 0, doc.revision + (doc.id !== documento.id || doc.texto !== documento.texto ? 1 : 0), previo ? previo.revision + (previo.texto !== documento.texto ? 1 : 0) : 0);
-        doc = { ...documento, revision }; revisiones.set(doc.id, { texto: doc.texto, revision });
+        const revision = Math.max(documento.revision || 0, doc.revision + (doc.id !== documento.id || doc.texto !== documento.texto || otro ? 1 : 0), previo ? previo.revision + (previo.texto !== documento.texto ? 1 : 0) : 0);
+        const antes = otro ? desmontarInterior() : null;
+        doc = { ...documento, lenguaje, revision }; revisiones.set(doc.id, { texto: doc.texto, revision });
         codigo.value = doc.texto; marcasActuales.corre = marcasActuales.err = null;
-        codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } }));
+        if (otro) {
+          adaptador = adaptadores[lenguaje];
+          montarInterior(); ui.atajos(atajosActuales());
+          codigo.dispatchEvent(new CustomEvent("cmg:estado"));
+          if (antes.sinTeclado) cmg.edicion.activar(true);
+          raiz.dispatchEvent(new CustomEvent("cmg:lenguaje", { detail: { lenguaje } }));
+        } else codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } }));
         ui.medirEditor();
       },
+      lenguajes: () => window.CMGLenguajes.disponibles(adaptadores, opciones.lenguajes),
       insertar(...args) { return !vida.destruida && !opciones.soloLectura?.() && ui.insertar(...args); },
       marcas(revision, lista) {
         if (vida.destruida || revision !== doc.revision) return false;
@@ -247,16 +328,17 @@
       modoSinTeclado(si) { if (!vida.destruida) cmg.edicion.activar(si); },
       pantallaCompleta(si) { return autonomo ? autonomo.pantalla(si) : false; },
       forma: () => anfitrion.dataset.forma || null,
-      refrescar() { if (!vida.destruida) { codigo.readOnly = !!opciones.soloLectura?.(); codigo.dispatchEvent(new CustomEvent("cmg:estado")); ui.atajos(proveedor.atajos?.() || adaptador.plantillas || []); ui.medirEditor(); } },
+      refrescar() { if (!vida.destruida) { codigo.readOnly = !!opciones.soloLectura?.(); codigo.dispatchEvent(new CustomEvent("cmg:estado")); ui.atajos(atajosActuales()); ui.medirEditor(); } },
       destruir() {
         if (vida.destruida) return;
         autonomo?.destruir();
         vida.destruir(); for (const n of propios) n.remove();
         if (anfitrionNuevo) anfitrion.classList.remove("cmg-anfitrion");
         for (const [viejo, nuevo] of reemplazos.reverse()) nuevo.replaceWith(viejo);
-        raiz.classList.remove("cmg-editor"); delete raiz.dataset.cmgEditor; delete raiz.dataset.autonomo;
+        interior.vida.destruir();
+        raiz.classList.remove("cmg-editor"); delete raiz.dataset.cmgEditor; delete raiz.dataset.autonomo; delete raiz.dataset.lenguaje;
         if (!opciones.app) { delete raiz.dataset.modo; delete raiz.dataset.sinTeclado; delete raiz.dataset.forma; delete raiz.dataset.escribiendo; raiz.style.removeProperty("--code-size"); }
-        revisiones.clear(); memoria.clear();
+        revisiones.clear(); memoria.clear(); historiales.clear();
       },
     };
     ui.medirEditor();

@@ -58,4 +58,12 @@ assert.throws(() => acorn.parse('function viaje() { await pickUp(); }', { ecmaVe
 for (const archivo of ['Prototypes/Rocket Launcher/index.html', 'Prototypes/Rocket Launcher/probar.html', 'Prototypes/Rocket Launcher/js/factory-3d.js']) {
   assert(!/https?:\/\/(?:cdn\.|cdnjs\.|fonts\.)/.test(leer(archivo)), archivo);
 }
-console.log('D1/D2: nombres, alias por lenguaje/serie, aislamiento, llamadas y await; dependencias locales íntegras.');
+// E3: catálogo de lenguajes del editor. Solo nombres y presentación; ejecutar no es asunto del editor.
+assert.equal(Object.keys(CMGLenguajes.catalogo).join(), 'js,python');
+assert(Object.isFrozen(CMGLenguajes.catalogo) && Object.isFrozen(CMGLenguajes.catalogo.python));
+assert.equal(CMGLenguajes.describir('python').nombre, 'Python');
+assert.equal(CMGLenguajes.describir('otro', { nombre: 'Otro', comentario: { linea: ';' } }).comentario, ';');
+const adaptadoresE3 = { js: { id: 'js' }, otro: { id: 'otro', nombre: 'Otro' } };
+assert.equal(CMGLenguajes.disponibles(adaptadoresE3).map(l => l.nombre).join(), 'JavaScript,Otro');
+assert.equal(CMGLenguajes.disponibles(adaptadoresE3, ['python', 'otro', 'otro']).map(l => l.id).join(), 'otro');
+console.log('D1/D2 y E3: catálogo de lenguajes, nombres, alias por lenguaje/serie, aislamiento, llamadas y await; dependencias locales íntegras.');

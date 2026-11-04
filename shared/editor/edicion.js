@@ -1,7 +1,7 @@
 /* Interfaz extraída; juego y demo crean instancias de este mismo módulo. */
 (() => {
   "use strict";
-  function crear({ cmg, $, ambito, preferencias, vida, adaptador, iconos = {} }) {
+  function crear({ cmg, $, ambito, preferencias, vida, adaptador, iconos = {}, historiales: externos }) {
   const E = adaptador.estructura;
   const app = $("app"), $editor = $("editor"), $codigo = cmg.codigo, $gutter = $("gutter"), $barra = $("edicion");
   const $vista = $("bloques"), $in = $("bloques-in"), $texto = $("bloques-texto"), $capa = $("bloques-capa"), $asas = $("asas"), $asasIn = $("asas-in");
@@ -74,10 +74,15 @@
     return reemplazar(i, v.length - j, nuevo.slice(i, nuevo.length - j), sa, sb);
   }
   // Un historial por documento (programa o borrador). Lo tecleado seguido cuenta como un solo paso.
-  const historiales = new Map();
+  // El mapa puede llegar de la instancia: así sobrevive cuando el editor se rehace para otro lenguaje.
+  // Cada entrada es el objeto vivo del historial, de modo que el mapa siempre está al día.
+  const historiales = externos || new Map();
   const capturar = () => cmg.capturarDocumento ? cmg.capturarDocumento() : $codigo.value;
   const nuevoHistorial = () => ({ pasado: [], futuro: [], ultimo: capturar(), t: 0, tecleo: false, operacion: false });
-  let hist = nuevoHistorial(), claveDoc = cmg.claveDocumento, aplicando = false;
+  let claveDoc = cmg.claveDocumento, aplicando = false;
+  const deAntes = historiales.get(claveDoc);
+  let hist = deAntes && deAntes.ultimo === capturar() ? deAntes : nuevoHistorial();
+  historiales.set(claveDoc, hist);
   vida.escuchar($codigo, "input", (ev) => {
     const actual = capturar();
     if (aplicando || actual === hist.ultimo) return;
@@ -93,6 +98,7 @@
     claveDoc = ev.detail.clave;
     const h = historiales.get(claveDoc);
     hist = h && h.ultimo === capturar() ? h : nuevoHistorial();
+    historiales.set(claveDoc, hist);
     pila.length = 0;
     cerrarSugerencias();
     pintarBarra();

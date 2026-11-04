@@ -1,3 +1,23 @@
+## Editor · E3: lenguaje del documento · 4 de noviembre de 2026
+
+- **Alcance revisado por el usuario antes de empezar:**
+  - Los lenguajes del juego (se traducen a JS y corren en su Worker) son distintos de los del editor (los que el componente sabe editar).
+  - Otra aplicación puede usar el editor con su propio motor; eso queda fuera de este proyecto.
+  - Solo se añade Python.
+  - Bloques y probablemente Seudo saldrán, porque no son prioridad para un IDE. Queda como decisión pendiente D8 y el juego no cambia mientras tanto.
+- **`CMGLenguajes`** ahora tiene un catálogo de presentación (`js`, `python`) y las funciones `describir` y `disponibles`. Un adaptador sin entrada en el catálogo usa su propio nombre.
+- **Las instancias autónomas** tienen un `<select>` nativo de lenguaje (D7 aplicada). Cambiar de lenguaje es pedírselo al anfitrión con `alCambiarLenguaje`, que responde con un documento, con `{ motivo }` o con una promesa. Las respuestas tardías se descartan. `abrir` con otro lenguaje rehace el interior con su adaptador, sin oyentes duplicados y conservando la forma, la letra, la pantalla completa, el modo sin teclado y un historial por documento. `edicion.js` acepta el mapa de historiales de la instancia.
+- **Vistas opcionales** (`opciones.vistas`): el juego las pide y la demo no, y la demo ya no carga `seudo.js`. Con eso desaparece la fuga de los ladrillos de War que se anotó en E2.1. La API está documentada en `shared/editor/CONTRATO.md` y el plan quedó actualizado (E3 revisada, E4 con el selector del juego, D7–D9).
+- **Verificación** (detalle en `docs/qa/editor-e3-2026-11-04/`):
+  - War 90/90, editor 18, vistas 31, API 7, paridad 28/28 y 3D 10.
+  - Demo 51, de las cuales 13 son nuevas.
+  - Lógica 123, contratos y catálogo correctos, entrada 8, y paquete de 9 páginas con 79 referencias.
+  - 32 capturas de War y Factory idénticas píxel a píxel contra `d739dec`.
+- **Límites y versiones:**
+  - Sin dispositivos reales.
+  - El juego todavía no tiene selector: llega en E4 junto con Python detrás de `?python=1`.
+  - Versiones: editor.js 3, edicion.js 2, lenguajes.js 2, autonomo.css 3 y demo 3.
+
 ## Editor · E2.1: paridad de la demo con War y pantalla completa · 4 de noviembre de 2026
 
 - Pedido por el usuario antes de E3, tras revisar la demo a 1920×1080, 1400×900, 1024×768, 768×1024, 390×844, 360×640 y 844×390: editor fijo de 300 px sin pantalla completa, siempre con tamaños de PC, barras de edición y símbolos siempre visibles, sin tooltips ni A−/A+, ajustes junto al editor y primer ejemplo sin Seudo.

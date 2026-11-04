@@ -52,6 +52,50 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   eq(await page.evaluate(() => {editorSolo.codigo.setSelectionRange(10,10);editorSolo.insertar('\n');return editorSolo.documento().texto.endsWith('\n');}), true, 'editar sin proveedor ni persistencia');
   await page.evaluate(() => {editorSolo.destruir();document.querySelector('#sin-proveedor').remove();});
 
+  // E3 · lenguaje del documento. El IDE no trae Seudo: sus vistas son opcionales y la demo no carga seudo.js.
+  eq(await page.evaluate(() => { const s = document.querySelector('#demo-uno [data-editor="lenguaje"]'); return [[...s.options].map(o => o.textContent), s.disabled, s.value, document.querySelector('#demo-uno').dataset.lenguaje]; }), [['JavaScript'], true, 'js', 'js'], 'un solo lenguaje: el selector lo indica sin permitir cambiarlo');
+  eq(await page.evaluate(() => [typeof window.CMGSeudo, document.querySelector('#demo-uno [data-editor="modos-codigo"]').hidden, document.querySelector('#demo-uno textarea').getAttribute('aria-label')]), ['undefined', true, 'Código JavaScript'], 'sin vistas de seudocódigo en el IDE');
+  // Un segundo adaptador de prueba (no es un lenguaje del proyecto): basta para cambiar el interior.
+  await page.evaluate(() => {
+    const root = document.createElement('div'); root.id = 'lenguajes'; document.body.append(root);
+    const prueba = { ...CMGAdaptadorJS, id: 'prueba', nombre: 'Prueba', teclas: [{ t: '#' }], plantillas: [] };
+    const docs = { js: { id: 'a.js', lenguaje: 'js', texto: 'let a = 1;', revision: 0 }, prueba: { id: 'a.prueba', lenguaje: 'prueba', texto: '# uno', revision: 0 } };
+    window.respuesta = d => d;   // el anfitrión decide: aquí, abrir el documento guardado de ese lenguaje
+    window.editorL = CMGEditor.crear({ raiz: root, documento: docs.js, adaptadores: { js: CMGAdaptadorJS, prueba }, forma: 'escritorio',
+      alCambiar: d => { docs[d.lenguaje] = d; },
+      alCambiarLenguaje: ({ documento, lenguaje }) => { docs[documento.lenguaje] = documento; return window.respuesta(docs[lenguaje]); } });
+  });
+  const lenguaje = id => page.evaluate(v => { const s = document.querySelector('#lenguajes [data-editor="lenguaje"]'); s.value = v; s.dispatchEvent(new Event('change')); }, id).then(() => page.waitForTimeout(30));
+  eq(await page.evaluate(() => { const s = document.querySelector('#lenguajes [data-editor="lenguaje"]'); return [[...s.options].map(o => o.value + ':' + o.textContent), s.disabled]; }), [['js:JavaScript', 'prueba:Prueba'], false], 'el selector lista los adaptadores con el nombre del catálogo o del adaptador');
+  await page.fill('#lenguajes textarea', 'let a = 2;');
+  await lenguaje('prueba');
+  eq(await page.evaluate(() => [editorL.documento().lenguaje, editorL.documento().texto, document.querySelector('#lenguajes').dataset.lenguaje, document.querySelector('#lenguajes textarea').getAttribute('aria-label'),
+    document.querySelectorAll('#lenguajes .simbolos button').length, document.querySelectorAll('#lenguajes .paleta .atajo').length]),
+    ['prueba', '# uno', 'prueba', 'Código Prueba', 1, 0], 'cambiar de lenguaje abre su documento con su adaptador, teclas y paleta');
+  await page.evaluate(() => editorL.fachada.edicion.deshacer());
+  eq(await page.evaluate(() => editorL.documento().texto), '# uno', 'el historial del otro documento no se mezcla');
+  await lenguaje('js');
+  eq(await page.evaluate(() => [editorL.documento().texto, document.querySelectorAll('#lenguajes .paleta .atajo').length > 0]), ['let a = 2;', true], 'volver al lenguaje anterior recupera texto y paleta');
+  await page.evaluate(() => editorL.fachada.edicion.deshacer());
+  eq(await page.evaluate(() => editorL.documento().texto), 'let a = 1;', 'cada documento conserva su historial al cambiar de lenguaje');
+  await page.evaluate(() => editorL.modoSinTeclado(true));
+  for (const id of ['prueba', 'js', 'prueba']) await lenguaje(id);
+  eq(await page.evaluate(() => [editorL.fachada.edicion.activo, document.querySelectorAll('.sugerencias').length, document.querySelectorAll('.variantes').length]), [true, 2, 2], 'sin teclado sigue activo y no se duplican menús al rehacer el interior');
+  await page.focus('#lenguajes [data-editor="bloques"]');
+  await page.keyboard.press('Control+Alt+A');
+  eq(await page.evaluate(() => editorL.fachada.edicion.activo), false, 'un único atajo tras cambiar de lenguaje');
+  await page.evaluate(() => { window.respuesta = () => ({ motivo: 'Este programa no cabe en <JS>.' }); });
+  await lenguaje('js');
+  eq(await page.evaluate(() => [editorL.documento().lenguaje, document.querySelector('#lenguajes [data-editor="lenguaje"]').value, document.querySelector('#lenguajes [data-editor="aviso"]').textContent.includes('no cabe en <JS>')]), ['prueba', 'prueba', true], 'si el anfitrión explica que no puede, el documento y el selector no cambian');
+  await page.evaluate(() => { window.respuesta = d => new Promise(r => setTimeout(() => r(d), 80)); });
+  await lenguaje('js');
+  await page.evaluate(() => editorL.insertar('x'));
+  await page.waitForTimeout(150);
+  eq(await page.evaluate(() => [editorL.documento().lenguaje, editorL.documento().texto.includes('x'), document.querySelector('#lenguajes [data-editor="lenguaje"]').disabled]), ['prueba', true, false], 'una respuesta que llega tras editar se descarta');
+  eq(await page.evaluate(() => { try { editorL.abrir({ id: 'z', lenguaje: 'cobol', texto: '' }); return 'abierto'; } catch (e) { return editorL.documento().lenguaje; } }), 'prueba', 'abrir un lenguaje sin adaptador falla sin tocar el documento');
+  await page.evaluate(() => { editorL.destruir(); document.querySelector('#lenguajes').remove(); });
+  eq(await page.evaluate(() => [document.querySelectorAll('.sugerencias').length, document.querySelectorAll('.variantes').length]), [1, 1], 'destruir tras cambiar de lenguaje retira los auxiliares del interior');
+
   // E2.1 · paridad con el editor del juego y pantalla completa.
   const vista = page.viewportSize() || { width: 1280, height: 720 };
   await page.setViewportSize({ width: 1400, height: 900 });

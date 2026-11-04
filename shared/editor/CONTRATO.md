@@ -139,3 +139,20 @@ La portada enlaza la demo en el footer. Los recursos JS/CSS de las dos entradas 
 **Tooltips.** `shared/editor/tips.js` (`CMGTips`) es el tooltip de la página que antes vivía en `layout.js`. El juego lo crea con su `#tip`; las instancias autónomas comparten uno con `adquirir()`, y la última en destruirse lo retira. La paleta y el menú de variantes se buscan dentro del `.cmg-editor` del elemento.
 
 **Pantalla completa.** `editor.pantallaCompleta(si?)` (solo autónomas; en el juego devuelve `false`) y el botón de las cuatro esquinas. La raíz pasa a `position: fixed` sobre el viewport visual (se ajusta al abrirse el teclado del teléfono), con `z-index: 70`, por debajo de tooltips, menús y hojas. El documento queda sin desplazamiento (`data-cmg-pantalla` en `<html>`). Además se pide la pantalla completa del navegador sobre `<html>` cuando existe y `opciones.pantallaNavegador !== false`; en iPhone queda solo la del editor. Salen el botón, Esc (si no lo usaron sugerencias, variantes o la selección del modo sin teclado), el Esc propio del navegador y `destruir()`. Una petición del navegador que llega después de salir se suelta. `opciones.alPantallaCompleta(si)` avisa al anfitrión. Es distinta del modo pantalla completa del juego, que reparte la ventana entre mapa y código.
+
+## Lenguaje del documento (E3)
+
+**Lenguajes del editor y del anfitrión.** El editor sabe editar los lenguajes cuyos adaptadores recibe. No los ejecuta. El juego traduce a JS para su Worker; otra aplicación puede usar su propio motor. `CMGLenguajes.catalogo` (en `lenguajes.js`) solo guarda nombre, abreviatura, extensión y comentario de los lenguajes de este proyecto: `js` y `python` (Python todavía sin adaptador). `describir(id, adaptador)` usa el catálogo y, si el lenguaje no está en él, `adaptador.nombre`. Así un anfitrión puede traer adaptadores propios sin tocar el catálogo. `disponibles(adaptadores, ids?)` lista los pedidos que tienen adaptador.
+
+**Selector.** Las instancias autónomas muestran un `<select>` nativo (D7) con los lenguajes de `opciones.lenguajes` (por defecto, todos los adaptadores). El lenguaje actual siempre aparece. Está desactivado si solo hay uno o si el anfitrión no da `alCambiarLenguaje`; en ese caso solo indica el lenguaje. En el juego (`adoptar`) no se crea: el juego conserva sus botones hasta E4.
+
+**Cambiar de lenguaje.** Elegir otro lenguaje llama a `opciones.alCambiarLenguaje({ documento, lenguaje })`, que puede responder de forma síncrona o con una promesa:
+- con un documento, se abre con `abrir`;
+- con `{ motivo }`, se muestra el aviso y nada cambia;
+- con nada, no pasa nada.
+
+Mientras espera, el selector queda desactivado. Si el documento se edita o cambia antes de la respuesta, esta se descarta con un aviso. Una excepción del anfitrión se trata como motivo. El editor no convierte entre lenguajes: lo hace el anfitrión, o abre otro archivo.
+
+**`abrir` con otro lenguaje.** Rehace el interior (texto, paleta, edición, símbolos y vistas) con el adaptador del documento, con recursos propios: los oyentes, menús y portales del anterior se retiran. El marcado, la forma, la letra, la pantalla completa y el modo sin teclado se conservan. Los historiales viven en la instancia, uno por documento, y se recuperan al volver si el texto coincide. Un lenguaje sin adaptador lanza un error sin tocar el documento. La revisión crece. La raíz lleva `data-lenguaje`, el textarea `aria-label="Código <nombre>"` y la fachada `cmg.lenguaje`. Después del cambio se emite `cmg:lenguaje` en la raíz. `editor.lenguajes()` devuelve los ofrecidos. `proveedor.atajos(lenguaje)` recibe el lenguaje.
+
+**Vistas opcionales.** `opciones.vistas` (por defecto `["pseudo"]` con `adoptar` y `[]` sin él) decide si se crean Seudo/Bloques. Solo existen sobre JS y con `seudo.js` cargado. La demo ya no lo carga. Su futuro está en la decisión D8 del plan.

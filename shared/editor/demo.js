@@ -9,7 +9,7 @@
       titulo: "Mensaje", grupos: [{ items: [{ ins: '"Hola"', cls: "str" }, { ins: '"Hasta luego"', cls: "str" }] }],
     } : null,
   };
-  // El primero cabe en el seudocódigo actual (solo llamadas); el segundo usa variables y queda en JS.
+  // La demo es un IDE de un solo lenguaje por ahora: JavaScript. Python llega con su adaptador (E4).
   const iniciales = ['console.log("Hola");\nconsole.info("Listo para empezar");\nconsole.warn("Revisa el mensaje");\n', 'let pasos = 3;\nwhile (pasos > 0) {\n  console.log(pasos);\n  pasos -= 1;\n}\n'];
   // ?forma=movil o ?forma=escritorio la fuerzan, como en el juego; si no, cada editor la deduce de su ancho.
   const forma = ["movil", "escritorio"].includes(new URLSearchParams(location.search).get("forma")) ? new URLSearchParams(location.search).get("forma") : undefined;
