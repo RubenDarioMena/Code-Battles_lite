@@ -7,7 +7,15 @@
   const $vista = $("bloques"), $in = $("bloques-in"), $texto = $("bloques-texto"), $capa = $("bloques-capa"), $asas = $("asas"), $asasIn = $("asas-in");
   const { leer, escribir } = preferencias;
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-  const UNIDAD = "  ";   // sangría de los programas de partida
+  // Lo que depende del lenguaje llega del adaptador; sin él, las reglas de JS de siempre.
+  const S = adaptador.sangria || {};
+  const UNIDAD = S.unidad || "  ";   // sangría de los programas de partida
+  const abreLinea = S.abre || ((l) => /\{\s*(\/\/.*)?$/.test(l));
+  const significativa = !!(S.significativa && S.niveles);   // Python: la sangría es el programa
+  const H = (n) => adaptador.hueco && adaptador.hueco.crear ? adaptador.hueco.crear(n) : `/* ${n} */`;
+  const FIN = adaptador.finSentencia ?? ";";
+  const L = adaptador.edicion || {};
+  const nombreFn = (fn) => `${fn.objeto ? fn.objeto + "." : ""}${(fn.nombres && fn.nombres[adaptador.id]) || fn.nombre}`;
 
   let activo = false;                                         // modo sin teclado
   let asa = leer("asa", "numero") === "borde" ? "borde" : "numero";   // dónde se agarran las líneas
@@ -138,7 +146,8 @@
   function sangriaEn(texto, pos) {
     const previas = texto.slice(0, pos).split("\n"); previas.pop();
     const previa = previas.reverse().find(l => l.trim());
-    if (previa !== undefined) return sangriaDe(previa) + (/\{\s*(\/\/.*)?$/.test(previa) ? UNIDAD : "");
+    if (significativa) return S.niveles(texto, pos)[0] ?? sangriaDe(previa ?? "");
+    if (previa !== undefined) return sangriaDe(previa) + (abreLinea(previa) ? UNIDAD : "");
     const siguiente = texto.slice(pos).split("\n").find(l => l.trim());
     return siguiente ? sangriaDe(siguiente) : "";
   }
@@ -150,7 +159,8 @@
 
   // ---------- Acciones ----------
   // Mueve (o copia) las líneas [la, lb) a la frontera anterior a la línea l, con la sangría del destino.
-  function moverLineasA(la, lb, l, copia = false) {
+  function moverLineasA(la, lb, l, copia = false, nivel = null) {
+    if (significativa) return moverLineasPython(la, lb, l, copia, nivel);
     const v = $codigo.value, e = estructura();
     const destino = l < e.lineas.length ? e.lineas[l] : v.length;
     if (!copia && destino >= la && destino <= lb) return false;
@@ -165,9 +175,67 @@
     const sa = pos + salto.length;
     return cambiar(final, sa, sa + nuevo.replace(/\n$/, "").length);
   }
+  // Python: quitar las líneas deja «pass» si su bloque se queda vacío; el destino es un hueco entre
+  // líneas y un nivel de sangría. Entre el final de un bloque y lo que sigue hay varios niveles:
+  // el elegido (nivel: índice o sangría) o, si no, el más profundo.
+  function sinLineas(v, la, lb, copia) {
+    let bloque = v.slice(la, lb);
+    if (!bloque.endsWith("\n")) bloque += "\n";
+    if (copia) return { bloque, resto: v, crece: 0 };
+    const resto = v.slice(0, la) + v.slice(lb);
+    const r = S.rellenar(resto, Math.min(la, resto.length));
+    return { bloque, resto: r.texto, crece: r.crece };
+  }
+  function ponerLineas(v, resto, bloque, pos, sangria) {
+    const salto = pos === resto.length && resto.length && !resto.endsWith("\n") ? "\n" : "";
+    const nuevo = reindentar(bloque, sangria);
+    let final = resto.slice(0, pos) + salto + nuevo + resto.slice(pos);
+    if (!v.endsWith("\n") && final.endsWith("\n")) final = final.slice(0, -1);
+    const sa = pos + salto.length;
+    return cambiar(final, sa, sa + nuevo.replace(/\n$/, "").length);
+  }
+  // Niveles válidos en pos (inicio de línea o final del texto). El adaptador ya excluye las líneas
+  // que continúan otra (paréntesis, textos de varias líneas) y el hueco entre un cuerpo y su elif/else
+  // al nivel del if; al final de ese cuerpo, en cambio, sí se puede seguir dentro.
+  const nivelesEn = (resto, pos) => S.niveles(resto, pos);
+  function moverLineasPython(la, lb, l, copia, nivel) {
+    const v = $codigo.value, e = estructura();
+    const destino = l < e.lineas.length ? e.lineas[l] : v.length;
+    if (!copia && destino >= la && destino <= lb && nivel == null) return false;
+    const { bloque, resto, crece } = sinLineas(v, la, lb, copia);
+    let pos = copia || destino < la ? destino : destino - (lb - la);
+    if (!copia && destino >= lb) pos += crece;
+    pos = Math.min(pos, resto.length);
+    const ns = nivelesEn(resto, pos);
+    if (!ns.length) return false;
+    const sangria = typeof nivel === "string" && ns.includes(nivel) ? nivel : typeof nivel === "number" && ns[nivel] != null ? ns[nivel] : ns[0];
+    if (!copia && pos === la && sangria === sangriaDe(bloque)) return false;
+    return ponerLineas(v, resto, bloque, pos, sangria);
+  }
+  // Paso a paso: cada hueco entre líneas, y en cada uno sus niveles del más profundo al menos.
+  // Subir desde la línea siguiente a un bloque entra primero al final de ese bloque.
+  function moverLineasPasoPython(dir, la, lb) {
+    const v = $codigo.value, { bloque, resto, crece } = sinLineas(v, la, lb, false);
+    const propia = sangriaDe(bloque), huecos = [0];
+    for (let i = 0; i < resto.length; i++) if (resto[i] === "\n" && i + 1 < resto.length) huecos.push(i + 1);
+    if (resto.endsWith("\n")) huecos.push(resto.length);
+    if (resto.length && !resto.endsWith("\n")) huecos.push(resto.length);
+    const puestos = [];
+    for (const pos of huecos) for (const n of nivelesEn(resto, pos)) puestos.push({ pos, n });
+    const actual = dir < 0 ? la : la + crece;
+    // Orden: por posición y, en la misma, de más a menos sangría.
+    const antes = (x) => x.pos < actual || (x.pos === actual && x.n.length > propia.length);
+    let i = puestos.findIndex(x => x.pos === actual && x.n === propia);
+    let t;
+    if (i >= 0) t = puestos[i + dir];
+    else { const k = puestos.filter(antes).length; t = dir < 0 ? puestos[k - 1] : puestos[k]; }
+    if (!t) return false;
+    return ponerLineas(v, resto, bloque, t.pos, t.n);
+  }
   function moverLineas(dir) {
     if (!editable()) return;
     const [a, b] = sel(), e = estructura(), [la, lb] = lineasDe(a, b);
+    if (significativa) return moverLineasPasoPython(dir, la, lb);
     const l0 = E.lineaDe(e, la), l1 = E.lineaDe(e, Math.max(la, lb - 1));
     let l = dir < 0 ? l0 - 1 : l1 + 2;
     while (l > 0 && l < e.lineas.length && !E.fronteraValida(e, l)) l += dir;
@@ -203,12 +271,12 @@
     const sube = c && c.tipo !== "argumento" && c.tipo !== "elemento" ? contenedorNecesario(e, c.nodo) : null;
     if (sube) return quitar(sube.a, sube.b);
     if (c && c.nodo.padre && c.nodo.padre.k === "decl" && c.tipo == null) {   // valor inicial → hueco
-      const h = "/* valor */";
+      const h = H("valor");
       return reemplazar(a, b, h, a, a + h.length);
     }
     if (c && c.tipo === "argumento" && !c.vacio) {
       const nombre = (cmg.firma(c.funcion) || [])[c.indice];
-      if (nombre && !c.hueco) { const h = `/* ${nombre} */`; return reemplazar(a, b, h, a, a + h.length); }
+      if (nombre && !c.hueco) { const h = H(nombre); return reemplazar(a, b, h, a, a + h.length); }
       const ll = c.nodo.padre.k === "metodo" ? c.nodo.padre.llamada : c.nodo.padre, args = ll.args, i = args.indexOf(c.nodo);
       if (i < args.length - 1) return reemplazar(a, args[i + 1].a, "", a);
       if (i > 0) return reemplazar(args[i - 1].b, b, "", args[i - 1].b);
@@ -216,13 +284,18 @@
     }
     if (c && c.tipo === "condicion") {
       if (c.hueco) return toast("La condición no puede quedar vacía: elige un valor o borra la sentencia.");
-      const h = "/* condición */";
+      const h = H("condición");
       return reemplazar(a, b, h, a, a + h.length);
     }
     if (sonLineas(a, b)) {
       const [la, lb] = lineasDe(a, b), ini = lb === v.length && la > 0 && !v.endsWith("\n") ? la - 1 : la;
       // El cursor queda al final de la línea anterior: lo siguiente que se inserte cae donde estaba lo borrado.
       const cursor = ini === la && la > 0 ? la - 1 : ini;
+      if (significativa) {
+        // Un bloque que se queda sin sentencias recibe «pass», elegido para sustituirlo.
+        const r = S.rellenar(v.slice(0, ini) + v.slice(lb), ini);
+        if (r.crece) { const t = r.texto.slice(ini, ini + r.crece), p = ini + t.indexOf("pass"); return reemplazar(ini, lb, t, p, p + 4); }
+      }
       return reemplazar(ini, lb, "", cursor, cursor);
     }
     let x = a, y = b;
@@ -266,14 +339,14 @@
     const [a, b] = sel(), v = $codigo.value, e = estructura();
     const fin = a === b ? E.finLinea(e, E.lineaDe(e, a)) : sinSalto(lineasDe(a, b))[1];
     const ini = v.lastIndexOf("\n", fin - 1) + 1, linea = v.slice(ini, fin);
-    const s = linea.trim() ? sangriaDe(linea) + (/\{\s*(\/\/.*)?$/.test(linea) ? UNIDAD : "") : sangriaEn(v, ini);
+    const s = linea.trim() ? sangriaDe(linea) + (abreLinea(linea) ? UNIDAD : "") : sangriaEn(v, ini);
     reemplazar(fin, fin, "\n" + s, fin + 1 + s.length);
   }
   function sangrar(dir) {
     if (!editable()) return;
     const [a, b] = sel(), e = estructura(), v = e.src;
     const la = E.inicioLinea(e, E.lineaDe(e, a)), lb = E.finLinea(e, E.lineaDe(e, Math.max(a, b - 1)));
-    const texto = v.slice(la, lb).split("\n").map(l => !l.trim() ? l : dir > 0 ? UNIDAD + l : l.replace(/^ {1,2}/, "")).join("\n");
+    const texto = v.slice(la, lb).split("\n").map(l => !l.trim() ? l : dir > 0 ? UNIDAD + l : l.replace(new RegExp(`^ {1,${UNIDAD.length}}`), "")).join("\n");
     reemplazar(la, lb, texto, la, la + texto.length);
   }
 
@@ -317,7 +390,13 @@
     const lineaVacia = a === b && !v.slice(E.inicioLinea(e, E.lineaDe(e, a)), E.finLinea(e, E.lineaDe(e, a))).trim();
     if (t.includes("\n") && (lineaVacia || sonLineas(a, b))) {
       const [la, lb] = lineaVacia ? [E.inicioLinea(e, E.lineaDe(e, a)), E.finLinea(e, E.lineaDe(e, a))] : sinSalto(lineasDe(a, b));
-      const nuevo = reindentar(t.replace(/\n$/, ""), sangriaEn(v, la));
+      // Python: en una línea vacía vale la sangría ya escrita si es un nivel válido (si no hay, la más
+      // profunda, como en JS); al sustituir líneas, la de la primera.
+      const sangria = !significativa ? sangriaEn(v, la) : !lineaVacia ? sangriaDe(v.slice(la, lb)) : (() => {
+        const actual = v.slice(la, lb), ns = S.niveles(v, la);
+        return actual && ns.includes(actual) ? actual : ns[0] ?? "";
+      })();
+      const nuevo = reindentar(t.replace(/\n$/, ""), sangria);
       return reemplazar(la, lb, nuevo, la, la + nuevo.length);
     }
     reemplazar(a, b, t, a, a + t.length);
@@ -608,10 +687,31 @@
     $fantasma.style.transform = `translate(${Math.round(x + 12)}px, ${Math.round(y - (d.tactil ? 48 : 18))}px)`;
     // Todo el editor cuenta: número de línea, código y columna de asas.
     const dentro = x >= ed.left - 10 && x <= ed.right + 10 && y >= r.top - 4 && y <= r.bottom + 4;
-    d.destino = !dentro ? null : d.lineas ? destinoLineas(y, d) : destinoValor(x, y, d);
+    d.destino = !dentro ? null : d.lineas ? destinoLineas(y, d, x) : destinoValor(x, y, d);
     pintarDestino(d);
   }
-  function destinoLineas(y, d) {
+  // Python: en el hueco elegido, el nivel cuya columna queda más cerca del puntero.
+  let medida = null;
+  function anchoCaracter() {
+    if (medida) return medida;
+    const c = document.createElement("canvas").getContext("2d"), cs = getComputedStyle($texto);
+    c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    return (medida = c.measureText("0000000000").width / 10 || 8);
+  }
+  vida.escuchar($codigo, "cmg:medido", () => { medida = null; });
+  function nivelArrastre(d, l, x) {
+    const v = $codigo.value, e = estructura(), destino = l < e.lineas.length ? e.lineas[l] : v.length;
+    const { resto, crece } = sinLineas(v, d.a, d.b, false);
+    let pos = destino < d.a ? destino : destino - (d.b - d.a);
+    if (destino >= d.b) pos += crece;
+    const ns = nivelesEn(resto, Math.min(pos, resto.length));
+    if (!ns.length) return null;
+    const x0 = $texto.getBoundingClientRect().left + (parseFloat(getComputedStyle($texto).paddingLeft) || 0), w = anchoCaracter();
+    let mejor = 0;
+    ns.forEach((n, i) => { if (Math.abs(x - (x0 + n.length * w)) < Math.abs(x - (x0 + ns[mejor].length * w))) mejor = i; });
+    return { nivel: ns[mejor], xNivel: x0 + ns[mejor].length * w };
+  }
+  function destinoLineas(y, d, x) {
     const e = estructura(), l0 = E.lineaDe(e, d.a), l1 = E.lineaDe(e, Math.max(d.a, d.b - 1)) + 1;
     let mejor = null;
     for (let l = 0; l <= filas.length; l++) {
@@ -619,6 +719,12 @@
       if (!mejor || Math.abs(y - yl) < Math.abs(y - mejor.y)) mejor = { tipo: "linea", l, y: yl };
     }
     if (!mejor) return null;
+    if (significativa) {
+      const n = nivelArrastre(d, mejor.l, x);
+      if (!n) return { ...mejor, valido: false };
+      if (mejor.l >= l0 && mejor.l <= l1 && n.nivel === sangriaDe($codigo.value.slice(d.a, d.b))) return { ...mejor, nulo: true };
+      return { ...mejor, ...n, valido: true };
+    }
     if (mejor.l >= l0 && mejor.l <= l1) return { ...mejor, nulo: true };   // en su propio sitio
     return { ...mejor, valido: E.fronteraValida(e, mejor.l) };
   }
@@ -637,7 +743,7 @@
     const t = d.destino;
     $fantasma.classList.toggle("no", !!t && t.valido === false);
     if (!t || t.nulo) return;
-    if (t.tipo === "linea") { const r = $texto.getBoundingClientRect(); caja(`destino-b linea${t.valido ? "" : " no"}`, r.left + 4, t.y - 1.5, r.width - 8, 3); return; }
+    if (t.tipo === "linea") { const r = $texto.getBoundingClientRect(), x = t.xNivel != null ? Math.max(r.left + 4, t.xNivel) : r.left + 4; caja(`destino-b linea${t.valido ? "" : " no"}`, x, t.y - 1.5, r.right - 4 - x, 3); return; }
     if (t.tipo === "reemplazar") { for (const r of renglones(rectsDe(t.a, t.b))) caja("destino-b hueco", r.left - 3, r.top - 1, r.right - r.left + 6, r.bottom - r.top + 2); return; }
     const c = rectCaret(t.a);
     if (c) caja(`destino-b cursor${t.valido ? "" : " no"}`, c.left - 1.5, c.top, 3, c.height);
@@ -646,7 +752,7 @@
     terminarArrastre();
     const t = d.destino;
     if (!t || t.nulo || t.valido === false || !editable()) return;
-    if (d.lineas) return moverLineasA(d.a, d.b, t.l, ev.altKey || ev.ctrlKey || ev.metaKey);
+    if (d.lineas) return moverLineasA(d.a, d.b, t.l, ev.altKey || ev.ctrlKey || ev.metaKey, t.nivel ?? null);
     // Un valor se duplica: el original se queda donde estaba.
     if (t.tipo === "reemplazar") return reemplazar(t.a, t.b, d.texto, t.a, t.a + d.texto.length);
     const ins = t.vacio || t.lista ? E.enLista($codigo.value, t.a, t.b, d.texto) : d.texto, ini = t.a + ins.indexOf(d.texto);
@@ -913,14 +1019,14 @@
   // ---------- Alternativas: clic derecho o mantener 2 s (sin teclado) ----------
   // Otros elementos del mismo tipo que el elegido, o lo que encaja en su sitio: sobre una función, todas
   // las funciones; sobre un operador, los de su familia; dentro de ( ), [ ] o { }, lo que cabe ahí.
-  const FAMILIAS = [
+  const FAMILIAS = L.familias || [
     ["Comparar", [["===", "igual"], ["!==", "distinto"], [">", "mayor"], ["<", "menor"], [">=", "mayor o igual"], ["<=", "menor o igual"]]],
     ["Combinar", [["&&", "y · se cumplen las dos"], ["||", "o · basta una"], ["??", "si no hay, usa el otro"]]],
     ["Calcular", [["+", "suma"], ["-", "resta"], ["*", "multiplica"], ["/", "divide"], ["%", "resto"]]],
     ["Asignar", [["=", "guarda"], ["+=", "suma y guarda"], ["-=", "resta y guarda"], ["*=", "multiplica y guarda"], ["??=", "solo si no hay"]]],
   ];
-  const DECLARA = [["const", "no cambia"], ["let", "puede cambiar"]];
-  const LITERALES = [["true", "verdadero"], ["false", "falso"], ["null", "nada"]];
+  const DECLARA = L.declara || [["const", "no cambia"], ["let", "puede cambiar"]];
+  const LITERALES = L.literales || [["true", "verdadero"], ["false", "falso"], ["null", "nada"]];
   const opc = (ins, cls, nota, ver) => ({ ins, cls, nota, ver });
   const funcionesDisponibles = () => (cmg.funciones ? cmg.funciones() : []) || [];
   // Agrupa por el título que da el juego (lanzador, console, sensores…).
@@ -941,8 +1047,8 @@
       const a = conAwait ? ll.padre.a : ll.a, viejo = cmg.firma(v.slice(ll.nombre.a, ll.nombre.b)) || [];
       const args = ll.args.filter(x => x.k !== "vacio");
       const grupos = gruposFunciones(lista, fn => {
-        const params = fn.firma || [], nombre = `${fn.objeto ? fn.objeto + "." : ""}${fn.nombre}`;
-        const dentro = params.map((p, i) => args[i] && viejo[i] === p ? v.slice(args[i].a, args[i].b) : `/* ${p} */`);
+        const params = fn.firma || [], nombre = nombreFn(fn);
+        const dentro = params.map((p, i) => args[i] && viejo[i] === p ? v.slice(args[i].a, args[i].b) : H(p));
         return opc(`${fn.await ? "await " : ""}${nombre}(${dentro.join(", ")})`, "fn", fn.nota || "", `${nombre}(${params.join(", ")})`);
       });
       return { a, b: ll.b, datos: { titulo: "Funciones", donde: "cambia la llamada, conserva los valores que encajan", grupos } };
@@ -984,8 +1090,8 @@
     if (!v.slice(ini, fin).trim() && lista.length) {
       const s = sangriaEn(v, ini);
       const grupos = gruposFunciones(lista, fn => {
-        const nombre = `${fn.objeto ? fn.objeto + "." : ""}${fn.nombre}`, params = fn.firma || [];
-        return opc(`${s}${fn.await ? "await " : ""}${nombre}(${params.map(p => `/* ${p} */`).join(", ")});`, "fn", fn.nota || "", `${nombre}(${params.join(", ")})`);
+        const nombre = nombreFn(fn), params = fn.firma || [];
+        return opc(`${s}${fn.await ? "await " : ""}${nombre}(${params.map(H).join(", ")})${FIN}`, "fn", fn.nota || "", `${nombre}(${params.join(", ")})`);
       });
       return { a: ini, b: fin, datos: { titulo: "Órdenes", donde: `línea ${l + 1}`, grupos } };
     }

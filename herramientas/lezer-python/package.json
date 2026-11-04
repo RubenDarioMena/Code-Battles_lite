@@ -1,0 +1,19 @@
+{
+  "name": "cmg-lezer-python",
+  "private": true,
+  "description": "Solo para regenerar shared/vendor/lezer-python-1.1.19.js; el juego no usa npm.",
+  "dependencies": {
+    "@lezer/common": "1.5.4",
+    "@lezer/highlight": "1.2.5",
+    "@lezer/lr": "1.4.11",
+    "@lezer/python": "1.1.19"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  },
+  "overrides": {
+    "@lezer/common": "1.5.4",
+    "@lezer/highlight": "1.2.5",
+    "@lezer/lr": "1.4.11"
+  }
+}

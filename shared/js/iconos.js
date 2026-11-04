@@ -132,6 +132,31 @@
       <text class="t1 letra" x="16" y="20.6" font-size="12" text-anchor="middle" letter-spacing="-1.6">!==</text>
       <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
 
+    // Python (E4): los mismos operadores con sus palabras.
+    yPy: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.4" font-size="11" text-anchor="middle" letter-spacing="-0.6">and</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    oPy: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.6" font-size="13" text-anchor="middle" letter-spacing="-0.4">or</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    noPy: { c1: "#F0645A", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.4" font-size="11" text-anchor="middle" letter-spacing="-0.6">not</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    igualPy: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.6" font-size="14" text-anchor="middle" letter-spacing="-1.2">==</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    distintoPy: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.6" font-size="14" text-anchor="middle" letter-spacing="-1.2">!=</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    esNone: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="16" y="20.4" font-size="9.5" text-anchor="middle" letter-spacing="-0.5">None</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
     mayor: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
       <path class="s1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M10 8.4l12 7.6-12 7.6"/>
       <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 28h22"/>`) },

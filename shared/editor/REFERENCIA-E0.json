@@ -42,14 +42,20 @@
     },
     {
       "archivo": "pruebas/editor-demo.mjs",
-      "referencia": 51,
-      "actual": 51,
+      "referencia": 73,
+      "actual": 73,
       "estado": "ejecutada"
     },
     {
       "archivo": "pruebas/factory-3d.mjs",
       "referencia": 10,
       "actual": 10,
+      "estado": "ejecutada"
+    },
+    {
+      "archivo": "pruebas/editor-python.cjs",
+      "referencia": 34,
+      "actual": 34,
       "estado": "ejecutada"
     }
   ],
@@ -73,6 +79,6 @@
     ],
     "diferencias_pixeles": 0
   },
-  "limitacion": "War pasó 90/90 en las pasadas de E2.1 y E3. En E1 quedó en 88/90: el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s. No se ha vuelto a reproducir, pero la intermitencia no se declara resuelta.",
-  "validada_en": "E3 · 2026-11-04"
+  "limitacion": "War pasó 90/90 en las pasadas de E2.1, E3 y E4a. En E1 quedó en 88/90: el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s. No se ha vuelto a reproducir, pero la intermitencia no se declara resuelta.",
+  "validada_en": "E4a · 2026-11-04"
 }

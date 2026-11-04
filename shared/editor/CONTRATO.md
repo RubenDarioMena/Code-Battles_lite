@@ -156,3 +156,54 @@ Mientras espera, el selector queda desactivado. Si el documento se edita o cambi
 **`abrir` con otro lenguaje.** Rehace el interior (texto, paleta, edición, símbolos y vistas) con el adaptador del documento, con recursos propios: los oyentes, menús y portales del anterior se retiran. El marcado, la forma, la letra, la pantalla completa y el modo sin teclado se conservan. Los historiales viven en la instancia, uno por documento, y se recuperan al volver si el texto coincide. Un lenguaje sin adaptador lanza un error sin tocar el documento. La revisión crece. La raíz lleva `data-lenguaje`, el textarea `aria-label="Código <nombre>"` y la fachada `cmg.lenguaje`. Después del cambio se emite `cmg:lenguaje` en la raíz. `editor.lenguajes()` devuelve los ofrecidos. `proveedor.atajos(lenguaje)` recibe el lenguaje.
 
 **Vistas opcionales.** `opciones.vistas` (por defecto `["pseudo"]` con `adoptar` y `[]` sin él) decide si se crean Seudo/Bloques. Solo existen sobre JS y con `seudo.js` cargado. La demo ya no lo carga. Su futuro está en la decisión D8 del plan.
+
+## Python en el componente (E4a)
+
+**Módulos.**
+- `shared/vendor/lezer-python-1.1.19.js` define `LezerPython.parser` y se carga como script clásico.
+- `python.js` (`CMGEditorPython`) reúne léxico, huecos, líneas lógicas, niveles de sangría, `pass`, comentarios, plantillas, teclas y operaciones de texto.
+- `estructura-python.js` (`ESTRUCTURA_PYTHON`) construye el árbol.
+- `adaptador-python.js` (`CMGAdaptadorPython`) los junta.
+- El anfitrión carga los cuatro y pasa `adaptadores: { js, python }`.
+
+**Árbol.** `analizar(src)` parte del árbol de lezer y produce la misma forma que JS (`{ src, todas, sig, par, nodos, raiz, duenos, hojas, lineas }`) con los mismos tipos de nodo. Así las consultas (`atomo`, `ampliar`, `unidadLinea`, `fronteraValida`, `contexto`, `destino`, `enLista`) son las de `shared/js/estructura.js`, creadas con `ESTRUCTURA.consultas({ claves, logicos, compara, huecoNombre })` con las palabras de Python. JS usa la instancia por defecto, con el comportamiento de siempre.
+
+Diferencias con JS:
+- el `bloque` va de `:` a su última sentencia;
+- `elif`/`else` son `rama`: no se mueven sin su `if`;
+- `x = valor` con un nombre es `decl`;
+- los argumentos con nombre son `nombrado`;
+- los huecos son la ficha `hueco`.
+
+`desenvolver` es propio de Python: quita la cabecera y baja el cuerpo un nivel. Un `elif`/`else` con código no se descarta; si el cuerpo era solo `pass`, desaparece.
+
+**Huecos (D4).** Son identificadores `__nombre__`: `aHueco("tipo de enemigo")` da `__tipo_de_enemigo__`. `nombreDe` recupera el nombre con espacios y tildes para las sugerencias. Los nombres especiales de Python (`__name__`, `__init__`…) no son huecos.
+
+**Sangría significativa.** El adaptador declara `sangria: { unidad: "    ", significativa: true, abre, alPartirLinea, niveles, rellenar }`.
+- `niveles(src, pos)` devuelve las sangrías válidas para insertar líneas en el inicio de línea `pos`, de la más profunda a la menos:
+  - tras una cabecera, solo su cuerpo;
+  - al final de bloques anidados, cualquiera de sus niveles;
+  - antes de `elif`/`else`, solo dentro del cuerpo;
+  - dentro de una línea lógica (paréntesis, texto de varias líneas, `\`), ninguna.
+- `rellenar(src, pos)` pone `pass` donde una cabecera se quedó sin cuerpo.
+
+Con `significativa`, `edicion.js` aplica estas reglas:
+- **Mover con las flechas:** recorre cada hueco entre líneas y, en cada uno, sus niveles. Subir desde después de un bloque entra primero al final del bloque y bajar desde su final sale de él.
+- **Arrastrar:** elige el nivel cuya columna queda más cerca del puntero; la línea de destino empieza en esa columna.
+- **Quitar líneas o mover la única de un bloque:** deja `pass` (elegido, al borrar).
+- **Pegar en una línea vacía:** usa la sangría ya escrita si es un nivel válido; si no hay, la más profunda.
+- **Sustituir líneas:** usa la sangría de la primera.
+- **Enter:** sangra tras `:` y retrocede tras `return`/`pass`/`break`/`continue`/`raise`.
+- **Tab y sangrar:** usan la unidad del adaptador.
+
+Sin `significativa` (JS), el código de siempre.
+
+**Lo que `edicion.js` toma del adaptador.**
+- Huecos (`hueco.crear`) al quitar un valor, un argumento o una condición.
+- Final de sentencia (`finSentencia`: `";"` en JS, `""` en Python).
+- Literales, familias de operadores y declaraciones de las sugerencias (`edicion`).
+- Nombre de la función en ese lenguaje (`fn.nombres[lenguaje]`, D1).
+
+El proveedor recibe el lenguaje en `funciones(lenguaje)`, `vocabulario(lenguaje)` y `atajos(lenguaje)`, y la firma se busca también por el nombre del lenguaje. Las plantillas Python (`plantillas({ pausa })`) incluyen `while True`, `while`, `for … in range`, `break`, `if`, `if/else`, `if/elif/else`, `and`, `or`, `not`, `==`, `!=`, `>`, `<`, `is None`, la variable y `print`. `is None` es un operador nuevo, `sufijo`, que va detrás del operando. Los iconos Python están en `shared/js/iconos.js` (`yPy`, `oPy`, `noPy`, `igualPy`, `distintoPy`, `esNone`).
+
+**Demo.** Cada espacio tiene un documento por lenguaje (`principal.js`, `principal.py`…). El selector abre el del otro lenguaje sin convertir nada. El segundo editor empieza en Python.

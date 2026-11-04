@@ -1,3 +1,29 @@
+## Editor · E4a: Python en el componente · 4 de noviembre de 2026
+
+- **E4 se dividió en dos entregas.** E4a (esta) cubre el componente y la demo; E4b, el juego detrás de `?python=1`. Así cada una se revisa por separado.
+- **lezer en el repo.** `@lezer/python` 1.1.19, con lr 1.4.11, common 1.5.4 y highlight 1.2.5, está empaquetado en `shared/vendor/lezer-python-1.1.19.js`. Lo genera `herramientas/lezer-python/construir.sh` (esbuild 0.28.2 y `package-lock.json` fijados; regenerarlo da el mismo archivo, byte a byte). Su licencia y su SHA-256 están en el manifiesto. Jugar y probar no usan npm ni CDN.
+- **Módulos nuevos:**
+  - `python.js`: léxico, huecos `__nombre__` (D4), líneas lógicas, niveles de sangría, `pass` para bloques vacíos, plantillas, operadores, teclas y `#`.
+  - `estructura-python.js`: pasa el árbol de lezer a los nodos del editor.
+  - `adaptador-python.js`.
+- **Código compartido con el juego.** `estructura.js` expone `consultas(...)` y JS usa la instancia por defecto, que se comporta como antes. `edicion.js` toma del adaptador la sangría, los huecos, el final de sentencia y las sugerencias. Con sangría significativa:
+  - mover, arrastrar (el nivel lo da la columna del puntero), borrar, pegar y desenvolver respetan los bloques de Python;
+  - un bloque que se queda vacío recibe `pass`.
+
+  El proveedor recibe el lenguaje. Hay iconos Python para `and`, `or`, `not`, `==`, `!=` e `is None`.
+- **Demo:** cada espacio tiene un documento por lenguaje y el segundo editor empieza en Python. `AGENTS.md`, el plan y `CONTRATO.md` están actualizados.
+- **Verificación** (detalle en `docs/qa/editor-e4a-2026-11-04/`):
+  - Python sin DOM: 34, nueva.
+  - Demo: 73, de las cuales 22 son nuevas.
+  - War 90/90, editor 18, vistas 31, API 7, paridad 28/28 y 3D 10.
+  - Lógica 123, contratos e integridad correctos, entrada 8, paquete de 9 páginas con 79 referencias.
+  - 32 capturas de War y Factory idénticas píxel a píxel contra E3.
+- **Límites:**
+  - Solo emulación de Chromium; el arrastre táctil con nivel está pendiente de QA manual.
+  - La demo no convierte entre lenguajes.
+  - El juego aún no carga Python (E4b).
+- **Versiones:** estructura 4, edicion 3, nucleo-ui 2, editor 4, iconos 4, demo 4; módulos Python v1.
+
 ## Editor · E3: lenguaje del documento · 4 de noviembre de 2026
 
 - **Alcance revisado por el usuario antes de empezar:**

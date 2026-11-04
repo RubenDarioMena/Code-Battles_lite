@@ -4,7 +4,7 @@
   function crear({ opciones, cmg, $, ambito, vida, adaptador, marcasActuales }) {
     const $editor = $("editor"), $codigo = cmg.codigo, $gutter = $("gutter"), $banda = $("banda"), $espejo = $("espejo"), $resaltado = $("resaltado"), $bloques = $("bloques");
     const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-    const lexico = adaptador.lexico, clasificar = (f, i) => adaptador.clasificar(f, i, opciones.proveedor?.vocabulario?.() || {});
+    const lexico = adaptador.lexico, clasificar = (f, i) => adaptador.clasificar(f, i, opciones.proveedor?.vocabulario?.(adaptador.id) || {});
     const RE_HUECO = adaptador.hueco.re;
     const { rangoCodigo, envolver, expresionEnvolvible, elegirLineasCompletas, insertarBloque, insertarOperador } = adaptador.crearEdicion({
       codigo: $codigo, insertar, aviso: avisoEditor, escapar: esc, estructura: () => adaptador.estructura,
@@ -91,7 +91,7 @@
       ev.preventDefault();
       const antes = $codigo.value.slice(0, $codigo.selectionStart);
       const linea = antes.slice(antes.lastIndexOf("\n") + 1);
-      insertar("\n" + linea.match(/^\s*/)[0] + (/\{\s*$/.test(linea) ? "  " : ""));
+      insertar("\n" + (adaptador.sangria.alPartirLinea ? adaptador.sangria.alPartirLinea(linea) : linea.match(/^\s*/)[0] + (/\{\s*$/.test(linea) ? "  " : "")));
     }
   });
   // Inserta con execCommand para que Ctrl+Z lo deshaga; si el navegador no lo permite, cambia el valor a mano.
@@ -132,7 +132,7 @@
 
     let ATAJOS = [];
     const textoAtajo = a => typeof a.b === "function" ? a.b() : a.b;
-  const codAtajo = (a) => a.cod || (a.operador ? a.operador : a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
+  const codAtajo = (a) => a.cod || (a.operador ? a.operador.trim() : a.sufijo ? a.sufijo.trim() : a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
   const estiloIcono = (ico) => `--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}`;
   function pintarPaleta() {
     const I = opciones.iconos || window.ICONOS || {};
@@ -149,7 +149,7 @@
     if ($codigo.readOnly) return avisoEditor("Detén el programa para editarlo.");
     opciones.alAtajo?.();
     if (a.comentar) alternarComentario();
-    else if (a.operador) insertarOperador(a);
+    else if (a.operador || a.sufijo) insertarOperador(a);
     else if (a.enLinea) {
       // Con la expresión de una sentencia elegida, «const pos = » la toma como valor inicial.
       // Con otra cosa elegida, la declaración va en una línea nueva con su valor por rellenar.
@@ -157,7 +157,7 @@
       if (x) { $codigo.setSelectionRange(x.a, x.b); envolver(a.enLinea, ""); }
       else if ($codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea)) {
         $codigo.setSelectionRange($codigo.selectionEnd, $codigo.selectionEnd);
-        insertarBloque(a.enLinea + "/* valor */;");
+        insertarBloque(a.enLinea + adaptador.hueco.crear("valor") + (adaptador.finSentencia ?? ";"));
       }
       else insertar(a.enLinea);
     }

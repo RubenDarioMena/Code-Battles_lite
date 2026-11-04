@@ -100,8 +100,8 @@
     const cmg = {
       codigo, serie: opciones.serie || "", get claveDocumento() { return doc.id; },
       get lenguaje() { return adaptador.id; },
-      funciones: () => proveedor.funciones?.() || [],
-      firma: nombre => proveedor.firma?.(nombre) || proveedor.funciones?.().find(f => f.nombre === nombre)?.firma || null,
+      funciones: () => proveedor.funciones?.(adaptador.id) || [],
+      firma: nombre => proveedor.firma?.(nombre) || proveedor.funciones?.(adaptador.id).find(f => f.nombre === nombre || f.nombres?.[adaptador.id] === nombre)?.firma || null,
       sugerencias: c => proveedor.sugerencias?.(c) || null,
       datos: () => opciones.datos?.() || datosVacios(), inicial: () => opciones.inicial?.() || null,
       get marcas() { return { ...marcasActuales }; },
@@ -119,7 +119,7 @@
     function montarInterior() {
       const vidaInterior = window.CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
       Object.assign(cmg, {
-        lexico: adaptador.lexico, clasificar: (f, i) => adaptador.clasificar(f, i, proveedor.vocabulario?.() || {}), reHueco: adaptador.hueco.re,
+        lexico: adaptador.lexico, clasificar: (f, i) => adaptador.clasificar(f, i, proveedor.vocabulario?.(adaptador.id) || {}), reHueco: adaptador.hueco.re,
       });
       delete cmg.edicion; delete cmg.seudo;
       ui = window.CMGEditorUI.crear({ opciones: { ...opciones, proveedor }, cmg, $, ambito, vida: vidaInterior, adaptador, marcasActuales });

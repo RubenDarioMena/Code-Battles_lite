@@ -8,7 +8,7 @@ Este proyecto es autónomo. Lee `README.md`, `docs/VISION.md` y el estado recien
 - Mantén la legibilidad y la interacción de PC y móvil. Haz cambios pequeños; el usuario realiza QA manual frecuente.
 - Conserva el paso fijo y el RNG con semilla de la simulación. No introduzcas aleatoriedad global ni tiempo de reloj en sus reglas.
 - Conserva la API de los programas, el comportamiento del editor, `window.cmg` y los formatos de guardado salvo cambio solicitado y documentado. Añade cobertura si cambias reglas de simulación o semántica de programas.
-- JavaScript y CSS sin framework ni compilación. No añadas herramientas o dependencias por rutina. Las propuestas de TypeScript, VM, Python o empaquetado móvil aún no son implementaciones decididas.
+- JavaScript y CSS sin framework ni compilación. No añadas herramientas o dependencias por rutina. **Python está decidido** ([plan](docs/PLAN-EDITOR-LENGUAJES.md)): el editor lo edita con lezer servido en `shared/vendor/` (se regenera con `herramientas/lezer-python/construir.sh`, no al jugar) y el juego lo ejecutará traducido a JS en el mismo Worker. No se añadirán otros lenguajes. TypeScript, VM y empaquetado móvil aún no son implementaciones decididas.
 - Ajusta las versiones de CSS/JS en `index.html` cuando cambies esos recursos.
 - Verificación habitual: `node pruebas/interaccion.cjs` y `node --check` de los scripts modificados. Usa la prueba de navegador cuando el cambio afecte interacción o arranque; no ejecutes pruebas Godot.
 - Para navegador usa el puerto dedicado 8771. La suite escribe en localStorage; evita usar el origen donde el usuario esté jugando.
