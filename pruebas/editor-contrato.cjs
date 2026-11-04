@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const raiz = path.join(__dirname, '..');
 const cargar = (contexto, archivo) => vm.runInContext(readFileSync(path.join(raiz, archivo), 'utf8'), contexto, { filename: archivo });
 const contexto = vm.createContext({ window: {} });
-for (const archivo of ['shared/editor/javascript.js', 'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
+for (const archivo of ['shared/editor/javascript.js', 'shared/editor/catalogo.js', 'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
 assert.equal(contexto.window.cmg, undefined);
 assert.equal(contexto.document, undefined);
 assert.equal(contexto.localStorage, undefined);
@@ -74,6 +74,19 @@ function puerto(texto) {
     }
   }
   assert.equal(CMGPaleta.crear({ serie: 'factory' }).atajos.find(a => a.ico === 'esperar').b, 'await wait(1);');
+
+  // Catálogo único: una tabla con el texto de cada lenguaje; las listas JS y Python salen de ahí.
+  const { CMGCatalogo } = contexto.window;
+  const icos = l => JSON.parse(JSON.stringify(CMGCatalogo.atajos(l).flatMap(a => a === '|' ? ['|'] : [a.ico, ...(a.variantes || []).map(v => v.ico)])));
+  assert.deepEqual(icos('js').filter(i => !['hacer', 'plan', 'variableLet', 'aviso', 'info', 'errorCons'].includes(i)),
+    icos('python').filter(i => i !== 'esNone').map(i => i.replace(/Py$/, '')), 'JS y Python comparten botones salvo los propios de cada lenguaje');
+  for (const e of CMGCatalogo.entradas.flatMap(e => e === '|' ? [] : e.grupo || [e])) assert(CMGCatalogo.lenguajes.some(l => e[l]), 'cada entrada existe en algún lenguaje');
+  const con = CMGCatalogo.atajos('python', { pausa: 'await wait(0.5)' });
+  assert.equal(con.find(a => a.ico === 'whileTrue').b, 'while True:\n    \n    await wait(0.5)');
+  assert.equal(con.find(a => a.ico === 'whileTrue').variantes.find(v => v.ico === 'para').b, 'for i in range(3):\n    ', 'For no recibe pausa');
+  con.find(a => a.ico === 'siNo').envolvente[0] = 'roto';
+  assert.equal(CMGCatalogo.atajos('python').find(a => a.ico === 'siNo').envolvente[0], 'if __condicion__:\n', 'cada llamada da una lista independiente');
+  assert.throws(() => CMGCatalogo.atajos('ruby'));
 
   // Una confirmación abierta no debe aplicar dos veces, ni escribir en otro reto
   // o durante la ejecución. Se usa el mismo aplicador que registra juego.js.

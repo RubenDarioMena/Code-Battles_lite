@@ -1,3 +1,11 @@
+## Catálogo único de la paleta (JS y Python) · 4 de noviembre de 2026
+
+- `shared/editor/catalogo.js` (`CMGCatalogo`) es una sola tabla de botones comunes con el texto de cada lenguaje. `plantillas.js` (JS) y `plantillas()` de `python.js` ya no tienen listas propias: las generan desde la tabla.
+- **Sin cambio visible.** Se comprobó que las listas generadas son idénticas a las anteriores, en JS y en Python, con y sin pausa (War 0,5 s y Factory).
+- Un botón nuevo se añade una vez y aparece en JS, Python, War, Factory y el IDE. Lo propio de un lenguaje es la entrada que el otro no declara.
+- Pruebas: `editor-contrato.cjs` comprueba los botones compartidos, la pausa por lenguaje y que cada lista sea independiente. Las suites de node cargan `catalogo.js`.
+- Versiones: `catalogo.js?v=1`, `plantillas.js?v=2`, `python.js?v=3` (juego y demo).
+
 ## Paleta común en War y Factory · 4 de noviembre de 2026
 
 - **Problema.** La paleta de Factory se armaba a mano en `juego.js` y sustituía a la común. En JS y en Python le faltaban If / else (con If e If / else if), los operadores (`??`, `&&`, `||`, `!`, comparaciones; en Python `and`, `or`, `not`, `is None`) y Variable. Los bucles tampoco eran los de War: For y While sueltos, sin While true, Do … while ni Salir del bucle.

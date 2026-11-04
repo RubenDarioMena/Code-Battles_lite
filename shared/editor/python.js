@@ -187,37 +187,9 @@
   // ---------- Plantillas y teclas ----------
   // Cada plantilla de bloque trae su cuerpo en una línea sangrada vacía (ahí queda el cursor);
   // la envolvente pone la cabecera sobre las líneas elegidas, que bajan un nivel.
+  // Los atajos de la paleta común salen del catálogo único (catalogo.js), con su texto en Python.
   function plantillas({ pausa = "" } = {}) {
-    // Como en JS: el cuerpo de un bucle tiene una línea vacía para el cursor y, si el juego la pide, su pausa.
-    const P = "\n" + UNIDAD + (pausa ? "\n" + UNIDAD + pausa : "");
-    const atajos = [
-      { ico: "comentar", t: "Comentar", cod: "# …  (Ctrl+/)", comentar: true },
-      "|",
-      { ico: "whileTrue", t: "While True", b: "while True:" + P, envolvente: ["while True:\n", ""], variantes: [
-        { ico: "mientras", t: "While", b: "while __condicion__:" + P, envolvente: ["while __condicion__:\n", ""] },
-        { ico: "para", t: "For", b: "for i in range(3):\n" + UNIDAD, envolvente: ["for i in range(3):\n", ""] },
-        { ico: "salir", t: "Salir del bucle", b: "break" },
-      ] },
-      { ico: "siNo", t: "If / else", b: `if __condicion__:\n${UNIDAD}\nelse:\n${UNIDAD}pass`, envolvente: ["if __condicion__:\n", `\nelse:\n${UNIDAD}pass`], variantes: [
-        { ico: "si", t: "If", b: "if __condicion__:\n" + UNIDAD, envolvente: ["if __condicion__:\n", ""] },
-        { ico: "siSino", t: "If / elif", b: `if __condicion__:\n${UNIDAD}\nelif __condicion__:\n${UNIDAD}pass\nelse:\n${UNIDAD}pass`, envolvente: ["if __condicion__:\n", `\nelif __condicion__:\n${UNIDAD}pass\nelse:\n${UNIDAD}pass`] },
-      ] },
-      { ico: "yPy", t: "Y (and)", operador: "and", hueco: "condición", variantes: [
-        { ico: "oPy", t: "O (or)", operador: "or", hueco: "condición" },
-        { ico: "noPy", t: "No (not)", operador: "not ", prefijo: true },
-        { ico: "igualPy", t: "Igual (==)", operador: "==" },
-        { ico: "distintoPy", t: "Distinto (!=)", operador: "!=" },
-        { ico: "mayor", t: "Mayor (>)", operador: ">" },
-        { ico: "menor", t: "Menor (<)", operador: "<" },
-        { ico: "esNone", t: "Es None (is None)", sufijo: " is None" },
-      ] },
-      { ico: "variable", t: "Variable", enLinea: "pos = ", variantes: [
-        { ico: "asignar", t: "Asignar (=)", operador: "=" },
-      ] },
-      "|",
-      { ico: "registro", t: "Mostrar (print)", b: "print(__mensaje__)" },
-    ];
-    return { atajos, textoAtajo: a => typeof a.b === "function" ? a.b() : a.b };
+    return { atajos: window.CMGCatalogo.atajos("python", { pausa }), textoAtajo: window.CMGCatalogo.textoAtajo };
   }
   const TECLAS = [
     { t: "⇥", ins: UNIDAD, cls: "nav", n: "Sangría" }, { t: "←", mover: -1, cls: "nav" }, { t: "→", mover: 1, cls: "nav" }, "|",

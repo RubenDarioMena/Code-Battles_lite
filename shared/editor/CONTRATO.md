@@ -237,6 +237,16 @@ E4b lo puso detrás de `?python=1`; desde E5 el flag ya no existe y Python siemp
 - `true`, `false` y `null` → `True`, `False` y `None`;
 - comentarios `//` → `#`.
 
-Las sugerencias reciben el nombre JS de la función. Los bloques usan las plantillas Python: `CMGPaleta.crearPython` en War y la lista del robot en Factory.
+Las sugerencias reciben el nombre JS de la función. War y Factory arman la paleta Python con `CMGPaleta.crearPython({ serie })`, igual que la JS.
+
+## Catálogo único de la paleta común
+
+`catalogo.js` (`CMGCatalogo`) es la única tabla de los botones comunes: comentar, bucles, if, operadores, variable y consola. Cada entrada lleva el texto de cada lenguaje.
+- Un grupo es un botón con variantes: el primer elemento que existe en el lenguaje es el botón y el resto, sus variantes.
+- Lo que un lenguaje no declara no aparece en él: `do … while`, `??`, `let` y los niveles de `console` solo en JS; `is None` solo en Python.
+- `pausa: true` marca los bucles que reciben la pausa del anfitrión. Cada lenguaje dice cómo se inserta (`PAUSA`).
+- `CMGCatalogo.atajos(lenguaje, { pausa })` devuelve una lista nueva. `CMGPlantillasJS.crear` y `CMGEditorPython.plantillas` solo la envuelven.
+- Un botón nuevo se añade una sola vez y aparece en los dos lenguajes, en War, en Factory y en el IDE. Otro lenguaje es una clave más en cada entrada y en `PAUSA`.
+- `pruebas/editor-contrato.cjs` vigila que JS y Python compartan los botones salvo los propios de cada uno, y la paridad War/Factory.
 
 **Fachada.** Al cambiar de lenguaje el interior se rehace. El juego llama siempre a la fachada vigente, y `window.cmg.edicion` y `window.cmg.seudo` son getters.
