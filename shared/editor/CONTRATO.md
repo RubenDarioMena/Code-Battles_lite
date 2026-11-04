@@ -241,7 +241,7 @@ Las sugerencias reciben el nombre JS de la función. War y Factory arman la pale
 
 ## Catálogo único de la paleta común
 
-`catalogo.js` (`CMGCatalogo`) es la única tabla de los botones comunes: comentar, bucles, if, operadores, variable y consola. Cada entrada lleva el texto de cada lenguaje.
+`CMGCatalogo` (en `plantillas.js`, que todas las páginas cargan antes que `python.js`) es la única tabla de los botones comunes: comentar, bucles, if, operadores, variable y consola. Cada entrada lleva el texto de cada lenguaje.
 - Un grupo es un botón con variantes: el primer elemento que existe en el lenguaje es el botón y el resto, sus variantes.
 - Lo que un lenguaje no declara no aparece en él: `do … while`, `??`, `let` y los niveles de `console` solo en JS; `is None` solo en Python.
 - `pausa: true` marca los bucles que reciben la pausa del anfitrión. Cada lenguaje dice cómo se inserta (`PAUSA`).

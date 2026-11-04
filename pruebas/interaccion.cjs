@@ -6,7 +6,7 @@ const path = require('node:path');
 const ctx = vm.createContext({ console, Set, Map, Object, Promise, window: {} });
 for (const archivo of [
   'shared/js/estructura.js', 'shared/editor/javascript.js',
-  'shared/editor/catalogo.js', 'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js',
+  'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js',
 ]) vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8'), ctx, { filename: archivo });
 vm.runInContext(`
 var lexico = window.CMGEditorJS.lexico;

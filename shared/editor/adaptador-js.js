@@ -63,7 +63,8 @@
     id: "js", nombre: "JavaScript", lexico, clasificar, estructura,
     hueco: { re: RE_HUECO, crear: n => "/* " + n + " */", nombreDe: t => t.match(HUECO)?.[1] || null },
     comentario: { linea: "//", crear: crearComentario }, sangria: { unidad: "  ", significativa: false },
-    plantillas: window.CMGPlantillasJS.crear().atajos,
+    // Perezoso y protegido: sin plantillas (caché mezclada) el adaptador sigue existiendo, con la paleta vacía.
+    get plantillas() { try { return window.CMGPlantillasJS.crear().atajos; } catch (e) { console.error("Plantillas JS no disponibles:", e); return []; } },
     teclas: TECLAS, crearEdicion: window.CMGEditorJS.crearEdicion,
     llamada: fn => window.CMGLenguajes.llamada(fn, "js"),
   };

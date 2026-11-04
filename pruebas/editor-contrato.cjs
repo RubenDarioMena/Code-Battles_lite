@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const raiz = path.join(__dirname, '..');
 const cargar = (contexto, archivo) => vm.runInContext(readFileSync(path.join(raiz, archivo), 'utf8'), contexto, { filename: archivo });
 const contexto = vm.createContext({ window: {} });
-for (const archivo of ['shared/editor/javascript.js', 'shared/editor/catalogo.js', 'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
+for (const archivo of ['shared/editor/javascript.js', 'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
 assert.equal(contexto.window.cmg, undefined);
 assert.equal(contexto.document, undefined);
 assert.equal(contexto.localStorage, undefined);

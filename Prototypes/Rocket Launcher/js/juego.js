@@ -1396,10 +1396,14 @@
       if ($p) $p.innerHTML = `Doble clic inserta <code>${esc(t.dataset.ins)}</code> donde está el cursor del programa.`;
     }
   });
-  const { atajos: ATAJOS } = window.CMGPaleta.crear({
+  // Una paleta que no se puede armar (p. ej. una caché con archivos de versiones distintas) no debe
+  // cortar el arranque: el juego sigue sin botones y lo avisa en el editor.
+  let paletaRota = null;
+  const paletaSegura = hacer => { try { return hacer(); } catch (e) { paletaRota ||= e; console.error("Paleta no disponible:", e); return { atajos: [] }; } };
+  const { atajos: ATAJOS } = paletaSegura(() => window.CMGPaleta.crear({
     serie: ES_FACTORY ? "factory" : "war",
     sensor: () => mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null,
-  });
+  }));
   const preferenciasEditor = prefijo => ({
     leer(k, d) { try { const v = localStorage.getItem(prefijo + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
     escribir(k, v) { try { localStorage.setItem(prefijo + k, JSON.stringify(v)); } catch { /* sesión */ } },
@@ -1722,7 +1726,7 @@
     const sensor = mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null;
     if (atajosPy && atajosPySensor === sensor) return atajosPy;
     atajosPySensor = sensor;
-    atajosPy = window.CMGPaleta.crearPython({ serie: ES_FACTORY ? "factory" : "war", sensor: () => sensor, aPython }).atajos;
+    atajosPy = paletaSegura(() => window.CMGPaleta.crearPython({ serie: ES_FACTORY ? "factory" : "war", sensor: () => sensor, aPython })).atajos;
     return atajosPy;
   }
   const OPERADORES_COND = [["&&", "y · se cumplen las dos", "condición"], ["||", "o · basta una", "condición"], ["!", "no · lo contrario", "condición"],
@@ -2098,6 +2102,7 @@
   aplicarVista(vista);
   aplicarLetra();
   elegirReto(retoIdx);
+  if (paletaRota) avisoEditor("La paleta no se pudo cargar: recarga la página sin caché (Ctrl+F5 o Ctrl+Shift+R).");
   document.fonts && document.fonts.ready.then(() => { medirEditor(); });
   editorPrograma.iniciarVistas();
   requestAnimationFrame(bucle);

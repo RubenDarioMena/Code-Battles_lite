@@ -9,7 +9,8 @@
     hueco: { re: P.RE_HUECO, crear: P.aHueco, nombreDe: P.nombreDe },
     comentario: { linea: "#", crear: P.crearComentario },
     sangria: { unidad: P.UNIDAD, significativa: true, abre: P.abre, alPartirLinea: P.alPartirLinea, niveles: P.niveles, rellenar: P.rellenar },
-    plantillas: P.plantillas().atajos, crearPlantillas: P.plantillas,
+    get plantillas() { try { return P.plantillas().atajos; } catch (e) { console.error("Plantillas Python no disponibles:", e); return []; } },
+    crearPlantillas: P.plantillas,
     teclas: P.TECLAS, crearEdicion: P.crearEdicion, edicion: P.EDICION, finSentencia: "",
     llamada: fn => window.CMGLenguajes.llamada(fn, "python"),
   };

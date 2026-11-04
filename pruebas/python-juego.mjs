@@ -103,5 +103,19 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   eq(await page.evaluate(() => [document.getElementById('titulo').textContent, document.getElementById('b-probar').getAttribute('href').endsWith('probar?serie=factory'), !!document.querySelector('#sel-lenguaje option[value="python"]')]).then(r => [...r, errores.length]),
     ['Primer viaje', true, true, 0], 'Factory arranca aunque el enlace a probar.html venga sin .html');
   await page.unroute(/Rocket%20Launcher\/index\.html/, reescribir); page.off('pageerror', alError);
+
+  // Caché con versiones mezcladas: unas plantillas rotas no cortan el arranque (antes: pantalla negra
+  // y paleta vacía); si falta un archivo esencial, la página lo dice en vez de quedarse en negro.
+  const rotas = r => r.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.CMGPlantillasJS = { crear() { throw Error("sin catálogo"); } };' });
+  await page.route(/shared\/editor\/plantillas\.js/, rotas);
+  await page.goto(url('?serie=factory')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
+  eq(await page.evaluate(() => [document.getElementById('titulo').textContent, document.getElementById('t-escenario').textContent, document.body.textContent.includes('La paleta no se pudo cargar')]),
+    ['Primer viaje', 'Tu reto', true], 'sin plantillas, Factory arranca y avisa de recargar');
+  await page.unroute(/shared\/editor\/plantillas\.js/, rotas);
+  const falta = r => r.fulfill({ status: 404, body: '' });
+  await page.route(/js\/juego\.js/, falta);
+  await page.goto(url('?serie=factory')); await page.waitForSelector('[role=alert]');
+  eq(await page.evaluate(() => document.querySelector('[role=alert]').textContent.includes('no cargó juego.js')), true, 'si falta juego.js, la página lo dice');
+  await page.unroute(/js\/juego\.js/, falta);
   return checks;
 }

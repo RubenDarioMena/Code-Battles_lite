@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const ctx = vm.createContext({ console, window: {} });
-for (const archivo of ['shared/vendor/acorn-8.11.3.js', 'shared/vendor/lezer-python-1.1.19.js', 'shared/editor/javascript.js', 'shared/editor/catalogo.js', 'shared/editor/python.js', 'shared/python/traductor.js', 'shared/python/desde-js.js'])
+for (const archivo of ['shared/vendor/acorn-8.11.3.js', 'shared/vendor/lezer-python-1.1.19.js', 'shared/editor/javascript.js', 'shared/editor/plantillas.js', 'shared/editor/python.js', 'shared/python/traductor.js', 'shared/python/desde-js.js'])
   vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8') + (archivo.includes('lezer') ? ';window.LezerPython = LezerPython;' : '') + (archivo.includes('acorn') ? ';window.acorn = acorn;' : ''), ctx, { filename: archivo });
 const { CMGPythonJS: T, CMGJSaPython: C, CMGEditorJS, CMGEditorPython } = ctx.window;
 const AF = Object.getPrototypeOf(async function () {}).constructor;

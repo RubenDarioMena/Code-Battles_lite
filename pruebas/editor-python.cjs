@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const ctx = vm.createContext({ console, window: {} });
-for (const archivo of ['shared/vendor/lezer-python-1.1.19.js', 'shared/js/estructura.js', 'shared/editor/lenguajes.js', 'shared/editor/catalogo.js', 'shared/editor/python.js', 'shared/editor/estructura-python.js', 'shared/editor/adaptador-python.js'])
+for (const archivo of ['shared/vendor/lezer-python-1.1.19.js', 'shared/js/estructura.js', 'shared/editor/lenguajes.js', 'shared/editor/plantillas.js', 'shared/editor/python.js', 'shared/editor/estructura-python.js', 'shared/editor/adaptador-python.js'])
   vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8') + (archivo.includes('lezer') ? ';window.LezerPython = LezerPython;' : ''), ctx, { filename: archivo });
 const { CMGEditorPython: P, ESTRUCTURA_PYTHON: E, CMGAdaptadorPython: A, LezerPython } = ctx.window;
 let checks = 0;

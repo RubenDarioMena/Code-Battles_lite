@@ -187,7 +187,7 @@
   // ---------- Plantillas y teclas ----------
   // Cada plantilla de bloque trae su cuerpo en una línea sangrada vacía (ahí queda el cursor);
   // la envolvente pone la cabecera sobre las líneas elegidas, que bajan un nivel.
-  // Los atajos de la paleta común salen del catálogo único (catalogo.js), con su texto en Python.
+  // Los atajos de la paleta común salen del catálogo único (CMGCatalogo, en plantillas.js, que se carga antes), con su texto en Python.
   function plantillas({ pausa = "" } = {}) {
     return { atajos: window.CMGCatalogo.atajos("python", { pausa }), textoAtajo: window.CMGCatalogo.textoAtajo };
   }

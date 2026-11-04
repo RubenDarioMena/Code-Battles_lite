@@ -1,10 +1,22 @@
+## Arreglo · Factory en negro otra vez: caché con versiones mezcladas · 4 de noviembre de 2026
+
+- **Causa.** El catálogo se había publicado como archivo nuevo (`catalogo.js`), con su propia etiqueta en `index.html`, y `plantillas.js` pasó a depender de él. Una caché que sirve un `index.html` anterior junto con el `plantillas.js` nuevo deja `CMGCatalogo` sin definir. raw.githack ignora `?v=`, y las copias por rama se renuevan a destiempo. `CMGPaleta.crear` lanzaba un error y el arranque se cortaba antes de la rama de Factory: «Primer blanco», pestaña «Escenario», paleta e inspector vacíos, mapa negro. Se reprodujo sirviendo cada archivo cambiado en su versión anterior (`cc10e0b` y `92c1b09`), uno por uno.
+- **Arreglo.**
+  - El catálogo vive dentro de `plantillas.js`, que todas las páginas ya cargan antes que `python.js`. `catalogo.js` desaparece y no hay etiqueta nueva de la que dependa el arranque.
+  - La paleta ya no puede tumbar el juego. Los adaptadores leen sus plantillas de forma perezosa y protegida. `juego.js` arma la paleta con `paletaSegura`: si falla, el juego arranca con la paleta vacía y avisa en el editor que hay que recargar sin caché.
+  - `index.html` registra los errores del arranque. Si el juego no llega a arrancar, muestra un aviso con el detalle («no cargó juego.js…») en vez de quedarse en negro.
+  - Con estas tres medidas, todas las mezclas de un archivo viejo con los demás nuevos arrancan, contra las dos versiones anteriores.
+- **Pruebas.** En `python-juego.mjs`: unas plantillas rotas no cortan el arranque de Factory, y la página avisa si falta `juego.js`.
+- **Para probar en raw.githack** conviene la URL fijada al commit en lugar de `trunk`, que puede mezclar copias.
+- Versiones: `plantillas.js?v=3`, `adaptador-js.js?v=2`, `adaptador-python.js?v=4`, `juego.js?v=35`.
+
 ## Catálogo único de la paleta (JS y Python) · 4 de noviembre de 2026
 
-- `shared/editor/catalogo.js` (`CMGCatalogo`) es una sola tabla de botones comunes con el texto de cada lenguaje. `plantillas.js` (JS) y `plantillas()` de `python.js` ya no tienen listas propias: las generan desde la tabla.
+- `CMGCatalogo` (en `shared/editor/plantillas.js`; primero fue `catalogo.js`, ver la entrada de arriba) es una sola tabla de botones comunes con el texto de cada lenguaje. `plantillas.js` (JS) y `plantillas()` de `python.js` ya no tienen listas propias: las generan desde la tabla.
 - **Sin cambio visible.** Se comprobó que las listas generadas son idénticas a las anteriores, en JS y en Python, con y sin pausa (War 0,5 s y Factory).
 - Un botón nuevo se añade una vez y aparece en JS, Python, War, Factory y el IDE. Lo propio de un lenguaje es la entrada que el otro no declara.
-- Pruebas: `editor-contrato.cjs` comprueba los botones compartidos, la pausa por lenguaje y que cada lista sea independiente. Las suites de node cargan `catalogo.js`.
-- Versiones: `catalogo.js?v=1`, `plantillas.js?v=2`, `python.js?v=3` (juego y demo).
+- Pruebas: `editor-contrato.cjs` comprueba los botones compartidos, la pausa por lenguaje y que cada lista sea independiente.
+- Versiones: `plantillas.js?v=2`, `python.js?v=3` (juego y demo).
 
 ## Paleta común en War y Factory · 4 de noviembre de 2026
 

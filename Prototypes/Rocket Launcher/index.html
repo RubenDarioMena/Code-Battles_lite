@@ -2,6 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<script>
+  // Si el arranque falla (p. ej. una caché que mezcla versiones), avisar en vez de dejar la pantalla en negro.
+  window.__erroresArranque = [];
+  addEventListener("error", e => {
+    if (window.__banco) return;
+    const t = e.target, recurso = t && t !== window && (t.src || t.href);
+    window.__erroresArranque.push(recurso ? "no cargó " + decodeURIComponent(recurso.split("/").pop()) : String(e.message || e.error || e) + (e.filename ? " · " + e.filename.split("/").pop().split("?")[0] + ":" + e.lineno : ""));
+  }, true);
+</script>
 <title>Code Battle Lite · War</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
 <meta name="theme-color" content="#0B0F13">
@@ -394,13 +403,12 @@
 <script src="../../shared/js/estructura.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/javascript.js?v=1" charset="utf-8"></script>
 <script src="js/programas.js?v=1" charset="utf-8"></script>
-<script src="../../shared/editor/catalogo.js?v=1" charset="utf-8"></script>
-<script src="../../shared/editor/plantillas.js?v=2" charset="utf-8"></script>
-<script src="../../shared/editor/adaptador-js.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/plantillas.js?v=3" charset="utf-8"></script>
+<script src="../../shared/editor/adaptador-js.js?v=2" charset="utf-8"></script>
 <script src="../../shared/vendor/lezer-python-1.1.19.js" charset="utf-8"></script>
 <script src="../../shared/editor/python.js?v=3" charset="utf-8"></script>
 <script src="../../shared/editor/estructura-python.js?v=1" charset="utf-8"></script>
-<script src="../../shared/editor/adaptador-python.js?v=3" charset="utf-8"></script>
+<script src="../../shared/editor/adaptador-python.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/vida.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/edicion.js?v=3" charset="utf-8"></script>
 <script src="../../shared/editor/seudo.js?v=1" charset="utf-8"></script>
@@ -408,9 +416,20 @@
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=5" charset="utf-8"></script>
-<script src="js/juego.js?v=34" charset="utf-8"></script>
+<script src="js/juego.js?v=35" charset="utf-8"></script>
 <script src="js/layout.js?v=14" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
+<script>
+  addEventListener("load", () => {
+    if (window.__banco) return;
+    const d = document.createElement("div");
+    d.setAttribute("role", "alert");
+    d.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;padding:12px 14px;border-radius:8px;background:#3a1418;color:#ffe3e3;border:1px solid #c0444f;font:14px/1.4 system-ui,sans-serif";
+    d.innerHTML = "<b>El juego no pudo arrancar.</b> Puede que el navegador o el servidor tengan archivos de versiones distintas: recarga sin caché (Ctrl+F5 o Ctrl+Shift+R). Si sigue, envía este mensaje:<br><code></code>";
+    d.querySelector("code").textContent = window.__erroresArranque.join(" | ") || "sin detalle";
+    document.body.appendChild(d);
+  });
+</script>
 
 </body>
 </html>
