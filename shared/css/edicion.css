@@ -138,7 +138,32 @@
 /* Grupos de la barra de edición: una ranura grabada entre grupo y grupo. */
 .barra-edicion .grupo-ed { display: flex; flex: none; gap: 4px; align-items: center; }
 .barra-edicion .grupo-ed + .grupo-ed::before { content: ""; flex: none; width: 2px; height: 22px; margin: 0 2px 0 1px; background: var(--metal-negro); box-shadow: 1px 0 0 rgba(255, 255, 255, .08); }
-.app[data-forma="movil"] .barra-edicion .grupo-ed { gap: 3px; }
+.cmg-anfitrion[data-forma="movil"] .barra-edicion .grupo-ed { gap: 3px; }
+
+/* ---------- Forma del anfitrión ----------
+   .cmg-anfitrion es el elemento que lleva data-forma, data-modo y data-sin-teclado: la .app del juego
+   o la raíz de un editor autónomo. Estas reglas valen igual para los dos. */
+/* Paleta y barra de edición: una sola línea cada una, deslizante (rueda, arrastre o dedo). */
+.paleta, .barra-edicion { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
+/* Paleta compacta en el teléfono. */
+.cmg-anfitrion[data-forma="movil"] .paleta { padding: 4px; gap: 4px; }
+.cmg-anfitrion[data-forma="movil"] .atajo { width: 40px; height: 40px; }
+.cmg-anfitrion[data-forma="movil"] .atajo svg { width: 26px; height: 26px; }
+/* Ladrillos solo con icono (el nombre sigue en aria-label): sin etiqueta que asome junto al último. */
+.cmg-anfitrion[data-forma="movil"] .paleta-seudo .ladrillo { padding: 0; justify-content: center; }
+.cmg-anfitrion[data-forma="movil"] .paleta-seudo .ladrillo span { display: none; }
+/* Barra de edición: fija bajo la paleta en el teléfono (también con el teclado abierto);
+   en PC solo con el modo sin teclado, donde el teclado ya no copia ni pega. */
+.cmg-anfitrion[data-forma="movil"] .barra-edicion,
+.cmg-anfitrion[data-sin-teclado="true"] .barra-edicion { display: flex; }
+.cmg-anfitrion[data-forma="movil"] .barra-edicion { padding: 3px; gap: 3px; }
+.cmg-anfitrion[data-forma="movil"] .barra-edicion button { width: 38px; height: 32px; }
+.cmg-anfitrion[data-forma="escritorio"] .barra-edicion .b-teclado,
+.cmg-anfitrion[data-forma="escritorio"] .barra-edicion .grupo-ed.solo-teclado { display: none; }
+/* Seudocódigo y bloques: la barra de edición actúa sobre el renglón elegido. */
+.cmg-anfitrion:is([data-modo="pseudo"], [data-modo="bloques"]) .barra-edicion { display: flex; }
+.cmg-anfitrion:is([data-modo="pseudo"], [data-modo="bloques"]) .b-teclado, .cmg-anfitrion:is([data-modo="pseudo"], [data-modo="bloques"]) .grupo-ed.solo-teclado,
+.cmg-anfitrion:is([data-modo="pseudo"], [data-modo="bloques"]) .barra-edicion [data-accion="linea"] { display: none; }
 
 /* Orden de la barra (Ajustes → Ordenar botones y grupos). */
 .orden-barra .orden-grupos { display: grid; gap: 8px; margin: 10px 0 12px; }

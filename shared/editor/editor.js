@@ -2,13 +2,18 @@
 (() => {
   "use strict";
   let secuencia = 0;
+  const ICONO_PANTALLA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>';
   const plantilla = `
     <div class="editor-herramientas">
-      <button class="mini b-teclado" id="b-teclado" type="button" aria-label="Modo sin teclado"></button>
-      <button class="mini" type="button" data-modo-codigo="js">JS</button>
-      <button class="mini" type="button" data-modo-codigo="pseudo">Seudo</button>
-      <select id="ajustes-asa" aria-label="Asa de líneas"><option value="numero">Número</option><option value="borde">Borde</option></select>
-      <button id="ajustes-orden-barra" type="button">Ordenar barra</button>
+      <span class="modos-codigo" role="group" aria-label="Vista del programa">
+        <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
+        <button class="mini" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-tip="Seudocódigo">Seudo</button>
+      </span>
+      <button class="mini b-teclado" id="b-teclado" type="button" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"></button>
+      <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña" data-tip="Letra más pequeña">A−</button>
+      <button class="mini" type="button" id="b-mas" aria-label="Letra más grande" data-tip="Letra más grande">A+</button>
+      <button class="mini" type="button" id="b-ajustes" aria-haspopup="dialog" aria-label="Ajustes del editor" data-tip="Ajustes del editor">⚙</button>
+      <button class="mini b-pantalla" type="button" id="b-pantalla" aria-pressed="false" aria-label="Pantalla completa" data-tip="Pantalla completa">${ICONO_PANTALLA}</button>
     </div>
     <div class="paleta" id="paleta" role="toolbar" aria-label="Insertar código"></div>
     <div class="paleta paleta-seudo" id="paleta-seudo" role="toolbar" aria-label="Seudocódigo" hidden></div>
@@ -28,7 +33,20 @@
       <div class="asas" id="asas" hidden><div class="asas-in" id="asas-in"></div></div>
     </div>
     <div class="simbolos" id="simbolos" role="toolbar" aria-label="Símbolos"></div>
+    <dialog id="ajustes" class="ajustes-editor" aria-label="Ajustes del editor">
+      <h2>Ajustes del editor</h2>
+      <label>Asa de líneas <select id="ajustes-asa"><option value="numero">Número</option><option value="borde">Borde</option></select></label>
+      <button id="ajustes-orden-barra" type="button" aria-haspopup="dialog">Ordenar botones y grupos…</button>
+      <button id="ajustes-cerrar" type="button">Cerrar</button>
+    </dialog>
     <dialog id="orden-barra" class="orden-barra"><button id="orden-cerrar" type="button">Cerrar</button><div id="orden-grupos" class="orden-grupos"></div><button id="orden-restaurar" type="button">Restaurar orden</button></dialog>`;
+  const TAMANOS = [12, 13, 14, 16, 18];
+  // El criterio del juego (ventana estrecha o tableta en vertical), más el teléfono en horizontal,
+  // que en el juego queda como PC, y un hueco muy estrecho para el editor aunque la ventana sea grande.
+  const formaPorAncho = ancho => {
+    const w = innerWidth, h = innerHeight, tactil = matchMedia("(pointer: coarse)").matches;
+    return w < 760 || (w < 1000 && h > w) || (tactil && Math.min(w, h) < 500) || ancho < 340 ? "movil" : "escritorio";
+  };
 
   function crear(opciones) {
     const { raiz, proveedor = {}, alCambiar = () => {}, alAviso } = opciones;
@@ -63,6 +81,9 @@
       propios.push(...fragmento.childNodes); raiz.append(fragmento);
     }
     const $ = id => id === "app" ? (opciones.app || raiz) : nodos.get(id) || opciones.elemento?.(id);
+    // El anfitrión lleva data-forma, data-modo y data-sin-teclado; las reglas compartidas de CSS lo buscan por esta clase.
+    const anfitrion = $("app"), anfitrionNuevo = !anfitrion.classList.contains("cmg-anfitrion");
+    anfitrion.classList.add("cmg-anfitrion");
     const vida = window.CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
     const memoria = new Map();
     const preferencias = opciones.preferencias || {
@@ -107,9 +128,95 @@
       return cmg.seudo;
     }
     if (!opciones.aplazarVistas) iniciarVistas();
+    const autonomo = !opciones.adoptar ? montarAutonomo() : null;
     codigo.readOnly = !!opciones.soloLectura?.();
     codigo.dispatchEvent(new CustomEvent("cmg:estado"));
     ui.atajos(proveedor.atajos?.() || adaptador.plantillas || []);
+    // Lo que en el juego aporta su propia interfaz (layout.js y juego.js): forma, letra, ajustes,
+    // tooltips y pantalla completa. Solo para instancias autónomas.
+    function montarAutonomo() {
+      const soltarTips = window.CMGTips ? window.CMGTips.adquirir() : () => {};
+      // Forma: la fija el anfitrión (opciones.forma) o se deduce del ancho del propio editor.
+      const aplicarForma = () => {
+        const f = opciones.forma || formaPorAncho(raiz.getBoundingClientRect().width);
+        if (raiz.dataset.forma !== f) { raiz.dataset.forma = f; vida.requestAnimationFrame(() => ui.medirEditor()); }
+        // En el teléfono no hay tecla Esc que anunciar.
+        if (f === "escritorio") $("b-pantalla").dataset.tipCod = "Esc para salir"; else delete $("b-pantalla").dataset.tipCod;
+      };
+      aplicarForma();
+      if (!opciones.forma) {
+        vida.observar(new ResizeObserver(aplicarForma)).observe(raiz);
+        vida.escuchar(window, "resize", aplicarForma);
+      }
+      // La barra de símbolos del teléfono solo aparece mientras se escribe.
+      vida.escuchar(codigo, "focus", () => { raiz.dataset.escribiendo = "true"; });
+      vida.escuchar(codigo, "blur", () => { delete raiz.dataset.escribiendo; });
+      // Letra: los mismos cinco tamaños que el juego, guardados en las preferencias del anfitrión.
+      const guardada = Number(preferencias.leer("letra", null));
+      if (TAMANOS.includes(guardada)) raiz.style.setProperty("--code-size", guardada + "px");
+      const letra = paso => {
+        const actual = Math.round(parseFloat(getComputedStyle(raiz).getPropertyValue("--code-size")) || 14);
+        const i = TAMANOS.includes(actual) ? TAMANOS.indexOf(actual) : 2;
+        const t = TAMANOS[Math.max(0, Math.min(TAMANOS.length - 1, i + paso))];
+        raiz.style.setProperty("--code-size", t + "px"); preferencias.escribir("letra", t); ui.medirEditor();
+      };
+      vida.escuchar($("b-menos"), "click", () => letra(-1));
+      vida.escuchar($("b-mas"), "click", () => letra(1));
+      const $ajustes = $("ajustes");
+      vida.escuchar($("b-ajustes"), "click", () => $ajustes.showModal());
+      vida.escuchar($("ajustes-cerrar"), "click", () => $ajustes.close());
+      // Pantalla completa: el editor ocupa la ventana (también en iPhone, sin la API del navegador)
+      // y, donde se puede, se pide además la pantalla completa del navegador.
+      const $pantalla = $("b-pantalla"), raizDoc = document.documentElement;
+      let enPantalla = false, pedidaNavegador = false;
+      const ajustarVisible = () => {
+        if (!enPantalla) return;
+        const vv = window.visualViewport;
+        raiz.style.setProperty("--alto-visible", Math.round(vv ? vv.height : innerHeight) + "px");
+        raiz.style.setProperty("--arriba-visible", Math.round(vv ? vv.offsetTop : 0) + "px");
+      };
+      function pantalla(si = !enPantalla) {
+        si = !!si;
+        if (vida.destruida || si === enPantalla) return enPantalla;
+        enPantalla = si;
+        raiz.dataset.pantallaCompleta = String(si);
+        $pantalla.setAttribute("aria-pressed", String(si));
+        $pantalla.dataset.tip = si ? "Salir de pantalla completa" : "Pantalla completa";
+        $pantalla.setAttribute("aria-label", $pantalla.dataset.tip);
+        if (si) {
+          if (!raizDoc.dataset.cmgPantalla) raizDoc.dataset.cmgPantalla = uid;
+          ajustarVisible();
+          if (opciones.pantallaNavegador !== false && document.fullscreenEnabled && !document.fullscreenElement && raizDoc.requestFullscreen) {
+            pedidaNavegador = true;
+            // Si el editor sale (o se destruye) antes de que el navegador responda, se suelta al llegar.
+            raizDoc.requestFullscreen().then(() => { if (!enPantalla && document.fullscreenElement) document.exitFullscreen().catch(() => {}); })
+              .catch(() => { pedidaNavegador = false; });
+          }
+        } else {
+          if (raizDoc.dataset.cmgPantalla === uid) delete raizDoc.dataset.cmgPantalla;
+          raiz.style.removeProperty("--alto-visible"); raiz.style.removeProperty("--arriba-visible");
+          if (pedidaNavegador && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+          pedidaNavegador = false;
+        }
+        vida.requestAnimationFrame(() => ui.medirEditor());
+        opciones.alPantallaCompleta?.(si);
+        return si;
+      }
+      vida.escuchar($pantalla, "click", () => pantalla());
+      // Esc del navegador sale de su pantalla completa: el editor sale con ella.
+      vida.escuchar(document, "fullscreenchange", () => { if (pedidaNavegador && !document.fullscreenElement) { pedidaNavegador = false; pantalla(false); } });
+      // Esc sale si nadie más lo usó (sugerencias, variantes o la selección del modo sin teclado).
+      vida.escuchar(raiz, "keydown", ev => {
+        if (ev.key !== "Escape" || !enPantalla || ev.defaultPrevented || ev.target.closest("dialog")) return;
+        if (raiz.querySelector(".variantes:not([hidden]), .sugerencias:not([hidden])")) return;
+        ev.preventDefault(); pantalla(false); $pantalla.focus();
+      });
+      if (window.visualViewport) { vida.escuchar(window.visualViewport, "resize", ajustarVisible); vida.escuchar(window.visualViewport, "scroll", ajustarVisible); }
+      return {
+        pantalla,
+        destruir() { if (enPantalla) pantalla(false); soltarTips(); delete raiz.dataset.pantallaCompleta; },
+      };
+    }
     const editor = {
       codigo, fachada: cmg, iniciarVistas,
       documento: () => ({ ...doc }),
@@ -138,13 +245,17 @@
         if (!cmg.edicion.activo) codigo.focus();
       },
       modoSinTeclado(si) { if (!vida.destruida) cmg.edicion.activar(si); },
+      pantallaCompleta(si) { return autonomo ? autonomo.pantalla(si) : false; },
+      forma: () => anfitrion.dataset.forma || null,
       refrescar() { if (!vida.destruida) { codigo.readOnly = !!opciones.soloLectura?.(); codigo.dispatchEvent(new CustomEvent("cmg:estado")); ui.atajos(proveedor.atajos?.() || adaptador.plantillas || []); ui.medirEditor(); } },
       destruir() {
         if (vida.destruida) return;
+        autonomo?.destruir();
         vida.destruir(); for (const n of propios) n.remove();
+        if (anfitrionNuevo) anfitrion.classList.remove("cmg-anfitrion");
         for (const [viejo, nuevo] of reemplazos.reverse()) nuevo.replaceWith(viejo);
         raiz.classList.remove("cmg-editor"); delete raiz.dataset.cmgEditor; delete raiz.dataset.autonomo;
-        if (!opciones.app) { delete raiz.dataset.modo; delete raiz.dataset.sinTeclado; }
+        if (!opciones.app) { delete raiz.dataset.modo; delete raiz.dataset.sinTeclado; delete raiz.dataset.forma; delete raiz.dataset.escribiendo; raiz.style.removeProperty("--code-size"); }
         revisiones.clear(); memoria.clear();
       },
     };

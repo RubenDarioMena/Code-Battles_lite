@@ -473,55 +473,8 @@
 
   // ---------- Tooltips rápidos ----------
   // Los iconos no llevan nombre: aparece al pasar el cursor (o al tocarlos en el teléfono).
-  const tip = $("tip");
-  let tipDe = null, tipT = 0, tipFuera = 0;
-  function mostrarTip(el) {
-    tipDe = el;
-    const cod = el.dataset.tipCod;
-    tip.innerHTML = `<b></b>${cod ? "<code></code>" : ""}`;
-    tip.querySelector("b").textContent = el.dataset.tip;
-    if (cod) tip.querySelector("code").textContent = cod;
-    tip.hidden = false;
-    const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
-    let x = r.left + r.width / 2 - t.width / 2, y = r.top - t.height - 8;
-    // Paleta y variantes: el nombre queda debajo de la paleta y del menú de variantes, sin taparlos.
-    const pal = el.closest(".paleta") || (el.closest(".variantes") && document.querySelector(".paleta:not([hidden])"));
-    if (pal) {
-      const v = document.querySelector(".variantes:not([hidden])");
-      const piso = Math.max(r.bottom, pal.getBoundingClientRect().bottom, v ? v.getBoundingClientRect().bottom : 0) + 8;
-      y = piso + t.height <= innerHeight - 4 ? piso : Math.max(4, Math.min(r.top, v ? v.getBoundingClientRect().top : r.top) - t.height - 8);
-      vigilarVariantes();
-    } else if (y < 4) y = r.bottom + 8;
-    x = Math.max(6, Math.min(innerWidth - t.width - 6, x));
-    tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
-  }
-  function ocultarTip() { clearTimeout(tipT); tipDe = null; tip.hidden = true; }
-  // Si el menú de variantes se abre o se cierra con el nombre visible, el nombre se recoloca.
-  let vigiaVariantes = null;
-  function vigilarVariantes() {
-    const v = document.querySelector(".variantes");
-    if (!v || vigiaVariantes) return;
-    vigiaVariantes = new MutationObserver(() => { if (tipDe && !tip.hidden && tipDe.isConnected) mostrarTip(tipDe); });
-    vigiaVariantes.observe(v, { attributes: true, attributeFilter: ["hidden"] });
-  }
-  document.addEventListener("pointerover", (ev) => {
-    if (ev.pointerType === "touch") return;
-    const el = ev.target.closest("[data-tip]");
-    if (el === tipDe) return;
-    clearTimeout(tipT);
-    if (!el) { ocultarTip(); return; }
-    tipT = setTimeout(() => mostrarTip(el), tip.hidden ? 70 : 0);
-  });
-  document.addEventListener("pointerdown", (ev) => {
-    const el = ev.target.closest && ev.target.closest("[data-tip]");
-    if (ev.pointerType !== "touch") { if (!el) ocultarTip(); return; }
-    if (!el) { ocultarTip(); return; }
-    mostrarTip(el);
-    el.classList.add("vivo");
-    clearTimeout(tipFuera);
-    tipFuera = setTimeout(() => { el.classList.remove("vivo"); if (tipDe === el) ocultarTip(); }, 900);
-  });
-  addEventListener("blur", ocultarTip);
+  // El módulo es compartido con el editor autónomo (shared/editor/tips.js).
+  window.CMGTips.crear({ tip: $("tip") });
 
   // ---------- Arranque ----------
   addEventListener("resize", () => { aplicarForma(); actualizarTeclado(); });

@@ -9,7 +9,10 @@
       titulo: "Mensaje", grupos: [{ items: [{ ins: '"Hola"', cls: "str" }, { ins: '"Hasta luego"', cls: "str" }] }],
     } : null,
   };
-  const iniciales = ['const mensaje = "Hola";\nconsole.log(mensaje);\n', 'let pasos = 3;\nwhile (pasos > 0) {\n  console.log(pasos);\n  pasos -= 1;\n}\n'];
+  // El primero cabe en el seudocódigo actual (solo llamadas); el segundo usa variables y queda en JS.
+  const iniciales = ['console.log("Hola");\nconsole.info("Listo para empezar");\nconsole.warn("Revisa el mensaje");\n', 'let pasos = 3;\nwhile (pasos > 0) {\n  console.log(pasos);\n  pasos -= 1;\n}\n'];
+  // ?forma=movil o ?forma=escritorio la fuerzan, como en el juego; si no, cada editor la deduce de su ancho.
+  const forma = ["movil", "escritorio"].includes(new URLSearchParams(location.search).get("forma")) ? new URLSearchParams(location.search).get("forma") : undefined;
   const instancias = [];
   for (const [i, tarjeta] of [...document.querySelectorAll("[data-demo]")].entries()) {
     const preferencias = new Map(), documentos = new Map();
@@ -17,7 +20,8 @@
     const raiz = tarjeta.querySelector(".demo-raiz");
     for (const id of ["principal", "borrador"]) documentos.set(id, { id, lenguaje: "js", texto: id === "principal" ? iniciales[i] : "// Tu borrador\n", revision: 0 });
     function crear() {
-      instancias[i] = CMGEditor.crear({ raiz, documento: documentos.get(selector.value), adaptadores: { js: CMGAdaptadorJS }, proveedor,
+      instancias[i] = CMGEditor.crear({ raiz, documento: documentos.get(selector.value), adaptadores: { js: CMGAdaptadorJS }, proveedor, forma,
+        alPantallaCompleta: si => { estado.textContent = si ? "Pantalla completa: Esc o el botón para salir." : "Listo para editar."; },
         preferencias: { leer: (k,d) => preferencias.has(k) ? preferencias.get(k) : d, escribir: (k,v) => preferencias.set(k,v) },
         soloLectura: () => lectura.checked,
         alCambiar(doc) { documentos.set(doc.id, doc); revision.textContent = "Revisión " + doc.revision; estado.textContent = "Documento actualizado."; },

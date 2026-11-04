@@ -117,12 +117,7 @@
 
 /* Código en teléfono: pestañas y paleta compactas; la consola queda plegada a una línea. */
 .app[data-forma="movil"] .tab { padding: 5px 9px; font-size: 10.5px; min-height: 30px; }
-.app[data-forma="movil"] .paleta { padding: 4px; gap: 4px; }
-.app[data-forma="movil"] .atajo { width: 40px; height: 40px; }
-.app[data-forma="movil"] .atajo svg { width: 26px; height: 26px; }
-/* Ladrillos solo con icono (el nombre sigue en aria-label): sin etiqueta que asome junto al último. */
-.app[data-forma="movil"] .paleta-seudo .ladrillo { padding: 0; justify-content: center; }
-.app[data-forma="movil"] .paleta-seudo .ladrillo span { display: none; }
+/* Paleta compacta y ladrillos solo con icono en el teléfono: shared/css/edicion.css. */
 .app[data-forma="movil"] .mini { min-height: 30px; min-width: 32px; padding: 2px 6px; }
 .app[data-forma="movil"] #v-programa > .editor { min-height: 5rem; }
 /* Panel inferior: en el teléfono empieza cerrado; solo queda su barra y el código gana ese espacio. */
@@ -138,8 +133,6 @@
 .app.teclado[data-forma="movil"] .divisor { visibility: hidden; }
 .app.teclado[data-forma="movil"] .pie, .app.teclado[data-forma="movil"] .info-reto-abrir, .app.teclado[data-forma="movil"] .info-reto { display: none; }
 
-/* Paleta y barra de edición: una sola línea cada una, deslizante (rueda, arrastre o dedo). */
-.paleta, .barra-edicion { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
 
 /* Conserva el divisor en el borde para poder recuperar el panel plegado. */
 .app[data-solo="codigo"] .zona-mapa,
@@ -179,24 +172,14 @@
   box-shadow: 0 0 5px var(--bad-soft); background: var(--surface);
 }
 
-/* Barra de edición: fija bajo la paleta en el teléfono (también con el teclado abierto);
-   en PC solo con el modo sin teclado, donde el teclado ya no copia ni pega. */
-.app[data-forma="movil"] .barra-edicion,
-.app[data-sin-teclado="true"] .barra-edicion { display: flex; }
-.app[data-forma="movil"] .barra-edicion { padding: 3px; gap: 3px; }
-.app[data-forma="movil"] .barra-edicion button { width: 38px; height: 32px; }
-/* El interruptor del teclado: en el teléfono vive en la barra; en PC, junto a la letra. */
+/* Barra de edición, paleta y sus tamaños del teléfono: shared/css/edicion.css (.cmg-anfitrion es la .app).
+   El interruptor del teclado: en el teléfono vive en la barra; en PC, junto a la letra. */
 .app[data-forma="movil"] .herramientas .b-teclado { display: none; }
-.app[data-forma="escritorio"] .barra-edicion .b-teclado,
-.app[data-forma="escritorio"] .barra-edicion .grupo-ed.solo-teclado { display: none; }
 .app.teclado[data-forma="movil"] .barra-edicion { flex: none; }
 
 /* Seudocódigo: ocupa el sitio del editor; la barra de edición actúa sobre el renglón elegido. */
 #v-programa > .prog { flex: 1 1 auto; min-height: 9rem; }
 .app[data-forma="movil"] #v-programa > .prog { min-height: 5rem; }
-.app:is([data-modo="pseudo"], [data-modo="bloques"]) .barra-edicion { display: flex; }
-.app:is([data-modo="pseudo"], [data-modo="bloques"]) .b-teclado, .app:is([data-modo="pseudo"], [data-modo="bloques"]) .grupo-ed.solo-teclado,
-.app:is([data-modo="pseudo"], [data-modo="bloques"]) .barra-edicion [data-accion="linea"] { display: none; }
 .app[data-forma="movil"] .modos-codigo .mini { min-width: 0; }
 
 /* El botón de las herramientas queda siempre a la vista: las pestañas se deslizan por debajo. */

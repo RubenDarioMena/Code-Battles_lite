@@ -13,8 +13,8 @@
     {
       "archivo": "pruebas/navegador.mjs",
       "referencia": 90,
-      "actual": 88,
-      "estado": "parcial_arranque_worker"
+      "actual": 90,
+      "estado": "ejecutada"
     },
     {
       "archivo": "pruebas/factory-editor-comun.mjs",
@@ -39,16 +39,40 @@
       "referencia": 7,
       "actual": 7,
       "estado": "ejecutada"
+    },
+    {
+      "archivo": "pruebas/editor-demo.mjs",
+      "referencia": 38,
+      "actual": 38,
+      "estado": "ejecutada"
+    },
+    {
+      "archivo": "pruebas/factory-3d.mjs",
+      "referencia": 10,
+      "actual": 10,
+      "estado": "ejecutada"
     }
   ],
   "capturas": {
     "estado": "comparadas",
     "formatos": [
       "pc",
-      "movil"
+      "tableta",
+      "movil",
+      "movil-horizontal"
+    ],
+    "series": [
+      "war",
+      "factory"
+    ],
+    "estados": [
+      "normal",
+      "sin-teclado",
+      "seudo",
+      "pantalla-completa"
     ],
     "diferencias_pixeles": 0
   },
-  "limitacion": "War: 88 comprobaciones correctas en la suite completa; el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s antes de recibir mensajes. Una prueba dirigida del mismo botón arrancó correctamente tanto en dfa5f33 como en E1. La suite completa no se declara pasada.",
-  "validada_en": "E1 · 2026-11-04"
+  "limitacion": "War pasó 90/90 en la pasada de E2.1. En E1 quedó en 88/90: el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s. Esta pasada no lo reprodujo, pero la intermitencia no se declara resuelta.",
+  "validada_en": "E2.1 · 2026-11-04"
 }
