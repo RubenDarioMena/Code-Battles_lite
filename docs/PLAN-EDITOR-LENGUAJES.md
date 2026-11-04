@@ -106,7 +106,7 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 | Clave | Contenido | Regla |
 |---|---|---|
 | `prog-<reto>` | `{ id: "JS" }` | Sin cambios. Solo se escribe para unidades JS. Las versiones anteriores siguen funcionando. |
-| `fuentes-<reto>` | `{ id: { lenguaje, texto } }` | Si existe para una unidad, **gana**. |
+| `fuentes-<reto>` | `{ id: { lenguaje: "python", texto, enUso } }` | Si existe para una unidad con `enUso`, **gana** (desde E4b, solo con `?python=1`). Con `enUso: false` guarda el programa Python mientras la unidad vuelve a JS. |
 | `cmg-banco02:*` | — | La importación de solo lectura no cambia. |
 
 - Telemetría (`codigos`) y récords añaden `lenguaje`.
@@ -131,7 +131,7 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 | **E2.1 Paridad** | Forma, barras, tooltips, letra y ajustes comunes con el juego; pantalla completa de cada instancia | Demo | War y Factory idénticos píxel a píxel; demo en PC, tableta y teléfono (vertical y horizontal) |
 | **E3 Lenguaje del documento** | Catálogo de lenguajes del editor (`CMGLenguajes`); `<select>` de lenguaje en las instancias autónomas; cambio de adaptador en vivo (`abrir` con otro lenguaje, `alCambiarLenguaje`); vistas opcionales. Revisado: sin Seudo ni Bloques en el selector y sin cambios en el juego | Demo | Cambio de lenguaje sin oyentes ni menús duplicados; historial por documento; respuestas tardías o negativas del anfitrión; el juego idéntico |
 | **E4a Python en el componente** | lezer fijado y empaquetado localmente; adaptador Python (léxico, árbol con los nodos del editor, huecos `__tipo__`, sangría significativa con niveles y `pass` en bloques vacíos, plantillas, operadores, teclas, comentarios con `#`); `edicion.js` toma del adaptador sangría, huecos y sugerencias; Python en la demo | Demo | Las operaciones de edición conservan el significado (pruebas antes/después con la forma del árbol); juego idéntico |
-| **E4b Python en el juego** (`?python=1`) | Selector de lenguaje en el juego y en su hoja de Ajustes; `fuentes-<reto>`; paleta y sugerencias Python de War/Factory; Add/Replace y copiar por lenguaje | Detrás de flag | Ejecutar bloqueado con mensaje; sin flag, el juego idéntico |
+| **E4b Python en el juego** (`?python=1`) | Botón Py en la cabecera y Python en Ajustes (botones, como JS/Seudo/Bloques); `fuentes-<reto>`; paleta, inspector y sugerencias Python de War/Factory; Add/Replace y copiar por lenguaje | Detrás de flag | Ejecutar bloqueado con mensaje; sin flag, el juego idéntico |
 | **E5 Ejecutar Python** | Traductor con el mismo árbol lezer; subset núcleo; preludio en el Worker; diagnósticos con línea de Python | Se retira el flag | Equivalencia JS/Python: misma semilla, eventos, tiempos y resultados en War y Factory |
 | **E6 Listas** | `len`, `append`, `pop`, índices negativos, slices con paso, `range`, `enumerate`, comprensiones con un `for` e `if` | Sí | Resultados comparados con CPython, escritos a mano en las pruebas |
 | **E7 Conversión y docs** | Árbol → Python; conversión desde el dropdown; `REGLAMENTO`, `AGENTS`, `VISION`, `PROGRESO` | Sí | QA en un teléfono real: teclado y sangría |

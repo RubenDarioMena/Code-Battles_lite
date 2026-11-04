@@ -1,3 +1,27 @@
+## Editor · E4b: Python en el juego detrás de ?python=1 · 4 de noviembre de 2026
+
+- **Sin el flag nada cambia.** Las suites dan las mismas cifras y las 32 capturas de War y Factory son idénticas píxel a píxel. El juego carga los módulos Python, pero no los ofrece ni lee `fuentes-<reto>`.
+- **Con `?python=1`:**
+  - el botón **Py** de la cabecera y **Python** en Ajustes pasan la unidad a Python; JS, Seudo y Bloques la devuelven a JavaScript;
+  - `programas` y `prog-<reto>` siguen siendo solo JS; el Python va a `fuentes-<reto>` (`{ lenguaje, texto, enUso }`) y se conserva al volver a JS;
+  - Ejecutar muestra un aviso: Python todavía no se ejecuta (E5);
+  - paleta, inspector, sugerencias y valores vivos salen en Python mediante `aPython`: nombres D1 (`esperar` → `wait`), huecos D4, sin `;`, operadores y literales de Python;
+  - Add y Replace solo con unidades del mismo lenguaje; copiar y restaurar, por lenguaje.
+- **Cambios de código:**
+  - `CMGPaleta.crearPython`;
+  - las plantillas Python ponen la pausa como en JS (línea vacía y luego la pausa);
+  - el juego llama siempre a la fachada vigente del editor, y `window.cmg.edicion` y `window.cmg.seudo` son getters.
+- **Verificación** (detalle en `docs/qa/editor-e4b-2026-11-04/`):
+  - Nueva `python-juego.mjs`: 22.
+  - War 90/90, editor 18, vistas 31, API 7, 3D 10, demo 73, Python sin DOM 34, lógica 123, contratos, paquete.
+  - Paridad: 28/28 en tres repeticiones; **falló una vez** dentro de la pasada completa («sin-await: tiempo», un caso de error que depende de cuándo llega el mensaje del Worker). No se declara resuelto.
+- **Límites:**
+  - Python no se ejecuta.
+  - En el teléfono con Factory, Py recorta la pestaña del programa (solo con el flag).
+  - El lenguaje aún no llega a telemetría y récords (E5).
+  - Solo emulación.
+- **Versiones:** juego 31, paleta 3, python.js 2.
+
 ## Editor · E4a: Python en el componente · 4 de noviembre de 2026
 
 - **E4 se dividió en dos entregas.** E4a (esta) cubre el componente y la demo; E4b, el juego detrás de `?python=1`. Así cada una se revisa por separado.

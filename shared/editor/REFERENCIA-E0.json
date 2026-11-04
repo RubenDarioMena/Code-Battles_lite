@@ -57,6 +57,12 @@
       "referencia": 34,
       "actual": 34,
       "estado": "ejecutada"
+    },
+    {
+      "archivo": "pruebas/python-juego.mjs",
+      "referencia": 22,
+      "actual": 22,
+      "estado": "ejecutada"
     }
   ],
   "capturas": {
@@ -79,6 +85,6 @@
     ],
     "diferencias_pixeles": 0
   },
-  "limitacion": "War pasó 90/90 en las pasadas de E2.1, E3 y E4a. En E1 quedó en 88/90: el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s. No se ha vuelto a reproducir, pero la intermitencia no se declara resuelta.",
-  "validada_en": "E4a · 2026-11-04"
+  "limitacion": "War pasó 90/90 en las pasadas de E2.1, E3 y E4a. En E1 quedó en 88/90: el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s. No se ha vuelto a reproducir, pero la intermitencia no se declara resuelta. En E4b, paridad falló una vez dentro de la pasada completa («sin-await: tiempo», un caso de error cuyo tiempo final depende de cuándo llega el mensaje del Worker) y pasó 28/28 en las tres repeticiones; no se declara resuelto.",
+  "validada_en": "E4b · 2026-11-04"
 }

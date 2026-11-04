@@ -113,6 +113,7 @@
             <button class="mini" type="button" data-modo-codigo="js" aria-pressed="true" data-tip="JavaScript">JS</button>
             <button class="mini" type="button" data-modo-codigo="bloques" hidden aria-pressed="false">Bloques</button>
             <button class="mini" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-tip="Seudocódigo">Seudo</button>
+            <button class="mini" type="button" data-lenguaje-programa="python" hidden aria-pressed="false" data-tip="Python (prueba: se edita, aún no se ejecuta)">Py</button>
           </span>
           <button class="mini b-teclado" type="button" id="b-teclado" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"></button>
           <button class="mini" type="button" id="b-colores" aria-pressed="true" data-tip="Colores del código">◐</button>
@@ -261,7 +262,7 @@
       <button class="btn chico" type="button" data-modo-codigo="bloques" hidden aria-pressed="false">Bloques</button>
       <button class="btn chico" type="button" data-modo-codigo="pseudo" aria-pressed="false">Seudocódigo</button>
       <button class="btn chico" type="button" data-modo-codigo="js" aria-pressed="true">JavaScript</button>
-      <button class="btn chico" type="button" aria-pressed="false" disabled>Python</button>
+      <button class="btn chico" type="button" data-lenguaje-programa="python" aria-pressed="false" disabled>Python</button>
     </div>
     <p class="nota">El seudocódigo es otra vista del mismo programa: se guarda y se ejecuta como JavaScript. Lo que todavía no tiene seudocódigo se queda en JavaScript.</p>
     <div class="seg" role="group" aria-label="Idioma del seudocódigo">
@@ -395,14 +396,18 @@
 <script src="js/programas.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/plantillas.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/adaptador-js.js?v=1" charset="utf-8"></script>
+<script src="../../shared/vendor/lezer-python-1.1.19.js" charset="utf-8"></script>
+<script src="../../shared/editor/python.js?v=2" charset="utf-8"></script>
+<script src="../../shared/editor/estructura-python.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/adaptador-python.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/vida.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/edicion.js?v=3" charset="utf-8"></script>
 <script src="../../shared/editor/seudo.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/nucleo-ui.js?v=2" charset="utf-8"></script>
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
-<script src="js/paleta.js?v=2" charset="utf-8"></script>
-<script src="js/juego.js?v=30" charset="utf-8"></script>
+<script src="js/paleta.js?v=3" charset="utf-8"></script>
+<script src="js/juego.js?v=31" charset="utf-8"></script>
 <script src="js/layout.js?v=14" charset="utf-8"></script>
 <script src="js/remota.js?v=2" charset="utf-8"></script>
 

@@ -207,3 +207,37 @@ Sin `significativa` (JS), el código de siempre.
 El proveedor recibe el lenguaje en `funciones(lenguaje)`, `vocabulario(lenguaje)` y `atajos(lenguaje)`, y la firma se busca también por el nombre del lenguaje. Las plantillas Python (`plantillas({ pausa })`) incluyen `while True`, `while`, `for … in range`, `break`, `if`, `if/else`, `if/elif/else`, `and`, `or`, `not`, `==`, `!=`, `>`, `<`, `is None`, la variable y `print`. `is None` es un operador nuevo, `sufijo`, que va detrás del operando. Los iconos Python están en `shared/js/iconos.js` (`yPy`, `oPy`, `noPy`, `igualPy`, `distintoPy`, `esNone`).
 
 **Demo.** Cada espacio tiene un documento por lenguaje (`principal.js`, `principal.py`…). El selector abre el del otro lenguaje sin convertir nada. El segundo editor empieza en Python.
+
+## Python en el juego (E4b, `?python=1`)
+
+**Sin el flag nada cambia.** El juego carga los módulos Python, pero no ofrece el lenguaje ni lee `fuentes-<reto>`.
+
+**Con `?python=1`:**
+- La instancia del juego recibe `adaptadores: { js, python }`.
+- El botón **Py** de la cabecera y el botón **Python** de la hoja de Ajustes pasan las unidades elegidas a Python.
+- JS, Seudo y Bloques las devuelven a JavaScript; Seudo y Bloques, además, aplican su vista.
+
+**Guardado.**
+- `programas` y `prog-<reto>` siguen siendo solo JS, así que ejecutar, copiar a un escenario propio y la telemetría no cambian.
+- El Python va en `fuentes-<reto>` como `{ id: { lenguaje: "python", texto, enUso } }`.
+- Volver a JS deja `enUso: false` y conserva el texto. Una unidad nueva en Python empieza con un comentario.
+
+**Ejecutar.** Si alguna unidad está en Python, un aviso explica que Python aún no se ejecuta (llega en E5) y ofrece ir al programa. No se crea ningún Worker.
+
+**Varias unidades.**
+- Si tienen lenguajes distintos, el borrador no se aplica y se explica por qué.
+- Si comparten lenguaje, Add y Replace escriben en ese lenguaje: los de Python, en las fuentes.
+- «Copiar a los demás» copia en el lenguaje de la unidad de origen.
+- «Restaurar» restaura el texto inicial de su lenguaje.
+
+**Los fragmentos del juego.** Inspector, sugerencias, paleta y valores vivos están escritos en JS. Con un documento Python pasan por `aPython`, ficha a ficha:
+- nombres del proveedor según D1 (`autoTarget` → `auto_target`, `esperar` → `wait`);
+- huecos `__x__` según D4;
+- sin `;`;
+- `&&`, `||`, `!`, `===` y `!==` → `and`, `or`, `not`, `==` y `!=`;
+- `true`, `false` y `null` → `True`, `False` y `None`;
+- comentarios `//` → `#`.
+
+Las sugerencias reciben el nombre JS de la función. Los bloques usan las plantillas Python: `CMGPaleta.crearPython` en War y la lista del robot en Factory.
+
+**Fachada.** Al cambiar de lenguaje el interior se rehace. El juego llama siempre a la fachada vigente, y `window.cmg.edicion` y `window.cmg.seudo` son getters.

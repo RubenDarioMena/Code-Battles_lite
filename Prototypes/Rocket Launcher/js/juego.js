@@ -7,6 +7,8 @@
 
   // ---------- Constantes del mundo ----------
   const ES_FACTORY = new URLSearchParams(location.search).get("serie") === "factory";
+  // E4b: Python se edita detrás de ?python=1; todavía no se ejecuta (E5). Sin el flag, el juego es el de siempre.
+  const PYTHON = new URLSearchParams(location.search).get("python") === "1" && !!window.CMGAdaptadorPython;
   let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
   const DT = window.NUCLEO.DT;                 // paso fijo de simulación (tiempo de juego)
@@ -171,10 +173,13 @@
   let tamLetra = guardado.leer("letra", 14);
   let semillaFija = !!guardado.leer("semillaFija", false);
   let def = null, programas = {}, progSel = "LAU-01";
+  // Programas en Python (fuentes-<reto>): { id: { lenguaje: "python", texto, enUso } }. «programas» y
+  // prog-<reto> siguen siendo solo JS; una unidad con su fuente Python en uso se edita en Python y su JS se conserva.
+  let fuentes = {};
   let mundo = null, ejec = null, pausa = false, velocidad = 1, turbo = 1, intento = 0, semilla = 1;
   let seleccion = null;
   let seleccionadas = new Set();
-  let edicion = { ids: [], mixto: false };
+  let edicion = { ids: [], mixto: false, lenguaje: "js" };
   const borradoresMulti = new Map();
   const claveEdicion = (ids) => [...ids].sort().join("|");
   let lineaCorre = {}, lineaErr = null;
@@ -208,6 +213,13 @@
       mostrarBanner("fallo", "Aplica el borrador antes de ejecutar",
         "El borrador todavía no pertenece a los lanzadores. Usa Add para anexarlo o Replace para sustituir sus programas.", null,
         [["Volver al borrador", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); $codigo.focus(); }]]);
+      return;
+    }
+    const enPython = programablesDe(def).filter(l => lenguajeDe(l.id) === "python").map(l => l.id);
+    if (enPython.length) {
+      mostrarBanner("fallo", "Python todavía no se ejecuta",
+        `${esc(enPython.join(", "))} ${enPython.length > 1 ? "están" : "está"} en Python. En esta versión de prueba Python se escribe y se guarda, pero no se ejecuta. Para ejecutar, vuelve a JavaScript: tu programa Python se conserva.`, null,
+        [["Ir al programa", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); abrirPrograma(enPython[0]); }], ["Entendido", "", ocultarBanner]]);
       return;
     }
     cerrarProgramas();
@@ -888,17 +900,35 @@
     g ||= {};
     return Object.fromEntries(programablesDe(def).map(l => [l.id, typeof g[l.id] === "string" ? g[l.id] : textoInicial(def, l.id)]));
   }
+  function cargarFuentes() {
+    if (!PYTHON) return {};
+    const g = guardado.leer(`fuentes-${claveReto()}`, null) || {}, ids = new Set(programablesDe(def).map(l => l.id));
+    return Object.fromEntries(Object.entries(g).filter(([id, f]) => ids.has(id) && f && f.lenguaje === "python" && typeof f.texto === "string")
+      .map(([id, f]) => [id, { lenguaje: "python", texto: f.texto, enUso: f.enUso !== false }]));
+  }
+  const copiaFuentes = () => JSON.parse(JSON.stringify(fuentes));
   let tGuardar = 0;
   function guardarProgramas() {
     clearTimeout(tGuardar);
-    const clave = `prog-${claveReto()}`, copia = { ...programas };
-    tGuardar = setTimeout(() => guardado.escribir(clave, copia), 300);
+    const clave = `prog-${claveReto()}`, copia = { ...programas }, claveF = `fuentes-${claveReto()}`, copiaF = PYTHON ? copiaFuentes() : null;
+    tGuardar = setTimeout(() => { guardado.escribir(clave, copia); if (copiaF) guardado.escribir(claveF, copiaF); }, 300);
   }
 
   function guardarFactoryAhora() {
     clearTimeout(tGuardar);
     guardado.escribir(`prog-${claveReto()}`, { ...programas });
+    if (PYTHON) guardado.escribir(`fuentes-${claveReto()}`, copiaFuentes());
   }
+  // Lenguaje y texto de cada unidad.
+  const lenguajeDe = id => PYTHON && fuentes[id] && fuentes[id].enUso ? "python" : "js";
+  const textoDe = id => lenguajeDe(id) === "python" ? fuentes[id].texto : programas[id];
+  function ponerTexto(id, t) { if (lenguajeDe(id) === "python") fuentes[id].texto = t; else programas[id] = t; }
+  function textoInicialPython(d, id) {
+    return `# Programa de ${id} en Python.\n# Python todavía no se ejecuta: aquí se escribe y se guarda. Para ejecutar, vuelve a JavaScript.\n\n`;
+  }
+  // Add/Replace sobre las fuentes Python: el aplicador escribe en un objeto estable por reto.
+  let textosPython = null;
+  const vistaPython = () => new Proxy({}, { get: (_, id) => fuentes[id] ? fuentes[id].texto : undefined, set: (_, id, v) => { if (fuentes[id]) fuentes[id].texto = v; return true; } });
   addEventListener("pagehide", () => { if (ES_FACTORY && def) guardarFactoryAhora(); });
 
   function nuevoMundo(nIntento = intento + 1) {
@@ -934,6 +964,7 @@
     intento = telemetria.filter(t => t.reto === i + 1).length;
     if (!semillaFija) semilla = intento + 1;
     programas = cargarProgramas();
+    fuentes = cargarFuentes(); textosPython = vistaPython();
     borradoresMulti.clear();
     progSel = programablesDe(def)[0].id;
     seleccion = programablesDe(def)[0].id;
@@ -1064,6 +1095,7 @@
 
   // Un token es algo que se puede insertar en el código: data-ins es el texto y data-fin el comentario de retorno.
   function tk(tipo, texto, ins, o = {}) {
+    if (edicion.lenguaje === "python") { texto = aPython(String(texto)); ins = aPython(ins); if (o.fin) o = { ...o, fin: aPython(o.fin) }; }
     if (o.ajeno) return `<button type="button" class="tk tk-${tipo} ajeno" title="${esc(o.ajeno)}" data-ajeno="${esc(o.ajeno)}">${esc(texto)}</button>`;
     return `<button type="button" class="tk tk-${tipo}" draggable="true" data-ins="${esc(ins)}" data-clave="${esc(o.clave || ins)}"${o.fin ? ` data-fin="${esc(o.fin)}"` : ""}${o.vivo ? ` data-vivo="${esc(o.vivo)}"` : ""}>${esc(texto)}</button>`;
   }
@@ -1293,12 +1325,14 @@
     }
     return null;
   }
+  // Valores vivos del inspector; con un documento Python, True/False/None.
+  const textoVivo = (el, v) => { const t = el.classList.contains("tk-str") ? JSON.stringify(v) : String(v); return edicion.lenguaje === "python" ? aPython(t) : t; };
   function actualizarVivos() {
     const $i = $("inspector");
     muestrear();
     for (const el of $("pie-ins").querySelectorAll("[data-vivo]")) {
       const v = valorVivo(el.dataset.vivo); if (v == null) continue;
-      const txt = el.classList.contains("tk-str") ? JSON.stringify(v) : String(v);
+      const txt = textoVivo(el, v);
       if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
     }
     const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion));
@@ -1306,7 +1340,7 @@
     if (!e) return;
     for (const el of $i.querySelectorAll("[data-vivo]")) {
       const v = valorVivo(el.dataset.vivo); if (v == null) continue;
-      const txt = el.classList.contains("tk-str") ? JSON.stringify(v) : String(v);
+      const txt = textoVivo(el, v);
       if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
     }
     const barra = $i.querySelector("[data-barra]"); if (barra) barra.style.width = `${Math.round(e.falla * 100)}%`;
@@ -1349,20 +1383,23 @@
   const editorPrograma = window.CMGEditor.crear({
     raiz: $("v-programa"), app: $("app"), ambito: document, elemento: $, adoptar: true, atajosGlobales: true,
     documento: { id: "inicio", lenguaje: "js", texto: "", revision: 0 },
-    adaptadores: { js: window.CMGAdaptadorJS }, serie: ES_FACTORY ? "factory" : "war", aplazarVistas: true,
+    adaptadores: PYTHON ? { js: window.CMGAdaptadorJS, python: window.CMGAdaptadorPython } : { js: window.CMGAdaptadorJS }, serie: ES_FACTORY ? "factory" : "war", aplazarVistas: true,
     preferencias: preferenciasEditor("cmg-juego-"), preferenciasVistas,
     soloLectura: () => !!ejec, alEjecutar: () => ejec ? detener() : ejecutar(),
     alAtajo: () => insercion.atajo++, alArrastrar: () => insercion.arrastre++,
     proveedor: {
       funciones: () => proveedorEditor.funciones(), firma: f => FIRMAS[f] || null,
-      sugerencias,
-      vocabulario: () => ({ objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS] }),
-      atajos: () => ATAJOS,
+      sugerencias: c => edicion.lenguaje === "python" ? sugerenciasPython(c) : sugerencias(c),
+      vocabulario: l => l === "python" ? vocabularioPython() : ({ objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS] }),
+      atajos: l => l === "python" ? atajosPython() : ATAJOS,
     },
     datos: () => window.cmg.datos(), inicial: () => window.cmg.inicial(),
   });
-  const { insertar, envolver, alternarComentario, medirEditor, pintarResaltado, seleccionarHueco, aviso: avisoEditor } = editorPrograma.fachada;
-  const pintarPaleta = () => editorPrograma.fachada.atajos(ATAJOS);
+  // La fachada se rehace al cambiar de lenguaje: se llama siempre a la vigente.
+  const viva = nombre => (...args) => editorPrograma.fachada[nombre](...args);
+  const insertar = viva("insertar"), envolver = viva("envolver"), alternarComentario = viva("alternarComentario"), medirEditor = viva("medirEditor"),
+    pintarResaltado = viva("pintarResaltado"), seleccionarHueco = viva("seleccionarHueco"), avisoEditor = viva("aviso");
+  const pintarPaleta = () => editorPrograma.fachada.atajos(edicion.lenguaje === "python" ? atajosPython() : ATAJOS);
   const $editor = $("editor");
   $("codigo").addEventListener("input", () => { clearTimeout(tPieIns); tPieIns = setTimeout(pintarPieIns, 350); });
 
@@ -1416,19 +1453,49 @@
     ids = [...new Set(ids)].filter(id => Object.hasOwn(programas, id));
     if (!ids.length) return;
     if (!forzar && ids.join("|") === edicion.ids.join("|")) return;
-    const fuentes = ids.map(id => programas[id]);
-    edicion = { ids, mixto: fuentes.some(src => src !== fuentes[0]) };
+    const textos = ids.map(textoDe), langs = ids.map(lenguajeDe);
+    const variosLenguajes = langs.some(l => l !== langs[0]);
+    edicion = { ids, mixto: variosLenguajes || textos.some(src => src !== textos[0]), lenguaje: variosLenguajes ? "js" : langs[0], variosLenguajes };
     progSel = ids[0];
-    $codigo.value = edicion.mixto ? (borradoresMulti.get(claveEdicion(ids)) || "") : fuentes[0];
+    $codigo.value = edicion.mixto ? (borradoresMulti.get(claveEdicion(ids) + ":" + edicion.lenguaje) || "") : textos[0];
     $codigo.placeholder = edicion.mixto ? "Escribe el código que quieres añadir o sustituir en las unidades seleccionadas." : "";
-    $codigo.setAttribute("aria-label", ids.length > 1 ? `Programa de ${ids.length} lanzadores en JavaScript` : `Programa de ${progSel} en JavaScript`);
     $("acciones-multi").hidden = !edicion.mixto;
-    $("multi-estado").textContent = `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
-    pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); marcasSucias = true;
+    $("multi-estado").textContent = variosLenguajes ? `${ids.length} unidades en lenguajes distintos. Para aplicar un borrador, elige unidades del mismo lenguaje.`
+      : `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
     // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
-    editorPrograma.abrir({ id: claveDocumento(), lenguaje: "js", texto: $codigo.value, revision: 0 });
+    editorPrograma.abrir({ id: claveDocumento(), lenguaje: edicion.lenguaje, texto: $codigo.value, revision: 0 });
+    const nombreL = edicion.lenguaje === "python" ? "Python" : "JavaScript";
+    $codigo.setAttribute("aria-label", ids.length > 1 ? `Programa de ${ids.length} lanzadores en ${nombreL}` : `Programa de ${progSel} en ${nombreL}`);
+    pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); pintarLenguaje(); marcasSucias = true;
   }
-  const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}`;
+  const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}${edicion.lenguaje === "python" ? ":python" : ""}`;
+  // Lenguaje de la unidad (E4b, con ?python=1): Py en la cabecera y Python en Ajustes. JS/Seudo/Bloques
+  // vuelven a JavaScript; el programa Python se conserva para cuando se vuelva a elegir.
+  function pintarLenguaje() {
+    if (!PYTHON) return;
+    const py = edicion.lenguaje === "python" && !edicion.variosLenguajes;
+    for (const b of document.querySelectorAll("[data-lenguaje-programa]")) { b.hidden = false; b.disabled = false; b.setAttribute("aria-pressed", String(py)); }
+    if (py) for (const b of document.querySelectorAll("[data-modo-codigo]")) b.setAttribute("aria-pressed", "false");
+    $("app").dataset.lenguaje = py ? "python" : "js";
+  }
+  function cambiarLenguaje(lenguaje) {
+    if (!PYTHON || !def) return false;
+    if (ejec) { avisoEditor("Detén el programa para cambiar de lenguaje."); return false; }
+    if (!edicion.variosLenguajes && edicion.lenguaje === lenguaje) return false;
+    for (const id of edicion.ids) {
+      if (lenguaje === "python") fuentes[id] = fuentes[id] ? { ...fuentes[id], enUso: true } : { lenguaje: "python", texto: textoInicialPython(def, id), enUso: true };
+      else if (fuentes[id]) fuentes[id].enUso = false;
+    }
+    guardarProgramas(); configurarEdicion(edicion.ids, true); pintarInspector();
+    return true;
+  }
+  if (PYTHON) document.addEventListener("click", (ev) => {
+    const py = ev.target.closest && ev.target.closest("[data-lenguaje-programa]");
+    if (py) { cambiarLenguaje(py.dataset.lenguajePrograma); return; }
+    const vista = ev.target.closest && ev.target.closest("[data-modo-codigo]");
+    // Con Python no hay vistas: elegir JS, Seudo o Bloques vuelve a JavaScript y aplica esa vista.
+    if (vista && edicion.lenguaje === "python" && cambiarLenguaje("js")) editorPrograma.fachada.seudo?.aplicarModo(vista.dataset.modoCodigo);
+  });
   const CLAVE_CONFIRMAR_REPLACE = "cmg-juego-confirmar-replace";
   let confirmarReplace = (() => { try { return localStorage.getItem(CLAVE_CONFIRMAR_REPLACE) !== "false"; } catch { return true; } })();
   function preferirConfirmacionReplace(valor) {
@@ -1451,22 +1518,28 @@
     });
   }
   const aplicarMulti = window.CMGProgramas.crearAplicador({
-    estado: () => ({ ejec, edicion, programas, texto: $codigo.value }),
+    estado: () => ({ ejec, edicion, programas: edicion.lenguaje === "python" ? textosPython : programas, texto: $codigo.value }),
     confirmarReemplazo,
     alAplicar(ids) {
-      borradoresMulti.delete(claveEdicion(ids));
+      borradoresMulti.delete(claveEdicion(ids) + ":" + edicion.lenguaje);
       guardarProgramas(); configurarEdicion(ids, true); pintarInspector();
     },
   });
-  $("b-add").addEventListener("click", () => aplicarMulti(false));
-  $("b-replace").addEventListener("click", () => aplicarMulti(true));
+  const aplicarSiSeMezcla = reemplazar => edicion.variosLenguajes ? avisoEditor("Las unidades elegidas están en lenguajes distintos: elige unidades del mismo lenguaje para aplicar un borrador.") : aplicarMulti(reemplazar);
+  $("b-add").addEventListener("click", () => aplicarSiSeMezcla(false));
+  $("b-replace").addEventListener("click", () => aplicarSiSeMezcla(true));
   $("b-coordenadas").addEventListener("click", () => { const texto = $("coordenadas").value.trim(); if (texto) insertar(texto); });
   let confirmarCopia = false;
   $("b-copiar-prog").addEventListener("click", (ev) => {
     if (ejec) return;
     if (!confirmarCopia) { confirmarCopia = true; ev.target.textContent = `¿Copiar el de ${progSel} encima de los demás? Toca otra vez`; setTimeout(() => { confirmarCopia = false; ev.target.textContent = "Copiar a los demás lanzadores"; }, 3000); return; }
     confirmarCopia = false; ev.target.textContent = "Copiar a los demás lanzadores";
-    for (const l of def.lanzadores) if (l.id !== progSel) programas[l.id] = programas[progSel].split(progSel).join(l.id);
+    // Se copia el programa en su lenguaje: los demás pasan a ese lenguaje y conservan el otro.
+    const py = lenguajeDe(progSel) === "python";
+    for (const l of def.lanzadores) if (l.id !== progSel) {
+      if (py) fuentes[l.id] = { lenguaje: "python", texto: fuentes[progSel].texto.split(progSel).join(l.id), enUso: true };
+      else { programas[l.id] = programas[progSel].split(progSel).join(l.id); if (fuentes[l.id]) fuentes[l.id].enUso = false; }
+    }
     guardarProgramas();
   });
   let confirmarRestaurar = false;
@@ -1474,7 +1547,7 @@
     if (ejec) return;
     if (!confirmarRestaurar) { confirmarRestaurar = true; ev.target.textContent = "¿Seguro? Se pierde tu programa. Toca otra vez"; setTimeout(() => { confirmarRestaurar = false; ev.target.textContent = "Restaurar programa inicial"; }, 3000); return; }
     confirmarRestaurar = false; ev.target.textContent = "Restaurar programa inicial";
-    programas[progSel] = textoInicial(def, progSel); guardarProgramas(); abrirPrograma(progSel);
+    ponerTexto(progSel, lenguajeDe(progSel) === "python" ? textoInicialPython(def, progSel) : textoInicial(def, progSel)); guardarProgramas(); abrirPrograma(progSel);
   });
   function pintarEdicion() {
     $codigo.readOnly = !!ejec;
@@ -1494,8 +1567,8 @@
   const verPanel = (panel) => $("app").dispatchEvent(new CustomEvent("cmg:pantalla", { detail: panel }));
   function irALinea(l) { verPanel("codigo"); abrirPestana("programa"); editorPrograma.irALinea(l); }
   $codigo.addEventListener("input", () => {
-    if (!edicion.mixto) for (const id of edicion.ids) programas[id] = $codigo.value;
-    else borradoresMulti.set(claveEdicion(edicion.ids), $codigo.value);
+    if (!edicion.mixto) for (const id of edicion.ids) ponerTexto(id, $codigo.value);
+    else borradoresMulti.set(claveEdicion(edicion.ids) + ":" + edicion.lenguaje, $codigo.value);
     if (lineaErr && lineaErr.id === progSel) { lineaErr = null; marcasSucias = true; }
     medirEditor();
     if (!edicion.mixto) guardarProgramas();
@@ -1506,12 +1579,13 @@
     if ($("app").dataset.modo === "pseudo") { avisoEditor("En seudocódigo toca un valor del programa para cambiarlo, o usa los ladrillos."); return; }
     const v = $codigo.value, a = $codigo.selectionStart, b = $codigo.selectionEnd;
     const finLinea = v.indexOf("\n", b) < 0 ? v.length : v.indexOf("\n", b);
-    let texto = ins;
+    const py = edicion.lenguaje === "python", RE = py ? window.CMGAdaptadorPython.hueco.re : RE_HUECO;
+    let texto = py ? aPython(ins) : ins;
     if (/^".*"$/.test(texto) && v[a - 1] === '"' && v[b] === '"') texto = texto.slice(1, -1);
-    if (fin && !v.slice(b, finLinea).trim()) texto += " " + fin;
-    const h = texto.search(RE_HUECO);
-    if (h >= 0 && envolver(texto.slice(0, h), texto.slice(h + texto.slice(h).match(RE_HUECO)[0].length))) return;
-    if (h >= 0) { const m = texto.slice(h).match(RE_HUECO)[0]; insertar(texto, h, h + m.length); }
+    if (fin && !v.slice(b, finLinea).trim()) texto += " " + (py ? aPython(fin) : fin);
+    const h = texto.search(RE);
+    if (h >= 0 && envolver(texto.slice(0, h), texto.slice(h + texto.slice(h).match(RE)[0].length))) return;
+    if (h >= 0) { const m = texto.slice(h).match(RE)[0]; insertar(texto, h, h + m.length); }
     else { insertar(texto); seleccionarHueco(); }
   }
   // ---------- Sugerencias para huecos, argumentos y condiciones ----------
@@ -1523,6 +1597,60 @@
     recoger: ["lugar", "material"], entregar: ["lugar"], cuantos: ["lugar", "material"],
     esperar: ["segundos"], log: ["mensaje"], info: ["mensaje"], warn: ["mensaje"], error: ["mensaje"],
   };
+  // ---------- Python (E4b) ----------
+  // Los fragmentos del juego (inspector, sugerencias, paleta) están escritos en JS y son cortos:
+  // llamadas, valores, huecos y operadores. Con un documento Python se pasan, ficha a ficha, a su forma
+  // Python (nombres del proveedor por D1, huecos __x__ por D4, sin «;»). Los bloques usan las plantillas Python.
+  let nombresPython = null;
+  const NOMBRES_LIT = { true: "True", false: "False", null: "None", undefined: "None" };
+  function aPython(t) {
+    if (t == null) return t;
+    nombresPython ||= new Map(proveedorEditor.funciones().filter(f => f.nombres && f.nombres.python).map(f => [f.nombre, f.nombres.python]));
+    const toks = lexico(String(t));
+    let out = "";
+    for (let i = 0; i < toks.length; i++) {
+      const [k, v] = toks[i];
+      if (k === "com") { const m = v.match(/^\/\*\s*([\s\S]*?)\s*\*\/$/); out += m ? window.CMGEditorPython.aHueco(m[1]) : v.startsWith("//") ? "#" + v.slice(2) : v; continue; }
+      if (k === "id") {
+        if (["const", "let", "var"].includes(v) && toks[i + 1] && toks[i + 1][0] === "esp") { i++; continue; }
+        out += nombresPython.get(v) || NOMBRES_LIT[v] || v; continue;
+      }
+      if (k === "p") {
+        const tres = toks.slice(i, i + 3).map(x => x[1]).join(""), dos = tres.slice(0, 2);
+        if (tres === "===" || tres === "!==") { out += tres === "===" ? "==" : "!="; i += 2; continue; }
+        if (dos === "&&" || dos === "||") { out += dos === "&&" ? "and" : "or"; i += 1; continue; }
+        if (dos === "??") { out += "or"; i += 1; continue; }
+        if (v === "!" && toks[i + 1]?.[1] !== "=") { out += "not "; continue; }
+        if (v === ";") continue;
+      }
+      out += v;
+    }
+    return out;
+  }
+  const jsDePython = n => { const f = proveedorEditor.funciones().find(x => x.nombres && x.nombres.python === n); return f ? f.nombre : n; };
+  // Las sugerencias del juego, con el nombre JS de la función y el resultado en Python.
+  function sugerenciasPython(c) {
+    const r = sugerencias({ ...c, funcion: c.funcion ? jsDePython(c.funcion) : c.funcion });
+    if (!r) return r;
+    return { ...r, grupos: r.grupos.map(g => ({ ...g, items: g.items.map(x => ({ ...x, ins: aPython(x.ins), ver: x.ver && aPython(x.ver) })) })) };
+  }
+  function vocabularioPython() {
+    const v = proveedorEditor.vocabulario("python"), py = proveedorEditor.funciones().map(f => (f.nombres && f.nombres.python) || f.nombre);
+    return { objetos: ["yo", ...nombresVar()], funciones: v.funciones, miembros: [...new Set([...py, ...FN_MIEMBRO])], propiedades: [...PROPS] };
+  }
+  let atajosPy = null, atajosPySensor = undefined;
+  function atajosPython() {
+    const sensor = mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null;
+    if (atajosPy && atajosPySensor === sensor) return atajosPy;
+    atajosPySensor = sensor;
+    if (ES_FACTORY) {
+      const base = window.CMGEditorPython.plantillas({ pausa: "" }).atajos.flatMap(a => a === "|" ? [] : [a, ...(a.variantes || [])]);
+      const de = ico => { const a = base.find(x => x.ico === ico); return { ...a, variantes: undefined }; };
+      atajosPy = [de("comentar"), "|", de("para"), de("mientras"), "|",
+        ...ATAJOS.filter(a => a !== "|" && ["recoger", "entregar", "sensor", "esperar"].includes(a.ico)).map(a => ({ ...a, b: aPython(a.b) }))];
+    } else atajosPy = window.CMGPaleta.crearPython({ sensor: () => sensor, aPython }).atajos;
+    return atajosPy;
+  }
   const OPERADORES_COND = [["&&", "y · se cumplen las dos", "condición"], ["||", "o · basta una", "condición"], ["!", "no · lo contrario", "condición"],
     ["===", "igual", "valor"], ["!==", "distinto", "valor"], [">", "mayor", "valor"], ["<", "menor", "valor"], [">=", "mayor o igual", "valor"], ["<=", "menor o igual", "valor"]];
   function sugerencias(c) {
@@ -1826,7 +1954,6 @@
     if (marcasSucias) pintarMarcasYa();
     if (eventosSucios) pintarEventosYa();
     editorPrograma.iniciarVistas();
-  window.cmg.seudo = editorPrograma.fachada.seudo;
   requestAnimationFrame(bucle);
   }
 
@@ -1845,7 +1972,7 @@
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
   }; // para depurar y probar desde la consola
-  window.cmg = { editor: editorPrograma, edicion: editorPrograma.fachada.edicion, serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
+  window.cmg = { editor: editorPrograma, get edicion() { return editorPrograma.fachada.edicion; }, get seudo() { return editorPrograma.fachada.seudo; }, serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
@@ -1905,7 +2032,6 @@
   elegirReto(retoIdx);
   document.fonts && document.fonts.ready.then(() => { medirEditor(); });
   editorPrograma.iniciarVistas();
-  window.cmg.seudo = editorPrograma.fachada.seudo;
   requestAnimationFrame(bucle);
 })();
 

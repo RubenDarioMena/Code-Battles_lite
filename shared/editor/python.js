@@ -188,7 +188,8 @@
   // Cada plantilla de bloque trae su cuerpo en una línea sangrada vacía (ahí queda el cursor);
   // la envolvente pone la cabecera sobre las líneas elegidas, que bajan un nivel.
   function plantillas({ pausa = "" } = {}) {
-    const P = "\n" + UNIDAD + (pausa ? pausa : "");
+    // Como en JS: el cuerpo de un bucle tiene una línea vacía para el cursor y, si el juego la pide, su pausa.
+    const P = "\n" + UNIDAD + (pausa ? "\n" + UNIDAD + pausa : "");
     const atajos = [
       { ico: "comentar", t: "Comentar", cod: "# …  (Ctrl+/)", comentar: true },
       "|",
@@ -216,10 +217,6 @@
       "|",
       { ico: "registro", t: "Mostrar (print)", b: "print(__mensaje__)" },
     ];
-    // La pausa del juego (esperar) va también al final de los bucles.
-    if (pausa) for (const a of atajos.flatMap(a => a === "|" ? [] : [a, ...(a.variantes || [])])) {
-      if (a.ico === "para") a.b = a.b + pausa;
-    }
     return { atajos, textoAtajo: a => typeof a.b === "function" ? a.b() : a.b };
   }
   const TECLAS = [
