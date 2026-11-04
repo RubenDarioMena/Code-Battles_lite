@@ -41,7 +41,7 @@
       reto: t.reto, titulo: t.titulo, intento: t.intento, resultado: t.resultado, motivo: t.motivo ?? null,
       mensaje: t.mensaje ? String(t.mensaje).slice(0, 300) : null, linea: t.linea ?? null, programa: t.programa ?? null,
       tiempoJuego: t.tiempoJuego ?? null, brechas: t.brechas ?? null, derribos: t.derribos ?? null, enemigos: t.enemigos ?? null,
-      lineas: t.lineas ?? null, codigos: recorte(t.codigos),
+      lineas: t.lineas ?? null, codigos: recorte(t.codigos), lenguajes: t.lenguajes ?? null,
     });
   });
   window.addEventListener("cmg:reto", (ev) => enviar("reto", { reto: ev.detail?.reto, titulo: ev.detail?.titulo }));

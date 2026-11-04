@@ -170,6 +170,7 @@
 .banner .record b { font-size: 16px; }
 .banner .record .mejora { color: var(--ok); }
 .banner .record .peor { color: var(--muted); }
+.etq-lenguaje { font: 600 10px/1 var(--f-ui, inherit); letter-spacing: .04em; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; border: 1px solid currentColor; color: var(--muted); vertical-align: 2px; }
 .banner .acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 
 /* ---------- Mando y botones ---------- */

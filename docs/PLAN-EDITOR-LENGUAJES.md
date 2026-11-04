@@ -106,7 +106,8 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 | Clave | Contenido | Regla |
 |---|---|---|
 | `prog-<reto>` | `{ id: "JS" }` | Sin cambios. Solo se escribe para unidades JS. Las versiones anteriores siguen funcionando. |
-| `fuentes-<reto>` | `{ id: { lenguaje: "python", texto, enUso } }` | Si existe para una unidad con `enUso`, **gana** (desde E4b, solo con `?python=1`). Con `enUso: false` guarda el programa Python mientras la unidad vuelve a JS. |
+| `fuentes-<reto>` | `{ id: { lenguaje: "python", texto, enUso } }` | Si existe para una unidad con `enUso`, **gana** (desde E5 sin flag). Con `enUso: false` guarda el programa Python mientras la unidad vuelve a JS. |
+| `records` / `records-lenguaje` | War: coste por derribo y, aparte, el lenguaje del intento que lo puso; Factory: `{ medida, regla, valor, lenguaje }` | D6: una tabla por reto, el lenguaje como etiqueta. |
 | `cmg-banco02:*` | — | La importación de solo lectura no cambia. |
 
 - Telemetría (`codigos`) y récords añaden `lenguaje`.
@@ -132,9 +133,9 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 | **E3 Lenguaje del documento** | Catálogo de lenguajes del editor (`CMGLenguajes`); `<select>` de lenguaje en las instancias autónomas; cambio de adaptador en vivo (`abrir` con otro lenguaje, `alCambiarLenguaje`); vistas opcionales. Revisado: sin Seudo ni Bloques en el selector y sin cambios en el juego | Demo | Cambio de lenguaje sin oyentes ni menús duplicados; historial por documento; respuestas tardías o negativas del anfitrión; el juego idéntico |
 | **E4a Python en el componente** | lezer fijado y empaquetado localmente; adaptador Python (léxico, árbol con los nodos del editor, huecos `__tipo__`, sangría significativa con niveles y `pass` en bloques vacíos, plantillas, operadores, teclas, comentarios con `#`); `edicion.js` toma del adaptador sangría, huecos y sugerencias; Python en la demo | Demo | Las operaciones de edición conservan el significado (pruebas antes/después con la forma del árbol); juego idéntico |
 | **E4b Python en el juego** (`?python=1`) | Botón Py en la cabecera y Python en Ajustes (botones, como JS/Seudo/Bloques); `fuentes-<reto>`; paleta, inspector y sugerencias Python de War/Factory; Add/Replace y copiar por lenguaje | Detrás de flag | Ejecutar bloqueado con mensaje; sin flag, el juego idéntico |
-| **E5 Ejecutar Python** | Traductor con el mismo árbol lezer; subset núcleo; preludio en el Worker; diagnósticos con línea de Python | Se retira el flag | Equivalencia JS/Python: misma semilla, eventos, tiempos y resultados en War y Factory |
-| **E6 Listas** | `len`, `append`, `pop`, índices negativos, slices con paso, `range`, `enumerate`, comprensiones con un `for` e `if` | Sí | Resultados comparados con CPython, escritos a mano en las pruebas |
-| **E7 Conversión y docs** | Árbol → Python; conversión desde el dropdown; `REGLAMENTO`, `AGENTS`, `VISION`, `PROGRESO` | Sí | QA en un teléfono real: teclado y sangría |
+| **E5 Ejecutar Python** ✓ | Traductor con el mismo árbol lezer; subset núcleo; preludio en el Worker; diagnósticos con línea de Python | Se retira el flag | Equivalencia JS/Python: misma semilla, eventos, tiempos y resultados en War y Factory |
+| **E6 Listas** ✓ | `len`, `append`, `pop`, índices negativos, slices con paso, `range`, `enumerate`, comprensiones con un `for` e `if` | Sí | Resultados comparados con CPython, escritos a mano en las pruebas |
+| **E7 Conversión y docs** ✓ (salvo QA real) | Árbol → Python; conversión desde el dropdown; `REGLAMENTO`, `AGENTS`, `VISION`, `PROGRESO` | Sí | QA en un teléfono real: teclado y sangría (**pendiente**: solo emulación) |
 
 ## Riesgos que el plan atiende explícitamente
 
@@ -160,10 +161,10 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 |---|---|---|
 | D1 | Nombres de la API en Python | **Decidido:** `yo.pick_up` principal; se aceptan `pickUp` y los alias en español. Vive en el proveedor (`nombres: { python }`) y en el traductor; el editor solo muestra lo que recibe |
 | D2 | `await` | **Decidido:** explícito, con `async def` en funciones que esperan; documentar que es el estilo del REPL de `asyncio` |
-| D3 | Consola | Recomendación: `print` → log; `warn()`/`error()` como funciones del proveedor |
+| D3 | Consola | **Aplicada en E5:** `print` → log; `info()`, `warn()` y `error()` a sus niveles |
 | D4 | Huecos en Python | **Decidido:** `__tipo__`, identificador válido; el traductor lo rechaza con «Rellena el hueco» |
 | D5 | Fidelidad | **Decidido:** semántica real de Python dentro del subconjunto |
-| D6 | Récords | Recomendación: una tabla por reto; el lenguaje como etiqueta |
+| D6 | Récords | **Aplicada en E5:** una tabla por reto; el lenguaje como etiqueta |
 | D7 | `<select>` nativo | Recomendación aplicada en E3 (selector de lenguaje): excepción al pilar «UI propia», accesible y con el selector del teléfono. Reversible |
 | D8 | Bloques y Seudo | **Pendiente.** El usuario prevé quitar Bloques y probablemente Seudo: no son prioridad para un IDE. Quitarlos del juego cambia lo que ve el jugador (botones, ladrillos de Factory, suite de vistas y preferencia `modo`) y se hará como cambio aparte y documentado |
 | D9 | Más lenguajes | **Decidido:** solo Python. Los lenguajes de otras aplicaciones traen su propio motor y quedan fuera de este proyecto |
@@ -178,3 +179,10 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 ## Fuera de esta entrega
 
 Campaign, bloques nuevos para War, nodos, LSP, extracción automática de funciones desde otros codebases y una aplicación completa de proyectos. El proveedor es el punto de integración para todo eso.
+
+## Cómo quedó (E5–E7)
+
+- **Traductor** (`shared/python/traductor.js`): lezer da las sentencias; las expresiones con operadores se aplanan y se reasocian con la precedencia de Python, porque lezer asocia distinto `not a and b` y `await f() + 1`. Los nombres se resuelven por ámbito (locales, `global`, `nonlocal`, comprensiones, lambdas); los que chocan con JS o con la API se renombran con `$`. La API pasa por la tabla `alias("python")` del proveedor. El JS generado se cachea por texto y se revisa con acorn antes de ejecutar.
+- **Preludio** (`__py`, inyectado en el Worker con `toString()`): verdad, operadores con sus `TypeError`, igualdad profunda, índices y trozos, métodos de listas y textos, `range`, `print`/`repr`, f-strings con formato, redondeo mitad al par y mensajes de error de JS reescritos como los de Python.
+- **Conversión** (`shared/python/desde-js.js`): acorn → Python. Conserva comentarios y líneas en blanco, convierte el código comentado, `for` clásico → `range`, `??` de una lectura → `or`, sumas que empiezan por texto → f-string. Lo que no cabe devuelve motivo y línea.
+- **Límites conocidos:** sin distinción entero/real (`4 / 2` → `2`), enteros hasta 2⁵³, diccionarios y tuplas completas para la siguiente etapa, y Py recupera el último Python guardado en vez de volver a convertir.

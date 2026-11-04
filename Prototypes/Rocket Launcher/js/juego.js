@@ -7,8 +7,9 @@
 
   // ---------- Constantes del mundo ----------
   const ES_FACTORY = new URLSearchParams(location.search).get("serie") === "factory";
-  // E4b: Python se edita detrás de ?python=1; todavía no se ejecuta (E5). Sin el flag, el juego es el de siempre.
-  const PYTHON = new URLSearchParams(location.search).get("python") === "1" && !!window.CMGAdaptadorPython;
+  // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
+  // líneas (shared/python/traductor.js) y corre en el mismo Worker.
+  const PYTHON = !!window.CMGAdaptadorPython && !!window.CMGPythonJS;
   let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
   const DT = window.NUCLEO.DT;                 // paso fijo de simulación (tiempo de juego)
@@ -165,6 +166,9 @@
   let propio = ES_FACTORY ? window.FACTORY_RETOS.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(localStorage.getItem("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
   let hechos = guardado.leer("hechos", []);
   let records = guardado.leer("records", {});
+  // D6: una tabla de récords por reto; el lenguaje del intento es solo una etiqueta (War la guarda aparte para no cambiar «records»).
+  let recordsLenguaje = guardado.leer("records-lenguaje", {});
+  const etiquetaLenguaje = l => l && l !== "js" ? ` <span class="etq-lenguaje">${l === "python" ? "Python" : "JS + Python"}</span>` : "";
   let telemetria = guardado.leer(ES_FACTORY ? "factory-telemetria" : "telemetria", []);
   let logistica = null, combate = null;
   let ruteo = { ...RUTEO_DEF, ...guardado.leer("ruteo", {}) };
@@ -215,20 +219,29 @@
         [["Volver al borrador", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); $codigo.focus(); }]]);
       return;
     }
-    const enPython = programablesDe(def).filter(l => lenguajeDe(l.id) === "python").map(l => l.id);
-    if (enPython.length) {
-      mostrarBanner("fallo", "Python todavía no se ejecuta",
-        `${esc(enPython.join(", "))} ${enPython.length > 1 ? "están" : "está"} en Python. En esta versión de prueba Python se escribe y se guarda, pero no se ejecuta. Para ejecutar, vuelve a JavaScript: tu programa Python se conserva.`, null,
-        [["Ir al programa", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); abrirPrograma(enPython[0]); }], ["Entendido", "", ocultarBanner]]);
-      return;
-    }
     cerrarProgramas();
+    // Cada unidad, en su lenguaje: JS se revisa con acorn; Python se traduce (huecos, sangría y sintaxis con su línea).
+    const codigos = {}, lenguajes = {}, fuentesTexto = {};
     for (const l of programablesDe(def)) {
-      const err = ES_FACTORY ? null : revisar(programas[l.id] || "");
+      const lenguaje = lenguajeDe(l.id), texto = textoDe(l.id) || "";
+      let err = null;
+      lenguajes[l.id] = lenguaje; fuentesTexto[l.id] = texto;
+      if (lenguaje === "python") {
+        const r = window.CMGPythonJS.traducirCache(texto, opcionesPython());
+        if (r.ok) codigos[l.id] = r.js;
+        else err = r.diagnosticos[0];
+        if (r.ok && typeof acorn !== "undefined") {
+          try { acorn.parse(r.js, { ecmaVersion: 2022, allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true }); }
+          catch (e) { err = { linea: e.loc ? e.loc.line : null, mensaje: "El traductor de Python no pudo con esta línea. Reescríbela de otra forma o avísanos." }; }
+        }
+      } else {
+        codigos[l.id] = texto;
+        err = ES_FACTORY ? null : revisar(texto);
+      }
       if (err) {
         abrirPrograma(l.id); lineaErr = { id: l.id, linea: err.linea }; marcasSucias = true;
         ultimoAviso[claveReto()] = { resultado: "sintaxis", motivo: "error", texto: err.mensaje, linea: err.linea, id: l.id, cuando: Date.now() };
-        avisar("cmg:intento", { reto: retoIdx + 1, titulo: def.titulo, intento: intento + 1, resultado: "sintaxis", motivo: "error", mensaje: err.mensaje, linea: err.linea, programa: l.id, codigos: { ...programas } });
+        avisar("cmg:intento", { reto: retoIdx + 1, titulo: def.titulo, intento: intento + 1, resultado: "sintaxis", motivo: "error", mensaje: err.mensaje, linea: err.linea, programa: l.id, codigos: { ...fuentesTexto }, lenguajes: { ...lenguajes } });
         mostrarBanner("fallo", err.linea ? `Línea ${err.linea} de ${l.id}` : `Programa de ${l.id}`, esc(err.mensaje), null, [["Ir a la línea", "primario", () => { ocultarBanner(); irALinea(err.linea); }]]);
         return;
       }
@@ -241,16 +254,16 @@
     lineaCorre = {}; lineaErr = null; marcasSucias = true;
     const snap = instantanea();
     const nombres = (ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id);
-    ejec = { progs: new Map(), inicio: new Date().toISOString(), codigos: {} };
+    ejec = { progs: new Map(), inicio: new Date().toISOString(), codigos: {}, lenguajes };
     for (const l of mundo.programables) {
-      const codigo = programas[l.id] || "";
+      const codigo = codigos[l.id] || "";
       const w = new Worker(WORKER_URL);
       const p = { id: l.id, worker: w, estado: "corre", desde: performance.now(), mensajes: 0, espera: null, despertar: 0 };
       w.onmessage = (ev) => alMensaje(p, ev.data);
       w.onerror = (ev) => { ev.preventDefault(); errorPrograma(p, ev.message || "Error en el programa.", null); };
       ejec.progs.set(l.id, p);
-      ejec.codigos[l.id] = codigo;
-      w.postMessage({ type: "run", serie: def.serie, codigo: instrumentar(codigo), propia: l.id, nombres, tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
+      ejec.codigos[l.id] = fuentesTexto[l.id] ?? codigo;
+      w.postMessage({ type: "run", serie: def.serie, lenguaje: lenguajes[l.id], codigo: instrumentar(codigo), propia: l.id, nombres, tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
         conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga }, snap });
     }
     pausa = false;
@@ -337,6 +350,7 @@
 
   function errorPrograma(p, mensaje, linea) {
     if (!ejec) return;
+    if (ejec.lenguajes && ejec.lenguajes[p.id] === "python") mensaje = mensajePython(mensaje);
     lineaErr = { id: p.id, linea }; marcasSucias = true;
     consola("error", p.id, linea, escapeMsg(mensaje));
     terminar("error", "error", mensaje, linea, p.id);
@@ -356,11 +370,13 @@
     const codigos = ejec ? ejec.codigos : { ...programas };
     const inicio = ejec ? ejec.inicio : new Date().toISOString();
     const acabados = ejec ? [...ejec.progs.values()].filter(p => p.estado === "fin") : [];
+    const lenguajes = ejec ? { ...ejec.lenguajes } : Object.fromEntries(Object.keys(codigos).map(id => [id, lenguajeDe(id)]));
     m.fin = resultado;
     cerrarProgramas();
     if (resultado !== "error") { lineaCorre = {}; marcasSucias = true; }
-    const lineas = Object.values(codigos).reduce((a, c) => a + c.split("\n").filter(l => l.trim() && !/^\s*(\/\/|\/\*|\*)/.test(l)).length, 0);
-    if (ES_FACTORY) return terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio);
+    const lineas = Object.entries(codigos).reduce((a, [id, c]) => a + c.split("\n").filter(l => l.trim() && !(lenguajes[id] === "python" ? /^\s*#/ : /^\s*(\/\/|\/\*|\*)/).test(l)).length, 0);
+    const lenguajeIntento = [...new Set(Object.values(lenguajes))].sort().join("+") || "js";
+    if (ES_FACTORY) return terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio, lenguajes, lenguajeIntento);
     const cpd = m.derribos ? coste() / m.derribos : null;
     const lanz = Object.fromEntries(m.lanzadores.map(l => [l.id, { ...l.st, fallaMax: r3(l.st.fallaMax), tRafaga: r2(l.st.tRafaga) }]));
     telemetria.push({
@@ -369,7 +385,7 @@
       tiempoJuego: r2(m.t), brechas: m.brechas, derribos: m.derribos, enemigos: m.total, misiles: m.consumidos, impactos: m.impactos,
       precision: m.consumidos ? r3(m.impactos / m.consumidos) : null, atascos: m.atascos, reparaciones: m.reparaciones,
       coste: coste(), costePorDerribo: cpd == null ? null : r2(cpd), lanzadores: lanz, detalleAtascos: m.detalleAtascos, uso: m.uso, consolas: m.consolas,
-      inserciones: { ...insercion }, lineas, codigos, escenario: retoIdx === IDX_PROPIO ? def : undefined,
+      inserciones: { ...insercion }, lineas, codigos, lenguajes, escenario: retoIdx === IDX_PROPIO ? def : undefined,
     });
     insercion = { dobleClic: 0, arrastre: 0, atajo: 0 };
     guardado.escribir("telemetria", telemetria);
@@ -382,14 +398,15 @@
       if (cpd == null) record = "";
       else if (ant == null || cpd < ant - 1e-9) {
         records[claveReto()] = r2(cpd); guardado.escribir("records", records);
-        record = `<p class="record">Coste por derribo <b>₵ ${coma(cpd)}</b> · <span class="mejora">${ant == null ? "primer récord" : `nuevo récord (antes ₵ ${coma(ant)})`}</span></p>`;
-      } else record = `<p class="record">Coste por derribo <b>₵ ${coma(cpd)}</b> · <span class="peor">récord ₵ ${coma(ant)} (+${coma(cpd - ant)})</span></p>`;
+        recordsLenguaje[claveReto()] = lenguajeIntento; guardado.escribir("records-lenguaje", recordsLenguaje);
+        record = `<p class="record">Coste por derribo <b>₵ ${coma(cpd)}</b>${etiquetaLenguaje(lenguajeIntento)} · <span class="mejora">${ant == null ? "primer récord" : `nuevo récord (antes ₵ ${coma(ant)})`}</span></p>`;
+      } else record = `<p class="record">Coste por derribo <b>₵ ${coma(cpd)}</b>${etiquetaLenguaje(lenguajeIntento)} · <span class="peor">récord ₵ ${coma(ant)}${etiquetaLenguaje(recordsLenguaje[claveReto()])} (+${coma(cpd - ant)})</span></p>`;
       const sig = retoIdx + 1 < IDX_PROPIO;
       mostrarBanner("victoria", "Base intacta", record + `<p>₵ ${coste()} en total: ${m.consumidos} misiles × ₵ ${COSTE.misil} + ${m.reparaciones} reparaciones × ₵ ${COSTE.reparacion}. Menos misiles y menos atascos bajan el número.</p>`, stats,
         sig ? [["Siguiente reto", "primario", () => elegirReto(retoIdx + 1)], ["Otra vez", "", ocultarBanner]] : [["Otra vez", "primario", ocultarBanner]]);
       pintarRetos();
     } else if (resultado === "fallo") {
-      const comentados = def.lanzadores.filter(l => soloComentarios(codigos[l.id] || "")).map(l => l.id);
+      const comentados = def.lanzadores.filter(l => lenguajes[l.id] === "python" ? !(codigos[l.id] || "").split("\n").some(x => x.trim() && !/^\s*#/.test(x)) : soloComentarios(codigos[l.id] || "")).map(l => l.id);
       let extra = comentados.length ? ` El programa de ${comentados.join(" y ")} está todo comentado: no hace nada.` : "";
       for (const p of acabados) if (!comentados.includes(p.id)) extra += ` El programa de ${p.id} terminó a los ${p.finT.toFixed(1)} s: desde entonces nadie volvió a apuntar.`;
       const pista = pistaTrasFallo();
@@ -404,17 +421,17 @@
     if (!$("info-reto").hidden) pintarInfoReto();
   }
 
-  function terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio) {
+  function terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio, lenguajes = {}, lenguajeIntento = "js") {
     mundo.revelado = true;
     const t = { sandbox: "factory", reto: retoIdx + 1, clave: claveReto(), titulo: def.titulo, intento, inicio,
       resultado, motivo, mensaje: texto, linea: linea ?? null, programa: idProg ?? null, tiempoJuego: r2(mundo.t),
-      rechazos: mundo.rechazos, derrames: mundo.derrames, viajesVacios: mundo.vacios, stockOculto: mundo.stockOculto, codigos };
+      rechazos: mundo.rechazos, derrames: mundo.derrames, viajesVacios: mundo.vacios, stockOculto: mundo.stockOculto, codigos, lenguajes };
     telemetria.push(t); guardado.escribir("factory-telemetria", telemetria);
     if (resultado === "victoria") {
       if (!hechos.includes(claveReto())) { hechos.push(claveReto()); guardado.escribir("hechos", hechos); }
       const anterior = records[claveReto()];
-      if (!anterior || anterior.regla !== "comun-v1" || mundo.t < anterior.valor - 1e-9) { records[claveReto()] = { medida: "tiempo", regla: "comun-v1", valor: r2(mundo.t) }; guardado.escribir("records", records); }
-      mostrarBanner("victoria", "Reto cumplido", `Todo entregado. <b>${coma(mundo.t)} s</b>`, `Intento ${intento}`, [["Otra vez", "primario", ocultarBanner]]);
+      if (!anterior || anterior.regla !== "comun-v1" || mundo.t < anterior.valor - 1e-9) { records[claveReto()] = { medida: "tiempo", regla: "comun-v1", valor: r2(mundo.t), lenguaje: lenguajeIntento }; guardado.escribir("records", records); }
+      mostrarBanner("victoria", "Reto cumplido", `Todo entregado. <b>${coma(mundo.t)} s</b>${etiquetaLenguaje(lenguajeIntento)}`, `Intento ${intento}`, [["Otra vez", "primario", ocultarBanner]]);
     } else if (resultado === "fallo" || resultado === "error") {
       pistaTrasFallo();
       mostrarBanner("fallo", resultado === "error" ? (linea ? `Error en la línea ${linea}` : "Error en el programa") : "Aún no", esc(texto), def.pista,
@@ -451,7 +468,7 @@
   function mostrarConsola(id, linea, nivel, texto) {
     mundo.consolas[nivel] = (mundo.consolas[nivel] || 0) + 1;
     consola(nivel, id, linea, `${nivel === "log" ? "" : `<b>${nivel}</b> `}${esc(texto)}`);
-    registrar(id, linea, `console.${nivel}`, texto, nivel === "error" ? "bad" : nivel === "warn" ? "warn" : "sensor");
+    registrar(id, linea, ejec && ejec.lenguajes && ejec.lenguajes[id] === "python" ? (nivel === "log" ? "print" : nivel) : `console.${nivel}`, texto, nivel === "error" ? "bad" : nivel === "warn" ? "warn" : "sensor");
     if (ruteo[nivel] === "globo") globo(id, nivel, texto);
     else if (ruteo[nivel] === "pantalla") aviso(nivel, id, linea, texto);
   }
@@ -923,8 +940,18 @@
   const lenguajeDe = id => PYTHON && fuentes[id] && fuentes[id].enUso ? "python" : "js";
   const textoDe = id => lenguajeDe(id) === "python" ? fuentes[id].texto : programas[id];
   function ponerTexto(id, t) { if (lenguajeDe(id) === "python") fuentes[id].texto = t; else programas[id] = t; }
+  // E7: el programa de partida en Python sale del de JS, convertido por el árbol.
   function textoInicialPython(d, id) {
-    return `# Programa de ${id} en Python.\n# Python todavía no se ejecuta: aquí se escribe y se guarda. Para ejecutar, vuelve a JavaScript.\n\n`;
+    const lineas = d.inicial[id] || [];
+    if (d.serie === "factory") { const r = convertirAPython(textoInicial(d, id)); if (r.ok) return r.texto; }
+    if (!lineas.length || d.serie === "factory") return `# Programa de ${id} en Python.\n# Doble clic en el inspector inserta nombres, funciones y valores.\n\n`;
+    const r = convertirAPython(lineas.join("\n"));
+    const cuerpo = r.ok ? r.texto.replace(/\n$/, "").split("\n") : lineas;
+    return `# Programa de ${id} · el código de partida está comentado.\n# Quita los # (Ctrl+/ o el botón de comentar) o escribe el tuyo.\n` + cuerpo.map(l => "# " + l).join("\n") + "\n";
+  }
+  function convertirAPython(js) {
+    nombresPython ||= new Map(proveedorEditor.funciones().filter(f => f.nombres && f.nombres.python).map(f => [f.nombre, f.nombres.python]));
+    return window.CMGJSaPython.convertir(js, { nombres: nombresPython, objetoONulo: ["autoTarget", "detect"], huecos: { re: RE_HUECO, aPython: window.CMGEditorPython.aHueco } });
   }
   // Add/Replace sobre las fuentes Python: el aplicador escribe en un objeto estable por reto.
   let textosPython = null;
@@ -1438,7 +1465,7 @@
     $("progs").innerHTML = programablesDe(def).map(l => {
       const p = ejec && ejec.progs.get(l.id);
       const est = lineaErr && lineaErr.id === l.id ? "error" : p ? (p.estado === "corre" ? "corre" : p.estado === "espera" ? "espera" : "") : "";
-      return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span>Programa de ${l.id}</button>`;
+      return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span><span class="prog-pre">Programa de </span>${l.id}</button>`;
     }).join("");
     $("b-copiar-prog").hidden = !varios || edicion.ids.length > 1;
     $("b-restaurar").hidden = edicion.ids.length > 1;
@@ -1469,7 +1496,7 @@
     pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); pintarLenguaje(); marcasSucias = true;
   }
   const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}${edicion.lenguaje === "python" ? ":python" : ""}`;
-  // Lenguaje de la unidad (E4b, con ?python=1): Py en la cabecera y Python en Ajustes. JS/Seudo/Bloques
+  // Lenguaje de la unidad: Py en la cabecera y Python en Ajustes. JS/Seudo/Bloques
   // vuelven a JavaScript; el programa Python se conserva para cuando se vuelva a elegir.
   function pintarLenguaje() {
     if (!PYTHON) return;
@@ -1482,11 +1509,23 @@
     if (!PYTHON || !def) return false;
     if (ejec) { avisoEditor("Detén el programa para cambiar de lenguaje."); return false; }
     if (!edicion.variosLenguajes && edicion.lenguaje === lenguaje) return false;
+    const sinConvertir = [];
     for (const id of edicion.ids) {
-      if (lenguaje === "python") fuentes[id] = fuentes[id] ? { ...fuentes[id], enUso: true } : { lenguaje: "python", texto: textoInicialPython(def, id), enUso: true };
-      else if (fuentes[id]) fuentes[id].enUso = false;
+      if (lenguaje === "python") {
+        // Py recupera el último Python de la unidad; si no lo hay, convierte su JS (E7). Si no cabe, el JS se conserva.
+        if (fuentes[id]) { fuentes[id] = { ...fuentes[id], enUso: true }; continue; }
+        const js = programas[id] || "";
+        let texto = textoInicialPython(def, id);
+        if (js !== textoInicial(def, id) && js.trim()) {
+          const r = convertirAPython(js);
+          if (r.ok) texto = r.texto;
+          else { sinConvertir.push(`<b>${esc(id)}</b>: ${esc(r.motivo)}${r.linea ? ` (línea ${r.linea} del JavaScript)` : ""}`); texto = `# Programa de ${id} en Python.\n# Tu programa JavaScript no se pudo convertir; sigue guardado: vuelve con JS para verlo.\n\n`; }
+        }
+        fuentes[id] = { lenguaje: "python", texto, enUso: true };
+      } else if (fuentes[id]) fuentes[id].enUso = false;
     }
     guardarProgramas(); configurarEdicion(edicion.ids, true); pintarInspector();
+    if (sinConvertir.length) avisoEditor(`No se pudo pasar a Python: ${sinConvertir.join(" · ")}`);
     return true;
   }
   if (PYTHON) document.addEventListener("click", (ev) => {
@@ -1626,6 +1665,20 @@
       out += v;
     }
     return out;
+  }
+  // E5: lo que el traductor necesita del juego. Tabla de alias del proveedor (D1), objetos y propiedades.
+  let opcionesPy = null, clavePy = "";
+  function opcionesPython() {
+    const objetos = ["yo", ...nombresVar()], clave = objetos.join("|");
+    if (!opcionesPy || clavePy !== clave) { clavePy = clave; opcionesPy = { funciones: proveedorEditor.alias("python"), objetos, propiedades: [...PROPS] }; }
+    return opcionesPy;
+  }
+  // Los mensajes del runtime nombran la API en JS; para una unidad en Python, con sus nombres y literales.
+  function mensajePython(m) {
+    nombresPython ||= new Map(proveedorEditor.funciones().filter(f => f.nombres && f.nombres.python).map(f => [f.nombre, f.nombres.python]));
+    let r = String(m);
+    for (const [js, py] of nombresPython) r = r.replace(new RegExp(`\\b${js}\\b`, "g"), py);
+    return r.replace(/\bnull\b/g, "None").replace(/\bundefined\b/g, "None").replace(/\btrue\b/g, "True").replace(/\bfalse\b/g, "False").replace(/while \(true\)/g, "while True");
   }
   const jsDePython = n => { const f = proveedorEditor.funciones().find(x => x.nombres && x.nombres.python === n); return f ? f.nombre : n; };
   // Las sugerencias del juego, con el nombre JS de la función y el resultado en Python.
@@ -1969,7 +2022,7 @@
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { leerColores(); });
   new MutationObserver(() => leerColores()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   window.__banco = {
-    get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, RETOS, instrumentar, lexico, normalizar,
+    get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, get fuentes() { return fuentes; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
   }; // para depurar y probar desde la consola
   window.cmg = { editor: editorPrograma, get edicion() { return editorPrograma.fachada.edicion; }, get seudo() { return editorPrograma.fachada.seudo; }, serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },

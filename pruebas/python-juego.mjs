@@ -1,5 +1,6 @@
-// E4b · Python en el juego detrás de ?python=1. Importable con el mismo puerto de navegador que las demás suites.
-// Python se edita y se guarda en fuentes-<reto>; prog-<reto> sigue siendo solo JS; Ejecutar explica que aún no corre.
+// E4b/E5 · Python en el juego. Importable con el mismo puerto de navegador que las demás suites.
+// Python se edita y se guarda en fuentes-<reto>; prog-<reto> sigue siendo solo JS. Desde E5 no hay flag y
+// Ejecutar traduce Python (la equivalencia con JS está en python-ejecucion.mjs).
 import assert from 'node:assert/strict';
 export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') {
   let checks = 0;
@@ -8,22 +9,22 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   const leer = k => page.evaluate(k => JSON.parse(localStorage.getItem('cmg-banco03:' + k)), k);
   const abrir = async q => { await page.goto(url(q)); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor); await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-4'); }); };
 
-  // Sin el flag, nada cambia: ni botón ni lectura de fuentes Python.
+  // Sin flag (E5): una fuente Python guardada en uso se lee al cargar.
   await abrir('');
-  await page.evaluate(() => localStorage.setItem('cmg-banco03:fuentes-0', JSON.stringify({ 'LAU-01': { lenguaje: 'python', texto: 'print("no")\n', enUso: true } })));
+  await page.evaluate(() => localStorage.setItem('cmg-banco03:fuentes-0', JSON.stringify({ 'LAU-01': { lenguaje: 'python', texto: 'print("sí")\n', enUso: true } })));
   await page.goto(url('')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   await page.evaluate(() => window.__banco.elegirReto(0));
-  eq(await page.evaluate(() => [document.querySelector('.herramientas [data-lenguaje-programa]').hidden, document.querySelector('.hoja [data-lenguaje-programa], [data-lenguaje-programa].btn').disabled, cmg.editor.documento().lenguaje, typeof window.CMGAdaptadorPython]),
-    [true, true, 'js', 'object'], 'sin ?python=1 el juego no ofrece ni lee Python');
+  eq(await page.evaluate(() => [document.querySelector('.herramientas [data-lenguaje-programa]').hidden, document.querySelector('[data-lenguaje-programa].btn').disabled, cmg.editor.documento().lenguaje, cmg.codigo.value]),
+    [false, false, 'python', 'print("sí")\n'], 'sin flag, Py está a la vista y la fuente Python en uso se abre');
 
-  // Con el flag: la unidad pasa a Python con su propio documento; el JS se conserva.
-  await page.goto(url('?python=1')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
-  await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-0'); window.__banco.elegirReto(0); window.cmg.edicion.activar(false); });
+  // La unidad pasa a Python con su propio documento; el JS se conserva. El de partida se convierte (E7).
+  await page.goto(url('')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
+  await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-0'); localStorage.removeItem('cmg-banco03:prog-0'); window.__banco.elegirReto(0); window.cmg.edicion.activar(false); });
   const js = await page.evaluate(() => cmg.codigo.value);
-  eq(await page.evaluate(() => [document.querySelector('.herramientas [data-lenguaje-programa]').hidden, cmg.editor.documento().lenguaje]), [false, 'js'], 'con ?python=1 aparece Py y la unidad sigue en JavaScript');
+  eq(await page.evaluate(() => [document.querySelector('.herramientas [data-lenguaje-programa]').hidden, cmg.editor.documento().lenguaje]), [false, 'js'], 'Py a la vista y la unidad sigue en JavaScript');
   await page.click('.herramientas [data-lenguaje-programa="python"]');
-  eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value.startsWith('# Programa de LAU-01 en Python.'), cmg.codigo.getAttribute('aria-label'), document.querySelector('.herramientas [data-lenguaje-programa]').getAttribute('aria-pressed'), document.querySelector('.herramientas [data-modo-codigo="js"]').getAttribute('aria-pressed')]),
-    ['python', true, 'Programa de LAU-01 en Python', 'true', 'false'], 'Py abre el programa Python de la unidad');
+  eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value, cmg.codigo.getAttribute('aria-label'), document.querySelector('.herramientas [data-lenguaje-programa]').getAttribute('aria-pressed'), document.querySelector('.herramientas [data-modo-codigo="js"]').getAttribute('aria-pressed')]),
+    ['python', '# Programa de LAU-01 · el código de partida está comentado.\n# Quita los # (Ctrl+/ o el botón de comentar) o escribe el tuyo.\n# pos = auto_target("crawler", "visual")\n# regular_shoot(pos)\n', 'Programa de LAU-01 en Python', 'true', 'false'], 'Py abre el programa de partida convertido a Python');
   eq(await page.evaluate(() => [...document.querySelectorAll('#paleta .atajo')].map(a => a.dataset.tipCod).filter(t => /auto_target|regular_shoot|wait|while True/.test(t))),
     ['while True: …', 'await wait(0.5)', 'pos = auto_target(__tipo_de_enemigo__, __sensor__)', 'regular_shoot(__lugar__)'], 'la paleta del lanzador en Python (nombres D1, huecos D4)');
   eq(await page.evaluate(() => [...document.querySelectorAll('#ins-cuerpo .tk-fn')].map(t => t.textContent).slice(0, 2)), ['auto_target(tipo, sensor)', 'regular_shoot(lugar)'], 'el inspector muestra los nombres Python');
@@ -32,12 +33,13 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.click('#paleta .atajo[data-tip-cod="while True: …"]');
   await page.keyboard.type('regular_shoot(pos)');
   const py = await page.evaluate(() => cmg.codigo.value);
-  eq(py.split('\n').slice(3), ['while True:', '    regular_shoot(pos)', '    await wait(0.5)'], 'el bucle con su pausa y el cuerpo sangrado');
+  eq(py.split('\n').slice(4), ['while True:', '    regular_shoot(pos)', '    await wait(0.5)'], 'el bucle con su pausa y el cuerpo sangrado');
   await page.waitForTimeout(450);
   eq([await leer('fuentes-0'), (await leer('prog-0'))['LAU-01'] === js], [{ 'LAU-01': { lenguaje: 'python', texto: py, enUso: true } }, true], 'Python va a fuentes-<reto>; prog-<reto> conserva el JS');
-  // Ejecutar no corre Python todavía.
+  // Ejecutar corre Python: aquí «pos» no existe y el error llega con su línea de Python y al estilo de Python.
   await page.evaluate(() => window.__banco.ejecutar());
-  eq(await page.evaluate(() => [document.querySelector('#banner').hidden, document.querySelector('#banner h2').textContent, window.cmg.ejecutando]), [false, 'Python todavía no se ejecuta', false], 'Ejecutar explica que Python aún no se ejecuta');
+  await page.waitForFunction(() => !document.querySelector('#banner').hidden && !window.cmg.ejecutando);
+  eq(await page.evaluate(() => [document.querySelector('#banner h2').textContent, document.querySelector('#banner').textContent.includes("NameError: name 'pos' is not defined")]), ['Error en la línea 6 de LAU-01', true], 'Ejecutar corre Python y el error trae la línea de Python');
   await page.evaluate(() => document.querySelector('#banner .acciones button:last-child').click());
   // Volver a JS recupera el programa JS; volver a Python, el Python.
   await page.click('.herramientas [data-modo-codigo="js"]');
@@ -48,7 +50,7 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   eq(await page.evaluate(() => cmg.codigo.value), py, 'Py recupera lo escrito en Python');
   // Recargar conserva el lenguaje de la unidad.
   await page.waitForTimeout(450);
-  await page.goto(url('?python=1')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
+  await page.goto(url('')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   await page.evaluate(() => window.__banco.elegirReto(0));
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value]), ['python', py], 'al recargar, la unidad sigue en Python');
   // Seudo desde Python vuelve a JavaScript y aplica la vista.
@@ -73,7 +75,7 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.evaluate(() => { window.cmg.confirmarReplace = true; window.__banco.elegirReto(0); });
 
   // Factory con Python: paleta del robot y el mismo almacenamiento.
-  await page.goto(url('?python=1&serie=factory')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
+  await page.goto(url('?serie=factory')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-factory-0'); window.__banco.elegirReto(0); });
   await page.click('.herramientas [data-lenguaje-programa="python"]');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, [...document.querySelectorAll('#paleta .atajo')].map(a => a.dataset.tipCod).slice(1)]),

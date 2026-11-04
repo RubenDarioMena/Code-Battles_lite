@@ -1,5 +1,5 @@
 /* Adaptador Python (E4): sintaxis, sangría significativa, huecos __tipo__, plantillas y teclas.
- * Solo edita. Ejecutar Python es del anfitrión (en el juego, el traductor de E5). */
+ * Solo edita. Ejecutar Python es del anfitrión (en el juego, shared/python/traductor.js). */
 (() => {
   "use strict";
   const P = window.CMGEditorPython, E = window.ESTRUCTURA_PYTHON;

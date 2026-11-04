@@ -54,7 +54,7 @@ export function resumir(eventos) {
 }
 
 function csv(eventos) {
-  const cols = ["recibido", "tipo", "id", "quien", "sesion", "pais", "reto", "titulo", "intento", "resultado", "motivo", "mensaje", "linea", "programa", "tiempoJuego", "brechas", "derribos", "enemigos", "lineas", "pantalla", "tactil", "codigos"];
+  const cols = ["recibido", "tipo", "id", "quien", "sesion", "pais", "reto", "titulo", "intento", "resultado", "motivo", "mensaje", "linea", "programa", "tiempoJuego", "brechas", "derribos", "enemigos", "lineas", "pantalla", "tactil", "codigos", "lenguajes"];
   const celda = (v) => { if (v == null) return ""; const s = typeof v === "object" ? JSON.stringify(v) : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const filas = [cols.join(","), ...eventos.map(e => cols.map(c => celda(e[c])).join(","))];
   return new Response("﻿" + filas.join("\n"), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=telemetria.csv", "Cache-Control": "no-store" } });

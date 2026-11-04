@@ -7,6 +7,9 @@ let SNAP = null, PROPIA = null, NOMBRES = [], TIPOS = [], SENSORES = [], CONF = 
 let ES_ROBOT = false;
 const MATERIALES = ["cobre", "silicio"];
 const validarFactory = ${window.FACTORY.validar.toString()};
+// Auxiliares de Python (E5): el traductor genera JS que llama a __py con las mismas líneas del programa.
+const __py = (${window.CMGPythonJS ? window.CMGPythonJS.preludio.toString() : "() => null"})();
+let LENGUAJE = "js";
 function robotAPI(linea) {
   const api = {};
   for (const verbo of ["recoger", "entregar", "esperar", "cuantos"]) api[verbo] = (...args) => {
@@ -149,7 +152,7 @@ onmessage = async (ev) => {
     return;
   }
   if (m.type !== "run") return;
-  ES_ROBOT = m.serie === "factory";
+  ES_ROBOT = m.serie === "factory"; LENGUAJE = m.lenguaje === "python" ? "python" : "js";
   SNAP = m.snap; PROPIA = m.propia; NOMBRES = m.nombres.filter(id => (!ES_ROBOT || !(nombreVar(id) in self)) && /^[A-Za-z_$][\\w$]*$/.test(nombreVar(id)) && m.nombres.filter(n => nombreVar(n) === nombreVar(id)).length === 1 && !["yo", "console", "log", "pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos"].includes(nombreVar(id))); TIPOS = m.tipos; SENSORES = m.sensores; CONF = m.conf;
   if (OFF === null) {
     try { await new AF("\\nthrow new Error('x')")(); } catch (e) { const n = lineaDe(e); OFF = n == null ? NaN : n - 2; }
@@ -162,7 +165,7 @@ onmessage = async (ev) => {
   catch (e) {
     let linea = e && e.__linea;
     if (linea == null) { const n = lineaDe(e); if (n != null && !isNaN(OFF)) linea = n - OFF; }
-    const msg = String((e && e.message) || e).replace(/__L\\((?:\\d+|null)\\)\\./g, "");
+    const msg = String(LENGUAJE === "python" && __py ? __py.mensaje(e) : (e && e.message) || e).replace(/__L\\((?:\\d+|null)\\)\\./g, "");
     postMessage({ type: "error", mensaje: msg, linea: linea == null ? null : linea });
   }
 };

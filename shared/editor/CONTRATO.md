@@ -208,21 +208,20 @@ El proveedor recibe el lenguaje en `funciones(lenguaje)`, `vocabulario(lenguaje)
 
 **Demo.** Cada espacio tiene un documento por lenguaje (`principal.js`, `principal.py`…). El selector abre el del otro lenguaje sin convertir nada. El segundo editor empieza en Python.
 
-## Python en el juego (E4b, `?python=1`)
+## Python en el juego (E4b; sin flag desde E5)
 
-**Sin el flag nada cambia.** El juego carga los módulos Python, pero no ofrece el lenguaje ni lee `fuentes-<reto>`.
+E4b lo puso detrás de `?python=1`; desde E5 el flag ya no existe y Python siempre está disponible.
 
-**Con `?python=1`:**
 - La instancia del juego recibe `adaptadores: { js, python }`.
 - El botón **Py** de la cabecera y el botón **Python** de la hoja de Ajustes pasan las unidades elegidas a Python.
 - JS, Seudo y Bloques las devuelven a JavaScript; Seudo y Bloques, además, aplican su vista.
 
 **Guardado.**
-- `programas` y `prog-<reto>` siguen siendo solo JS, así que ejecutar, copiar a un escenario propio y la telemetría no cambian.
+- `programas` y `prog-<reto>` siguen siendo solo JS, así que copiar a un escenario propio no cambia.
 - El Python va en `fuentes-<reto>` como `{ id: { lenguaje: "python", texto, enUso } }`.
-- Volver a JS deja `enUso: false` y conserva el texto. Una unidad nueva en Python empieza con un comentario.
+- Volver a JS deja `enUso: false` y conserva el texto. Una unidad sin Python convierte su JS (E7, `shared/python/desde-js.js`); si no cabe, explica el motivo y empieza con un comentario.
 
-**Ejecutar.** Si alguna unidad está en Python, un aviso explica que Python aún no se ejecuta (llega en E5) y ofrece ir al programa. No se crea ningún Worker.
+**Ejecutar (E5).** El juego, no el componente, traduce cada unidad Python con `CMGPythonJS.traducir(texto, { funciones: proveedor.alias("python"), objetos, propiedades })`. El JS sale con las mismas líneas y corre en el mismo Worker con el preludio `__py`; los diagnósticos y errores llevan la línea de Python. La telemetría guarda el texto Python y `lenguajes`.
 
 **Varias unidades.**
 - Si tienen lenguajes distintos, el borrador no se aplica y se explica por qué.

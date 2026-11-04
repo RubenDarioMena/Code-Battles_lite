@@ -24,9 +24,10 @@ La recogida de materiales conserva su simulación y ofrece bloques, pseudocódig
 
 - Continuar QA de teclado, selección táctil, gestos y accesibilidad de estadísticas.
 - Evolucionar los retos y las herramientas de edición a partir del uso real.
-- Ampliar gradualmente los subconjuntos de seudocódigo de Factory y War sin alterar el significado de los programas. Python sigue como propuesta.
+- Ampliar gradualmente los subconjuntos de seudocódigo de Factory y War sin alterar el significado de los programas.
+- Python ya es un lenguaje del juego (E5–E7): se edita con el mismo editor, se traduce a JS con las mismas líneas y corre en el mismo worker. No se añadirán otros lenguajes. Siguen pendientes diccionarios y tuplas completas, la QA en un teléfono real y la decisión sobre Bloques y Seudo (D8).
 - Decidir cómo guardar o exportar borradores y trasladar programas entre dispositivos/orígenes.
-- Revisar rendimiento móvil y dependencias CDN antes de prometer soporte offline.
+- Revisar rendimiento móvil antes de prometer soporte offline (las dependencias ya se sirven desde el repositorio, sin CDN).
 
 ## Posibilidades posteriores
 

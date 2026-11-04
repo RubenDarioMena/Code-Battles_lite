@@ -14,7 +14,7 @@
     atajos.splice(atajos.findIndex(a => a.ico === "aviso"), 0, ...propias(sensor));
     return paleta;
   }
-  // E4b (?python=1): la misma paleta sobre las plantillas Python. En Python, esperar es wait (D1).
+  // La misma paleta sobre las plantillas Python. En Python, esperar es wait (D1).
   function crearPython({ sensor = () => null, aPython }) {
     const paleta = window.CMGEditorPython.plantillas({ pausa: "await wait(0.5)" }), atajos = paleta.atajos;
     const py = a => a === "|" ? a : { ...a, b: typeof a.b === "function" ? () => aPython(a.b()) : aPython(a.b) };

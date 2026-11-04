@@ -75,7 +75,7 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - El divisor permite ocupar toda la pantalla con uno de los paneles y recuperar el otro mediante el asa.
 - Al escribir en móvil se prioriza la paleta. Las barras auxiliares se pliegan juntas; su botón flota con borde rojo. Las coordenadas manuales se activan en Ajustes.
 - La ficha móvil permite recorrer las estadísticas manteniendo visible únicamente el cierre.
-- El idioma alternativo de la interfaz y Python siguen deshabilitados; el seudocódigo ES/EN ya está disponible.
+- Cada unidad se programa en JavaScript o en **Python** (botón Py o Ajustes). Python se traduce a JS con las mismas líneas y corre en el mismo worker; al elegirlo, el JavaScript se convierte si cabe y se conserva. [Reglas de Python](docs/REGLAMENTO.md#python). El idioma alternativo de la interfaz sigue deshabilitado; el seudocódigo ES/EN ya está disponible.
 - La traducción conserva `let`/`const`/`var`, las reasignaciones y el nombre y alcance del contador de un `for`. Bloques independientes, comparaciones con coerción (`==`/`!=`) y llamadas calculadas no representables se conservan en JavaScript con aviso.
 
 ## Factory
@@ -112,6 +112,8 @@ El [oráculo histórico y sus deltas](pruebas/factory-oraculo.md) verifican las 
 node pruebas/interaccion.cjs
 node pruebas/editor-contrato.cjs
 node pruebas/editor-lenguajes.cjs
+node pruebas/editor-python.cjs
+node pruebas/python-traductor.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
 node --check "Prototypes/Rocket Launcher/js/layout.js"
 node --check shared/js/iconos.js
@@ -148,11 +150,15 @@ const { probarFactoryVistas } = await import("file:///Users/rubenmena/Documents/
 const { probarFactoryEditorComun } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-editor-comun.mjs");
 const { probarFactory3D } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/factory-3d.mjs");
 const { probarEntrada } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/entrada.mjs");
+const { probarPythonJuego } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/python-juego.mjs");
+const { probarPythonEjecucion } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/python-ejecucion.mjs");
 await probar(task.page("p1")); // War / Rocket Launcher
 await probarFactoryComun(task.page("p1"));
 await probarFactoryVistas(task.page("p1"));
 await probarFactoryEditorComun(task.page("p1"));
 await probarFactory3D(task.page("p1"));
+await probarPythonJuego(task.page("p1"));
+await probarPythonEjecucion(task.page("p1")); // E5: equivalencia JS/Python
 await probarEntrada(task.page("p1")); // generar dist/ primero
 await task.finish({ keep: [] });
 JS
@@ -175,7 +181,7 @@ Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISIO
 
 ## Editor y lenguajes
 
-[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas; la edición y ejecución Python siguen pendientes de E4/E5.
+[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas. Python se edita con el adaptador de `shared/editor/` (E4), se traduce con `shared/python/traductor.js` y su preludio en el worker (E5–E6) y se convierte desde JS con `shared/python/desde-js.js` (E7).
 
 E1 implementa la [instancia reutilizable del editor](shared/editor/CONTRATO.md) en `shared/editor/`. El juego carga esas mismas fábricas; conserva sus fachadas y claves locales. La suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas.
 

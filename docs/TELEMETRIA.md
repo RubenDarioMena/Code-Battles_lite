@@ -8,7 +8,7 @@ Para la prueba con compañeros: saber quién entra, qué retos abre e intenta, c
 |---|---|---|
 | `entrada` | Al abrir War | id anónimo del navegador, sesión, `quien`, reto actual, tamaño de pantalla, táctil, idioma, sitio de origen |
 | `reto` | Al cambiar de reto | número y título del reto |
-| `intento` | Al terminar una ejecución (victoria, fallo, error o reinicio) o al pulsar EJECUTAR con un error de sintaxis | reto, número de intento, resultado, motivo, mensaje, línea, tiempo de juego, brechas, derribos, líneas y **el código de cada lanzador** (máx. 12 000 caracteres por programa) |
+| `intento` | Al terminar una ejecución (victoria, fallo, error o reinicio) o al pulsar EJECUTAR con un error de sintaxis | reto, número de intento, resultado, motivo, mensaje, línea, tiempo de juego, brechas, derribos, líneas, **el código de cada lanzador** (máx. 12 000 caracteres por programa, en el lenguaje en que se escribió) y `lenguajes` (`{ "LAU-01": "python" }`, desde E5) |
 
 El servidor añade la hora de llegada y el país (Netlify). No se guardan IP ni cuentas.
 

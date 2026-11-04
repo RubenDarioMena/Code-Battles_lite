@@ -1,3 +1,35 @@
+## Editor · E5–E7: Python se ejecuta, listas y conversión desde JS · 4 de noviembre de 2026
+
+- **Se retiró `?python=1`.** Py (cabecera) y Python (Ajustes) están siempre. Cambio visible declarado: las capturas de War y Factory ya no son las de E4b, porque el botón Py aparece en la cabecera.
+- **E5: Python se ejecuta.**
+  - `shared/python/traductor.js` traduce Python a JS con las mismas líneas. Usa el árbol de lezer para las sentencias y reasocia las expresiones con la precedencia de Python, porque lezer agrupa distinto `not a and b` y `await f() + 1`.
+  - Resuelve los ámbitos (`global`, `nonlocal`, comprensiones, lambdas) y renombra con `$` lo que choca con JS o con la API. Las funciones locales llamadas como la API, como `count`, siguen siendo locales.
+  - La API pasa por `proveedor.alias("python")` (D1). Una orden que espera sin `await`, o una `async def` llamada sin `await`, se avisa antes de ejecutar (D2).
+  - El preludio `__py` va dentro del Worker (`runtime.js`): verdad de vacíos, operadores con sus `TypeError`, igualdad profunda, `print`/`repr`, f-strings con formato y redondeo mitad al par. Los errores de JS se reescriben al estilo de Python (`NameError`, `AttributeError`…).
+  - Sintaxis, sangría y huecos se revisan al pulsar Ejecutar, con la línea de Python. Los mensajes de la API usan los nombres Python.
+  - D3 aplicada: `print` va al registro; `info`, `warn` y `error`, a sus niveles.
+  - Telemetría: lleva el texto Python y `lenguajes`, también en la remota y en la columna del CSV.
+  - Récords (D6): una tabla por reto con el lenguaje como etiqueta. War lo guarda en `records-lenguaje` para no cambiar `records`; Factory, en `lenguaje` dentro del récord.
+- **E6: listas.** Índices negativos, trozos con paso, métodos de lista y de texto, `enumerate`, comprensiones con varios `for` e `if`, `del xs[i]` y tuplas para desempacar.
+- **E7: conversión y documentación.**
+  - `shared/python/desde-js.js` convierte JS a Python por el árbol de acorn. Conserva comentarios y líneas en blanco y convierte también el código comentado. Pasa el `for` clásico a `range`, el `??` de una lectura a `or` y las sumas que empiezan por texto a f-strings.
+  - Py convierte el JS de una unidad que aún no tiene Python, y el programa de partida sale convertido. Si algo no cabe, explica el motivo con su línea y el JS se conserva.
+  - Documentación actualizada: `REGLAMENTO` (sección Python), `VISION`, `README`, `AGENTS`, `TELEMETRIA`, el plan y `CONTRATO.md`.
+- **Teléfono.** La pestaña del programa dice solo la unidad (`R1`, `LAU-01`). Ya no la recorta la fila JS/Bloques/Seudo/Py (era el pendiente de E4b).
+- **Verificación** (detalle en `docs/qa/editor-e5-e7-2026-11-04/`):
+  - Nuevas: `python-traductor.cjs` 58 (27 salidas iguales a CPython 3.13, copiadas en la prueba) y `python-ejecucion.mjs` 21. Esta última es la compuerta de E5: mismos eventos con sus líneas, tiempos y resultados en JS y en Python, en War y en Factory.
+  - `python-juego.mjs` 22, adaptada a E5.
+  - War 90/90, editor 18, vistas 31, API 7, paridad 28/28, 3D 10, demo 73.
+  - Python del editor 34, lógica 123, contratos e integridad, paquete de 9 páginas con 88 referencias.
+  - `telemetria.mjs` no se ejecutó: necesita `npm install`.
+- **Límites:**
+  - No hay QA en un teléfono real; la compuerta de E7 sigue **pendiente** y solo hay emulación.
+  - No se distingue entero de real (`4 / 2` → `2`).
+  - Diccionarios y tuplas completas quedan para la etapa siguiente.
+  - Py recupera el último Python guardado en vez de volver a convertir.
+  - D8 (Bloques y Seudo) sigue sin decidir.
+- **Versiones:** juego 32, runtime 4, traductor y conversión 1, remota 3, paleta 4, adaptador Python 3, componentes 20, layout 20.
+
 ## Editor · E4b: Python en el juego detrás de ?python=1 · 4 de noviembre de 2026
 
 - **Sin el flag nada cambia.** Las suites dan las mismas cifras y las 32 capturas de War y Factory son idénticas píxel a píxel. El juego carga los módulos Python, pero no los ofrece ni lee `fuentes-<reto>`.
