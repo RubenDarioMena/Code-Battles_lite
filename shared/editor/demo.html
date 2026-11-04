@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor · Code Battle Lite</title>
+  <link rel="stylesheet" href="tema.css?v=1"><link rel="stylesheet" href="editor.css?v=1">
+  <link rel="stylesheet" href="../css/edicion.css?v=5"><link rel="stylesheet" href="autonomo.css?v=1">
+  <link rel="stylesheet" href="demo.css?v=1">
+</head>
+<body>
+  <header><a href="../../index.html">← Code Battle Lite</a><span>Laboratorio</span></header>
+  <main>
+    <p class="ceja">Editor de código</p><h1>Dos espacios.<br>Una misma herramienta.</h1>
+    <p class="intro">Prueba el teclado, las fichas, los atajos y el historial. Cada editor conserva sus propios documentos y preferencias durante esta sesión.</p>
+    <div class="demo-grid">
+      <section class="tarjeta" data-demo="0">
+        <div class="tarjeta-cab"><h2>01 · Mensajes</h2><output class="revision">Revisión 0</output></div>
+        <div class="acciones"><label>Documento <select data-documento><option value="principal">Principal</option><option value="borrador">Borrador</option></select></label><label><input type="checkbox" data-lectura> Solo lectura</label><button data-recrear type="button">Recrear editor</button></div>
+        <div class="demo-raiz" id="demo-uno"></div>
+        <p class="estado" role="status">Listo para editar.</p>
+      </section>
+      <section class="tarjeta" data-demo="1">
+        <div class="tarjeta-cab"><h2>02 · Contadores</h2><output class="revision">Revisión 0</output></div>
+        <div class="acciones"><label>Documento <select data-documento><option value="principal">Principal</option><option value="borrador">Borrador</option></select></label><label><input type="checkbox" data-lectura> Solo lectura</label><button data-recrear type="button">Recrear editor</button></div>
+        <div class="demo-raiz" id="demo-dos"></div>
+        <p class="estado" role="status">Listo para editar.</p>
+      </section>
+    </div>
+    <p class="nota">Los cambios se mantienen mientras esta página esté abierta. El editor del juego y estos dos espacios usan los mismos módulos. Python llegará en una fase posterior.</p>
+  </main>
+  <script src="../vendor/acorn-8.11.3.js"></script><script src="../js/iconos.js?v=3"></script>
+  <script src="../js/estructura.js?v=3"></script><script src="javascript.js?v=1"></script>
+  <script src="lenguajes.js?v=1"></script><script src="plantillas.js?v=1"></script>
+  <script src="adaptador-js.js?v=1"></script><script src="vida.js?v=1"></script>
+  <script src="edicion.js?v=1"></script><script src="seudo.js?v=1"></script>
+  <script src="nucleo-ui.js?v=1"></script><script src="editor.js?v=1"></script>
+  <script src="demo.js?v=1"></script>
+</body>
+</html>

@@ -178,3 +178,10 @@ Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISIO
 [Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas; la edición y ejecución Python siguen pendientes de E4/E5.
 
 E1 implementa la [instancia reutilizable del editor](shared/editor/CONTRATO.md) en `shared/editor/`. El juego carga esas mismas fábricas; conserva sus fachadas y claves locales. La suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas.
+
+
+### Demo del editor
+
+[Dos editores independientes](shared/editor/demo.html), también accesibles desde el enlace al pie de la portada. Prueba documentos, historial, fichas, símbolos, solo lectura y recrear. Juego y demo cargan el mismo código de `shared/editor/`: una corrección se aplica a ambos. El proveedor de la demo es declarativo y no inicia simulación ni ejecución. Sus documentos y preferencias duran la sesión.
+
+La prueba `pruebas/editor-demo.mjs` se importa con un puerto de navegador como las demás suites. La validación se hizo con Chromium de escritorio y móvil emulado; los límites de la suite War quedan registrados en el [reporte](docs/qa/editor-e1-e2-2026-11-04/REPORTE.md).

@@ -35,7 +35,8 @@ h2 span { color: var(--acento); font-size: 23px; }
 .cuadro p { flex: 1; font-size: 14px; line-height: 1.6; color: #acb8b8; margin: 0 0 30px; max-width: 32ch; }
 .cuadro-pie { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px 5px; border-top: 1px solid #ffffff15; padding-top: 16px; font-size: 10px; }
 .cuadro-pie span:last-child { color: var(--acento); white-space: nowrap; }
-footer { display: flex; justify-content: space-between; gap: 20px; padding-block: 23px; border-top: 1px solid var(--linea); }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 20px; padding-block: 23px; border-top: 1px solid var(--linea); }
+.enlace-editor { color: #8bd4b8; text-decoration: underline; text-underline-offset: 4px; }
 .proximamente { min-height: 66svh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .volver { margin-top: 30px; border: 1px solid #53615b; border-radius: 6px; padding: 12px 18px; font-size: 14px; }
 @media (max-width: 850px) { .cabecera, main, footer { width: calc(100% - 40px); } .modos { gap: 12px; } .cuadro { padding: 17px; } .cuadro-top { line-height: 1.5; } }

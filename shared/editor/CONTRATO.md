@@ -113,10 +113,17 @@ IDs actuales que hay que encapsular: `app`, `editor`, `codigo`, `gutter`, `banda
 
 `CMGEditor.crear({ raiz, documento, adaptadores, proveedor?, preferencias?, alCambiar?, alAviso?, soloLectura? })` creará su marcado dentro de `raiz`. Documento: `{ id, lenguaje, texto, revision }`.
 
-La instancia ofrecerá `abrir`, `documento`, `insertar`, `marcas(revision, marcas)`, `irALinea`, `modoSinTeclado` y `destruir`. La revisión crecerá al editar; marcas de revisiones antiguas se descartarán. No se fingirá revisión actual leyendo un JS generado. `destruir` deberá liberar oyentes, observers, tareas pendientes y nodos auxiliares de esa instancia. La prueba de aislamiento de dos interfaces llegará en E2.
+La instancia ofrecerá `abrir`, `documento`, `insertar`, `marcas(revision, marcas)`, `irALinea`, `modoSinTeclado` y `destruir`. La revisión crecerá al editar; marcas de revisiones antiguas se descartarán. No se fingirá revisión actual leyendo un JS generado. `destruir` deberá liberar oyentes, observers, tareas pendientes y nodos auxiliares de esa instancia. La prueba de aislamiento de dos interfaces está en `pruebas/editor-demo.mjs` (E2).
 
 ## Red de pruebas y referencia
 
 `pruebas/interaccion.cjs` carga módulos completos de producción con `vm`, inyecta solo el puerto de texto y colaboradores del anfitrión, y mantiene las 123 expectativas existentes. No lee ni corta `juego.js`. `pruebas/editor-contrato.cjs` comprueba carga sin globals del juego, aislamiento de puertos/paletas y confirmaciones asíncronas de Add/Replace.
 
 La [referencia de suites](REFERENCIA-E0.json) distingue cifras históricas del commit base y resultados ejecutados en esta entrega. Las suites de navegador y las capturas no se consideran verificadas por pasar las pruebas sin DOM. Antes de cerrar la compuerta completa de E0, confirmar War 90, editor Factory 18, vistas 31, paridad 28/28 y API 7 en el origen dedicado 8771, y comparar capturas PC/móvil.
+
+
+## Demo vigente (E2)
+
+`shared/editor/demo.html` crea dos instancias con el mismo adaptador y un proveedor declarativo, sin `window.cmg`, `__banco` ni runtime. Los documentos, historiales, menús, selección, atajos y preferencias pertenecen a cada instancia. La recreación retira la instancia anterior antes de montar otra. Las preferencias y documentos de la demo se guardan en Maps del anfitrión durante la sesión; el componente no necesita almacenamiento.
+
+La portada enlaza la demo en el footer. Los recursos JS/CSS de las dos entradas apuntan a los mismos archivos compartidos. La suite `pruebas/editor-demo.mjs` cubre aislamiento, ciclo de vida, solo lectura, marcas y edición sin proveedor; las suites del juego cubren su integración con ese mismo editor.
