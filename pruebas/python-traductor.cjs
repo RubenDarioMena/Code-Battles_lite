@@ -169,6 +169,12 @@ const ERRORES = [
   eq(conv('const t = "a" + 1;\nconst u = 1 + "a";').motivo, 'Esta suma mezcla números y textos con +. En Python escríbela como f"…{x}…" o con str(x).', 'una suma de número y texto se convierte en f-string solo si empieza por texto');
   // Ida y vuelta: el JS y su conversión a Python dan la misma salida.
   for (const prog of [
+    'console.log("x=" + (1 + 2));',
+    'console.log("x=" + 1 + 2, "x=" + (1 + 2 * 3), "x=" + ((1 + 2) + 3));',
+    'let a = 2; let b = 3; console.log("x=" + (a + b), "x=" + (a + b) + 4);',
+    'console.log("x=" + ("a" + 1), "x=" + (`a${2}` + 3));',
+    'const n = 2; console.log("x=" + n + 4, "x=" + n + true, "x=" + n + null);',
+    'function leer(n) { console.log(n); return n; } console.log("x=" + (leer(1) + leer(2)));',
     'let total = 0;\nfor (let i = 1; i <= 5; i++) { if (i % 2 === 0) continue; total += i; }\nconst xs = [1, 2, 3];\nxs.push(total);\nconsole.log("total: " + total, xs.length, xs.includes(9) ? "sí" : "no", xs[3]);',
     'function doble(n) { return n * 2; }\nlet k = 10;\nwhile (k > 0) { k -= 3; }\nconsole.log(doble(k), `k=${k}`, Math.max(k, 4), Math.floor(7 / 2));',
     'let s = "";\nfor (const c of ["a", "b"]) s = s + c;\nlet n = 0;\ndo { n++; } while (n < 3);\nconsole.log(s.toUpperCase(), n, ["x", "y"].join("-"));',

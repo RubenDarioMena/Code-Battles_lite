@@ -5,8 +5,9 @@
 <script>
   // Si el arranque falla (p. ej. una caché que mezcla versiones), avisar en vez de dejar la pantalla en negro.
   window.__erroresArranque = [];
+  window.__juegoListo = false;
   addEventListener("error", e => {
-    if (window.__banco) return;
+    if (window.__juegoListo) return;
     const t = e.target, recurso = t && t !== window && (t.src || t.href);
     window.__erroresArranque.push(recurso ? "no cargó " + decodeURIComponent(recurso.split("/").pop()) : String(e.message || e.error || e) + (e.filename ? " · " + e.filename.split("/").pop().split("?")[0] + ":" + e.lineno : ""));
   }, true);
@@ -393,7 +394,7 @@
 <script src="js/war-retos.js?v=2" charset="utf-8"></script>
 <script src="js/nucleo.js?v=1" charset="utf-8"></script>
 <script src="../../shared/python/traductor.js?v=1" charset="utf-8"></script>
-<script src="../../shared/python/desde-js.js?v=1" charset="utf-8"></script>
+<script src="../../shared/python/desde-js.js?v=2" charset="utf-8"></script>
 <script src="js/runtime.js?v=4" charset="utf-8"></script>
 <script src="js/vistas.js?v=2" charset="utf-8"></script>
 <script src="js/factory-3d.js?v=2" charset="utf-8"></script>
@@ -416,12 +417,12 @@
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=5" charset="utf-8"></script>
-<script src="js/juego.js?v=35" charset="utf-8"></script>
+<script src="js/juego.js?v=36" charset="utf-8"></script>
 <script src="js/layout.js?v=14" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
 <script>
   addEventListener("load", () => {
-    if (window.__banco) return;
+    if (window.__juegoListo) return;
     const d = document.createElement("div");
     d.setAttribute("role", "alert");
     d.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;padding:12px 14px;border-radius:8px;background:#3a1418;color:#ffe3e3;border:1px solid #c0444f;font:14px/1.4 system-ui,sans-serif";

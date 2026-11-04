@@ -2106,6 +2106,7 @@
   document.fonts && document.fonts.ready.then(() => { medirEditor(); });
   editorPrograma.iniciarVistas();
   requestAnimationFrame(bucle);
+  window.__juegoListo = true;
 })();
 
 

@@ -259,13 +259,21 @@
     }
     function sumaTextos(n) {
       const xs = [];
-      const aplanar = x => { if (x.type === "BinaryExpression" && x.operator === "+") { aplanar(x.left); aplanar(x.right); } else xs.push(x); };
+      const suma = x => x.type === "BinaryExpression" && x.operator === "+";
+      const empiezaTexto = x => esTexto(x) || (suma(x) && empiezaTexto(x.left));
+      // El lado izquierdo sigue el orden de evaluación de JS. El derecho es una expresión
+      // completa: «"x=" + (1 + 2)» suma antes de concatenar. Solo se puede aplanar si ya es texto.
+      const aplanar = x => {
+        if (!suma(x)) { xs.push(x); return; }
+        aplanar(x.left);
+        if (empiezaTexto(x.right)) aplanar(x.right); else xs.push(x.right);
+      };
       aplanar(n);
       if (!xs.some(esTexto)) return null;
       if (!esTexto(xs[0])) noCabe(n, "Esta suma mezcla números y textos con +. En Python escríbela como f\"…{x}…\" o con str(x).");
       const partes = [];
       for (const x of xs) {
-        if (x.type === "Literal") partes.push({ texto: x.value });
+        if (x.type === "Literal") partes.push({ texto: String(x.value) });
         else if (x.type === "TemplateLiteral") x.quasis.forEach((q, i) => { partes.push({ texto: q.value.cooked }); if (x.expressions[i]) partes.push({ nodo: x.expressions[i] }); });
         else partes.push({ nodo: x });
       }
@@ -310,7 +318,7 @@
           return paren(`${expr(n.left, q, comilla)} ${OP_PY[n.operator]} ${expr(n.right, q + 1, comilla)}`, p, q);
         }
         case "BinaryExpression": {
-          if (n.operator === "+" && comilla === '"') { const f = sumaTextos(n); if (f) return f; }
+          if (n.operator === "+") { const f = sumaTextos(n); if (f) return f; }
           if (n.operator === "in" || n.operator === "instanceof" || n.operator === ">>>") noCabe(n, `${n.operator} no tiene equivalente directo en el Python del juego.`);
           const q = BIN[n.operator], op = OP_PY[n.operator] || n.operator;
           if (q === 5 && (n.left.type === "BinaryExpression" && BIN[n.left.operator] === 5)) noCabe(n, "Una comparación encadenada significa otra cosa en Python: sepárala con and.");

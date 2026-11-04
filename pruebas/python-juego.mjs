@@ -117,5 +117,16 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.goto(url('?serie=factory')); await page.waitForSelector('[role=alert]');
   eq(await page.evaluate(() => document.querySelector('[role=alert]').textContent.includes('no cargó juego.js')), true, 'si falta juego.js, la página lo dice');
   await page.unroute(/js\/juego\.js/, falta);
+  // __banco existe antes de crear el mundo: no sirve como señal de arranque completo.
+  await page.route(/js\/factory-form\.js/, falta);
+  await page.goto(url('?serie=factory')); await page.waitForSelector('[role=alert]');
+  eq(await page.evaluate(() => [!!window.__banco, !!window.__banco.mundo, window.__juegoListo,
+    document.querySelector('[role=alert]').textContent.includes('no cargó factory-form.js'),
+    window.__erroresArranque.some(t => t.includes('crear'))]),
+    [true, false, false, true, true], 'un fallo después de crear __banco también muestra el aviso y su excepción');
+  await page.unroute(/js\/factory-form\.js/, falta);
+  await page.goto(url('?serie=factory')); await page.waitForFunction(() => window.__juegoListo);
+  eq(await page.evaluate(() => [!!window.__banco.mundo, !!document.querySelector('[role=alert]')]),
+    [true, false], 'al recuperar el recurso Factory termina de arrancar sin aviso');
   return checks;
 }
