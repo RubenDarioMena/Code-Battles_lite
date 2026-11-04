@@ -1,3 +1,11 @@
+## Editor · decisiones D1/D2 y dependencias locales · 3 de noviembre de 2026
+
+- Plan subido primero a `trunk` en `b11039e`, incorporando la condición del usuario de no usar CDN. D1/D2 son las decisiones sobre nombres y await, distintas de las etapas E1/E2.
+- Nuevo proveedor declarativo del juego: nombres principales, formas Python, alias españoles, firmas, esperas, vocabulario y tabla de resolución para el futuro traductor. `cmg.funciones()` conserva la fachada y `cmg.proveedor` expone el proveedor. El editor recibe los nombres como datos. El generador inicial de llamadas escribe los nombres Python y await explícito; documentados async def y await superior al estilo del REPL de asyncio.
+- Acorn 8.11.3, Three r128 y GLTFLoader r128 se sirven desde `shared/vendor/`, con licencias y manifiesto SHA-256. Eliminadas las cargas de fuentes externas del juego y probador: se usan alternativas locales del dispositivo, con posible variación de métricas. Versiones juego28 y factory-3d2.
+- Verificación actual: 123 comprobaciones de lógica, reglas Factory, contrato D1/D2 e integridad/versiones de dependencias, sintaxis de scripts modificados, paquete con 8 páginas y 47 referencias locales correctas. No se ejecutaron las suites de navegador ni QA visual: el entorno denegó abrir el servidor de prueba en 8771. No se afirma equivalencia visual ni QA en dispositivos físicos.
+- Alcance: contrato inicial de D1/D2; Python todavía no se edita ni ejecuta. La extracción del editor, demo y traductor siguen pendientes de las etapas E0–E5. La tabla de alias deberá usarse tras resolver ámbitos para conservar funciones locales como count. Detalles en `docs/EDITOR-D1-D2.md`.
+
 ## Factory en 3D con el transporte T1 · 3 de noviembre de 2026
 
 - Factory tiene vista 3D (por defecto; plano disponible y elección recordada en `factory-vista`, separada de la de War). Usa el visor común de `vistas.js`: misma cámara, zoom, selección, etiquetas y centrado. Su contenido está en el nuevo `factory-3d.js`: suelo y cuadrícula sin cordillera, puertas discontinuas, bodegas con cajas por material y stock, y máquinas con tolva hacia la puerta, chimenea, franja del material, cola de entrada, barra de progreso y engranaje que gira al procesar. Zoom de 2,5 a 30 m. El anillo de selección sigue a R1.
@@ -446,3 +454,4 @@ Registro exclusivo del proyecto HTML. Consolida el informe de revisión de la se
 - Guardado `educational-animation/characters/stickman-wait.styk`. Referencia en `educational-animation/renders/stykanimate/stickman-wait.mp4` (691 fotogramas, verificado con ffprobe) y hoja de revisión. El spec se genera con `experiments/stykanimate-await-spec.mjs`.
 - Sin trabajo manual en la app; tres iteraciones revisadas con `preview_frames`. Detalles y limitaciones en `experiments/observations.md`.
 - Pendiente para Remotion: el MCP no exporta PNG con alfa. Hay que exportar la secuencia PNG a mano desde stykanimate.com o usar el MP4 opaco como capa inferior.
+

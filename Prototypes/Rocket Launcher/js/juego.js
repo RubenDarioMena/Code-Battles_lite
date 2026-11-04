@@ -2309,6 +2309,13 @@
     requestAnimationFrame(bucle);
   }
 
+  const proveedorEditor = window.CMGProveedor.crear({
+    serie: ES_FACTORY ? "factory" : "war",
+    sensores: () => mundo ? mundo.sensores.map(s => varDe(s.id)) : [],
+    objetos: () => ["yo", ...(mundo ? (ES_FACTORY ? mundo.entidades : mundo.maquinas).map(e => varDe(e.id)) : [])],
+    propiedades: () => [...PROPS],
+  });
+
   // ---------- Arranque ----------
   leerColores();
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { leerColores(); });
@@ -2325,18 +2332,8 @@
     camara: () => V3 && V3.camara(),
     // Retrato PNG (data URL) del modelo actual de un tipo de enemigo; sirve para regenerar img/enemigos/.
     retrato: (tipo) => V3 && TIPOS[tipo] ? V3.retrato(tipo) : null,
-    funciones: () => ES_FACTORY ? [
-      ...["pickUp", "deliver", "wait", "count"].map(nombre => ({ grupo: "Robot", nombre, firma: FIRMAS[nombre], await: nombre !== "count" })),
-      ...["log", "info", "warn", "error"].map(nombre => ({ grupo: "Consola", objeto: "console", nombre, firma: FIRMAS[nombre] })),
-    ] : [
-      { grupo: "Lanzador", nombre: "autoTarget", firma: FIRMAS.autoTarget, nota: "→ posición" },
-      { grupo: "Lanzador", nombre: "regularShoot", firma: FIRMAS.regularShoot, nota: "1 disparo/s" },
-      { grupo: "Lanzador", nombre: "burstFire", firma: FIRMAS.burstFire, nota: "ráfaga · sube el fallo" },
-      { grupo: "Lanzador", nombre: "stopFire", firma: FIRMAS.stopFire, nota: "deja de disparar" },
-      { grupo: "Tiempo", nombre: "esperar", firma: FIRMAS.esperar, await: true, nota: "pausa el programa" },
-      ...(mundo ? mundo.sensores.map(s => ({ grupo: "Red de sensores", objeto: varDe(s.id), nombre: "detect", firma: FIRMAS.detect, nota: "posición actual" })) : []),
-      ...[["log", "registro"], ["info", "información"], ["warn", "aviso"], ["error", "error"]].map(([n, nota]) => ({ grupo: "Consola", objeto: "console", nombre: n, firma: FIRMAS[n], nota })),
-    ],
+    proveedor: proveedorEditor,
+    funciones: proveedorEditor.funciones,
     get claveDocumento() { return claveDocumento(); },
     // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
     datos: () => ({
@@ -2388,4 +2385,5 @@
   document.fonts && document.fonts.ready.then(() => { medirEditor(); });
   requestAnimationFrame(bucle);
 })();
+
 

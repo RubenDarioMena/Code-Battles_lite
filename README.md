@@ -26,7 +26,7 @@ pwsh -NoProfile -File ./server.ps1 -Root "." -Port 8770 -NoBrowser
 
 Sirve la entrada y ambos juegos. Mantén como raíz la carpeta completa: los juegos usan los recursos de `shared/`. PowerShell sigue pendiente de comprobación en Windows.
 
-La aplicación carga Acorn 8.11.3 y las fuentes Archivo/JetBrains Mono desde CDN. War usa Three.js r128. Se necesita conexión para cargarlos; todavía no son aplicaciones offline.
+La aplicación sirve Acorn 8.11.3, Three.js r128 y GLTFLoader r128 desde `shared/vendor/`, con licencias y hashes fijados. Usa fuentes instaladas en el dispositivo. Los juegos funcionan desde el servidor local sin CDN ni conexión a Internet. La telemetría remota opcional necesita red para enviar datos.
 
 ## Estructura
 
@@ -84,7 +84,7 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - Victoria al cumplir metas; las entregas llenas conservan la carga. `count` devuelve 0 para edificio vacío y null si no existe. [Reglamento completo](docs/REGLAMENTO.md).
 - Importación única de programas y preferencias desde `cmg-banco02:*`, sin escribir en ese banco. Los programas comunes usan `cmg-banco03:prog-factory-*`; el árbol antiguo se convierte a JS cuando era la fuente activa.
 - Récord por tiempo con versión de reglas, telemetría local separada y stock determinista por intento. War conserva sus claves y telemetría remota.
-- Vista 3D (por defecto) o plano, recordada por serie. R1 es el transporte T1 de Blender: el brazo alcanza el edificio al recoger o entregar y lleva la caja con el color del material. El nivel de detalle (LOD0–2) depende del tamaño del robot en pantalla. El cargador glTF r128 se descarga solo en Factory.
+- Vista 3D (por defecto) o plano, recordada por serie. R1 es el transporte T1 de Blender: el brazo alcanza el edificio al recoger o entregar y lleva la caja con el color del material. El nivel de detalle (LOD0–2) depende del tamaño del robot en pantalla. El cargador glTF r128 local se carga solo en Factory.
 - Comparación histórica: 28 casos, con [13 diferencias aprobadas](pruebas/factory-deltas.json) y 15 resultados idénticos. El [oráculo original](pruebas/factory-oraculo.md) se conserva.
 - El Factory original (`Prototypes/Tres vistas/`) está retirado: sus URL y `Prototypes/02_tres_vistas.html` redirigen aquí conservando query y hash. Su código queda en el historial de git (`b76411b`).
 
@@ -101,7 +101,7 @@ node pruebas/publicacion.mjs
 
 Sube el **contenido de `dist/`**. La carpeta es generada e ignorada por Git. No incluye el laboratorio de animación, sus dependencias, documentos, pruebas ni metadatos del repositorio. Incluye una página 404; conserva las URL existentes bajo `Prototypes/`. No hay una redirección global de SPA que oculte recursos ausentes.
 
-La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage empieza separado del origen local: aún no existe importación/exportación de programas. Los CDN siguen requiriendo conexión.
+La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage empieza separado del origen local: aún no existe importación/exportación de programas. El paquete incluye las dependencias locales.
 
 ## Verificar
 
@@ -168,3 +168,8 @@ El directorio no depende de otras carpetas de Codemageddon. Se dejaron fuera God
 Las claves locales heredadas (`cmg-banco03`, `cmg-juego-*`, `cmg-probar-*`) se conservan para evitar un cambio de formato de guardado durante la migración. El almacenamiento depende del origen: los datos de `:8769` no aparecen automáticamente en `:8770`. El proyecto aún no incorpora una transferencia de esas preferencias y programas.
 
 Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISION.md](docs/VISION.md) para el alcance y [AGENTS.md](AGENTS.md) para trabajar en el código.
+
+
+## Editor y lenguajes
+
+[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas; la edición y ejecución Python siguen pendientes de E4/E5.

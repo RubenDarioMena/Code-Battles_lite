@@ -5,7 +5,7 @@
   "use strict";
   const MODELO = "modelos/t1.glb?v=1";
   // Cargador glTF de la misma versión que three.min.js (r128). Solo lo descarga Factory, al abrir el 3D.
-  const CARGADOR = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
+  const CARGADOR = "../../shared/vendor/GLTFLoader-r128.js";
   const ESCALA = .8;  // el T1 mide ~1 m de largo: cabe en su casilla con margen
   // LOD por tamaño en pantalla (px que ocupa el robot), no por distancia: así el teléfono, con menos
   // píxeles por metro, baja de nivel a la misma distancia aparente que el PC. Margen para no parpadear.
@@ -208,3 +208,4 @@
 
   window.FACTORY_3D = { construir, actualizar, cargar, ik };
 })();
+
