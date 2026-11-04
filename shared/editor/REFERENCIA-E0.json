@@ -13,40 +13,42 @@
     {
       "archivo": "pruebas/navegador.mjs",
       "referencia": 90,
-      "actual": null,
-      "estado": "pendiente_navegador"
+      "actual": 88,
+      "estado": "parcial_arranque_worker"
     },
     {
       "archivo": "pruebas/factory-editor-comun.mjs",
       "referencia": 18,
-      "actual": null,
-      "estado": "pendiente_navegador"
+      "actual": 18,
+      "estado": "ejecutada"
     },
     {
       "archivo": "pruebas/factory-vistas-comunes.mjs",
       "referencia": 31,
-      "actual": null,
-      "estado": "pendiente_navegador"
+      "actual": 31,
+      "estado": "ejecutada"
     },
     {
       "archivo": "pruebas/factory-comun.mjs",
       "referencia": "28/28",
-      "actual": null,
-      "estado": "pendiente_navegador"
+      "actual": "28/28",
+      "estado": "ejecutada"
     },
     {
       "archivo": "pruebas/factory-api.mjs",
       "referencia": 7,
-      "actual": null,
-      "estado": "pendiente_navegador"
+      "actual": 7,
+      "estado": "ejecutada"
     }
   ],
   "capturas": {
-    "estado": "pendiente",
+    "estado": "comparadas",
     "formatos": [
       "pc",
       "movil"
-    ]
+    ],
+    "diferencias_pixeles": 0
   },
-  "limitacion": "Chromium no arranca en el sandbox: setsockopt Operation not permitted. La compuerta de navegador de E0 sigue pendiente."
+  "limitacion": "War: 88 comprobaciones correctas en la suite completa; el arranque del Worker al ejecutar a pantalla completa alcanzó el vigía de 2.5 s antes de recibir mensajes. Una prueba dirigida del mismo botón arrancó correctamente tanto en dfa5f33 como en E1. La suite completa no se declara pasada.",
+  "validada_en": "E1 · 2026-11-04"
 }

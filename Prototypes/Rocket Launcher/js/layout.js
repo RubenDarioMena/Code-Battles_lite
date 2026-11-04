@@ -229,31 +229,6 @@
     `<div class="fila">${i === 2 ? `<i class="gris">⇧</i>` : ""}${[...f].map(c => `<i>${c}</i>`).join("")}${i === 2 ? `<i class="gris">⌫</i>` : ""}</div>`).join("")
     + `<div class="fila"><i class="gris">123</i><i class="ancha">espacio</i><i class="gris">intro</i></div>`;
 
-  // ---------- Barra de símbolos ----------
-  // Lo que cuesta escribir en un teclado de teléfono: pares, operadores y palabras clave de JavaScript.
-  const TECLAS = [
-    { t: "⇥", ins: "  ", cls: "nav", n: "Sangría" }, { t: "←", mover: -1, cls: "nav" }, { t: "→", mover: 1, cls: "nav" }, "|",
-    { t: "( )", ins: "()", sel: 1 }, { t: "{ }", ins: "{}", sel: 1 }, { t: "[ ]", ins: "[]", sel: 1 }, { t: '" "', ins: '""', sel: 1 },
-    { t: ";" }, { t: "." }, { t: "," }, { t: "=" }, { t: "===" }, { t: "!==" }, { t: "<" }, { t: ">" },
-    { t: "&&" }, { t: "||" }, { t: "!" }, { t: "??" }, { t: "+" }, { t: "-" }, { t: "*" }, { t: "/" }, { t: "%" }, "|",
-    ...["const", "let", "if", "else", "while", "await", "true", "false", "null"].map(k => ({ t: k, ins: k + " ", cls: "kw" })), "|",
-    { t: "//", comentar: true, cls: "nav" }, { t: "⌄", ocultar: true, cls: "nav", n: "Ocultar teclado" },
-  ];
-  simbolos.innerHTML = TECLAS.map((k, i) => k === "|" ? `<span class="sep-pal" aria-hidden="true"></span>`
-    : `<button type="button" data-i="${i}" class="${k.cls || ""}" aria-label="${k.n || k.t}">${k.t}</button>`).join("");
-  // pointerdown sin foco: el textarea conserva el foco y el teclado no se cierra.
-  simbolos.addEventListener("pointerdown", (ev) => { if (ev.target.closest("button")) ev.preventDefault(); });
-  simbolos.addEventListener("click", (ev) => {
-    const b = ev.target.closest("button[data-i]"); if (!b || !window.cmg) return;
-    const k = TECLAS[+b.dataset.i], c = codigo();
-    if (k.ocultar) { c.blur(); return; }
-    if (k.comentar) { window.cmg.alternarComentario(); return; }
-    if (k.mover) { const p = Math.max(0, Math.min(c.value.length, c.selectionStart + k.mover)); c.setSelectionRange(p, p); return; }
-    const texto = k.ins ?? k.t;
-    if (k.sel != null && window.cmg.envolver(texto.slice(0, k.sel), texto.slice(k.sel))) return;
-    window.cmg.insertar(texto, k.sel, k.sel);
-  });
-
   // ---------- Barras de una línea ----------
   // La paleta, la barra de edición y las pestañas de información se deslizan; con ratón, la rueda vertical
   // las mueve en horizontal. Al final dejan un margen para sacar un botón de debajo de los flotantes.
@@ -552,4 +527,3 @@
   addEventListener("resize", () => { aplicarForma(); actualizarTeclado(); });
   aplicarForma();
 })();
-

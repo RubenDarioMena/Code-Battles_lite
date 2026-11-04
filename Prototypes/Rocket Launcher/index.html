@@ -5,9 +5,11 @@
 <title>Code Battle Lite · War</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
 <meta name="theme-color" content="#0B0F13">
-<link rel="stylesheet" href="css/base.css?v=3">
-<link rel="stylesheet" href="css/componentes.css?v=18">
-<link rel="stylesheet" href="../../shared/css/edicion.css?v=4">
+<link rel="stylesheet" href="../../shared/editor/tema.css?v=1">
+<link rel="stylesheet" href="../../shared/editor/editor.css?v=1">
+<link rel="stylesheet" href="css/base.css?v=4">
+<link rel="stylesheet" href="css/componentes.css?v=19">
+<link rel="stylesheet" href="../../shared/css/edicion.css?v=5">
 <link rel="stylesheet" href="css/factory.css?v=1">
 <link rel="stylesheet" href="css/layout.css?v=18">
 
@@ -145,21 +147,7 @@
       <!-- Seudocódigo (seudo.js): otra vista del mismo programa en JavaScript -->
       <div class="prog prog-seudo" id="prog" hidden></div>
       <div class="editor colores" id="editor">
-        <div class="gutter"><div class="gutter-in" id="gutter"></div></div>
-        <div class="area" id="area">
-          <div class="espejo" id="espejo" aria-hidden="true"></div>
-          <div class="banda" id="banda"></div>
-          <pre class="resaltado" id="resaltado" aria-hidden="true"></pre>
-          <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Programa del lanzador en JavaScript"></textarea>
-          <!-- Modo sin teclado: el mismo código como fichas que se eligen y arrastran (edicion.js) -->
-          <div class="bloques" id="bloques" tabindex="0" role="group" aria-label="Programa, modo sin teclado: toca para elegir, doble toque amplía, arrastra para mover o copiar" hidden>
-            <div class="bloques-in" id="bloques-in">
-              <div class="bloques-capa" id="bloques-capa" aria-hidden="true"></div>
-              <div class="bloques-texto" id="bloques-texto"></div>
-            </div>
-          </div>
-        </div>
-        <div class="asas" id="asas" aria-hidden="true" hidden><div class="asas-in" id="asas-in"></div></div>
+        <!-- CMGEditor crea aquí el área de texto, resaltado, fichas y asas. -->
         <!-- Pantalla completa con las herramientas plegadas: EJECUTAR sigue a mano abajo a la izquierda -->
         <button class="btn primario ejecutar-flot" id="b-ejecutar-flot" type="button">▶ EJECUTAR</button>
         <!-- El objetivo del reto, a mano desde el código (en todos los modos) -->
@@ -402,15 +390,20 @@
 <script src="js/factory-form.js?v=1" charset="utf-8"></script>
 <script src="js/proveedor.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/lenguajes.js?v=1" charset="utf-8"></script>
-<script src="../../shared/editor/javascript.js?v=1" charset="utf-8"></script>
-<script src="js/paleta.js?v=1" charset="utf-8"></script>
-<script src="js/programas.js?v=1" charset="utf-8"></script>
-<script src="js/juego.js?v=29" charset="utf-8"></script>
-<script src="js/layout.js?v=12" charset="utf-8"></script>
-<script src="js/remota.js?v=2" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=3" charset="utf-8"></script>
-<script src="../../shared/js/edicion.js?v=17" charset="utf-8"></script>
-<script src="js/seudo.js?v=5" charset="utf-8"></script>
+<script src="../../shared/editor/javascript.js?v=1" charset="utf-8"></script>
+<script src="js/programas.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/plantillas.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/adaptador-js.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/vida.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/edicion.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/seudo.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/nucleo-ui.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/editor.js?v=1" charset="utf-8"></script>
+<script src="js/paleta.js?v=2" charset="utf-8"></script>
+<script src="js/juego.js?v=30" charset="utf-8"></script>
+<script src="js/layout.js?v=13" charset="utf-8"></script>
+<script src="js/remota.js?v=2" charset="utf-8"></script>
 
 </body>
 </html>

@@ -35,7 +35,7 @@
 .b-teclado .tachado { display: none; }
 .b-teclado[aria-pressed="true"] { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); box-shadow: 0 0 6px var(--bad-soft); }
 .b-teclado[aria-pressed="true"] .tachado { display: inline; }
-.editor.sin-teclado textarea#codigo { visibility: hidden; pointer-events: none; }
+.editor.sin-teclado textarea[data-editor="codigo"] { visibility: hidden; pointer-events: none; }
 .editor.sin-teclado .resaltado, .editor.sin-teclado.colores .resaltado { display: none; }
 .bloques {
   position: absolute; inset: 0; z-index: 2; overflow: auto; overscroll-behavior: contain; outline: none;
@@ -165,3 +165,6 @@
 .anillo-carga .relleno { --c: 119.4; stroke: var(--accent); stroke-linecap: round; stroke-dasharray: var(--c); stroke-dashoffset: var(--c); }
 .anillo-carga.llena .relleno { animation: anillo-llenar var(--dur, 1s) linear forwards; }
 @keyframes anillo-llenar { to { stroke-dashoffset: 0; } }
+
+/* Hoja baja: prioriza dos valores completos sobre los encabezados de grupo. */
+.sugerencias.hoja.compacta .sug-g { display: none; }

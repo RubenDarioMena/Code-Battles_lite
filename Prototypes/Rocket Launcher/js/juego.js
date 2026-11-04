@@ -124,20 +124,9 @@
     });
     return out;
   }
-  function clasificar(toks, i) {
-    const [k, t] = toks[i];
-    if (k === "com") return HUECO.test(t) ? "com hueco" : "com";
-    if (k === "str") return "str";
-    if (k === "num") return "num";
-    if (k !== "id") return null;
-    const prev = vecino(toks, i, -1);
-    if (prev && prev[1] === ".") return FN_MIEMBRO.has(t) ? "fn" : PROPS.has(t) ? "prop" : null;
-    if (KW.has(t)) return "kw";
-    if (esObjeto(t)) return "maq";
-    if (FN_PROPIAS.has(t)) return "fn";
-    if (PROPS.has(t)) return "prop";
-    return null;
-  }
+  const clasificar = (toks, i) => window.CMGAdaptadorJS.clasificar(toks, i, {
+    objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS],
+  });
 
   // ---------- Simulación (determinista: paso fijo y una semilla para los fallos) ----------
   const r2 = v => Math.round(v * 100) / 100, r3 = v => Math.round(v * 1000) / 1000;
@@ -1237,7 +1226,6 @@
       + `</div>`;
   }
   let tPieIns = 0;
-  $("codigo").addEventListener("input", () => { clearTimeout(tPieIns); tPieIns = setTimeout(pintarPieIns, 350); });
 
   // Signos vitales: gráficos propios que se leen de un vistazo (cargador, failureRate y su historia, vida).
   const historia = new Map();   // id de lanzador → [[t, failureRate], …] de los últimos 30 s de juego
@@ -1347,7 +1335,37 @@
       if ($p) $p.innerHTML = `Doble clic inserta <code>${esc(t.dataset.ins)}</code> donde está el cursor del programa.`;
     }
   });
+  const { atajos: ATAJOS } = window.CMGPaleta.crear({
+    sensor: () => mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null,
+  });
+  const preferenciasEditor = prefijo => ({
+    leer(k, d) { try { const v = localStorage.getItem(prefijo + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    escribir(k, v) { try { localStorage.setItem(prefijo + k, JSON.stringify(v)); } catch { /* sesión */ } },
+  });
+  const preferenciasVistas = preferenciasEditor(`cmg-juego-${ES_FACTORY ? "factory-" : ""}`);
+  if (ES_FACTORY) for (const [k, viejo] of [["modo", "modo"], ["idioma-seudo", "idioma"]]) {
+    if (preferenciasVistas.leer(k, null) == null) try { const v = JSON.parse(localStorage.getItem(`cmg-banco02:${viejo}`)); if (v != null) preferenciasVistas.escribir(k, v); } catch { /* importación de solo lectura */ }
+  }
+  const editorPrograma = window.CMGEditor.crear({
+    raiz: $("v-programa"), app: $("app"), ambito: document, elemento: $, adoptar: true, atajosGlobales: true,
+    documento: { id: "inicio", lenguaje: "js", texto: "", revision: 0 },
+    adaptadores: { js: window.CMGAdaptadorJS }, serie: ES_FACTORY ? "factory" : "war", aplazarVistas: true,
+    preferencias: preferenciasEditor("cmg-juego-"), preferenciasVistas,
+    soloLectura: () => !!ejec, alEjecutar: () => ejec ? detener() : ejecutar(),
+    alAtajo: () => insercion.atajo++, alArrastrar: () => insercion.arrastre++,
+    proveedor: {
+      funciones: () => proveedorEditor.funciones(), firma: f => FIRMAS[f] || null,
+      sugerencias,
+      vocabulario: () => ({ objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS] }),
+      atajos: () => ATAJOS,
+    },
+    datos: () => window.cmg.datos(), inicial: () => window.cmg.inicial(),
+  });
+  const { insertar, envolver, alternarComentario, medirEditor, pintarResaltado, seleccionarHueco, aviso: avisoEditor } = editorPrograma.fachada;
+  const pintarPaleta = () => editorPrograma.fachada.atajos(ATAJOS);
   const $editor = $("editor");
+  $("codigo").addEventListener("input", () => { clearTimeout(tPieIns); tPieIns = setTimeout(pintarPieIns, 350); });
+
   document.addEventListener("dragstart", (ev) => {
     const t = ev.target.closest && ev.target.closest(".tk[data-ins]"); if (!t) return;
     ev.dataTransfer.setData("text/plain", t.dataset.ins); ev.dataTransfer.effectAllowed = "copy";
@@ -1408,7 +1426,7 @@
     $("multi-estado").textContent = `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
     pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); marcasSucias = true;
     // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
-    $codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: claveDocumento() } }));
+    editorPrograma.abrir({ id: claveDocumento(), lenguaje: "js", texto: $codigo.value, revision: 0 });
   }
   const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}`;
   const CLAVE_CONFIRMAR_REPLACE = "cmg-juego-confirmar-replace";
@@ -1467,64 +1485,14 @@
 
   // ---------- Editor de texto ----------
   const $codigo = $("codigo"), $gutter = $("gutter"), $banda = $("banda"), $espejo = $("espejo"), $resaltado = $("resaltado"), $bloques = $("bloques");
-  const { rangoCodigo, envolver, expresionEnvolvible, elegirLineasCompletas, insertarBloque, insertarOperador } = window.CMGEditorJS.crearEdicion({
-    codigo: $codigo, insertar, aviso: avisoEditor, escapar: esc, estructura: () => window.ESTRUCTURA,
-  });
-  // En modo sin teclado (edicion.js) el textarea sigue guardando valor y selección, pero queda oculto:
-  // la vista de bloques es la que se ve y se desplaza.
-  const sinTecladoActivo = () => $editor.classList.contains("sin-teclado");
-  const desplazamiento = () => sinTecladoActivo() ? $bloques.scrollTop : $codigo.scrollTop;
-  let alturas = [];
-  function medirEditor() {
-    const lineas = $codigo.value.split("\n");
-    $espejo.style.width = `${$codigo.clientWidth}px`;
-    $espejo.innerHTML = lineas.map(l => `<div>${esc(l) || " "}</div>`).join("");
-    alturas = [...$espejo.children].map(d => d.getBoundingClientRect().height);
-    $gutter.innerHTML = alturas.map((h, i) => `<div style="height:${h}px">${i + 1}</div>`).join("");
-    pintarResaltado();
-    pintarBanda();
-    $codigo.dispatchEvent(new CustomEvent("cmg:medido"));
-  }
-  function pintarResaltado() {
-    if (!colores) return;
-    const toks = lexico($codigo.value);
-    let html = "";
-    toks.forEach((t, i) => { const cls = clasificar(toks, i); html += cls ? `<span class="${cls}">${esc(t[1])}</span>` : esc(t[1]); });
-    $resaltado.innerHTML = html + "\n";
-    $resaltado.style.width = `${$codigo.clientWidth}px`;
-    sincronizarScroll();
-  }
-  function sincronizarScroll() {
-    $resaltado.style.transform = `translate(${-$codigo.scrollLeft}px, ${-$codigo.scrollTop}px)`;
-    $gutter.style.transform = `translateY(${-desplazamiento()}px)`;
-  }
-  const pad = () => parseFloat(getComputedStyle($codigo).paddingTop) || 10;
   function pintarBanda() {
     const corre = !edicion.mixto && lineaCorre[progSel], err = !edicion.mixto && lineaErr && lineaErr.id === progSel ? lineaErr.linea : null;
-    const l = err || corre;
-    $banda.className = `banda ${l ? (err ? "err" : "corre") : ""}`;
-    if (l && alturas.length >= l) {
-      const top = alturas.slice(0, l - 1).reduce((a, b) => a + b, 0);
-      $banda.style.top = `${pad() + top - desplazamiento()}px`;
-      $banda.style.height = `${alturas[l - 1]}px`;
-    }
-    [...$gutter.children].forEach((d, i) => d.className = i + 1 === err ? "err" : i + 1 === corre ? "corre" : "");
-    sincronizarScroll();
-    $codigo.dispatchEvent(new CustomEvent("cmg:marcas"));
+    editorPrograma.marcas(editorPrograma.documento().revision, [{ linea: corre, clase: "corre" }, { linea: err, clase: "err" }]);
   }
   function pintarMarcasYa() { marcasSucias = false; pintarBanda(); pintarProgs(); }
   // En modo pantalla completa, layout.js pone a pantalla completa el panel pedido.
   const verPanel = (panel) => $("app").dispatchEvent(new CustomEvent("cmg:pantalla", { detail: panel }));
-  function irALinea(l) {
-    verPanel("codigo");
-    abrirPestana("programa");
-    if (!sinTecladoActivo()) $codigo.focus();
-    if (!l) return;
-    const lineas = $codigo.value.split("\n");
-    let pos = 0; for (let i = 0; i < l - 1 && i < lineas.length; i++) pos += lineas[i].length + 1;
-    $codigo.setSelectionRange(pos, pos + (lineas[l - 1] || "").length);
-    $codigo.dispatchEvent(new CustomEvent("cmg:seleccion"));
-  }
+  function irALinea(l) { verPanel("codigo"); abrirPestana("programa"); editorPrograma.irALinea(l); }
   $codigo.addEventListener("input", () => {
     if (!edicion.mixto) for (const id of edicion.ids) programas[id] = $codigo.value;
     else borradoresMulti.set(claveEdicion(edicion.ids), $codigo.value);
@@ -1532,78 +1500,6 @@
     medirEditor();
     if (!edicion.mixto) guardarProgramas();
   });
-  $codigo.addEventListener("scroll", pintarBanda);
-  // Localiza el carácter bajo el puntero con las mismas métricas y ajuste de línea del textarea.
-  // Así las comillas y los delimitadores contiguos no dependen de dónde deje el caret el navegador.
-  // Se copian las propiedades sueltas: con font-variant-ligatures: none el atajo «font» calculado
-  // queda vacío y el espejo heredaba la letra proporcional del body (un clic caía en otro argumento).
-  const METRICAS_TEXTO = ["fontFamily", "fontSize", "fontWeight", "fontStyle", "fontStretch", "fontVariantLigatures", "fontFeatureSettings", "fontVariationSettings", "fontKerning",
-    "lineHeight", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "boxSizing", "whiteSpace", "overflowWrap", "wordBreak", "tabSize", "letterSpacing", "wordSpacing", "textIndent", "textTransform"];
-  function caracterCodigo(ev) {
-    const r = $codigo.getBoundingClientRect(), cs = getComputedStyle($codigo), espejo = document.createElement("div");
-    for (const k of METRICAS_TEXTO) espejo.style[k] = cs[k];
-    Object.assign(espejo.style, { position: "fixed", left: `${r.left}px`, top: `${r.top}px`, width: `${$codigo.clientWidth}px`, height: `${$codigo.clientHeight}px`, overflow: "hidden", opacity: "0", pointerEvents: "none" });
-    const texto = document.createTextNode($codigo.value);
-    espejo.append(texto); document.body.append(espejo);
-    espejo.scrollTop = $codigo.scrollTop; espejo.scrollLeft = $codigo.scrollLeft;
-    const rango = document.createRange();
-    let pos = $codigo.selectionStart;
-    for (let i = 0; i < texto.length; i++) {
-      rango.setStart(texto, i); rango.setEnd(texto, i + 1);
-      if ([...rango.getClientRects()].some(c => ev.clientX >= c.left && ev.clientX < c.right && ev.clientY >= c.top && ev.clientY < c.bottom)) { pos = i; break; }
-    }
-    espejo.remove();
-    return pos;
-  }
-  $codigo.addEventListener("mousedown", (ev) => {
-    if (ev.button !== 0 || ev.detail < 2) return;
-    const rango = rangoCodigo(caracterCodigo(ev), ev.detail >= 3);
-    if (!rango) return;
-    ev.preventDefault(); $codigo.setSelectionRange(...rango);
-  });
-  $codigo.addEventListener("dblclick", (ev) => {
-    const rango = rangoCodigo(caracterCodigo(ev), false);
-    if (rango) { ev.preventDefault(); $codigo.setSelectionRange(...rango); }
-  });
-  $codigo.addEventListener("drop", () => { insercion.arrastre++; $editor.classList.remove("soltar"); setTimeout(seleccionarHueco, 0); });
-  new ResizeObserver(() => medirEditor()).observe($codigo);
-  $codigo.addEventListener("keydown", (ev) => {
-    if (ev.key === "Tab") { ev.preventDefault(); insertar("  "); }
-    else if (ev.key === "/" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); alternarComentario(); }
-    else if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); ejec ? detener() : ejecutar(); }
-    else if (ev.key === "Enter") {
-      ev.preventDefault();
-      const antes = $codigo.value.slice(0, $codigo.selectionStart);
-      const linea = antes.slice(antes.lastIndexOf("\n") + 1);
-      insertar("\n" + linea.match(/^\s*/)[0] + (/\{\s*$/.test(linea) ? "  " : ""));
-    }
-  });
-  // Inserta con execCommand para que Ctrl+Z lo deshaga; si el navegador no lo permite, cambia el valor a mano.
-  const tactil = matchMedia("(pointer: coarse)");
-  const sinTeclado = () => sinTecladoActivo() || (tactil.matches && document.activeElement !== $codigo);
-  function insertar(texto, selDesde, selHasta) {
-    if ($codigo.readOnly) return false;
-    const quieto = sinTeclado();
-    if (!quieto) $codigo.focus();
-    const a = $codigo.selectionStart;
-    let ok = false;
-    if (!quieto) { try { ok = document.execCommand("insertText", false, texto); } catch { ok = false; } }
-    if (!ok) {
-      const v = $codigo.value, b = $codigo.selectionEnd;
-      $codigo.value = v.slice(0, a) + texto + v.slice(b);
-      $codigo.dispatchEvent(new Event("input"));
-    }
-    if (selDesde != null) $codigo.setSelectionRange(a + selDesde, a + (selHasta ?? selDesde));
-    else $codigo.setSelectionRange(a + texto.length, a + texto.length);
-    return true;
-  }
-  function seleccionarHueco() {
-    const v = $codigo.value, p = $codigo.selectionEnd;
-    const finLinea = v.indexOf("\n", p) < 0 ? v.length : v.indexOf("\n", p);
-    const re = new RegExp(RE_HUECO.source, "g"); re.lastIndex = p;
-    const m = re.exec(v);
-    if (m && m.index < finLinea) $codigo.setSelectionRange(m.index, m.index + m[0].length);
-  }
   function insertarRef(ins, fin) {
     abrirPestana("programa");
     if (ejec) { avisoEditor("Detén el programa para editarlo."); return; }
@@ -1618,154 +1514,6 @@
     if (h >= 0) { const m = texto.slice(h).match(RE_HUECO)[0]; insertar(texto, h, h + m.length); }
     else { insertar(texto); seleccionarHueco(); }
   }
-  // Comenta o descomenta con // las líneas elegidas; el bloque /* … */ de la cabecera no se toca.
-  function alternarComentario() {
-    if ($codigo.readOnly) return;
-    const v = $codigo.value, a = $codigo.selectionStart;
-    let b = $codigo.selectionEnd;
-    if (b > a && v[b - 1] === "\n") b--;
-    const ini = v.lastIndexOf("\n", a - 1) + 1;
-    let fin = v.indexOf("\n", b); if (fin < 0) fin = v.length;
-    const lineas = v.slice(ini, fin).split("\n");
-    const bloque = (l) => /^\s*(\/\*|\*)/.test(l);
-    const utiles = lineas.filter(l => l.trim() && !bloque(l));
-    if (!utiles.length) return;
-    let nuevas;
-    if (utiles.every(l => /^\s*\/\//.test(l))) nuevas = lineas.map(l => bloque(l) ? l : l.replace(/^(\s*)\/\/ ?/, "$1"));
-    else {
-      const min = Math.min(...utiles.map(l => l.match(/^\s*/)[0].length));
-      nuevas = lineas.map(l => !l.trim() || bloque(l) ? l : l.slice(0, min) + "// " + l.slice(min));
-    }
-    const texto = nuevas.join("\n");
-    if (!sinTeclado()) $codigo.focus();
-    $codigo.setSelectionRange(ini, fin);
-    insertar(texto, 0, texto.length);
-  }
-  function avisoEditor(html) {
-    const $a = $("aviso");
-    if (!html) { $a.hidden = true; return; }
-    $a.innerHTML = html; $a.hidden = false;
-    setTimeout(() => { $a.hidden = true; }, 2500);
-  }
-
-  // Atajos de escritura
-  // "|" separa grupos: control de flujo · órdenes del lanzador · avisos.
-  // Los que llevan variantes las muestran al mantenerlos pulsados (o con clic derecho);
-  // un toque corto usa la forma principal. Así cabe más del lenguaje en la misma paleta.
-  const { atajos: ATAJOS, textoAtajo } = window.CMGPaleta.crear({
-    sensor: () => mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null,
-  });
-  const codAtajo = (a) => a.cod || (a.operador ? a.operador : a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
-  const estiloIcono = (ico) => `--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}`;
-  function pintarPaleta() {
-    const I = window.ICONOS || {};
-    cerrarVariantes();
-    $("paleta").innerHTML = ATAJOS.map((a, i) => {
-      if (a === "|") return `<span class="sep-pal" aria-hidden="true"></span>`;
-      if (a.si && !a.si()) return "";
-      const ico = I[a.ico] || { svg: "", c1: "#7FA3FF" };
-      const mas = a.variantes ? ` · mantén para ${a.variantes.length} variantes` : "";
-      return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}" data-i="${i}" aria-label="${esc(a.t + mas)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
-    }).join("");
-  }
-  function usarAtajo(a) {
-    if (ejec) return avisoEditor("Detén el programa para editarlo.");
-    insercion.atajo++;
-    if (a.comentar) alternarComentario();
-    else if (a.operador) insertarOperador(a);
-    else if (a.enLinea) {
-      // Con la expresión de una sentencia elegida, «const pos = » la toma como valor inicial.
-      // Con otra cosa elegida, la declaración va en una línea nueva con su valor por rellenar.
-      const x = $codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea) ? expresionEnvolvible() : null;
-      if (x) { $codigo.setSelectionRange(x.a, x.b); envolver(a.enLinea, ""); }
-      else if ($codigo.selectionStart !== $codigo.selectionEnd && /=\s*$/.test(a.enLinea)) {
-        $codigo.setSelectionRange($codigo.selectionEnd, $codigo.selectionEnd);
-        insertarBloque(a.enLinea + "/* valor */;");
-      }
-      else insertar(a.enLinea);
-    }
-    else insertarBloque(textoAtajo(a), a.envolvente);
-  }
-  // Variantes: mantener pulsado ~0,45 s (o clic derecho) abre un menú encima del atajo.
-  // Se puede soltar el dedo directamente sobre una variante o tocarla después.
-  const $variantes = document.createElement("div");
-  $variantes.className = "variantes"; $variantes.hidden = true; $variantes.setAttribute("role", "menu");
-  document.body.append($variantes);
-  let pulsado = null, variantesDe = -1, suprimirClic = false;
-  function abrirVariantes(b, porPulsacion) {
-    const i = +b.dataset.i, a = ATAJOS[i], I = window.ICONOS || {};
-    if (variantesDe === i && !$variantes.hidden) return;
-    variantesDe = i;
-    $variantes.innerHTML = [a, ...a.variantes].map((v, j) => {
-      const ico = I[v.ico] || { svg: "", c1: "#7FA3FF" };
-      return `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${j}" data-tip="${esc(v.t)}" data-tip-cod="${esc(codAtajo(v))}" style="${estiloIcono(ico)}">${ico.svg}<span>${esc(v.t)}</span></button>`;
-    }).join("");
-    $variantes.hidden = false;
-    const r = b.getBoundingClientRect(), m = $variantes.getBoundingClientRect();
-    let x = r.left + r.width / 2 - m.width / 2, y = r.top - m.height - 8;
-    if (y < 6) y = r.bottom + 8;
-    x = Math.max(6, Math.min(innerWidth - m.width - 6, x));
-    $variantes.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
-    b.classList.add("abierto");
-    if (porPulsacion && navigator.vibrate) navigator.vibrate(12);
-  }
-  function cerrarVariantes() {
-    if ($variantes.hidden) return;
-    $variantes.hidden = true; variantesDe = -1;
-    document.querySelectorAll(".atajo.abierto").forEach(x => x.classList.remove("abierto"));
-  }
-  const varianteEn = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest && el.closest(".variante"); };
-  function elegirVariante(boton) {
-    const a = ATAJOS[variantesDe], j = +boton.dataset.v;
-    cerrarVariantes();
-    if (a) usarAtajo(j ? a.variantes[j - 1] : a);
-  }
-  // pointerdown sin foco: en el teléfono el textarea conserva el foco y el teclado no se cierra.
-  $("paleta").addEventListener("pointerdown", (ev) => {
-    suprimirClic = false;  // una pulsación nueva no hereda el clic suprimido de una variante
-    const b = ev.target.closest(".atajo"); if (!b) return;
-    ev.preventDefault();
-    const a = ATAJOS[+b.dataset.i];
-    if (!a.variantes || ev.button > 0) return;
-    pulsado = { b, id: ev.pointerId, x: ev.clientX, y: ev.clientY, abierto: false };
-    pulsado.t = setTimeout(() => { if (pulsado) { pulsado.abierto = true; abrirVariantes(b, true); } }, 450);
-  });
-  document.addEventListener("pointermove", (ev) => {
-    if (!pulsado || ev.pointerId !== pulsado.id) return;
-    if (!pulsado.abierto) { if (Math.hypot(ev.clientX - pulsado.x, ev.clientY - pulsado.y) > 12) { clearTimeout(pulsado.t); pulsado = null; } return; }
-    const v = varianteEn(ev.clientX, ev.clientY);
-    $variantes.querySelectorAll(".variante").forEach(x => x.classList.toggle("activa", x === v));
-  });
-  const soltarPulsado = (ev) => {
-    if (!pulsado || ev.pointerId !== pulsado.id) return;
-    clearTimeout(pulsado.t);
-    if (pulsado.abierto) {
-      suprimirClic = true;
-      const v = ev.type === "pointerup" && varianteEn(ev.clientX, ev.clientY);
-      if (v) elegirVariante(v);
-    }
-    pulsado = null;
-  };
-  document.addEventListener("pointerup", soltarPulsado);
-  document.addEventListener("pointercancel", soltarPulsado);
-  $("paleta").addEventListener("contextmenu", (ev) => {
-    const b = ev.target.closest(".atajo.con-variantes"); if (!b) return;
-    ev.preventDefault();
-    if (pulsado) { clearTimeout(pulsado.t); pulsado.abierto = true; }
-    abrirVariantes(b, false);
-  });
-  $variantes.addEventListener("pointerdown", (ev) => ev.preventDefault());
-  $variantes.addEventListener("click", (ev) => { const v = ev.target.closest(".variante"); if (v) elegirVariante(v); });
-  document.addEventListener("pointerdown", (ev) => { if (!$variantes.hidden && !ev.target.closest(".variantes, .atajo.abierto")) cerrarVariantes(); }, true);
-  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") cerrarVariantes(); });
-  $("paleta").addEventListener("scroll", cerrarVariantes, { passive: true });
-  $("paleta").addEventListener("click", (ev) => {
-    const b = ev.target.closest(".atajo"); if (!b) return;
-    if (suprimirClic) { suprimirClic = false; return; }
-    cerrarVariantes();
-    usarAtajo(ATAJOS[+b.dataset.i]);
-  });
-
   // ---------- Sugerencias para huecos, argumentos y condiciones ----------
   // Salen de los datos de la máquina cuyo programa se edita, como los del inspector:
   // sus sensores, los enemigos del reto, sus propiedades y la red de sensores.
@@ -2077,7 +1825,9 @@
     if (now - ultVivos > 200) { ultVivos = now; actualizarVivos(); }
     if (marcasSucias) pintarMarcasYa();
     if (eventosSucios) pintarEventosYa();
-    requestAnimationFrame(bucle);
+    editorPrograma.iniciarVistas();
+  window.cmg.seudo = editorPrograma.fachada.seudo;
+  requestAnimationFrame(bucle);
   }
 
   const proveedorEditor = window.CMGProveedor.crear({
@@ -2095,7 +1845,7 @@
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
   }; // para depurar y probar desde la consola
-  window.cmg = { serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
+  window.cmg = { editor: editorPrograma, edicion: editorPrograma.fachada.edicion, serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
@@ -2154,6 +1904,8 @@
   aplicarLetra();
   elegirReto(retoIdx);
   document.fonts && document.fonts.ready.then(() => { medirEditor(); });
+  editorPrograma.iniciarVistas();
+  window.cmg.seudo = editorPrograma.fachada.seudo;
   requestAnimationFrame(bucle);
 })();
 

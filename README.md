@@ -43,8 +43,8 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `js/vistas.js`, `js/factory-vista.js` | Mapa 3D/plano y dibujo de logística. |
 | `js/factory-3d.js`, `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
-| `js/layout.js` | Distribución, divisor, preferencias, teclado móvil, barra de símbolos y tooltips. |
-| `js/seudo.js` | Vistas del JS: seudocódigo ES/EN para ambas series y bloques de Factory, edición y arrastre. |
+| `js/layout.js` | Distribución, divisor, preferencias, teclado móvil y tooltips. |
+| `shared/editor/` (desde la raíz) | Instancia reutilizable, adaptador JS, paletas, símbolos, fichas, historial y vistas Seudo/Bloques. |
 | `css/base.css` | Colores, tipografía y apariencia común. |
 | `css/componentes.css` | Estilos de componentes. |
 | `css/layout.css` | Reparto y adaptación a pantalla/teclado. |
@@ -177,4 +177,4 @@ Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISIO
 
 [Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas; la edición y ejecución Python siguen pendientes de E4/E5.
 
-E0 prepara el [contrato real del editor](shared/editor/CONTRATO.md): las operaciones JS viven en `shared/editor/javascript.js` y la suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas; la extracción de la interfaz sigue en E1.
+E1 implementa la [instancia reutilizable del editor](shared/editor/CONTRATO.md) en `shared/editor/`. El juego carga esas mismas fábricas; conserva sus fachadas y claves locales. La suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas.

@@ -1,0 +1,20 @@
+/* Distribución del componente fuera del juego; las piezas usan editor.css y edicion.css. */
+.cmg-editor[data-autonomo] { --code-size: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; position: relative; color: var(--ink); font-family: var(--f-body); }
+.cmg-editor[data-autonomo] *, .cmg-editor[data-autonomo] *::before, .cmg-editor[data-autonomo] *::after { box-sizing: border-box; }
+.cmg-editor [hidden] { display: none !important; }
+.cmg-editor[data-autonomo] .editor { min-height: 300px; flex: 1; }
+.cmg-editor[data-autonomo] .editor textarea { min-height: 300px; }
+.cmg-editor[data-autonomo] .editor-herramientas { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cmg-editor[data-autonomo] button, .cmg-editor[data-autonomo] select { font: inherit; color: inherit; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); padding: 6px 9px; cursor: pointer; }
+.cmg-editor[data-autonomo] button:focus-visible, .cmg-editor[data-autonomo] select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cmg-editor[data-autonomo] .barra-edicion { display: flex; }
+.cmg-editor[data-autonomo] .simbolos { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.cmg-editor[data-autonomo] .simbolos button { flex: none; font-family: var(--f-code); }
+.cmg-editor[data-autonomo] .paleta { overflow-x: auto; }
+.cmg-editor[data-autonomo] .paleta-seudo { min-height: 58px; }
+.cmg-editor[data-autonomo] dialog { max-width: min(600px, 95vw); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.cmg-editor[data-autonomo] .editor-herramientas .b-teclado { min-height: 34px; }
+.cmg-editor[data-autonomo][data-modo="pseudo"] .simbolos { display: none; }
+.cmg-editor[data-autonomo] .resaltado, .cmg-editor[data-autonomo] textarea { margin: 0; }
+
+.cmg-editor[data-autonomo][data-modo="pseudo"] .b-teclado, .cmg-editor[data-autonomo][data-modo="pseudo"] .grupo-ed.solo-teclado, .cmg-editor[data-autonomo][data-modo="pseudo"] [data-accion="linea"] { display: none; }

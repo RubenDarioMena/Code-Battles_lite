@@ -1,6 +1,20 @@
 # Contrato del editor · E0
 
-Base observada: `trunk` en `0319866`, después de las decisiones D1/D2. Este contrato distingue las API que usa la aplicación de la interfaz prevista para E1. E0 prepara los módulos y las pruebas; todavía no ofrece `CMGEditor.crear` ni dos instancias de interfaz.
+Base de E0: `trunk` en `dfa5f33`. E1 implementa `CMGEditor.crear` y traslada las interfaces a fábricas compartidas. La integración del juego conserva `window.cmg`, `cmg.edicion` y `cmg.seudo`. Las secciones de inventario E0 de este documento se conservan como referencia del traslado; la interfaz vigente se describe a continuación.
+
+## Instancia vigente (E1)
+
+`CMGEditor.crear({ raiz, documento, adaptadores, proveedor?, preferencias?, alCambiar?, alAviso?, soloLectura? })` crea el marcado dentro de una raíz libre. Devuelve `abrir`, `documento`, `insertar`, `marcas`, `irALinea`, `modoSinTeclado`, `refrescar` y `destruir`. `documento()` entrega una copia; texto original y revisión son la fuente de verdad. La revisión crece al editar y al cambiar de documento, para que `marcas(revision, lista)` no acepte diagnósticos de otro documento con la misma revisión antigua.
+
+El anfitrión llama a `refrescar()` cuando cambian solo lectura o datos de la paleta. Los cambios del textarea se emiten a `alCambiar` y forman parte del historial. `abrir` cambia el documento sin escribir en el almacenamiento. Sin preferencias inyectadas, la instancia conserva sus preferencias en memoria durante su vida.
+
+Las interfaces viven en `edicion.js`, `seudo.js` y `nucleo-ui.js`, dentro de esta carpeta. El adaptador JS, las plantillas y las teclas se cargan también desde aquí. Los tokens y estilos comunes viven en `tema.css`, `editor.css` y `shared/css/edicion.css`. No hay copias del editor para cada anfitrión.
+
+La extensión de integración `adoptar`, `elemento`, `ambito` y `app` conserva IDs, controles y botones del juego. El componente crea sus nodos de edición y conserva los nodos propios del anfitrión con sus oyentes. Las nuevas instancias autónomas reciben IDs únicos y sus consultas y atajos se limitan a su raíz. Las extensiones `serie`, `datos`, `inicial`, `preferenciasVistas`, `aplazarVistas` e `iniciarVistas()` permiten mantener las vistas heredadas sin acceder a globals del juego desde el editor. La fachada por instancia está disponible en `editor.fachada`; solo la integración del juego la conecta a `window.cmg`.
+
+`destruir()` es idempotente: aborta oyentes, cancela timers/RAF y microtareas pendientes, desconecta observers y retira nodos auxiliares. Las lecturas asíncronas del portapapeles comprueban si la instancia sigue viva. Cada instancia tiene su documento, selección, historial, portapapeles, menús y preferencias propios. No hay ejecución, traductor ni Worker dentro de la instancia.
+
+Para mantener ambos anfitriones: corregir el módulo de `shared/editor/` correspondiente, ejecutar las suites del juego y de la demo y aumentar su `?v=` en las dos entradas si cambia un recurso ya publicado. Una versión nueva del editor no se copia al juego: ambos cargan el mismo archivo.
 
 ## Límites de responsabilidad
 
@@ -8,7 +22,7 @@ El editor mantiene texto original, selección, historial y presentación. El anf
 
 Los nombres Python y la espera explícita se describen en [D1/D2](../../docs/EDITOR-D1-D2.md). No son el contrato de ciclo de vida de una instancia del editor.
 
-## Superficies reales
+## Inventario original de E0 (antes del traslado de E1)
 
 | Archivo | Responsabilidad y dependencias actuales |
 | --- | --- |
@@ -95,7 +109,7 @@ Edición usa `cmg-juego-` por defecto (o `cmg.prefijoUI`) para `asa`, `sin-tecla
 
 IDs actuales que hay que encapsular: `app`, `editor`, `codigo`, `gutter`, `banda`, `espejo`, `resaltado`, `bloques`, `bloques-in`, `bloques-texto`, `bloques-capa`, `asas`, `asas-in`, `edicion`, `paleta`, `simbolos`, `prog`, `paleta-seudo`, más los diálogos y controles de preferencias. CSS del editor usa tokens de `css/base.css`. Existen oyentes globales de teclado/puntero, observers, temporizadores y menús añadidos a body. Todavía no hay `destruir()`; E1 debe retirarlos sin afectar otras instancias.
 
-## Interfaz prevista para E1
+## Diseño previsto durante E0 (implementado arriba)
 
 `CMGEditor.crear({ raiz, documento, adaptadores, proveedor?, preferencias?, alCambiar?, alAviso?, soloLectura? })` creará su marcado dentro de `raiz`. Documento: `{ id, lenguaje, texto, revision }`.
 
