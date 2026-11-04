@@ -57,6 +57,24 @@ function puerto(texto) {
   paleta.atajos.splice(0, paleta.atajos.length);
   assert(otra.atajos.length > 0);
 
+  // Paridad de series: War y Factory comparten la sección común (bucles, if, operadores, variable,
+  // Esperar y consola) en JS y en Python; solo cambian las órdenes de la serie y la pausa del bucle.
+  cargar(contexto, 'shared/editor/python.js');
+  const forma = atajos => JSON.parse(JSON.stringify(atajos.map(a => a === '|' ? '|' : [a.ico, a.t, (a.variantes || []).map(v => v.ico)])));
+  const PROPIAS = { war: ['apuntar', 'disparo', 'rafaga', 'detener', 'sensor'], factory: ['recoger', 'entregar', 'sensor'] };
+  const comun = (serie, atajos) => forma(atajos.filter(a => a === '|' || !PROPIAS[serie].includes(a.ico)));
+  const py = s => s.replace(/;$/, '');
+  for (const [nombre, hacer] of [['JS', serie => CMGPaleta.crear({ serie }).atajos], ['Python', serie => CMGPaleta.crearPython({ serie, aPython: py }).atajos]]) {
+    const war = hacer('war'), factory = hacer('factory');
+    assert.deepEqual(comun('factory', factory), comun('war', war), `${nombre}: Factory y War con la misma sección común`);
+    for (const serie of ['war', 'factory']) {
+      const lista = serie === 'war' ? war : factory, i = lista.findIndex(a => PROPIAS[serie].includes(a.ico));
+      assert.deepEqual([...lista.slice(i, i + PROPIAS[serie].length).map(a => a.ico)], PROPIAS[serie], `${nombre}: las órdenes de ${serie}, juntas en su sección`);
+      assert.equal(lista[i + PROPIAS[serie].length], '|', `${nombre}: separador tras las órdenes de ${serie}`);
+    }
+  }
+  assert.equal(CMGPaleta.crear({ serie: 'factory' }).atajos.find(a => a.ico === 'esperar').b, 'await wait(1);');
+
   // Una confirmación abierta no debe aplicar dos veces, ni escribir en otro reto
   // o durante la ejecución. Se usa el mismo aplicador que registra juego.js.
   let resolver, aplicaciones = 0;

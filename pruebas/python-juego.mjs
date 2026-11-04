@@ -79,7 +79,7 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
   await page.evaluate(() => { localStorage.removeItem('cmg-banco03:fuentes-factory-0'); window.__banco.elegirReto(0); });
   await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, [...document.querySelectorAll('#paleta .atajo')].map(a => a.dataset.tipCod).slice(1)]),
-    ['python', ['for i in range(3): …', 'while __condicion__: …', 'await pick_up(__lugar__, __material__)', 'await deliver(__lugar__)', 'cantidad = count(__lugar__, __material__)', 'await wait(1)']], 'Factory: la paleta del robot en Python');
+    ['python', ['while True: …', 'if __condicion__: …', 'and', 'await wait(1)', 'pos =', 'await pick_up(__lugar__, __material__)', 'await deliver(__lugar__)', 'cantidad = count(__lugar__, __material__)', 'print(__mensaje__)']], 'Factory: la sección común de War y las órdenes del robot en Python');
   await page.evaluate(() => { const c = cmg.codigo; c.focus(); c.setSelectionRange(c.value.length, c.value.length); });
   await page.click('#paleta .atajo[data-tip-cod="await pick_up(__lugar__, __material__)"]');
   eq(await page.evaluate(() => [cmg.codigo.value.split('\n').at(-1), cmg.codigo.value.slice(cmg.codigo.selectionStart, cmg.codigo.selectionEnd)]), ['await pick_up(__lugar__, __material__)', '__lugar__'], 'el robot recoge con su hueco elegido');

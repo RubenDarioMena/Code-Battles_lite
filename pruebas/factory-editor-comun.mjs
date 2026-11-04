@@ -28,7 +28,7 @@ export async function probarFactoryEditorComun(page) {
   eq(await page.evaluate(()=>cmg.codigo.value.includes('deliver(ENT_1)')),true,'editar destino desde sus opciones');
   await page.selectOption('#sel-lenguaje', 'js');
   await page.fill('#codigo','');await page.click('#b-teclado');
-  await page.click('#paleta [data-i="5"]');
+  await page.click('#paleta .atajo[data-tip="Recoger"]');
   await page.waitForSelector('.sugerencias:not([hidden]) .sug[data-i]');
   eq(await page.evaluate(()=>document.querySelector('.sugerencias:not([hidden])').textContent.includes('ENT_1')),true,'sugerencias del robot sin teclado');
   await page.click('.sugerencias:not([hidden]) .sug[data-i="0"]');

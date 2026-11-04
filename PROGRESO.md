@@ -1,3 +1,13 @@
+## Paleta común en War y Factory · 4 de noviembre de 2026
+
+- **Problema.** La paleta de Factory se armaba a mano en `juego.js` y sustituía a la común. En JS y en Python le faltaban If / else (con If e If / else if), los operadores (`??`, `&&`, `||`, `!`, comparaciones; en Python `and`, `or`, `not`, `is None`) y Variable. Los bucles tampoco eran los de War: For y While sueltos, sin While true, Do … while ni Salir del bucle.
+- **Ahora.** Todas las paletas siguen la misma composición en `js/paleta.js`: `comentar | sección común del lenguaje + Esperar | órdenes de la serie | consola`.
+  - La sección común sale del catálogo del lenguaje (`shared/editor/plantillas.js`, `CMGEditorPython.plantillas`), el mismo que usa la demo del IDE.
+  - Cada serie declara solo su pausa de bucle y sus órdenes, escritas una vez en JS. Python las obtiene con `aPython`. War pone pausa `esperar(0.5)` porque disparar no espera. Factory no la necesita: sus órdenes ya llevan `await`.
+- **Cambio visible.** Factory muestra los mismos bucles (While true, con While, For, Do … while y Salir del bucle como variantes), If / else, operadores y Variable que War. Esperar pasa a la sección común. Consola (Aviso o `print`) va al final, como en War.
+- **Sincronía.** `pruebas/editor-contrato.cjs` comprueba que War y Factory tienen la misma sección común en JS y en Python, y que cada serie solo aporta sus órdenes. Si alguien vuelve a armar una paleta aparte, la prueba falla.
+- Versiones: `paleta.js?v=5`, `juego.js?v=34`.
+
 ## Arreglo · Factory en negro en Netlify y desplegable de lenguaje · 4 de noviembre de 2026
 
 - **Causa de la pantalla negra.** Factory buscaba el enlace con `a[href="probar.html"]`. En Netlify, «Pretty URLs» reescribe ese `href` como `probar`, así que el selector no encontraba nada y el `TypeError` cortaba el arranque de Factory (juego.js, rama `ES_FACTORY`). Por eso no había mapa ni inspector, Ejecutar no hacía nada, la paleta seguía siendo la de War y Python no aparecía. En local y en `dist/` no se veía, porque nadie reescribe el HTML.

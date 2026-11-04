@@ -1397,6 +1397,7 @@
     }
   });
   const { atajos: ATAJOS } = window.CMGPaleta.crear({
+    serie: ES_FACTORY ? "factory" : "war",
     sensor: () => mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null,
   });
   const preferenciasEditor = prefijo => ({
@@ -1721,12 +1722,7 @@
     const sensor = mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null;
     if (atajosPy && atajosPySensor === sensor) return atajosPy;
     atajosPySensor = sensor;
-    if (ES_FACTORY) {
-      const base = window.CMGEditorPython.plantillas({ pausa: "" }).atajos.flatMap(a => a === "|" ? [] : [a, ...(a.variantes || [])]);
-      const de = ico => { const a = base.find(x => x.ico === ico); return { ...a, variantes: undefined }; };
-      atajosPy = [de("comentar"), "|", de("para"), de("mientras"), "|",
-        ...ATAJOS.filter(a => a !== "|" && ["recoger", "entregar", "sensor", "esperar"].includes(a.ico)).map(a => ({ ...a, b: aPython(a.b) }))];
-    } else atajosPy = window.CMGPaleta.crearPython({ sensor: () => sensor, aPython }).atajos;
+    atajosPy = window.CMGPaleta.crearPython({ serie: ES_FACTORY ? "factory" : "war", sensor: () => sensor, aPython }).atajos;
     return atajosPy;
   }
   const OPERADORES_COND = [["&&", "y · se cumplen las dos", "condición"], ["||", "o · basta una", "condición"], ["!", "no · lo contrario", "condición"],
@@ -2085,14 +2081,6 @@
     const probar = $("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "factory"); probar.href = u.pathname + u.search; }
     $("c2d").setAttribute("aria-label", "Plano de la fábrica");
     $("progs").setAttribute("aria-label", "Programas de las máquinas");
-    ATAJOS.splice(0, ATAJOS.length,
-      { ico: "comentar", t: "Comentar", cod: "// …", comentar: true }, "|",
-      { ico: "para", t: "For", b: "for (let i = 0; i < 3; i++) {\n  \n}", envolvente: ["for (let i = 0; i < 3; i++) {\n", "\n}"] },
-      { ico: "mientras", t: "While", b: "while (/* condición */) {\n  \n}", envolvente: ["while (/* condición */) {\n", "\n}"] }, "|",
-      { ico: "recoger", t: "Recoger", b: "await pickUp(/* lugar */, /* material */);" },
-      { ico: "entregar", t: "Entregar", b: "await deliver(/* lugar */);" },
-      { ico: "sensor", t: "Cuántos", b: "const cantidad = count(/* lugar */, /* material */);" },
-      { ico: "esperar", t: "Esperar", b: "await wait(1);" });
   }
   for (const enlace of document.querySelectorAll("[data-serie]")) {
     const url = new URL(location.href); url.searchParams.set("serie", enlace.dataset.serie);
