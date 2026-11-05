@@ -65,8 +65,17 @@
       { ico: "info", t: "Info (console.info)", js: { b: "console.info(/* mensaje */);" } },
       { ico: "errorCons", t: "Error (console.error)", js: { b: "console.error(/* mensaje */);" } },
     ] },
-    // Teléfono (movil: true): pares y signos que el teclado del móvil esconde en otra página. Van al final de la
-    // lista para no mover los demás botones; en el teléfono la paleta los pone delante. Los pares rodean lo elegido.
+    // Teléfono (movil: true): edición y signos que el teclado del móvil esconde o que sin teclado no existen. Van al
+    // final de la lista para no mover los demás botones; en el teléfono la paleta los pone delante (con el modo sin
+    // teclado, detrás de los bloques). `accion` es una acción de la barra de edición (edicion.js): línea nueva bajo la
+    // línea actual esté donde esté el cursor, sangría (Tab) y borrar sin pasar por el portapapeles.
+    { ico: "lineaNueva", t: "Línea nueva debajo", movil: true, accion: "linea", cod: "↵", js: {}, python: {} },
+    { grupo: [
+      { ico: "tabular", t: "Sangrar (Tab)", movil: true, accion: "sangrar", cod: "Tab", js: {}, python: {} },
+      { ico: "desangrar", t: "Quitar sangría (Mayús+Tab)", movil: true, accion: "desangrar", cod: "Mayús+Tab", js: {}, python: {} },
+    ] },
+    { ico: "borrar", t: "Borrar (sin copiar)", movil: true, accion: "borrar", cod: "⌫", js: {}, python: {} },
+    // Pares y signos. Los pares rodean lo elegido.
     { grupo: [
       { ico: "parentesis", t: "Paréntesis", movil: true, simbolo: { ins: "()", sel: 1 }, cod: "( )", js: {}, python: {} },
       { ico: "corchetes", t: "Corchetes", movil: true, simbolo: { ins: "[]", sel: 1 }, cod: "[ ]", js: {}, python: {} },

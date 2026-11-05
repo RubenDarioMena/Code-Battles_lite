@@ -186,10 +186,9 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
       .sort((x, y) => x.getBoundingClientRect().left - y.getBoundingClientRect().left).map(x => x.dataset.accion || (x.dataset.seleccion != null ? 'seleccion' : 'protomouse'));
     return [b.top >= e.bottom && p.top >= b.bottom && p.top - b.bottom < 12, vistos];
   }), [true, ['deshacer', 'rehacer', 'seleccion', 'protomouse', 'cortar', 'copiar', 'pegar']], 'en el teléfono, bajo el código: seis botones alrededor del ProtoMouse y, debajo, la barra de inserción');
-  // Sin teclado en el teléfono (desde el menú ⋯): un toque elige sin enfocar el textarea, así no sube el teclado.
-  await page.click('#b-menu-cod');
-  await page.click('#menu-cod [data-menu="teclado"]');
-  eq(await evaluar(() => [window.cmg.edicion.activo, document.querySelector('#app').dataset.sinTeclado]), [true, 'true'], 'el menú ⋯ activa el modo sin teclado');
+  // Sin teclado en el teléfono (su botón de la barra superior): un toque elige sin enfocar el textarea, así no sube el teclado.
+  await page.click('#b-teclado-movil');
+  eq(await evaluar(() => [window.cmg.edicion.activo, document.querySelector('#app').dataset.sinTeclado]), [true, 'true'], 'el botón de la barra superior activa el modo sin teclado');
   await evaluar(() => { const c = window.cmg.codigo; c.value = 'regularShoot("visual");\n'; c.dispatchEvent(new Event('input')); });
   await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
   const toqueEn = await page.evaluate(() => { const el = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === '"visual"'); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
@@ -265,8 +264,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await evaluar(() => [...document.querySelectorAll('.sugerencias .sug')].find(b => b.textContent.includes('burstFire(lugar)')).click());
   eq(await evaluar(() => window.cmg.codigo.value), 'burstFire(pos);\n', 'elegir otra función conserva el argumento que encaja');
   await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: false });
-  await page.click('#b-menu-cod');
-  await page.click('#menu-cod [data-menu="teclado"]');
+  await page.click('#b-teclado-movil');
   // Modo pantalla completa: se activa manteniendo 2 s el botón; </> lleva al código y EJECUTAR a la batalla.
   const pulsar = (sel, tipo) => page.evaluate(([s, t]) => document.querySelector(s).dispatchEvent(new PointerEvent(t, { bubbles: true, pointerId: 41, pointerType: 'touch', isPrimary: true })), [sel, tipo]);
   eq(await evaluar(() => getComputedStyle(document.querySelector('#b-pantalla')).display !== 'none'), true, 'en el teléfono aparece el botón de pantalla completa junto a Ajustes');
@@ -308,8 +306,8 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await page.click('#b-ver-codigo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.solo, getComputedStyle(document.querySelector('#progs')).display, ...['#b-ejecutar-movil', '#b-mapa-movil', '#b-pantalla-movil'].map(s => !!document.querySelector(s).offsetParent), !document.querySelector('#b-ejecutar-cod').offsetParent && !document.querySelector('#b-ver-mapa').offsetParent]),
     ['codigo', 'flex', true, true, true, true], 'el código a pantalla completa conserva los programas y ofrece ▶ y volver al mapa en la barra');
-  eq(await evaluar(() => { const rs = ['b-ejecutar-movil', 'b-comentar-movil', 'b-mapa-movil', 'b-pantalla-movil', 'b-menu-cod'].map(id => document.getElementById(id).getBoundingClientRect()); return rs.every((r, i) => Math.abs(r.top - rs[0].top) < 2 && (!i || r.left > rs[i - 1].left)); }),
-    true, 'barra superior en una fila: ejecutar, comentar, mapa, pantalla completa y menú');
+  eq(await evaluar(() => { const rs = ['b-ejecutar-movil', 'b-teclado-movil', 'b-mapa-movil', 'b-pantalla-movil', 'b-menu-cod'].map(id => document.getElementById(id).getBoundingClientRect()); return rs.every((r, i) => Math.abs(r.top - rs[0].top) < 2 && (!i || r.left > rs[i - 1].left)); }),
+    true, 'barra superior en una fila: ejecutar, sin teclado, mapa, pantalla completa y menú');
   await page.click('#b-info-reto');
   eq(await evaluar(() => [!document.querySelector('#info-reto').hidden, document.querySelector('#info-reto-txt').textContent === document.querySelector('#objetivo-txt').textContent && document.querySelector('#info-reto-txt').textContent.length > 0]),
     [true, true], 'el botón de información muestra el objetivo del reto desde el código');

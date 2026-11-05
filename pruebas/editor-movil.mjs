@@ -1,5 +1,6 @@
-// Teléfono rediseñado: barra superior mínima, ProtoMouse, selección con luz, variantes de la barra,
-// pares y signos metálicos, menú ⋯, ficha ⓘ con inspector y consola, y Ajustes → Editor.
+// Teléfono rediseñado: barra superior mínima (con el interruptor sin teclado), ProtoMouse, selección con luz,
+// variantes de la barra, edición, pares y signos metálicos (que cambian de sitio sin teclado), menú ⋯,
+// ficha ⓘ como hoja (pestaña, asa y alto recordado) con inspector y consola, y Ajustes → Editor.
 // Importar desde ego-browser nodejs con el origen de pruebas (escribe en su localStorage), como las demás suites.
 import assert from 'node:assert/strict';
 
@@ -34,10 +35,10 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.waitForFunction(() => window.__juegoListo && !!window.cmg?.edicion);
   await evaluar(() => { window.cmg.edicion.activar(false); window.cmg.seudo.aplicarModo('js'); window.__banco.elegirReto(0); window.__banco.abrirPrograma('LAU-01'); window.cmg.codigo.blur(); });
 
-  // Barra superior mínima: lenguaje, letra y colores fuera; ▶, comentar y ⋯ a la vista.
-  eq(await evaluar(() => [...['#b-ejecutar-movil', '#b-comentar-movil', '#b-menu-cod'].map(s => !!document.querySelector(s).offsetParent),
+  // Barra superior mínima: lenguaje, letra y colores fuera; ▶, sin teclado y ⋯ a la vista.
+  eq(await evaluar(() => [...['#b-ejecutar-movil', '#b-teclado-movil', '#b-menu-cod'].map(s => !!document.querySelector(s).offsetParent),
     ...['#sel-lenguaje', '#b-menos', '#b-mas', '#b-colores', '.tabs', '#b-barras', '#pie'].map(s => !document.querySelector(s).offsetParent)]),
-    Array(10).fill(true), 'barra superior mínima: ▶, comentar y ⋯; lenguaje, letra, colores, pestañas y panel inferior fuera');
+    Array(10).fill(true), 'barra superior mínima: ▶, sin teclado y ⋯; lenguaje, letra, colores, pestañas y panel inferior fuera');
 
   // ProtoMouse con el teclado cerrado: mueve el cursor sin enfocar el código y pinta su propio cursor.
   const prog = 'const pos = autoTarget("crawler", "visual");\nregularShoot(pos);\nawait esperar(0.5);\n';
@@ -96,10 +97,26 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.click('.variantes-ed [data-v="duplicar"]');
   eq(await evaluar(() => [window.cmg.codigo.value, document.querySelector('.variantes-ed')?.hidden]), ['regularShoot(pos);\nregularShoot(pos);\n', true], 'elegir Duplicar duplica la línea y cierra las placas');
 
-  // Pares y signos metálicos: delante en la barra de inserción; un par rodea lo elegido.
-  eq(await evaluar(() => { const vis = [...document.querySelectorAll('#paleta > *')].filter(x => x.getClientRects().length).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-    return [vis.slice(0, 3).map(x => x.dataset.ico || x.className), !document.querySelector('#paleta .atajo[data-ico="comentar"]').getClientRects().length]; }),
-    [['parentesis', 'punto', 'sep-pal sep-movil solo-movil'], true], 'la barra de inserción empieza con los pares y los signos; comentar está arriba');
+  // Edición, pares y signos metálicos: delante en la barra de inserción; un par rodea lo elegido.
+  const ordenPaleta = () => evaluar(() => [...document.querySelectorAll('#paleta > *')].filter(x => x.getClientRects().length)
+    .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(x => x.dataset.ico || (x.classList.contains('sep-movil') ? '|' : x.className)));
+  eq((await ordenPaleta()).slice(0, 8), ['lineaNueva', 'tabular', 'comentar', 'borrar', 'parentesis', 'punto', '|', 'whileTrue'],
+    'con teclado, la barra de inserción empieza con línea nueva, tab, comentar, borrar, pares y signos; luego los bloques');
+  // Línea nueva: debajo de la línea actual, esté donde esté el cursor, y ya sangrada.
+  await poner('if (a) {\n  regularShoot(pos);\n}', 13);
+  await page.click('#paleta .atajo[data-ico="lineaNueva"]');
+  eq(await evaluar(() => { const c = window.cmg.codigo; return [c.value, c.selectionStart]; }), ['if (a) {\n  regularShoot(pos);\n  \n}', 32],
+    'línea nueva con el cursor a media línea abre una línea sangrada debajo y deja el cursor en ella');
+  await poner('stopFire();', 4);
+  await page.click('#paleta .atajo[data-ico="tabular"]');
+  eq(await evaluar(() => { const c = window.cmg.codigo; return [c.value, c.selectionStart]; }), ['  stopFire();', 6], 'tab sangra la línea y conserva el cursor');
+  await mantener('#paleta .atajo[data-ico="tabular"]');
+  await page.click('.variantes .variante[data-v="1"]');
+  eq(await evaluar(() => window.cmg.codigo.value), 'stopFire();', 'mantener tab ofrece quitar sangría');
+  await evaluar(() => { window.cmg.edicion.copiar(); });
+  await poner('regularShoot(pos);', 13, 16);
+  await page.click('#paleta .atajo[data-ico="borrar"]');
+  eq(await evaluar(() => [window.cmg.codigo.value, window.cmg.edicion.portapapeles]), ['regularShoot();', 'stopFire();'], 'borrar quita lo elegido sin tocar el portapapeles');
   await poner('regularShoot(pos);', 13, 16);
   await page.click('#paleta .atajo[data-ico="parentesis"]');
   eq(await evaluar(() => window.cmg.codigo.value), 'regularShoot((pos));', 'el botón de pares rodea lo elegido');
@@ -118,15 +135,15 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   eq(await evaluar(() => window.cmg.codigo.value), 'a:', 'ni inserta nada');
 
-  // Comentar desde la barra superior.
+  // Comentar desde la barra de inserción.
   await poner('regularShoot(pos);', 0);
-  await page.click('#b-comentar-movil');
-  eq(await evaluar(() => window.cmg.codigo.value), '// regularShoot(pos);', 'comentar desde la barra superior');
+  await page.click('#paleta .atajo[data-ico="comentar"]');
+  eq(await evaluar(() => window.cmg.codigo.value), '// regularShoot(pos);', 'comentar desde la barra de inserción');
 
-  // Menú ⋯: pestañas, modo sin teclado y Ajustes.
+  // Menú ⋯: pestañas y Ajustes (el modo sin teclado tiene su botón en la barra).
   await page.click('#b-menu-cod');
   eq(await evaluar(() => [...document.querySelectorAll('#menu-cod [data-menu]')].map(b => b.dataset.menu + (b.classList.contains('activa') ? '*' : ''))),
-    ['programa*', 'registro', 'ayuda', 'escenario', 'teclado', 'ajustes'], 'el menú ⋯ ofrece pestañas, sin teclado y Ajustes con la pestaña actual encendida');
+    ['programa*', 'registro', 'ayuda', 'escenario', 'ajustes'], 'el menú ⋯ ofrece pestañas y Ajustes con la pestaña actual encendida');
   await page.click('#menu-cod [data-menu="registro"]');
   eq(await evaluar(() => [document.querySelector('#zona-codigo').dataset.pestana, !!document.querySelector('#t-programa').offsetParent, document.querySelector('#menu-cod').hidden]), ['registro', true, true], 'Registro desde el menú; sus pestañas aparecen para volver');
   await page.click('#t-programa');
@@ -142,6 +159,48 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   eq(await evaluar(() => [document.querySelector('#editor').classList.contains('colores'), document.querySelector('#b-colores').getAttribute('aria-pressed')]), [false, 'false'], 'Ajustes apaga los colores del código');
   await page.click('#ajustes-colores');
   await page.click('#ajustes-cerrar');
+
+  // Ficha ⓘ como hoja: pestaña con flecha en la esquina inferior derecha del código, sobre la barra de edición.
+  await evaluar(() => { try { localStorage.removeItem('cmg-juego-info-alto'); } catch {} });
+  const cajas = () => evaluar(() => Object.fromEntries(['#editor', '#b-info-reto', '#info-reto', '#edicion'].map(s => { const r = document.querySelector(s).getBoundingClientRect(); return [s, { l: Math.round(r.left), r: Math.round(r.right), t: Math.round(r.top), b: Math.round(r.bottom), h: Math.round(r.height), vis: !!r.width }]; })));
+  let c0 = await cajas();
+  eq([c0['#b-info-reto'].vis, c0['#editor'].r - c0['#b-info-reto'].r <= 14, c0['#b-info-reto'].b === c0['#editor'].b, c0['#edicion'].t - c0['#b-info-reto'].b <= 8],
+    [true, true, true, true], 'la pestaña de la ficha está en la esquina inferior derecha del código, pegada a la barra de edición');
+  await evaluar(() => window.cmg.codigo.focus());
+  await page.waitForFunction(() => document.querySelector('#app').classList.contains('teclado'));
+  eq(await evaluar(() => !!document.querySelector('#b-info-reto').getClientRects().length), true, 'la pestaña sigue a la vista con el teclado abierto');
+  await evaluar(() => window.cmg.codigo.blur());
+  await page.waitForFunction(() => !document.querySelector('#app').classList.contains('teclado'));
+  const abrirHoja = async () => { await page.click('#b-info-reto'); await page.waitForTimeout(250); };   // tras la animación de subida
+  await abrirHoja();
+  c0 = await cajas();
+  eq([c0['#info-reto'].l === c0['#editor'].l, c0['#info-reto'].r === c0['#editor'].r, c0['#info-reto'].b === c0['#editor'].b, Math.abs(c0['#info-reto'].h - Math.min(844 / 2, c0['#editor'].h - 30)) <= 2, c0['#b-info-reto'].vis],
+    [true, true, true, true, false], 'abierta, la hoja ocupa el ancho del código y la mitad de la pantalla (o lo que quepa); la pestaña se oculta');
+  // El asa cambia el alto; tocar el código no la cierra; la flecha hacia abajo sí; al volver conserva el alto.
+  const arrastrarAsa = async (dy, id = 7) => {
+    const p = await centro('#info-asa');
+    await page.cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...p, id }] });
+    for (let i = 1; i <= 8; i++) await page.cdp('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: p.x, y: p.y + dy * i / 8, id }] });
+    await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForTimeout(80);
+  };
+  await arrastrarAsa(120);
+  const alto1 = (await cajas())['#info-reto'].h;
+  eq(Math.abs(alto1 - (c0['#info-reto'].h - 120)) <= 3, true, 'arrastrar el asa 120 px hacia abajo encoge la hoja lo mismo');
+  await toque(await evaluar(() => { const r = document.querySelector('#editor').getBoundingClientRect(); return { x: r.left + 80, y: r.top + 30 }; }));
+  eq(await evaluar(() => !document.querySelector('#info-reto').hidden), true, 'tocar el código no cierra la hoja');
+  await evaluar(() => window.cmg.codigo.blur());
+  await page.click('#info-reto-cerrar');
+  await abrirHoja();
+  eq(Math.abs((await cajas())['#info-reto'].h - alto1) <= 2, true, 'cerrada con la flecha y abierta otra vez, la hoja conserva su alto');
+  await arrastrarAsa(alto1 - 30);
+  eq(await evaluar(() => [document.querySelector('#info-reto').hidden, !!document.querySelector('#b-info-reto').getClientRects().length]), [true, true], 'llevar el asa hasta abajo cierra la hoja y vuelve la pestaña');
+  await page.reload();
+  await page.waitForFunction(() => window.__juegoListo && !!window.cmg?.edicion);
+  await evaluar(() => { window.__banco.elegirReto(0); window.__banco.abrirPrograma('LAU-01'); window.cmg.codigo.blur(); });
+  await abrirHoja();
+  eq(Math.abs((await cajas())['#info-reto'].h - alto1) <= 2, true, 'el alto de la hoja se recuerda (también al recargar)');
+  await page.click('#info-reto-cerrar');
 
   // Ficha ⓘ: el inspector (segunda pestaña) y la consola muestran los nodos del panel inferior.
   await page.click('#b-info-reto');
@@ -164,16 +223,20 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
     [true, true, false], 'la consola en la ficha muestra los mensajes y borra la marca');
   await page.click('#info-reto-cerrar');
 
-  // Sin teclado: el ⋯ lo recuerda con una marca roja y el ProtoMouse mueve el cursor de bloques.
-  await page.click('#b-menu-cod');
-  await page.click('#menu-cod [data-menu="teclado"]');
+  // Sin teclado: su interruptor de la barra superior se enciende en rojo, los bloques pasan delante en la barra
+  // de inserción y el ProtoMouse mueve el cursor de bloques.
+  await page.click('#b-teclado-movil');
   await poner('regularShoot(pos);\nstopFire();', 0);
   await evaluar(() => window.cmg.edicion.elegir(0, 0));
   await arrastrar(Array(4).fill([8, 0]));
-  eq(await evaluar(() => [window.cmg.edicion.activo, getComputedStyle(document.querySelector('#b-menu-cod')).borderTopColor !== getComputedStyle(document.querySelector('#b-comentar-movil')).borderTopColor, window.cmg.codigo.selectionStart, !!document.querySelector('.cursor-b')]),
-    [true, true, 4, true], 'sin teclado: marca roja en ⋯ y el ProtoMouse mueve el cursor de bloques');
-  await page.click('#b-menu-cod');
-  await page.click('#menu-cod [data-menu="teclado"]');
+  eq(await evaluar(() => [window.cmg.edicion.activo, document.querySelector('#b-teclado-movil').getAttribute('aria-pressed'), getComputedStyle(document.querySelector('#b-teclado-movil')).borderTopColor !== getComputedStyle(document.querySelector('#b-menu-cod')).borderTopColor, window.cmg.codigo.selectionStart, !!document.querySelector('.cursor-b')]),
+    [true, 'true', true, 4, true], 'sin teclado: el interruptor de la barra se enciende y el ProtoMouse mueve el cursor de bloques');
+  const sinTec = await ordenPaleta();
+  eq([sinTec[0], sinTec.slice(sinTec.indexOf('|'))], ['whileTrue', ['|', 'lineaNueva', 'tabular', 'comentar', 'borrar', 'parentesis', 'punto']],
+    'sin teclado, los bloques van primero y edición y signos pasan al final');
+  await page.click('#b-teclado-movil');
+  eq(await evaluar(() => [window.cmg.edicion.activo, document.activeElement === window.cmg.codigo]), [false, true], 'apagarlo vuelve al teclado con el código enfocado');
+  eq((await ordenPaleta())[0], 'lineaNueva', 'y la barra de inserción vuelve a empezar por línea nueva');
   await evaluar(() => window.cmg.codigo.blur());
 
   // Seudocódigo: barra completa al pie, sin ProtoMouse.

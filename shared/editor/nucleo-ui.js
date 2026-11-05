@@ -137,7 +137,7 @@
   function pintarPaleta() {
     const I = opciones.iconos || window.ICONOS || {};
     cerrarVariantes();
-    // Los botones del teléfono (pares y signos) llevan solo-movil: el CSS del anfitrión decide si se ven y,
+    // Los botones del teléfono (edición, pares y signos) llevan solo-movil: el CSS del anfitrión decide si se ven y,
     // en el teléfono, los pone delante con su separador.
     const movil = ATAJOS.some(a => a && a.movil);
     $("paleta").innerHTML = ATAJOS.map((a, i) => {
@@ -150,6 +150,8 @@
   }
   function usarAtajo(a) {
     if ($codigo.readOnly) return avisoEditor("Detén el programa para editarlo.");
+    // Teléfono: línea nueva, sangría y borrar son acciones de la barra de edición (edicion.js), no inserciones.
+    if (a.accion) return cmg.edicion?.accion?.(a.accion);
     opciones.alAtajo?.();
     if (a.comentar) alternarComentario();
     else if (a.simbolo) {

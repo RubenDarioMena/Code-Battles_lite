@@ -1668,7 +1668,9 @@
 
   // ---------- Arranque ----------
   $editor.dataset.asa = asa;
-  cmg.edicion = { get activo() { return activo; }, activar, elegir, ampliar, reducir, deshacer, rehacer, copiar, pegar, borrar, duplicar, moverLineas, lineaNueva, desenvolver, get portapapeles() { return portapapeles; },
+  // accion(id): una acción de la barra por su nombre (también sangrar y desangrar); la usan los botones de
+  // edición de la paleta del teléfono.
+  cmg.edicion = { get activo() { return activo; }, activar, accion: ejecutarAccion, elegir, ampliar, reducir, deshacer, rehacer, copiar, pegar, borrar, duplicar, moverLineas, lineaNueva, desenvolver, get portapapeles() { return portapapeles; },
     get seleccionando() { return seleccionando; }, seleccion: alternarSeleccion };
   construirBarra();
   if (leer("sin-teclado", false) === true) activar(true);

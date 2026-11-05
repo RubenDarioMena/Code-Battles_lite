@@ -182,6 +182,30 @@
       <circle class="t2" cx="16" cy="9.8" r="1.8"/>
       <rect class="t2" x="14.7" y="13.4" width="2.6" height="10" rx="1.3"/>`) },
 
+    // Teléfono: edición sin teclado. Línea nueva (una flecha de retorno que baja a una línea vacía), sangrar
+    // y quitar sangría (Tab) y borrar (la tecla de retroceso), con la regla grabada de los signos.
+    lineaNueva: { c1: "#B4EE4D", c2: "#E9EEF2", svg: svg(`
+      <path class="s2" stroke-width="2.2" stroke-linecap="round" d="M5 6.5h17M5 11h11"/>
+      <path class="s1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M25 6.5v8.5a3 3 0 0 1-3 3H9.5"/>
+      <path class="t1" d="M6.2 18l5.6-4.4v8.8z"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    tabular: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <path class="s1" stroke-width="2.6" stroke-linecap="round" d="M4.5 14h15"/>
+      <path class="t1" d="M23.5 14l-6.2 5V9z"/>
+      <path class="s1" stroke-width="2.6" stroke-linecap="round" d="M26 8.5v11"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    desangrar: { c1: "#63D2E0", c2: "#E9EEF2", svg: svg(`
+      <path class="s1" stroke-width="2.6" stroke-linecap="round" d="M27.5 14h-15"/>
+      <path class="t1" d="M8.5 14l6.2 5V9z"/>
+      <path class="s1" stroke-width="2.6" stroke-linecap="round" d="M6 8.5v11"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    borrar: { c1: "#F07A70", c2: "#FFE3E0", svg: svg(`
+      <path class="s1" stroke-width="2.4" stroke-linejoin="round" fill="none" d="M11 6.5h15a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H11L3.5 14z"/>
+      <path class="s2" stroke-width="2.4" stroke-linecap="round" d="M14.5 10.5l7 7M21.5 10.5l-7 7"/>`) },
+
     // Teléfono: pares (rodean lo elegido) y signos de puntuación, grabados como los operadores.
     parentesis: { c1: "#9CC8FF", c2: "#E9EEF2", svg: svg(`
       <text class="t1 letra" x="10.4" y="21.6" font-size="18" text-anchor="middle">(</text>

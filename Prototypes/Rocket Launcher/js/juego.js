@@ -918,7 +918,9 @@
     else if (acc === "a-pista") elegirInfo("pista");
     else if (acc === "linea") { const u = ultimoIntento(); abrirInfoReto(false); abrirPrograma(u.id); irALinea(u.linea); }
   });
-  document.addEventListener("pointerdown", (ev) => { if (!$("info-reto").hidden && !ev.target.closest("#info-reto, #b-info-reto")) abrirInfoReto(false); }, true);
+  // En PC la ficha flota y se cierra al tocar fuera. En el teléfono es una hoja que convive con el código
+  // (se puede leer el inspector mientras se escribe): se cierra con su flecha o llevando el asa hasta abajo.
+  document.addEventListener("pointerdown", (ev) => { if (!$("info-reto").hidden && !conPortales() && !ev.target.closest("#info-reto, #b-info-reto")) abrirInfoReto(false); }, true);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("info-reto").hidden) { abrirInfoReto(false); $("b-info-reto").focus(); } });
   $("b-reto").addEventListener("click", () => abrirHoja($("hoja-reto").hidden));
   $("hoja-reto").addEventListener("click", (ev) => { if (ev.target.closest("[data-cerrar-hoja]")) abrirHoja(false); });
@@ -1090,13 +1092,10 @@
   }
   $("b-ejecutar-cod").addEventListener("click", ejecutarDesdeCodigo);
   $("b-ejecutar-flot").addEventListener("click", ejecutarDesdeCodigo);
-  // Barra superior del teléfono: ejecutar y comentar sin quitar el foco al código (el teclado no se cierra).
-  for (const id of ["b-ejecutar-movil", "b-comentar-movil"]) $(id).addEventListener("pointerdown", (ev) => ev.preventDefault());
+  // Barra superior del teléfono: ejecutar sin quitar el foco al código (el teclado no se cierra).
+  // Comentar pasó a la barra de inserción; su sitio es ahora el interruptor del modo sin teclado (layout.js).
+  $("b-ejecutar-movil").addEventListener("pointerdown", (ev) => ev.preventDefault());
   $("b-ejecutar-movil").addEventListener("click", ejecutarDesdeCodigo);
-  $("b-comentar-movil").addEventListener("click", () => {
-    if (editorPrograma.fachada.seudo?.activo) return avisoEditor("Comentar trabaja sobre el texto: cambia a JavaScript o Python en Ajustes para usarlo.");
-    alternarComentario();
-  });
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
   $("b-reiniciar").addEventListener("click", () => {
