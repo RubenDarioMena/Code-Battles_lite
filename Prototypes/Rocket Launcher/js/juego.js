@@ -847,14 +847,28 @@
     const p = pistaDe(), n = partesPista().length, nueva = p.vistas < Math.min(n, p.fallos + 1) && p.fallos > 0 ? "nueva" : "";
     for (const [k, v] of [["metas", m], ["intento", i], ["pista", nueva]]) $(`info-t-${k}`).dataset.estado = v;
   }
+  // Teléfono: el inspector del programa y la consola son pestañas de esta ficha (el panel inferior se retira
+  // para dar sitio al código). Se muestran los mismos nodos del panel, así siguen vivos sus valores y mensajes;
+  // al cambiar de pestaña o cerrar la ficha vuelven a su sitio.
+  const PORTALES = { inspector: "pie-ins", consola: "pie-con" };
+  const conPortales = () => $("app").dataset.forma === "movil";
+  function devolverPortales() {
+    const cuerpo = $("pie-cuerpo");
+    if ($("pie-ins").parentElement !== cuerpo) cuerpo.prepend($("pie-ins"));
+    if ($("pie-con").parentElement !== cuerpo) cuerpo.append($("pie-con"));
+  }
+  const avisarInfo = () => $("app").dispatchEvent(new CustomEvent("cmg:info", { detail: { pestana: infoPestana, abierta: !$("info-reto").hidden } }));
   function pintarInfoReto() {
+    if (PORTALES[infoPestana] && !conPortales()) infoPestana = "objetivo";
     $("info-reto-titulo").textContent = `${retoIdx === IDX_PROPIO ? "Tu escenario" : `Reto ${retoIdx + 1}`} · ${def.titulo}`;
     for (const b of document.querySelectorAll("#info-pestanas [data-info]")) {
       const si = b.dataset.info === infoPestana;
       b.setAttribute("aria-selected", String(si)); b.tabIndex = si ? 0 : -1;
     }
     $("info-cuerpo").setAttribute("aria-labelledby", `info-t-${infoPestana}`);
-    $("info-cuerpo").innerHTML = INFO[infoPestana]();
+    devolverPortales();
+    if (PORTALES[infoPestana]) $("info-cuerpo").replaceChildren($(PORTALES[infoPestana]));
+    else $("info-cuerpo").innerHTML = INFO[infoPestana]();
     estadosPestanas();
   }
   // En vivo: las metas y los puntos se repintan con el marcador (pintarHud), solo con la ficha abierta.
@@ -865,16 +879,24 @@
   }
   function elegirInfo(k, foco) {
     infoPestana = k; pintarInfoReto();
-    const b = $(`info-t-${k}`); b.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const b = $(`info-t-${infoPestana}`); b.scrollIntoView({ block: "nearest", inline: "nearest" });
     if (foco) b.focus();
+    avisarInfo();
   }
   function abrirInfoReto(si, pestana) {
     if (pestana) infoPestana = pestana;
-    if (si) pintarInfoReto();
+    if (si) pintarInfoReto(); else devolverPortales();
     $("info-reto").hidden = !si;
     $("b-info-reto").setAttribute("aria-expanded", String(si));
     if (si) $(`info-t-${infoPestana}`).scrollIntoView({ block: "nearest", inline: "nearest" });
+    avisarInfo();
   }
+  // Al pasar del teléfono a PC con el inspector o la consola en la ficha, vuelven al panel inferior.
+  $("app").addEventListener("cmg:forma", () => {
+    if (conPortales()) return;
+    if (!$("info-reto").hidden && PORTALES[infoPestana]) elegirInfo("objetivo");
+    devolverPortales();
+  });
   $("b-info-reto").addEventListener("pointerdown", (ev) => ev.preventDefault());  // el código conserva el foco
   $("b-info-reto").addEventListener("click", () => abrirInfoReto($("info-reto").hidden));
   $("info-reto-cerrar").addEventListener("click", () => abrirInfoReto(false));
@@ -883,7 +905,8 @@
     if (b && !$("info-tira").classList.contains("arrastrada")) elegirInfo(b.dataset.info);
   });
   $("info-pestanas").addEventListener("keydown", (ev) => {
-    const ks = Object.keys(INFO), i = ks.indexOf(infoPestana);
+    // Solo las pestañas a la vista: inspector y consola existen únicamente en el teléfono.
+    const ks = [...document.querySelectorAll("#info-pestanas [data-info]")].filter(b => b.getClientRects().length).map(b => b.dataset.info), i = ks.indexOf(infoPestana);
     const j = ev.key === "ArrowRight" ? i + 1 : ev.key === "ArrowLeft" ? i - 1 : ev.key === "Home" ? 0 : ev.key === "End" ? ks.length - 1 : null;
     if (j == null) return;
     ev.preventDefault(); elegirInfo(ks[(j + ks.length) % ks.length], true);
@@ -1042,6 +1065,11 @@
       $ec.textContent = corriendo ? "■ DETENER" : "▶ EJECUTAR";
       $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
     }
+    // Teléfono: el mismo botón, solo con su icono (▶ / ■).
+    const $em = $("b-ejecutar-movil");
+    $em.classList.toggle("corriendo", corriendo);
+    $em.setAttribute("aria-label", corriendo ? "Detener" : "Ejecutar");
+    $em.dataset.tip = corriendo ? "Detener" : "Ejecutar";
     const $p = $("b-pausa");
     $p.disabled = !corriendo; $p.textContent = pausa ? "Seguir" : "Pausa";
     $("b-vel").textContent = `${velocidad}×`;
@@ -1062,6 +1090,13 @@
   }
   $("b-ejecutar-cod").addEventListener("click", ejecutarDesdeCodigo);
   $("b-ejecutar-flot").addEventListener("click", ejecutarDesdeCodigo);
+  // Barra superior del teléfono: ejecutar y comentar sin quitar el foco al código (el teclado no se cierra).
+  for (const id of ["b-ejecutar-movil", "b-comentar-movil"]) $(id).addEventListener("pointerdown", (ev) => ev.preventDefault());
+  $("b-ejecutar-movil").addEventListener("click", ejecutarDesdeCodigo);
+  $("b-comentar-movil").addEventListener("click", () => {
+    if (editorPrograma.fachada.seudo?.activo) return avisoEditor("Comentar trabaja sobre el texto: cambia a JavaScript o Python en Ajustes para usarlo.");
+    alternarComentario();
+  });
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
   $("b-reiniciar").addEventListener("click", () => {
@@ -1792,17 +1827,30 @@
     }
     return null;
   }
-  $("b-colores").setAttribute("aria-pressed", colores);
-  $editor.classList.toggle("colores", colores);
-  $("b-colores").addEventListener("click", () => {
-    colores = !colores; guardado.escribir("colores", colores);
+  // Colores y letra: botones de la cabecera en PC y, en todas las formas, Ajustes → Editor
+  // (en el teléfono solo allí, para dejar la barra del código mínima).
+  function ponerColores(si) {
+    colores = !!si; guardado.escribir("colores", colores);
     $("b-colores").setAttribute("aria-pressed", colores);
+    $("ajustes-colores").checked = colores;
     $editor.classList.toggle("colores", colores); pintarResaltado();
-  });
+  }
+  $("b-colores").setAttribute("aria-pressed", colores);
+  $("ajustes-colores").checked = colores;
+  $editor.classList.toggle("colores", colores);
+  $("b-colores").addEventListener("click", () => ponerColores(!colores));
+  $("ajustes-colores").addEventListener("change", (ev) => ponerColores(ev.target.checked));
   const TAMANOS = [12, 13, 14, 16, 18];
-  function aplicarLetra() { document.querySelector(".app").style.setProperty("--code-size", `${tamLetra}px`); guardado.escribir("letra", tamLetra); medirEditor(); }
+  function aplicarLetra() {
+    document.querySelector(".app").style.setProperty("--code-size", `${tamLetra}px`); guardado.escribir("letra", tamLetra); medirEditor();
+    for (const b of document.querySelectorAll("#ajustes-letra [data-letra]")) b.setAttribute("aria-pressed", String(+b.dataset.letra === tamLetra));
+  }
   $("b-menos").addEventListener("click", () => { const i = TAMANOS.indexOf(tamLetra); tamLetra = TAMANOS[Math.max(0, (i < 0 ? 2 : i) - 1)]; aplicarLetra(); });
   $("b-mas").addEventListener("click", () => { const i = TAMANOS.indexOf(tamLetra); tamLetra = TAMANOS[Math.min(TAMANOS.length - 1, (i < 0 ? 2 : i) + 1)]; aplicarLetra(); });
+  $("ajustes-letra").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-letra]");
+    if (b && TAMANOS.includes(+b.dataset.letra)) { tamLetra = +b.dataset.letra; aplicarLetra(); }
+  });
 
   // Cómo se muestra cada console
   const DESTINOS = [["globo", "Globo"], ["pantalla", "Pantalla"], ["consola", "Solo consola"]];

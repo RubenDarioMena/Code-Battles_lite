@@ -215,3 +215,75 @@
 /* La paleta se acorta para que el botón del mapa no tape sus ladrillos. */
 .app[data-pantalla-completa="true"][data-esquina="codigo"] #v-programa > .paleta { margin-right: 46px; }
 .app[data-forma="movil"][data-pantalla-completa="true"][data-esquina="codigo"] #v-programa > .paleta { margin-right: 38px; }
+
+/* ---------- Teléfono: editor rediseñado ----------
+   De arriba abajo: barra mínima, código, barra de edición con el ProtoMouse y barra metálica de inserción.
+   Las dos barras propias quedan al pie del código: con el teclado abierto, justo encima de él.
+   Lo que sale de la barra superior sigue a mano: lenguaje, letra y colores en Ajustes; Registro, Órdenes,
+   Escenario, modo sin teclado y Ajustes en el menú ⋯; inspector y consola en la ficha ⓘ. */
+.acciones-movil { display: none; }
+.app[data-forma="movil"] .acciones-movil { display: flex; flex: none; gap: 4px; align-items: center; margin-left: auto; }
+.app[data-forma="movil"] .acciones-movil .mini { place-items: center; width: 36px; height: 34px; min-width: 0; min-height: 0; padding: 0; color: var(--ink); }
+.app[data-forma="movil"] .acciones-movil :is(#b-ejecutar-movil, #b-comentar-movil, #b-menu-cod) { display: grid; }
+.app[data-forma="movil"] .acciones-movil svg { width: 20px; height: 20px; display: block; }
+/* ▶ es el botón principal; con el programa en marcha pasa a ■ en rojo. */
+.b-ejecutar-movil .ico-stop, .b-ejecutar-movil.corriendo .ico-play { display: none; }
+.b-ejecutar-movil.corriendo .ico-stop { display: inline; }
+.app[data-forma="movil"] .acciones-movil .b-ejecutar-movil {
+  width: 46px; color: var(--accent-ink); border-color: #23407F; background: linear-gradient(180deg, #9DB8FF, #5E84EC);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 0 0 1px #2B4A9C, 0 0 12px rgba(127, 163, 255, .25);
+}
+.app[data-forma="movil"] .acciones-movil .b-ejecutar-movil.corriendo {
+  color: #1C0B09; border-color: #6E2019; background: linear-gradient(180deg, #F59A90, #D6574C); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 0 0 1px #8C2E25;
+}
+/* El mapa, con la pantalla completa activa; la pantalla completa, cuando el código ocupa la esquina superior derecha. */
+#b-mapa-movil { display: none; }
+.app[data-forma="movil"][data-pantalla-completa="true"] #b-mapa-movil { display: grid; }
+.app[data-forma="movil"][data-pantalla-permitida="true"][data-esquina="codigo"] #b-pantalla-movil { display: grid; opacity: 1; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.app[data-forma="movil"] #b-pantalla-movil:not([aria-pressed="true"]) { background: var(--surface-2); border-color: var(--line); }
+.app[data-forma="movil"] .b-menu-cod.abierto { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+/* Fuera de la barra: lenguaje, colores y letra (Ajustes), el EJECUTAR largo y los botones flotantes. */
+.app[data-forma="movil"] .barra-prog .herramientas,
+.app[data-forma="movil"] .barra-prog .ejecutar-cod { display: none; }
+.app[data-forma="movil"][data-pantalla-permitida] #b-pantalla-cod,
+.app[data-forma="movil"][data-pantalla-completa] #b-ver-mapa { display: none; }
+/* Con el botón ▶ pequeño caben los programas también a pantalla completa. */
+.app[data-forma="movil"][data-pantalla-completa="true"] .barra-prog .progs { display: flex; }
+.app[data-forma="movil"] .barra-prog,
+.app[data-forma="movil"][data-pantalla-permitida][data-esquina] .barra-prog { padding-right: 0; justify-content: flex-start; gap: 6px; }
+/* Las pestañas solo se ven fuera del programa, para volver; dentro del programa están en el menú ⋯. */
+.app[data-forma="movil"] .zona-codigo:not([data-pestana]) .tabs,
+.app[data-forma="movil"] .zona-codigo[data-pestana="programa"] .tabs,
+.app[data-forma="movil"] .plegar-barras { display: none; }
+/* Código arriba; edición e inserción al pie, donde llega el pulgar. El panel inferior se retira. */
+.app[data-forma="movil"] #v-programa { gap: 6px; }
+.app[data-forma="movil"] #v-programa > .editor, .app[data-forma="movil"] #v-programa > .prog { order: 1; }
+.app[data-forma="movil"] #v-programa > .barra-edicion { order: 2; }
+.app[data-forma="movil"] #v-programa > .paleta { order: 3; }
+.app[data-forma="movil"] #v-programa > .pie { display: none; }
+.app[data-forma="movil"][data-pantalla-completa="true"][data-esquina="codigo"] #v-programa > .paleta { margin-right: 0; }
+/* Ficha ⓘ: inspector y consola solo en el teléfono; un punto avisa de mensajes nuevos en la consola. */
+.app:not([data-forma="movil"]) .info-pestanas .solo-movil { display: none; }
+.info-reto-abrir.con-nuevo { opacity: .9; }
+.info-reto-abrir.con-nuevo::after {
+  content: ""; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--warn); box-shadow: 0 0 5px var(--warn);
+}
+.info-cuerpo > .pie-ins, .info-cuerpo > .pie-con { min-height: 0; }
+.info-cuerpo > .pie-con .consola { max-height: 40vh; }
+/* Menú ⋯: placas metálicas en dos filas. */
+.variantes.menu-cod { display: grid; grid-template-columns: repeat(3, 64px); overflow: visible; }
+.menu-cod .variante svg { width: 26px; height: 26px; }
+.menu-cod .variante .tachado { display: none; }
+.menu-cod .variante[aria-pressed="true"] .tachado { display: inline; }
+/* Barra de inserción del teléfono: pares y signos delante (con su separador); comentar ya está en la barra superior. */
+.app.cmg-anfitrion[data-forma="movil"] #paleta .atajo.solo-movil { display: grid; order: -2; }
+.app.cmg-anfitrion[data-forma="movil"] #paleta .sep-movil { display: block; order: -1; }
+.app[data-forma="movil"] #paleta .atajo[data-ico="comentar"],
+.app[data-forma="movil"] #paleta .atajo[data-ico="comentar"] + .sep-pal { display: none; }
+/* Modo sin teclado activo: su interruptor vive en el menú ⋯, que lo recuerda con una marca roja. */
+.app[data-forma="movil"] .b-menu-cod { position: relative; }
+.app[data-forma="movil"][data-sin-teclado="true"] .b-menu-cod { border-color: var(--bad); box-shadow: 0 0 6px var(--bad-soft); }
+.app[data-forma="movil"][data-sin-teclado="true"] .b-menu-cod::after {
+  content: ""; position: absolute; top: 3px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 5px var(--bad);
+}

@@ -7,6 +7,7 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const app = $("app"), divisor = $("divisor"), zonaCodigo = $("zona-codigo");
+  const svg = (cuerpo) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${cuerpo}</svg>`;
   const params = new URLSearchParams(location.search);
   const forzada = ["movil", "escritorio"].includes(params.get("forma")) ? params.get("forma") : null;
   const enMarco = params.get("marco") === "1";
@@ -30,7 +31,8 @@
   let barrasPlegadas = leer("barras-plegadas", false) === true, expandidoTeclado = false;
   const claveReparto = () => orientacion === "auto" ? `reparto-${forma}` : `reparto-${forma}-${eje}`;
   function aplicarBarras() {
-    const plegadas = app.classList.contains("teclado") ? !expandidoTeclado : barrasPlegadas;
+    // En el teléfono la barra superior ya es mínima: no se pliega, tampoco con el teclado abierto.
+    const plegadas = forma === "movil" ? false : app.classList.contains("teclado") ? !expandidoTeclado : barrasPlegadas;
     $("cabecera-editor").classList.toggle("plegada", plegadas);
     $("b-barras").setAttribute("aria-expanded", String(!plegadas));
     $("b-barras").setAttribute("aria-label", plegadas ? "Mostrar herramientas" : "Plegar herramientas");
@@ -151,10 +153,11 @@
     }
   }
   const ajustes = $("ajustes"), confirmar = $("ajustes-confirmar");
-  $("b-ajustes").addEventListener("click", () => {
+  function abrirAjustes() {
     confirmar.checked = window.cmg.confirmarReplace;
-    ajustes.showModal();
-  });
+    if (!ajustes.open) ajustes.showModal();
+  }
+  $("b-ajustes").addEventListener("click", abrirAjustes);
   $("ajustes-cerrar").addEventListener("click", () => ajustes.close());
   confirmar.addEventListener("change", () => { window.cmg.confirmarReplace = confirmar.checked; });
   $("ajustes-reparto").addEventListener("click", restaurarReparto);
@@ -181,8 +184,9 @@
 
   // ---------- Teclado del teléfono ----------
   // Con interactive-widget=resizes-visual el teclado no encoge la página: tapa su parte de abajo.
-  // El editor ocupa todo el viewport visual disponible encima de la barra de símbolos.
-  const ALTO_SIMBOLOS = 46;
+  // El editor ocupa todo el viewport visual disponible. Sus dos barras propias (edición con ProtoMouse
+  // e inserción metálica) van al pie del código, así quedan justo encima del teclado; la antigua barra
+  // de símbolos ya no hace falta: sus pares y signos son botones metálicos de la barra de inserción.
   const simbolos = $("simbolos"), tecladoSim = $("teclado-sim");
   let simulado = 0;
   const codigo = () => window.cmg && window.cmg.codigo;
@@ -195,14 +199,14 @@
     if (abierto !== app.classList.contains("teclado")) expandidoTeclado = false;
     app.classList.toggle("teclado", abierto);
     aplicarBarras();
-    simbolos.hidden = !abierto;
+    simbolos.hidden = true;
     tecladoSim.hidden = !(abierto && enMarco);
     document.documentElement.style.setProperty("--teclado", `${abierto ? teclado : 0}px`);
     if (abierto) {
       const arriba = enMarco ? 0 : (vv ? vv.offsetTop : 0);
       const alto = enMarco ? innerHeight - simulado : (vv ? vv.height : innerHeight - teclado);
       app.style.setProperty("--codigo-arriba", `${arriba}px`);
-      app.style.setProperty("--codigo-alto", `${Math.max(0, alto - ALTO_SIMBOLOS)}px`);
+      app.style.setProperty("--codigo-alto", `${Math.max(0, alto)}px`);
       requestAnimationFrame(() => window.cmg && window.cmg.medirEditor());
     } else {
       app.style.removeProperty("--codigo-arriba");
@@ -291,7 +295,16 @@
   const altoActual = () => pie.dataset.abierto === "true" ? pieCuerpo.getBoundingClientRect().height : 0;
   // El editor conserva unas líneas a la vista.
   const maxPie = () => Math.max(PIE_MIN, $("v-programa").getBoundingClientRect().height - pieBarra.offsetHeight - 90);
-  const marcarNuevo = (si) => pie.querySelector('[data-pie-modo="consola"]').classList.toggle("con-nuevo", si);
+  // En el teléfono la consola es una pestaña de la ficha ⓘ: el aviso de mensajes nuevos va en ese botón y en la pestaña.
+  let hayNuevo = false;
+  const marcarNuevo = (si = hayNuevo) => {
+    hayNuevo = si;
+    pie.querySelector('[data-pie-modo="consola"]').classList.toggle("con-nuevo", si);
+    $("b-info-reto").classList.toggle("con-nuevo", si && forma === "movil");
+    $("info-t-consola").dataset.estado = si ? "nueva" : "";
+  };
+  const consolaEnFicha = () => !$("info-reto").hidden && $("info-t-consola").getAttribute("aria-selected") === "true";
+  const consolaVisible = () => forma === "movil" ? consolaEnFicha() : pieModo === "consola" && pie.dataset.abierto === "true";
   function aplicarPie(alto = altoPie()) {
     const abierto = alto > 0;
     pie.dataset.abierto = String(abierto);
@@ -304,7 +317,9 @@
     pieAgarre.setAttribute("aria-valuenow", String(Math.round(alto)));
     pieAgarre.setAttribute("aria-valuetext", abierto ? `${Math.round(alto)} píxeles` : "cerrado");
     for (const b of pie.querySelectorAll("[data-pie-modo]")) b.setAttribute("aria-pressed", String(b.dataset.pieModo === pieModo));
-    if (abierto && pieModo === "consola") { marcarNuevo(false); const c = $("consola"); c.scrollTop = c.scrollHeight; }
+    // En el teléfono el panel no se ve (su inspector y su consola están en la ficha ⓘ).
+    if (abierto && pieModo === "consola" && forma !== "movil") { marcarNuevo(false); const c = $("consola"); c.scrollTop = c.scrollHeight; }
+    else marcarNuevo();
     requestAnimationFrame(() => window.cmg && window.cmg.medirEditor());
   }
   function guardarPie(alto) {
@@ -360,8 +375,15 @@
   new MutationObserver(() => {
     const c = $("consola");
     if (c.children.length === 1 && c.firstElementChild.classList.contains("vacia")) { marcarNuevo(false); return; }
-    if (pieModo !== "consola" || pie.dataset.abierto !== "true") marcarNuevo(true);
+    if (!consolaVisible()) marcarNuevo(true);
+    else if (forma === "movil") c.scrollTop = c.scrollHeight;
   }).observe($("consola"), { childList: true });
+  // La ficha ⓘ avisa al cambiar de pestaña (juego.js): al ver la consola se borra la marca y baja al final.
+  app.addEventListener("cmg:info", () => {
+    if (!consolaEnFicha()) return;
+    marcarNuevo(false);
+    const c = $("consola"); c.scrollTop = c.scrollHeight;
+  });
 
   // ---------- Modo pantalla completa (tabletas y teléfonos) ----------
   // Mantener 2 s el botón de las cuatro esquinas lo activa o lo desactiva. Activo, la batalla y el código
@@ -463,6 +485,68 @@
   }
   $("b-ver-codigo").addEventListener("click", () => verPanel("codigo"));
   $("b-ver-mapa").addEventListener("click", () => verPanel("mapa"));
+  $("b-mapa-movil").addEventListener("click", () => verPanel("mapa"));
+
+  // ---------- Menú ⋯ de la barra del código (teléfono) ----------
+  // Lo que sale de la barra superior mínima: pestañas, modo sin teclado y Ajustes. Son las mismas placas
+  // metálicas que las variantes de la paleta; la pestaña actual y el modo sin teclado activo quedan encendidos.
+  const ICO_MENU = {
+    programa: '<path class="s1" d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.4 5.2l-2.8 13.6"/>',
+    registro: '<rect class="s1" x="3.5" y="4.5" width="17" height="15" rx="2"/><path class="s1" d="M3.5 9.5h17M9 9.5v10M12 13h5.5M12 16.2h4"/>',
+    ayuda: '<path class="s1" d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13.5H6.5A1.5 1.5 0 0 0 5 19zM5 19a1.5 1.5 0 0 0 1.5 1.5H19v-3"/><path class="s1" d="M9 8.5h6M9 12h4"/>',
+    escenario: '<path class="s1" d="M12 20.5s-6.5-5.6-6.5-10.6a6.5 6.5 0 0 1 13 0c0 5-6.5 10.6-6.5 10.6z"/><circle class="s1" cx="12" cy="10" r="2.4"/>',
+    teclado: '<rect class="s1" x="2.5" y="6" width="19" height="12.5" rx="2.2"/><path class="s1" d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M6.5 13.6h.01M17 13.6h.01M9.5 14.6h5"/><path class="s1 tachado" d="M3.6 3.4l16.8 17.2"/>',
+    ajustes: '<circle class="s1" cx="12" cy="12" r="3.1"/><path class="s1" d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3L5.6 5.6"/>',
+  };
+  const sinTecladoActivo = () => !!(window.cmg && window.cmg.edicion && window.cmg.edicion.activo);
+  const MENU = [
+    { id: "programa", t: () => "Programa", c1: "#7FA3FF" },
+    { id: "registro", t: () => "Registro", c1: "#63D2E0" },
+    { id: "ayuda", t: () => "Órdenes", c1: "#CFA2FF" },
+    { id: "escenario", t: () => $("t-escenario").textContent.trim(), c1: "#5FC28A" },
+    { id: "teclado", t: () => "Sin teclado", c1: "#F07A70", activo: sinTecladoActivo,
+      fn: () => window.cmg.edicion.activar(!sinTecladoActivo(), true) },
+    { id: "ajustes", t: () => "Ajustes", c1: "#B7C2CC", fn: abrirAjustes },
+  ];
+  const $menu = document.createElement("div");
+  $menu.id = "menu-cod"; $menu.className = "variantes menu-cod"; $menu.hidden = true;
+  $menu.setAttribute("role", "menu"); $menu.setAttribute("aria-label", "Más opciones del código");
+  document.body.append($menu);
+  const $bMenu = $("b-menu-cod");
+  function pintarMenu() {
+    const actual = zonaCodigo.dataset.pestana || "programa";
+    $menu.innerHTML = MENU.map(m => {
+      const esPestana = !m.fn, encendido = esPestana ? m.id === actual : m.activo ? m.activo() : false;
+      return `<button type="button" class="variante${encendido ? " activa" : ""}" role="menuitem" data-menu="${m.id}" style="--c1:${m.c1}"`
+        + `${esPestana && encendido ? ' aria-current="page"' : ""}${m.activo ? ` aria-pressed="${encendido}"` : ""}>${svg(ICO_MENU[m.id])}<span>${m.t()}</span></button>`;
+    }).join("");
+  }
+  function colocarMenu() {
+    const r = $bMenu.getBoundingClientRect(), m = $menu.getBoundingClientRect();
+    const x = Math.max(6, Math.min(innerWidth - m.width - 6, r.right - m.width));
+    let y = r.bottom + 6;
+    if (y + m.height > innerHeight - 6) y = Math.max(6, r.top - m.height - 6);
+    $menu.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  }
+  function abrirMenu(si) {
+    if (si) { pintarMenu(); $menu.hidden = false; colocarMenu(); }
+    else { $menu.hidden = true; $menu.replaceChildren(); }
+    $bMenu.setAttribute("aria-expanded", String(si));
+    $bMenu.classList.toggle("abierto", si);
+  }
+  // pointerdown sin foco: abrir el menú no cierra el teclado ni mueve el cursor.
+  $bMenu.addEventListener("pointerdown", (ev) => ev.preventDefault());
+  $bMenu.addEventListener("click", () => abrirMenu($menu.hidden));
+  $menu.addEventListener("pointerdown", (ev) => ev.preventDefault());
+  $menu.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-menu]"); if (!b) return;
+    const m = MENU.find(x => x.id === b.dataset.menu);
+    abrirMenu(false);
+    if (m.fn) m.fn(); else $(`t-${m.id}`).click();
+  });
+  document.addEventListener("pointerdown", (ev) => { if (!$menu.hidden && !ev.target.closest("#menu-cod, #b-menu-cod")) abrirMenu(false); }, true);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$menu.hidden) { abrirMenu(false); $bMenu.focus(); } });
+  addEventListener("resize", () => { if (!$menu.hidden) abrirMenu(false); });
   app.addEventListener("cmg:pantalla", (ev) => verPanel(ev.detail));
   // Campo girado 90° con la pantalla en vertical (la cámara lo lee de data-girar-campo).
   app.dataset.girarCampo = String(leer("pantalla-girar", true) !== false);

@@ -65,6 +65,20 @@
       { ico: "info", t: "Info (console.info)", js: { b: "console.info(/* mensaje */);" } },
       { ico: "errorCons", t: "Error (console.error)", js: { b: "console.error(/* mensaje */);" } },
     ] },
+    // Teléfono (movil: true): pares y signos que el teclado del móvil esconde en otra página. Van al final de la
+    // lista para no mover los demás botones; en el teléfono la paleta los pone delante. Los pares rodean lo elegido.
+    { grupo: [
+      { ico: "parentesis", t: "Paréntesis", movil: true, simbolo: { ins: "()", sel: 1 }, cod: "( )", js: {}, python: {} },
+      { ico: "corchetes", t: "Corchetes", movil: true, simbolo: { ins: "[]", sel: 1 }, cod: "[ ]", js: {}, python: {} },
+      { ico: "llaves", t: "Llaves", movil: true, simbolo: { ins: "{}", sel: 1 }, cod: "{ }", js: {}, python: {} },
+      { ico: "comillas", t: "Comillas", movil: true, simbolo: { ins: '""', sel: 1 }, cod: '" "', js: {}, python: {} },
+    ] },
+    { grupo: [
+      { ico: "punto", t: "Punto", movil: true, simbolo: { ins: "." }, cod: ".", js: {}, python: {} },
+      { ico: "coma", t: "Coma", movil: true, simbolo: { ins: "," }, cod: ",", js: {}, python: {} },
+      { ico: "puntoComa", t: "Punto y coma", movil: true, simbolo: { ins: ";" }, cod: ";", js: {}, python: {} },
+      { ico: "dosPuntos", t: "Dos puntos", movil: true, simbolo: { ins: ":" }, cod: ":", js: {}, python: {} },
+    ] },
   ];
   // Cómo entra la pausa en el cuerpo de un bucle, por lenguaje.
   const PAUSA = {

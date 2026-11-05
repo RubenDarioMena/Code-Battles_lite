@@ -127,8 +127,8 @@ function eq(actual, expected) { assert.deepEqual(actual, expected); checks++; }
   eq(run('programas.A'), 'reemplazo();');
   run('ejec=null; edicion.mixto=false'); await run('aplicarMulti(true)');
   eq(run('programas.A'), 'reemplazo();');
-  // Variantes y línea vacía: la sangría sale de la línea anterior.
-  eq(JSON.parse(run('JSON.stringify(ATAJOS.filter(a=>a.variantes).map(a=>[a.ico,a.variantes.map(v=>v.ico)]))')), [['whileTrue',['mientras','para','hacer','salir']],['siNo',['si','siSino']],['plan',['y','o','no','igual','distinto','mayor','menor']],['variable',['variableLet','asignar']],['aviso',['registro','info','errorCons']]]);
+  // Variantes y línea vacía: la sangría sale de la línea anterior. Al final, los pares y signos del teléfono.
+  eq(JSON.parse(run('JSON.stringify(ATAJOS.filter(a=>a.variantes).map(a=>[a.ico,a.variantes.map(v=>v.ico)]))')), [['whileTrue',['mientras','para','hacer','salir']],['siNo',['si','siSino']],['plan',['y','o','no','igual','distinto','mayor','menor']],['variable',['variableLet','asignar']],['aviso',['registro','info','errorCons']],['parentesis',['corchetes','llaves','comillas']],['punto',['coma','puntoComa','dosPuntos']]]);
   editar('if (/* condición */) {\n  \n}', 25, 25); atajo('si');
   eq(run('$codigo.value'), 'if (/* condición */) {\n  if (/* condición */) {\n    \n  }\n}');
   editar('while (true) {\n\n}', 15, 15); atajo('disparo');

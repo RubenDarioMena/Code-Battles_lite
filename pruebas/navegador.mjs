@@ -162,26 +162,34 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await page.click('[aria-label="Cerrar el inspector"]');
   await evaluar(() => window.cmg.codigo.focus());
   await page.waitForFunction(() => document.querySelector('#app').classList.contains('teclado'));
+  // Teléfono rediseñado: el código ocupa el viewport visible y sus dos barras (edición con ProtoMouse e
+  // inserción metálica) quedan al pie, justo encima del teclado. La antigua barra de símbolos no aparece.
   eq(await evaluar(() => {
-    const c = document.querySelector('#zona-codigo').getBoundingClientRect();
-    const s = document.querySelector('#simbolos').getBoundingClientRect();
-    return c.top >= 0 && Math.abs(c.bottom - s.top) <= 1 && window.cmg.codigo.clientHeight > 100;
-  }), true, 'editor móvil ocupa espacio disponible encima de símbolos');
-  await page.click('#simbolos button[data-i="4"]');
-  eq(await evaluar(() => document.activeElement === window.cmg.codigo && document.querySelector('#app').classList.contains('teclado')), true, 'barra de símbolos conserva foco y teclado');
+    const c = document.querySelector('#zona-codigo').getBoundingClientRect(), teclado = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--teclado'));
+    const e = document.querySelector('#editor').getBoundingClientRect(), b = document.querySelector('#edicion').getBoundingClientRect(), p = document.querySelector('#paleta').getBoundingClientRect();
+    return c.top >= 0 && Math.abs(c.bottom - (innerHeight - teclado)) <= 1 && e.bottom <= b.top && b.bottom <= p.top && c.bottom - p.bottom < 16
+      && document.querySelector('#simbolos').hidden && window.cmg.codigo.clientHeight > 100;
+  }), true, 'con el teclado, el código ocupa el espacio visible y sus dos barras quedan encima del teclado');
+  await page.click('#paleta .atajo[data-ico="parentesis"]');
+  eq(await evaluar(() => { const c = window.cmg.codigo; return [document.activeElement === c, document.querySelector('#app').classList.contains('teclado'), c.value.slice(c.selectionStart - 1, c.selectionStart + 1)]; }),
+    [true, true, '()'], 'los pares de la barra de inserción conservan foco y teclado y dejan el cursor dentro');
   await evaluar(() => window.cmg.codigo.blur());
   await page.waitForFunction(() => !document.querySelector('#app').classList.contains('teclado'));
-  eq(await evaluar(() => document.querySelector('#simbolos').hidden), true, 'cerrar teclado restaura reparto');
-  eq(await evaluar(() => getComputedStyle(document.querySelector('#pie-cuerpo')).display === 'none' && !document.querySelector('#consola').offsetParent && getComputedStyle(document.querySelector('#b-pie')).display !== 'none'),
-    true, 'en el teléfono el panel inferior (inspector/consola) empieza cerrado y deja su barra');
+  eq(await evaluar(() => getComputedStyle(document.querySelector('#zona-codigo')).position !== 'fixed' && document.querySelector('#simbolos').hidden), true, 'cerrar teclado restaura reparto');
+  eq(await evaluar(() => getComputedStyle(document.querySelector('#pie')).display === 'none' && ['#info-t-inspector', '#info-t-consola'].every(s => getComputedStyle(document.querySelector(s)).display !== 'none')),
+    true, 'en el teléfono el panel inferior se retira: inspector y consola son pestañas de la ficha ⓘ');
   eq(await evaluar(() => ['#paleta', '#edicion'].map(sel => new Set([...document.querySelectorAll(`${sel} button`)].filter(b => b.offsetParent).map(b => Math.round(b.getBoundingClientRect().top))).size)),
     [1, 1], 'la paleta y la barra de edición ocupan una línea cada una');
   eq(await evaluar(() => {
-    const p = document.querySelector('#paleta').getBoundingClientRect(), b = document.querySelector('#edicion').getBoundingClientRect();
-    return getComputedStyle(document.querySelector('#edicion')).display === 'flex' && b.top >= p.bottom - 1 && b.top - p.bottom < 12;
-  }), true, 'en el teléfono la barra de edición queda fija bajo la paleta');
-  // Sin teclado en el teléfono: un toque elige sin enfocar el textarea, así no sube el teclado.
-  await page.click('#edicion .b-teclado');
+    const e = document.querySelector('#editor').getBoundingClientRect(), b = document.querySelector('#edicion').getBoundingClientRect(), p = document.querySelector('#paleta').getBoundingClientRect();
+    const vistos = [...document.querySelectorAll('#edicion button, #edicion .protomouse')].filter(x => x.getClientRects().length)
+      .sort((x, y) => x.getBoundingClientRect().left - y.getBoundingClientRect().left).map(x => x.dataset.accion || (x.dataset.seleccion != null ? 'seleccion' : 'protomouse'));
+    return [b.top >= e.bottom && p.top >= b.bottom && p.top - b.bottom < 12, vistos];
+  }), [true, ['deshacer', 'rehacer', 'seleccion', 'protomouse', 'cortar', 'copiar', 'pegar']], 'en el teléfono, bajo el código: seis botones alrededor del ProtoMouse y, debajo, la barra de inserción');
+  // Sin teclado en el teléfono (desde el menú ⋯): un toque elige sin enfocar el textarea, así no sube el teclado.
+  await page.click('#b-menu-cod');
+  await page.click('#menu-cod [data-menu="teclado"]');
+  eq(await evaluar(() => [window.cmg.edicion.activo, document.querySelector('#app').dataset.sinTeclado]), [true, 'true'], 'el menú ⋯ activa el modo sin teclado');
   await evaluar(() => { const c = window.cmg.codigo; c.value = 'regularShoot("visual");\n'; c.dispatchEvent(new Event('input')); });
   await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
   const toqueEn = await page.evaluate(() => { const el = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === '"visual"'); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
@@ -225,7 +233,13 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   const disparo = await page.evaluate(() => { const el = [...document.querySelectorAll('#bloques-texto span')].find(s => s.textContent === 'regularShoot'); el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   await page.cdp('Input.synthesizeTapGesture', { ...disparo, tapCount: 1, duration: 40, gestureSourceType: 'touch' });
   await page.waitForTimeout(450);
-  await page.click('#edicion [data-accion="desenvolver"]');
+  // En el teléfono Desenvolver sale manteniendo pulsado Cortar.
+  const cortar = await page.evaluate(() => { const r = document.querySelector('#edicion [data-accion="cortar"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await page.cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...cortar, id: 8 }] });
+  await page.waitForFunction(() => document.querySelector('.variantes-ed')?.hidden === false);
+  await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  eq(await evaluar(() => [...document.querySelectorAll('.variantes-ed .variante')].map(v => v.dataset.v)), ['cortar', 'borrar', 'desenvolver'], 'mantener pulsado Cortar ofrece Borrar y Desenvolver');
+  await page.click('.variantes-ed [data-v="desenvolver"]');
   eq(await evaluar(() => { const c = window.cmg.codigo; return [c.value, c.value.slice(c.selectionStart, c.selectionEnd)]; }),
     ['const pos = autoTarget("drone", "visual");\nregularShoot(pos);', 'regularShoot(pos);'], 'Desenvolver quita el while y deja elegido su contenido');
   await page.click('#edicion [data-accion="deshacer"]');
@@ -251,7 +265,8 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await evaluar(() => [...document.querySelectorAll('.sugerencias .sug')].find(b => b.textContent.includes('burstFire(lugar)')).click());
   eq(await evaluar(() => window.cmg.codigo.value), 'burstFire(pos);\n', 'elegir otra función conserva el argumento que encaja');
   await page.cdp('Emulation.setTouchEmulationEnabled', { enabled: false });
-  await page.click('#edicion .b-teclado');
+  await page.click('#b-menu-cod');
+  await page.click('#menu-cod [data-menu="teclado"]');
   // Modo pantalla completa: se activa manteniendo 2 s el botón; </> lleva al código y EJECUTAR a la batalla.
   const pulsar = (sel, tipo) => page.evaluate(([s, t]) => document.querySelector(s).dispatchEvent(new PointerEvent(t, { bubbles: true, pointerId: 41, pointerType: 'touch', isPrimary: true })), [sel, tipo]);
   eq(await evaluar(() => getComputedStyle(document.querySelector('#b-pantalla')).display !== 'none'), true, 'en el teléfono aparece el botón de pantalla completa junto a Ajustes');
@@ -291,16 +306,16 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await page.waitForTimeout(50);
   eq(await camara(), { clave: 'girada', yaw: yaw1 }, 'cada cámara recuerda dónde se dejó durante la sesión');
   await page.click('#b-ver-codigo');
-  eq(await evaluar(() => [document.querySelector('#app').dataset.solo, getComputedStyle(document.querySelector('#progs')).display, !!document.querySelector('#b-ejecutar-cod').offsetParent, !!document.querySelector('#b-ver-mapa').offsetParent]),
-    ['codigo', 'none', true, true], 'el código a pantalla completa cambia los programas por EJECUTAR y ofrece volver al mapa');
-  eq(await evaluar(() => { const a = document.querySelector('#b-pantalla-cod').getBoundingClientRect(), b = document.querySelector('#b-ver-mapa').getBoundingClientRect(); return b.top >= a.bottom && Math.abs(a.right - b.right) < 2; }),
-    true, 'el botón del mapa flota bajo el de pantalla completa');
+  eq(await evaluar(() => [document.querySelector('#app').dataset.solo, getComputedStyle(document.querySelector('#progs')).display, ...['#b-ejecutar-movil', '#b-mapa-movil', '#b-pantalla-movil'].map(s => !!document.querySelector(s).offsetParent), !document.querySelector('#b-ejecutar-cod').offsetParent && !document.querySelector('#b-ver-mapa').offsetParent]),
+    ['codigo', 'flex', true, true, true, true], 'el código a pantalla completa conserva los programas y ofrece ▶ y volver al mapa en la barra');
+  eq(await evaluar(() => { const rs = ['b-ejecutar-movil', 'b-comentar-movil', 'b-mapa-movil', 'b-pantalla-movil', 'b-menu-cod'].map(id => document.getElementById(id).getBoundingClientRect()); return rs.every((r, i) => Math.abs(r.top - rs[0].top) < 2 && (!i || r.left > rs[i - 1].left)); }),
+    true, 'barra superior en una fila: ejecutar, comentar, mapa, pantalla completa y menú');
   await page.click('#b-info-reto');
   eq(await evaluar(() => [!document.querySelector('#info-reto').hidden, document.querySelector('#info-reto-txt').textContent === document.querySelector('#objetivo-txt').textContent && document.querySelector('#info-reto-txt').textContent.length > 0]),
     [true, true], 'el botón de información muestra el objetivo del reto desde el código');
   await page.click('#info-reto-cerrar');
   await evaluar(() => { const c = window.cmg.codigo; c.value = 'regularShoot(autoTarget("crawler", "visual"));\n'; c.dispatchEvent(new Event('input')); window.__banco.seleccionar('LAU-01'); });
-  await page.click('#b-ejecutar-cod');
+  await page.click('#b-ejecutar-movil');
   eq(await evaluar(() => [document.querySelector('#app').dataset.solo, window.cmg.ejecutando, document.querySelector('#inspector').dataset.estado]),
     ['mapa', true, 'cerrado'], 'EJECUTAR corre el programa, pasa a la batalla y cierra el inspector');
   await page.click('#b-ejecutar');

@@ -347,6 +347,9 @@
     const [a, b] = sel(), e = estructura(), v = e.src;
     const la = E.inicioLinea(e, E.lineaDe(e, a)), lb = E.finLinea(e, E.lineaDe(e, Math.max(a, b - 1)));
     const texto = v.slice(la, lb).split("\n").map(l => !l.trim() ? l : dir > 0 ? UNIDAD + l : l.replace(new RegExp(`^ {1,${UNIDAD.length}}`), "")).join("\n");
+    // Con solo el cursor, el cursor sigue en su sitio de la línea: si se eligiera la línea entera, lo siguiente
+    // que se escribiera con el teclado la sustituiría.
+    if (a === b) { const p = Math.max(la, a + texto.length - (lb - la)); return reemplazar(la, lb, texto, p, p); }
     reemplazar(la, lb, texto, la, la + texto.length);
   }
 
@@ -891,10 +894,14 @@
     const r = rectDe(sugerido.a, sugerido.b), cont = $editor.getBoundingClientRect();
     if (!r || r.bottom < cont.top || r.top > cont.bottom) { $sug.style.visibility = "hidden"; return; }
     $sug.style.visibility = "";
-    // Nunca sube por encima de la paleta ni de la barra de edición: se siguen pudiendo usar con la lista abierta.
-    const vv = window.visualViewport, barras = [$barra, $("paleta")].filter(x => x.getClientRects().length).map(x => x.getBoundingClientRect().bottom);
-    const techo = Math.max(vv ? vv.offsetTop : 0, ...barras) + 4;
-    const suelo = (vv ? vv.offsetTop + vv.height : innerHeight) - (app.classList.contains("teclado") ? 46 : 0) - 4;
+    // Nunca tapa la paleta ni la barra de edición: se siguen pudiendo usar con la lista abierta. Encima del
+    // código (PC) marcan el techo; debajo (teléfono, junto al teclado), el suelo.
+    const vv = window.visualViewport, barras = [$barra, $("paleta")].filter(x => x.getClientRects().length).map(x => x.getBoundingClientRect());
+    // Tampoco sube por encima del código: la barra superior y el mapa quedan libres.
+    const enCodigo = cont.top + cont.height / 2, simbolos = $("simbolos");
+    const techo = Math.max(vv ? vv.offsetTop : 0, cont.top - 8, ...barras.filter(b => b.bottom <= enCodigo).map(b => b.bottom)) + 4;
+    const altoSimbolos = simbolos && !simbolos.hidden && app.classList.contains("teclado") ? 46 : 0;
+    const suelo = Math.min((vv ? vv.offsetTop + vv.height : innerHeight) - altoSimbolos, ...barras.filter(b => b.top >= enCodigo).map(b => b.top)) - 4;
     $sug.classList.remove("hoja", "compacta");
     $sug.style.maxHeight = ""; $sug.style.width = "";
     let m = $sug.getBoundingClientRect(), x, y, max;
@@ -1128,6 +1135,11 @@
     bajar: '<path d="M12 4.5V19M6 13l6 6 6-6"/>',
     desenvolver: '<path d="M8 4H7a2 2 0 0 0-2 2v3.5L3 12l2 2.5V18a2 2 0 0 0 2 2h1M16 4h1a2 2 0 0 1 2 2v3.5l2 2.5-2 2.5V18a2 2 0 0 1-2 2h-1" stroke-dasharray="2.6 2.4"/><path d="M9.5 12h5"/>',
     linea: '<path d="M19.5 5v6.5a3 3 0 0 1-3 3H6"/><path d="M10 10.5l-4 4 4 4"/>',
+    // Teléfono: interruptor de selección (un tramo resaltado con el cursor de texto) y ProtoMouse.
+    seleccion: '<rect x="2.5" y="8.2" width="12.5" height="7.6" rx="1.4" fill="currentColor" fill-opacity=".3" stroke="none"/><path d="M15.5 4.5v15M13 4.5h5M13 19.5h5"/><path d="M2.5 8.2h12.5M2.5 15.8h12.5" stroke-dasharray="1.6 2"/>',
+    mouse: '<rect x="7.5" y="3.5" width="9" height="15.5" rx="4.5"/><path d="M12 3.5v5.2M7.5 8.7h9"/><path d="M3.6 11.2l-1.8 1.8 1.8 1.8M20.4 11.2l1.8 1.8-1.8 1.8" stroke-width="1.6"/>',
+    sangrar: '<path d="M3 4.5h18M11 9.5h10M11 14.5h10M3 19.5h18"/><path d="M3.5 9l3.5 3-3.5 3"/>',
+    desangrar: '<path d="M3 4.5h18M11 9.5h10M11 14.5h10M3 19.5h18"/><path d="M7 9l-3.5 3L7 15"/>',
   };
   const svg = (c) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${c}</svg>`;
   const ACCIONES = {
@@ -1148,23 +1160,142 @@
     return out;
   }
   let grupos = validarGrupos(leer("barra", GRUPOS_BASE));
-  const botonBarra = (id) => `<button type="button" data-accion="${id}" aria-label="${esc(ACCIONES[id].t)}" data-tip="${esc(ACCIONES[id].t)}"${id === "teclado" ? ` class="b-teclado" aria-pressed="false"` : ""}>${svg(ICONOS[id])}</button>`;
+  // Teléfono (juego): la barra muestra seis botones alrededor del ProtoMouse (deshacer · rehacer · selección |
+  // ProtoMouse | cortar · copiar · pegar). Lo demás sigue a mano manteniendo pulsado su pariente: las mismas
+  // placas metálicas que las variantes de la paleta. El CSS decide qué disposición se ve; el marcado es uno.
+  const VARIANTES_BARRA = { seleccion: ["ampliar", "reducir", "subir", "bajar"], cortar: ["borrar", "desenvolver"], copiar: ["duplicar"], pegar: ["linea", "sangrar", "desangrar"] };
+  const LUZ = { seleccion: "#7FA3FF", ampliar: "#63D2E0", reducir: "#63D2E0", subir: "#5FC28A", bajar: "#5FC28A", cortar: "#F2C14E", borrar: "#F07A70",
+    desenvolver: "#CFA2FF", copiar: "#9CC8FF", duplicar: "#9CC8FF", pegar: "#B4EE4D", linea: "#B7C2CC", sangrar: "#B7C2CC", desangrar: "#B7C2CC" };
+  // Acciones que solo existen como placas del teléfono (no entran en la barra de PC ni en su orden).
+  const EXTRA = { sangrar: { t: "Sangrar: un nivel más", fn: () => sangrar(1) }, desangrar: { t: "Quitar un nivel de sangría", fn: () => sangrar(-1) } };
+  const accionDe = (id) => EXTRA[id] || ACCIONES[id];
+  // Etiquetas cortas para las placas (el nombre completo sigue en el tooltip y en aria-label).
+  const CORTO = { seleccion: "Selección", ampliar: "Ampliar", reducir: "Reducir", subir: "Subir línea", bajar: "Bajar línea", desenvolver: "Desenvolver", linea: "Línea nueva", sangrar: "Sangrar", desangrar: "Quitar sangría" };
+  const tituloDe = (id) => CORTO[id] || accionDe(id).t;
+  // La esquina marcada y el aviso de «mantén para más» solo valen donde hay variantes (pintarBarra los ajusta).
+  const botonBarra = (id) => `<button type="button" data-accion="${id}" aria-label="${esc(ACCIONES[id].t)}" data-tip="${esc(ACCIONES[id].t)}"${id === "teclado" ? ` class="b-teclado" aria-pressed="false"` : VARIANTES_BARRA[id] ? ` class="con-variantes"` : ""}>${svg(ICONOS[id])}</button>`;
   function construirBarra() {
     // Un grupo que solo lleva el interruptor del teclado se oculta donde el interruptor no aplica.
-    $barra.innerHTML = grupos.map(g => `<span class="grupo-ed${g.length === 1 && g[0] === "teclado" ? " solo-teclado" : ""}">${g.map(botonBarra).join("")}</span>`).join("");
+    $barra.innerHTML = grupos.map(g => `<span class="grupo-ed${g.length === 1 && g[0] === "teclado" ? " solo-teclado" : ""}">${g.map(botonBarra).join("")}</span>`).join("")
+      + `<span class="ed-movil"><button type="button" class="b-seleccion con-variantes" data-seleccion aria-pressed="false" aria-label="Selección: encendida, el ProtoMouse amplía lo elegido" data-tip="Selección" data-tip-cod="enciende y arrastra">${svg(ICONOS.seleccion)}</button>`
+      // Sin tooltip: taparía el código mientras se arrastra (un toque sin arrastrar ya explica su uso).
+      + `<span class="protomouse" data-protomouse role="img" aria-label="ProtoMouse: mantén el dedo y arrastra para mover el cursor">${svg(ICONOS.mouse)}</span></span>`;
     pintarBarra();
   }
   $("b-teclado").innerHTML = svg(ICONOS.teclado);
   // pointerdown sin foco: con teclado, el textarea lo conserva y el teclado del teléfono no se cierra.
-  vida.escuchar($barra, "pointerdown", (ev) => { if (ev.target.closest("button")) ev.preventDefault(); });
-  vida.escuchar($barra, "click", (ev) => {
-    const b = ev.target.closest("[data-accion]"), id = b && b.dataset.accion;
-    if (!id || !ACCIONES[id]) return;
-    // En seudocódigo los botones actúan sobre el renglón elegido (seudo.js); deshacer sigue siendo del texto.
+  vida.escuchar($barra, "pointerdown", (ev) => { if (ev.target.closest("button, .protomouse")) ev.preventDefault(); });
+  // Una acción de la barra (botón o variante). En seudocódigo actúan sobre el renglón elegido (seudo.js);
+  // deshacer sigue siendo del texto.
+  function ejecutarAccion(id) {
+    if (id === "seleccion") return alternarSeleccion();
+    const accion = accionDe(id);
+    if (!accion) return;
+    if (!["ampliar", "reducir", "teclado"].includes(id)) apagarSeleccion();
     const r = cmg.seudo && cmg.seudo.activo ? cmg.seudo.accion(id) : false;
     if (r) { if (typeof r === "string") toast(r); return; }
-    ACCIONES[id].fn();
+    accion.fn();
+  }
+  vida.escuchar($barra, "click", (ev) => {
+    if (suprimirClicBarra) { suprimirClicBarra = false; return; }
+    const b = ev.target.closest("[data-accion], [data-seleccion]");
+    if (!b || b.disabled) return;
+    cerrarVariantesBarra();
+    ejecutarAccion(b.dataset.seleccion != null ? "seleccion" : b.dataset.accion);
   });
+
+  // ---------- Selección del teléfono ----------
+  // Un interruptor con luz: apagado, el ProtoMouse mueve el cursor; encendido, amplía lo elegido desde su
+  // extremo fijo. Se apaga al cambiar el texto y al usar las demás acciones (cortar, copiar, pegar…).
+  let seleccionando = false, avisoSeleccion = false;
+  function pintarInterruptor() {
+    const b = $barra.querySelector("[data-seleccion]");
+    if (b) b.setAttribute("aria-pressed", String(seleccionando));
+    $barra.classList.toggle("seleccionando", seleccionando);
+  }
+  function alternarSeleccion(si = !seleccionando) {
+    seleccionando = !!si;
+    pintarInterruptor();
+    if (seleccionando && !avisoSeleccion) { avisoSeleccion = true; toast("Selección encendida: arrastra el ProtoMouse para ampliarla"); }
+  }
+  function apagarSeleccion() { if (seleccionando) alternarSeleccion(false); }
+  vida.escuchar($codigo, "input", apagarSeleccion);
+
+  // Variantes de la barra: mantener pulsado ~0,45 s (o clic derecho) despliega placas metálicas encima del
+  // botón, como en la paleta. Se puede soltar el dedo sobre una o tocarla después; desplazar cancela.
+  // El menú se crea la primera vez que hace falta: en PC y en la demo no existe.
+  let $varBarra = null;
+  function menuBarra() {
+    if ($varBarra) return $varBarra;
+    $varBarra = document.createElement("div");
+    $varBarra.className = "variantes variantes-ed"; $varBarra.hidden = true; $varBarra.setAttribute("role", "menu");
+    vida.portal($varBarra);
+    vida.escuchar($varBarra, "pointerdown", (ev) => ev.preventDefault());
+    vida.escuchar($varBarra, "click", (ev) => { const v = ev.target.closest(".variante:not(:disabled)"); if (v) elegirVarianteBarra(v); });
+    return $varBarra;
+  }
+  const disposicionMovil = () => { const z = $barra.querySelector(".protomouse"); return !!z && z.getClientRects().length > 0; };
+  const idBoton = (b) => b.dataset.seleccion != null ? "seleccion" : b.dataset.accion;
+  let pulsoBarra = null, suprimirClicBarra = false;
+  function abrirVariantesBarra(b) {
+    menuBarra();
+    const id = idBoton(b), lista = [id, ...VARIANTES_BARRA[id]], quieto = $codigo.readOnly;
+    $varBarra.innerHTML = lista.map((v, j) => `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${v}" style="--c1:${LUZ[v]}"`
+      + ` data-tip="${esc(v === "seleccion" ? "Selección" : accionDe(v).t)}"${quieto && !["seleccion", "copiar", "ampliar", "reducir"].includes(v) ? " disabled" : ""}>${svg(ICONOS[v])}<span>${esc(tituloDe(v))}</span></button>`).join("");
+    $varBarra.hidden = false;
+    // El aviso y el nombre del botón (tooltip del toque) taparían las placas.
+    $toast.hidden = true;
+    for (const t of document.querySelectorAll(".tip")) t.hidden = true;
+    const r = b.getBoundingClientRect(), m = $varBarra.getBoundingClientRect();
+    let y = r.top - m.height - 8;
+    if (y < 6) y = r.bottom + 8;
+    const x = Math.max(6, Math.min(innerWidth - m.width - 6, r.left + r.width / 2 - m.width / 2));
+    $varBarra.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    b.classList.add("abierto");
+    if (navigator.vibrate) navigator.vibrate(12);
+  }
+  function cerrarVariantesBarra() {
+    if (!$varBarra || $varBarra.hidden) return;
+    $varBarra.hidden = true; $varBarra.innerHTML = "";
+    $barra.querySelectorAll(".abierto").forEach(x => x.classList.remove("abierto"));
+  }
+  const varianteBarraEn = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest && el.closest(".variantes-ed .variante:not(:disabled)"); };
+  function elegirVarianteBarra(v) { cerrarVariantesBarra(); ejecutarAccion(v.dataset.v); }
+  vida.escuchar($barra, "pointerdown", (ev) => {
+    suprimirClicBarra = false;
+    const b = ev.target.closest("button.con-variantes");
+    if (!b || ev.button > 0 || !disposicionMovil()) return;
+    pulsoBarra = { b, id: ev.pointerId, x: ev.clientX, y: ev.clientY, abierto: false };
+    pulsoBarra.t = vida.setTimeout(() => { if (pulsoBarra) { pulsoBarra.abierto = true; abrirVariantesBarra(b); } }, 450);
+  });
+  vida.escuchar(document, "pointermove", (ev) => {
+    if (!pulsoBarra || ev.pointerId !== pulsoBarra.id) return;
+    if (!pulsoBarra.abierto) { if (Math.hypot(ev.clientX - pulsoBarra.x, ev.clientY - pulsoBarra.y) > 12) { vida.clearTimeout(pulsoBarra.t); pulsoBarra = null; } return; }
+    const v = varianteBarraEn(ev.clientX, ev.clientY);
+    $varBarra.querySelectorAll(".variante").forEach(x => x.classList.toggle("activa", x === v));
+  });
+  const soltarPulsoBarra = (ev) => {
+    if (!pulsoBarra || ev.pointerId !== pulsoBarra.id) return;
+    vida.clearTimeout(pulsoBarra.t);
+    if (pulsoBarra.abierto) {
+      suprimirClicBarra = true;
+      const v = ev.type === "pointerup" && varianteBarraEn(ev.clientX, ev.clientY);
+      if (v) elegirVarianteBarra(v);
+    }
+    pulsoBarra = null;
+  };
+  vida.escuchar(document, "pointerup", soltarPulsoBarra);
+  vida.escuchar(document, "pointercancel", soltarPulsoBarra);
+  // Android también dispara «contextmenu» al mantener el dedo: aquí manda el temporizador.
+  vida.escuchar($barra, "contextmenu", (ev) => {
+    const b = ev.target.closest("button.con-variantes");
+    if (!b || !disposicionMovil()) return;
+    ev.preventDefault();
+    if (pulsoBarra) { if (!pulsoBarra.abierto) { vida.clearTimeout(pulsoBarra.t); pulsoBarra.abierto = true; abrirVariantesBarra(b); } return; }
+    abrirVariantesBarra(b);
+  });
+  vida.escuchar(document, "pointerdown", (ev) => { if ($varBarra && !$varBarra.hidden && !ev.target.closest(".variantes-ed, .barra-edicion .abierto")) cerrarVariantesBarra(); }, true);
+  vida.escuchar(document, "keydown", (ev) => { if (ev.key === "Escape") cerrarVariantesBarra(); });
   function pintarBarra() {
     for (const b of ambito.querySelectorAll(".b-teclado")) {
       b.setAttribute("aria-pressed", String(activo));
@@ -1178,7 +1309,15 @@
       const id = b.dataset.accion;
       b.disabled = id === "deshacer" ? quieto || !hist.pasado.length : id === "rehacer" ? quieto || !hist.futuro.length : quieto && !["teclado", "copiar", "ampliar", "reducir"].includes(id);
     }
+    pintarInterruptor();
+    const movil = disposicionMovil();
+    for (const b of $barra.querySelectorAll("button.con-variantes")) {
+      if (movil) { b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-description", "Mantén pulsado para más acciones"); }
+      else { b.removeAttribute("aria-haspopup"); b.removeAttribute("aria-description"); }
+    }
   }
+  // La disposición la decide el CSS según la forma: al cambiar, se revisan los avisos de las variantes.
+  vida.escuchar(app, "cmg:forma", () => vida.requestAnimationFrame(pintarBarra));
   const $toast = document.createElement("div");
   $toast.className = "toast-edicion"; $toast.hidden = true; $toast.setAttribute("role", "status");
   vida.portal($toast);
@@ -1186,10 +1325,163 @@
   function toast(texto) {
     $toast.textContent = texto; $toast.hidden = false;
     const r = ($barra.getClientRects().length ? $barra : $editor).getBoundingClientRect();
-    $toast.style.transform = `translate(${Math.round(Math.max(6, r.left + r.width / 2 - $toast.offsetWidth / 2))}px, ${Math.round(r.bottom + 6)}px)`;
+    // Con la barra al pie de la pantalla (teléfono), el aviso sale encima de ella.
+    const y = r.bottom > innerHeight * .55 ? r.top - $toast.offsetHeight - 6 : r.bottom + 6;
+    $toast.style.transform = `translate(${Math.round(Math.max(6, Math.min(innerWidth - $toast.offsetWidth - 6, r.left + r.width / 2 - $toast.offsetWidth / 2)))}px, ${Math.round(Math.max(6, y))}px)`;
     vida.clearTimeout(tToast);
     tToast = vida.setTimeout(() => { $toast.hidden = true; }, 1500);
   }
+
+  // ---------- ProtoMouse (teléfono) ----------
+  // Como un trackpad: el dedo mueve un puntero virtual sobre el código (con algo de aceleración) y el cursor
+  // salta al sitio más cercano. La captura del puntero deja seguir el arrastre fuera de la franja; al llegar
+  // arriba o abajo, el código se desplaza. Con la selección encendida amplía lo elegido desde su extremo fijo.
+  // Nunca enfoca el textarea: el teclado sigue como estaba. Con el teclado cerrado pinta su propio cursor.
+  const $area = $("area"), $espejo = $("espejo");
+  const $pmCapa = document.createElement("div");
+  $pmCapa.className = "pm-capa"; $pmCapa.setAttribute("aria-hidden", "true");
+  $pmCapa.innerHTML = `<div class="pm-sel-capa"></div><div class="pm-cursor" hidden></div><div class="pm-fantasma" hidden></div>`;
+  vida.portal($pmCapa); if ($area) $area.append($pmCapa);
+  const $pmSel = $pmCapa.children[0], $pmCursor = $pmCapa.children[1], $pmFantasma = $pmCapa.children[2];
+  let pm = null, pmUltimo = null, pmMarca = false;
+  // Posición del texto en un punto de la pantalla, con el espejo del textarea (una línea por div, sin desplazar).
+  function puntoEspejo(pos) {
+    const v = $codigo.value;
+    let i = 0, inicio = 0;
+    for (let fin = v.indexOf("\n"); fin >= 0 && fin < pos; fin = v.indexOf("\n", inicio)) { inicio = fin + 1; i++; }
+    const d = $espejo && $espejo.children[i];
+    if (!d) return null;
+    const t = d.firstChild;
+    return t && t.nodeType === 3 ? [t, Math.min(pos - inicio, t.length)] : [d, 0];
+  }
+  function rectTexto(pos) {
+    const p = puntoEspejo(pos);
+    if (!p) return null;
+    const r = document.createRange();
+    r.setStart(...p); r.collapse(true);
+    const c = r.getClientRects()[0] || r.getBoundingClientRect(), alto = c.height || parseFloat(getComputedStyle($codigo).lineHeight) || 20;
+    return { left: c.left - $codigo.scrollLeft, top: c.top - $codigo.scrollTop, height: alto, bottom: c.top - $codigo.scrollTop + alto };
+  }
+  function rectsTexto(a, b) {
+    const p = puntoEspejo(a), q = puntoEspejo(b);
+    if (!p || !q) return [];
+    const r = document.createRange(), sl = $codigo.scrollLeft, st = $codigo.scrollTop;
+    r.setStart(...p); r.setEnd(...q);
+    return [...r.getClientRects()].filter(x => x.width > 0 || x.height > 0).map(x => ({ left: x.left - sl, right: x.right - sl, top: x.top - st, bottom: x.bottom - st }));
+  }
+  function posTexto(x, y) {
+    const divs = $espejo ? $espejo.children : [];
+    if (!divs.length) return 0;
+    const ey = y + $codigo.scrollTop, ex = x + $codigo.scrollLeft;
+    let lo = 0, hi = divs.length - 1;
+    while (lo < hi) { const m = (lo + hi + 1) >> 1; if (divs[m].getBoundingClientRect().top <= ey) lo = m; else hi = m - 1; }
+    const lineas = $codigo.value.split("\n");
+    let inicio = 0;
+    for (let i = 0; i < lo; i++) inicio += lineas[i].length + 1;
+    return inicio + Math.min((lineas[lo] || "").length, enPieza(divs[lo], ex, ey, false));
+  }
+  const caretEn = (pos) => activo ? rectCaret(pos) : rectTexto(pos);
+  const posPunto = (x, y) => activo ? posEn(x, y) : posTexto(x, y);
+  function cajaVisible() {
+    const s = activo ? $vista : $codigo, r = s.getBoundingClientRect(), cs = getComputedStyle(activo ? $texto : $codigo);
+    return { s, left: r.left + (parseFloat(cs.paddingLeft) || 0) - 2, right: r.right - (parseFloat(cs.paddingRight) || 0), top: r.top + 3, bottom: r.bottom - 3 };
+  }
+  // Cursor y selección propios mientras el textarea no tiene el foco (el navegador no los pinta).
+  function pintarPM() {
+    $pmSel.replaceChildren(); $pmCursor.hidden = true;
+    if (!$area || !pmMarca || activo || document.activeElement === $codigo || !$codigo.getClientRects().length) return;
+    const base = $area.getBoundingClientRect(), [a, b] = sel();
+    if (a === b) {
+      const r = rectTexto(a); if (!r) return;
+      Object.assign($pmCursor.style, { left: `${r.left - base.left - 1}px`, top: `${r.top - base.top}px`, height: `${r.height}px` });
+      $pmCursor.hidden = false;
+      return;
+    }
+    for (const r of renglones(rectsTexto(a, b))) {
+      const d = document.createElement("div"); d.className = "pm-sel";
+      Object.assign(d.style, { left: `${r.left - base.left - 1}px`, top: `${r.top - base.top}px`, width: `${Math.max(4, r.right - r.left + 2)}px`, height: `${r.bottom - r.top}px` });
+      $pmSel.append(d);
+    }
+  }
+  function olvidarMarca() { if (pmMarca) { pmMarca = false; pintarPM(); } }
+  vida.escuchar($codigo, "focus", olvidarMarca);
+  vida.escuchar($codigo, "scroll", pintarPM, { passive: true });
+  vida.escuchar($codigo, "cmg:medido", () => vida.queueMicrotask(pintarPM));
+  vida.escuchar($codigo, "cmg:seleccion", pintarPM);
+  function pintarFantasma() {
+    if (!pm || !$area) return;
+    const base = $area.getBoundingClientRect();
+    $pmFantasma.style.transform = `translate(${Math.round(pm.vx - base.left)}px, ${Math.round(pm.vy - base.top)}px)`;
+  }
+  function iniciarPM(ev, zona) {
+    if (cmg.seudo && cmg.seudo.activo) return;
+    cerrarSugerencias(); cerrarVariantesBarra(); resolverPendiente();
+    const [a, b] = sel();
+    // El extremo que se mueve: el último que movió el ProtoMouse o, si no, el final (o el principio si se eligió hacia atrás).
+    let movil = b;
+    if (a !== b) movil = pmUltimo && pmUltimo.a === a && pmUltimo.b === b ? pmUltimo.movil : $codigo.selectionDirection === "backward" ? a : b;
+    const ancla = seleccionando ? (a === b ? a : movil === a ? b : a) : null;
+    if (!activo && document.activeElement !== $codigo) pmMarca = true;
+    // Si el cursor quedó fuera de la vista, primero se trae: el arrastre sigue desde donde estaba.
+    let r = caretEn(movil), c = cajaVisible();
+    if (r && (r.top < c.top || r.bottom > c.bottom)) {
+      c.s.scrollTop += r.top < c.top ? r.top - c.top - 8 : r.bottom - c.bottom + 8;
+      r = caretEn(movil); c = cajaVisible();
+    }
+    const x0 = r ? r.left : c.left, y0 = r ? r.top + r.height / 2 : c.top + 10;
+    // Sin la selección encendida, el primer movimiento deja solo el cursor (aunque caiga en el mismo sitio).
+    pm = { id: ev.pointerId, zona, x: ev.clientX, y: ev.clientY, t: performance.now(), recorrido: 0, movido: false, ancla, pos: ancla != null || a === b ? movil : null,
+      vx: Math.max(c.left, Math.min(c.right, x0)), vy: Math.max(c.top, Math.min(c.bottom, y0)) };
+    zona.classList.add("vivo");
+    try { zona.setPointerCapture(ev.pointerId); } catch { /* sin captura: siguen llegando los eventos de la franja */ }
+    if (activo) pintarSeleccion(); else pintarPM();
+  }
+  function ponerPM(pos) {
+    if (pos == null || pos === pm.pos) return;
+    pm.pos = pos;
+    const an = pm.ancla, [a, b, dir] = an == null ? [pos, pos, "none"] : pos < an ? [pos, an, "backward"] : [an, pos, "forward"];
+    $codigo.setSelectionRange(a, b, dir);
+    pila.length = 0;
+    pmUltimo = { a, b, movil: pos };
+    if (activo) pintarSeleccion(); else pintarPM();
+  }
+  function moverPM(ev) {
+    const dx = ev.clientX - pm.x, dy = ev.clientY - pm.y, ahora = performance.now(), dt = Math.max(8, ahora - pm.t);
+    pm.x = ev.clientX; pm.y = ev.clientY; pm.t = ahora;
+    if (!pm.movido) {
+      pm.recorrido += Math.hypot(dx, dy);
+      if (pm.recorrido < 4) return;
+      pm.movido = true; $pmFantasma.hidden = false;
+    }
+    // Lento, uno a uno (un carácter son unos 8 px de dedo); rápido, hasta 2,6 veces más lejos.
+    const g = Math.min(2.6, 1 + Math.max(0, Math.hypot(dx, dy) / dt - .3) * 1.4);
+    pm.vx += dx * g; pm.vy += dy * g;
+    const c = cajaVisible();
+    if (pm.vy < c.top) { c.s.scrollTop -= c.top - pm.vy; pm.vy = c.top; }
+    else if (pm.vy > c.bottom) { c.s.scrollTop += pm.vy - c.bottom; pm.vy = c.bottom; }
+    pm.vx = Math.max(c.left, Math.min(c.right, pm.vx));
+    ponerPM(posPunto(pm.vx, pm.vy));
+    pintarFantasma();
+  }
+  function terminarPM(ev) {
+    const p = pm; pm = null;
+    p.zona.classList.remove("vivo");
+    $pmFantasma.hidden = true;
+    if (!p.movido) { if (ev.type === "pointerup") toast("Mantén el dedo en el ProtoMouse y arrastra para mover el cursor"); return; }
+    if (activo) pintarSeleccion(); else pintarPM();
+    // Al soltar sobre un hueco /* … */ aparece su lista, como al tocarlo.
+    actualizarSugerencias();
+  }
+  vida.escuchar($barra, "pointerdown", (ev) => {
+    const zona = ev.target.closest(".protomouse");
+    if (!zona || pm || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+    ev.preventDefault();
+    iniciarPM(ev, zona);
+  });
+  vida.escuchar($barra, "pointermove", (ev) => { if (pm && ev.pointerId === pm.id) moverPM(ev); });
+  vida.escuchar($barra, "pointerup", (ev) => { if (pm && ev.pointerId === pm.id) terminarPM(ev); });
+  vida.escuchar($barra, "pointercancel", (ev) => { if (pm && ev.pointerId === pm.id) terminarPM(ev); });
+  vida.escuchar($barra, "lostpointercapture", (ev) => { if (pm && ev.pointerId === pm.id) terminarPM(ev); });
 
   // ---------- Modo sin teclado ----------
   function activar(si, enfocar = false) {
@@ -1376,7 +1668,8 @@
 
   // ---------- Arranque ----------
   $editor.dataset.asa = asa;
-  cmg.edicion = { get activo() { return activo; }, activar, elegir, ampliar, reducir, deshacer, rehacer, copiar, pegar, borrar, duplicar, moverLineas, lineaNueva, desenvolver, get portapapeles() { return portapapeles; } };
+  cmg.edicion = { get activo() { return activo; }, activar, elegir, ampliar, reducir, deshacer, rehacer, copiar, pegar, borrar, duplicar, moverLineas, lineaNueva, desenvolver, get portapapeles() { return portapapeles; },
+    get seleccionando() { return seleccionando; }, seleccion: alternarSeleccion };
   construirBarra();
   if (leer("sin-teclado", false) === true) activar(true);
 

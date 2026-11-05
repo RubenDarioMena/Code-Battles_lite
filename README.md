@@ -62,18 +62,19 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - Cuadro de selección: arrastre con el botón izquierdo en PC; en táctil, doble toque en el suelo y arrastrar con el segundo toque.
 - Cada máquina toma el color de su función principal (provisional). Sin seleccionar muestra un halo difuso; seleccionada, un círculo nítido y su nombre. `?poc=1` abre el selector de paleta, halo, brillo e intensidad.
 - Doble clic selecciona cadenas o comentarios `/* … */`. Los elementos envolventes rodean el código seleccionado con bloques, llamadas o pares de símbolos.
-- Modo sin teclado: el botón del teclado (junto a la letra en PC, primero de la barra de edición en el teléfono) se tacha en rojo y muestra el código como fichas sin abrir el teclado. Un toque elige un elemento entero (textos con comillas, comentarios completos); el doble toque amplía hasta el siguiente límite semántico. Los valores arrastrados se copian sobre un hueco, un argumento o dentro de `( )`/`[ ]`; las líneas se mueven por el número o por un asa en el borde derecho (Ajustes). El modo se recuerda por dispositivo.
+- Modo sin teclado: el botón del teclado (junto a la letra en PC; en el teléfono, «Sin teclado» en el menú ⋯, que lo recuerda con una marca roja) se tacha en rojo y muestra el código como fichas sin abrir el teclado. Un toque elige un elemento entero (textos con comillas, comentarios completos); el doble toque amplía hasta el siguiente límite semántico. Los valores arrastrados se copian sobre un hueco, un argumento o dentro de `( )`/`[ ]`; las líneas se mueven por el número o por un asa en el borde derecho (Ajustes). El modo se recuerda por dispositivo.
 - Al elegir un hueco `/* … */`, un argumento vacío o (sin teclado) un valor de una llamada conocida aparece la lista de valores posibles: tipos, sensores, lugares, propiedades y operadores, según los datos de la máquina. Elegir uno pasa al siguiente hueco de la línea.
-- Barra de edición (deshacer, rehacer, cortar, copiar, pegar, borrar, ampliar/reducir selección, duplicar, subir/bajar, línea nueva, desenvolver: quita el if/while/for/do que rodea lo elegido y deja su contenido): fija bajo la paleta en el teléfono; en PC con el modo sin teclado o el seudocódigo. Sin contexto seguro (IP de la red local) pegar usa lo último copiado en el juego. Ajustes → «Ordenar botones y grupos…» cambia el orden de grupos y botones arrastrándolos.
-- La paleta y la barra de edición ocupan una línea cada una y se deslizan (con ratón, la rueda las mueve). En el teléfono la consola empieza cerrada: solo queda su asa.
+- Barra de edición (deshacer, rehacer, cortar, copiar, pegar, borrar, ampliar/reducir selección, duplicar, subir/bajar, línea nueva, desenvolver: quita el if/while/for/do que rodea lo elegido y deja su contenido): en PC con el modo sin teclado o el seudocódigo; en el teléfono, siempre (ver «Editor del teléfono»). Sin contexto seguro (IP de la red local) pegar usa lo último copiado en el juego. Ajustes → «Ordenar botones y grupos…» cambia el orden de grupos y botones arrastrándolos (en el teléfono vale para la barra completa del seudocódigo; la de seis botones es fija).
+- La paleta y la barra de edición ocupan una línea cada una y se deslizan (con ratón, la rueda las mueve).
 - Seudocódigo (desplegable de lenguaje junto a la letra o Ajustes → Lenguaje del programa, en español o inglés): el mismo programa como frases con valores que se eligen, ladrillos que se tocan o arrastran y la barra de edición sobre el renglón elegido. Se guarda y ejecuta como JavaScript; lo que aún no tiene seudocódigo se queda en JavaScript con un aviso.
 - Mantener pulsado un atajo con la esquina marcada (o clic derecho) abre sus variantes: while/for/do…while/break, if/if-else/else if, operadores, `let`/asignación y niveles de `console`.
 - Ctrl+Alt+A activa o desactiva el modo sin teclado. Sin teclado, el clic derecho (o mantener el dedo 2 s, con un anillo que se llena) abre las alternativas del elemento: todas las funciones sobre una llamada, operadores de su familia, `const`/`let`, literales y los valores que encajan en su sitio.
 - Modo pantalla completa (tableta y teléfono): mantener 2 s el botón de cuatro esquinas. La batalla y el código ocupan cada uno la pantalla; `</>`, ▶ EJECUTAR y el botón del mapa saltan entre ellos. Explicación en Ajustes.
-- Bajo el editor, un panel arrastrable alterna entre Inspector (lo que el programa puede usar) y Consola.
+- Bajo el editor, un panel arrastrable alterna entre Inspector (lo que el programa puede usar) y Consola. En el teléfono el panel se retira: Inspector (segunda pestaña) y Consola (la última) están en la ficha ⓘ, que marca los mensajes nuevos.
 - Ajustes ofrece distribución automática o fija; posiciones del mapa independientes para izquierda/derecha y arriba/abajo, con vistas previas.
 - El divisor permite ocupar toda la pantalla con uno de los paneles y recuperar el otro mediante el asa.
-- Al escribir en móvil se prioriza la paleta. Las barras auxiliares se pliegan juntas; su botón flota con borde rojo. Las coordenadas manuales se activan en Ajustes.
+- En PC las barras auxiliares se pliegan juntas con ▴; plegadas, su botón flota con borde rojo. En el teléfono la barra superior ya es mínima y no se pliega. Las coordenadas manuales se activan en Ajustes.
+- **Editor del teléfono** ([lineamientos](docs/REDISENO-EDITOR-MOVIL.md)): de arriba abajo, barra mínima (programas, ▶, comentar, mapa y pantalla completa cuando corresponden, y ⋯ con Registro, Órdenes, Escenario, Sin teclado y Ajustes), código, barra de edición y barra metálica de inserción; con el teclado abierto, las dos barras quedan justo encima de él y la antigua barra de símbolos no aparece. Lenguaje, letra y colores se eligen en Ajustes (sección Editor). La barra de edición tiene seis botones alrededor del **ProtoMouse** (deshacer · rehacer · selección | ProtoMouse | cortar · copiar · pegar): arrastrar en la franja mueve el cursor como un trackpad sin abrir ni cerrar el teclado; con la selección encendida (luz azul) amplía lo elegido. Lo demás aparece manteniendo pulsado su pariente: Selección → ampliar, reducir, subir, bajar; Cortar → borrar, desenvolver; Copiar → duplicar; Pegar → línea nueva, sangrar, quitar sangría. La barra de inserción empieza con pares `( ) [ ] { } " "` (rodean lo elegido) y puntuación `. , ; :`, con variantes; comentar está arriba. En seudocódigo vuelve la barra de edición completa. El teléfono en horizontal sigue con la distribución de PC.
 - La ficha móvil permite recorrer las estadísticas manteniendo visible únicamente el cierre.
 - Cada unidad se programa en JavaScript o en **Python** (desplegable de lenguaje o Ajustes). Python se traduce a JS con las mismas líneas y corre en el mismo worker; al elegirlo, el JavaScript se convierte si cabe y se conserva. [Reglas de Python](docs/REGLAMENTO.md#python). El idioma alternativo de la interfaz sigue deshabilitado; el seudocódigo ES/EN ya está disponible.
 - La traducción conserva `let`/`const`/`var`, las reasignaciones y el nombre y alcance del contador de un `for`. Bloques independientes, comparaciones con coerción (`==`/`!=`) y llamadas calculadas no representables se conservan en JavaScript con aviso.
@@ -116,6 +117,9 @@ node pruebas/editor-python.cjs
 node pruebas/python-traductor.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
 node --check "Prototypes/Rocket Launcher/js/layout.js"
+node --check shared/editor/edicion.js
+node --check shared/editor/nucleo-ui.js
+node --check pruebas/editor-movil.mjs
 node --check shared/js/iconos.js
 node --check shared/js/estructura.js
 node --check shared/js/edicion.js
@@ -152,6 +156,7 @@ const { probarFactory3D } = await import("file:///Users/rubenmena/Documents/Dev/
 const { probarEntrada } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/entrada.mjs");
 const { probarPythonJuego } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/python-juego.mjs");
 const { probarPythonEjecucion } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/python-ejecucion.mjs");
+const { probarEditorMovil } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/editor-movil.mjs");
 await probar(task.page("p1")); // War / Rocket Launcher
 await probarFactoryComun(task.page("p1"));
 await probarFactoryVistas(task.page("p1"));
@@ -159,6 +164,7 @@ await probarFactoryEditorComun(task.page("p1"));
 await probarFactory3D(task.page("p1"));
 await probarPythonJuego(task.page("p1"));
 await probarPythonEjecucion(task.page("p1")); // E5: equivalencia JS/Python
+await probarEditorMovil(task.page("p1")); // teléfono: barra mínima, ProtoMouse, selección, variantes, ⓘ y Ajustes
 await probarEntrada(task.page("p1")); // generar dist/ primero
 await task.finish({ keep: [] });
 JS

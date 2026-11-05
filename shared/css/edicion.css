@@ -193,3 +193,65 @@
 
 /* Hoja baja: prioriza dos valores completos sobre los encabezados de grupo. */
 .sugerencias.hoja.compacta .sug-g { display: none; }
+
+/* ---------- Teléfono (juego): seis botones alrededor del ProtoMouse ----------
+   deshacer · rehacer · selección | ProtoMouse | cortar · copiar · pegar. Los demás botones se ocultan y siguen
+   a mano manteniendo pulsado su pariente (esquina marcada). En seudocódigo y bloques queda la barra completa.
+   Mismo marcado que la barra de PC: aquí solo cambia qué se ve y en qué orden. */
+.ed-movil { display: none; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion { gap: 3px; padding: 4px; overflow: visible; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion::after,
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion .grupo-ed + .grupo-ed::before { content: none; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion :is(.grupo-ed, .ed-movil) { display: contents; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion button { display: none; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion :is([data-accion="deshacer"], [data-accion="rehacer"], [data-seleccion], [data-accion="cortar"], [data-accion="copiar"], [data-accion="pegar"]) {
+  display: grid; position: relative; width: 38px; height: 38px;
+}
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion [data-accion="deshacer"] { order: 1; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion [data-accion="rehacer"] { order: 2; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion [data-seleccion] { order: 3; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion .protomouse { order: 4; display: grid; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion [data-accion="cortar"] { order: 5; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion [data-accion="copiar"] { order: 6; }
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion [data-accion="pegar"] { order: 7; }
+/* Esquina marcada: manteniendo pulsado aparecen más acciones. */
+.app.cmg-anfitrion[data-forma="movil"]:not([data-modo="pseudo"]):not([data-modo="bloques"]) .barra-edicion button.con-variantes::after {
+  content: ""; position: absolute; right: 3px; bottom: 3px; width: 0; height: 0; pointer-events: none;
+  border-left: 5px solid transparent; border-bottom: 5px solid rgba(220, 227, 230, .42);
+}
+.barra-edicion button.abierto { color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent), 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent); }
+/* Selección: un interruptor con luz. Encendido, el ProtoMouse amplía lo elegido. */
+.barra-edicion .b-seleccion[aria-pressed="true"] {
+  color: #EAF0FF; background: linear-gradient(180deg, #3A5288, #243559);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.barra-edicion .b-seleccion[aria-pressed="true"] svg { filter: drop-shadow(0 0 3px var(--accent)); }
+/* ProtoMouse: una franja hundida, como un trackpad grabado en la barra. Se enciende al arrastrar. */
+.protomouse {
+  flex: 1 1 auto; min-width: 64px; height: 38px; margin: 0 3px; border-radius: 9px; place-items: center; position: relative; cursor: grab;
+  touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; color: var(--muted);
+  background: radial-gradient(circle, rgba(255, 255, 255, .075) 0 .9px, transparent 1.3px) 0 0 / 7px 7px, linear-gradient(180deg, #12181D, #0C1115);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .65), inset 0 0 0 1px var(--metal-negro), 0 1px 0 rgba(255, 255, 255, .08);
+  transition: color .12s, box-shadow .12s;
+}
+.protomouse svg { width: 24px; height: 24px; opacity: .85; pointer-events: none; }
+.barra-edicion.seleccionando .protomouse { color: var(--accent); box-shadow: inset 0 2px 6px rgba(0, 0, 0, .65), inset 0 0 0 1px color-mix(in srgb, var(--accent) 65%, transparent); }
+.protomouse.vivo {
+  color: var(--accent); cursor: grabbing;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .65), 0 0 0 1px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+/* Variantes de la barra: las placas de la paleta con los iconos de trazo de la barra. */
+.variantes-ed .variante { color: var(--t1); }
+.variantes-ed .variante svg { width: 26px; height: 26px; }
+.variantes-ed .variante:disabled { opacity: .4; cursor: default; }
+/* Puntero del ProtoMouse y, con el teclado cerrado, el cursor y la selección que el navegador no pinta. */
+.pm-capa { position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; }
+.pm-cursor { position: absolute; width: 2px; border-radius: 1px; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.pm-sel { position: absolute; border-radius: 3px; background: var(--accent-soft); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
+.pm-fantasma {
+  position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(220, 227, 230, .25); box-shadow: 0 0 0 1.5px rgba(220, 227, 230, .7), 0 0 10px rgba(127, 163, 255, .45);
+}
+.barra-edicion.seleccionando ~ .editor .pm-fantasma, .pm-fantasma.sel { background: color-mix(in srgb, var(--accent) 35%, transparent); box-shadow: 0 0 0 1.5px var(--accent), 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+/* Pares y signos de la paleta: solo donde el anfitrión los pide (el teléfono del juego). */
+.paleta .solo-movil { display: none; }

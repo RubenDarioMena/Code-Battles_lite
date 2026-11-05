@@ -182,6 +182,47 @@
       <circle class="t2" cx="16" cy="9.8" r="1.8"/>
       <rect class="t2" x="14.7" y="13.4" width="2.6" height="10" rx="1.3"/>`) },
 
+    // Teléfono: pares (rodean lo elegido) y signos de puntuación, grabados como los operadores.
+    parentesis: { c1: "#9CC8FF", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="10.4" y="21.6" font-size="18" text-anchor="middle">(</text>
+      <text class="t1 letra" x="21.6" y="21.6" font-size="18" text-anchor="middle">)</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    corchetes: { c1: "#9CC8FF", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="10.4" y="21.6" font-size="18" text-anchor="middle">[</text>
+      <text class="t1 letra" x="21.6" y="21.6" font-size="18" text-anchor="middle">]</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    llaves: { c1: "#9CC8FF", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="10.4" y="21.6" font-size="18" text-anchor="middle">{</text>
+      <text class="t1 letra" x="21.6" y="21.6" font-size="18" text-anchor="middle">}</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    comillas: { c1: "#9BD56B", c2: "#E9EEF2", svg: svg(`
+      <text class="t1 letra" x="10.4" y="23" font-size="18" text-anchor="middle">"</text>
+      <text class="t1 letra" x="21.6" y="23" font-size="18" text-anchor="middle">"</text>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    punto: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <circle class="t1" cx="16" cy="18.6" r="2.7"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    coma: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <circle class="t1" cx="16" cy="16.6" r="2.7"/>
+      <path class="s1" stroke-width="2.4" stroke-linecap="round" d="M18.2 17.4c-.2 2.6-1.4 4.2-3.4 5.2"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    puntoComa: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <circle class="t1" cx="16" cy="8.8" r="2.5"/>
+      <circle class="t1" cx="16" cy="16.6" r="2.5"/>
+      <path class="s1" stroke-width="2.2" stroke-linecap="round" d="M18 17.4c-.2 2.4-1.3 3.9-3.2 4.8"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
+    dosPuntos: { c1: "#F2C14E", c2: "#E9EEF2", svg: svg(`
+      <circle class="t1" cx="16" cy="9.6" r="2.6"/>
+      <circle class="t1" cx="16" cy="18.4" r="2.6"/>
+      <path class="s2" stroke-width="2" stroke-linecap="round" d="M5 26.5h22"/>`) },
+
     errorCons: { c1: "#F0645A", c2: "#FFE3E0", svg: svg(`
       <path class="s1" stroke-width="2.2" stroke-linejoin="round" d="M11.2 2.6h9.6l8.6 8.6v9.6l-8.6 8.6h-9.6l-8.6-8.6v-9.6z"/>
       <path class="s2" stroke-width="2.6" stroke-linecap="round" d="M11.6 11.6l8.8 8.8M20.4 11.6l-8.8 8.8"/>`) },

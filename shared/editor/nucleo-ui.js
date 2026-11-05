@@ -137,18 +137,27 @@
   function pintarPaleta() {
     const I = opciones.iconos || window.ICONOS || {};
     cerrarVariantes();
+    // Los botones del teléfono (pares y signos) llevan solo-movil: el CSS del anfitrión decide si se ven y,
+    // en el teléfono, los pone delante con su separador.
+    const movil = ATAJOS.some(a => a && a.movil);
     $("paleta").innerHTML = ATAJOS.map((a, i) => {
       if (a === "|") return `<span class="sep-pal" aria-hidden="true"></span>`;
       if (a.si && !a.si()) return "";
       const ico = I[a.ico] || { svg: "", c1: "#7FA3FF" };
       const mas = a.variantes ? ` · mantén para ${a.variantes.length} variantes` : "";
-      return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}" data-i="${i}" aria-label="${esc(a.t + mas)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
-    }).join("");
+      return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}${a.movil ? " solo-movil" : ""}" data-i="${i}" data-ico="${esc(a.ico)}" aria-label="${esc(a.t + mas)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
+    }).join("") + (movil ? `<span class="sep-pal sep-movil solo-movil" aria-hidden="true"></span>` : "");
   }
   function usarAtajo(a) {
     if ($codigo.readOnly) return avisoEditor("Detén el programa para editarlo.");
     opciones.alAtajo?.();
     if (a.comentar) alternarComentario();
+    else if (a.simbolo) {
+      // Pares y signos (teléfono): un par rodea lo elegido; si no hay nada, deja el cursor dentro.
+      const { ins, sel } = a.simbolo;
+      if (sel != null && envolver(ins.slice(0, sel), ins.slice(sel))) return;
+      insertar(ins, sel ?? ins.length, sel ?? ins.length);
+    }
     else if (a.operador || a.sufijo) insertarOperador(a);
     else if (a.enLinea) {
       // Con la expresión de una sentencia elegida, «const pos = » la toma como valor inicial.
@@ -235,7 +244,11 @@
   vida.escuchar($variantes, "click", (ev) => { const v = ev.target.closest(".variante"); if (v) elegirVariante(v); });
   vida.escuchar(document, "pointerdown", (ev) => { if (!$variantes.hidden && !ev.target.closest(".variantes, .atajo.abierto")) cerrarVariantes(); }, true);
   vida.escuchar(document, "keydown", (ev) => { if (ev.key === "Escape") cerrarVariantes(); });
-  vida.escuchar($("paleta"), "scroll", cerrarVariantes, { passive: true });
+  // Desplazar la paleta nunca abre las variantes: si el dedo empieza a mover la tira, la pulsación larga se anula.
+  vida.escuchar($("paleta"), "scroll", () => {
+    if (pulsado && !pulsado.abierto) { vida.clearTimeout(pulsado.t); pulsado = null; }
+    cerrarVariantes();
+  }, { passive: true });
   vida.escuchar($("paleta"), "click", (ev) => {
     const b = ev.target.closest(".atajo"); if (!b) return;
     if (suprimirClic) { suprimirClic = false; return; }
