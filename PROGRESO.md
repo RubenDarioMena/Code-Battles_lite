@@ -18,7 +18,7 @@
   - Reproductor del `while`: **22** comprobaciones (auto-avance, pausa, ‹ ›, teclado, puntos, pregunta, JS↔Python, final, móvil 390×844).
   - Reproductor del café: **12** comprobaciones (pregunta, 6 tazas, Python con `==`/`True`/`drink_coffee`, móvil).
   - Sintaxis de motor, render y specs.
-  - Render de los 4 vídeos del café: en curso al registrar esta entrada; el resultado se añadirá aquí.
+  - Render de los 4 vídeos del café: 1920×1080 y 1080×1920, 30 fps, H.264, comprobados con ffprobe. JS: 106,8 s y 3204 fotogramas. Python: 106,4 s y 3192 fotogramas. Cada uno con `.vtt` y manifiesto, sin avisos. Tardó 5 min 49 s en total, con 2 en paralelo y ≈45 % de fotogramas capturados. Los MP4 no se versionan.
 - **Pendiente.**
   - Voz: elegir entre grabación y TTS; el motor y el render ya aceptan un clip por paso.
   - Revisión humana de las metáforas y prueba en un teléfono real. En ejemplos densos, el código queda a ~11 px en un teléfono de 390 px.
