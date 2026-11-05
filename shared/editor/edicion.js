@@ -345,8 +345,9 @@
   function sangrar(dir) {
     if (!editable()) return;
     const [a, b] = sel(), e = estructura(), v = e.src;
-    const la = E.inicioLinea(e, E.lineaDe(e, a)), lb = E.finLinea(e, E.lineaDe(e, Math.max(a, b - 1)));
-    const texto = v.slice(la, lb).split("\n").map(l => !l.trim() ? l : dir > 0 ? UNIDAD + l : l.replace(new RegExp(`^ {1,${UNIDAD.length}}`), "")).join("\n");
+    const la = E.inicioLinea(e, E.lineaDe(e, a)), lb = E.finLinea(e, E.lineaDe(e, a === b ? a : b - 1));
+    // Tab con solo el cursor también sangra una línea vacía; al sangrar un bloque, sus líneas vacías se conservan.
+    const texto = v.slice(la, lb).split("\n").map(l => a !== b && !l.trim() ? l : dir > 0 ? UNIDAD + l : l.replace(new RegExp(`^ {1,${UNIDAD.length}}`), "")).join("\n");
     // Con solo el cursor, el cursor sigue en su sitio de la línea: si se eligiera la línea entera, lo siguiente
     // que se escribiera con el teclado la sustituiría.
     if (a === b) { const p = Math.max(la, a + texto.length - (lb - la)); return reemplazar(la, lb, texto, p, p); }

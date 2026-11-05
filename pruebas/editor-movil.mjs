@@ -3,6 +3,7 @@
 // ficha ⓘ como hoja (pestaña, asa y alto recordado) con inspector y consola, y Ajustes → Editor.
 // Importar desde ego-browser nodejs con el origen de pruebas (escribe en su localStorage), como las demás suites.
 import assert from 'node:assert/strict';
+import { probarRegresionesEditorMovil } from './editor-movil-regresiones.mjs';
 
 export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') {
   let checks = 0;
@@ -18,16 +19,21 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
     await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await page.waitForTimeout(60);
   };
-  // Arrastre en el ProtoMouse: pasos lentos (unos 8 px por carácter, sin aceleración).
+  // Arrastre lento: también el primer paso espera, para no introducir aceleración según la carga de Chromium.
   const arrastrar = async (pasos, id = 3) => {
     const p = await centro('#edicion .protomouse');
     await page.cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...p, id }] });
-    for (const [dx, dy] of pasos) { p.x += dx; p.y += dy; await page.cdp('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...p, id }] }); await page.waitForTimeout(20); }
+    for (const [dx, dy] of pasos) { await page.waitForTimeout(40); p.x += dx; p.y += dy; await page.cdp('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...p, id }] }); }
     await page.cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await page.waitForTimeout(60);
   };
   const poner = (texto, a = 0, b = a) => evaluar(([t, x, y]) => { const c = window.cmg.codigo; c.value = t; c.dispatchEvent(new Event('input')); c.setSelectionRange(x, y); c.scrollTop = 0; }, [texto, a, b]);
   const sel = () => evaluar(() => { const c = window.cmg.codigo; return [c.selectionStart, c.selectionEnd]; });
+  // Usa las métricas reales: la letra predeterminada es 14 px y una preferencia previa puede cambiarla.
+  const caracteres = async n => {
+    const ancho = await evaluar(() => { const r = document.createRange(), t = document.querySelector('#espejo').firstElementChild.firstChild; r.setStart(t, 0); r.setEnd(t, 1); return r.getBoundingClientRect().width; });
+    await arrastrar(Array(Math.abs(n)).fill([Math.sign(n) * ancho, 0]));
+  };
 
   await page.goto(`${url}?forma=movil&marco=1`);
   await page.cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
@@ -43,11 +49,12 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   // ProtoMouse con el teclado cerrado: mueve el cursor sin enfocar el código y pinta su propio cursor.
   const prog = 'const pos = autoTarget("crawler", "visual");\nregularShoot(pos);\nawait esperar(0.5);\n';
   await poner(prog, 0);
-  await arrastrar(Array(10).fill([8, 0]));
+  await caracteres(10);
   eq(await evaluar(() => { const c = window.cmg.codigo; return [c.selectionStart, c.selectionEnd, document.activeElement === c, !document.querySelector('.pm-cursor').hidden]; }),
-    [10, 10, false, true], 'ProtoMouse: arrastrar 80 px despacio mueve el cursor 10 caracteres, sin abrir el teclado y con su cursor a la vista');
+    [10, 10, false, true], 'ProtoMouse: mueve el cursor 10 caracteres con la letra actual, sin abrir el teclado y con su cursor a la vista');
   await poner('uno\ndos\ntres\ncuatro', 1);
-  await arrastrar(Array(11).fill([0, 4]));
+  const altoLinea = await evaluar(() => parseFloat(getComputedStyle(window.cmg.codigo).lineHeight));
+  await arrastrar(Array(11).fill([0, altoLinea * 2 / 11]));
   eq(await sel(), [9, 9], 'ProtoMouse: hacia abajo baja de renglón conservando la columna');
   await toque(await centro('#edicion .protomouse'));
   eq(await evaluar(() => { const t = document.querySelector('.toast-edicion'); return !t.hidden && /arrastra/.test(t.textContent); }), true, 'un toque sin arrastrar explica cómo se usa');
@@ -57,9 +64,9 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.click('#edicion [data-seleccion]');
   eq(await evaluar(() => [window.cmg.edicion.seleccionando, document.querySelector('#edicion [data-seleccion]').getAttribute('aria-pressed'), document.querySelector('#edicion').classList.contains('seleccionando')]),
     [true, 'true', true], 'el botón de selección se enciende');
-  await arrastrar(Array(6).fill([8, 0]));
+  await caracteres(6);
   eq(await evaluar(() => { const c = window.cmg.codigo; return [c.value.slice(c.selectionStart, c.selectionEnd), document.querySelectorAll('.pm-sel').length > 0]; }), ['pos = ', true], 'con la selección encendida el ProtoMouse amplía lo elegido');
-  await arrastrar(Array(3).fill([-8, 0]));
+  await caracteres(-3);
   eq(await evaluar(() => { const c = window.cmg.codigo; return c.value.slice(c.selectionStart, c.selectionEnd); }), 'pos', 'volver atrás reduce la selección desde el mismo extremo');
   await page.click('#edicion [data-accion="copiar"]');
   eq(await evaluar(() => [window.cmg.edicion.seleccionando, window.cmg.edicion.portapapeles]), [false, 'pos'], 'copiar guarda lo elegido y apaga la selección');
@@ -67,7 +74,7 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   // Con el teclado abierto el arrastre no quita el foco.
   await evaluar(() => { const c = window.cmg.codigo; c.focus(); c.setSelectionRange(0, 0); });
   await page.waitForFunction(() => document.querySelector('#app').classList.contains('teclado'));
-  await arrastrar(Array(5).fill([8, 0]));
+  await caracteres(5);
   eq(await evaluar(() => [document.activeElement === window.cmg.codigo, document.querySelector('#app').classList.contains('teclado'), window.cmg.codigo.selectionStart]),
     [true, true, 5], 'con el teclado abierto, el ProtoMouse mueve el cursor y el teclado sigue');
   await evaluar(() => window.cmg.codigo.blur());
@@ -228,7 +235,7 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.click('#b-teclado-movil');
   await poner('regularShoot(pos);\nstopFire();', 0);
   await evaluar(() => window.cmg.edicion.elegir(0, 0));
-  await arrastrar(Array(4).fill([8, 0]));
+  await caracteres(4);
   eq(await evaluar(() => [window.cmg.edicion.activo, document.querySelector('#b-teclado-movil').getAttribute('aria-pressed'), getComputedStyle(document.querySelector('#b-teclado-movil')).borderTopColor !== getComputedStyle(document.querySelector('#b-menu-cod')).borderTopColor, window.cmg.codigo.selectionStart, !!document.querySelector('.cursor-b')]),
     [true, 'true', true, 4, true], 'sin teclado: el interruptor de la barra se enciende y el ProtoMouse mueve el cursor de bloques');
   const sinTec = await ordenPaleta();
@@ -251,6 +258,7 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.waitForFunction(() => window.__juegoListo);
   eq(await evaluar(() => [!document.querySelector('.acciones-movil').getClientRects().length, !document.querySelector('#paleta .solo-movil').getClientRects().length, !document.querySelector('#info-t-inspector').getClientRects().length, !!document.querySelector('#b-menos').offsetParent]),
     [true, true, true, true], 'en PC no aparecen la barra del teléfono, los pares, ni las pestañas del teléfono');
+  checks += await probarRegresionesEditorMovil(page, origen);
   console.log(`${checks} comprobaciones del editor en el teléfono correctas`);
   return checks;
 }

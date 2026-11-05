@@ -304,7 +304,16 @@
     $("info-t-consola").dataset.estado = si ? "nueva" : "";
   };
   const consolaEnFicha = () => !$("info-reto").hidden && $("info-t-consola").getAttribute("aria-selected") === "true";
-  const consolaVisible = () => forma === "movil" ? consolaEnFicha() : pieModo === "consola" && pie.dataset.abierto === "true";
+  const consolaVisible = () => !zonaCodigo.inert && $("consola").getClientRects().length > 0
+    && (forma === "movil" ? consolaEnFicha() : pieModo === "consola" && pie.dataset.abierto === "true");
+  function bajarConsola() {
+    const c = $("consola"), cont = $("pie-con");
+    c.scrollTop = c.scrollHeight;
+    // En la ficha, la consola crece con sus mensajes y quien se desplaza es pie-con. Lleva el último
+    // mensaje a la vista sin saltar a los ajustes que vienen después ni desplazar el resto de la página.
+    const ultimo = c.lastElementChild;
+    if (ultimo) cont.scrollTop += ultimo.getBoundingClientRect().bottom - cont.getBoundingClientRect().bottom + 4;
+  }
   function aplicarPie(alto = altoPie()) {
     const abierto = alto > 0;
     pie.dataset.abierto = String(abierto);
@@ -318,7 +327,7 @@
     pieAgarre.setAttribute("aria-valuetext", abierto ? `${Math.round(alto)} píxeles` : "cerrado");
     for (const b of pie.querySelectorAll("[data-pie-modo]")) b.setAttribute("aria-pressed", String(b.dataset.pieModo === pieModo));
     // En el teléfono el panel no se ve (su inspector y su consola están en la ficha ⓘ).
-    if (abierto && pieModo === "consola" && forma !== "movil") { marcarNuevo(false); const c = $("consola"); c.scrollTop = c.scrollHeight; }
+    if (abierto && pieModo === "consola" && forma !== "movil") { marcarNuevo(false); bajarConsola(); }
     else marcarNuevo();
     requestAnimationFrame(() => window.cmg && window.cmg.medirEditor());
   }
@@ -376,13 +385,13 @@
     const c = $("consola");
     if (c.children.length === 1 && c.firstElementChild.classList.contains("vacia")) { marcarNuevo(false); return; }
     if (!consolaVisible()) marcarNuevo(true);
-    else if (forma === "movil") c.scrollTop = c.scrollHeight;
+    else bajarConsola();
   }).observe($("consola"), { childList: true });
   // La ficha ⓘ avisa al cambiar de pestaña (juego.js): al ver la consola se borra la marca y baja al final.
   app.addEventListener("cmg:info", () => {
-    if (!consolaEnFicha()) return;
+    if (!consolaVisible()) return;
     marcarNuevo(false);
-    const c = $("consola"); c.scrollTop = c.scrollHeight;
+    bajarConsola();
   });
 
   // ---------- Modo pantalla completa (tabletas y teléfonos) ----------
@@ -414,6 +423,7 @@
     if (!pantallaEfectiva() || (panel !== "mapa" && panel !== "codigo")) return;
     panelFS = panel;
     aplicarReparto(panel === "mapa" ? 100 : 0);
+    if (consolaVisible()) { marcarNuevo(false); bajarConsola(); }
     requestAnimationFrame(() => window.cmg && window.cmg.medirEditor());
   }
   const $avisoPantalla = document.createElement("button");
@@ -558,7 +568,7 @@
   // Sube desde la pestaña de la esquina inferior derecha del código. Empieza en la mitad de la pantalla (CSS);
   // cambiado con el asa, su alto se guarda como fracción del código (--info-alto): así se adapta al abrir o
   // cerrar el teclado y se recuerda entre aperturas. Soltar el asa casi abajo cierra la hoja sin olvidar el alto.
-  const $info = $("info-reto"), $asaInfo = $("info-asa"), $editorCod = $("editor");
+  const $info = $("info-reto"), $asaInfo = $("info-asa"), $editorCod = $("area-programa");
   const INFO_MIN_PX = 96, INFO_CERRAR_PX = 72;
   const fraccionInfo = (f) => Number.isFinite(f) ? Math.min(1, Math.max(.15, f)) : null;
   let altoInfo = fraccionInfo(leer("info-alto", null));

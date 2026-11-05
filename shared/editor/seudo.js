@@ -419,22 +419,43 @@
   const $lista = document.createElement("div");
   $lista.className = "sugerencias"; $lista.hidden = true; $lista.setAttribute("role", "listbox");
   vida.portal($lista);
-  function abrirHueco(id, campo, el) {
+  function abrirHueco(id, campo) {
     const n = buscar(modelo, id).nodo, actual = leerCampo(n, campo), ops = opciones(campo, n);
     abierto = { id, campo, ops };
     $lista.innerHTML = `<div class="sug-cab"><b>${esc(TITULO[campo] || "Elige")}</b><button type="button" class="sug-x" data-cerrar aria-label="Cerrar">×</button></div>`
       + ops.map((x, i) => `<button type="button" class="sug${x.v === actual ? " activa" : ""}" role="option" data-i="${i}"><code>${esc(x.ver ?? x.v)}</code>${x.nota ? `<span class="nota">${esc(x.nota)}</span>` : ""}</button>`).join("");
     $lista.hidden = false;
-    const r = el.getBoundingClientRect(), m = $lista.getBoundingClientRect(), vv = window.visualViewport;
-    const suelo = vv ? vv.offsetTop + vv.height : innerHeight, abajo = suelo - r.bottom - 10;
-    const techo = Math.max(...[$("edicion"), $paleta].filter(x => x.getClientRects().length).map(x => x.getBoundingClientRect().bottom), 0) + 4;
-    const enAbajo = abajo >= Math.min(m.height, 140) || abajo >= r.top - techo;
-    const max = Math.max(100, Math.min(320, enAbajo ? abajo : r.top - techo - 6));
-    $lista.style.maxHeight = `${max}px`;
-    const y = enAbajo ? r.bottom + 6 : Math.max(techo, r.top - 6 - Math.min(m.height, max));
-    $lista.style.transform = `translate(${Math.round(Math.max(6, Math.min(innerWidth - m.width - 6, r.left - 6)))}px, ${Math.round(y)}px)`;
     pintar();
   }
+  function colocarLista() {
+    if (!abierto) return;
+    const el = $prog.querySelector(".slot.abierto");
+    if (!el) return;
+    const r = el.getBoundingClientRect(), cont = $prog.getBoundingClientRect(), vv = window.visualViewport;
+    if (r.bottom < cont.top || r.top > cont.bottom) { $lista.style.visibility = "hidden"; return; }
+    $lista.style.visibility = ""; $lista.style.maxHeight = "";
+    const barras = [$("edicion"), $paleta].filter(x => x.getClientRects().length).map(x => x.getBoundingClientRect());
+    const medio = cont.top + cont.height / 2;
+    // En PC las barras están arriba; en el teléfono, abajo. La lista cabe dentro de la vista del programa
+    // y del viewport visible, dejando libres tanto las barras como el teclado.
+    const techo = Math.max(vv ? vv.offsetTop : 0, cont.top, ...barras.filter(b => b.bottom <= medio).map(b => b.bottom)) + 4;
+    const suelo = Math.min(vv ? vv.offsetTop + vv.height : innerHeight, cont.bottom, ...barras.filter(b => b.top >= medio).map(b => b.top)) - 4;
+    const m = $lista.getBoundingClientRect(), abajo = Math.max(0, suelo - r.bottom - 6), arriba = Math.max(0, r.top - techo - 6);
+    const enAbajo = abajo >= Math.min(m.height, 140) || abajo >= arriba;
+    const junto = Math.max(abajo, arriba) >= Math.min(m.height, 100);
+    const max = Math.max(0, Math.min(320, junto ? (enAbajo ? abajo : arriba) : suelo - techo));
+    $lista.style.maxHeight = `${max}px`;
+    const alto = Math.min(m.height, max);
+    const y = junto && enAbajo ? r.bottom + 6 : junto ? r.top - 6 - alto : suelo - alto;
+    $lista.style.transform = `translate(${Math.round(Math.max(6, Math.min(innerWidth - m.width - 6, r.left - 6)))}px, ${Math.round(Math.max(techo, y))}px)`;
+  }
+  vida.escuchar($prog, "scroll", colocarLista, { passive: true });
+  vida.escuchar(window, "resize", colocarLista);
+  if (window.visualViewport) {
+    vida.escuchar(visualViewport, "resize", colocarLista);
+    vida.escuchar(visualViewport, "scroll", colocarLista);
+  }
+  vida.observar(new ResizeObserver(colocarLista)).observe($prog);
   function cerrarHueco() { if (!abierto) return; abierto = null; $lista.hidden = true; pintar(); }
   vida.escuchar($lista, "pointerdown", (ev) => ev.preventDefault());
   vida.escuchar($lista, "click", (ev) => {
@@ -493,6 +514,7 @@
     $prog.classList.toggle("quieto", quieto());
     $prog.scrollTop = scroll;
     pintarMarcas();
+    colocarLista();
   }
   function pintarPaleta() {
     const I = iconos || {}, tx = TXT[idioma], d = datos();
@@ -522,7 +544,7 @@
     const t = ev.target.closest("[data-accion]");
     if (!t || quieto()) { if (t && quieto()) cmg.aviso("Detén el programa para editarlo."); return; }
     const a = t.dataset.accion;
-    if (a === "slot") { elegido = t.dataset.id; pilaAmpliar.length = 0; return abrirHueco(t.dataset.id, t.dataset.campo, t); }
+    if (a === "slot") { elegido = t.dataset.id; pilaAmpliar.length = 0; return abrirHueco(t.dataset.id, t.dataset.campo); }
     cerrarHueco();
     pilaAmpliar.length = 0;
     if (a === "inicio") { elegido = null; cursor = { padre: "raiz", rama: "cuerpo", idx: 0 }; }

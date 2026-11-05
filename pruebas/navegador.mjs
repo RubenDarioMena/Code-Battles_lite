@@ -12,6 +12,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   const evaluar = fn => page.evaluate(fn);
   await page.goto(`${url}?forma=escritorio`);
   await page.waitForFunction(() => !!window.__banco && !!window.cmg && !!window.cmg.edicion);
+  await page.click('[data-vista="3d"]'); // la suite comprueba los gestos 3D aunque una pasada anterior terminase en Plano
   await page.cdp('Emulation.setFocusEmulationEnabled', { enabled: true });
   // El modo sin teclado se recuerda por origen: la suite empieza con teclado.
   await evaluar(() => { window.cmg.edicion.activar(false); window.cmg.seudo.aplicarModo('js'); });
@@ -303,6 +304,10 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await evaluar(() => { const c = document.querySelector('#ajustes-girar-campo'); c.checked = true; c.dispatchEvent(new Event('change')); });
   await page.waitForTimeout(50);
   eq(await camara(), { clave: 'girada', yaw: yaw1 }, 'cada cámara recuerda dónde se dejó durante la sesión');
+  // Los gestos 3D ya están comprobados. Esta última prueba verifica los botones y el cambio de panel:
+  // en Chromium por software, dibujar el mapa 3D recién reconstruido puede agotar el watchdog del Worker
+  // antes de que entregue su primer mensaje (también pasaba antes de estos arreglos).
+  await page.click('[data-vista="2d"]');
   await page.click('#b-ver-codigo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.solo, getComputedStyle(document.querySelector('#progs')).display, ...['#b-ejecutar-movil', '#b-mapa-movil', '#b-pantalla-movil'].map(s => !!document.querySelector(s).offsetParent), !document.querySelector('#b-ejecutar-cod').offsetParent && !document.querySelector('#b-ver-mapa').offsetParent]),
     ['codigo', 'flex', true, true, true, true], 'el código a pantalla completa conserva los programas y ofrece ▶ y volver al mapa en la barra');

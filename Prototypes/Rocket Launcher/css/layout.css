@@ -18,7 +18,8 @@
 .zona-codigo { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
 .zona-codigo > .vista { flex: 1 1 auto; }
 #v-programa { display: flex; flex-direction: column; gap: 8px; }
-#v-programa > .editor { flex: 1 1 auto; min-height: 9rem; }
+#v-programa > .area-programa { position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); flex: 1 1 auto; min-height: 9rem; }
+.area-programa > :is(.editor, .prog) { grid-area: 1 / 1; min-width: 0; min-height: 0; }
 #v-programa > .pie { flex: none; }
 
 /* ---------- PC ---------- */
@@ -119,7 +120,7 @@
 .app[data-forma="movil"] .tab { padding: 5px 9px; font-size: 10.5px; min-height: 30px; }
 /* Paleta compacta y ladrillos solo con icono en el teléfono: shared/css/edicion.css. */
 .app[data-forma="movil"] .mini { min-height: 30px; min-width: 32px; padding: 2px 6px; }
-.app[data-forma="movil"] #v-programa > .editor { min-height: 5rem; }
+.app[data-forma="movil"] #v-programa > .area-programa { min-height: 5rem; }
 /* Panel inferior: en el teléfono empieza cerrado; solo queda su barra y el código gana ese espacio. */
 .app[data-forma="movil"] .pie-barra { min-height: 28px; padding-bottom: 2px; }
 .app[data-forma="movil"] .consola .c { grid-template-columns: 5.4em minmax(0, 1fr); }
@@ -128,7 +129,7 @@
 .app[data-forma="movil"] .zona-codigo { z-index: 40; }
 .app.teclado[data-forma="movil"] .zona-codigo { position: fixed; top: var(--codigo-arriba, 0px); left: 0; right: 0; height: var(--codigo-alto); overflow: hidden; }
 .app.teclado[data-forma="movil"] #v-programa { min-height: 0; }
-.app.teclado[data-forma="movil"] #v-programa > .editor { min-height: 0; }
+.app.teclado[data-forma="movil"] #v-programa > .area-programa { min-height: 0; }
 
 .app.teclado[data-forma="movil"] .divisor { visibility: hidden; }
 .app.teclado[data-forma="movil"] .pie { display: none; }
@@ -178,8 +179,6 @@
 .app.teclado[data-forma="movil"] .barra-edicion { flex: none; }
 
 /* Seudocódigo: ocupa el sitio del editor; la barra de edición actúa sobre el renglón elegido. */
-#v-programa > .prog { flex: 1 1 auto; min-height: 9rem; }
-.app[data-forma="movil"] #v-programa > .prog { min-height: 5rem; }
 .app[data-forma="movil"] select.mini.lenguaje { max-width: 8.5em; }
 /* En el teléfono la pestaña dice solo la unidad («R1», «LAU-01»): el desplegable de lenguaje cabe sin recortarla. */
 .app[data-forma="movil"] .prog-tab .prog-pre { display: none; }
@@ -261,7 +260,7 @@
 .app[data-forma="movil"] .plegar-barras { display: none; }
 /* Código arriba; edición e inserción al pie, donde llega el pulgar. El panel inferior se retira. */
 .app[data-forma="movil"] #v-programa { gap: 6px; }
-.app[data-forma="movil"] #v-programa > .editor, .app[data-forma="movil"] #v-programa > .prog { order: 1; }
+.app[data-forma="movil"] #v-programa > .area-programa { order: 1; }
 .app[data-forma="movil"] #v-programa > .barra-edicion { order: 2; }
 .app[data-forma="movil"] #v-programa > .paleta { order: 3; }
 .app[data-forma="movil"] #v-programa > .pie { display: none; }

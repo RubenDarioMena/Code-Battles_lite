@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="css/componentes.css?v=22">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=7">
 <link rel="stylesheet" href="css/factory.css?v=1">
-<link rel="stylesheet" href="css/layout.css?v=23">
+<link rel="stylesheet" href="css/layout.css?v=24">
 
 </head>
 <body>
@@ -162,12 +162,15 @@
         <button class="btn chico peligro" id="b-replace" type="button" aria-describedby="multi-estado">Replace <small>borra el anterior</small></button>
       </div>
       <div class="aviso" id="aviso" hidden></div>
+      <!-- Las vistas comparten el anclaje de la ficha: sigue a mano en JS, Seudo y Bloques. -->
+      <div class="area-programa" id="area-programa">
       <!-- Seudocódigo (seudo.js): otra vista del mismo programa en JavaScript -->
       <div class="prog prog-seudo" id="prog" hidden></div>
       <div class="editor colores" id="editor">
         <!-- CMGEditor crea aquí el área de texto, resaltado, fichas y asas. -->
         <!-- Pantalla completa con las herramientas plegadas: EJECUTAR sigue a mano abajo a la izquierda -->
         <button class="btn primario ejecutar-flot" id="b-ejecutar-flot" type="button">▶ EJECUTAR</button>
+      </div>
         <!-- El objetivo del reto, a mano desde el código (en todos los modos). En el teléfono es una pestaña con
              una flecha en la esquina inferior derecha, sobre la barra de edición, y despliega la ficha como hoja. -->
         <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Información del reto" data-tip="Información del reto"><svg class="ico-info" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg><svg class="ico-subir" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14.5l6-6 6 6"/></svg></button>
@@ -439,14 +442,14 @@
 <script src="../../shared/editor/estructura-python.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/adaptador-python.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/vida.js?v=1" charset="utf-8"></script>
-<script src="../../shared/editor/edicion.js?v=5" charset="utf-8"></script>
-<script src="../../shared/editor/seudo.js?v=1" charset="utf-8"></script>
+<script src="../../shared/editor/edicion.js?v=6" charset="utf-8"></script>
+<script src="../../shared/editor/seudo.js?v=2" charset="utf-8"></script>
 <script src="../../shared/editor/nucleo-ui.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=5" charset="utf-8"></script>
 <script src="js/juego.js?v=38" charset="utf-8"></script>
-<script src="js/layout.js?v=16" charset="utf-8"></script>
+<script src="js/layout.js?v=17" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
 <script>
   addEventListener("load", () => {

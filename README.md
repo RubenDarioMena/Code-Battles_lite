@@ -120,6 +120,7 @@ node --check "Prototypes/Rocket Launcher/js/layout.js"
 node --check shared/editor/edicion.js
 node --check shared/editor/nucleo-ui.js
 node --check pruebas/editor-movil.mjs
+node --check pruebas/editor-movil-regresiones.mjs
 node --check shared/js/iconos.js
 node --check shared/js/estructura.js
 node --check shared/js/edicion.js
