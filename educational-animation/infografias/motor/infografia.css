@@ -1,0 +1,272 @@
+/* Infografía animada · Code Battle Lite
+ * Lienzo lógico fijo: 960×540 (horizontal) o 540×960 (vertical). El reproductor lo escala para encajar;
+ * el vídeo lo captura a 2× (1920×1080 / 1080×1920). Lo que se ve en el navegador es lo que se exporta.
+ * Colores y tipos copiados del juego (shared/editor/tema.css). El foco usa el ámbar --warn del juego.
+ * Todo estado visual de foco sale de una sola variable --on (0…1) que anima GSAP. */
+
+@font-face { font-family: "Archivo"; src: url("fuentes/archivo-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Archivo"; src: url("fuentes/archivo-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: block; }
+@font-face { font-family: "Archivo"; src: url("fuentes/archivo-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Archivo"; src: url("fuentes/archivo-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "JetBrains Mono"; src: url("fuentes/jetbrains-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "JetBrains Mono"; src: url("fuentes/jetbrains-mono-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: block; }
+
+.ig-encaje {
+  /* Tokens del juego */
+  --bg: #0B0F13; --surface: #131A20; --surface-2: #19222A; --code-bg: #0E1419; --consola-bg: #080B0E;
+  --ink: #DCE3E6; --muted: #8C99A3; --line: #26313A; --line-2: #34414B;
+  --foco: #E0AE4A; --valor: #7FA3FF; --ok: #5FC28A; --bad: #F07A70;
+  --morado: #CFA2FF; --cian: #63D2E0; --cobre: #E2894F; --rosa: #F27AB0;
+  --tk-var: #7FA3FF; --tk-fn: #CFA2FF; --tk-prop: #63D2E0; --tk-num: #F27AB0; --tk-str: #9BD56B; --tk-com: #7D8B94; --tk-kw: #E2E7E2; --tk-op: #A9B4BC;
+  --metal-hi: #9AA4AB; --metal: #59636B; --metal-lo: #262E35; --metal-negro: #05080A; --laton: #B4935A; --laton-hi: #E9D6A6;
+  --placa-1: #77818A; --placa-2: #545E67; --grabado: #0A0E12; --grabado-luz: rgba(255, 255, 255, .22);
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-code: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --apagado: .36;            /* opacidad de lo que no tiene el foco: el mapa sigue visible */
+
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-display); -webkit-font-smoothing: antialiased;
+  /* Sin ligaduras: quien aprende debe ver === y >= tal cual, no un glifo fundido. */
+  font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0;
+}
+.ig-encaje *, .ig-encaje *::before, .ig-encaje *::after { box-sizing: border-box; }
+/* El atajo `font:` reinicia las ligaduras; por eso se fuerzan aquí (JetBrains Mono fundiría === en un solo glifo). */
+.ig-encaje * { font-variant-ligatures: none !important; font-feature-settings: "liga" 0, "calt" 0 !important; }
+
+/* ---------- Lienzo ---------- */
+.ig {
+  /* Centrado absoluto: encajar() aplica translate(-50%, -50%) scale(s). No depende del alineado de grid al desbordar. */
+  position: absolute; left: 50%; top: 50%;
+  width: 960px; height: 540px;
+  display: flex; flex-direction: column;
+  padding: 18px 24px 0;
+  background: radial-gradient(120% 90% at 85% 0%, #121A21 0%, var(--bg) 60%);
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+}
+.ig[data-formato="vertical"] { width: 540px; height: 960px; padding: 22px 20px 0; }
+.ig[data-modo="interactivo"] {
+  border-radius: 14px;
+  border: 3px solid transparent;
+  background:
+    radial-gradient(120% 90% at 85% 0%, #121A21 0%, var(--bg) 60%) padding-box,
+    linear-gradient(155deg, var(--metal-hi) 0%, var(--metal-lo) 22%, var(--metal) 48%, var(--metal-lo) 70%, var(--metal-hi) 88%, var(--metal) 100%) border-box;
+  box-shadow: 0 0 0 1px var(--metal-negro), 0 18px 48px rgba(0, 0, 0, .45);
+}
+.ig[data-modo="interactivo"]::after {
+  --t: radial-gradient(circle, var(--laton-hi) 0 .8px, var(--laton) 1.3px 2.3px, var(--metal-negro) 2.6px, transparent 3.1px);
+  content: ""; position: absolute; inset: 3px; pointer-events: none; z-index: 9;
+  background: var(--t) 0 0 / 8px 8px no-repeat, var(--t) 100% 0 / 8px 8px no-repeat, var(--t) 0 100% / 8px 8px no-repeat, var(--t) 100% 100% / 8px 8px no-repeat;
+}
+/* Margen seguro para Shorts/Reels/TikTok (?seguro=1): la interfaz de la app tapa arriba y abajo. */
+.ig[data-formato="vertical"][data-seguro="1"] { padding-top: 84px; padding-bottom: 150px; }
+.ig[data-formato="vertical"][data-seguro="1"] .ig-barra { bottom: 150px; }
+.ig[data-modo="video"] * { transition: none !important; }
+
+/* ---------- Cabecera ---------- */
+.ig-cab { display: flex; align-items: center; gap: 10px; height: 26px; flex: none; }
+.ig-insignia {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 4px;
+  font: 800 10.5px/1 var(--f-display); font-stretch: 125%; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--grabado); text-shadow: 0 1px 0 var(--grabado-luz);
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .045) 0 1px, transparent 1px 3px), linear-gradient(180deg, var(--placa-1), var(--placa-2));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), inset 0 -1px 0 rgba(0, 0, 0, .4), 0 0 0 1px var(--metal-negro);
+}
+.ig-insignia svg { width: 12px; height: 12px; }
+.ig-lenguaje { font: 700 11px var(--f-code); color: var(--muted); letter-spacing: .04em; }
+.ig-selector { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.ig-selector button { all: unset; cursor: pointer; padding: 3px 9px; font: 700 11px var(--f-code); color: var(--muted); }
+.ig-selector button[aria-pressed="true"] { background: var(--surface-2); color: var(--foco); }
+.ig-selector button:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.ig-contador { margin-left: auto; font: 600 12px var(--f-code); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.ig-titulo { margin: 8px 0 12px; font: 700 21px/1.2 var(--f-display); color: #F1F4F5; letter-spacing: -.005em; flex: none; text-wrap: balance; }
+.ig[data-formato="vertical"] .ig-titulo { font-size: 26px; margin: 10px 0 13px; }
+
+/* ---------- Escena ---------- */
+.ig-escena {
+  position: relative; flex: 1; min-height: 0;
+  display: grid; gap: 12px;
+  grid-template-areas: var(--areas-h); grid-template-columns: var(--columnas-h, 1fr 1fr); grid-template-rows: var(--filas-h, auto);
+  padding-bottom: 14px;
+}
+.ig[data-formato="vertical"] .ig-escena { grid-template-areas: var(--areas-v); grid-template-columns: var(--columnas-v, 1fr); grid-template-rows: var(--filas-v, auto); gap: 14px; }
+.ig-panel { position: relative; min-width: 0; min-height: 0; }
+.ig-caja { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; }
+
+/* Mostrar/ocultar usa --vis (0…1) para no pelear con la opacidad del foco. */
+.ig-mostrable { opacity: var(--vis, 1); }
+/* Foco: un solo escalar --on mueve opacidad, borde, halo y color de título. */
+.ig-f {
+  --on: 0; --tono: var(--foco);
+  /* --hecho: lo ya recorrido queda a plena luz pero sin borde de color. */
+  opacity: calc(var(--vis, 1) * (var(--apagado) + (1 - var(--apagado)) * max(var(--on), var(--hecho, 0))));
+  border-color: color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--line)) !important;
+  box-shadow: 0 0 calc(var(--on) * 22px) color-mix(in oklab, var(--tono) calc(var(--on) * 32%), transparent),
+              inset 0 0 0 calc(var(--on) * 1px) color-mix(in oklab, var(--tono) calc(var(--on) * 60%), transparent);
+}
+.ig-f.ig-sin-caja { border-color: transparent !important; box-shadow: none; }
+[data-tono="foco"] { --tono: var(--foco); } [data-tono="ok"] { --tono: var(--ok); } [data-tono="bad"] { --tono: var(--bad); }
+[data-tono="valor"] { --tono: var(--valor); } [data-tono="morado"] { --tono: var(--morado); } [data-tono="cian"] { --tono: var(--cian); }
+[data-tono="cobre"] { --tono: var(--cobre); } [data-tono="rosa"] { --tono: var(--rosa); } [data-tono="neutro"] { --tono: var(--muted); }
+/* Nombres de papel (roles): mismo color en el código, el diagrama, las fichas y la narración. */
+[data-tono="amarillo"] { --tono: var(--foco); } [data-tono="verde"] { --tono: var(--ok); } [data-tono="rojo"] { --tono: var(--bad); } [data-tono="azul"] { --tono: var(--valor); }
+
+/* ---------- Código ---------- */
+.ig-codigo { background: var(--code-bg); border: 1px solid var(--line); border-radius: 11px; padding: 8px 0 10px; overflow: hidden; display: flex; flex-direction: column; }
+.ig-cod-cab { display: flex; align-items: center; gap: 6px; padding: 0 14px 4px; font: 600 11px var(--f-code); color: var(--muted); }
+.ig-cod-cab i { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); }
+.ig-cod-cab span { margin-left: 6px; }
+.ig-cod { position: relative; font: 400 14.5px/1.62 var(--f-code); white-space: pre; tab-size: 2; }
+.ig[data-formato="vertical"] .ig-cod { font-size: 17px; line-height: 1.55; }
+.ig[data-formato="vertical"] .ig-cod-cab { font-size: 12.5px; }
+.ig[data-formato="vertical"] .ig-nodo-tit { font-size: 16.5px; }
+.ig[data-formato="vertical"] .ig-nodo-det { font-size: 13px; }
+.ig[data-formato="vertical"] .ig-salida, .ig[data-formato="vertical"] .ig-salida-et, .ig[data-formato="vertical"] .ig-arista-et { font-size: 13px; }
+.ig[data-formato="vertical"] .ig-ficha-et { font-size: 11.5px; }
+.ig[data-formato="vertical"] .ig-ficha-val { font-size: 27px; }
+.ig[data-formato="vertical"] .ig-cons-lista { font-size: 16px; }
+.ig[data-formato="vertical"] .ig-cons-cab { font-size: 12.5px; }
+.ig[data-formato="vertical"] .ig-tarjeta-tit { font-size: 15.5px; }
+.ig[data-formato="vertical"] .ig-tarjeta-det { font-size: 13.5px; }
+.ig[data-formato="vertical"] .ig-expr { font-size: 30px; }
+.ig[data-formato="vertical"] .ig-opcion { font-size: 16px; }
+.ig[data-formato="vertical"] .ig-flujo-rejilla { row-gap: var(--hueco-v, 17px); }
+.ig[data-formato="vertical"] .ig-nodo { padding-top: 7px; padding-bottom: 7px; }
+.ig[data-formato="vertical"] .ig-flujo.ig-compacto .ig-nodo { padding-top: 5px; padding-bottom: 5px; }
+.ig[data-formato="vertical"] .ig-flujo.ig-compacto .ig-flujo-rejilla { row-gap: var(--hueco-v, 14px); }
+/* Paneles que una disposición no nombra no se muestran en ese formato (p. ej. un vertical más ligero). */
+.ig-panel.ig-fuera { display: none; }
+.ig-linea { --on: 0; display: flex; padding: 0 14px 0 11px; border-left: 3px solid color-mix(in oklab, var(--tono, var(--foco)) calc(var(--on) * 100%), transparent); background: color-mix(in oklab, var(--tono, var(--foco)) calc(var(--on) * 10%), transparent); }
+.ig-ln { flex: none; width: 2.2ch; margin-right: 1.4ch; text-align: right; color: color-mix(in oklab, var(--tono, var(--foco)) calc(var(--on) * 100%), #4A5862); }
+.ig-anillo { position: absolute; left: 0; top: 0; width: 10px; height: 10px; border: 2px solid var(--tono, var(--foco)); border-radius: 6px; pointer-events: none; opacity: 0; visibility: hidden; z-index: 2;
+  background: color-mix(in oklab, var(--tono, var(--foco)) 7%, transparent);
+  box-shadow: 0 0 14px color-mix(in oklab, var(--tono, var(--foco)) 45%, transparent), inset 0 0 8px color-mix(in oklab, var(--tono, var(--foco)) 18%, transparent); }
+.tk-kw { color: var(--tk-kw); font-weight: 700; } .tk-fn { color: var(--tk-fn); } .tk-var { color: var(--tk-var); } .tk-prop { color: var(--tk-prop); }
+.tk-num { color: var(--tk-num); } .tk-str { color: var(--tk-str); } .tk-com { color: var(--tk-com); font-style: italic; } .tk-op { color: var(--tk-op); } .tk-lit { color: var(--tk-num); }
+
+/* ---------- Fichas de estado ---------- */
+.ig-fichas { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
+.ig-ficha { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 7px 8px; text-align: center; }
+.ig-ficha-et { font: 700 10.5px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.ig-ficha-et code { font: 700 1.12em var(--f-code); letter-spacing: 0; text-transform: none; color: var(--ink); }
+.ig-ficha-val { display: inline-block; font: 700 23px/1.1 var(--f-code); color: var(--valor); white-space: nowrap; }
+.ig-ficha-val.ig-largo { font-size: 16px; white-space: normal; text-align: center; line-height: 1.15; }
+.ig[data-formato="vertical"] .ig-ficha-val.ig-largo { white-space: nowrap; font-size: 15px; }
+.ig-ficha-val[data-tono], .ig-tarjeta-det[data-tono] { color: var(--tono); }
+.ig-ficha[data-tono] .ig-ficha-val:not([data-tono]) { color: var(--tono); }
+.ig-fichas.ig-apiladas { grid-auto-flow: row; grid-auto-rows: 1fr; }
+/* Iconos dentro de valores ({ icono, texto }) */
+.ig-icono { display: inline-grid; place-items: center; vertical-align: -0.2em; }
+.ig-icono svg { width: 1.15em; height: 1.15em; }
+.ig-icono + .ig-icono-txt { margin-left: .3em; }
+
+/* ---------- Consola ---------- */
+.ig-consola { background: var(--consola-bg); border: 1px solid var(--line); border-radius: 11px; overflow: hidden; display: flex; flex-direction: column; }
+.ig-cons-cab { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid var(--line); font: 600 11.5px var(--f-display); color: var(--muted); flex: none; }
+.ig-cursor { width: 7px; height: 13px; background: var(--foco); border-radius: 1px; }
+.ig-cons-vista { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.ig-cons-lista { padding: 6px 12px; font: 400 14px/1.6 var(--f-code); color: var(--ink); }
+.ig-cons-linea::before { content: "›"; color: var(--muted); margin-right: 1ch; }
+
+/* ---------- Flujo (pasos, decisiones y vueltas) ---------- */
+.ig-flujo { display: flex; flex-direction: column; justify-content: center; }
+.ig-flujo-rejilla { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 10px; row-gap: var(--hueco, 24px); padding-left: 24px; align-items: center; }
+.ig-salida .ig-icono svg { width: 14px; height: 14px; }
+.ig-nodo { grid-column: 1 / -1; display: flex; align-items: center; gap: 11px; padding: 9px 13px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 11px; min-width: 0; }
+.ig-nodo.ig-con-salida { grid-column: 1; }
+.ig-nodo-num { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  border: 1.5px solid color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--line-2));
+  color: color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--muted)); font: 700 11.5px var(--f-code); }
+.ig-nodo-txt { display: flex; flex-direction: column; min-width: 0; }
+.ig-nodo-tit { font: 700 14.5px/1.2 var(--f-display); color: color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--ink)); }
+.ig-nodo-det { font: 400 12px/1.35 var(--f-code); color: var(--muted); }
+.ig-salida-et { grid-column: 2; font: 700 12px var(--f-code); color: var(--tono); white-space: nowrap; }
+.ig-salida { grid-column: 3; padding: 7px 11px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--surface); font: 600 12.5px var(--f-display); color: var(--ink); white-space: nowrap; }
+.ig-aristas { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.ig-aristas path { fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ig-aristas path.ig-f { stroke: color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--line-2)); opacity: 1; box-shadow: none; }
+.ig-aristas path.ig-fija { stroke: var(--line-2); }
+.ig-aristas-et { position: absolute; inset: 0; pointer-events: none; }
+.ig-arista-et { position: absolute; transform: translate(0, -50%); font: 700 11.5px var(--f-code); white-space: nowrap; color: var(--tono); box-shadow: none !important; }
+
+/* ---------- Fila de tarjetas (catálogo, ejemplos) ---------- */
+.ig-fila { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 9px; align-content: center; }
+.ig-tarjeta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 10px 6px; text-align: center; background: var(--surface); border: 1.5px solid var(--line); border-radius: 11px; min-width: 0; }
+.ig-tarjeta-tit { font: 700 14px var(--f-code); color: color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--ink)); }
+.ig-tarjeta-det { font: 400 12.5px var(--f-code); color: var(--ink); opacity: .85; }
+.ig-tarjeta-nota { font: 400 11.5px var(--f-display); color: var(--muted); }
+.ig-fila.ig-lista { grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); }
+.ig-fila-tit code, .ig-cons-cab code { font: 700 1.1em var(--f-code); letter-spacing: 0; text-transform: none; color: var(--ink); }
+.ig-fila-tit { grid-column: 1 / -1; font: 700 10.5px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: -2px; }
+/* Vueltas: una casilla por iteración; lo que pasó en cada una se queda visible. */
+.ig-fila.ig-vueltas { grid-template-columns: repeat(var(--cols, 10), minmax(0, 1fr)); gap: 7px; align-content: center; }
+.ig-vueltas .ig-tarjeta { padding: 6px 4px 7px; gap: 2px; border-radius: 10px; }
+.ig-vueltas .ig-tarjeta-tit { font: 700 11px var(--f-code); color: color-mix(in oklab, var(--tono) calc(var(--on) * 100%), var(--muted)); }
+.ig-vueltas .ig-tarjeta-det { font: 700 12px var(--f-code); white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 33px; justify-content: center; }
+.ig-vueltas .ig-tarjeta-det .ig-icono svg { width: 22px; height: 22px; }
+.ig-vueltas .ig-icono + .ig-icono-txt { margin-left: 0; font-size: 11px; }
+.ig[data-formato="vertical"] .ig-vueltas .ig-tarjeta-det .ig-icono-txt { display: none; }
+.ig[data-formato="vertical"] .ig-vueltas .ig-tarjeta-det .ig-icono svg { width: 24px; height: 24px; }
+.ig[data-formato="vertical"] .ig-vueltas .ig-tarjeta-tit { font-size: 12.5px; }
+.ig-flujo.ig-compacto .ig-nodo-det { display: none; }
+.ig-flujo.ig-apretado .ig-nodo { padding-top: 5px; padding-bottom: 5px; }
+.ig-flujo.ig-apretado .ig-nodo-tit { font-size: 14px; line-height: 1.15; }
+.ig-flujo.ig-apretado .ig-nodo-det { line-height: 1.25; }
+.ig-fila.ig-lista .ig-tarjeta { flex-direction: row; justify-content: space-between; padding: 9px 12px; }
+
+/* ---------- Expresión → resultado ---------- */
+.ig-expresion { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 18px; }
+.ig-expr { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font: 700 26px var(--f-code); }
+.ig-chip { display: inline-block; padding: 5px 13px; border-radius: 9px; color: var(--valor); background: color-mix(in oklab, var(--valor) 10%, transparent); border: 1px solid color-mix(in oklab, var(--valor) 38%, transparent); }
+.ig-chip[data-tono] { color: var(--tono); background: color-mix(in oklab, var(--tono) 12%, transparent); border-color: color-mix(in oklab, var(--tono) 45%, transparent); }
+.ig-op { color: var(--foco); display: inline-block; }
+.ig-flecha { color: var(--muted); font-weight: 400; margin: 0 6px; }
+.ig-expr-nota { font: 400 13px var(--f-display); color: var(--muted); }
+
+/* ---------- Pregunta (pausa de predicción) ---------- */
+.ig-pregunta { position: absolute; left: 0; right: 0; bottom: 14px; z-index: 6; padding: 12px 14px; border-radius: 12px;
+  background: var(--surface-2); border: 1.5px solid color-mix(in oklab, var(--foco) 60%, var(--line));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5); visibility: hidden; opacity: 0; }
+.ig-pregunta.ig-preg-arriba { top: 0; bottom: auto; }
+.ig-preg-et { font: 800 10.5px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--foco); margin-bottom: 8px; display: flex; justify-content: space-between; }
+.ig-preg-ops { display: flex; flex-wrap: wrap; gap: 8px; }
+.ig-opcion { all: unset; box-sizing: border-box; cursor: pointer; padding: 7px 12px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--surface); font: 700 14px var(--f-code); color: var(--ink); --apagado: .45; }
+.ig-opcion:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.ig-opcion.ig-elegida { outline: 2px dashed color-mix(in oklab, var(--ink) 55%, transparent); outline-offset: 3px; }
+.ig-opcion.ig-elegida.ig-mal { outline-color: var(--bad); }
+.ig[data-modo="video"] .ig-opcion { cursor: default; }
+.ig-preg-espera { font: 600 11px var(--f-code); color: var(--muted); letter-spacing: 0; text-transform: none; }
+
+/* ---------- Pie: narración, puntos, controles ---------- */
+.ig-pie { position: relative; flex: none; display: flex; align-items: center; gap: 16px; min-height: 68px; padding: 9px 0 13px; border-top: 1px solid var(--line); }
+.ig-texto { flex: 1; min-width: 0; font: 400 15.5px/1.45 var(--f-display); color: var(--ink); text-wrap: pretty; }
+.ig[data-formato="vertical"] .ig-pie { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 0 16px; }
+.ig[data-formato="vertical"] .ig-texto { font-size: 19.5px; line-height: 1.42; min-height: 56px; }
+.ig-texto .ig-num { color: var(--foco); font: 700 .9em var(--f-code); margin-right: .35em; }
+.ig-texto b { color: #FFFFFF; font-weight: 700; }
+.ig-texto code { font: 700 .92em var(--f-code); color: var(--foco); background: color-mix(in oklab, var(--foco) 9%, transparent); padding: 0 .25em; border-radius: 4px; }
+.ig-texto code[data-tono] { color: var(--tono); background: color-mix(in oklab, var(--tono) 11%, transparent); }
+.ig-mandos { display: flex; align-items: center; gap: 14px; flex: none; }
+.ig[data-formato="vertical"] .ig-mandos { justify-content: space-between; }
+.ig-puntos { display: flex; gap: 6px; align-items: center; }
+.ig-punto { all: unset; cursor: pointer; width: 6px; height: 6px; border-radius: 3px; background: var(--line-2); transition: width .25s ease, background-color .25s ease; }
+.ig-punto.ig-visto { background: color-mix(in oklab, var(--foco) 55%, var(--line-2)); }
+.ig-punto.ig-actual { width: 20px; background: var(--foco); }
+.ig-punto:focus-visible { outline: 2px solid var(--foco); outline-offset: 3px; }
+.ig-botones { display: flex; gap: 8px; }
+.ig-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
+.ig-btn:hover { border-color: color-mix(in oklab, var(--foco) 70%, var(--line)); }
+.ig-btn:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.ig-btn[disabled] { opacity: .35; cursor: default; }
+.ig-btn svg { width: 15px; height: 15px; }
+.ig[data-modo="video"] .ig-botones { display: none; }
+.ig[data-modo="video"] .ig-punto { cursor: default; }
+.ig-barra { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: color-mix(in oklab, var(--line) 60%, transparent); overflow: hidden; }
+.ig-barra i { position: absolute; inset: 0; background: var(--foco); transform-origin: left center; transform: scaleX(0); }
+.ig[data-modo="interactivo"] .ig-barra { left: 0; right: 0; border-radius: 0 0 11px 11px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-punto { transition: none; }
+}

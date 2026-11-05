@@ -1,3 +1,30 @@
+## Infografías animadas · skill, motor y ejemplo «seis cafés» · 5 de noviembre de 2026
+
+- **Origen.** Tutoriales animados del juego: infografías paso a paso como las de aprendejavascript.dev. Cada explicación debe tener vídeo en horizontal y en vertical, en JavaScript y en Python, y una versión interactiva por diapositivas para releer. El sitio de referencia no es accesible desde la nube (red bloqueada) y su código no es público. El análisis sale de **8 capturas** del usuario (`for`, tipos, comparación, `if`), así que el movimiento está inferido.
+- **Decisión técnica.** HTML + GSAP 3.13 sin compilación: una sola spec por concepto produce el reproductor interactivo y los 4 vídeos. La animación es una línea de tiempo en pausa: el reproductor la reproduce y el render la coloca en cada fotograma (Playwright + CDP + FFmpeg), sin depender del reloj. Remotion y Motion Canvas siguen para las piezas de personajes. GSAP (licencia estándar gratuita, uso comercial) y las fuentes OFL viven en `educational-animation/infografias/`, **no en el juego**.
+- **Receta (skill `.claude/skills/infografia-animada`).**
+  - Mapa completo atenuado con un foco que avanza.
+  - Código, estado, diagrama y narración cuentan lo mismo a la vez.
+  - **El color es el papel**, a raíz de la observación del usuario: en la primera versión todo era ámbar. Ahora la condición es amarilla, el cuerpo cian o cobre, la actualización morada, `break` roja y `continue` cian, igual en anillos, nodos, líneas y narración. Varias partes pueden encenderse a la vez.
+  - Valores concretos, causa antes que efecto, preguntas de predicción, vueltas comprimidas con casos especiales en detalle.
+  - Paridad JS/Python con glosario (`{{true}}` → `True`) y anclas en lugar de números de línea.
+- **Motor.** Paneles de código, fichas, consola, flujo (salidas, vueltas por carriles), fila (catálogo, lista, vueltas) y expresión. Pasos con `foco`, `hecho`, `marca` (varios anillos), `linea`, `valores` (secuencias con `en`, iconos), `consola`, `mostrar`/`ocultar` y `pregunta` (el reproductor espera la respuesta). Lienzo de 960×540 / 540×960 que se escala; en pantallas estrechas pasa solo a vertical. Sin ligaduras para que `===` se lea tal cual.
+- **Render.** `render.mjs --hoja` genera un PNG por variante y avisa de desbordes en vídeo y en interactivo. Sin `--hoja` genera los MP4 (1920×1080 y 1080×1920, 30 fps), `.vtt` y un manifiesto con sha256. La captura por CDP y la reutilización de fotogramas en las pausas lo aceleraron ≈5× (la primera versión iba a ~1 fotograma/s).
+- **Ejemplos.**
+  - `while-cinta`: 9 pasos, 1 pregunta.
+  - `seis-cafes`: el `while` del usuario con `break` y `continue`. Tiene 12 pasos y 2 preguntas, y la traza real se comprobó con `node` y `python3`: 6 cafés, vuelta 5 `continue`, vuelta 8 `break`. La condición `< 10` nunca llega a `false`.
+- **Verificación actual.**
+  - Hojas de las 8 variantes sin avisos.
+  - Reproductor del `while`: **22** comprobaciones (auto-avance, pausa, ‹ ›, teclado, puntos, pregunta, JS↔Python, final, móvil 390×844).
+  - Reproductor del café: **12** comprobaciones (pregunta, 6 tazas, Python con `==`/`True`/`drink_coffee`, móvil).
+  - Sintaxis de motor, render y specs.
+  - Render de los 4 vídeos del café: en curso al registrar esta entrada; el resultado se añadirá aquí.
+- **Pendiente.**
+  - Voz: elegir entre grabación y TTS; el motor y el render ya aceptan un clip por paso.
+  - Revisión humana de las metáforas y prueba en un teléfono real. En ejemplos densos, el código queda a ~11 px en un teléfono de 390 px.
+  - Decidir si GSAP entra en `shared/vendor/` para mostrar infografías dentro del juego.
+- **Límite.** No cambia el juego. Cambios locales, sin commits, push ni publicación en el repo; el ejemplo se publicó como artifact privado para revisión.
+
 ## Correcciones del review del editor móvil · 5 de noviembre de 2026
 
 - **Ficha accesible en todas las vistas.** JS, Seudo y Bloques comparten un contenedor para el programa y la ficha ⓘ. Ocultar el textarea ya no retira el acceso al Inspector y a la Consola; el asa mide ese contenedor común. Se conservan los mismos nodos, valores vivos y preferencias de alto.
