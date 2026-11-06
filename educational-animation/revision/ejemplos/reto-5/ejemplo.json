@@ -1,0 +1,13 @@
+{
+  "id": "reto-5",
+  "serie": "war",
+  "reto": 5,
+  "semilla": 1,
+  "programas": { "LAU-01": "LAU-01.js", "LAU-02": "LAU-02.js" },
+  "comparar": [
+    {
+      "titulo": "Sin el if de jammed",
+      "programas": { "LAU-01": "variantes/LAU-01-sin-jammed.js", "LAU-02": "variantes/LAU-02-sin-jammed.js" }
+    }
+  ]
+}

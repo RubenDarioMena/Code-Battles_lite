@@ -35,6 +35,72 @@
 - **Límite confirmado en 3D.** La suite móvil en 3D por software llega a 51 comprobaciones principales y 12 de regresión; después, el arranque del Worker activa el watchdog de 2,5 s antes de producir `fila 99`. Se reprodujo el mismo error con el HTML y layout originales de `HEAD`, servidos sin modificar el checkout; no es una regresión atribuible a i18n. La suite completa pasa con la preferencia de vista Plano, sin alterar runtime, watchdog ni assertions. Pendiente QA de teclado y gestos en teléfonos reales.
 - **Continuidad.** [Contrato, glosario y migración por lotes](docs/IDIOMAS-INTERFAZ.md). Futuras traducciones deben recibir solo claves nuevas/modificadas y su contexto de pantalla; una clave nueva sin extraer en las zonas migradas falla en QA. Versiones: `inicio.css?v=3`, `layout.js?v=18`, nuevos módulos i18n `?v=1`.
 
+## Modo revisión · prototipo con el reto 5 · 6 de noviembre de 2026
+
+- **Origen.** Propuesta del usuario: un modo junto al del mapa que deje la pantalla en dos franjas de borde a borde, con el código arriba (sin editar) y su explicación abajo en lenguaje natural, con el resaltado en el orden real de ejecución. Tocar un texto debe mostrar qué representa. Pidió probarlo con el reto 5, que la solución use los nombres de las máquinas como objetos y el dato `jammed`, y que cada máquina o robot nuevo se pueda ir añadiendo. Scrimba queda solo como referencia.
+- **Solución del reto 5** (`educational-animation/revision/ejemplos/reto-5/`): si `LAU_02.jammed` (o `LAU_01.jammed`), disparo normal, porque el único reparador está ocupado; si no, ráfaga mientras `failureRate < 0.12`; espera 0,25 s.
+  - Se eligió con un barrido en el juego real (headless, puerto 8771): 12 de 12 semillas sin brechas y con 2 atascos.
+  - Sin la regla también gana, pero con 3 atascos en 9 de 12. La primera idea (cubrir al compañero con ráfaga) perdía con 2 brechas.
+- **Cómo se hace, sin LLM.**
+  - `trazador.js` instrumenta el programa por su árbol (acorn) sin mover líneas.
+  - `grabar.mjs` ejecuta el juego real con esos programas, recoge la traza de cada Worker y repite la partida sin traza con la misma semilla. Falla si cambia el resultado o los eventos de alguna máquina. El orden entre Workers dentro de un mismo instante sí varía, porque es concurrencia real; no cambia el mundo.
+  - `pasos.js` agrupa vueltas y tramos.
+  - `explicar.js` y `catalogo.js` escriben las frases con los valores reales.
+- **Interfaz** (`revision/index.html`):
+  - Pantalla partida a todo el ancho. Arriba están el código, con anillos y bandas de color por papel e insignias de valor, y el selector LAU-01/LAU-02, que conserva el momento de la partida.
+  - Abajo están la narración, lo que vio el programa (las dos máquinas y si REP-01 está reparando), ‹ ▶ › y la franja de tramos con atascos y reparaciones.
+  - Tocar el código abre «¿qué es?»; otro toque sube al bloque que lo contiene. Tocar un fragmento de la explicación lo señala en el código.
+  - Los comentarios del programa aparecen como «nota del autor».
+- **Catálogo ampliable.** Una máquina nueva es una llamada a `CMGCatalogo.registrar(...)` con sus propiedades y métodos. Trae el lanzador, el sensor de vibración, la espera, la consola y el robot de Factory (este, sin grabación de ejemplo).
+- **Verificación actual.**
+  - `revision/pruebas/trazador.cjs`: **20** comprobaciones. Mismas líneas y mismo resultado con traza; «seis cafés»; `else if`, etiquetas, `?.`, `typeof`, `await`, `this`.
+  - `pasos.cjs`: **43** comprobaciones. Grabación, vueltas, orden de los pasos, textos sin `undefined`, la historia de los dos atascos y una máquina nueva registrada en la prueba.
+  - `interfaz.mjs`: **42** comprobaciones en Chromium a 1280×800 y 390×844 (puerto 8793). Sin desplazamiento lateral ni errores.
+  - Grabación: misma partida con y sin traza (1099 eventos del juego). Dos grabaciones seguidas son idénticas byte a byte; los eventos de un mismo instante se guardan ordenados por máquina. Repetida tras el commit remoto de Python (`bfb205b`) con el mismo resultado.
+- **Límites.**
+  - Solo JavaScript. Python llegaría por líneas, y por expresiones si el traductor conserva columnas.
+  - Fuera del juego: falta el botón junto al mapa y repetir el último intento instrumentado.
+  - Solo se agrupa el bucle principal.
+  - Pendiente QA en un teléfono real y revisión humana de las plantillas.
+  - No cambia el juego. Publicado como artifact privado para revisión; commit en `trunk` a petición del hook de la sesión.
+
+## Continuidad de lenguajes · conversión JS/Python · 6 de noviembre de 2026
+
+- **Punto de partida.** Revisión del historial y de las ramas remotas: el trabajo de Python se hizo en `trunk` y E5–E7 ya estaban incorporadas también a `main`. Se retoma `trunk` desde `fd15451`, con dos subagentes Luna a petición del usuario. El registro del 4 de noviembre dejaba pendientes diferencias de nombres, parámetros por defecto y Unicode; no se encontró una rama de traducción de la interfaz.
+- **Python → JS.** Los valores por defecto de `def`, `async def` y `lambda` se evalúan una sola vez al definir, en el ámbito exterior. Se conservan la lista mutable compartida, `None`, los argumentos por nombre y los efectos laterales aunque se pase un argumento explícito. Los nombres del jugador `__r` y `__tN` ya no colisionan con auxiliares de comprensiones y desempaquetado. Se mantienen las líneas del programa.
+- **JS → Python.** El renombrado evita colisiones entre palabras reservadas, builtins, nombres con `$`, identificadores Unicode normalizados a NFKC y destinos de API. Los nombres de propiedades no pasan por el renombrado de variables. Los defaults dinámicos, `undefined` explícito en llamadas a funciones con defaults, los parámetros obligatorios después de uno opcional y los alcances que no se pueden conservar se rechazan con un motivo y línea. La comprobación de alcance es conservadora: puede pedir renombrar o reescribir un programa válido. El JS original se conserva.
+- **Regresiones.** `python-semantica-regresiones.cjs`: tres programas contrastados con CPython. `python-conversion-regresiones.cjs`: 20 comprobaciones, con ejecución de las salidas en CPython 3.12.14. `python-ejecucion.mjs` añade cinco comprobaciones del Worker y del selector, incluidos errores con su línea y conservación del JS al fallar la conversión.
+- **Verificación actual.** Interacción 124, editor Python 34, traductor 64, regresiones nuevas, contratos, catálogo de lenguajes y reglas de Factory correctos. Chromium/Playwright, puerto 8771: Python en el juego 27; ejecución JS/Python en War y Factory 26 (las 21 previas más las cinco nuevas), sin excepciones en esta última suite. La suite de arranque fuerza una excepción deliberada por un recurso ausente. Una pasada con 3D por software se detuvo con la consola vacía; la pasada completa de ejecución en Plano dio 26/26. No se modificó el runtime ni su watchdog. Paquete estático: 9 páginas y 87 referencias locales. Sintaxis y `git diff --check` correctos.
+- **Pendientes.** QA de teclado y gestos en un teléfono físico; normalización de identificadores y operaciones Unicode en textos escritos directamente en Python. Diccionarios, tuplas completas y D8 siguen como ampliaciones/decisiones del plan, fuera de estas correcciones. Correcciones en `trunk`; el usuario solicitó después el enlace de raw.githack, por lo que se guardan en un commit y se suben a esa rama. No se despliega en Netlify.
+- **Versiones.** `traductor.js?v=2` y `desde-js.js?v=3`.
+
+## Infografías animadas · skill, motor y ejemplo «seis cafés» · 5 de noviembre de 2026
+
+- **Origen.** Tutoriales animados del juego: infografías paso a paso como las de aprendejavascript.dev. Cada explicación debe tener vídeo en horizontal y en vertical, en JavaScript y en Python, y una versión interactiva por diapositivas para releer. El sitio de referencia no es accesible desde la nube (red bloqueada) y su código no es público. El análisis sale de **8 capturas** del usuario (`for`, tipos, comparación, `if`), así que el movimiento está inferido.
+- **Decisión técnica.** HTML + GSAP 3.13 sin compilación: una sola spec por concepto produce el reproductor interactivo y los 4 vídeos. La animación es una línea de tiempo en pausa: el reproductor la reproduce y el render la coloca en cada fotograma (Playwright + CDP + FFmpeg), sin depender del reloj. Remotion y Motion Canvas siguen para las piezas de personajes. GSAP (licencia estándar gratuita, uso comercial) y las fuentes OFL viven en `educational-animation/infografias/`, **no en el juego**.
+- **Receta (skill `.claude/skills/infografia-animada`).**
+  - Mapa completo atenuado con un foco que avanza.
+  - Código, estado, diagrama y narración cuentan lo mismo a la vez.
+  - **El color es el papel**, a raíz de la observación del usuario: en la primera versión todo era ámbar. Ahora la condición es amarilla, el cuerpo cian o cobre, la actualización morada, `break` roja y `continue` cian, igual en anillos, nodos, líneas y narración. Varias partes pueden encenderse a la vez.
+  - Valores concretos, causa antes que efecto, preguntas de predicción, vueltas comprimidas con casos especiales en detalle.
+  - Paridad JS/Python con glosario (`{{true}}` → `True`) y anclas en lugar de números de línea.
+- **Motor.** Paneles de código, fichas, consola, flujo (salidas, vueltas por carriles), fila (catálogo, lista, vueltas) y expresión. Pasos con `foco`, `hecho`, `marca` (varios anillos), `linea`, `valores` (secuencias con `en`, iconos), `consola`, `mostrar`/`ocultar` y `pregunta` (el reproductor espera la respuesta). Lienzo de 960×540 / 540×960 que se escala; en pantallas estrechas pasa solo a vertical. Sin ligaduras para que `===` se lea tal cual.
+- **Render.** `render.mjs --hoja` genera un PNG por variante y avisa de desbordes en vídeo y en interactivo. Sin `--hoja` genera los MP4 (1920×1080 y 1080×1920, 30 fps), `.vtt` y un manifiesto con sha256. La captura por CDP y la reutilización de fotogramas en las pausas lo aceleraron ≈5× (la primera versión iba a ~1 fotograma/s).
+- **Ejemplos.**
+  - `while-cinta`: 9 pasos, 1 pregunta.
+  - `seis-cafes`: el `while` del usuario con `break` y `continue`. Tiene 12 pasos y 2 preguntas, y la traza real se comprobó con `node` y `python3`: 6 cafés, vuelta 5 `continue`, vuelta 8 `break`. La condición `< 10` nunca llega a `false`.
+- **Verificación actual.**
+  - Hojas de las 8 variantes sin avisos.
+  - Reproductor del `while`: **22** comprobaciones (auto-avance, pausa, ‹ ›, teclado, puntos, pregunta, JS↔Python, final, móvil 390×844).
+  - Reproductor del café: **12** comprobaciones (pregunta, 6 tazas, Python con `==`/`True`/`drink_coffee`, móvil).
+  - Sintaxis de motor, render y specs.
+  - Render de los 4 vídeos del café: 1920×1080 y 1080×1920, 30 fps, H.264, comprobados con ffprobe. JS: 106,8 s y 3204 fotogramas. Python: 106,4 s y 3192 fotogramas. Cada uno con `.vtt` y manifiesto, sin avisos. Tardó 5 min 49 s en total, con 2 en paralelo y ≈45 % de fotogramas capturados. Los MP4 no se versionan.
+- **Pendiente.**
+  - Voz: elegir entre grabación y TTS; el motor y el render ya aceptan un clip por paso.
+  - Revisión humana de las metáforas y prueba en un teléfono real. En ejemplos densos, el código queda a ~11 px en un teléfono de 390 px.
+  - Decidir si GSAP entra en `shared/vendor/` para mostrar infografías dentro del juego.
+- **Límite.** No cambia el juego. Cambios locales, sin commits, push ni publicación en el repo; el ejemplo se publicó como artifact privado para revisión.
+
 ## Correcciones del review del editor móvil · 5 de noviembre de 2026
 
 - **Ficha accesible en todas las vistas.** JS, Seudo y Bloques comparten un contenedor para el programa y la ficha ⓘ. Ocultar el textarea ya no retira el acceso al Inspector y a la Consola; el asa mide ese contenedor común. Se conservan los mismos nodos, valores vivos y preferencias de alto.

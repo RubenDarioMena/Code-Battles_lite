@@ -66,6 +66,20 @@ export async function probarPythonEjecucion(page, origen = 'http://127.0.0.1:877
   const nombre = await correr(0, 'LAU-01', 'python', 'x = 1\nwhile True:\n    regular_shoot(objetivo)\n    await wait(1)\n');
   eq([nombre.banner, nombre.texto.includes("NameError: name 'objetivo' is not defined")], ['Error en la línea 3 de LAU-01', true], 'un nombre que no existe es un NameError con su línea');
 
+  // Defaults y auxiliares internos: también deben conservar su semántica al instrumentarse en el Worker.
+  const defaults = await correr(0, 'LAU-01', 'python', [
+    '__r = 7', '__t1 = 8', 'a, b = (1, 2)',
+    'print(__r, __t1, a, b, [__r for __r in [3, 4]])',
+    'items = []', 'def agrega(xs=items):', '    xs.append(1)', '    return len(xs)',
+    'items = [9]', 'print(agrega(), agrega(), items)', 'regular_shoot(5)', '',
+  ].join('\n'));
+  eq(await page.evaluate(() => [...document.querySelectorAll('#consola .c')].map(c => c.textContent).filter(t => /7 8 1 2|1 2 \[9\]/.test(t))),
+    ['LAU-01 L47 8 1 2 [3, 4]', 'LAU-01 L101 2 [9]'], 'el Worker conserva nombres internos y la misma lista por defecto entre llamadas');
+  eq(defaults.banner, 'Error en la línea 11 de LAU-01', 'los defaults no desplazan la línea de los errores');
+  const asyncDefault = await correr(0, 'LAU-01', 'python', 'x = 1\nasync def captura(a=x):\n    await wait(0.05)\n    print(a)\nx = 2\nawait captura()\nregular_shoot(5)\n');
+  eq([asyncDefault.banner, await page.evaluate(() => [...document.querySelectorAll('#consola .c')].some(c => c.textContent === 'LAU-01 L41'))],
+    ['Error en la línea 7 de LAU-01', true], 'async def captura el valor por defecto al definirse y sigue esperando en el mismo Worker');
+
   // ---------- E7: Py convierte el JS de la unidad ----------
   await page.evaluate(() => { const b = window.__banco; b.elegirReto(0); delete b.fuentes['LAU-01']; b.programas['LAU-01'] = 'while (true) {\n  const pos = autoTarget("crawler", "visual"); // mira\n  if (pos) regularShoot(pos);\n  await esperar(0.5);\n}\n'; b.abrirPrograma('LAU-01'); });
   await page.selectOption('#sel-lenguaje', 'python');
@@ -78,6 +92,22 @@ export async function probarPythonEjecucion(page, origen = 'http://127.0.0.1:877
   await page.selectOption('#sel-lenguaje', 'python');
   eq(await page.evaluate(() => [cmg.editor.documento().lenguaje, cmg.codigo.value.includes('no se pudo convertir'), document.body.textContent.includes('Los objetos { … } (diccionarios) aún no están en el Python del juego.'), window.__banco.programas['LAU-01']]),
     ['python', true, true, 'const datos = { a: 1 };\n'], 'si no cabe, lo explica y el JavaScript se conserva');
+  await page.selectOption('#sel-lenguaje', 'js');
+
+  const conNombres = 'let match = 1;\nlet match_ = 2;\nlet $valor = 3;\nconsole.log(match, match_, $valor);\nregularShoot(5);\n';
+  await page.evaluate(src => { const b = window.__banco; delete b.fuentes['LAU-01']; b.programas['LAU-01'] = src; b.abrirPrograma('LAU-01'); }, conNombres);
+  await page.selectOption('#sel-lenguaje', 'python');
+  const nombresPy = await page.evaluate(() => cmg.codigo.value);
+  const jsConservado = await page.evaluate(() => window.__banco.programas['LAU-01']);
+  const nombres = await correr(0, 'LAU-01', 'python', nombresPy);
+  eq([nombres.banner, await page.evaluate(() => [...document.querySelectorAll('#consola .c')].some(c => c.textContent === 'LAU-01 L41 2 3')), jsConservado],
+    ['Error en la línea 5 de LAU-01', true, conNombres], 'el selector convierte nombres que colisionan y nombres con $ sin alterar el JS guardado');
+  await page.selectOption('#sel-lenguaje', 'js');
+  const conDefault = 'function f(x = Date.now()) { return x; }\nconsole.log(f());\n';
+  await page.evaluate(src => { const b = window.__banco; delete b.fuentes['LAU-01']; b.programas['LAU-01'] = src; b.abrirPrograma('LAU-01'); }, conDefault);
+  await page.selectOption('#sel-lenguaje', 'python');
+  eq(await page.evaluate(() => [document.body.textContent.includes('por defecto dinámico'), window.__banco.programas['LAU-01']]),
+    [true, conDefault], 'un default dinámico avisa desde el selector y conserva el programa JS');
   await page.selectOption('#sel-lenguaje', 'js');
 
   // ---------- Factory: equivalencia y errores ----------

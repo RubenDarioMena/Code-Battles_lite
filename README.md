@@ -121,6 +121,8 @@ node pruebas/editor-contrato.cjs
 node pruebas/editor-lenguajes.cjs
 node pruebas/editor-python.cjs
 node pruebas/python-traductor.cjs
+node pruebas/python-semantica-regresiones.cjs
+node pruebas/python-conversion-regresiones.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
 node --check "Prototypes/Rocket Launcher/js/layout.js"
 node --check shared/editor/edicion.js
@@ -143,6 +145,8 @@ node --check pruebas/entrada.mjs
 node --check scripts/preparar-netlify.mjs
 node --check pruebas/publicacion.mjs
 ```
+
+Las regresiones de conversión JS → Python usan `python3` como referencia CPython.
 
 Para la suite de navegador usa otro puerto, porque modifica programas y preferencias del origen de prueba:
 

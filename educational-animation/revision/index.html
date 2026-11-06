@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Modo revisión</title>
+<link rel="stylesheet" href="motor/revision.css">
+<style>
+  /* Fuentes locales, compartidas con las infografías (OFL). */
+  @font-face { font-family: "Archivo"; src: url("../infografias/motor/fuentes/archivo-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Archivo"; src: url("../infografias/motor/fuentes/archivo-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../infografias/motor/fuentes/jetbrains-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../infografias/motor/fuentes/jetbrains-mono-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+  html, body { height: 100%; margin: 0; background: #070A0D; color-scheme: dark; }
+  #revision { height: 100%; }
+  .sin-datos { padding: 24px; color: #DCE3E6; font: 16px/1.5 Archivo, sans-serif; }
+</style>
+</head>
+<body>
+<main id="revision"></main>
+<script src="motor/catalogo.js"></script>
+<script src="motor/explicar.js"></script>
+<script src="motor/pasos.js"></script>
+<script src="motor/revision.js"></script>
+<script>
+  // ?ej=<carpeta de ejemplos/> (por defecto reto-5). La grabación sale de grabar.mjs.
+  const ej = (new URLSearchParams(location.search).get("ej") || "reto-5").replace(/[^\w-]/g, "");
+  const s = document.createElement("script");
+  s.src = `ejemplos/${ej}/grabacion.js`;
+  s.onload = () => { window.__revision = CMGRevision.montar(document.getElementById("revision"), window.GRABACIONES_REVISION[ej], { salir: "../../Prototypes/Rocket%20Launcher/" }); };
+  s.onerror = () => { document.getElementById("revision").innerHTML = `<p class="sin-datos">No hay grabación para «${ej}». Genérala con <code>node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/${ej}</code>.</p>`; };
+  document.body.append(s);
+</script>
+</body>
+</html>
