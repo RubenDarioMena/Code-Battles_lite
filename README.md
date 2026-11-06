@@ -105,6 +105,12 @@ Sube el **contenido de `dist/`**. La carpeta es generada e ignorada por Git. No 
 
 La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage empieza separado del origen local: aún no existe importación/exportación de programas. El paquete incluye las dependencias locales.
 
+## Idioma de la interfaz
+
+La portada y Ajustes permiten elegir español o inglés sin recargar ni modificar programas. La preferencia de interfaz es independiente de JavaScript/Python y del idioma del seudocódigo. Están migrados la portada, Ajustes, navegación, controles principales y textos estáticos de los diálogos; algunos contenidos y ayudas siguen pendientes.
+
+Los textos nuevos de las zonas migradas deben añadirse a los catálogos ES/EN de `shared/i18n/`, sin traducir IDs, valores de la API ni guardados. El [contrato de idiomas y el glosario](docs/IDIOMAS-INTERFAZ.md) describe cómo ampliar la migración por lotes y ejecutar sus comprobaciones. La suite de navegador puede ejecutarse con `node pruebas/ejecutar-idiomas.cjs` en un entorno con Playwright/Chromium y el servidor dedicado 8771 activo; el juego no requiere esos paquetes.
+
 ## Verificar
 
 El [oráculo histórico y sus deltas](pruebas/factory-oraculo.md) verifican las reglas migradas; las suites comunes cubren las tres vistas, importación y edición. Estado de cada etapa en [PROGRESO.md](PROGRESO.md) y el [plan](docs/PLAN-UNIFICACION.md).

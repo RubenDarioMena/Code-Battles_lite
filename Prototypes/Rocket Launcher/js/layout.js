@@ -6,6 +6,7 @@
 (() => {
   "use strict";
   const $ = (id) => document.getElementById(id);
+  const t = (clave, parametros) => window.CMGI18n.t(clave, parametros);
   const app = $("app"), divisor = $("divisor"), zonaCodigo = $("zona-codigo");
   const svg = (cuerpo) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${cuerpo}</svg>`;
   const params = new URLSearchParams(location.search);
@@ -30,17 +31,30 @@
   }
   let barrasPlegadas = leer("barras-plegadas", false) === true, expandidoTeclado = false;
   const claveReparto = () => orientacion === "auto" ? `reparto-${forma}` : `reparto-${forma}-${eje}`;
+  function pintarTextoHerramientas() {
+    const plegadas = $("cabecera-editor").classList.contains("plegada");
+    $("b-barras").setAttribute("aria-label", t(`disposicion.herramientas.${plegadas ? "mostrar" : "plegar"}`));
+  }
   function aplicarBarras() {
     // En el teléfono la barra superior ya es mínima: no se pliega, tampoco con el teclado abierto.
     const plegadas = forma === "movil" ? false : app.classList.contains("teclado") ? !expandidoTeclado : barrasPlegadas;
     $("cabecera-editor").classList.toggle("plegada", plegadas);
     $("b-barras").setAttribute("aria-expanded", String(!plegadas));
-    $("b-barras").setAttribute("aria-label", plegadas ? "Mostrar herramientas" : "Plegar herramientas");
+    pintarTextoHerramientas();
     $("b-barras").textContent = plegadas ? "▾" : "▴";
   }
   function mostrarCoordenadas(mostrar) {
     app.dataset.coordenadas = String(mostrar);
     if (!mostrar && document.activeElement === $("coordenadas")) $("coordenadas").blur();
+  }
+  function pintarTextoDivisor() {
+    const p = Number(app.dataset.mapaPorcentaje);
+    const valor = p === 0
+      ? t("disposicion.divisor.solo_codigo")
+      : p === 100
+        ? t("disposicion.divisor.solo_mapa")
+        : t("disposicion.divisor.porcentaje", { porcentaje: Math.round(p) });
+    divisor.setAttribute("aria-valuetext", valor);
   }
   mostrarCoordenadas(leer("coordenadas", false) === true);
   // Reserva para Settings: «tira» conserva la presentación móvil anterior.
@@ -66,7 +80,7 @@
     divisor.setAttribute("aria-valuemin", 0);
     divisor.setAttribute("aria-valuemax", 100);
     divisor.setAttribute("aria-valuenow", Math.round(p));
-    divisor.setAttribute("aria-valuetext", p === 0 ? "Solo código" : p === 100 ? "Solo mapa" : `${Math.round(p)} % mapa`);
+    pintarTextoDivisor();
   }
   function aplicarForma() {
     const f = decidirForma();
@@ -138,19 +152,21 @@
   });
 
   // ---------- Ajustes ----------
-  function actualizarAjustesPantalla(e) {
+  function pintarTextosAjustes(e) {
     const horizontal = e === "horizontal";
-    $("ajustes-orientacion-nota").textContent = orientacion === "auto"
-      ? `Se adapta al tamaño de la pantalla. Ahora: ${horizontal ? "izquierda y derecha" : "arriba y abajo"}.`
-      : `Los paneles se mostrarán siempre ${horizontal ? "uno al lado del otro" : "uno encima del otro"}.`;
+    $("ajustes-orientacion-nota").textContent = t(
+      `ajustes.orientacion.${orientacion === "auto" ? "auto" : "fija"}.${horizontal ? "horizontal" : "vertical"}`);
+    for (const ejePosicion of ["horizontal", "vertical"]) {
+      $(`ajustes-previa-${ejePosicion}`).setAttribute("aria-label",
+        t(`ajustes.previa.${ejePosicion}.${ordenPorEje[ejePosicion]}`));
+    }
+  }
+  function actualizarAjustesPantalla(e) {
     for (const ejePosicion of ["horizontal", "vertical"]) {
       $(`ajustes-primero-${ejePosicion}`).value = ordenPorEje[ejePosicion];
-      const previa = $(`ajustes-previa-${ejePosicion}`);
-      previa.dataset.primero = ordenPorEje[ejePosicion];
-      previa.setAttribute("aria-label", ejePosicion === "horizontal"
-        ? (ordenPorEje[ejePosicion] === "mapa" ? "Mapa a la izquierda, código a la derecha" : "Código a la izquierda, mapa a la derecha")
-        : (ordenPorEje[ejePosicion] === "mapa" ? "Mapa arriba, código abajo" : "Código arriba, mapa abajo"));
+      $(`ajustes-previa-${ejePosicion}`).dataset.primero = ordenPorEje[ejePosicion];
     }
+    pintarTextosAjustes(e);
   }
   const ajustes = $("ajustes"), confirmar = $("ajustes-confirmar");
   function abrirAjustes() {
@@ -188,6 +204,7 @@
   // e inserción metálica) van al pie del código, así quedan justo encima del teclado; la antigua barra
   // de símbolos ya no hace falta: sus pares y signos son botones metálicos de la barra de inserción.
   const simbolos = $("simbolos"), tecladoSim = $("teclado-sim");
+  let teclaEspacioSim = null, teclaIntroSim = null;
   let simulado = 0;
   const codigo = () => window.cmg && window.cmg.codigo;
   function actualizarTeclado() {
@@ -229,9 +246,27 @@
   });
 
   // Teclado simulado (solo en probar.html): un dibujo para ver el reparto; se escribe con el teclado del PC.
-  tecladoSim.innerHTML = ["qwertyuiop", "asdfghjkl", "zxcvbnm"].map((f, i) =>
-    `<div class="fila">${i === 2 ? `<i class="gris">⇧</i>` : ""}${[...f].map(c => `<i>${c}</i>`).join("")}${i === 2 ? `<i class="gris">⌫</i>` : ""}</div>`).join("")
-    + `<div class="fila"><i class="gris">123</i><i class="ancha">espacio</i><i class="gris">intro</i></div>`;
+  const crearTecla = (texto, clase = "") => {
+    const tecla = document.createElement("i");
+    if (clase) tecla.className = clase;
+    tecla.textContent = texto;
+    return tecla;
+  };
+  const filasTeclado = [];
+  for (const [i, letras] of ["qwertyuiop", "asdfghjkl", "zxcvbnm"].entries()) {
+    const fila = document.createElement("div"); fila.className = "fila";
+    if (i === 2) fila.append(crearTecla("⇧", "gris"));
+    for (const letra of letras) fila.append(crearTecla(letra));
+    if (i === 2) fila.append(crearTecla("⌫", "gris"));
+    filasTeclado.push(fila);
+  }
+  const filaEspecial = document.createElement("div"); filaEspecial.className = "fila";
+  filaEspecial.append(crearTecla("123", "gris"));
+  teclaEspacioSim = crearTecla(t("disposicion.teclado.espacio"), "ancha");
+  teclaIntroSim = crearTecla(t("disposicion.teclado.intro"), "gris");
+  filaEspecial.append(teclaEspacioSim, teclaIntroSim);
+  filasTeclado.push(filaEspecial);
+  tecladoSim.replaceChildren(...filasTeclado);
 
   // ---------- Barras de una línea ----------
   // La paleta, la barra de edición y las pestañas de información se deslizan; con ratón, la rueda vertical
@@ -314,17 +349,25 @@
     const ultimo = c.lastElementChild;
     if (ultimo) cont.scrollTop += ultimo.getBoundingClientRect().bottom - cont.getBoundingClientRect().bottom + 4;
   }
+  function pintarTextosPie() {
+    const abierto = pie.dataset.abierto === "true";
+    const clave = abierto ? "cerrar" : "abrir";
+    bPie.setAttribute("aria-label", t(`disposicion.panel.${clave}`));
+    bPie.dataset.tip = t(`disposicion.panel.${clave}`);
+    const alto = Number(pieAgarre.getAttribute("aria-valuenow")) || 0;
+    pieAgarre.setAttribute("aria-valuetext", abierto
+      ? t("disposicion.panel.alto", { alto })
+      : t("disposicion.panel.cerrado"));
+  }
   function aplicarPie(alto = altoPie()) {
     const abierto = alto > 0;
     pie.dataset.abierto = String(abierto);
     pie.dataset.modo = pieModo;
     if (abierto) pie.style.setProperty("--pie-alto", `${Math.round(alto)}px`);
     bPie.setAttribute("aria-expanded", String(abierto));
-    bPie.setAttribute("aria-label", abierto ? "Cerrar el panel" : "Abrir el panel");
-    bPie.dataset.tip = abierto ? "Cerrar el panel" : "Abrir el panel";
     bPie.textContent = abierto ? "▾" : "▴";
     pieAgarre.setAttribute("aria-valuenow", String(Math.round(alto)));
-    pieAgarre.setAttribute("aria-valuetext", abierto ? `${Math.round(alto)} píxeles` : "cerrado");
+    pintarTextosPie();
     for (const b of pie.querySelectorAll("[data-pie-modo]")) b.setAttribute("aria-pressed", String(b.dataset.pieModo === pieModo));
     // En el teléfono el panel no se ve (su inspector y su consola están en la ficha ⓘ).
     if (abierto && pieModo === "consola" && forma !== "movil") { marcarNuevo(false); bajarConsola(); }
@@ -405,18 +448,27 @@
   const pantallaEfectiva = () => pantallaActiva && pantallaPermitida();
   // Reparto al cambiar de forma: el panel a pantalla completa, o el guardado.
   const repartoActual = () => pantallaEfectiva() && panelFS ? (panelFS === "mapa" ? 100 : 0) : leer(claveReparto(), REPARTO[forma]);
+  function pintarTextosBotonesPantalla(ef = pantallaEfectiva()) {
+    for (const b of document.querySelectorAll(".b-pantalla")) {
+      b.setAttribute("aria-label", t(`disposicion.pantalla.etiqueta${ef ? "_activa" : ""}`));
+      b.dataset.tip = t(`disposicion.pantalla.tip${ef ? "_activo" : ""}`);
+      b.dataset.tipCod = t(`disposicion.pantalla.tip_codigo${ef ? "_salir" : ""}`);
+    }
+  }
+  function pintarTextoEstadoPantalla(ef = pantallaEfectiva()) {
+    $("ajustes-pantalla-estado").textContent = t(
+      `disposicion.pantalla.estado.${ef ? "activo" : pantallaActiva ? "pausado" : "inactivo"}`);
+  }
   function aplicarPantalla() {
     const ok = pantallaPermitida(), ef = pantallaActiva && ok, antes = app.dataset.pantallaCompleta === "true";
     app.dataset.pantallaPermitida = String(ok);
     app.dataset.pantallaCompleta = String(ef);
     for (const b of document.querySelectorAll(".b-pantalla")) {
       b.setAttribute("aria-pressed", String(ef));
-      b.dataset.tip = ef ? "Pantalla completa activa" : "Pantalla completa";
-      b.dataset.tipCod = ef ? "mantén pulsado 2 s para salir" : "mantén pulsado 2 s";
     }
-    const est = $("ajustes-pantalla-estado");
-    est.textContent = ef ? "activo" : pantallaActiva ? "en pausa: pantalla grande" : "inactivo";
-    est.classList.toggle("activo", ef);
+    pintarTextosBotonesPantalla(ef);
+    pintarTextoEstadoPantalla(ef);
+    $("ajustes-pantalla-estado").classList.toggle("activo", ef);
     return ef !== antes;
   }
   function verPanel(panel) {
@@ -429,29 +481,50 @@
   const $avisoPantalla = document.createElement("button");
   $avisoPantalla.type = "button"; $avisoPantalla.className = "aviso-pantalla"; $avisoPantalla.hidden = true;
   $avisoPantalla.setAttribute("role", "status");
+  const $tituloAviso = document.createElement("b"), separadorAviso = document.createTextNode("");
+  const $textoAviso = document.createElement("span");
+  $avisoPantalla.append($tituloAviso, separadorAviso, $textoAviso);
   document.body.append($avisoPantalla);
-  let tAvisoPantalla = 0, avisoDesde = 0;
-  function avisoPantalla(titulo, texto, info = false) {
-    $avisoPantalla.innerHTML = `<b></b>${texto ? " <span></span>" : ""}`;
-    $avisoPantalla.querySelector("b").textContent = titulo;
-    if (texto) $avisoPantalla.querySelector("span").textContent = texto;
+  const TEXTOS_AVISO = {
+    activado: { titulo: "disposicion.pantalla.toast.activado.titulo", texto: "disposicion.pantalla.toast.activado.texto" },
+    desactivado: { titulo: "disposicion.pantalla.toast.desactivado.titulo" },
+    activar: { titulo: "disposicion.pantalla.aviso.titulo", texto: "disposicion.pantalla.aviso.activar" },
+    salir: { titulo: "disposicion.pantalla.aviso.titulo", texto: "disposicion.pantalla.aviso.salir" },
+  };
+  let tAvisoPantalla = 0, avisoDesde = 0, avisoPantallaActual = null;
+  function pintarAvisoPantalla() {
+    if (!avisoPantallaActual) return;
+    const aviso = TEXTOS_AVISO[avisoPantallaActual.tipo];
+    $tituloAviso.textContent = t(aviso.titulo);
+    const texto = aviso.texto ? t(aviso.texto) : "";
+    separadorAviso.nodeValue = texto ? " " : "";
+    $textoAviso.textContent = texto;
+    $textoAviso.hidden = !texto;
+  }
+  function avisoPantalla(tipo, info = false) {
+    avisoPantallaActual = { tipo };
+    pintarAvisoPantalla();
     $avisoPantalla.dataset.info = String(info);
     $avisoPantalla.hidden = false;
     avisoDesde = performance.now();
     clearTimeout(tAvisoPantalla);
-    tAvisoPantalla = setTimeout(() => { $avisoPantalla.hidden = true; }, info ? 4200 : 2200);
+    tAvisoPantalla = setTimeout(() => { $avisoPantalla.hidden = true; avisoPantallaActual = null; }, info ? 4200 : 2200);
   }
   const abrirInfoPantalla = () => { if (!$("info-pantalla").open) $("info-pantalla").showModal(); };
   // Al soltar el dedo tras mantener el botón no se abre nada por accidente.
   $avisoPantalla.addEventListener("click", () => {
     if (performance.now() - avisoDesde < 700) return;
-    $avisoPantalla.hidden = true; if ($avisoPantalla.dataset.info === "true") abrirInfoPantalla(); });
+    $avisoPantalla.hidden = true;
+    const info = $avisoPantalla.dataset.info === "true";
+    avisoPantallaActual = null;
+    if (info) abrirInfoPantalla();
+  });
   function alternarPantalla() {
     pantallaActiva = !pantallaActiva;
     escribir("pantalla-completa", pantallaActiva);
     aplicarPantalla();
-    if (pantallaActiva) { verPanel("mapa"); avisoPantalla("Full screen mode active.", "More details on settings.", true); }
-    else { panelFS = "mapa"; aplicarReparto(leer(claveReparto(), REPARTO[forma])); avisoPantalla("Full screen mode off.", ""); }
+    if (pantallaActiva) { verPanel("mapa"); avisoPantalla("activado", true); }
+    else { panelFS = "mapa"; aplicarReparto(leer(claveReparto(), REPARTO[forma])); avisoPantalla("desactivado"); }
   }
   // Círculo grande que se llena mientras se mantiene el botón.
   const $carga = document.createElement("div");
@@ -460,9 +533,12 @@
     + `<span class="icono">${document.querySelector(".b-pantalla").innerHTML}</span><span class="txt"></span>`;
   document.body.append($carga);
   let mantener = null;
+  function pintarTextoMantener() {
+    $carga.querySelector(".txt").textContent = t(`disposicion.pantalla.mantener.${pantallaActiva ? "salir" : "activar"}`);
+  }
   function empezarMantener(id) {
     terminarMantener();
-    $carga.querySelector(".txt").textContent = pantallaActiva ? "Mantén para salir" : "Mantén para activar";
+    pintarTextoMantener();
     $carga.style.setProperty("--dur", `${MANTENER_MS}ms`);
     $carga.hidden = false;
     $carga.classList.remove("llena"); void $carga.offsetWidth; $carga.classList.add("llena");
@@ -474,7 +550,7 @@
     if (!mantener) return;
     const m = mantener; mantener = null;
     clearTimeout(m.t); $carga.hidden = true; $carga.classList.remove("llena");
-    if (pista && !m.hecho) avisoPantalla("Mantén pulsado 2 segundos", pantallaActiva ? "para salir de la pantalla completa." : "para activar la pantalla completa.");
+    if (pista && !m.hecho) avisoPantalla(pantallaActiva ? "salir" : "activar");
   }
   for (const b of document.querySelectorAll(".b-pantalla")) {
     b.addEventListener("pointerdown", (ev) => {
@@ -508,24 +584,45 @@
     ajustes: '<circle class="s1" cx="12" cy="12" r="3.1"/><path class="s1" d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3L5.6 5.6"/>',
   };
   const MENU = [
-    { id: "programa", t: () => "Programa", c1: "#7FA3FF" },
-    { id: "registro", t: () => "Registro", c1: "#63D2E0" },
-    { id: "ayuda", t: () => "Órdenes", c1: "#CFA2FF" },
+    { id: "programa", t: () => t("disposicion.menu.programa"), c1: "#7FA3FF" },
+    { id: "registro", t: () => t("disposicion.menu.registro"), c1: "#63D2E0" },
+    { id: "ayuda", t: () => t("disposicion.menu.ordenes"), c1: "#CFA2FF" },
     { id: "escenario", t: () => $("t-escenario").textContent.trim(), c1: "#5FC28A" },
-    { id: "ajustes", t: () => "Ajustes", c1: "#B7C2CC", fn: abrirAjustes },
+    { id: "ajustes", t: () => t("disposicion.menu.ajustes"), c1: "#B7C2CC", fn: abrirAjustes },
   ];
   const $menu = document.createElement("div");
   $menu.id = "menu-cod"; $menu.className = "variantes menu-cod"; $menu.hidden = true;
-  $menu.setAttribute("role", "menu"); $menu.setAttribute("aria-label", "Más opciones del código");
+  $menu.setAttribute("role", "menu"); $menu.setAttribute("aria-label", t("disposicion.menu.aria_label"));
   document.body.append($menu);
   const $bMenu = $("b-menu-cod");
+  function pintarTextosMenu() {
+    $menu.setAttribute("aria-label", t("disposicion.menu.aria_label"));
+    for (const m of MENU) {
+      const etiqueta = $menu.querySelector(`[data-menu="${m.id}"] span`);
+      if (etiqueta) etiqueta.textContent = m.t();
+    }
+  }
   function pintarMenu() {
     const actual = zonaCodigo.dataset.pestana || "programa";
-    $menu.innerHTML = MENU.map(m => {
+    const botones = MENU.map(m => {
       const esPestana = !m.fn, encendido = esPestana ? m.id === actual : m.activo ? m.activo() : false;
-      return `<button type="button" class="variante${encendido ? " activa" : ""}" role="menuitem" data-menu="${m.id}" style="--c1:${m.c1}"`
-        + `${esPestana && encendido ? ' aria-current="page"' : ""}${m.activo ? ` aria-pressed="${encendido}"` : ""}>${svg(ICO_MENU[m.id])}<span>${m.t()}</span></button>`;
-    }).join("");
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = `variante${encendido ? " activa" : ""}`;
+      boton.setAttribute("role", "menuitem");
+      boton.dataset.menu = m.id;
+      boton.style.setProperty("--c1", m.c1);
+      if (esPestana && encendido) boton.setAttribute("aria-current", "page");
+      if (m.activo) boton.setAttribute("aria-pressed", String(encendido));
+      // El HTML del icono es una constante local; todo texto visible se asigna como texto plano.
+      boton.innerHTML = svg(ICO_MENU[m.id]);
+      const etiqueta = document.createElement("span");
+      etiqueta.textContent = m.t();
+      boton.append(etiqueta);
+      return boton;
+    });
+    $menu.replaceChildren(...botones);
+    pintarTextosMenu();
   }
   function colocarMenu() {
     const r = $bMenu.getBoundingClientRect(), m = $menu.getBoundingClientRect();
@@ -625,6 +722,24 @@
   // Los iconos no llevan nombre: aparece al pasar el cursor (o al tocarlos en el teléfono).
   // El módulo es compartido con el editor autónomo (shared/editor/tips.js).
   window.CMGTips.crear({ tip: $("tip") });
+
+  function pintarTextosDisposicion() {
+    const ejeActual = eje || (orientacion === "auto" ? (decidirForma() === "movil" ? "vertical" : "horizontal") : orientacion);
+    pintarTextosAjustes(ejeActual);
+    pintarTextoHerramientas();
+    pintarTextoDivisor();
+    pintarTextosPie();
+    const ef = pantallaEfectiva();
+    pintarTextosBotonesPantalla(ef);
+    pintarTextoEstadoPantalla(ef);
+    pintarTextosMenu();
+    if (teclaEspacioSim) teclaEspacioSim.textContent = t("disposicion.teclado.espacio");
+    if (teclaIntroSim) teclaIntroSim.textContent = t("disposicion.teclado.intro");
+    // Repinta los textos visibles sin cancelar ni prolongar sus timers.
+    if (mantener) pintarTextoMantener();
+    if (!$avisoPantalla.hidden && avisoPantallaActual) pintarAvisoPantalla();
+  }
+  window.addEventListener("cmg:idioma", pintarTextosDisposicion);
 
   // ---------- Arranque ----------
   addEventListener("resize", () => { aplicarForma(); actualizarTeclado(); });

@@ -28,18 +28,18 @@
 <div class="app" id="app" data-forma="escritorio">
 
   <!-- ===== Mapa: reto, escenario con el inspector encima y mando ===== -->
-  <section class="zona-mapa marco" id="zona-mapa" aria-label="Escenario">
+  <section class="zona-mapa marco" id="zona-mapa" aria-label="Escenario" data-i18n-aria-label="juego.mapa.aria">
     <header class="cabeza">
-      <a class="placa marca" href="../../index.html" aria-label="Volver al inicio">CBL</a>
+      <a class="placa marca" href="../../index.html" aria-label="Volver al inicio" data-i18n-aria-label="juego.inicio.volver">CBL</a>
       <button class="reto-actual" id="b-reto" type="button" aria-expanded="false" aria-controls="hoja-reto">
         <span class="n" id="reto-n">1</span>
         <span class="tit"><span id="titulo">Primer blanco</span><span class="obj" id="objetivo-corto"></span></span>
         <span class="chev" aria-hidden="true">▾</span>
       </button>
-      <a class="probar" id="b-probar" href="probar.html" title="Ver el juego en teléfono y en PC a la vez">⧉ Probar en dispositivos</a>
-      <button class="mini ver-codigo" id="b-ver-codigo" type="button" aria-label="Ver el código a pantalla completa" data-tip="Código a pantalla completa">&lt;/&gt;</button>
+      <a class="probar" id="b-probar" href="probar.html" title="Ver el juego en teléfono y en PC a la vez" data-i18n-title="juego.probar.title"><span aria-hidden="true">⧉</span> <span data-i18n="juego.probar.texto">Probar en dispositivos</span></a>
+      <button class="mini ver-codigo" id="b-ver-codigo" type="button" aria-label="Ver el código a pantalla completa" data-i18n-aria-label="juego.codigo.pantalla_completa" data-tip="Código a pantalla completa" data-i18n-data-tip="juego.codigo.pantalla_completa">&lt;/&gt;</button>
       <button class="mini b-pantalla" id="b-pantalla" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
-      <button class="mini ajustes-abrir" id="b-ajustes" type="button" aria-label="Ajustes" aria-haspopup="dialog" aria-controls="ajustes" title="Ajustes">⚙</button>
+      <button class="mini ajustes-abrir" id="b-ajustes" type="button" aria-label="Ajustes" data-i18n-aria-label="ajustes.abrir" aria-haspopup="dialog" aria-controls="ajustes" title="Ajustes" data-i18n-title="ajustes.abrir">⚙</button>
     </header>
 
     <div class="escena" id="escena">
@@ -48,10 +48,10 @@
         <canvas id="c2d" aria-label="Plano del campo de defensa" hidden></canvas>
         <div class="capa" id="capa"></div>
         <div class="hud-sup">
-          <div class="vistas" role="group" aria-label="Vista del campo">
+          <div class="vistas" role="group" aria-label="Vista del campo" data-i18n-aria-label="juego.vista.etiqueta">
             <button type="button" data-vista="3d" aria-pressed="true">3D</button>
-            <button type="button" data-vista="2d" aria-pressed="false">Plano</button>
-            <button type="button" id="b-centrar" aria-label="Recentrar la cámara" data-tip="Recentrar la cámara">⌖</button>
+            <button type="button" data-vista="2d" aria-pressed="false" data-i18n="juego.vista.plano">Plano</button>
+            <button type="button" id="b-centrar" aria-label="Recentrar la cámara" data-i18n-aria-label="juego.camara.recentrar" data-tip="Recentrar la cámara" data-i18n-data-tip="juego.camara.recentrar">⌖</button>
           </div>
           <div class="reloj" id="reloj">t 0.0 s</div>
         </div>
@@ -59,36 +59,36 @@
         <div class="metas" id="metas"></div>
         <div class="carga" id="carga" hidden></div>
         <div class="seleccion-caja" id="seleccion-caja" aria-hidden="true" hidden></div>
-        <div class="sin3d" id="sin3d" hidden>No se pudo cargar el visor 3D (sin conexión o sin WebGL). Se muestra el plano.</div>
+        <div class="sin3d" id="sin3d" hidden data-i18n="juego.visorde3d.error">No se pudo cargar el visor 3D (sin conexión o sin WebGL). Se muestra el plano.</div>
         <div class="banner" id="banner" hidden></div>
       </div>
 
-      <aside class="inspector marco" id="inspector" data-estado="cerrado" aria-label="Inspector de la unidad">
-        <div class="ins-acc ins-cierre"><button type="button" data-accion="cerrar" aria-label="Cerrar el inspector" data-tip="Cerrar">×</button></div>
+      <aside class="inspector marco" id="inspector" data-estado="cerrado" aria-label="Inspector de la unidad" data-i18n-aria-label="juego.inspector.aria">
+        <div class="ins-acc ins-cierre"><button type="button" data-accion="cerrar" aria-label="Cerrar el inspector" data-i18n-aria-label="juego.inspector.cerrar" data-tip="Cerrar" data-i18n-data-tip="juego.accion.cerrar">×</button></div>
         <div class="ins-tira" id="ins-tira"></div>
         <div class="ins-cuerpo" id="ins-cuerpo-wrap">
-          <nav class="maquinas" id="maquinas" aria-label="Unidades del campo"></nav>
+          <nav class="maquinas" id="maquinas" aria-label="Unidades del campo" data-i18n-aria-label="juego.maquinas.aria"></nav>
           <div id="ins-cuerpo"></div>
         </div>
       </aside>
 
       <div class="hoja-reto marco" id="hoja-reto" hidden>
         <div class="hoja-cab">
-          <span class="placa">Retos</span>
-          <button class="cerrar" type="button" data-cerrar-hoja aria-label="Cerrar">×</button>
+          <span class="placa" data-i18n="juego.retos.titulo">Retos</span>
+          <button class="cerrar" type="button" data-cerrar-hoja aria-label="Cerrar" data-i18n-aria-label="juego.accion.cerrar">×</button>
         </div>
-        <nav class="fila-botones" aria-label="Series de retos"><a class="btn chico" data-serie="war" href="?serie=war">War</a><a class="btn chico" data-serie="factory" href="?serie=factory">Factory</a></nav>
-        <nav class="retos" id="retos" aria-label="Retos"></nav>
+        <nav class="fila-botones" aria-label="Series de retos" data-i18n-aria-label="juego.retos.series"><a class="btn chico" data-serie="war" href="?serie=war">War</a><a class="btn chico" data-serie="factory" href="?serie=factory">Factory</a></nav>
+        <nav class="retos" id="retos" aria-label="Retos" data-i18n-aria-label="juego.retos.aria"></nav>
         <div class="regla"></div>
-        <section class="objetivo" aria-label="Objetivo">
+        <section class="objetivo" aria-label="Objetivo" data-i18n-aria-label="juego.objetivo.aria">
           <p id="objetivo-txt"></p>
           <div class="leccion" id="leccion"></div>
         </section>
         <div class="regla"></div>
         <div class="fila-sem">
-          <span>Semilla <b id="semilla-txt">1</b></span>
-          <label><input type="checkbox" id="semilla-fija"> fijar semilla</label>
-          <span class="nota">La semilla decide los fallos del lanzador: el mismo programa con la misma semilla da siempre el mismo resultado.</span>
+          <span><span data-i18n="juego.semilla">Semilla</span> <b id="semilla-txt">1</b></span>
+          <label><input type="checkbox" id="semilla-fija"> <span data-i18n="juego.semilla.fijar">fijar semilla</span></label>
+          <span class="nota" data-i18n="juego.semilla.explicacion">La semilla decide los fallos del lanzador: el mismo programa con la misma semilla da siempre el mismo resultado.</span>
         </div>
       </div>
     </div>
@@ -96,20 +96,20 @@
     <div class="controles">
       <button class="btn primario" id="b-ejecutar" type="button">▶ Ejecutar</button>
       <button class="btn" id="b-pausa" type="button" disabled>Pausa</button>
-      <button class="btn" id="b-vel" type="button" aria-label="Velocidad">1×</button>
-      <button class="btn" id="b-reiniciar" type="button">Reiniciar</button>
+      <button class="btn" id="b-vel" type="button" aria-label="Velocidad" data-i18n-aria-label="juego.velocidad.aria">1×</button>
+      <button class="btn" id="b-reiniciar" type="button" data-i18n="juego.reiniciar">Reiniciar</button>
     </div>
   </section>
 
-  <div class="divisor" id="divisor" role="separator" tabindex="0" aria-label="Cambiar el reparto entre mapa y código" aria-orientation="vertical"><span></span></div>
+  <div class="divisor" id="divisor" role="separator" tabindex="0" aria-label="Cambiar el reparto entre mapa y código" data-i18n-aria-label="juego.divisor.aria" aria-orientation="vertical"><span></span></div>
 
   <!-- ===== Código ===== -->
-  <section class="zona-codigo marco" id="zona-codigo" aria-label="Programa">
+  <section class="zona-codigo marco" id="zona-codigo" aria-label="Programa" data-i18n-aria-label="juego.programa.aria">
     <div class="cabecera-editor" id="cabecera-editor">
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" id="t-programa" aria-selected="true" aria-controls="v-programa" type="button">Programa</button>
-      <button class="tab" role="tab" id="t-registro" aria-selected="false" aria-controls="v-registro" type="button">Registro</button>
-      <button class="tab" role="tab" id="t-ayuda" aria-selected="false" aria-controls="v-ayuda" type="button">Órdenes</button>
+      <button class="tab" role="tab" id="t-programa" aria-selected="true" aria-controls="v-programa" type="button" data-i18n="juego.tab.programa">Programa</button>
+      <button class="tab" role="tab" id="t-registro" aria-selected="false" aria-controls="v-registro" type="button" data-i18n="juego.tab.registro">Registro</button>
+      <button class="tab" role="tab" id="t-ayuda" aria-selected="false" aria-controls="v-ayuda" type="button" data-i18n="juego.tab.ordenes">Órdenes</button>
       <button class="tab" role="tab" id="t-escenario" aria-selected="false" aria-controls="v-escenario" type="button">Escenario</button>
       <button class="mini plegar-barras" id="b-barras" type="button" aria-expanded="true" aria-controls="detalles-editor" aria-label="Plegar herramientas">▴</button>
     </div>
@@ -120,46 +120,46 @@
         <button class="btn primario ejecutar-cod" id="b-ejecutar-cod" type="button">▶ EJECUTAR</button>
         <div class="herramientas">
           <!-- Lenguaje del programa: <select> nativo (D7). Seudo y Bloques son vistas del JavaScript; juego.js rellena las opciones. -->
-          <select class="mini lenguaje" id="sel-lenguaje" aria-label="Lenguaje del programa" data-tip="Lenguaje del programa">
+          <select class="mini lenguaje" id="sel-lenguaje" aria-label="Lenguaje del programa" data-i18n-aria-label="juego.lenguaje.aria" data-tip="Lenguaje del programa" data-i18n-data-tip="juego.lenguaje.aria">
             <option value="js">JavaScript</option>
           </select>
           <button class="mini b-teclado" type="button" id="b-teclado" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"></button>
-          <button class="mini" type="button" id="b-colores" aria-pressed="true" data-tip="Colores del código">◐</button>
-          <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña" data-tip="Letra más pequeña">A−</button>
-          <button class="mini" type="button" id="b-mas" aria-label="Letra más grande" data-tip="Letra más grande">A+</button>
+          <button class="mini" type="button" id="b-colores" aria-pressed="true" data-tip="Colores del código" data-i18n-data-tip="juego.colores.codigo">◐</button>
+          <button class="mini" type="button" id="b-menos" aria-label="Letra más pequeña" data-i18n-aria-label="juego.letra.menor" data-tip="Letra más pequeña" data-i18n-data-tip="juego.letra.menor">A−</button>
+          <button class="mini" type="button" id="b-mas" aria-label="Letra más grande" data-i18n-aria-label="juego.letra.mayor" data-tip="Letra más grande" data-i18n-data-tip="juego.letra.mayor">A+</button>
         </div>
         <!-- Teléfono: barra superior mínima. Lenguaje, letra y colores pasan a Ajustes; Registro, Órdenes y
              Escenario, al menú ⋯; comentar, a la barra de inserción. Ninguno de estos botones quita el foco al código. -->
-        <div class="acciones-movil" role="group" aria-label="Acciones del código">
+        <div class="acciones-movil" role="group" aria-label="Acciones del código" data-i18n-aria-label="juego.acciones.codigo">
           <button class="mini b-ejecutar-movil" id="b-ejecutar-movil" type="button" aria-label="Ejecutar" data-tip="Ejecutar" data-tip-cod="Ctrl+Enter"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="ico-play" d="M8 5.2v13.6l10.6-6.8z" fill="currentColor"/><rect class="ico-stop" x="6.5" y="6.5" width="11" height="11" rx="1.6" fill="currentColor"/></svg></button>
           <button class="mini b-teclado" id="b-teclado-movil" type="button" aria-pressed="false" aria-label="Modo sin teclado" data-tip="Modo sin teclado"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12.5" rx="2.2"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M6.5 13.6h.01M17 13.6h.01M9.5 14.6h5"/><path class="tachado" d="M3.6 3.4l16.8 17.2"/></svg></button>
-          <button class="mini" id="b-mapa-movil" type="button" aria-label="Ver el mapa a pantalla completa" data-tip="Ver el mapa"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
+          <button class="mini" id="b-mapa-movil" type="button" aria-label="Ver el mapa a pantalla completa" data-i18n-aria-label="juego.mapa.pantalla_completa" data-tip="Ver el mapa" data-i18n-data-tip="juego.mapa.ver"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
           <button class="mini b-pantalla" id="b-pantalla-movil" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
-          <button class="mini b-menu-cod" id="b-menu-cod" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-cod" aria-label="Más opciones: registro, órdenes, escenario y ajustes" data-tip="Más opciones"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><circle cx="5.5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg></button>
+          <button class="mini b-menu-cod" id="b-menu-cod" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-cod" aria-label="Más opciones: registro, órdenes, escenario y ajustes" data-i18n-aria-label="juego.menu.aria" data-tip="Más opciones" data-i18n-data-tip="juego.menu.mas_opciones"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><circle cx="5.5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg></button>
         </div>
       </div>
       <div class="coordenadas-manuales">
-        <label for="coordenadas">Lugar manual</label>
+          <label for="coordenadas" data-i18n="juego.coordenadas.etiqueta">Lugar manual</label>
         <input id="coordenadas" data-coordenadas autocomplete="off" placeholder="{x: 16, y: 9, z: 0}" aria-describedby="coordenadas-pista">
-        <button class="btn chico" id="b-coordenadas" type="button">Insertar</button>
-        <span class="nota" id="coordenadas-pista">Activa el campo y haz doble clic o doble toque en el mapa.</span>
+          <button class="btn chico" id="b-coordenadas" type="button" data-i18n="juego.coordenadas.insertar">Insertar</button>
+          <span class="nota" id="coordenadas-pista" data-i18n="juego.coordenadas.pista">Activa el campo y haz doble clic o doble toque en el mapa.</span>
       </div>
     </div>
     </div>
     <!-- Pantalla completa: flota bajo el botón de las herramientas cuando el código ocupa la esquina superior derecha -->
     <button class="mini b-pantalla flotante" id="b-pantalla-cod" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
     <!-- Pantalla completa: vuelve directamente al mapa; flota bajo el botón de pantalla completa -->
-    <button class="mini ver-mapa flotante" id="b-ver-mapa" type="button" aria-label="Ver el mapa a pantalla completa" data-tip="Ver el mapa"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
+    <button class="mini ver-mapa flotante" id="b-ver-mapa" type="button" aria-label="Ver el mapa a pantalla completa" data-i18n-aria-label="juego.mapa.pantalla_completa" data-tip="Ver el mapa"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
 
     <section class="vista" id="v-programa" role="tabpanel" aria-labelledby="t-programa">
-      <div class="paleta" id="paleta" role="toolbar" aria-label="Insertar en el código"></div>
-      <div class="paleta paleta-seudo" id="paleta-seudo" role="toolbar" aria-label="Ladrillos de seudocódigo" hidden></div>
+      <div class="paleta" id="paleta" role="toolbar" aria-label="Insertar en el código" data-i18n-aria-label="juego.paleta.insertar"></div>
+      <div class="paleta paleta-seudo" id="paleta-seudo" role="toolbar" aria-label="Ladrillos de seudocódigo" data-i18n-aria-label="juego.paleta.bloques" hidden></div>
       <!-- Barra de edición: siempre en el teléfono; en PC, solo en modo sin teclado -->
-      <div class="barra-edicion" id="edicion" role="toolbar" aria-label="Edición"></div>
+      <div class="barra-edicion" id="edicion" role="toolbar" aria-label="Edición" data-i18n-aria-label="juego.edicion.aria"></div>
       <div class="fila-botones multi" id="acciones-multi" hidden>
         <span id="multi-estado" role="status"></span>
-        <button class="btn chico anadir" id="b-add" type="button" aria-describedby="multi-estado"><span class="ico" aria-hidden="true">+</span> Add <small>al final</small></button>
-        <button class="btn chico peligro" id="b-replace" type="button" aria-describedby="multi-estado">Replace <small>borra el anterior</small></button>
+        <button class="btn chico anadir" id="b-add" type="button" aria-describedby="multi-estado"><span class="ico" aria-hidden="true">+</span> <span data-i18n="juego.programa.add">Add</span> <small data-i18n="juego.programa.add.fin">al final</small></button>
+        <button class="btn chico peligro" id="b-replace" type="button" aria-describedby="multi-estado"><span data-i18n="juego.programa.replace">Replace</span> <small data-i18n="juego.programa.replace.detener">borra el anterior</small></button>
       </div>
       <div class="aviso" id="aviso" hidden></div>
       <!-- Las vistas comparten el anclaje de la ficha: sigue a mano en JS, Seudo y Bloques. -->
@@ -173,27 +173,27 @@
       </div>
         <!-- El objetivo del reto, a mano desde el código (en todos los modos). En el teléfono es una pestaña con
              una flecha en la esquina inferior derecha, sobre la barra de edición, y despliega la ficha como hoja. -->
-        <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Información del reto" data-tip="Información del reto"><svg class="ico-info" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg><svg class="ico-subir" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14.5l6-6 6 6"/></svg></button>
+        <button class="info-reto-abrir" id="b-info-reto" type="button" aria-expanded="false" aria-controls="info-reto" aria-label="Información del reto" data-i18n-aria-label="juego.info_reto.aria" data-tip="Información del reto" data-i18n-data-tip="juego.info_reto.aria"><svg class="ico-info" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.4v.1" stroke-width="2.6"/></svg><svg class="ico-subir" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14.5l6-6 6 6"/></svg></button>
         <div class="info-reto marco" id="info-reto" role="dialog" aria-labelledby="info-reto-titulo" hidden>
           <!-- Teléfono: asa para cambiar el alto de la hoja (se recuerda); llevarla hasta abajo la cierra -->
-          <div class="info-asa" id="info-asa" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="info-reto" aria-label="Alto de la ficha: arrastra o usa las flechas; hasta abajo la cierra"><span></span></div>
+          <div class="info-asa" id="info-asa" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="info-reto" aria-label="Alto de la ficha: arrastra o usa las flechas; hasta abajo la cierra" data-i18n-aria-label="juego.info_reto.asa"><span></span></div>
           <!-- Tira de pestañas: se desliza con el dedo, la rueda o arrastrando; las flechas avisan de que hay más -->
           <div class="info-cab">
             <div class="tira" id="info-tira">
               <button class="tira-flecha izq" type="button" tabindex="-1" aria-hidden="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6l-6 6 6 6"/></svg></button>
-              <div class="info-pestanas" id="info-pestanas" role="tablist" aria-label="Información del reto">
-              <button type="button" role="tab" id="info-t-objetivo" data-info="objetivo" aria-selected="true" aria-controls="info-cuerpo" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Objetivo</span><i class="estado" aria-hidden="true"></i></button>
+              <div class="info-pestanas" id="info-pestanas" role="tablist" aria-label="Información del reto" data-i18n-aria-label="juego.info_reto.aria">
+              <button type="button" role="tab" id="info-t-objetivo" data-info="objetivo" aria-selected="true" aria-controls="info-cuerpo" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span data-i18n="juego.info_reto.objetivo">Objetivo</span><i class="estado" aria-hidden="true"></i></button>
               <!-- Teléfono: el inspector del programa y la consola viven aquí (el panel inferior se retira para dar sitio al código). -->
-              <button type="button" role="tab" class="solo-movil" id="info-t-inspector" data-info="inspector" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4l5.1 5.1"/><path d="M8.6 8.4l-1.9 2.1 1.9 2.1M12.4 8.4l1.9 2.1-1.9 2.1"/></svg><span>Inspector</span><i class="estado" aria-hidden="true"></i></button>
-              <button type="button" role="tab" id="info-t-metas" data-info="metas" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.6 1.6L8.5 5"/><path d="M4 12.5l1.6 1.6 2.9-3.1"/><path d="M4.5 18h3.5"/><path d="M11 6.5h9M11 12.5h9M11 18h9"/></svg><span>Metas</span><i class="estado" aria-hidden="true"></i></button>
-              <button type="button" role="tab" id="info-t-enemigos" data-info="enemigos" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="9" width="13" height="7" rx="2"/><path d="M4 18.5h16"/><path d="M8.5 9V7.5M15.5 9V7.5"/><circle cx="9.5" cy="12.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="12.5" r=".9" fill="currentColor"/></svg><span>Enemigos</span><i class="estado" aria-hidden="true"></i></button>
-              <button type="button" role="tab" id="info-t-pista" data-info="pista" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.5h6M10 20.5h4"/><path d="M12 3.5a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V17h5.2v-.7c0-.8.4-1.5 1-2A6 6 0 0 0 12 3.5z"/></svg><span>Pista</span><i class="estado" aria-hidden="true"></i></button>
-              <button type="button" role="tab" id="info-t-intento" data-info="intento" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v3.8h3.8"/><path d="M12 8v4.3l2.8 1.7"/></svg><span>Último intento</span><i class="estado" aria-hidden="true"></i></button>
-              <button type="button" role="tab" class="solo-movil" id="info-t-consola" data-info="consola" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15h4.5"/></svg><span>Consola</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" class="solo-movil" id="info-t-inspector" data-info="inspector" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4l5.1 5.1"/><path d="M8.6 8.4l-1.9 2.1 1.9 2.1M12.4 8.4l1.9 2.1-1.9 2.1"/></svg><span data-i18n="juego.info_reto.inspector">Inspector</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-metas" data-info="metas" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.6 1.6L8.5 5"/><path d="M4 12.5l1.6 1.6 2.9-3.1"/><path d="M4.5 18h3.5"/><path d="M11 6.5h9M11 12.5h9M11 18h9"/></svg><span data-i18n="juego.info_reto.metas">Metas</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-enemigos" data-info="enemigos" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="9" width="13" height="7" rx="2"/><path d="M4 18.5h16"/><path d="M8.5 9V7.5M15.5 9V7.5"/><circle cx="9.5" cy="12.5" r=".9" fill="currentColor"/><circle cx="14.5" cy="12.5" r=".9" fill="currentColor"/></svg><span data-i18n="juego.info_reto.enemigos">Enemigos</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-pista" data-info="pista" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.5h6M10 20.5h4"/><path d="M12 3.5a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V17h5.2v-.7c0-.8.4-1.5 1-2A6 6 0 0 0 12 3.5z"/></svg><span data-i18n="juego.info_reto.pista">Pista</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" id="info-t-intento" data-info="intento" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v3.8h3.8"/><path d="M12 8v4.3l2.8 1.7"/></svg><span data-i18n="juego.info_reto.ultimo_intento">Último intento</span><i class="estado" aria-hidden="true"></i></button>
+              <button type="button" role="tab" class="solo-movil" id="info-t-consola" data-info="consola" aria-selected="false" aria-controls="info-cuerpo" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15h4.5"/></svg><span data-i18n="juego.info_reto.consola">Consola</span><i class="estado" aria-hidden="true"></i></button>
               </div>
               <button class="tira-flecha der" type="button" tabindex="-1" aria-hidden="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg></button>
             </div>
-            <button class="cerrar" id="info-reto-cerrar" type="button" aria-label="Cerrar"><span class="x" aria-hidden="true">×</span><svg class="ico-bajar" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg></button>
+            <button class="cerrar" id="info-reto-cerrar" type="button" aria-label="Cerrar" data-i18n-aria-label="juego.accion.cerrar"><span class="x" aria-hidden="true">×</span><svg class="ico-bajar" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg></button>
           </div>
           <h3 id="info-reto-titulo"></h3>
           <div class="info-cuerpo" id="info-cuerpo" role="tabpanel"></div>
@@ -202,22 +202,22 @@
       <!-- Panel inferior: inspector del programa (por defecto) o consola. Su barra se arrastra como el divisor. -->
       <div class="pie" id="pie" data-abierto="true" data-modo="inspector">
         <div class="pie-barra" id="pie-barra">
-          <span class="pie-modos" role="group" aria-label="Contenido del panel">
-            <button type="button" data-pie-modo="inspector" aria-pressed="true">Inspector</button>
-            <button type="button" data-pie-modo="consola" aria-pressed="false">Consola<i class="nuevo" aria-hidden="true"></i></button>
+          <span class="pie-modos" role="group" aria-label="Contenido del panel" data-i18n-aria-label="juego.panel.inferior.aria">
+            <button type="button" data-pie-modo="inspector" aria-pressed="true" data-i18n="juego.panel.inspector">Inspector</button>
+            <button type="button" data-pie-modo="consola" aria-pressed="false"><span data-i18n="juego.panel.consola">Consola</span><i class="nuevo" aria-hidden="true"></i></button>
           </span>
-          <span class="pie-agarre" id="pie-agarre" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="pie-cuerpo" aria-label="Alto del panel inferior: arrastra o usa las flechas"><span></span></span>
+          <span class="pie-agarre" id="pie-agarre" role="separator" tabindex="0" aria-orientation="horizontal" aria-controls="pie-cuerpo" aria-label="Alto del panel inferior: arrastra o usa las flechas" data-i18n-aria-label="juego.panel.inferior.asa"><span></span></span>
           <button class="mini pie-asa" id="b-pie" type="button" aria-expanded="true" aria-controls="pie-cuerpo" aria-label="Cerrar el panel" data-tip="Cerrar el panel">▾</button>
         </div>
         <div class="pie-cuerpo" id="pie-cuerpo">
-        <div class="pie-ins" id="pie-ins" aria-label="Lo que el programa puede usar"></div>
+        <div class="pie-ins" id="pie-ins" aria-label="Lo que el programa puede usar" data-i18n-aria-label="juego.panel.inspector.aria"></div>
         <div class="pie-con" id="pie-con">
         <div class="consola" id="consola" aria-live="polite"><div class="vacia">Aquí aparecen los console.log / warn / error y lo que reportan las máquinas.</div></div>
         <details class="caja" id="caja-avisos">
-          <summary>Cómo se muestra cada console</summary>
+          <summary data-i18n="juego.consola.como_se_muestra">Cómo se muestra cada console</summary>
           <div class="dentro">
             <div class="ruteo" id="ruteo"></div>
-            <div class="fila-bajo"><span>Globo: sale de la máquina que corre el programa. Pantalla: aviso grande arriba del campo, con un enlace que centra la cámara en esa máquina.</span></div>
+            <div class="fila-bajo"><span data-i18n="juego.consola.globo_pantalla">Globo: sale de la máquina que corre el programa. Pantalla: aviso grande arriba del campo, con un enlace que centra la cámara en esa máquina.</span></div>
           </div>
         </details>
         <div class="fila-bajo">
@@ -236,19 +236,19 @@
       <div class="resumen" id="resumen"></div>
       <div class="tabla-wrap">
         <table>
-          <thead><tr><th>t (s)</th><th>Máquina</th><th>Línea</th><th>Qué</th><th>Resultado</th></tr></thead>
+          <thead><tr><th>t (s)</th><th data-i18n="juego.registro.maquina">Máquina</th><th data-i18n="juego.registro.linea">Línea</th><th data-i18n="juego.registro.que">Qué</th><th data-i18n="juego.registro.resultado">Resultado</th></tr></thead>
           <tbody id="eventos"></tbody>
         </table>
       </div>
-      <div class="fila-bajo"><span>Registro del último intento, como la tabla <span class="r">eventos</span> del juego. Las lecturas de sensores aparecen en gris.</span></div>
+      <div class="fila-bajo"><span><span data-i18n="juego.registro.descripcion.antes">Registro del último intento, como la tabla</span> <span class="r">eventos</span> <span data-i18n="juego.registro.descripcion.despues">del juego. Las lecturas de sensores aparecen en gris.</span></span></div>
       <div class="fila-botones">
-        <button class="btn chico" id="b-copiar" type="button">Copiar telemetría (JSON)</button>
+        <button class="btn chico" id="b-copiar" type="button" data-i18n="juego.registro.copiar">Copiar telemetría (JSON)</button>
         <button class="btn chico" id="b-borrar" type="button">Borrar telemetría</button>
         <span id="copiado" class="fila-bajo" hidden>Copiada.</span>
       </div>
       <details class="caja">
-        <summary>Ver JSON</summary>
-        <div class="dentro"><textarea class="json" id="json" readonly aria-label="Telemetría en JSON"></textarea></div>
+        <summary data-i18n="juego.registro.ver_json">Ver JSON</summary>
+        <div class="dentro"><textarea class="json" id="json" readonly aria-label="Telemetría en JSON" data-i18n-aria-label="juego.registro.json.aria"></textarea></div>
       </details>
     </section>
 
@@ -261,7 +261,7 @@
   </section>
 
   <!-- Barra de símbolos sobre el teclado del teléfono -->
-  <div class="simbolos" id="simbolos" role="toolbar" aria-label="Símbolos y palabras clave" hidden></div>
+  <div class="simbolos" id="simbolos" role="toolbar" aria-label="Símbolos y palabras clave" data-i18n-aria-label="juego.simbolos.aria" hidden></div>
   <!-- Teclado simulado (solo dentro de probar.html) -->
   <div class="teclado-sim" id="teclado-sim" aria-hidden="true" hidden></div>
 </div>
@@ -270,35 +270,35 @@
 
 <dialog id="ajustes" class="ajustes" aria-labelledby="ajustes-titulo">
   <header class="hoja-cab">
-    <h2 id="ajustes-titulo">Ajustes</h2>
-    <button class="cerrar" id="ajustes-cerrar" type="button" aria-label="Cerrar ajustes" autofocus>×</button>
+    <h2 id="ajustes-titulo" data-i18n="ajustes.titulo">Ajustes</h2>
+    <button class="cerrar" id="ajustes-cerrar" type="button" aria-label="Cerrar ajustes" data-i18n-aria-label="ajustes.cerrar" autofocus>×</button>
   </header>
-  <nav class="fila-botones" aria-label="Navegación"><a class="btn chico" href="../../index.html">← Cambiar de juego</a></nav>
+  <nav class="fila-botones" aria-label="Navegación" data-i18n-aria-label="ajustes.navegacion"><a class="btn chico" href="../../index.html">← <span data-i18n="ajustes.cambiar_juego">Cambiar de juego</span></a></nav>
   <section>
-    <h3>Idioma</h3>
-    <div class="seg" role="group" aria-label="Idioma de la interfaz">
-      <button class="btn chico" type="button" aria-pressed="true" disabled>Español</button>
-      <button class="btn chico" type="button" aria-pressed="false" disabled>English</button>
+    <h3 data-i18n="ajustes.idioma">Idioma</h3>
+    <div class="seg" role="group" aria-label="Idioma de la interfaz" data-i18n-aria-label="ajustes.idioma_interfaz">
+      <button class="btn chico" type="button" data-idioma-interfaz="es" aria-pressed="true" data-i18n="ajustes.espanol">Español</button>
+      <button class="btn chico" type="button" data-idioma-interfaz="en" aria-pressed="false" data-i18n="ajustes.ingles">English</button>
     </div>
-    <p class="nota">La interfaz está en español. El cambio de idioma estará disponible más adelante.</p>
+    <p class="nota" data-i18n="ajustes.nota_idioma">La portada, Ajustes y los controles principales están traducidos. Algunos contenidos y ayudas del juego siguen pendientes.</p>
   </section>
   <section>
-    <h3>Lenguaje del programa</h3>
-    <div class="seg" role="group" aria-label="Lenguaje del programa">
-      <button class="btn chico" type="button" data-modo-codigo="bloques" hidden aria-pressed="false">Bloques</button>
-      <button class="btn chico" type="button" data-modo-codigo="pseudo" aria-pressed="false">Seudocódigo</button>
-      <button class="btn chico" type="button" data-modo-codigo="js" aria-pressed="true">JavaScript</button>
-      <button class="btn chico" type="button" data-lenguaje-programa="python" aria-pressed="false" disabled>Python</button>
+    <h3 data-i18n="ajustes.lenguaje_programa">Lenguaje del programa</h3>
+    <div class="seg" role="group" aria-label="Lenguaje del programa" data-i18n-aria-label="ajustes.lenguaje_programa">
+      <button class="btn chico" type="button" data-modo-codigo="bloques" hidden aria-pressed="false" data-i18n="ajustes.bloques">Bloques</button>
+      <button class="btn chico" type="button" data-modo-codigo="pseudo" aria-pressed="false" data-i18n="ajustes.seudocodigo">Seudocódigo</button>
+      <button class="btn chico" type="button" data-modo-codigo="js" aria-pressed="true" data-i18n="ajustes.javascript">JavaScript</button>
+      <button class="btn chico" type="button" data-lenguaje-programa="python" aria-pressed="false" disabled data-i18n="ajustes.python">Python</button>
     </div>
-    <p class="nota">El seudocódigo es otra vista del mismo programa: se guarda y se ejecuta como JavaScript. Lo que todavía no tiene seudocódigo se queda en JavaScript. Python es otro lenguaje: al elegirlo, el programa JavaScript se convierte si cabe y se conserva; Python se traduce y corre en el mismo motor.</p>
-    <div class="seg" role="group" aria-label="Idioma del seudocódigo">
-      <button class="btn chico" type="button" data-idioma-seudo="es" aria-pressed="true">Seudocódigo en español</button>
-      <button class="btn chico" type="button" data-idioma-seudo="en" aria-pressed="false">In English</button>
+    <p class="nota" data-i18n="ajustes.nota_lenguaje_programa">El seudocódigo es otra vista del mismo programa: se guarda y se ejecuta como JavaScript. Lo que todavía no tiene seudocódigo se queda en JavaScript. Python es otro lenguaje: al elegirlo, el programa JavaScript se convierte si cabe y se conserva; Python se traduce y corre en el mismo motor.</p>
+    <div class="seg" role="group" aria-label="Idioma del seudocódigo" data-i18n-aria-label="ajustes.idioma_seudocodigo">
+      <button class="btn chico" type="button" data-idioma-seudo="es" aria-pressed="true" data-i18n="ajustes.seudocodigo_espanol">Seudocódigo en español</button>
+      <button class="btn chico" type="button" data-idioma-seudo="en" aria-pressed="false" data-i18n="ajustes.seudocodigo_ingles">In English</button>
     </div>
   </section>
   <section>
-    <h3>Editor</h3>
-    <p id="ajustes-letra-titulo">Tamaño de la letra del código</p>
+    <h3 data-i18n="ajustes.editor">Editor</h3>
+    <p id="ajustes-letra-titulo" data-i18n="ajustes.tamano_letra">Tamaño de la letra del código</p>
     <div class="seg" id="ajustes-letra" role="group" aria-labelledby="ajustes-letra-titulo">
       <button class="btn chico" type="button" data-letra="12" aria-pressed="false">12</button>
       <button class="btn chico" type="button" data-letra="13" aria-pressed="false">13</button>
@@ -306,72 +306,72 @@
       <button class="btn chico" type="button" data-letra="16" aria-pressed="false">16</button>
       <button class="btn chico" type="button" data-letra="18" aria-pressed="false">18</button>
     </div>
-    <label class="check"><input type="checkbox" id="ajustes-colores" checked> Colores del código</label>
-    <p class="nota">En el teléfono, el lenguaje, la letra y los colores se eligen aquí. La barra del código deja solo ejecutar, comentar, el mapa, la pantalla completa y el menú ⋯ (registro, órdenes, escenario, modo sin teclado y estos ajustes).</p>
+    <label class="check"><input type="checkbox" id="ajustes-colores" checked> <span data-i18n="ajustes.colores_codigo">Colores del código</span></label>
+    <p class="nota" data-i18n="ajustes.nota_editor_movil">En el teléfono, el lenguaje, la letra y los colores se eligen aquí. La barra del código deja solo ejecutar, comentar, el mapa, la pantalla completa y el menú ⋯ (registro, órdenes, escenario, modo sin teclado y estos ajustes).</p>
   </section>
   <section>
-    <h3>Edición sin teclado</h3>
-    <p class="nota">El botón con el teclado (⌨) cambia entre escribir y editar por bloques. Sin teclado, un toque elige un elemento entero (textos con sus comillas, comentarios completos), el doble toque amplía la selección y arrastrar copia un valor sobre un hueco o mueve líneas.</p>
-    <label class="ajuste-campo">Asa para mover líneas
+    <h3 data-i18n="ajustes.edicion_sin_teclado">Edición sin teclado</h3>
+    <p class="nota" data-i18n="ajustes.nota_edicion_sin_teclado">El botón con el teclado (⌨) cambia entre escribir y editar por bloques. Sin teclado, un toque elige un elemento entero (textos con sus comillas, comentarios completos), el doble toque amplía la selección y arrastrar copia un valor sobre un hueco o mueve líneas.</p>
+    <label class="ajuste-campo"><span data-i18n="ajustes.asa_lineas">Asa para mover líneas</span>
       <select id="ajustes-asa">
-        <option value="numero">En el número de línea</option>
-        <option value="borde">En el borde derecho</option>
+        <option value="numero" data-i18n="ajustes.asa_numero">En el número de línea</option>
+        <option value="borde" data-i18n="ajustes.asa_borde">En el borde derecho</option>
       </select>
     </label>
-    <p>Barra de edición</p>
-    <button class="btn chico" id="ajustes-orden-barra" type="button" aria-haspopup="dialog" aria-controls="orden-barra">Ordenar botones y grupos…</button>
+    <p data-i18n="ajustes.barra_edicion">Barra de edición</p>
+    <button class="btn chico" id="ajustes-orden-barra" type="button" aria-haspopup="dialog" aria-controls="orden-barra" data-i18n="ajustes.ordenar_botones">Ordenar botones y grupos…</button>
   </section>
   <section>
-    <h3>Confirmaciones</h3>
-    <label class="check"><input type="checkbox" id="ajustes-confirmar"> Confirmar antes de sustituir programas con Replace</label>
+    <h3 data-i18n="ajustes.confirmaciones">Confirmaciones</h3>
+    <label class="check"><input type="checkbox" id="ajustes-confirmar"> <span data-i18n="ajustes.confirmar_replace">Confirmar antes de sustituir programas con Replace</span></label>
   </section>
   <section>
-    <h3>Pantalla</h3>
-    <label class="ajuste-campo">1. Distribución de los paneles
+    <h3 data-i18n="ajustes.pantalla">Pantalla</h3>
+    <label class="ajuste-campo"><span data-i18n="ajustes.distribucion_paneles">1. Distribución de los paneles</span>
       <select id="ajustes-orientacion" aria-describedby="ajustes-orientacion-nota">
-        <option value="auto">Automática (según la pantalla)</option>
-        <option value="horizontal">Izquierda y derecha</option>
-        <option value="vertical">Arriba y abajo</option>
+        <option value="auto" data-i18n="ajustes.distribucion_auto">Automática (según la pantalla)</option>
+        <option value="horizontal" data-i18n="ajustes.distribucion_horizontal">Izquierda y derecha</option>
+        <option value="vertical" data-i18n="ajustes.distribucion_vertical">Arriba y abajo</option>
       </select>
     </label>
     <p class="nota" id="ajustes-orientacion-nota"></p>
-    <p>2. Posición del mapa</p>
+    <p data-i18n="ajustes.posicion_mapa">2. Posición del mapa</p>
     <div class="pantalla-posiciones">
       <div>
-        <label class="ajuste-campo">Paneles lado a lado
+        <label class="ajuste-campo"><span data-i18n="ajustes.paneles_lado_lado">Paneles lado a lado</span>
           <select id="ajustes-primero-horizontal" aria-describedby="ajustes-posicion-nota">
-            <option value="mapa">Mapa a la izquierda</option>
-            <option value="codigo">Mapa a la derecha</option>
+            <option value="mapa" data-i18n="ajustes.mapa_izquierda">Mapa a la izquierda</option>
+            <option value="codigo" data-i18n="ajustes.mapa_derecha">Mapa a la derecha</option>
           </select>
         </label>
         <div class="pantalla-previa" id="ajustes-previa-horizontal" data-eje="horizontal" role="img" aria-label="Mapa a la izquierda, código a la derecha">
-          <span class="previa-mapa">Mapa</span><span class="previa-codigo">Código</span>
+          <span class="previa-mapa" data-i18n="ajustes.mapa">Mapa</span><span class="previa-codigo" data-i18n="ajustes.codigo">Código</span>
         </div>
       </div>
       <div>
-        <label class="ajuste-campo">Paneles arriba y abajo
+        <label class="ajuste-campo"><span data-i18n="ajustes.paneles_arriba_abajo">Paneles arriba y abajo</span>
           <select id="ajustes-primero-vertical" aria-describedby="ajustes-posicion-nota">
-            <option value="mapa">Mapa arriba</option>
-            <option value="codigo">Mapa abajo</option>
+            <option value="mapa" data-i18n="ajustes.mapa_arriba">Mapa arriba</option>
+            <option value="codigo" data-i18n="ajustes.mapa_abajo">Mapa abajo</option>
           </select>
         </label>
         <div class="pantalla-previa" id="ajustes-previa-vertical" data-eje="vertical" role="img" aria-label="Mapa arriba, código abajo">
-          <span class="previa-mapa">Mapa</span><span class="previa-codigo">Código</span>
+          <span class="previa-mapa" data-i18n="ajustes.mapa">Mapa</span><span class="previa-codigo" data-i18n="ajustes.codigo">Código</span>
         </div>
       </div>
     </div>
-    <p class="nota" id="ajustes-posicion-nota">Ambas posiciones se guardan por separado. Automática usa la que corresponde al tamaño de la pantalla.</p>
-    <label class="check"><input type="checkbox" id="ajustes-coordenadas"> Mostrar coordenadas manuales</label>
-    <label class="check"><input type="checkbox" id="ajustes-telemetria" checked> Enviar datos anónimos de uso (retos, intentos y su código) para mejorar el juego</label>
+    <p class="nota" id="ajustes-posicion-nota" data-i18n="ajustes.nota_posiciones">Ambas posiciones se guardan por separado. Automática usa la que corresponde al tamaño de la pantalla.</p>
+    <label class="check"><input type="checkbox" id="ajustes-coordenadas"> <span data-i18n="ajustes.coordenadas_manuales">Mostrar coordenadas manuales</span></label>
+    <label class="check"><input type="checkbox" id="ajustes-telemetria" checked> <span data-i18n="ajustes.telemetria">Enviar datos anónimos de uso (retos, intentos y su código) para mejorar el juego</span></label>
     <div class="ajuste-pantalla" id="ajustes-pantalla">
-      <p>Modo pantalla completa <span class="estado" id="ajustes-pantalla-estado">inactivo</span></p>
-      <p class="nota">Para tabletas y teléfonos: salta de la batalla al código con un toque. Se activa y se desactiva manteniendo pulsado 2 segundos el botón de las cuatro esquinas.</p>
-      <label class="check"><input type="checkbox" id="ajustes-girar-campo" checked> Con la pantalla en vertical, girar el campo 90°</label>
-      <button class="btn chico" id="ajustes-pantalla-info" type="button" aria-haspopup="dialog" aria-controls="info-pantalla">¿Cómo funciona?</button>
+      <p><span data-i18n="ajustes.pantalla_completa">Modo pantalla completa</span> <span class="estado" id="ajustes-pantalla-estado">inactivo</span></p>
+      <p class="nota" data-i18n="ajustes.nota_pantalla_completa">Para tabletas y teléfonos: salta de la batalla al código con un toque. Se activa y se desactiva manteniendo pulsado 2 segundos el botón de las cuatro esquinas.</p>
+      <label class="check"><input type="checkbox" id="ajustes-girar-campo" checked> <span data-i18n="ajustes.girar_campo">Con la pantalla en vertical, girar el campo 90°</span></label>
+      <button class="btn chico" id="ajustes-pantalla-info" type="button" aria-haspopup="dialog" aria-controls="info-pantalla" data-i18n="ajustes.como_funciona">¿Cómo funciona?</button>
     </div>
-    <p>Arrastra el divisor hasta un extremo para ver solo el mapa o solo el código. Arrástralo de vuelta para recuperar ambos.</p>
-    <button class="btn chico" id="ajustes-reparto" type="button">Restaurar reparto de pantalla</button>
-    <p class="nota">También puedes hacer doble clic en el divisor para restaurar el reparto.</p>
+    <p data-i18n="ajustes.uso_divisor">Arrastra el divisor hasta un extremo para ver solo el mapa o solo el código. Arrástralo de vuelta para recuperar ambos.</p>
+    <button class="btn chico" id="ajustes-reparto" type="button" data-i18n="ajustes.restaurar_reparto">Restaurar reparto de pantalla</button>
+    <p class="nota" data-i18n="ajustes.nota_doble_clic">También puedes hacer doble clic en el divisor para restaurar el reparto.</p>
   </section>
 </dialog>
 
@@ -379,42 +379,44 @@
 <dialog id="orden-barra" class="ajustes orden-barra" aria-labelledby="orden-titulo">
   <header class="hoja-cab">
     <h2 id="orden-titulo">Barra de edición</h2>
-    <button class="cerrar" id="orden-cerrar" type="button" aria-label="Cerrar">×</button>
+  <button class="cerrar" id="orden-cerrar" type="button" aria-label="Cerrar" data-i18n-aria-label="juego.accion.cerrar">×</button>
   </header>
-  <p class="nota">Arrastra un botón para cambiarlo de sitio o llevarlo a otro grupo. Arrastra el asa ⋮⋮ de un grupo para mover el grupo entero. Suelta un botón en «Grupo nuevo» para separarlo.</p>
+  <p class="nota" data-i18n="juego.orden_barra.instrucciones">Arrastra un botón para cambiarlo de sitio o llevarlo a otro grupo. Arrastra el asa ⋮⋮ de un grupo para mover el grupo entero. Suelta un botón en «Grupo nuevo» para separarlo.</p>
   <div class="orden-grupos" id="orden-grupos"></div>
-  <div class="fila-botones"><button class="btn chico" id="orden-restaurar" type="button">Restaurar el orden de fábrica</button></div>
+  <div class="fila-botones"><button class="btn chico" id="orden-restaurar" type="button" data-i18n="juego.orden_barra.restaurar">Restaurar el orden de fábrica</button></div>
 </dialog>
 
 <!-- Explicación del modo pantalla completa (se abre desde Ajustes o desde el aviso) -->
 <dialog id="info-pantalla" class="ajustes info-pantalla" aria-labelledby="info-pantalla-titulo">
   <header class="hoja-cab">
-    <h2 id="info-pantalla-titulo">Modo pantalla completa</h2>
-    <button class="cerrar" id="info-pantalla-cerrar" type="button" aria-label="Cerrar" autofocus>×</button>
+    <h2 id="info-pantalla-titulo" data-i18n="juego.pantalla.titulo">Modo pantalla completa</h2>
+    <button class="cerrar" id="info-pantalla-cerrar" type="button" aria-label="Cerrar" data-i18n-aria-label="juego.accion.cerrar" autofocus>×</button>
   </header>
-  <p>Pensado para tabletas y teléfonos: la batalla y el código ocupan, cada uno, toda la pantalla, y se pasa de uno a otro con un toque.</p>
+  <p data-i18n="juego.pantalla.intro">Pensado para tabletas y teléfonos: la batalla y el código ocupan, cada uno, toda la pantalla, y se pasa de uno a otro con un toque.</p>
   <ul class="info-lista">
-    <li><b>Activar o desactivar:</b> mantén pulsado 2 segundos el botón de las cuatro esquinas, arriba a la derecha. El círculo se llena mientras mantienes el dedo. Con el modo activo, el icono brilla en blanco.</li>
-    <li><b>De la batalla al código:</b> el botón <code>&lt;/&gt;</code>, junto a Ajustes, pone el editor a pantalla completa.</li>
-    <li><b>Del código a la batalla:</b> <b>▶ EJECUTAR</b>, en lugar de las pestañas de programas, corre el código, muestra la batalla y cierra el inspector si estaba abierto. El botón del mapa, que flota bajo el de pantalla completa, vuelve a la batalla sin ejecutar.</li>
-    <li><b>Campo girado:</b> con la pantalla en vertical, la batalla se gira 90° para aprovechar el alto: la base queda abajo y los enemigos llegan desde arriba. Al girar el teléfono a horizontal vuelve la vista normal. Cada postura recuerda dónde dejaste la cámara. Se desactiva en Ajustes.</li>
-    <li><b>El divisor sigue funcionando:</b> arrástralo para ver ambos paneles; los botones vuelven a llevarte a pantalla completa mientras el modo siga activo.</li>
+    <li><b data-i18n="juego.pantalla.activar.titulo">Activar o desactivar:</b> <span data-i18n="juego.pantalla.activar.texto">mantén pulsado 2 segundos el botón de las cuatro esquinas, arriba a la derecha. El círculo se llena mientras mantienes el dedo. Con el modo activo, el icono brilla en blanco.</span></li>
+    <li><b data-i18n="juego.pantalla.mapa_codigo.titulo">De la batalla al código:</b> <span data-i18n="juego.pantalla.mapa_codigo.texto">el botón</span> <code>&lt;/&gt;</code><span data-i18n="juego.pantalla.mapa_codigo.ajustes">, junto a Ajustes, pone el editor a pantalla completa.</span></li>
+    <li><b data-i18n="juego.pantalla.codigo_mapa.titulo">Del código a la batalla:</b> <b data-i18n="juego.pantalla.ejecutar">▶ EJECUTAR</b><span data-i18n="juego.pantalla.codigo_mapa.texto">, en lugar de las pestañas de programas, corre el código, muestra la batalla y cierra el inspector si estaba abierto. El botón del mapa, que flota bajo el de pantalla completa, vuelve a la batalla sin ejecutar.</span></li>
+    <li><b data-i18n="juego.pantalla.campo_girado.titulo">Campo girado:</b> <span data-i18n="juego.pantalla.campo_girado.texto">con la pantalla en vertical, la batalla se gira 90° para aprovechar el alto: la base queda abajo y los enemigos llegan desde arriba. Al girar el teléfono a horizontal vuelve la vista normal. Cada postura recuerda dónde dejaste la cámara. Se desactiva en Ajustes.</span></li>
+    <li><b data-i18n="juego.pantalla.divisor.titulo">El divisor sigue funcionando:</b> <span data-i18n="juego.pantalla.divisor.texto">arrástralo para ver ambos paneles; los botones vuelven a llevarte a pantalla completa mientras el modo siga activo.</span></li>
   </ul>
-  <p class="nota">El botón solo aparece en pantallas de tableta o teléfono.</p>
+  <p class="nota" data-i18n="juego.pantalla.nota">El botón solo aparece en pantallas de tableta o teléfono.</p>
 </dialog>
 
 <dialog id="confirmar-replace" aria-labelledby="replace-titulo" aria-describedby="replace-texto">
   <form method="dialog">
-    <h2 id="replace-titulo">¿Sustituir los programas?</h2>
+    <h2 id="replace-titulo" data-i18n="juego.replace.titulo">¿Sustituir los programas?</h2>
     <p id="replace-texto"></p>
-    <label class="check"><input type="checkbox" id="replace-no-preguntar"> No preguntar otra vez</label>
+    <label class="check"><input type="checkbox" id="replace-no-preguntar"> <span data-i18n="juego.replace.no_preguntar">No preguntar otra vez</span></label>
     <div class="fila-botones">
-      <button class="btn chico" value="cancelar" autofocus>Cancelar</button>
-      <button class="btn chico peligro" value="reemplazar">Replace</button>
+      <button class="btn chico" value="cancelar" autofocus data-i18n="juego.accion.cancelar">Cancelar</button>
+      <button class="btn chico peligro" value="reemplazar" data-i18n="juego.programa.replace">Replace</button>
     </div>
   </form>
 </dialog>
 
+<script src="../../shared/i18n/i18n.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/ajustes.js?v=2" charset="utf-8"></script>
 <script src="../../shared/vendor/three-r128.min.js"></script>
 <script src="../../shared/vendor/acorn-8.11.3.js"></script>
 <script src="../../shared/js/iconos.js?v=6" charset="utf-8"></script>
@@ -427,6 +429,9 @@
 <script src="../../shared/python/traductor.js?v=1" charset="utf-8"></script>
 <script src="../../shared/python/desde-js.js?v=2" charset="utf-8"></script>
 <script src="js/runtime.js?v=4" charset="utf-8"></script>
+<script src="../../shared/i18n/juego-estatico.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/juego-dinamico.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/disposicion.js?v=1" charset="utf-8"></script>
 <script src="js/vistas.js?v=2" charset="utf-8"></script>
 <script src="js/factory-3d.js?v=2" charset="utf-8"></script>
 <script src="js/factory-form.js?v=1" charset="utf-8"></script>
@@ -448,8 +453,8 @@
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=5" charset="utf-8"></script>
-<script src="js/juego.js?v=38" charset="utf-8"></script>
-<script src="js/layout.js?v=17" charset="utf-8"></script>
+<script src="js/juego.js?v=39" charset="utf-8"></script>
+<script src="js/layout.js?v=19" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
 <script>
   addEventListener("load", () => {

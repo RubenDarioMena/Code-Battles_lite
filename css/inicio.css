@@ -7,13 +7,17 @@ a:focus-visible { outline: 3px solid #e4be68; outline-offset: 5px; }
 .cabecera { display: flex; gap: 20px; justify-content: space-between; align-items: center; padding-block: 28px; border-bottom: 1px solid var(--linea); }
 .marca { display: flex; gap: 9px; align-items: center; font-size: 15px; letter-spacing: -.025em; }
 .marca b { color: #8bd4b8; font-weight: 400; }
+.selector-idioma { display: inline-flex; flex: 0 0 auto; padding: 3px; gap: 2px; border: 1px solid var(--linea); border-radius: 7px; }
+.selector-idioma button { min-width: 35px; border: 0; border-radius: 4px; padding: 5px 7px; color: var(--suave); background: transparent; font: 700 10px ui-monospace, SFMono-Regular, Consolas, monospace; cursor: pointer; }
+.selector-idioma button[aria-pressed="true"] { color: #101b19; background: #94d8bd; }
+.selector-idioma button:focus-visible { outline: 2px solid #e4be68; outline-offset: 2px; }
 .sello { font: 700 12px ui-monospace, monospace; color: #101b19; background: #94d8bd; padding: 9px 7px; border-radius: 3px; margin-right: 5px; }
 .etiqueta, .ceja, .cuadro-top, .cuadro-pie, footer { font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--suave); }
 .etiqueta { letter-spacing: .06em; }
 main { padding-block: clamp(38px, 7vh, 76px) 64px; }
 .ceja { text-transform: uppercase; letter-spacing: .18em; color: #8bd4b8; margin: 0 0 20px; }
 h1 { font-size: clamp(35px, 4.4vw, 59px); line-height: 1.07; letter-spacing: -.055em; font-weight: 650; margin: 0; }
-h1 span { color: #91a19f; }
+h1 .titulo-secundario { color: #91a19f; }
 .intro { color: #adbbb9; font-size: 15px; line-height: 1.6; margin: 23px 0 39px; }
 .modos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .cuadro { --acento: #88d3b2; min-width: 0; display: flex; flex-direction: column; padding: 22px; border: 1px solid #34443f; border-radius: 12px; background: linear-gradient(140deg, #192620, #10191a 75%); transition: border-color .18s, transform .18s; }
@@ -31,7 +35,7 @@ h1 span { color: #91a19f; }
 .ilustracion .trayectoria, .ilustracion .objetivo { opacity: .6; }
 .campaign .ilustracion { opacity: .55; }
 h2 { display: flex; justify-content: space-between; align-items: center; font-size: 30px; font-weight: 600; letter-spacing: -.035em; margin: 0 0 12px; }
-h2 span { color: var(--acento); font-size: 23px; }
+h2 > span[aria-hidden="true"] { color: var(--acento); font-size: 23px; }
 .cuadro p { flex: 1; font-size: 14px; line-height: 1.6; color: #acb8b8; margin: 0 0 30px; max-width: 32ch; }
 .cuadro-pie { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px 5px; border-top: 1px solid #ffffff15; padding-top: 16px; font-size: 10px; }
 .cuadro-pie span:last-child { color: var(--acento); white-space: nowrap; }
@@ -40,5 +44,5 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16
 .proximamente { min-height: 66svh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .volver { margin-top: 30px; border: 1px solid #53615b; border-radius: 6px; padding: 12px 18px; font-size: 14px; }
 @media (max-width: 850px) { .cabecera, main, footer { width: calc(100% - 40px); } .modos { gap: 12px; } .cuadro { padding: 17px; } .cuadro-top { line-height: 1.5; } }
-@media (max-width: 650px) { .etiqueta { display: none; } .cabecera { padding-block: 18px; } main { padding-block: 36px; } .intro { margin-bottom: 27px; } .modos { grid-template-columns: 1fr; gap: 16px; } .cuadro { padding: 21px; } .ilustracion { height: 118px; margin-block: 12px; } .cuadro p { max-width: 36ch; margin-bottom: 21px; } footer { font-size: 10px; } }
+@media (max-width: 650px) { .cabecera, main, footer { width: calc(100% - 32px); } .etiqueta { display: none; } .cabecera { gap: 10px; padding-block: 16px; } .marca { gap: 6px; font-size: 14px; } .sello { margin-right: 2px; } main { padding-block: 36px; } .intro { margin-bottom: 27px; } .modos { grid-template-columns: 1fr; gap: 16px; } .cuadro { padding: 21px; } .ilustracion { height: 118px; margin-block: 12px; } .cuadro p { max-width: 36ch; margin-bottom: 21px; } footer { font-size: 10px; } }
 @media (prefers-reduced-motion: reduce) { .cuadro { transition: none; } .cuadro:hover { transform: none; } }

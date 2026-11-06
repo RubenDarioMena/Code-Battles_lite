@@ -7,6 +7,7 @@
 
   // ---------- Constantes del mundo ----------
   const ES_FACTORY = new URLSearchParams(location.search).get("serie") === "factory";
+  const ti18n = (clave, valores) => window.CMGI18n ? window.CMGI18n.t(clave, valores) : clave;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
   // líneas (shared/python/traductor.js) y corre en el mismo Worker.
   const PYTHON = !!window.CMGAdaptadorPython && !!window.CMGPythonJS;
@@ -453,7 +454,11 @@
 
   // ---------- Consola, globos y avisos a pantalla ----------
   const $consola = $("consola");
-  function limpiarConsola() { $consola.innerHTML = `<div class="vacia">Aquí aparecen los console.log / warn / error y lo que reportan las máquinas.</div>`; }
+  function limpiarConsola() {
+    const vacia = document.createElement("div");
+    vacia.className = "vacia"; vacia.dataset.partidaI18n = "consola.vacia"; vacia.textContent = ti18n("partida.consola.vacia");
+    $consola.replaceChildren(vacia);
+  }
   function consola(cls, id, linea, html) {
     const v = $consola.querySelector(".vacia"); if (v) v.remove();
     const d = document.createElement("div");
@@ -1036,15 +1041,19 @@
   }
 
   let metasClave = "";
+  function actualizarReloj() {
+    const tiempo = (mundo ? mundo.t : 0).toFixed(1);
+    const reloj = ti18n("partida.reloj.formato", { tiempo });
+    $("reloj").textContent = reloj + (!ES_FACTORY && mundo && mundo.def.niebla ? ti18n("partida.reloj.niebla") : "");
+  }
   function pintarHud() {
+    actualizarReloj();
     if (ES_FACTORY) {
-      $("reloj").textContent = `t ${mundo.t.toFixed(1)} s`;
       const html = estadoMetas().map(f => `<span class="meta${f.estado === "ok" ? " cumplida" : f.estado === "rota" ? " rota" : ""}">${f.nombre} <b>${f.valor}</b></span>`).join("");
       if (html !== metasClave) { metasClave = html; $("metas").innerHTML = html; vivoInfoReto(); }
       return;
     }
     const m = mundo, me = def.metas;
-    $("reloj").textContent = `t ${m.t.toFixed(1)} s${m.def.niebla ? " · niebla" : ""}`;
     const clave = [m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
     if (clave === metasClave) return;
     metasClave = clave;
@@ -1058,24 +1067,36 @@
     $("metas").innerHTML = html;
   }
 
-  function pintarControles() {
+  function actualizarEtiquetasControles() {
     const corriendo = !!ejec;
     const $e = $("b-ejecutar");
-    $e.textContent = corriendo ? "■ Detener" : "▶ Ejecutar";
-    $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo);
+    $e.textContent = ti18n(corriendo ? "partida.ejecutar.detener" : "partida.ejecutar.ejecutar");
     for (const $ec of [$("b-ejecutar-cod"), $("b-ejecutar-flot")]) {
-      $ec.textContent = corriendo ? "■ DETENER" : "▶ EJECUTAR";
-      $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
+      $ec.textContent = ti18n(corriendo ? "partida.ejecutar.detener_editor" : "partida.ejecutar.ejecutar_editor");
     }
     // Teléfono: el mismo botón, solo con su icono (▶ / ■).
     const $em = $("b-ejecutar-movil");
-    $em.classList.toggle("corriendo", corriendo);
-    $em.setAttribute("aria-label", corriendo ? "Detener" : "Ejecutar");
-    $em.dataset.tip = corriendo ? "Detener" : "Ejecutar";
+    $em.setAttribute("aria-label", ti18n(corriendo ? "partida.ejecutar.detener_corto" : "partida.ejecutar.ejecutar_corto"));
+    $em.dataset.tip = ti18n(corriendo ? "partida.ejecutar.detener_corto" : "partida.ejecutar.ejecutar_corto");
     const $p = $("b-pausa");
-    $p.disabled = !corriendo; $p.textContent = pausa ? "Seguir" : "Pausa";
+    $p.textContent = ti18n(pausa ? "partida.pausa.seguir" : "partida.pausa.pausar");
+    const reto = retoIdx === IDX_PROPIO
+      ? ti18n("partida.intento.escenario_propio")
+      : ti18n("partida.intento.reto", { numero: retoIdx + 1 });
+    $("intento-txt").textContent = ti18n("partida.intento.etiqueta", { numero: intento + (corriendo ? 0 : 1), reto });
+  }
+  function pintarControles() {
+    const corriendo = !!ejec;
+    const $e = $("b-ejecutar");
+    $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo);
+    for (const $ec of [$("b-ejecutar-cod"), $("b-ejecutar-flot")]) {
+      $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
+    }
+    $("b-ejecutar-movil").classList.toggle("corriendo", corriendo);
+    const $p = $("b-pausa");
+    $p.disabled = !corriendo;
+    actualizarEtiquetasControles();
     $("b-vel").textContent = `${velocidad}×`;
-    $("intento-txt").textContent = `Intento ${intento + (corriendo ? 0 : 1)} · ${retoIdx === IDX_PROPIO ? "tu escenario" : `reto ${retoIdx + 1}`}`;
     $("semilla-txt").textContent = corriendo || semillaFija ? semilla : intento + 1;
     $("semilla-fija").checked = semillaFija;
     $codigo.readOnly = corriendo;
@@ -1499,15 +1520,26 @@
   function ocultarBanner() { $("banner").hidden = true; }
 
   // ---------- Programas ----------
+  function actualizarEtiquetasProgs() {
+    const $progs = $("progs");
+    $progs.setAttribute("aria-label", ti18n(ES_FACTORY ? "partida.progs.aria.factory" : "partida.progs.aria.war"));
+    for (const b of $progs.querySelectorAll(".prog-tab")) {
+      const id = b.dataset.id;
+      const pre = b.querySelector(".prog-pre");
+      if (pre) pre.textContent = ti18n("partida.progs.prefijo");
+      b.setAttribute("aria-label", ti18n("partida.progs.unidad", { unidad: id }));
+    }
+  }
   function pintarProgs() {
     const varios = programablesDe(def).length > 1;
     $("progs").innerHTML = programablesDe(def).map(l => {
       const p = ejec && ejec.progs.get(l.id);
       const est = lineaErr && lineaErr.id === l.id ? "error" : p ? (p.estado === "corre" ? "corre" : p.estado === "espera" ? "espera" : "") : "";
-      return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span><span class="prog-pre">Programa de </span>${l.id}</button>`;
+      return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span><span class="prog-pre"></span>${l.id}</button>`;
     }).join("");
     $("b-copiar-prog").hidden = !varios || edicion.ids.length > 1;
     $("b-restaurar").hidden = edicion.ids.length > 1;
+    actualizarEtiquetasProgs();
   }
   $("progs").addEventListener("click", (ev) => { const b = ev.target.closest(".prog-tab"); if (b) abrirPrograma(b.dataset.id); });
   function abrirPrograma(id) {
@@ -1524,31 +1556,59 @@
     edicion = { ids, mixto: variosLenguajes || textos.some(src => src !== textos[0]), lenguaje: variosLenguajes ? "js" : langs[0], variosLenguajes };
     progSel = ids[0];
     $codigo.value = edicion.mixto ? (borradoresMulti.get(claveEdicion(ids) + ":" + edicion.lenguaje) || "") : textos[0];
-    $codigo.placeholder = edicion.mixto ? "Escribe el código que quieres añadir o sustituir en las unidades seleccionadas." : "";
     $("acciones-multi").hidden = !edicion.mixto;
-    $("multi-estado").textContent = variosLenguajes ? `${ids.length} unidades en lenguajes distintos. Para aplicar un borrador, elige unidades del mismo lenguaje.`
-      : `${ids.length} unidades con programas distintos. Escribe el código y elige cómo aplicarlo.`;
     // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
     editorPrograma.abrir({ id: claveDocumento(), lenguaje: edicion.lenguaje, texto: $codigo.value, revision: 0 });
-    const nombreL = edicion.lenguaje === "python" ? "Python" : "JavaScript";
-    $codigo.setAttribute("aria-label", ids.length > 1 ? `Programa de ${ids.length} lanzadores en ${nombreL}` : `Programa de ${progSel} en ${nombreL}`);
+    actualizarEtiquetasEdicion();
     pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); pintarLenguaje(); marcasSucias = true;
+  }
+  function actualizarEtiquetasEdicion() {
+    const $codigoActivo = $("codigo");
+    if (!$codigoActivo || !edicion.ids.length) return;
+    const nombreL = ti18n(edicion.lenguaje === "python" ? "partida.lenguaje.python" : "partida.lenguaje.javascript");
+    $codigoActivo.placeholder = edicion.mixto ? ti18n("partida.multi.placeholder") : "";
+    $("multi-estado").textContent = edicion.variosLenguajes
+      ? ti18n("partida.multi.lenguajes_distintos", { cantidad: edicion.ids.length })
+      : ti18n("partida.multi.programas_distintos", { cantidad: edicion.ids.length });
+    $codigoActivo.setAttribute("aria-label", edicion.ids.length > 1
+      ? ti18n("partida.multi.aria", { cantidad: edicion.ids.length, lenguaje: nombreL })
+      : ti18n("partida.programa.aria", { unidad: progSel, lenguaje: nombreL }));
   }
   const claveDocumento = () => `${retoIdx}:${claveEdicion(edicion.ids)}${edicion.mixto ? ":borrador" : ""}${edicion.lenguaje === "python" ? ":python" : ""}`;
   // Lenguaje de la unidad: el desplegable de la cabecera y Python en Ajustes. JavaScript, Seudo y
   // Bloques vuelven a JavaScript; el programa Python se conserva para cuando se vuelva a elegir.
-  function pintarSelectorLenguaje() {
-    const $selLenguaje = $("sel-lenguaje");
+  const $selLenguaje = $("sel-lenguaje");
+  function asegurarOpcionesLenguaje() {
+    if (!$selLenguaje || $selLenguaje.dataset.opcionesI18n === "1") return;
+    $selLenguaje.replaceChildren();
+    const varios = document.createElement("option"); varios.value = "varios"; varios.disabled = true; varios.dataset.i18n = "partida.selector.varios";
+    $selLenguaje.appendChild(varios);
+    const agregarOpcion = (valor, clave) => {
+      const opcion = document.createElement("option"); opcion.value = valor; opcion.dataset.i18n = clave; $selLenguaje.appendChild(opcion);
+    };
+    agregarOpcion("js", "partida.lenguaje.javascript");
+    if (PYTHON) agregarOpcion("python", "partida.lenguaje.python");
+    const vistas = document.createElement("optgroup"); vistas.dataset.i18nLabel = "partida.selector.vistas_js";
+    const seudo = document.createElement("option"); seudo.value = "pseudo"; seudo.dataset.i18n = "partida.selector.seudocodigo"; vistas.appendChild(seudo);
+    if (ES_FACTORY) { const bloques = document.createElement("option"); bloques.value = "bloques"; bloques.dataset.i18n = "partida.selector.bloques"; vistas.appendChild(bloques); }
+    $selLenguaje.appendChild(vistas);
+    $selLenguaje.dataset.opcionesI18n = "1";
+  }
+  function actualizarEtiquetasSelectorLenguaje() {
     if (!$selLenguaje) return;
+    for (const opcion of $selLenguaje.querySelectorAll("option[data-i18n]")) opcion.textContent = ti18n(opcion.dataset.i18n);
+    const vistas = $selLenguaje.querySelector("optgroup[data-i18n-label]");
+    if (vistas) vistas.label = ti18n(vistas.dataset.i18nLabel);
+  }
+  function pintarSelectorLenguaje() {
+    if (!$selLenguaje) return;
+    asegurarOpcionesLenguaje();
     const varios = PYTHON && !!edicion.variosLenguajes, py = PYTHON && edicion.lenguaje === "python" && !varios;
     const modoVista = $("app").dataset.modo || "js";
-    const opciones = [["js", "JavaScript"], ...(PYTHON ? [["python", "Python"]] : [])];
-    const vistas = [["pseudo", "Seudocódigo"], ...(ES_FACTORY ? [["bloques", "Bloques"]] : [])];
-    const html = (varios ? `<option value="varios" disabled>Varios lenguajes</option>` : "")
-      + opciones.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")
-      + `<optgroup label="Vistas de JavaScript">${vistas.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</optgroup>`;
-    if ($selLenguaje.dataset.html !== html) { $selLenguaje.innerHTML = html; $selLenguaje.dataset.html = html; }
+    const opcionVarios = $selLenguaje.querySelector('option[value="varios"]');
+    if (opcionVarios) opcionVarios.hidden = !varios;
     $selLenguaje.value = varios ? "varios" : py ? "python" : (modoVista === "js" ? "js" : modoVista);
+    actualizarEtiquetasSelectorLenguaje();
   }
   function pintarLenguaje() {
     pintarSelectorLenguaje();
@@ -1558,7 +1618,6 @@
     if (py) for (const b of document.querySelectorAll("[data-modo-codigo]")) b.setAttribute("aria-pressed", "false");
     $("app").dataset.lenguaje = py ? "python" : "js";
   }
-  const $selLenguaje = $("sel-lenguaje");
   if ($selLenguaje) {
     $selLenguaje.addEventListener("change", () => {
       const v = $selLenguaje.value;
@@ -1571,7 +1630,7 @@
   }
   function cambiarLenguaje(lenguaje) {
     if (!PYTHON || !def) return false;
-    if (ejec) { avisoEditor("Detén el programa para cambiar de lenguaje."); return false; }
+    if (ejec) { avisoEditor(ti18n("partida.editor.detener_para_cambiar_lenguaje")); return false; }
     if (!edicion.variosLenguajes && edicion.lenguaje === lenguaje) return false;
     const sinConvertir = [];
     for (const id of edicion.ids) {
@@ -1601,6 +1660,11 @@
   });
   const CLAVE_CONFIRMAR_REPLACE = "cmg-juego-confirmar-replace";
   let confirmarReplace = (() => { try { return localStorage.getItem(CLAVE_CONFIRMAR_REPLACE) !== "false"; } catch { return true; } })();
+  let idsReplaceAbierto = null;
+  function actualizarTextoReplace() {
+    const texto = $("replace-texto");
+    if (texto && idsReplaceAbierto) texto.textContent = ti18n("partida.replace.texto", { unidades: idsReplaceAbierto.join(", ") });
+  }
   function preferirConfirmacionReplace(valor) {
     confirmarReplace = !!valor;
     try { localStorage.setItem(CLAVE_CONFIRMAR_REPLACE, JSON.stringify(confirmarReplace)); } catch { /* preferencia de sesión */ }
@@ -1610,11 +1674,13 @@
     const dialogo = $("confirmar-replace"), omitir = $("replace-no-preguntar");
     omitir.checked = false;
     dialogo.returnValue = "cancelar";
-    $("replace-texto").textContent = `Se sustituirá por completo el programa de ${ids.join(", ")}. Se perderá el código anterior de estas unidades.`;
+    idsReplaceAbierto = [...ids];
+    actualizarTextoReplace();
     return new Promise(resolve => {
       dialogo.addEventListener("close", () => {
         const aceptado = dialogo.returnValue === "reemplazar";
         if (aceptado && omitir.checked) preferirConfirmacionReplace(false);
+        idsReplaceAbierto = null;
         resolve(aceptado);
       }, { once: true });
       dialogo.showModal();
@@ -1628,15 +1694,27 @@
       guardarProgramas(); configurarEdicion(ids, true); pintarInspector();
     },
   });
-  const aplicarSiSeMezcla = reemplazar => edicion.variosLenguajes ? avisoEditor("Las unidades elegidas están en lenguajes distintos: elige unidades del mismo lenguaje para aplicar un borrador.") : aplicarMulti(reemplazar);
+  const aplicarSiSeMezcla = reemplazar => edicion.variosLenguajes ? avisoEditor(ti18n("partida.multi.lenguaje_error")) : aplicarMulti(reemplazar);
   $("b-add").addEventListener("click", () => aplicarSiSeMezcla(false));
   $("b-replace").addEventListener("click", () => aplicarSiSeMezcla(true));
   $("b-coordenadas").addEventListener("click", () => { const texto = $("coordenadas").value.trim(); if (texto) insertar(texto); });
   let confirmarCopia = false;
+  let confirmarRestaurar = false;
+  function actualizarEtiquetasConfirmaciones() {
+    $("b-copiar-prog").textContent = ti18n(confirmarCopia ? "partida.programa.copiar.confirmar" : "partida.programa.copiar", { unidad: progSel });
+    $("b-restaurar").textContent = ti18n(confirmarRestaurar ? "partida.programa.restaurar.confirmar" : "partida.programa.restaurar");
+    $("b-copiar").textContent = ti18n("partida.telemetria.copiar");
+    $("b-borrar").textContent = ti18n(confirmarBorrado ? "partida.telemetria.borrar.confirmar" : "partida.telemetria.borrar");
+    $("copiado").textContent = ti18n("partida.telemetria.copiada");
+  }
   $("b-copiar-prog").addEventListener("click", (ev) => {
     if (ejec) return;
-    if (!confirmarCopia) { confirmarCopia = true; ev.target.textContent = `¿Copiar el de ${progSel} encima de los demás? Toca otra vez`; setTimeout(() => { confirmarCopia = false; ev.target.textContent = "Copiar a los demás lanzadores"; }, 3000); return; }
-    confirmarCopia = false; ev.target.textContent = "Copiar a los demás lanzadores";
+    if (!confirmarCopia) {
+      confirmarCopia = true; actualizarEtiquetasConfirmaciones();
+      setTimeout(() => { confirmarCopia = false; actualizarEtiquetasConfirmaciones(); }, 3000);
+      return;
+    }
+    confirmarCopia = false; actualizarEtiquetasConfirmaciones();
     // Se copia el programa en su lenguaje: los demás pasan a ese lenguaje y conservan el otro.
     const py = lenguajeDe(progSel) === "python";
     for (const l of def.lanzadores) if (l.id !== progSel) {
@@ -1645,11 +1723,14 @@
     }
     guardarProgramas();
   });
-  let confirmarRestaurar = false;
   $("b-restaurar").addEventListener("click", (ev) => {
     if (ejec) return;
-    if (!confirmarRestaurar) { confirmarRestaurar = true; ev.target.textContent = "¿Seguro? Se pierde tu programa. Toca otra vez"; setTimeout(() => { confirmarRestaurar = false; ev.target.textContent = "Restaurar programa inicial"; }, 3000); return; }
-    confirmarRestaurar = false; ev.target.textContent = "Restaurar programa inicial";
+    if (!confirmarRestaurar) {
+      confirmarRestaurar = true; actualizarEtiquetasConfirmaciones();
+      setTimeout(() => { confirmarRestaurar = false; actualizarEtiquetasConfirmaciones(); }, 3000);
+      return;
+    }
+    confirmarRestaurar = false; actualizarEtiquetasConfirmaciones();
     ponerTexto(progSel, lenguajeDe(progSel) === "python" ? textoInicialPython(def, progSel) : textoInicial(def, progSel)); guardarProgramas(); abrirPrograma(progSel);
   });
   function pintarEdicion() {
@@ -1852,9 +1933,25 @@
   });
 
   // Cómo se muestra cada console
-  const DESTINOS = [["globo", "Globo"], ["pantalla", "Pantalla"], ["consola", "Solo consola"]];
+  const DESTINOS = [["globo", "partida.ruteo.globo"], ["pantalla", "partida.ruteo.pantalla"], ["consola", "partida.ruteo.solo_consola"]];
+  function actualizarEtiquetasRuteo() {
+    for (const boton of $("ruteo").querySelectorAll("[data-dest]")) {
+      const destino = DESTINOS.find(([valor]) => valor === boton.dataset.dest);
+      if (destino) boton.textContent = ti18n(destino[1]);
+    }
+  }
   function pintarRuteo() {
-    $("ruteo").innerHTML = NIVELES.map(n => `<code class="tk-fn">console.${n}</code><span class="seg" role="group" aria-label="console.${n}">${DESTINOS.map(([v, t]) => `<button type="button" data-nivel="${n}" data-dest="${v}" aria-pressed="${ruteo[n] === v}">${t}</button>`).join("")}</span>`).join("");
+    const raiz = $("ruteo"); raiz.replaceChildren();
+    for (const nivel of NIVELES) {
+      const codigo = document.createElement("code"); codigo.className = "tk-fn"; codigo.textContent = `console.${nivel}`;
+      const grupo = document.createElement("span"); grupo.className = "seg"; grupo.setAttribute("role", "group"); grupo.setAttribute("aria-label", `console.${nivel}`);
+      for (const [valor] of DESTINOS) {
+        const boton = document.createElement("button"); boton.type = "button"; boton.dataset.nivel = nivel; boton.dataset.dest = valor;
+        boton.setAttribute("aria-pressed", String(ruteo[nivel] === valor)); grupo.appendChild(boton);
+      }
+      raiz.append(codigo, grupo);
+    }
+    actualizarEtiquetasRuteo();
   }
   $("ruteo").addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-dest]"); if (!b) return;
@@ -1866,7 +1963,18 @@
     eventosSucios = false;
     $("eventos").innerHTML = mundo.eventos.slice(-250).map(e => ES_FACTORY ? { ...e, maquina: "R1", que: e.orden, clase: e.sensor ? "sensor" : e.resultado === "ok" ? "ok" : "warn" } : e).map(e =>
       `<tr><td>${e.t.toFixed(2)}</td><td>${esc(e.maquina)}</td><td>${e.linea}</td><td>${esc(e.que)}</td><td class="${e.clase}">${esc(e.resultado)}</td></tr>`).join("")
-      || `<tr><td colspan="5" style="color:var(--muted)">Todavía no hay eventos en este intento.</td></tr>`;
+      || `<tr data-eventos-vacios><td colspan="5" style="color:var(--muted)"></td></tr>`;
+    actualizarEtiquetaEventosVacios();
+  }
+  function actualizarEtiquetaEventosVacios() {
+    const vacia = $("eventos").querySelector("[data-eventos-vacios] td");
+    if (vacia) vacia.textContent = ti18n("partida.registro.vacio");
+  }
+  const CLAVES_RESUMEN = ["partida.resumen.intentos", "partida.resumen.cumplidos", null, "partida.resumen.hasta_cumplir", "partida.resumen.vistas", "partida.resumen.doble_clic"];
+  function actualizarEtiquetasResumen() {
+    for (const etiqueta of $("resumen").querySelectorAll("[data-resumen-clave]")) etiqueta.textContent = ti18n(etiqueta.dataset.resumenClave);
+    const record = $("resumen").querySelector('[data-resumen-record]');
+    if (record) record.textContent = ti18n(ES_FACTORY ? "partida.resumen.record_tiempo" : "partida.resumen.record_coste");
   }
   function pintarResumen() {
     const delReto = telemetria.filter(t => t.reto === retoIdx + 1);
@@ -1875,20 +1983,32 @@
     const rec = ES_FACTORY && records[claveReto()]?.regla !== "comun-v1" ? null : records[claveReto()];
     const vistas = ["3d", "2d"].map(v => delReto.filter(t => t.vista === v).length).join(" / ");
     const dobles = delReto.reduce((a, t) => a + ((t.inserciones && t.inserciones.dobleClic) || 0), 0);
-    const datos = [["Intentos", delReto.length], ["Cumplidos", victorias.length], [ES_FACTORY ? "Récord tiempo (s)" : "Récord ₵/derribo", rec != null ? (ES_FACTORY ? rec.valor : rec).toFixed(1) : "—"], ["Intentos hasta cumplir", primera >= 0 ? primera + 1 : "—"], ["3D / plano", vistas], ["Inserciones con doble clic", dobles]];
-    $("resumen").innerHTML = datos.map(([k, v]) => `<div class="dato"><span>${k}</span><b>${v}</b></div>`).join("");
+    const valores = [delReto.length, victorias.length, rec != null ? (ES_FACTORY ? rec.valor : rec).toFixed(1) : "—", primera >= 0 ? primera + 1 : "—", vistas, dobles];
+    const raiz = $("resumen"); raiz.replaceChildren();
+    for (let i = 0; i < valores.length; i++) {
+      const dato = document.createElement("div"); dato.className = "dato";
+      const etiqueta = document.createElement("span");
+      if (i === 2) etiqueta.dataset.resumenRecord = ""; else etiqueta.dataset.resumenClave = CLAVES_RESUMEN[i];
+      const valor = document.createElement("b"); valor.textContent = String(valores[i]);
+      dato.append(etiqueta, valor); raiz.appendChild(dato);
+    }
+    actualizarEtiquetasResumen();
     $("json").value = JSON.stringify(telemetria, null, 2);
   }
   $("b-copiar").addEventListener("click", () => {
     const txt = JSON.stringify(telemetria, null, 2);
-    const ok = () => { $("copiado").hidden = false; setTimeout(() => $("copiado").hidden = true, 1600); };
+    const ok = () => { $("copiado").hidden = false; actualizarEtiquetasConfirmaciones(); setTimeout(() => $("copiado").hidden = true, 1600); };
     const planB = () => { const d = $("json").closest("details"); d.open = true; $("json").focus(); $("json").select(); };
     try { navigator.clipboard.writeText(txt).then(ok, planB); } catch { planB(); }
   });
   let confirmarBorrado = false;
   $("b-borrar").addEventListener("click", (ev) => {
-    if (!confirmarBorrado) { confirmarBorrado = true; ev.target.textContent = "¿Seguro? Toca otra vez"; setTimeout(() => { confirmarBorrado = false; ev.target.textContent = "Borrar telemetría"; }, 3000); return; }
-    confirmarBorrado = false; ev.target.textContent = "Borrar telemetría";
+    if (!confirmarBorrado) {
+      confirmarBorrado = true; actualizarEtiquetasConfirmaciones();
+      setTimeout(() => { confirmarBorrado = false; actualizarEtiquetasConfirmaciones(); }, 3000);
+      return;
+    }
+    confirmarBorrado = false; actualizarEtiquetasConfirmaciones();
     telemetria = []; guardado.escribir(ES_FACTORY ? "factory-telemetria" : "telemetria", telemetria); intento = 0; pintarResumen(); pintarControles();
   });
 
@@ -2119,19 +2239,23 @@
     }),
     inicial: () => edicion.mixto ? null : { texto: textoInicial(def, progSel), codigo: (def.inicial[progSel] || []).join("\n") + ((def.inicial[progSel] || []).length ? "\n" : "") },
     get marcas() { return { corre: (!edicion.mixto && lineaCorre[progSel]) || null, err: !edicion.mixto && lineaErr && lineaErr.id === progSel ? lineaErr.linea : null }; } };
+  function actualizarEtiquetasSerie() {
+    const sufijo = ES_FACTORY ? "factory" : "war";
+    $("c2d").setAttribute("aria-label", ti18n(`partida.canvas.${sufijo}.2d`));
+    $("c3d").setAttribute("aria-label", ti18n(`partida.canvas.${sufijo}.3d`));
+    $("t-escenario").textContent = ti18n(ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
+    actualizarEtiquetasProgs();
+  }
   if (ES_FACTORY) {
     document.title = "Code Battle Lite · Factory";
     document.documentElement.dataset.serie = "factory";
     document.querySelector(".fila-sem").hidden = true;
     document.querySelector(".coordenadas-manuales").hidden = true;
-    $("t-escenario").textContent = "Tu reto";
     document.querySelectorAll('[data-modo-codigo="bloques"]').forEach(b => b.hidden = false);
     $("info-t-enemigos").hidden = true;
     // Por id y no por href: Netlify (Pretty URLs) reescribe «probar.html» como «probar» y el selector fallaba,
     // cortando el arranque de Factory (pantalla negra, sin inspector ni Ejecutar).
     const probar = $("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "factory"); probar.href = u.pathname + u.search; }
-    $("c2d").setAttribute("aria-label", "Plano de la fábrica");
-    $("progs").setAttribute("aria-label", "Programas de las máquinas");
   }
   for (const enlace of document.querySelectorAll("[data-serie]")) {
     const url = new URL(location.href); url.searchParams.set("serie", enlace.dataset.serie);
@@ -2150,6 +2274,22 @@
   aplicarLetra();
   elegirReto(retoIdx);
   if (paletaRota) avisoEditor("La paleta no se pudo cargar: recarga la página sin caché (Ctrl+F5 o Ctrl+Shift+R).");
+  function actualizarTextosDinamicos() {
+    actualizarEtiquetasControles();
+    actualizarEtiquetasEdicion();
+    actualizarEtiquetasSelectorLenguaje();
+    actualizarEtiquetasSerie();
+    actualizarEtiquetasRuteo();
+    actualizarEtiquetasResumen();
+    actualizarEtiquetaEventosVacios();
+    actualizarEtiquetasConfirmaciones();
+    actualizarTextoReplace();
+    actualizarReloj();
+    const consolaVacia = $("consola").querySelector('[data-partida-i18n="consola.vacia"]');
+    if (consolaVacia) consolaVacia.textContent = ti18n("partida.consola.vacia");
+  }
+  window.addEventListener("cmg:idioma", actualizarTextosDinamicos);
+  actualizarTextosDinamicos();
   document.fonts && document.fonts.ready.then(() => { medirEditor(); });
   editorPrograma.iniciarVistas();
   requestAnimationFrame(bucle);
