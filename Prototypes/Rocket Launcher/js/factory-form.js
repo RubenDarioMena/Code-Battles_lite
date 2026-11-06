@@ -6,6 +6,7 @@
     const RETOS = window.FACTORY_RETOS.RETOS, normalizarReto = window.FACTORY_RETOS.normalizar, MATERIALES = window.FACTORY.MATERIALES;
     const escapar = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
     const TEXTOS_ES = {
+      "formulario.bloque.repetir": "repetir", "formulario.bloque.mientras": "mientras", "formulario.bloque.si": "si / si no",
       "formulario.aviso.reto_fijo": "Este reto es fijo. Puedes copiarlo a «Tu reto» y cambiar el enunciado, las metas y el mapa.",
       "formulario.reto.copiar_base": "Usar como base de Tu reto", "formulario.enunciado": "Enunciado", "formulario.titulo": "Título",
       "formulario.objetivo": "Lo que pides (aparece arriba como objetivo)", "formulario.pista": "Pista cuando falle",
@@ -69,7 +70,7 @@
         </div>`).join("")}</div>
       </fieldset>
       <fieldset ${dis}><legend>${hoja("formulario.bloques")}</legend>
-        <div style="display:flex;gap:4px 14px;flex-wrap:wrap">${["recoger", "entregar", "repetir", "esperar", "mientras", "si"].map(t => `<label class="check"><input type="checkbox" data-ladrillo-f="${t}"${d.ladrillos.includes(t) ? " checked" : ""}> ${escapar(({recoger:"pickUp",entregar:"deliver",esperar:"wait",repetir:"repetir",mientras:"mientras",si:"si / si no"})[t])}</label>`).join("")}</div>
+        <div style="display:flex;gap:4px 14px;flex-wrap:wrap">${["recoger", "entregar", "repetir", "esperar", "mientras", "si"].map(t => `<label class="check"><input type="checkbox" data-ladrillo-f="${t}"${d.ladrillos.includes(t) ? " checked" : ""}> ${["repetir", "mientras", "si"].includes(t) ? hoja(`formulario.bloque.${t}`) : escapar(({recoger:"pickUp",entregar:"deliver",esperar:"wait"})[t])}</label>`).join("")}</div>
       </fieldset>
       ${propioSel ? `<div style="display:flex;gap:8px;flex-wrap:wrap">
         <button type="button" class="btn primario" id="rf-guardar" data-formulario-i18n="formulario.guardar">${escapar(textoFormulario("formulario.guardar"))}</button>

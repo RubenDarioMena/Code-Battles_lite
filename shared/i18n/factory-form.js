@@ -1,5 +1,8 @@
 /* Textos descriptivos del formulario «Tu reto» de Factory. */
 window.CMGI18n.registrar('es', {
+  'formulario.bloque.repetir': 'repetir',
+  'formulario.bloque.mientras': 'mientras',
+  'formulario.bloque.si': 'si / si no',
   'formulario.aviso.reto_fijo': 'Este reto es fijo. Puedes copiarlo a «Tu reto» y cambiar el enunciado, las metas y el mapa.',
   'formulario.reto.copiar_base': 'Usar como base de Tu reto',
   'formulario.enunciado': 'Enunciado',
@@ -39,6 +42,9 @@ window.CMGI18n.registrar('es', {
 });
 
 window.CMGI18n.registrar('en', {
+  'formulario.bloque.repetir': 'repeat',
+  'formulario.bloque.mientras': 'while',
+  'formulario.bloque.si': 'if / else',
   'formulario.aviso.reto_fijo': 'This is a fixed challenge. You can copy it to “Your challenge” and change the prompt, goals, and map.',
   'formulario.reto.copiar_base': 'Use as the basis for Your challenge',
   'formulario.enunciado': 'Challenge prompt',

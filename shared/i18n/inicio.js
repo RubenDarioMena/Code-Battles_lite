@@ -1,5 +1,6 @@
 /* Catálogos de idioma para la portada. */
 window.CMGI18n.registrar('es', {
+  'inicio.accion.volver': '← Volver al inicio',
   'inicio.meta.titulo': 'Code Battle Lite',
   'inicio.meta.descripcion': 'Aprende a programar resolviendo retos de automatización y defensa. Elige Factory o War y ejecuta tu código.',
   'inicio.accesibilidad.inicio': 'Code Battle Lite, inicio',
@@ -32,6 +33,7 @@ window.CMGI18n.registrar('es', {
 });
 
 window.CMGI18n.registrar('en', {
+  'inicio.accion.volver': '← Back to home',
   'inicio.meta.titulo': 'Code Battle Lite',
   'inicio.meta.descripcion': 'Learn to code by solving automation and defense challenges. Choose Factory or War and run your code.',
   'inicio.accesibilidad.inicio': 'Code Battle Lite, home',

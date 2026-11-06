@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="../../shared/editor/tema.css?v=1">
 <link rel="stylesheet" href="../../shared/editor/editor.css?v=1">
 <link rel="stylesheet" href="css/base.css?v=4">
-<link rel="stylesheet" href="css/componentes.css?v=22">
+<link rel="stylesheet" href="css/componentes.css?v=23">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=7">
 <link rel="stylesheet" href="css/factory.css?v=1">
 <link rel="stylesheet" href="css/layout.css?v=24">
@@ -378,7 +378,7 @@
 <!-- Orden de la barra de edición (edicion.js): se abre desde Ajustes y se ordena arrastrando -->
 <dialog id="orden-barra" class="ajustes orden-barra" aria-labelledby="orden-titulo">
   <header class="hoja-cab">
-    <h2 id="orden-titulo">Barra de edición</h2>
+    <h2 id="orden-titulo" data-i18n="pendientes.texto_406">Barra de edición</h2>
   <button class="cerrar" id="orden-cerrar" type="button" aria-label="Cerrar" data-i18n-aria-label="juego.accion.cerrar">×</button>
   </header>
   <p class="nota" data-i18n="juego.orden_barra.instrucciones">Arrastra un botón para cambiarlo de sitio o llevarlo a otro grupo. Arrastra el asa ⋮⋮ de un grupo para mover el grupo entero. Suelta un botón en «Grupo nuevo» para separarlo.</p>
@@ -435,10 +435,14 @@
 <script src="../../shared/i18n/editor.js?v=1" charset="utf-8"></script>
 <script src="../../shared/i18n/paleta.js?v=1" charset="utf-8"></script>
 <script src="../../shared/i18n/inspector.js?v=2" charset="utf-8"></script>
-<script src="../../shared/i18n/factory-form.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/factory-form.js?v=2" charset="utf-8"></script>
+<script src="../../shared/i18n/presentacion.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/pendientes.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/retos.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/war-form.js?v=1" charset="utf-8"></script>
 <script src="js/vistas.js?v=2" charset="utf-8"></script>
 <script src="js/factory-3d.js?v=2" charset="utf-8"></script>
-<script src="js/factory-form.js?v=2" charset="utf-8"></script>
+<script src="js/factory-form.js?v=3" charset="utf-8"></script>
 <script src="js/proveedor.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/lenguajes.js?v=2" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=4" charset="utf-8"></script>
@@ -451,13 +455,13 @@
 <script src="../../shared/editor/estructura-python.js?v=1" charset="utf-8"></script>
 <script src="../../shared/editor/adaptador-python.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/vida.js?v=1" charset="utf-8"></script>
-<script src="../../shared/editor/edicion.js?v=7" charset="utf-8"></script>
+<script src="../../shared/editor/edicion.js?v=8" charset="utf-8"></script>
 <script src="../../shared/editor/seudo.js?v=2" charset="utf-8"></script>
-<script src="../../shared/editor/nucleo-ui.js?v=5" charset="utf-8"></script>
+<script src="../../shared/editor/nucleo-ui.js?v=6" charset="utf-8"></script>
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=6" charset="utf-8"></script>
-<script src="js/juego.js?v=41" charset="utf-8"></script>
+<script src="js/juego.js?v=44" charset="utf-8"></script>
 <script src="js/layout.js?v=19" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
 <script>
@@ -466,7 +470,8 @@
     const d = document.createElement("div");
     d.setAttribute("role", "alert");
     d.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;padding:12px 14px;border-radius:8px;background:#3a1418;color:#ffe3e3;border:1px solid #c0444f;font:14px/1.4 system-ui,sans-serif";
-    d.innerHTML = "<b>El juego no pudo arrancar.</b> Puede que el navegador o el servidor tengan archivos de versiones distintas: recarga sin caché (Ctrl+F5 o Ctrl+Shift+R). Si sigue, envía este mensaje:<br><code></code>";
+    const contenidoArranque = "<b>El juego no pudo arrancar.</b> Puede que el navegador o el servidor tengan archivos de versiones distintas: recarga sin caché (Ctrl+F5 o Ctrl+Shift+R). Si sigue, envía este mensaje:<br><code></code>";
+    d.innerHTML = window.CMGPresentacion ? CMGPresentacion.html(contenidoArranque) : contenidoArranque;
     d.querySelector("code").textContent = window.__erroresArranque.join(" | ") || "sin detalle";
     document.body.appendChild(d);
   });

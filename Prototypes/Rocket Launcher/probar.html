@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Code Battle Lite · Probador</title>
+<title data-i18n="pendientes.texto_440">Code Battle Lite · Probador</title>
 <style>
 /* Probador: el mismo juego en marcos de teléfono y de PC a la vez, a escala, para comparar los dos repartos.
  * Cada marco es un iframe de index.html con su tamaño real; ?marco=1 activa el teclado simulado del teléfono. */
@@ -46,29 +46,32 @@ a { color: var(--accent); font-size: 13px; }
 </head>
 <body>
 <div class="barra" id="barra">
-  <h1>Probador</h1>
-  <span class="etq">Ver</span>
-  <div class="seg" id="modo" role="group" aria-label="Qué ver">
-    <button type="button" data-modo="ambos" aria-pressed="true">Teléfono + PC</button>
-    <button type="button" data-modo="tel" aria-pressed="false">Solo teléfono</button>
-    <button type="button" data-modo="pc" aria-pressed="false">Solo PC</button>
+  <h1 data-i18n="pendientes.texto_439">Probador</h1>
+  <span class="etq" data-i18n="pendientes.texto_442">Ver</span>
+  <div class="seg" id="modo" role="group" aria-label="Qué ver" data-i18n-aria-label="pendientes.texto_443">
+    <button type="button" data-modo="ambos" aria-pressed="true" data-i18n="pendientes.texto_444">Teléfono + PC</button>
+    <button type="button" data-modo="tel" aria-pressed="false" data-i18n="pendientes.texto_445">Solo teléfono</button>
+    <button type="button" data-modo="pc" aria-pressed="false" data-i18n="pendientes.texto_446">Solo PC</button>
   </div>
-  <span class="etq">Teléfono</span>
-  <div class="seg" id="tel" role="group" aria-label="Modelo de teléfono"></div>
-  <button class="btn" type="button" id="girar">⟳ Girar</button>
+  <span class="etq" data-i18n="pendientes.texto_447">Teléfono</span>
+  <div class="seg" id="tel" role="group" aria-label="Modelo de teléfono" data-i18n-aria-label="pendientes.texto_448"></div>
+  <button class="btn" type="button" id="girar" data-i18n="pendientes.texto_450">⟳ Girar</button>
   <span class="etq">PC</span>
-  <div class="seg" id="pc" role="group" aria-label="Pantalla de PC"></div>
-  <button class="btn" type="button" id="recargar">Recargar</button>
-  <a id="abrir-solo" href="index.html">Abrir el juego solo</a>
-  <span class="nota">En el teléfono, toca el código: aparece un teclado simulado y el editor sube. Escribe con el teclado del PC.</span>
+  <div class="seg" id="pc" role="group" aria-label="Pantalla de PC" data-i18n-aria-label="pendientes.texto_449"></div>
+  <button class="btn" type="button" id="recargar" data-i18n="pendientes.texto_451">Recargar</button>
+  <a id="abrir-solo" href="index.html" data-i18n="pendientes.texto_452">Abrir el juego solo</a>
+  <span class="nota" data-i18n="pendientes.texto_453">En el teléfono, toca el código: aparece un teclado simulado y el editor sube. Escribe con el teclado del PC.</span>
 </div>
 <div class="mesa" id="mesa"></div>
+<script src="../../shared/i18n/i18n.js?v=1"></script>
+<script src="../../shared/i18n/presentacion.js?v=1"></script>
+<script src="../../shared/i18n/pendientes.js?v=1"></script>
 <script>
 (() => {
   "use strict";
   const parametros = new URLSearchParams(location.search);
   const urlJuego = new URL("index.html", location.href); urlJuego.search = parametros.toString(); urlJuego.searchParams.set("marco", "1");
-  if (parametros.get("serie") === "factory") { document.title = "Factory · Probar en dispositivos"; const solo = document.getElementById("abrir-solo"); if (solo) { const u = new URL(solo.href, location.href); u.searchParams.set("serie", "factory"); solo.href = u.pathname + u.search; } }
+  if (parametros.get("serie") === "factory") { document.querySelector("title").removeAttribute("data-i18n"); CMGPresentacion.rotular(document.querySelector("title"), "Factory · Probar en dispositivos"); const solo = document.getElementById("abrir-solo"); if (solo) { const u = new URL(solo.href, location.href); u.searchParams.set("serie", "factory"); solo.href = u.pathname + u.search; } }
   const TELEFONOS = { "iPhone 15": [393, 852], "iPhone SE": [375, 667], "Pixel 8": [412, 915] };
   const PCS = { "Portátil": [1366, 768], "Escritorio": [1920, 1080], "Tableta": [1024, 768] };
   const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(`cmg-probar-${k}`)) ?? d; } catch { return d; } };
@@ -78,7 +81,7 @@ a { color: var(--accent); font-size: 13px; }
   const mesa = $("mesa");
 
   function seg(id, opciones, clave) {
-    $(id).innerHTML = Object.keys(opciones).map(n => `<button type="button" data-v="${n}" aria-pressed="${estado[clave] === n}">${n}</button>`).join("");
+    $(id).innerHTML = CMGPresentacion.html(Object.keys(opciones).map(n => `<button type="button" data-v="${n}" aria-pressed="${estado[clave] === n}">${n}</button>`).join(""));
     $(id).onclick = (ev) => { const b = ev.target.closest("button"); if (b) { estado[clave] = b.dataset.v; montar(); } };
   }
   $("modo").onclick = (ev) => { const b = ev.target.closest("button"); if (b) { estado.modo = b.dataset.modo; montar(); } };
@@ -87,7 +90,7 @@ a { color: var(--accent); font-size: 13px; }
 
   function puesto(nombre, [w, h], pc) {
     const p = document.createElement("div"); p.className = "puesto";
-    p.innerHTML = `<div class="caja"><div class="dispositivo${pc ? " pc" : ""}"><iframe title="${nombre}" width="${w}" height="${h}" src="index.html?marco=1"></iframe></div></div><div class="nombre">${nombre} · ${w} × ${h}</div>`;
+    p.innerHTML = CMGPresentacion.html(`<div class="caja"><div class="dispositivo${pc ? " pc" : ""}"><iframe title="${nombre}" width="${w}" height="${h}" src="index.html?marco=1"></iframe></div></div><div class="nombre"><span>${nombre}</span> · ${w} × ${h}</div>`);
     p.querySelector("iframe").src = urlJuego.href;
     p.dataset.w = w + (pc ? 28 : 24); p.dataset.h = h + (pc ? 44 : 24);
     return p;

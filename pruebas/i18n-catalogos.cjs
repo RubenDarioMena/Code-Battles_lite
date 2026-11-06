@@ -31,6 +31,7 @@ const modulos = [
   ['editor', 'editor'],
   ['paleta', 'paleta'], ['inspector', 'inspector'],
   ['factory-form', 'formulario'],
+  ['war-form', 'escenario'], ['retos', 'retos'], ['pendientes', 'pendientes'],
 ];
 for (const [modulo, prefijo] of modulos) {
   const archivo = `shared/i18n/${modulo}.js`;
@@ -49,8 +50,34 @@ for (const [modulo, prefijo] of modulos) {
   vm.runInNewContext(fuente, { CMGI18n: api, window: { CMGI18n: api } }, { filename: archivo });
 }
 assert.deepEqual(Object.keys(mapas.en).sort(), Object.keys(mapas.es).sort(), 'mismas claves en español e inglés');
+// El catálogo mantiene el español original y el número de partes desbloqueables de cada pista.
+const entornoRetos = { WAR: { TIPOS: {}, LAU: {} } };
+for (const serie of ['war', 'factory']) {
+  vm.runInNewContext(leer(`Prototypes/Rocket Launcher/js/${serie}-retos.js`), { window: entornoRetos });
+  entornoRetos[`${serie.toUpperCase()}_RETOS`].RETOS.forEach((r, i) => {
+    const partes = r.pista.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/);
+    const campos = { titulo: r.titulo, objetivo: r.objetivo, leccion: r.leccion,
+      ...Object.fromEntries(partes.map((t, j) => [`pista.${j}`, t])) };
+    for (const [campo, texto] of Object.entries(campos)) {
+      const clave = `retos.${serie}.${i}.${campo}`;
+      comprobar(mapas.es[clave] === texto && !!mapas.en[clave], `${clave}: contenido original y traducción presentes`);
+    }
+    comprobar(!Object.hasOwn(mapas.es, `retos.${serie}.${i}.pista.${partes.length}`), `${serie}/${i}: mismas partes de pista`);
+  });
+}
 const variables = texto => [...texto.matchAll(/\{([A-Za-z_][\w]*)\}/g)].map(m => m[1]).sort();
 for (const clave of Object.keys(mapas.es)) assert.deepEqual(variables(mapas.en[clave]), variables(mapas.es[clave]), `${clave}: interpolaciones idénticas`);
+// Detecta colisiones entre patrones heredados: cada mensaje con valores concretos
+// debe resolver a su traducción, conservando todos los parámetros.
+const ventanaPresentacion = { addEventListener() {} };
+const apiPresentacion = { idioma: 'en', t: (clave, params = {}) => mapas.en[clave].replace(/\{(p\d+)\}/g, (m, n) => params[n] ?? m) };
+vm.runInNewContext(leer('shared/i18n/presentacion.js'), { window: ventanaPresentacion, CMGI18n: apiPresentacion });
+const pendientes = Object.fromEntries(Object.entries(mapas.es).filter(([k]) => k.startsWith('pendientes.')));
+ventanaPresentacion.CMGPresentacion.configurar(pendientes);
+const concretar = t => t.replace(/\{(p\d+)\}/g, (_, n) => `VALOR_${n}`);
+for (const [clave, original] of Object.entries(pendientes)) {
+  comprobar(ventanaPresentacion.CMGPresentacion.texto(concretar(original)) === concretar(mapas.en[clave]), `${clave}: patrón sin colisiones ni parámetros perdidos`);
+}
 const htmlInicio = leer('index.html');
 const htmlJuego = leer('Prototypes/Rocket Launcher/index.html');
 for (const [archivo, html] of [['index.html', htmlInicio], ['juego', htmlJuego]]) {
@@ -58,7 +85,7 @@ for (const [archivo, html] of [['index.html', htmlInicio], ['juego', htmlJuego]]
 }
 // Las claves dinámicas con nombre literal también deben existir en ambos idiomas.
 for (const archivo of ['layout', 'juego']) {
-  for (const [, clave] of leer(`Prototypes/Rocket Launcher/js/${archivo}.js`).matchAll(/["']((?:ajustes|disposicion|partida)\.[\w.]+)["']/g)) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
+  for (const [, clave] of leer(`Prototypes/Rocket Launcher/js/${archivo}.js`).matchAll(/["']((?:ajustes|disposicion|partida|escenario|retos)\.[\w.]+)["']/g)) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
 }
 for (const archivo of ['Prototypes/Rocket Launcher/js/juego.js', 'Prototypes/Rocket Launcher/js/factory-form.js']) {
   for (const [, clave] of leer(archivo).matchAll(/["']((?:inspector|formulario)\.[\w.]+)["']/g)) {
