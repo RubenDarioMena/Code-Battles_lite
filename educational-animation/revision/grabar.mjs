@@ -2,7 +2,8 @@
 //
 //   node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/reto-5
 //
-// Lee <carpeta>/ejemplo.json ({ serie, reto, semilla, programas: { id: archivo } }), abre el juego en
+// Lee <carpeta>/ejemplo.json ({ serie, reto, semilla, programas: { id: archivo } }). Sin serie, es un programa
+// suelto: se ejecuta en Node con ejecutar.js y su reloj virtual. Con serie, abre el juego en
 // Chromium (puerto 8771, el dedicado a pruebas), ejecuta los programas instrumentados por el trazador y
 // guarda <carpeta>/grabacion.js. Después repite la partida con los programas sin instrumentar y la misma
 // semilla: si los eventos o el resultado cambian, falla (la traza no puede alterar el juego).
@@ -29,6 +30,30 @@ const T = globalThis.CMGTrazador;
 
 // Lo que el programa «ve» en cada despertar: la instantánea que el juego le pasa al Worker.
 const ESTADO = 'Object.fromEntries(Object.entries(SNAP.maq).map(([k,v])=>[k,("jammed" in v)?{jammed:v.jammed,failureRate:v.failureRate,missiles:v.missiles,mode:v.mode}:{count:v.count}]))';
+
+// Programas sueltos (sin serie): se ejecutan en Node con el reloj virtual de ejecutar.js; no hace falta el juego.
+if (!ejemplo.serie) {
+  vm.runInThisContext(await readFile(join(AQUI, 'motor/ejecutar.js'), 'utf8'), { filename: 'ejecutar.js' });
+  const programas = {}, salidas = {};
+  let error = null, cortado = false;
+  for (const [id, archivo] of Object.entries(ejemplo.programas)) {
+    const fuente = (await readFile(join(carpeta, archivo), 'utf8')).replace(/\r\n?/g, '\n').replace(/\n+$/, '\n');
+    const r = await globalThis.CMGEjecutar.ejecutar(fuente, { acorn: globalThis.acorn });
+    // Dos ejecuciones dan la misma traza: lo que se graba no depende del momento.
+    const otra = await globalThis.CMGEjecutar.ejecutar(fuente, { acorn: globalThis.acorn });
+    if (JSON.stringify(otra.programa.eventos) !== JSON.stringify(r.programa.eventos)) throw new Error(`La traza de ${id} cambia entre dos ejecuciones.`);
+    programas[id] = r.programa; salidas[id] = r.salida; error = error || r.error; cortado = cortado || r.cortado;
+  }
+  const unico = Object.keys(programas).length === 1 ? Object.keys(programas)[0] : null;
+  const grabacion = { formato: 2, titulo: ejemplo.titulo || ejemplo.id, programas, salida: unico ? salidas[unico] : [], error, cortado,
+    verificacion: { mismaTrazaDosVeces: true, eventosDeTraza: Object.fromEntries(Object.entries(programas).map(([id, p]) => [id, p.eventos.length])) } };
+  const destino = join(carpeta, 'grabacion.js');
+  await writeFile(destino, '/* Generado por grabar.mjs: programa suelto ejecutado con traza. No editar a mano. */\n'
+    + `(window.GRABACIONES_REVISION ||= {})[${JSON.stringify(ejemplo.id)}] = ${JSON.stringify(grabacion)};\n`);
+  console.log(`${ejemplo.id}: ${JSON.stringify(grabacion.verificacion.eventosDeTraza)} eventos · consola ${grabacion.salida.length} líneas${error ? ' · error ' + error.mensaje : ''}${cortado ? ' · cortado' : ''}`);
+  console.log(`→ ${destino}`);
+  process.exit(0);
+}
 
 const fuentes = {}, instrumentados = {};
 for (const [id, archivo] of Object.entries(ejemplo.programas)) {
@@ -134,7 +159,7 @@ try {
 
   const sha = async (f) => createHash('sha256').update(await readFile(join(RAIZ, f))).digest('hex').slice(0, 16);
   const grabacion = {
-    formato: 1,
+    formato: 2,
     serie: ejemplo.serie, semilla: ejemplo.semilla, reto: conTraza.reto,
     programas: Object.fromEntries(Object.entries(instrumentados).map(([id, r]) => [id, {
       lenguaje: 'js', fuente: fuentes[id], nodos: r.nodos, comentarios: r.comentarios, eventos: conTraza.trazas[id],

@@ -1,8 +1,110 @@
 # Modo revisión · prototipo
 
-La pantalla se parte en dos franjas de borde a borde: **arriba el código** de una máquina y **abajo su explicación**, paso a paso y en el orden real de ejecución. El código no se edita. Tocar cualquier fragmento explica qué es. Todo sale de una **partida real del juego**: el texto no inventa nada, y los valores son los que vio el programa.
+La pantalla se parte en dos franjas de borde a borde:
+- **arriba, el código**, que no se edita;
+- **abajo, el mismo programa como diagrama de flujo**, al estilo de la infografía de los seis cafés, y una línea que cuenta el paso actual con los valores reales.
 
-Es un prototipo fuera del juego, como las infografías. No cambia el juego ni sus archivos. El ejemplo es el **reto 5 · Dos lanzadores**, con un programa para cada lanzador que lee al otro como objeto (`LAU_02.jammed`):
+Cada fila del diagrama tiene **número y color propios**, como cada campo de un formulario que ilumina su parte del texto generado. El número y el color se repiten en el margen del código y en la franja de tiempo. Al recorrer el programa, la fila activa y su fragmento de código se iluminan juntos. Tocar, o señalar con el ratón, cualquier cosa de un lado ilumina su pareja en el otro:
+- el código ilumina su fila y explica qué es;
+- una fila ilumina su código y dice cuántas veces se ejecutó (y cuántas fue true o false);
+- una ficha de la narración ilumina su fragmento.
+
+**No hay texto escrito para ningún programa.** Todo sale de tres fuentes:
+- **el árbol del programa** (acorn), que da la forma del diagrama y las frases;
+- **el catálogo del juego**, que dice qué significan `LAU_02.jammed` o `burstFire`;
+- **la traza de una ejecución real**, que da los valores y el camino de cada vuelta.
+
+Por eso explica cualquier código: los seis cafés, un `for…of` con una función, una recursión, el reto 5 grabado en el juego o lo que se escriba en «Tu código…».
+
+Es un prototipo fuera del juego, como las infografías. No cambia el juego.
+
+```text
+1 drinkCoffee empieza en 0
+2 ¿drinkCoffee es menor que 10?          false → Fin del bucle
+    ↓ true
+  3 Suma 1 a drinkCoffee
+  4 ¿drinkCoffee vale 8?                  true → 5 break
+    ↓ false
+  6 ¿drinkCoffee vale 5?                  true → 7 continue
+    ↓ false
+  8 Imprime 'Café'                        (8 y 7 vuelven a 2)
+```
+
+## Uso
+
+```bash
+python3 -m http.server 8790        # desde la raíz del repo; abre /educational-animation/revision/?ej=cafes
+node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/cafes   # programa suelto, en Node
+node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/reto-5  # partida real del juego (puerto 8771)
+node educational-animation/revision/pruebas/trazador.cjs
+node educational-animation/revision/pruebas/flujo.cjs
+node educational-animation/revision/pruebas/interfaz.mjs
+```
+
+Ejemplos: `?ej=cafes`, `?ej=pares` y `?ej=reto-5`. «Tu código…» ejecuta en la página cualquier JavaScript con `console.log` y `await esperar(s)`, este último con un reloj virtual.
+
+**Teclado y gestos:**
+- ← → o deslizar en la narración: paso anterior o siguiente.
+- Espacio o ▶: avanzar solo. Va despacio cuando una vuelta toma un camino distinto de la anterior y deprisa cuando se repite.
+- Inicio y Fin: primer y último paso.
+- `1` / `2`: cambiar de programa.
+- Esc: quitar el foco.
+
+**La franja de tiempo** tiene un tramo por vuelta del bucle principal. Cada tramo lleva el color de la primera fila de una rama (`if`/`else`) por la que pasó esa vuelta; las vueltas seguidas del mismo color se juntan y las que no entran en ninguna rama quedan en gris. Así se ve cuándo cambia el comportamiento. Tocar o arrastrar salta a esa vuelta. En el reto 5, ▲ rojo marca un atasco y ▲ verde, una reparación.
+
+**Idioma:** ES/EN cambia al momento, con el runtime de idiomas de la interfaz (`shared/i18n/i18n.js`) y la misma preferencia `cmg-interfaz-idioma` que el juego.
+
+## Cómo funciona
+
+```text
+programa ──trazador.js──▶ programa con ganchos (mismas líneas) ──juego real (grabar.mjs) o ejecutar.js──▶ traza
+programa ──flujo.js──▶ filas del diagrama (número, color, true/false, a dónde sigue cada una)
+traza ──flujo.js──▶ pasos (una visita a una fila) y vueltas ──explicar.js + catalogo.js + textos.js──▶ frases ──revision.js──▶ pantalla
+```
+
+| Archivo | Qué hace |
+|---|---|
+| `motor/trazador.js` | Instrumenta el JavaScript por su árbol (acorn, el mismo del juego) sin mover líneas. Ganchos: sentencia (`s`), condición (`c`, también cada vuelta de `for…of`), valor (`v`) y espera (`w`). La línea en ejecución y los errores del juego siguen coincidiendo. |
+| `grabar.mjs` | Con serie (`war`): ejecuta el juego real en Chromium con los programas instrumentados y **repite la partida sin traza con la misma semilla**. Falla si cambia el resultado o algún evento de alguna máquina. Sin serie: ejecuta el programa en Node con `ejecutar.js`, dos veces, y comprueba que la traza no cambia. |
+| `motor/ejecutar.js` | Ejecuta un programa suelto con traza. Tiene un reloj virtual para `esperar(s)` y corta un programa que no termina a los 60 000 eventos o 3 s. |
+| `motor/flujo.js` | Del árbol, las filas del diagrama: sentencias, decisiones con su salida lateral (`true → break`), bucles con su flecha de vuelta, `else if` en cadena, `switch`, `try` y funciones como secciones aparte. De la traza, los pasos, las vueltas del bucle principal y su camino. Los valores de una recursión van a su llamada. |
+| `motor/explicar.js` | Plantillas por tipo de nodo: la etiqueta de cada fila («¿drinkCoffee vale 8?», «Suma 1 a drinkCoffee»), la narración de cada paso con sus valores y la tarjeta «¿qué es?». |
+| `motor/catalogo.js` | Qué objetos, funciones y propiedades tiene el juego. **Es lo único que hay que ampliar** cuando aparece una máquina o un robot nuevo (abajo). |
+| `motor/textos.js` | Todas las frases, en español e inglés, como catálogo de `CMGI18n` (claves `revision.*`). |
+| `motor/revision.js`, `motor/revision.css` | La interfaz. |
+
+## Añadir un objeto o un robot
+
+Cada máquina se registra una vez en `motor/catalogo.js` y pone sus frases en `motor/textos.js`, en los dos idiomas. Desde ese momento, sus lecturas y órdenes salen en el diagrama, en la narración y en la tarjeta «¿qué es?». No hace falta tocar las plantillas.
+
+```js
+CMGCatalogo.registrar({
+  clave: "dron", patron: /^DRN_\d+$/, idDe: (n) => n.replace(/_/g, "-"),
+  propiedades: { bateria: { tipo: "numero" } },
+  metodos: { patrullar: { clase: "orden", args: [{}], resultados: ["ok"] } },
+});
+```
+
+```js
+'revision.cat.dron.nombre': 'dron explorador',
+'revision.cat.dron.descripcion': 'Dron del jugador.',
+'revision.cat.dron.bateria.que': 'La batería que le queda.',
+'revision.cat.dron.patrullar.hace': 'Vuela en círculos por esa zona.',
+'revision.cat.dron.patrullar.etiqueta': 'Patrulla {0}',          // la fila del diagrama: «Patrulla "norte"»
+'revision.cat.dron.patrullar.arg0': 'la zona',
+'revision.cat.dron.patrullar.resultado.ok': 'el dron sale a patrullar',
+```
+
+- `CMGCatalogo.clavesDe(tipo)` dice qué claves necesita un tipo.
+- `pruebas/flujo.cjs` comprueba que todas existen en español e inglés, con los mismos huecos, y registra este mismo dron.
+
+Una propiedad booleana añade `si`, `no`, `pregunta` y `preguntaNo` («¿{s} está atascado?»). Un método que se usa dentro de una expresión puede añadir `corta`: el `autoTarget` de `pos` es solo «dron».
+
+Ya están el lanzador (`LAU_xx`), el sensor de vibración (`VIB_xx`), `esperar`, `console` y el robot de Factory (`yo`, sin grabación de ejemplo).
+
+## El reto 5
+
+El programa de cada lanzador lee al otro como objeto:
 
 ```js
 // Un solo reparador para LAU-01 y LAU-02
@@ -23,95 +125,25 @@ while (true) {
 }
 ```
 
-Con la semilla 1, el resultado es victoria: 31/31 derribados, 0 brechas y 2 atascos.
-- LAU-01 se atasca a los 20,35 s. Mientras REP-01 lo repara, LAU-02 lee `LAU_01.jammed === true` durante 14 vueltas y no usa ráfaga.
-- A los 25 s le toca a LAU-02, y LAU-01 hace lo mismo durante 19 vueltas.
+Con la semilla 1 gana: 31 de 31 derribados, 0 brechas y 2 atascos, en 146 vueltas de cada programa.
+- **En la franja de LAU-01** se ven 19 vueltas seguidas del color de la fila 4 («Dispara normal a pos»): son las que vio a LAU-02 atascado.
+- **En la de LAU-02** son 14.
 
-Sin ese `if`, con la misma semilla también gana, pero con 3 atascos (uno más y una reparación más). En un barrido de 12 semillas con la misma lógica, la regla dejó siempre 2 atascos y ninguna brecha; sin ella hubo 3 atascos en 9 de las 12.
-
-## Uso
-
-```bash
-python3 -m http.server 8790        # desde la raíz del repo; abre /educational-animation/revision/
-node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/reto-5   # vuelve a grabar la partida
-node educational-animation/revision/pruebas/trazador.cjs
-node educational-animation/revision/pruebas/pasos.cjs
-node educational-animation/revision/pruebas/interfaz.mjs
-```
-
-**Teclado y gestos:**
-- ← → o deslizar en la explicación: paso anterior o siguiente.
-- Espacio o ▶: avanzar solo.
-- Inicio y Fin: primer y último paso.
-- `1` / `2`: cambiar de programa.
-- Esc: cerrar la tarjeta.
-
-**Tocar:**
-- Un fragmento del código abre la tarjeta «¿qué es?». Otro toque sobre el mismo sube al bloque que lo contiene: `jammed` → `LAU_02.jammed` → `if`.
-- Un fragmento de la explicación se señala en el código.
-- La franja de abajo es la partida entera, con un color por camino del programa. Tocar un tramo salta a su resumen. ▲ rojo marca un atasco y ▲ verde, una reparación.
-
-## Cómo funciona
-
-```text
-programa ──trazador.js──▶ programa con ganchos (mismas líneas) ──juego real (grabar.mjs)──▶ grabacion.js
-grabacion.js ──pasos.js──▶ vueltas ▸ tramos ▸ pasos ──explicar.js + catalogo.js──▶ frases ──revision.js──▶ pantalla
-```
-
-| Archivo | Qué hace |
-|---|---|
-| `motor/trazador.js` | Instrumenta el JavaScript por su árbol (acorn, el mismo del juego) sin mover líneas. Añade ganchos para sentencias (`s`), condiciones (`c`), valores (`v`) y esperas (`w`). La línea en ejecución y los errores del juego siguen coincidiendo. Además conserva los comentarios del autor. |
-| `grabar.mjs` | Abre el juego real en Chromium (puerto 8771) y lo ejecuta con los programas instrumentados. Recoge la traza de cada Worker. Después **repite la partida sin traza con la misma semilla** y falla si cambia el resultado o algún evento de alguna máquina. La grabación es reproducible byte a byte. |
-| `motor/catalogo.js` | Qué significa cada objeto, función y propiedad del juego. **Es lo único que hay que ampliar** cuando aparece una máquina o un robot nuevo (abajo). |
-| `motor/explicar.js` | Plantillas por tipo de nodo. Escriben el programa en palabras, narran cada paso con los valores reales y explican el fragmento que se toca. |
-| `motor/pasos.js` | Divide la traza en vueltas y junta en tramos las vueltas iguales seguidas; las cortas que alternan forman un único tramo. Detalla solo lo nuevo y resume lo repetido. |
-| `motor/revision.js`, `motor/revision.css` | La interfaz. |
-
-**Qué cuenta cada paso:**
-1. El programa en palabras, generado del árbol con el catálogo («Si LAU-02 está atascado: dispara normal a pos»).
-2. La primera vuelta, sentencia a sentencia, y luego solo lo que cambia la primera vez que aparece: un objetivo de verdad, el `else`, el atasco propio, el atasco del compañero.
-3. Un resumen por tramo, con rangos («failureRate: 0,095–0,115») y los hechos de la partida que caen en él (atascos, reparaciones, derribos).
-4. El resultado, comparado con la variante del ejemplo (`ejemplo.json` → `comparar`).
-
-**Colores por papel** (los mismos de las infografías):
-- amarillo: condición;
-- azul: sensor;
-- cian: otra máquina;
-- morado: la máquina propia;
-- cobre: orden;
-- rosa: espera.
-
-## Añadir un objeto o un robot
-
-Cada máquina se registra una vez en `motor/catalogo.js`. Desde ese momento, sus lecturas y órdenes se explican en el programa en palabras, en la narración y en la tarjeta «¿qué es?». No hace falta tocar las plantillas.
-
-```js
-CMGCatalogo.registrar({
-  clave: "dron-propio", nombre: "dron explorador", patron: /^DRN_\d+$/, idDe: (n) => n.replace(/_/g, "-"),
-  descripcion: "Dron explorador del jugador.",
-  propiedades: {
-    bateria: { tipo: "numero", rol: "otra", que: "la batería que le queda", frase: (s) => `la batería de ${s}`, valor: (v) => `${v} %` },
-  },
-  metodos: {
-    patrullar: { clase: "orden", rol: "orden", args: [{ que: "zona", valores: { norte: "la mitad norte del mapa" } }],
-      hace: "vuela en círculos por esa zona", frase: (a) => `patrulla ${a[0]}`, resultados: { ok: "el dron sale a patrullar" } },
-  },
-});
-```
-
-`pruebas/pasos.cjs` comprueba exactamente este caso. El catálogo ya trae:
-- el lanzador (`LAU_xx`), con sus 7 propiedades y 4 órdenes;
-- el sensor de vibración (`VIB_xx`);
-- `esperar` y `console`;
-- el robot de Factory (`yo`, con `recoger`/`pickUp`…), todavía sin grabación de ejemplo.
+Sin ese `if`, la misma semilla también gana, pero con 3 atascos. En un barrido de 12 semillas con la misma lógica, la regla dejó siempre 2 atascos y ninguna brecha; sin ella hubo 3 atascos en 9 de las 12.
 
 ## Límites y siguientes pasos
 
-- **Solo JavaScript.** Python se ejecuta en el juego traducido a JS con las mismas líneas, así que esta traza sirve para resaltar líneas enteras. Para resaltar expresiones, el traductor tendría que conservar también las columnas, y las plantillas necesitan el glosario de las infografías (`True`, `and`…).
+- **Solo JavaScript.** Python se ejecuta en el juego traducido a JS con las mismas líneas. Para Python harían falta dos cosas:
+  - el diagrama, sacado del árbol de lezer que ya usa el editor, porque el JS traducido lleva auxiliares `__py.*`;
+  - que el traductor conserve las columnas, para que el resaltado llegue a expresiones y no solo a líneas.
+
+  Las etiquetas del diagrama ya son lenguaje natural, sin sintaxis de JS, así que valen para los dos.
 - **Fuera del juego.** Para integrarlo hace falta:
   - un botón junto al del mapa;
   - repetir el último intento con su semilla e instrumentado en lugar de grabarlo aparte;
   - unir este catálogo con `Prototypes/Rocket Launcher/js/proveedor.js`, que ya tiene nombres y firmas.
-- **Solo el bucle principal.** Los tramos se agrupan por el bucle de nivel superior. Bucles anidados y funciones propias se narran, pero no se agrupan aparte.
-- **La traza ocupa** unos 2 500 eventos por programa en 36 s de partida (265 kB la grabación de dos programas).
-- **Revisión pendiente:** QA en un teléfono real; el texto de las plantillas necesita revisión humana.
+- **Una vuelta = el bucle principal.** Los bucles anidados y las funciones se recorren paso a paso, pero la franja solo divide por el bucle de fuera.
+- **Detalles sin resolver:**
+  - En una llamada a una función propia, la narración del paso ya enseña lo que devolvió.
+  - Una condición que llama recursivamente a su misma función puede mezclar los valores de sus operandos.
+- **Revisión pendiente:** QA en un teléfono real y revisión humana de las frases en los dos idiomas.

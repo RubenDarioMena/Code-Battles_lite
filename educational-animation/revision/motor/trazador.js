@@ -10,6 +10,7 @@
  * Ganchos (cada uno deja un evento en la traza, en orden de ejecución):
  *   s(id)      empieza una sentencia                         → [id]
  *   c(id, x)   se evaluó una condición (if, while, for, ?:)    → [id, valor]
+ *              o empieza una vuelta de for…of / for…in: id es el bucle y valor, el elemento de esa vuelta
  *   v(id, x)   se evaluó una expresión (lecturas, llamadas…)   → [id, valor]
  *   w(id, x)   el programa va a esperar (await): envía el lote → [id]
  *   Cuando cambia el reloj (opciones.reloj) se añade ["t", tiempo, estado].
@@ -74,6 +75,8 @@
     if (p === "UpdateExpression") return false;
     if ((p === "ForInStatement" || p === "ForOfStatement") && campo === "left") return false;
     if (p === "VariableDeclarator" && campo === "id") return false;
+    if (/^(Function|Class)/.test(p) && campo === "id") return false;                              // function esPar(n)
+    if (p === "CatchClause" && campo === "param") return false;
     if (/Pattern$/.test(p) || p === "RestElement") return false;
     if (/Function/.test(p) && campo === "params") return false;
     if ((p === "Property" || p === "MethodDefinition" || p === "PropertyDefinition") && campo === "key" && !padre.computed) return false;
@@ -110,6 +113,11 @@
           // El cuerpo de una etiqueta no se envuelve: «continue etiqueta» debe seguir apuntando al bucle.
           abrir(n.start, `{__T.s(${x.id});`, x.prof); cerrar(n.end, "}", x.prof); marcar(x, "s");
         }
+      }
+      // Cada vuelta de for…of / for…in: __T.c(idBucle, elemento) al abrir su bloque (no tienen condición).
+      if ((n.type === "ForOfStatement" || n.type === "ForInStatement") && n.body.type === "BlockStatement") {
+        const l = n.left, d = l.type === "VariableDeclaration" ? l.declarations[0].id : l;
+        abrir(n.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c");
       }
       // Condiciones.
       if (campo === "test" && padre && /^(If|While|DoWhile|For)Statement$|^ConditionalExpression$/.test(padre.type) && !enCadena) {
@@ -153,7 +161,7 @@
       "const M=()=>{const t=R();if(t!==T0){T0=t;B.push([\"t\",t,E()])}};" +
       `const F=()=>{if(B.length)S(B.splice(0))};` +
       `return{s(i){M();B.push([i]);if(B.length>${lote})F()},` +
-      "c(i,x){M();B.push([i,V(x)]);return x},v(i,x){M();B.push([i,V(x)]);return x}," +
+      `c(i,x){M();B.push([i,V(x)]);if(B.length>${lote})F();return x},v(i,x){M();B.push([i,V(x)]);if(B.length>${lote})F();return x},` +
       "w(i,x){M();B.push([i]);F();return x},fin(){F()}}})();";
   }
 

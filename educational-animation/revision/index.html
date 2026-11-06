@@ -14,22 +14,82 @@
   html, body { height: 100%; margin: 0; background: #070A0D; color-scheme: dark; }
   #revision { height: 100%; }
   .sin-datos { padding: 24px; color: #DCE3E6; font: 16px/1.5 Archivo, sans-serif; }
+  /* «Tu código»: un programa cualquiera, ejecutado aquí con la traza. */
+  .tuyo { width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 16px; border-radius: 14px; border: 1px solid #34414B; background: #11181E; color: #DCE3E6; font: 15px/1.45 Archivo, sans-serif; }
+  .tuyo::backdrop { background: rgba(0, 0, 0, .6); }
+  .tuyo p { margin: 0 0 10px; color: #8C99A3; }
+  .tuyo textarea { box-sizing: border-box; width: 100%; height: min(46vh, 380px); padding: 10px; border-radius: 9px; border: 1px solid #34414B; background: #0B1014; color: #DCE3E6; font: 14px/1.55 "JetBrains Mono", monospace; tab-size: 2; resize: vertical; }
+  .tuyo .error { min-height: 1.4em; margin: 6px 0 0; color: #F07A70; }
+  .tuyo .acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .tuyo button { padding: 9px 14px; border-radius: 9px; border: 1px solid #34414B; background: #18212A; color: #DCE3E6; font: 700 14px Archivo, sans-serif; cursor: pointer; }
+  .tuyo button[value="ok"] { background: #E0AE4A; border-color: #E0AE4A; color: #070A0D; }
 </style>
+<script src="../../shared/i18n/i18n.js"></script>
+<script src="motor/textos.js"></script>
+<script src="../../shared/vendor/acorn-8.11.3.js"></script>
+<script src="motor/trazador.js"></script>
+<script src="motor/ejecutar.js"></script>
+<script src="motor/catalogo.js"></script>
+<script src="motor/flujo.js"></script>
+<script src="motor/explicar.js"></script>
+<script src="motor/revision.js"></script>
 </head>
 <body>
 <main id="revision"></main>
-<script src="motor/catalogo.js"></script>
-<script src="motor/explicar.js"></script>
-<script src="motor/pasos.js"></script>
-<script src="motor/revision.js"></script>
+<dialog class="tuyo">
+  <form method="dialog">
+    <p data-i18n="revision.ui.pegar"></p>
+    <textarea spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+    <p class="error" aria-live="polite"></p>
+    <div class="acciones"><button value="no" data-i18n="revision.ui.cancelar"></button><button value="ok" data-i18n="revision.ui.revisar"></button></div>
+  </form>
+</dialog>
 <script>
-  // ?ej=<carpeta de ejemplos/> (por defecto reto-5). La grabación sale de grabar.mjs.
-  const ej = (new URLSearchParams(location.search).get("ej") || "reto-5").replace(/[^\w-]/g, "");
-  const s = document.createElement("script");
-  s.src = `ejemplos/${ej}/grabacion.js`;
-  s.onload = () => { window.__revision = CMGRevision.montar(document.getElementById("revision"), window.GRABACIONES_REVISION[ej], { salir: "../../Prototypes/Rocket%20Launcher/" }); };
-  s.onerror = () => { document.getElementById("revision").innerHTML = `<p class="sin-datos">No hay grabación para «${ej}». Genérala con <code>node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/${ej}</code>.</p>`; };
-  document.body.append(s);
+  // ?ej=<carpeta de ejemplos/>. Las grabaciones salen de grabar.mjs; «tuyo» ejecuta aquí lo que escribas.
+  const EJEMPLOS = [{ id: "cafes", titulo: "Seis cafés" }, { id: "pares", titulo: "Pares e impares" }, { id: "reto-5", titulo: "Reto 5 · dos lanzadores" }];
+  const T = (k) => CMGI18n.t("revision." + k);
+  const caja = document.getElementById("revision"), dialogo = document.querySelector(".tuyo"), area = dialogo.querySelector("textarea");
+  let vista = null, actual = null, tuyo = null;
+  area.value = `// Cualquier programa: el modo revisión lo explica solo
+function factorial(n) {
+  if (n <= 1) return 1
+  return n * factorial(n - 1)
+}
+
+for (let i = 1; i <= 4; i++) {
+  console.log(i, factorial(i))
+}`;
+  function lista() { return [...EJEMPLOS, ...(tuyo ? [{ id: "tuyo-hecho", titulo: T("ui.titulo") + " · " + T("ui.tuCodigo").replace("…", "") }] : []), { id: "tuyo", titulo: T("ui.tuCodigo") }]; }
+  function montar(id, G) {
+    if (vista) vista.destruir();
+    actual = id;
+    vista = window.__revision = CMGRevision.montar(caja, G, { salir: "../../Prototypes/Rocket%20Launcher/", ejemplos: lista(), ejemplo: id, alElegir: abrir });
+    history.replaceState(null, "", `?ej=${id}`);
+  }
+  function abrir(id) {
+    if (id === "tuyo") { dialogo.querySelector(".error").textContent = ""; CMGI18n.aplicar(dialogo); dialogo.showModal(); return; }
+    if (id === "tuyo-hecho" && tuyo) return montar(id, tuyo);
+    const listo = () => window.GRABACIONES_REVISION && window.GRABACIONES_REVISION[id];
+    if (listo()) return montar(id, listo());
+    const s = document.createElement("script");
+    s.src = `ejemplos/${id}/grabacion.js`;
+    s.onload = () => montar(id, listo());
+    s.onerror = () => { caja.innerHTML = `<p class="sin-datos">No hay grabación para «${id}». Genérala con <code>node educational-animation/revision/grabar.mjs educational-animation/revision/ejemplos/${id}</code>.</p>`; };
+    document.body.append(s);
+  }
+  dialogo.addEventListener("close", async () => {
+    if (dialogo.returnValue !== "ok") { const sel = caja.querySelector(".rv-ejemplos"); if (sel) sel.value = actual; return; }
+    try {
+      const r = await CMGEjecutar.ejecutar(area.value, { acorn });
+      tuyo = { titulo: T("ui.tuCodigo").replace("…", ""), programas: { programa: r.programa }, salida: r.salida, error: r.error, cortado: r.cortado };
+      montar("tuyo-hecho", tuyo);
+    } catch (e) {
+      dialogo.querySelector(".error").textContent = CMGI18n.t("revision.ui.errorSintaxis", { m: e.message });
+      dialogo.showModal();
+    }
+  });
+  const ej = (new URLSearchParams(location.search).get("ej") || "cafes").replace(/[^\w-]/g, "");
+  abrir(ej === "tuyo-hecho" ? "cafes" : ej);
 </script>
 </body>
 </html>

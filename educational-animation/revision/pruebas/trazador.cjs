@@ -93,5 +93,19 @@ console.log(tres, nada)`;
 console.log(o.f())`;
   eq((await correr(este)).salida, ['7'], 'this se conserva en métodos');
 
+  // 5 · for…of: un evento por vuelta con el elemento; el nombre de una función declarada no se envuelve.
+  const lista = `const total = suma([3, 8, 5])
+function suma(xs) {
+  let s = 0
+  for (const x of xs) { s += x }
+  return s
+}
+console.log(total)`;
+  const l = await correr(lista);
+  eq(l.salida, ['16'], 'for…of y función usada antes de declararla');
+  const bucle = l.nodos.find(x => x.tipo === 'ForOfStatement').id;
+  eq(l.eventos.filter(e => e[0] === bucle && e.length > 1).map(e => e[1]), [3, 8, 5], 'una vuelta por elemento, con su valor');
+  eq(l.nodos.filter(x => x.ganchos.includes('v') && x.campo === 'id').length, 0, 'ningún nombre declarado lleva gancho');
+
   console.log(`trazador: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

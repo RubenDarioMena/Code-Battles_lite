@@ -1,3 +1,36 @@
+## Modo revisión · diagrama de flujo con un color por fila · 6 de noviembre de 2026
+
+- **Rama.** `revision-flujo`, creada desde `refactor/idiomas-interfaz` y con `trunk` unido, para seguir los cambios de idioma que afecten a cómo se expresa esta herramienta.
+- **Por qué.** El usuario vio el primer prototipo «muy preparado» y lejos de su idea. Pidió:
+  - seguir la imagen de los seis cafés: código arriba y, abajo, un diagrama donde la correlación sea evidente;
+  - que funcione como su bug tool multilenguaje: cada campo tiene su color y, al recibir el foco, ilumina su parte del texto generado;
+  - nada de texto escrito para el reto: el modo debe explicar cualquier código por sí solo.
+- **Qué cambia.**
+  - Abajo ahora está el programa como diagrama, generado del árbol (`flujo.js`): filas numeradas, `true →` al lado, `↓ false` y flechas de vuelta. Los seis cafés salen con la misma forma que la infografía.
+  - Cada fila tiene número y color propios, repetidos en el margen del código y en la franja de tiempo.
+  - Tocar o señalar el código ilumina su fila y la explica. Tocar una fila ilumina su código y dice cuántas veces se ejecutó y cuántas fue true o false.
+  - La narración es una sola frase por paso, con los valores reales.
+  - Desaparecen la introducción del reto, los tramos resumidos, la comparación con la variante y las fichas de «lo que vio».
+  - La franja de tiempo queda con un tramo por vuelta, del color de la rama que tomó.
+- **Genérico.**
+  - `explicar.js` y `catalogo.js` se reescribieron sin frases por reto: plantillas por tipo de nodo y catálogo del juego.
+  - `ejecutar.js` corre cualquier JavaScript con traza y reloj virtual, y se usa en «Tu código…» y para grabar ejemplos sueltos en Node. Ejemplos: los cafés, pares con función y `for…of`, y el reto 5 regrabado en el juego en esta rama (misma partida, 1099 eventos).
+- **Idiomas.**
+  - Todas las frases están en `motor/textos.js` como catálogo `CMGI18n` (claves `revision.*`, ES/EN, plantillas con huecos para fichas).
+  - El catálogo de máquinas declara sus claves (`clavesDe`).
+  - El selector ES/EN usa el mismo runtime y la misma preferencia que el juego.
+- **Trazador.** Añade un evento por vuelta de `for…of`/`for…in` y deja de envolver el nombre de una función declarada (rompía la sintaxis). El búfer también se vacía en condiciones y valores, para cortar un `while (true) {}`.
+- **Verificación actual.**
+  - `revision/pruebas/trazador.cjs`: **25** comprobaciones.
+  - `flujo.cjs`: **158**. Forma del diagrama de los cafés, valores por vuelta, recursión, `for…of`, reto 5 en los dos programas, paridad ES/EN y claves del catálogo, un robot nuevo, 9 programas variados sin claves sin traducir, corte de un bucle infinito, errores y reloj virtual.
+  - `interfaz.mjs`: **76** en Chromium a 1280×800 y 390×844. Comprueba la pareja de color entre fila y código, tocar y señalar, la franja, el idioma, el avance solo, LAU-01/LAU-02 en el mismo instante y «Tu código…». Sin desplazamiento lateral ni errores.
+  - En la rama siguen pasando `pruebas/i18n.cjs`, `i18n-catalogos.cjs` (414 claves), `python-traductor.cjs` (64), `python-semantica-regresiones.cjs` (3), `python-conversion-regresiones.cjs` (20) y `editor-contrato.cjs`.
+- **Límites.**
+  - Solo JavaScript. Para Python, el diagrama tendría que salir del árbol de lezer, y el traductor tendría que conservar columnas.
+  - Fuera del juego: falta el botón junto al mapa.
+  - La franja divide solo por el bucle principal.
+  - Pendiente QA en un teléfono real y revisión humana de las frases.
+
 ## Idiomas de interfaz · paletas e inspector · 6 de noviembre de 2026
 
 - **Rama y alcance.** Se continúa en `refactor/idiomas-interfaz` con dos subagentes Luna y revisión cruzada: paletas de inserción JS/Python y presentación del inspector de War/Factory. Se añaden 97 claves; total 414 claves ES/EN en los catálogos.
