@@ -43,6 +43,7 @@ Registrado en Claude Code solo para este proyecto (`claude mcp add --scope local
 | `audio/voice`, `audio/sfx` | Fuente de audio; `sync-assets` lo copia a `public/` de Remotion. |
 | `scripts/`, `storyboards/`, `experiments/`, `licenses/` | Guion, variantes, plantilla de evaluación y licencias. |
 | `tools/render-manifest.mjs` | Escribe `<render>.manifest.json` (resolución, FPS, duración, versiones, comando, parámetros, sha256). |
+| `revision/` | **Modo revisión (prototipo)**: código arriba y explicación abajo, paso a paso, con la traza de una partida real (reto 5). Trazador por árbol, plantillas deterministas y catálogo ampliable de máquinas. Ver su [README](revision/README.md). |
 | `infografias/` | **Infografías paso a paso** (HTML + GSAP, sin compilación): una spec por concepto → reproductor interactivo + 4 vídeos (16:9/9:16 × JS/Python). Receta en la skill `.claude/skills/infografia-animada`. Ver su [README](infografias/README.md). |
 
 ## Principios aplicados

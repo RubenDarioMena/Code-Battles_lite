@@ -1,3 +1,32 @@
+## Modo revisión · prototipo con el reto 5 · 6 de noviembre de 2026
+
+- **Origen.** Propuesta del usuario: un modo junto al del mapa que deje la pantalla en dos franjas de borde a borde, con el código arriba (sin editar) y su explicación abajo en lenguaje natural, con el resaltado en el orden real de ejecución. Tocar un texto debe mostrar qué representa. Pidió probarlo con el reto 5, que la solución use los nombres de las máquinas como objetos y el dato `jammed`, y que cada máquina o robot nuevo se pueda ir añadiendo. Scrimba queda solo como referencia.
+- **Solución del reto 5** (`educational-animation/revision/ejemplos/reto-5/`): si `LAU_02.jammed` (o `LAU_01.jammed`), disparo normal, porque el único reparador está ocupado; si no, ráfaga mientras `failureRate < 0.12`; espera 0,25 s.
+  - Se eligió con un barrido en el juego real (headless, puerto 8771): 12 de 12 semillas sin brechas y con 2 atascos.
+  - Sin la regla también gana, pero con 3 atascos en 9 de 12. La primera idea (cubrir al compañero con ráfaga) perdía con 2 brechas.
+- **Cómo se hace, sin LLM.**
+  - `trazador.js` instrumenta el programa por su árbol (acorn) sin mover líneas.
+  - `grabar.mjs` ejecuta el juego real con esos programas, recoge la traza de cada Worker y repite la partida sin traza con la misma semilla. Falla si cambia el resultado o los eventos de alguna máquina. El orden entre Workers dentro de un mismo instante sí varía, porque es concurrencia real; no cambia el mundo.
+  - `pasos.js` agrupa vueltas y tramos.
+  - `explicar.js` y `catalogo.js` escriben las frases con los valores reales.
+- **Interfaz** (`revision/index.html`):
+  - Pantalla partida a todo el ancho. Arriba están el código, con anillos y bandas de color por papel e insignias de valor, y el selector LAU-01/LAU-02, que conserva el momento de la partida.
+  - Abajo están la narración, lo que vio el programa (las dos máquinas y si REP-01 está reparando), ‹ ▶ › y la franja de tramos con atascos y reparaciones.
+  - Tocar el código abre «¿qué es?»; otro toque sube al bloque que lo contiene. Tocar un fragmento de la explicación lo señala en el código.
+  - Los comentarios del programa aparecen como «nota del autor».
+- **Catálogo ampliable.** Una máquina nueva es una llamada a `CMGCatalogo.registrar(...)` con sus propiedades y métodos. Trae el lanzador, el sensor de vibración, la espera, la consola y el robot de Factory (este, sin grabación de ejemplo).
+- **Verificación actual.**
+  - `revision/pruebas/trazador.cjs`: **20** comprobaciones. Mismas líneas y mismo resultado con traza; «seis cafés»; `else if`, etiquetas, `?.`, `typeof`, `await`, `this`.
+  - `pasos.cjs`: **43** comprobaciones. Grabación, vueltas, orden de los pasos, textos sin `undefined`, la historia de los dos atascos y una máquina nueva registrada en la prueba.
+  - `interfaz.mjs`: **42** comprobaciones en Chromium a 1280×800 y 390×844 (puerto 8793). Sin desplazamiento lateral ni errores.
+  - Grabación: misma partida con y sin traza (1099 eventos del juego). Dos grabaciones seguidas son idénticas byte a byte; los eventos de un mismo instante se guardan ordenados por máquina. Repetida tras el commit remoto de Python (`bfb205b`) con el mismo resultado.
+- **Límites.**
+  - Solo JavaScript. Python llegaría por líneas, y por expresiones si el traductor conserva columnas.
+  - Fuera del juego: falta el botón junto al mapa y repetir el último intento instrumentado.
+  - Solo se agrupa el bucle principal.
+  - Pendiente QA en un teléfono real y revisión humana de las plantillas.
+  - No cambia el juego. Publicado como artifact privado para revisión; commit en `trunk` a petición del hook de la sesión.
+
 ## Continuidad de lenguajes · conversión JS/Python · 6 de noviembre de 2026
 
 - **Punto de partida.** Revisión del historial y de las ramas remotas: el trabajo de Python se hizo en `trunk` y E5–E7 ya estaban incorporadas también a `main`. Se retoma `trunk` desde `fd15451`, con dos subagentes Luna a petición del usuario. El registro del 4 de noviembre dejaba pendientes diferencias de nombres, parámetros por defecto y Unicode; no se encontró una rama de traducción de la interfaz.
