@@ -1,3 +1,12 @@
+## Modo revisión · asa, documentación por pulsación larga y barra del juego · 6 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario sobre el diagrama de flujo (paso 1 de 3; luego el botón en el juego y Python).
+- **Qué cambia.**
+  - **Barra.** Sale el selector ES/EN: el idioma es el de la interfaz del juego (misma preferencia `cmg-interfaz-idioma`). En su lugar, los símbolos de las otras pantallas: el mapa y `</>`. Fuera del juego son placeholders que vuelven al juego (`alMapa`, `alCodigo` en `CMGRevision.montar`).
+  - **Asa** entre el código y el diagrama, como el divisor del juego. Arriba del todo, el diagrama ocupa toda la pantalla. Doble clic o Intro alterna; ↑ ↓ e Inicio desde el teclado. El reparto se recuerda (`cmg-revision-reparto`).
+  - **Documentación.** Mantener pulsado 1,2 s un elemento de `.rv-flujo` (fila, salida, conector o ficha de la etiqueta) abre una página que tapa el código. Una barra se llena mientras se pulsa, y el clic al soltar no cuenta como toque. El tema sale de `motor/documentacion.js` (árbol y catálogo: `IF`, `ELSE IF`, `FOR…OF`, `ARGUMENTO CON VALOR POR DEFECTO`, `MÉTODO DE LISTA · push`, `ORDEN DEL JUEGO · burstFire`…). Por ahora el texto es «TEMA: PLACEHOLDER» y hay un recuadro «ANIMACIÓN: PLACEHOLDER».
+- **Verificación.** `flujo.cjs` **167** (temas de documentación, ES/EN, y todos los nodos de 9 programas variados sin claves sueltas); `interfaz.mjs` **112** en PC y teléfono (sin ES/EN, iconos, asa y su memoria, pulsación corta frente a larga, la documentación tapa el código, Esc, ✕ y cambio de idioma con la página abierta); `trazador.cjs` 25.
+
 ## Modo revisión · diagrama de flujo con un color por fila · 6 de noviembre de 2026
 
 - **Rama.** `revision-flujo`, creada desde `refactor/idiomas-interfaz` y con `trunk` unido, para seguir los cambios de idioma que afecten a cómo se expresa esta herramienta.

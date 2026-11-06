@@ -11,10 +11,12 @@
  * un programa concreto. Textos en el idioma de la interfaz (CMGI18n): cambia al momento. */
 (() => {
   "use strict";
-  const E = window.CMGExplicar, FL = window.CMGFlujo, I18N = window.CMGI18n;
+  const E = window.CMGExplicar, FL = window.CMGFlujo, I18N = window.CMGI18n, DOC = window.CMGDocumentacion;
   const t = (k, p) => I18N.t("revision." + k, p);
   const PALABRAS = new Set("break case catch class const continue debugger default delete do else export extends finally for function if import in instanceof let new of return super switch this throw try typeof var void while with yield await async true false null undefined".split(" "));
   const ICONO = {
+    // Los mismos símbolos que el juego: el mapa (botón del mapa del editor) y </> (código a pantalla completa).
+    mapa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
     salir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     antes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
     despues: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
@@ -72,17 +74,19 @@
       R.pasos.forEach((p, i) => { if (i && (p.vuelta !== R.pasos[i - 1].vuelta || !!p.fuera !== !!R.pasos[i - 1].fuera)) desde = i; inicio.push(desde); });
       datos[id] = { P, F, R, inicio };
     }
-    const estado = { prog: ids[0], paso: 0, foco: null, auto: false, temporizador: 0 };
+    const estado = { prog: ids[0], paso: 0, foco: null, auto: false, temporizador: 0, doc: null };
     const D = () => datos[estado.prog];
 
     raiz.classList.add("rv");
     raiz.innerHTML = `
       <header class="rv-barra">
-        ${opciones.salir ? `<a class="rv-salir" href="${esc(opciones.salir)}" data-t-aria="ui.salir">${ICONO.salir}</a>` : ""}
         <span class="rv-titulo"></span>
         ${opciones.ejemplos ? `<select class="rv-ejemplos" data-t-aria="ui.ejemplo">${opciones.ejemplos.map(e => `<option value="${esc(e.id)}"${e.id === opciones.ejemplo ? " selected" : ""}>${esc(e.titulo)}</option>`).join("")}</select>` : ""}
         ${ids.length > 1 ? `<div class="rv-progs" role="group" data-t-aria="ui.programas">${ids.map((id, k) => `<button type="button" data-prog="${esc(id)}" aria-pressed="${k === 0}">${esc(id)}</button>`).join("")}</div>` : ""}
-        <div class="rv-idiomas" role="group" data-t-aria="ui.idioma"><button type="button" data-idioma-interfaz="es">ES</button><button type="button" data-idioma-interfaz="en">EN</button></div>
+        <div class="rv-salidas">
+          <button type="button" class="rv-mini" data-accion="mapa" data-t-aria="ui.mapa" data-t-title="ui.mapa">${ICONO.mapa}</button>
+          <button type="button" class="rv-mini rv-mini-cod" data-accion="codigo" data-t-aria="ui.codigoNormal" data-t-title="ui.codigoNormal">&lt;/&gt;</button>
+        </div>
       </header>
       <section class="rv-codigo">
         <div class="rv-scroll"><div class="rv-lienzo">
@@ -92,6 +96,7 @@
           <div class="rv-capa rv-insignias" aria-hidden="true"></div>
         </div></div>
       </section>
+      <div class="rv-asa" role="separator" tabindex="0" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" data-t-aria="ui.asa"><span></span></div>
       <section class="rv-abajo">
         <div class="rv-flujo"><div class="rv-rejilla"></div></div>
         <div class="rv-narra" aria-live="polite"></div>
@@ -107,14 +112,24 @@
             <div class="rv-donde"></div>
           </div>
         </footer>
+      </section>
+      <section class="rv-doc" role="dialog" data-t-aria="doc.aria" hidden>
+        <header class="rv-doc-cab"><span class="rv-doc-num"></span><h2 class="rv-doc-titulo"></h2><button type="button" class="rv-cerrar" data-accion="cerrarDoc" data-t-aria="ui.cerrar">${ICONO.salir}</button></header>
+        <div class="rv-doc-cuerpo">
+          <div class="rv-doc-animacion" aria-hidden="true"><span class="rv-doc-pulso"></span><span class="rv-doc-et"></span></div>
+          <p class="rv-doc-texto"></p>
+        </div>
       </section>`;
     const $ = (s) => raiz.querySelector(s);
     const el = {
       pre: $(".rv-pre"), margen: $(".rv-margen"), bandas: $(".rv-bandas"), insignias: $(".rv-insignias"), scroll: $(".rv-scroll"), lienzo: $(".rv-lienzo"),
       codigo: $(".rv-codigo"), flujo: $(".rv-flujo"), rejilla: $(".rv-rejilla"), narra: $(".rv-narra"), tramos: $(".rv-tramos"), hitos: $(".rv-hitos"),
-      donde: $(".rv-donde"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
+      asa: $(".rv-asa"), abajo: $(".rv-abajo"), doc: $(".rv-doc"), donde: $(".rv-donde"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
     };
-    const traducirAria = () => raiz.querySelectorAll("[data-t-aria]").forEach(x => x.setAttribute("aria-label", t(x.dataset.tAria)));
+    const traducirAria = () => {
+      raiz.querySelectorAll("[data-t-aria]").forEach(x => x.setAttribute("aria-label", t(x.dataset.tAria)));
+      raiz.querySelectorAll("[data-t-title]").forEach(x => x.setAttribute("title", t(x.dataset.tTitle)));
+    };
 
     // ---------- Segmentos de texto → DOM ----------
     const corto = (P, i, max = 34) => { const x = P.txt(i).replace(/\s+/g, " "); return x.length <= max ? x : x.slice(0, max - 1) + "…"; };
@@ -401,7 +416,7 @@
       const cerrar = document.createElement("button"); cerrar.type = "button"; cerrar.className = "rv-cerrar"; cerrar.dataset.accion = "cerrar"; cerrar.innerHTML = ICONO.salir; cerrar.setAttribute("aria-label", t("ui.cerrar"));
       cab.append(tit, tipo, cerrar);
       const txt = document.createElement("p"); txt.className = "rv-narra-txt"; txt.append(segmentos(q.cuerpo));
-      const pista = document.createElement("p"); pista.className = "rv-pista"; pista.textContent = t("ui.otraVez");
+      const pista = document.createElement("p"); pista.className = "rv-pista"; pista.textContent = t(deFila != null ? "ui.mantener" : "ui.otraVez");
       el.narra.append(cab, txt, pista);
     }
     function quitarFoco(repintar = true) {
@@ -504,10 +519,16 @@
       if (p.fin) i = pasos.length - 1;
       else if (p.t != null) { for (let k = 0; k < pasos.length; k++) if (pasos[k].t != null && pasos[k].t <= p.t + 1e-9) i = k; }
       estado.paso = i;
+      el.doc.hidden = true; estado.doc = null;
       quitarFoco(false);
       dibujarTodo();
     }
-    const alCambiarIdioma = () => { const foco = estado.foco; dibujarTodo(); if (foco && foco.id != null) enfocar(foco.id, { deFila: foco.fila }); };
+    const alCambiarIdioma = () => {
+      const foco = estado.foco, doc = estado.doc;
+      dibujarTodo();
+      if (doc) abrirDoc(doc.nodo, doc.fila);
+      else if (foco && foco.id != null) enfocar(foco.id, { deFila: foco.fila });
+    };
     window.addEventListener("cmg:idioma", alCambiarIdioma);
 
     // ---------- Eventos ----------
@@ -518,6 +539,9 @@
       if (x.dataset.accion === "despues") return ir(estado.paso + 1);
       if (x.dataset.accion === "auto") return alternarAuto();
       if (x.dataset.accion === "cerrar") return quitarFoco();
+      if (x.dataset.accion === "cerrarDoc") return cerrarDoc();
+      if (x.dataset.accion === "mapa") return opciones.alMapa && opciones.alMapa();
+      if (x.dataset.accion === "codigo") return opciones.alCodigo && opciones.alCodigo();
       if (x.dataset.prog) return cambiarPrograma(x.dataset.prog);
       if (x.dataset.ref != null) return enfocar(+x.dataset.ref);
       if (x.classList.contains("rv-num-ref") && x.dataset.fila != null) { const f = D().F.filas[+x.dataset.fila]; return enfocar(f.foco, { deFila: f.i }); }
@@ -560,7 +584,7 @@
       else if (k === "Home") { ev.preventDefault(); ir(0); }
       else if (k === "End") { ev.preventDefault(); ir(D().R.pasos.length - 1); }
       else if (k === " " && !(ev.target.closest && ev.target.closest("button, a"))) { ev.preventDefault(); alternarAuto(); }
-      else if (k === "Escape") quitarFoco();
+      else if (k === "Escape") { if (!el.doc.hidden) cerrarDoc(); else quitarFoco(); }
       else if (/^[1-9]$/.test(k) && ids[+k - 1]) cambiarPrograma(ids[+k - 1]);
     };
     document.addEventListener("keydown", teclado);
@@ -574,13 +598,151 @@
     }, { passive: true });
     const ro = new ResizeObserver(() => { ajustarLetra(); dibujarRieles(); pintarCodigo(paso(), valorPrincipal(D().P, D().F, paso())); });
     ro.observe(el.scroll); ro.observe(el.flujo);
+    const roRaiz = new ResizeObserver(() => aplicarReparto());
+    roRaiz.observe(raiz);
+
+    // ---------- Asa: el reparto entre el código y el diagrama ----------
+    // Se arrastra como el divisor del juego. Arriba del todo, el diagrama ocupa toda la pantalla; doble clic
+    // (o Intro) alterna entre eso y el reparto anterior. El reparto se recuerda en este navegador.
+    const CLAVE_REPARTO = "cmg-revision-reparto", PEGAR = 44;
+    let reparto = null, repartoAntes = null;
+    try { const v = parseFloat(localStorage.getItem(CLAVE_REPARTO)); if (v >= 0 && v <= 1) reparto = v; } catch (e) { /* sin almacenamiento */ }
+    const barra = $(".rv-barra"), pie = $(".rv-pie");
+    const disponible = () => Math.max(0, raiz.clientHeight - barra.offsetHeight - el.asa.offsetHeight);
+    const maxCodigo = () => Math.max(0, disponible() - Math.min(disponible(), el.narra.offsetHeight + pie.offsetHeight + 72));
+    function aplicarReparto() {
+      if (reparto == null) { raiz.style.removeProperty("grid-template-rows"); raiz.removeAttribute("data-pleno"); }
+      else {
+        const h = Math.round(Math.max(0, Math.min(maxCodigo(), reparto * disponible())));
+        raiz.style.gridTemplateRows = `auto ${h}px auto minmax(0, 1fr)`;
+        raiz.toggleAttribute("data-pleno", h === 0);
+      }
+      const d = disponible();
+      el.asa.setAttribute("aria-valuenow", String(d ? Math.round(el.codigo.offsetHeight / d * 100) : 0));
+      if (!el.doc.hidden) colocarDoc();
+    }
+    function fijarReparto(f, { guardar = true } = {}) {
+      reparto = f == null ? null : Math.max(0, Math.min(1, f));
+      aplicarReparto();
+      if (guardar) try { if (reparto == null) localStorage.removeItem(CLAVE_REPARTO); else localStorage.setItem(CLAVE_REPARTO, String(reparto)); } catch (e) { /* sin almacenamiento */ }
+    }
+    const repartoActual = () => { const d = disponible(); return d ? el.codigo.offsetHeight / d : 0; };
+    function alternarPleno() {
+      if (raiz.hasAttribute("data-pleno")) fijarReparto(repartoAntes);
+      else { repartoAntes = reparto; fijarReparto(0); }
+    }
+    let arrastreAsa = null;
+    el.asa.addEventListener("pointerdown", (ev) => {
+      if (ev.button > 0) return;
+      ev.preventDefault();
+      el.asa.setPointerCapture(ev.pointerId);
+      arrastreAsa = { y: ev.clientY, h: el.codigo.offsetHeight, antes: reparto };
+      el.asa.classList.add("rv-arrastra");
+    });
+    el.asa.addEventListener("pointermove", (ev) => {
+      if (!arrastreAsa) return;
+      let h = arrastreAsa.h + ev.clientY - arrastreAsa.y;
+      if (h < PEGAR) h = 0;
+      fijarReparto(h / (disponible() || 1), { guardar: false });
+    });
+    const soltarAsa = () => {
+      if (!arrastreAsa) return;
+      if (reparto === 0 && arrastreAsa.antes !== 0) repartoAntes = arrastreAsa.antes;
+      arrastreAsa = null; el.asa.classList.remove("rv-arrastra");
+      if (reparto != null) fijarReparto(reparto);
+    };
+    el.asa.addEventListener("pointerup", soltarAsa);
+    el.asa.addEventListener("pointercancel", soltarAsa);
+    el.asa.addEventListener("dblclick", alternarPleno);
+    el.asa.addEventListener("keydown", (ev) => {
+      const paso = 0.05;
+      if (ev.key === "ArrowUp") fijarReparto(Math.max(0, repartoActual() - paso));
+      else if (ev.key === "ArrowDown") fijarReparto(repartoActual() + paso);
+      else if (ev.key === "Home") { repartoAntes = reparto; fijarReparto(0); }
+      else if (ev.key === "End") fijarReparto(1);
+      else if (ev.key === "Enter" || ev.key === " ") alternarPleno();
+      else return;
+      ev.preventDefault(); ev.stopPropagation();
+    });
+
+    // ---------- Documentación: mantener pulsado un elemento del diagrama ----------
+    // Tapa el código con una página clásica (texto y una animación de apoyo) sobre la naturaleza de lo
+    // pulsado: el tema sale de documentacion.js. Por ahora cada página es «TEMA: PLACEHOLDER».
+    const PRESION = 1200;
+    let presion = null, sinClick = false;
+    function objetivoDoc(objetivo) {
+      const { F } = D();
+      const vis = objetivo.closest(".rv-nodo, .rv-con, .rv-caja-fin, .rv-sal-et");
+      if (!vis || !el.flujo.contains(vis)) return null;
+      const con = objetivo.closest(".rv-con");
+      const conFila = con ? con.previousElementSibling : objetivo.closest("[data-fila]");
+      if (!conFila || conFila.dataset.fila == null) return null;
+      const fila = +conFila.dataset.fila, ref = objetivo.closest(".rv-ref[data-ref]");
+      return { fila, nodo: ref ? normalizar(+ref.dataset.ref) : F.filas[fila].nodo, vis };
+    }
+    function cancelarPresion() {
+      if (!presion) return;
+      clearTimeout(presion.temporizador);
+      presion.vis.removeAttribute("data-presion");
+      presion = null;
+    }
+    el.flujo.addEventListener("pointerdown", (ev) => {
+      if (ev.button > 0) return;
+      cancelarPresion();
+      const o = objetivoDoc(ev.target);
+      if (!o) return;
+      o.vis.setAttribute("data-presion", "");
+      presion = { ...o, x: ev.clientX, y: ev.clientY, temporizador: setTimeout(() => {
+        const { nodo, fila } = presion;
+        cancelarPresion();
+        sinClick = true;
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { /* sin vibración */ }
+        abrirDoc(nodo, fila);
+      }, PRESION) };
+    });
+    el.flujo.addEventListener("pointermove", (ev) => { if (presion && Math.hypot(ev.clientX - presion.x, ev.clientY - presion.y) > 8) cancelarPresion(); });
+    for (const tipo of ["pointerup", "pointercancel", "pointerleave"]) el.flujo.addEventListener(tipo, () => { cancelarPresion(); if (sinClick) setTimeout(() => { sinClick = false; }, 450); });
+    el.flujo.addEventListener("scroll", cancelarPresion, { passive: true });
+    el.flujo.addEventListener("contextmenu", (ev) => ev.preventDefault());
+    // El clic que sigue a una pulsación larga no cuenta como toque.
+    raiz.addEventListener("click", (ev) => { if (sinClick && el.flujo.contains(ev.target)) { sinClick = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+    function colocarDoc() {
+      const arriba = el.codigo.offsetTop, hasta = el.abajo.offsetTop;
+      el.doc.style.top = arriba + "px";
+      el.doc.style.height = Math.max(hasta - arriba, (raiz.clientHeight - arriba) * 0.55) + "px";
+    }
+    function abrirDoc(nodo, fila = null) {
+      const { P, F } = D();
+      pararAuto();
+      const tm = DOC.tema(P, nodo);
+      estado.doc = { nodo, fila };
+      el.doc.dataset.tema = tm.clave;
+      el.doc.style.setProperty("--c", fila != null ? F.filas[fila].color : "var(--foco)");
+      const num = el.doc.querySelector(".rv-doc-num");
+      num.innerHTML = "";
+      if (fila != null) num.append(segmentos([{ f: fila }], { fichas: false }));
+      el.doc.querySelector(".rv-doc-titulo").textContent = tm.titulo;
+      el.doc.querySelector(".rv-doc-et").textContent = t("doc.animacion");
+      el.doc.querySelector(".rv-doc-texto").textContent = t("doc.placeholder", { tema: tm.titulo });
+      colocarDoc();
+      el.doc.hidden = false;
+      enfocar(nodo, { tarjeta: false, deFila: fila });
+      el.doc.querySelector(".rv-cerrar").focus({ preventScroll: true });
+    }
+    function cerrarDoc() {
+      if (el.doc.hidden) return;
+      el.doc.hidden = true;
+      estado.doc = null;
+      quitarFoco();
+    }
 
     dibujarTodo();
+    aplicarReparto();
     return {
-      datos, ir, cambiarPrograma, enfocar, quitarFoco,
-      get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto }; },
+      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto,
+      get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto, doc: estado.doc && DOC.tema(D().P, estado.doc.nodo).clave, reparto, pleno: raiz.hasAttribute("data-pleno") }; },
       paso: () => paso(),
-      destruir() { ro.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); raiz.innerHTML = ""; raiz.classList.remove("rv"); },
+      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelarPresion(); raiz.innerHTML = ""; raiz.classList.remove("rv"); raiz.removeAttribute("data-pleno"); raiz.style.removeProperty("grid-template-rows"); },
     };
   }
 

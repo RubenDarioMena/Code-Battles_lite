@@ -70,7 +70,7 @@ try {
     await page.locator('.rv-fila[data-fila] > .rv-nodo').filter({ hasText: 'Suma 1' }).click();
     eq(await page.evaluate(() => document.querySelector('.rv-pre .rv-sel').textContent.trim()), 'drinkCoffee = drinkCoffee + 1', `${nombre}: tocar «Suma 1» ilumina su línea de código`);
     ok((await page.locator('.rv-narra').innerText()).includes('Se ejecutó 8 veces'), `${nombre}: y dice cuántas veces se ejecutó`);
-    await page.locator('.rv-cerrar').click();
+    await page.locator('.rv-narra .rv-cerrar').click();
     // Franja de tiempo: tocar salta a esa vuelta.
     const caja = await page.locator('.rv-tramos').boundingBox();
     await page.mouse.click(caja.x + caja.width * 0.62, caja.y + caja.height / 2);
@@ -78,10 +78,11 @@ try {
     ok(v >= 4 && v <= 6, `${nombre}: tocar la franja lleva a una vuelta de en medio (${v})`);
     eq(await page.evaluate(() => window.__revision.datos.programa.F.filas[window.__revision.paso().fila].num), 2, `${nombre}: y empieza esa vuelta por su condición`);
     // Idioma: cambia al momento.
-    await page.click('[data-idioma-interfaz="en"]');
+    eq(await page.locator('[data-idioma-interfaz]').count(), 0, `${nombre}: sin selector ES/EN; el idioma es el de la interfaz del juego`);
+    await page.evaluate(() => CMGI18n.cambiarIdioma('en'));
     eq(await etiqueta(2), 'Is drinkCoffee less than 10?', `${nombre}: en inglés, la fila 2 pregunta en inglés`);
     ok((await page.locator('.rv-narra').innerText()).includes('Starts pass'), `${nombre}: y la narración también`);
-    await page.click('[data-idioma-interfaz="es"]');
+    await page.evaluate(() => CMGI18n.cambiarIdioma('es'));
     eq(await etiqueta(2), '¿drinkCoffee es menor que 10?', `${nombre}: de vuelta al español`);
     // Avance solo.
     await page.evaluate(() => window.__revision.ir(0));
@@ -91,6 +92,55 @@ try {
     await page.click('[data-accion="auto"]');
     eq((await est()).auto, false, `${nombre}: y se pausa`);
     eq(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${nombre}: sin desplazamiento horizontal`);
+
+    // Barra: los símbolos del juego (mapa y </>), como en las otras pantallas.
+    eq(await page.locator('.rv-barra [data-accion="mapa"] svg').count(), 1, `${nombre}: botón del mapa con el símbolo del juego`);
+    eq(await page.locator('.rv-barra [data-accion="codigo"]').innerText(), '</>', `${nombre}: botón </> del código normal`);
+    // Asa: arrastrar arriba del todo deja el diagrama a pantalla completa; doble clic vuelve.
+    const asa = await page.locator('.rv-asa').boundingBox();
+    const altoFlujo = async () => (await page.locator('.rv-flujo').boundingBox()).height;
+    const antesFlujo = await altoFlujo();
+    await page.mouse.move(asa.x + asa.width / 2, asa.y + asa.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(asa.x + asa.width / 2, asa.y + asa.height / 2 + 60, { steps: 4 });
+    await page.mouse.up();
+    ok(await altoFlujo() < antesFlujo - 40, `${nombre}: bajar el asa da más espacio al código`);
+    const asa2 = await page.locator('.rv-asa').boundingBox();
+    await page.mouse.move(asa2.x + asa2.width / 2, asa2.y + asa2.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(asa2.x + asa2.width / 2, 20, { steps: 6 });
+    await page.mouse.up();
+    eq((await est()).pleno, true, `${nombre}: arriba del todo, el diagrama ocupa toda la pantalla`);
+    eq(Math.round((await page.locator('.rv-codigo').boundingBox()).height), 0, `${nombre}: y el código no ocupa nada`);
+    ok(await altoFlujo() > antesFlujo + 100, `${nombre}: el diagrama crece`);
+    await page.reload();
+    await page.waitForFunction(() => window.__revision && document.querySelector('.rv-rejilla .rv-nodo'));
+    eq((await est()).pleno, true, `${nombre}: el reparto se recuerda al volver`);
+    await page.locator('.rv-asa').dblclick();
+    ok(!(await est()).pleno && (await page.locator('.rv-codigo').boundingBox()).height > 100, `${nombre}: doble clic en el asa devuelve el código`);
+    await page.evaluate(() => window.__revision.fijarReparto(null));
+
+    // Mantener pulsado 1,2 s en el diagrama abre la documentación, tapando el código.
+    const pulsar = async (loc, ms) => { const b = await loc.boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.waitForTimeout(ms); await page.mouse.up(); };
+    const fila4 = page.locator('.rv-fila[data-fila] > .rv-nodo').filter({ hasText: 'vale 8' });
+    await pulsar(fila4, 500);
+    eq(await page.locator('.rv-doc').isVisible(), false, `${nombre}: una pulsación corta no abre la documentación`);
+    await page.locator('.rv-narra .rv-cerrar').click();
+    await pulsar(fila4, 1350);
+    ok(await page.locator('.rv-doc').isVisible(), `${nombre}: mantener pulsado 1,2 s abre la documentación`);
+    eq(await page.locator('.rv-doc-texto').innerText(), 'IF: PLACEHOLDER', `${nombre}: de un if, «IF: PLACEHOLDER»`);
+    eq(await page.locator('.rv-narra[data-foco]').count(), 0, `${nombre}: soltar no abre además la tarjeta de la fila`);
+    const [doc, cod] = await Promise.all([page.locator('.rv-doc').boundingBox(), page.locator('.rv-codigo').boundingBox()]);
+    ok(doc.y <= cod.y + 1 && doc.y + doc.height >= cod.y + cod.height - 1, `${nombre}: la documentación tapa el código`);
+    await page.keyboard.press('Escape');
+    eq(await page.locator('.rv-doc').isVisible(), false, `${nombre}: Esc la cierra`);
+    await pulsar(page.locator('.rv-lado .rv-nodo').filter({ hasText: 'break' }), 1350);
+    eq(await page.locator('.rv-doc-titulo').innerText(), 'BREAK', `${nombre}: la de break`);
+    await page.evaluate(() => CMGI18n.cambiarIdioma('en'));
+    eq(await page.locator('.rv-doc-texto').innerText(), 'BREAK: PLACEHOLDER', `${nombre}: y cambia de idioma abierta`);
+    await page.evaluate(() => CMGI18n.cambiarIdioma('es'));
+    await page.locator('.rv-doc .rv-cerrar').click();
+    eq(await page.locator('.rv-doc').isVisible(), false, `${nombre}: ✕ la cierra`);
 
     // ---------- Reto 5 ----------
     await abrir('reto-5');

@@ -6,7 +6,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path');
 const { RAIZ, grabacion, plano } = require('./cargar.cjs');
-const FL = globalThis.CMGFlujo, E = globalThis.CMGExplicar, C = globalThis.CMGCatalogo, EJ = globalThis.CMGEjecutar, I18N = globalThis.CMGI18n;
+const FL = globalThis.CMGFlujo, E = globalThis.CMGExplicar, DOC = globalThis.CMGDocumentacion, C = globalThis.CMGCatalogo, EJ = globalThis.CMGEjecutar, I18N = globalThis.CMGI18n;
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
@@ -131,6 +131,7 @@ for (let i = 1; i <= 4; i++) {
     const v = await revisar(src);
     const textos = [...v.F.filas.map(x => v.etiqueta(x.i)), ...v.pasos];
     for (const nodo of v.P.nodos) if (nodo.padre != null) textos.push(plano(v.P, v.F, E.queEs(v.P, v.F, v.R, nodo.id, v.R.pasos[0]).cuerpo));
+    for (const nodo of v.P.nodos) textos.push(DOC.tema(v.P, nodo.id).titulo);
     sinClaves(textos.join(' ‖ '), `programa ${k + 1}`);
     ok(v.R.pasos.at(-1).fin, `programa ${k + 1}: termina con un paso final`);
   }
@@ -140,6 +141,25 @@ for (let i = 1; i <= 4; i++) {
   ok(err.pasos.at(-1).includes('Error: ay'), 'un error se cuenta al final');
   const esp = await revisar(VARIOS[5]);
   ok(esp.R.conReloj && esp.pasos.some(x => x.includes('Espera 0,5 s: de 0 s a 0,5 s.')), 'esperar() adelanta un reloj virtual sin juego');
+
+  // ---------- 8 · Documentación: el tema de cada elemento sale del árbol ----------
+  const tema = (v, num) => DOC.tema(v.P, v.F.filas.find(f => f.num === num).nodo).titulo;
+  I18N.cambiarIdioma('es');
+  eq([1, 2, 3, 4, 5, 7, 8].map(x => tema(c, x)), ['LET', 'WHILE', 'ASIGNACIÓN =', 'IF', 'BREAK', 'CONTINUE', 'CONSOLE · log'], 'documentación: el tema de cada fila de los cafés');
+  const dc = await revisar(`function saluda(nombre = 'Ada') { return nombre }\nconst xs = [3, 1]\nxs.push(saluda().length)\nfor (const x of xs) { if (x > 2) console.log(x) }`);
+  const nodoDe = (v, tipo) => v.P.nodos.find(x => x.tipo === tipo).id;
+  eq(DOC.tema(dc.P, nodoDe(dc, 'AssignmentPattern')).titulo, 'ARGUMENTO CON VALOR POR DEFECTO', 'documentación: un argumento con valor por defecto');
+  eq(DOC.tema(dc.P, dc.P.nodos.find(x => x.tipo === 'Identifier' && x.nombre === 'push').id).titulo, 'MÉTODO DE LISTA · push', 'documentación: un método de lista, desde su nombre');
+  eq(DOC.tema(dc.P, nodoDe(dc, 'ForOfStatement')).titulo, 'FOR…OF', 'documentación: for…of');
+  eq(DOC.tema(dc.P, nodoDe(dc, 'FunctionDeclaration')).clave, 'funcion', 'documentación: una función');
+  const g5 = grabacion('reto-5'), P5 = FL.preparar(g5.programas['LAU-01'], { id: 'LAU-01', serie: g5.serie }), F5 = FL.construir(P5);
+  const t5 = (num) => DOC.tema(P5, F5.filas.find(f => f.num === num).nodo).titulo;
+  eq([t5(3), t5(6)], ['IF', 'ORDEN DEL JUEGO · burstFire'], 'documentación: reto 5, el if y una orden del juego');
+  eq(DOC.tema(P5, F5.filas.find(f => f.num === 3).test).titulo, 'LECTURA DEL JUEGO · jammed', 'documentación: LAU_02.jammed es una lectura del juego');
+  eq(DOC.tema(P5, F5.filas.find(f => f.num === 5).nodo).titulo, 'ELSE IF', 'documentación: else if');
+  I18N.cambiarIdioma('en');
+  eq(t5(6), 'GAME COMMAND · burstFire', 'documentación: en inglés');
+  I18N.cambiarIdioma('es');
 
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

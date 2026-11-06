@@ -9,6 +9,12 @@ Cada fila del diagrama tiene **número y color propios**, como cada campo de un 
 - una fila ilumina su código y dice cuántas veces se ejecutó (y cuántas fue true o false);
 - una ficha de la narración ilumina su fragmento.
 
+**Mantener pulsado 1,2 s** cualquier elemento del diagrama (una fila, `true →`, `↓ false` o una ficha de su etiqueta) abre la **documentación** de lo que es. Es una página clásica, con texto y una animación de apoyo, que tapa el código. El tema sale del árbol y del catálogo (`motor/documentacion.js`): `IF`, `ELSE IF`, `FOR…OF`, `ARGUMENTO CON VALOR POR DEFECTO`, `MÉTODO DE LISTA · push`, `ORDEN DEL JUEGO · burstFire`… Por ahora cada página dice «TEMA: PLACEHOLDER» y un recuadro «ANIMACIÓN: PLACEHOLDER»; se irán llenando junto con las animaciones.
+
+**El asa** entre el código y el diagrama se arrastra como el divisor del juego. Arriba del todo, el diagrama con su lenguaje natural ocupa toda la pantalla. Doble clic (o Intro) alterna entre eso y el reparto anterior, y el reparto se recuerda en el navegador.
+
+**La barra** lleva los mismos símbolos que las otras pantallas del juego: el mapa y `</>` (código normal). Fuera del juego son placeholders que vuelven al juego.
+
 **No hay texto escrito para ningún programa.** Todo sale de tres fuentes:
 - **el árbol del programa** (acorn), que da la forma del diagrama y las frases;
 - **el catálogo del juego**, que dice qué significan `LAU_02.jammed` o `burstFire`;
@@ -48,11 +54,12 @@ Ejemplos: `?ej=cafes`, `?ej=pares` y `?ej=reto-5`. «Tu código…» ejecuta en 
 - Espacio o ▶: avanzar solo. Va despacio cuando una vuelta toma un camino distinto de la anterior y deprisa cuando se repite.
 - Inicio y Fin: primer y último paso.
 - `1` / `2`: cambiar de programa.
-- Esc: quitar el foco.
+- Esc: cerrar la documentación o quitar el foco.
+- En el asa: ↑ ↓ cambian el reparto; Inicio deja el diagrama a pantalla completa; Intro alterna.
 
 **La franja de tiempo** tiene un tramo por vuelta del bucle principal. Cada tramo lleva el color de la primera fila de una rama (`if`/`else`) por la que pasó esa vuelta; las vueltas seguidas del mismo color se juntan y las que no entran en ninguna rama quedan en gris. Así se ve cuándo cambia el comportamiento. Tocar o arrastrar salta a esa vuelta. En el reto 5, ▲ rojo marca un atasco y ▲ verde, una reparación.
 
-**Idioma:** ES/EN cambia al momento, con el runtime de idiomas de la interfaz (`shared/i18n/i18n.js`) y la misma preferencia `cmg-interfaz-idioma` que el juego.
+**Idioma:** el de la interfaz del juego, con su runtime de idiomas (`shared/i18n/i18n.js`) y la misma preferencia `cmg-interfaz-idioma`. No hay selector propio; si cambia, todo se traduce al momento (también la documentación abierta).
 
 ## Cómo funciona
 
@@ -69,6 +76,7 @@ traza ──flujo.js──▶ pasos (una visita a una fila) y vueltas ──expl
 | `motor/ejecutar.js` | Ejecuta un programa suelto con traza. Tiene un reloj virtual para `esperar(s)` y corta un programa que no termina a los 60 000 eventos o 3 s. |
 | `motor/flujo.js` | Del árbol, las filas del diagrama: sentencias, decisiones con su salida lateral (`true → break`), bucles con su flecha de vuelta, `else if` en cadena, `switch`, `try` y funciones como secciones aparte. De la traza, los pasos, las vueltas del bucle principal y su camino. Los valores de una recursión van a su llamada. |
 | `motor/explicar.js` | Plantillas por tipo de nodo: la etiqueta de cada fila («¿drinkCoffee vale 8?», «Suma 1 a drinkCoffee»), la narración de cada paso con sus valores y la tarjeta «¿qué es?». |
+| `motor/documentacion.js` | El tema de la documentación de cada elemento (`doc.tema.<clave>` en textos.js), para la pulsación larga. |
 | `motor/catalogo.js` | Qué objetos, funciones y propiedades tiene el juego. **Es lo único que hay que ampliar** cuando aparece una máquina o un robot nuevo (abajo). |
 | `motor/textos.js` | Todas las frases, en español e inglés, como catálogo de `CMGI18n` (claves `revision.*`). |
 | `motor/revision.js`, `motor/revision.css` | La interfaz. |

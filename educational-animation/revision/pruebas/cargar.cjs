@@ -5,7 +5,7 @@ const RAIZ = path.resolve(__dirname, '../../..');
 globalThis.window = globalThis;
 globalThis.acorn = require(path.join(RAIZ, 'shared/vendor/acorn-8.11.3.js'));
 for (const f of ['shared/i18n/i18n.js', 'educational-animation/revision/motor/textos.js', 'educational-animation/revision/motor/trazador.js',
-  'educational-animation/revision/motor/catalogo.js', 'educational-animation/revision/motor/flujo.js', 'educational-animation/revision/motor/explicar.js',
+  'educational-animation/revision/motor/catalogo.js', 'educational-animation/revision/motor/flujo.js', 'educational-animation/revision/motor/explicar.js', 'educational-animation/revision/motor/documentacion.js',
   'educational-animation/revision/motor/ejecutar.js'])
   vm.runInThisContext(fs.readFileSync(path.join(RAIZ, f), 'utf8'), { filename: f });
 // Una grabación de ejemplos/<id>/grabacion.js.
