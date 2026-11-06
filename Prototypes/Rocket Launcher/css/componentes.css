@@ -628,3 +628,20 @@ textarea.json { width: 100%; height: 10rem; font-family: var(--f-code); font-siz
 .ajuste-pantalla p:first-child { display: flex; align-items: center; gap: 8px; }
 .info-pantalla .info-lista { display: grid; gap: 8px; padding-left: 18px; margin: 10px 0; font-size: 13.5px; line-height: 1.45; }
 .info-pantalla code { font-family: var(--f-code); color: var(--accent); }
+
+/* ---------- Modo revisión (js/revision-juego.js) ---------- */
+.b-revisar { flex: none; display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: 0; color: var(--accent); }
+.b-revisar svg { width: 21px; height: 21px; display: block; }
+[data-serie="factory"] .b-revisar { display: none; }
+/* Completo: tapa el juego. Junto (PC): ocupa el panel del código y el mapa sigue a la vista. */
+.revision-juego[data-modo="completo"] { position: fixed; inset: 0; z-index: 900; }
+.revision-juego[data-modo="junto"] { position: absolute; inset: 0; z-index: 40; }
+.rj-aviso, .rj-preparando { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 950;
+  max-width: min(520px, calc(100vw - 32px)); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .5); font-size: 13.5px; }
+.rj-preparando { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; width: min(420px, calc(100vw - 32px)); }
+.rj-preparando[hidden], .rj-aviso[hidden] { display: none; }
+.rj-preparando p { margin: 0; font-family: var(--f-code); font-size: 12.5px; }
+.rj-preparando .rj-barra { grid-column: 1; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.rj-preparando .rj-barra span { display: block; height: 100%; width: 0; background: var(--accent); }
+.rj-preparando button { grid-column: 2; grid-row: 1 / span 2; }

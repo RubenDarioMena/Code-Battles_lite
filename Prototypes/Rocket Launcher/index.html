@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="../../shared/editor/tema.css?v=1">
 <link rel="stylesheet" href="../../shared/editor/editor.css?v=1">
 <link rel="stylesheet" href="css/base.css?v=4">
-<link rel="stylesheet" href="css/componentes.css?v=22">
+<link rel="stylesheet" href="css/componentes.css?v=23">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=7">
 <link rel="stylesheet" href="css/factory.css?v=1">
 <link rel="stylesheet" href="css/layout.css?v=24">
@@ -39,6 +39,8 @@
       <a class="probar" id="b-probar" href="probar.html" title="Ver el juego en teléfono y en PC a la vez" data-i18n-title="juego.probar.title"><span aria-hidden="true">⧉</span> <span data-i18n="juego.probar.texto">Probar en dispositivos</span></a>
       <button class="mini ver-codigo" id="b-ver-codigo" type="button" aria-label="Ver el código a pantalla completa" data-i18n-aria-label="juego.codigo.pantalla_completa" data-tip="Código a pantalla completa" data-i18n-data-tip="juego.codigo.pantalla_completa">&lt;/&gt;</button>
       <button class="mini b-pantalla" id="b-pantalla" type="button" aria-pressed="false" aria-label="Modo pantalla completa: mantén pulsado 2 segundos" data-tip="Pantalla completa" data-tip-cod="mantén pulsado 2 s"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+      <!-- Modo revisión: repite el último intento y lo explica paso a paso (js/revision-juego.js). -->
+      <button class="mini b-revisar" id="b-revisar" type="button" aria-label="Revisar el último intento paso a paso" data-i18n-aria-label="juego.revision.abrir" data-tip="Revisar el último intento" data-i18n-data-tip="juego.revision.tip"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="15.5" r="3.6"/><circle cx="17.5" cy="15.5" r="3.6"/><path d="M10.1 15.2h3.8"/><path d="M3.1 14.3l2.6-7.8a1.7 1.7 0 0 1 1.6-1.2h.6a1.7 1.7 0 0 1 1.7 1.7v6.4"/><path d="M20.9 14.3l-2.6-7.8a1.7 1.7 0 0 0-1.6-1.2h-.6a1.7 1.7 0 0 0-1.7 1.7v6.4"/></svg></button>
       <button class="mini ajustes-abrir" id="b-ajustes" type="button" aria-label="Ajustes" data-i18n-aria-label="ajustes.abrir" aria-haspopup="dialog" aria-controls="ajustes" title="Ajustes" data-i18n-title="ajustes.abrir">⚙</button>
     </header>
 
@@ -456,9 +458,10 @@
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
 <script src="js/paleta.js?v=6" charset="utf-8"></script>
-<script src="js/juego.js?v=40" charset="utf-8"></script>
+<script src="js/juego.js?v=41" charset="utf-8"></script>
 <script src="js/layout.js?v=19" charset="utf-8"></script>
 <script src="js/remota.js?v=3" charset="utf-8"></script>
+<script src="js/revision-juego.js?v=1" charset="utf-8"></script>
 <script>
   addEventListener("load", () => {
     if (window.__juegoListo) return;

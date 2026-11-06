@@ -190,6 +190,18 @@
   let lineaCorre = {}, lineaErr = null;
   let insercion = { dobleClic: 0, arrastre: 0, atajo: 0 };
   let eventosSucios = false, marcasSucias = false;
+  // Modo revisión (educational-animation/revision, lo monta js/revision-juego.js): el último intento, la
+  // repetición con traza y las fotos del mundo para que el mapa siga al paso que se revisa.
+  let intentoRevisable = null, offRevision = null;
+  const ganchoRevision = { alCambiar: null };
+  const FUERA_FOTO = new Set(["def", "rng", "eventos", "uso", "consolas", "porId", "programables", "maquinas", "pendientes"]);
+  function fotoMundo() {
+    const o = {};
+    for (const [k, v] of Object.entries(mundo)) if (!FUERA_FOTO.has(k) && typeof v !== "function") o[k] = v;
+    const f = structuredClone(o);
+    f.nEventos = mundo.eventos.length; f.nPendientes = mundo.pendientes.length;
+    return f;
+  }
   const globos = new Map();   // id de máquina → { nivel, texto, hasta }
 
   const defActual = () => retoIdx === IDX_PROPIO ? propio : ES_FACTORY ? RETOS[retoIdx] : normalizar(RETOS[retoIdx]);
@@ -213,8 +225,12 @@
     return null;
   }
 
-  function ejecutar() {
-    if (edicion.mixto && $codigo.value.trim()) {
+  // ejecutar({ revision: true, codigos, fuentes, semilla, hasta, alTerminar }) repite un intento con los programas
+  // ya instrumentados por el trazador: no cuenta como intento, guarda la traza y una foto del mundo por paso.
+  function ejecutar(opc) {
+    const rev = opc && opc.revision ? opc : null;
+    if (!rev && ganchoRevision.alCambiar) ganchoRevision.alCambiar();
+    if (!rev && edicion.mixto && $codigo.value.trim()) {
       mostrarBanner("fallo", "Aplica el borrador antes de ejecutar",
         "El borrador todavía no pertenece a los lanzadores. Usa Add para anexarlo o Replace para sustituir sus programas.", null,
         [["Volver al borrador", "primario", () => { ocultarBanner(); verPanel("codigo"); abrirPestana("programa"); $codigo.focus(); }]]);
@@ -224,6 +240,7 @@
     // Cada unidad, en su lenguaje: JS se revisa con acorn; Python se traduce (huecos, sangría y sintaxis con su línea).
     const codigos = {}, lenguajes = {}, fuentesTexto = {};
     for (const l of programablesDe(def)) {
+      if (rev) { codigos[l.id] = rev.codigos[l.id] || ""; lenguajes[l.id] = "js"; fuentesTexto[l.id] = rev.fuentes[l.id] ?? codigos[l.id]; continue; }
       const lenguaje = lenguajeDe(l.id), texto = textoDe(l.id) || "";
       let err = null;
       lenguajes[l.id] = lenguaje; fuentesTexto[l.id] = texto;
@@ -247,15 +264,21 @@
         return;
       }
     }
-    intento++;
-    if (!semillaFija) semilla = intento;
+    const semillaAntes = semilla;
+    if (rev) semilla = rev.semilla;
+    else { intento++; if (!semillaFija) semilla = intento; }
     nuevoMundo(intento);
+    if (rev) semilla = semillaAntes;
     mundo.activo = true;
     limpiarConsola(); ocultarBanner(); cerrarAvisos();
     lineaCorre = {}; lineaErr = null; marcasSucias = true;
     const snap = instantanea();
     const nombres = (ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id);
     ejec = { progs: new Map(), inicio: new Date().toISOString(), codigos: {}, lenguajes };
+    if (rev) {
+      ejec.revision = { trazas: {}, fotos: [fotoMundo()], pendientes: structuredClone(mundo.pendientes), hasta: rev.hasta ?? null, alTerminar: rev.alTerminar, turboAntes: turbo };
+      turbo = rev.turbo || 20;
+    }
     for (const l of mundo.programables) {
       const codigo = codigos[l.id] || "";
       const w = new Worker(WORKER_URL);
@@ -278,6 +301,7 @@
 
   function alMensaje(p, m) {
     if (!ejec || ejec.progs.get(p.id) !== p || !mundo.activo) return;
+    if (m.type === "traza") { if (ejec.revision) (ejec.revision.trazas[p.id] ||= []).push(...m.ev); return; }
     if (ES_FACTORY && m.type === "encargo") {
       if (p.encargo) return errorPrograma(p, `Falta await en la línea ${p.encargo.linea}: R1 seguía con ${p.encargo.texto} cuando llegó la orden de la línea ${m.linea}.`, p.encargo.linea);
       p.encargo = m; p.estado = "encargo"; p.sensoresSeguidos = 0;
@@ -346,8 +370,14 @@
 
   let acum = 0;
   function avanzar() {
-    acum = window.NUCLEO.avanzar(acum, mundo, { algunoCorre, despertarProgramas, paso });
+    const r = ejec && ejec.revision;
+    acum = window.NUCLEO.avanzar(acum, mundo, { algunoCorre, despertarProgramas, paso: r ? pasoRevision(r) : paso });
   }
+  const pasoRevision = (r) => (dt) => {
+    paso(dt);
+    r.fotos.push(fotoMundo());
+    if (r.hasta != null && !mundo.fin && mundo.t >= r.hasta - 1e-9) terminar("detenido", "detenido", null);
+  };
 
   function errorPrograma(p, mensaje, linea) {
     if (!ejec) return;
@@ -368,6 +398,21 @@
   function terminar(resultado, motivo, texto, linea, idProg) {
     if (!mundo || mundo.fin) return;
     const m = mundo;
+    if (ejec && ejec.revision) {
+      // Un programa manda «espera» antes que su último lote de traza: si la partida acaba con esa espera,
+      // el lote llega justo después. Se cierra un momento más tarde (el mundo ya no avanza: tiene fin).
+      const r = ejec.revision, e = ejec;
+      m.fin = resultado; Object.assign(r, { motivo, mensaje: texto, linea: linea ?? null, programa: idProg ?? null });
+      turbo = r.turboAntes;
+      setTimeout(() => {
+        if (ejec !== e) return;
+        cerrarProgramas();
+        lineaCorre = {}; marcasSucias = true;
+        pintarControles(); pintarProgs();
+        if (r.alTerminar) r.alTerminar(r, m);
+      }, 120);
+      return;
+    }
     const codigos = ejec ? ejec.codigos : { ...programas };
     const inicio = ejec ? ejec.inicio : new Date().toISOString();
     const acabados = ejec ? [...ejec.progs.values()].filter(p => p.estado === "fin") : [];
@@ -378,6 +423,7 @@
     const lineas = Object.entries(codigos).reduce((a, [id, c]) => a + c.split("\n").filter(l => l.trim() && !(lenguajes[id] === "python" ? /^\s*#/ : /^\s*(\/\/|\/\*|\*)/).test(l)).length, 0);
     const lenguajeIntento = [...new Set(Object.values(lenguajes))].sort().join("+") || "js";
     if (ES_FACTORY) return terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio, lenguajes, lenguajeIntento);
+    intentoRevisable = { reto: retoIdx, titulo: def.titulo, intento, semilla, codigos: { ...codigos }, lenguajes, resultado, motivo, t: r2(m.t), derribos: m.derribos, total: m.total, brechas: m.brechas };
     const cpd = m.derribos ? coste() / m.derribos : null;
     const lanz = Object.fromEntries(m.lanzadores.map(l => [l.id, { ...l.st, fallaMax: r3(l.st.fallaMax), tRafaga: r2(l.st.tRafaga) }]));
     telemetria.push({
@@ -1012,6 +1058,8 @@
   }
 
   function elegirReto(i) {
+    if (ganchoRevision.alCambiar) ganchoRevision.alCambiar();
+    intentoRevisable = null;
     if (ES_FACTORY && def && programas.R1 !== undefined) guardarFactoryAhora();
     clearTimeout(tFicha); cancelarArrastre(); ultimoToque = null;
     cerrarProgramas();
@@ -1120,6 +1168,7 @@
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
   $("b-reiniciar").addEventListener("click", () => {
+    if (ganchoRevision.alCambiar) ganchoRevision.alCambiar();
     if (ejec) terminar("detenido", "reinicio", null);
     nuevoMundo(); lineaCorre = {}; lineaErr = null; marcasSucias = true; ocultarBanner(); cerrarAvisos(); pintarControles();
   });
@@ -2265,7 +2314,7 @@
     if (mundo.activo && !mundo.fin && !pausa) { if (!algunoCorre()) acum += real * velocidad * turbo; avanzar(); }
     else if (!mundo.activo) acum = 0;
     vigia(now);
-    const off = mundo.activo && !pausa && !algunoCorre() ? Math.min(acum, DT) : 0;
+    const off = offRevision != null ? offRevision : mundo.activo && !pausa && !algunoCorre() ? Math.min(acum, DT) : 0;
     if (vista === "3d" && V3) { V3.actualizar(off, now); V3.render(); } else dibujar2D(off);
     pintarCapa(off, now);
     caducarAvisos(now);
@@ -2313,6 +2362,23 @@
       otras: programablesDe(def).map(l => l.id).filter(id => !edicion.ids.includes(id)).map(varDe),
     }),
     inicial: () => edicion.mixto ? null : { texto: textoInicial(def, progSel), codigo: (def.inicial[progSel] || []).join("\n") + ((def.inicial[progSel] || []).length ? "\n" : "") },
+    // Modo revisión: el último intento, repetirlo con traza y enseñar el mundo de un instante (fotos).
+    revision: {
+      get ultimo() { return intentoRevisable; }, get corriendo() { return !!ejec; }, get reto() { return { numero: retoIdx + 1, titulo: def.titulo }; },
+      get mundo() { return mundo; }, serie: ES_FACTORY ? "factory" : "war",
+      grabar: (o) => ejecutar({ ...o, revision: true }),
+      set alCambiar(fn) { ganchoRevision.alCambiar = fn; },
+      ver(f, off, base, pendientes) {
+        const v = Object.assign({}, base, f);
+        v.programables = v.lanzadores; v.maquinas = [...v.lanzadores, ...v.sensores, v.deposito, ...v.reparadores];
+        v.porId = Object.fromEntries(v.maquinas.map(e => [e.id, e]));
+        v.eventos = base.eventos.slice(0, f.nEventos); v.pendientes = pendientes.slice(pendientes.length - f.nPendientes);
+        v.activo = false;
+        mundo = v; offRevision = off || 0;
+      },
+      soltar(base) { if (base) mundo = base; offRevision = null; },
+      detener() { if (ejec && ejec.revision) terminar("detenido", "detenido", null); },
+    },
     get marcas() { return { corre: (!edicion.mixto && lineaCorre[progSel]) || null, err: !edicion.mixto && lineaErr && lineaErr.id === progSel ? lineaErr.linea : null }; } };
   function actualizarEtiquetasSerie() {
     const sufijo = ES_FACTORY ? "factory" : "war";

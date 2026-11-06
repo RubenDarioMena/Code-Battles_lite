@@ -161,6 +161,28 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 .rv-hito[data-tipo="reparado"] { border-bottom-color: var(--ok); }
 .rv-donde { font: 700 11.5px var(--f-codigo); color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ---------- Escritorio: código a la izquierda, diagrama y narración a la derecha, franja abajo ---------- */
+.rv[data-disposicion="lado"] {
+  grid-template-columns: minmax(0, 44fr) auto minmax(0, 56fr); grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "barra barra barra" "codigo asa flujo" "codigo asa narra" "pie pie pie";
+}
+.rv[data-disposicion="lado"] > .rv-barra { grid-area: barra; }
+.rv[data-disposicion="lado"] > .rv-codigo { grid-area: codigo; border-bottom: 0; }
+.rv[data-disposicion="lado"] > .rv-asa { grid-area: asa; width: 12px; height: auto; cursor: col-resize; border-bottom: 0; border-left: 1px solid var(--linea); border-right: 1px solid var(--linea); }
+.rv[data-disposicion="lado"] > .rv-asa::before { inset: 0 -8px; }
+.rv[data-disposicion="lado"] > .rv-asa span { width: 5px; height: 56px; background: repeating-linear-gradient(180deg, var(--linea-2) 0 2px, transparent 2px 4px); }
+.rv[data-disposicion="lado"] > .rv-asa:is(:hover, .rv-arrastra, :focus-visible) span { background: repeating-linear-gradient(180deg, var(--foco) 0 2px, transparent 2px 4px); }
+.rv[data-disposicion="lado"] > .rv-abajo { display: contents; }
+.rv[data-disposicion="lado"] .rv-flujo { grid-area: flujo; }
+.rv[data-disposicion="lado"] .rv-narra { grid-area: narra; max-height: 30vh; }
+.rv[data-disposicion="lado"] .rv-pie { grid-area: pie; }
+.rv-vel { width: auto; min-width: 42px; padding: 0 8px; font: 700 12.5px var(--f-codigo); color: var(--tenue); }
+/* «Junto»: código y diagrama apilados, pocos botones; el mapa del juego queda al otro lado. */
+.rv-junto[aria-pressed="true"] { color: var(--foco); border-color: var(--foco); background: color-mix(in oklab, var(--foco) 14%, var(--superficie)); }
+.rv[data-junto] .rv-ejemplos, .rv[data-junto] .rv-mundo { display: none; }
+.rv[data-junto] .rv-titulo { font-size: 12.5px; }
+@media (max-width: 899px) { .rv-junto { display: none; } }
+
 /* Pulsación larga: una barra se llena en 1,2 s y abre la documentación. */
 .rv-flujo [data-presion] { position: relative; }
 .rv-flujo [data-presion]::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 2px; height: 3px; border-radius: 2px; background: var(--c, var(--foco)); transform-origin: left; transform: scaleX(0); animation: rv-presion 1.2s linear forwards; pointer-events: none; }

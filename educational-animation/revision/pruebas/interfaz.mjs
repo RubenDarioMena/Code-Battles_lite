@@ -94,30 +94,32 @@ try {
     eq(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${nombre}: sin desplazamiento horizontal`);
 
     // Barra: los símbolos del juego (mapa y </>), como en las otras pantallas.
-    eq(await page.locator('.rv-barra [data-accion="mapa"] svg').count(), 1, `${nombre}: botón del mapa con el símbolo del juego`);
+    eq(await page.locator('.rv-barra [data-accion="mapa"] svg').count(), 1, `${nombre}: botón del mundo (montaña)`);
     eq(await page.locator('.rv-barra [data-accion="codigo"]').innerText(), '</>', `${nombre}: botón </> del código normal`);
-    // Asa: arrastrar arriba del todo deja el diagrama a pantalla completa; doble clic vuelve.
+    // Disposición: en PC, código a la izquierda y diagrama a la derecha; en el teléfono, apilados.
+    const lado = nombre === 'PC';
+    eq((await est()).disposicion, lado ? 'lado' : 'apilado', `${nombre}: disposición ${lado ? 'código | diagrama' : 'código sobre diagrama'}`);
+    const [bc, bf] = await Promise.all([page.locator('.rv-codigo').boundingBox(), page.locator('.rv-flujo').boundingBox()]);
+    ok(lado ? bc.x + bc.width <= bf.x + 1 && Math.abs(bc.y - bf.y) < 2 : bc.y + bc.height <= bf.y + 1, `${nombre}: el diagrama está ${lado ? 'a la derecha' : 'debajo'} del código`);
+    eq(await page.locator('.rv-junto').count(), 0, `${nombre}: sin mapa al lado, no hay botón «junto»`);
+    // Asa: arrastrar hasta el extremo deja el diagrama a pantalla completa; doble clic vuelve.
     const asa = await page.locator('.rv-asa').boundingBox();
-    const altoFlujo = async () => (await page.locator('.rv-flujo').boundingBox()).height;
-    const antesFlujo = await altoFlujo();
-    await page.mouse.move(asa.x + asa.width / 2, asa.y + asa.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(asa.x + asa.width / 2, asa.y + asa.height / 2 + 60, { steps: 4 });
-    await page.mouse.up();
-    ok(await altoFlujo() < antesFlujo - 40, `${nombre}: bajar el asa da más espacio al código`);
+    const tamFlujo = async () => { const b = await page.locator('.rv-flujo').boundingBox(); return lado ? b.width : b.height; };
+    const tamCodigo = async () => { const b = await page.locator('.rv-codigo').boundingBox(); return lado ? b.width : b.height; };
+    const arrastrar = async (de, dx, dy) => { await page.mouse.move(de.x + de.width / 2, de.y + de.height / 2); await page.mouse.down(); await page.mouse.move(de.x + de.width / 2 + dx, de.y + de.height / 2 + dy, { steps: 6 }); await page.mouse.up(); };
+    const antesFlujo = await tamFlujo();
+    await arrastrar(asa, lado ? 60 : 0, lado ? 0 : 60);
+    ok(await tamFlujo() < antesFlujo - 40, `${nombre}: mover el asa hacia el diagrama da más espacio al código`);
     const asa2 = await page.locator('.rv-asa').boundingBox();
-    await page.mouse.move(asa2.x + asa2.width / 2, asa2.y + asa2.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(asa2.x + asa2.width / 2, 20, { steps: 6 });
-    await page.mouse.up();
-    eq((await est()).pleno, true, `${nombre}: arriba del todo, el diagrama ocupa toda la pantalla`);
-    eq(Math.round((await page.locator('.rv-codigo').boundingBox()).height), 0, `${nombre}: y el código no ocupa nada`);
-    ok(await altoFlujo() > antesFlujo + 100, `${nombre}: el diagrama crece`);
+    await arrastrar(asa2, lado ? -asa2.x + 4 : 0, lado ? 0 : -asa2.y + 20);
+    eq((await est()).pleno, true, `${nombre}: en el extremo, el diagrama ocupa toda la pantalla`);
+    eq(Math.round(await tamCodigo()), 0, `${nombre}: y el código no ocupa nada`);
+    ok(await tamFlujo() > antesFlujo + 100, `${nombre}: el diagrama crece`);
     await page.reload();
     await page.waitForFunction(() => window.__revision && document.querySelector('.rv-rejilla .rv-nodo'));
     eq((await est()).pleno, true, `${nombre}: el reparto se recuerda al volver`);
     await page.locator('.rv-asa').dblclick();
-    ok(!(await est()).pleno && (await page.locator('.rv-codigo').boundingBox()).height > 100, `${nombre}: doble clic en el asa devuelve el código`);
+    ok(!(await est()).pleno && await tamCodigo() > 100, `${nombre}: doble clic en el asa devuelve el código`);
     await page.evaluate(() => window.__revision.fijarReparto(null));
 
     // Mantener pulsado 1,2 s en el diagrama abre la documentación, tapando el código.

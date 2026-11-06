@@ -1,3 +1,24 @@
+## Modo revisión · dentro del juego, escritorio a dos columnas y las tres cosas a la vez · 6 de noviembre de 2026
+
+- **Por qué.** El usuario pidió el botón para entrar (sugirió libro o binoculares), una montaña nevada en lugar del mapa («se ve el mundo»), código y flujo lado a lado en el escritorio, y un botón solo de escritorio que junte código y flujo con el mapa en su sitio para ver las tres cosas reproduciéndose. Señaló The Farmer Was Replaced: allí ver el código ejecutarse está mucho mejor coordinado con lo que pasa en el juego.
+- **En el juego** (`js/revision-juego.js`, ganchos `cmg.revision` en `juego.js`, botón `#b-revisar` con binoculares en la barra del mapa):
+  - Cada intento de War que termina queda guardado: programas, semilla y resultado.
+  - Los binoculares cargan el motor de `educational-animation/revision/motor` solo la primera vez. Instrumentan los programas y repiten el intento con `ejecutar({ revision })`, a velocidad turbo, sin contar intento, telemetría ni récords. El juego guarda la traza y una foto del mundo por paso (0,05 s).
+  - Al cambiar de paso, el mapa enseña la foto de ese instante; al salir, vuelve el mundo del final. Ejecutar, Reiniciar y cambiar de reto cierran la revisión.
+  - Python y Factory lo avisan; todavía no.
+- **Carrera corregida.** El trazador envía su último lote después del mensaje `espera`. Si esa espera era la que terminaba la partida, el juego cerraba los Workers antes de recibir el lote y la última vuelta se perdía (145 de 146 vueltas, a veces). Ahora la repetición cierra 120 ms más tarde, cuando el mundo ya tiene fin. La traza es idéntica a la de `grabar.mjs` en todas las ejecuciones probadas.
+- **Interfaz** (`motor/revision.js`, `revision.css`):
+  - Disposición `lado` desde 900 px: código a la izquierda; diagrama y narración a la derecha; franja abajo. El asa pasa a vertical y cada disposición recuerda su reparto.
+  - La montaña nevada sustituye al mapa.
+  - Botón «junto», solo en el escritorio y cuando hay un mapa al lado: código y diagrama apilados en el panel del código, con pocos botones.
+  - Velocidad ½×–4×.
+  - **Al compás de la partida**, como en un juego de programar: con el mapa al lado, ▶ deja el mundo quieto mientras se leen los pasos de un instante. Mientras el programa espera, el mundo avanza a velocidad de juego hasta el paso siguiente, y la franja y los segundos siguen al reloj.
+- **Verificación.**
+  - `revision/pruebas/juego.mjs`: **32** en el puerto 8771, en PC 1440×900 y teléfono 390×844. Cubre el aviso sin intento, misma partida y exactamente la misma traza que `grabar.mjs`, una foto por paso, `lado`/apilado, «junto» en el panel del código con el mapa al lado, el mapa en el instante del paso (adelante y atrás), ▶ moviendo código y mapa a la vez, salir con `</>` devolviendo el mundo final y Ejecutar cerrando la revisión.
+  - `interfaz.mjs`: **118**. `flujo.cjs`: 167. `trazador.cjs`: 25. `pruebas/interaccion.cjs`: 124. `i18n-catalogos.cjs`: 421 claves.
+  - `idiomas-juego.mjs`: **45**, con un adaptador `page.cdp` sobre Playwright, también a 320 px con el botón nuevo.
+  - `pruebas/navegador.mjs` no corre con ese adaptador: se queda en «Cerrar el inspector», igual en la versión anterior a estos cambios.
+
 ## Modo revisión · asa, documentación por pulsación larga y barra del juego · 6 de noviembre de 2026
 
 - **Por qué.** Feedback del usuario sobre el diagrama de flujo (paso 1 de 3; luego el botón en el juego y Python).

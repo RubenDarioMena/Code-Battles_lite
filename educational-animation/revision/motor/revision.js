@@ -16,7 +16,10 @@
   const PALABRAS = new Set("break case catch class const continue debugger default delete do else export extends finally for function if import in instanceof let new of return super switch this throw try typeof var void while with yield await async true false null undefined".split(" "));
   const ICONO = {
     // Los mismos símbolos que el juego: el mapa (botón del mapa del editor) y </> (código a pantalla completa).
-    mapa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5l-5.5 2.5-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
+    // Montaña nevada: «ver el mundo» (el mapa del juego).
+    mundo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 19.5 9.5 6.5l4.3 7.6 2.4-3.6 5.3 9z"/><path d="M7.3 10.6 9.5 6.5l2.2 4-1.2 1-1-.9-1.1.9z" fill="currentColor" stroke-width="1.2"/><path d="M14.9 12.3l1.3-1.8 1.3 1.9-.7.5-.6-.5z" fill="currentColor" stroke-width="1"/></svg>',
+    // Código y diagrama juntos a un lado, el mapa al otro.
+    junto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M10.5 4.5v15M2.5 12h8"/><path d="M12.8 16.8l2.7-4.5 1.6 2.6 1-1.4 1.6 3.3z" stroke-width="1.4"/></svg>',
     salir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     antes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
     despues: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
@@ -74,7 +77,7 @@
       R.pasos.forEach((p, i) => { if (i && (p.vuelta !== R.pasos[i - 1].vuelta || !!p.fuera !== !!R.pasos[i - 1].fuera)) desde = i; inicio.push(desde); });
       datos[id] = { P, F, R, inicio };
     }
-    const estado = { prog: ids[0], paso: 0, foco: null, auto: false, temporizador: 0, doc: null };
+    const estado = { prog: ids[0], paso: 0, foco: null, auto: false, temporizador: 0, marco: 0, vel: 1, doc: null, junto: !!opciones.junto };
     const D = () => datos[estado.prog];
 
     raiz.classList.add("rv");
@@ -84,7 +87,8 @@
         ${opciones.ejemplos ? `<select class="rv-ejemplos" data-t-aria="ui.ejemplo">${opciones.ejemplos.map(e => `<option value="${esc(e.id)}"${e.id === opciones.ejemplo ? " selected" : ""}>${esc(e.titulo)}</option>`).join("")}</select>` : ""}
         ${ids.length > 1 ? `<div class="rv-progs" role="group" data-t-aria="ui.programas">${ids.map((id, k) => `<button type="button" data-prog="${esc(id)}" aria-pressed="${k === 0}">${esc(id)}</button>`).join("")}</div>` : ""}
         <div class="rv-salidas">
-          <button type="button" class="rv-mini" data-accion="mapa" data-t-aria="ui.mapa" data-t-title="ui.mapa">${ICONO.mapa}</button>
+          ${opciones.alJuntar ? `<button type="button" class="rv-mini rv-junto" data-accion="junto" aria-pressed="${!!opciones.junto}" data-t-aria="ui.junto" data-t-title="ui.junto">${ICONO.junto}</button>` : ""}
+          <button type="button" class="rv-mini rv-mundo" data-accion="mapa" data-t-aria="ui.mapa" data-t-title="ui.mapa">${ICONO.mundo}</button>
           <button type="button" class="rv-mini rv-mini-cod" data-accion="codigo" data-t-aria="ui.codigoNormal" data-t-title="ui.codigoNormal">&lt;/&gt;</button>
         </div>
       </header>
@@ -105,6 +109,7 @@
             <button type="button" class="rv-boton" data-accion="antes" data-t-aria="ui.anterior">${ICONO.antes}</button>
             <button type="button" class="rv-boton" data-accion="auto" data-t-aria="ui.avanzar">${ICONO.play}</button>
             <button type="button" class="rv-boton" data-accion="despues" data-t-aria="ui.siguiente">${ICONO.despues}</button>
+            <button type="button" class="rv-boton rv-vel" data-accion="vel">1×</button>
           </div>
           <div class="rv-tiempo">
             <div class="rv-tramos" role="slider" tabindex="0" aria-valuemin="0"></div>
@@ -124,7 +129,7 @@
     const el = {
       pre: $(".rv-pre"), margen: $(".rv-margen"), bandas: $(".rv-bandas"), insignias: $(".rv-insignias"), scroll: $(".rv-scroll"), lienzo: $(".rv-lienzo"),
       codigo: $(".rv-codigo"), flujo: $(".rv-flujo"), rejilla: $(".rv-rejilla"), narra: $(".rv-narra"), tramos: $(".rv-tramos"), hitos: $(".rv-hitos"),
-      asa: $(".rv-asa"), abajo: $(".rv-abajo"), doc: $(".rv-doc"), donde: $(".rv-donde"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
+      asa: $(".rv-asa"), abajo: $(".rv-abajo"), doc: $(".rv-doc"), donde: $(".rv-donde"), vel: $(".rv-vel"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
     };
     const traducirAria = () => {
       raiz.querySelectorAll("[data-t-aria]").forEach(x => x.setAttribute("aria-label", t(x.dataset.tAria)));
@@ -336,6 +341,7 @@
       pintarCodigo(p, v);
       pintarNarracion(p);
       pintarDonde(p);
+      if (opciones.alInstante && p.t != null) opciones.alInstante(p.t, { prog: estado.prog, paso: p });
       el.antes.disabled = estado.paso === 0;
       el.despues.disabled = estado.paso === R.pasos.length - 1;
     }
@@ -477,20 +483,35 @@
 
     // ---------- Avance automático ----------
     // Lento cuando la vuelta toma un camino distinto de la anterior; rápido cuando se repite.
+    // Con un mundo al lado (opciones.alInstante, en el juego), el avance va al compás de la partida, como en
+    // un juego de programar: mientras el programa corre, el mundo está quieto y se leen sus pasos; mientras
+    // espera (await esperar), el mundo se mueve a velocidad de juego hasta el instante del paso siguiente.
+    const VELOCIDADES = [0.5, 1, 2, 4];
+    const conMundo = () => !!opciones.alInstante && D().R.conReloj;
     function duracion(p) {
-      const { R } = D();
-      if (p.fin || !R.vueltas.length || !p.vuelta || p.fuera) return 1100;
+      const { R } = D(), rapido = conMundo() ? 45 : 90, lento = conMundo() ? 650 : 1000;
+      if (p.fin || !R.vueltas.length || !p.vuelta || p.fuera) return 1100 / estado.vel;
       const v = R.vueltas[p.vuelta - 1], antes = R.vueltas[p.vuelta - 2];
-      return antes && antes.color === v.color ? 90 : 1000;
+      return (antes && antes.color === v.color ? rapido : lento) / estado.vel;
     }
     function programar() {
-      clearTimeout(estado.temporizador);
+      clearTimeout(estado.temporizador); cancelAnimationFrame(estado.marco); estado.marco = 0;
       if (!estado.auto) return;
-      estado.temporizador = setTimeout(() => {
-        if (estado.paso >= D().R.pasos.length - 1) return pararAuto();
-        ir(estado.paso + 1, { desdeAuto: true });
-        programar();
-      }, duracion(paso()));
+      const p = paso(), sig = D().R.pasos[estado.paso + 1];
+      if (!sig) return pararAuto();
+      if (conMundo() && p.t != null && sig.t != null && sig.t > p.t + 1e-9) {
+        let reloj = p.t, antes = performance.now();
+        const marco = (ahora) => {
+          reloj = Math.min(sig.t, reloj + Math.min(0.25, Math.max(0, ahora - antes) / 1000) * estado.vel); antes = ahora;
+          opciones.alInstante(reloj, { prog: estado.prog, paso: p });
+          pintarReloj(reloj);
+          if (reloj >= sig.t - 1e-9) { estado.marco = 0; ir(estado.paso + 1, { desdeAuto: true }); programar(); }
+          else estado.marco = requestAnimationFrame(marco);
+        };
+        estado.marco = requestAnimationFrame(marco);
+        return;
+      }
+      estado.temporizador = setTimeout(() => { ir(estado.paso + 1, { desdeAuto: true }); programar(); }, duracion(p));
     }
     function alternarAuto() {
       estado.auto = !estado.auto;
@@ -499,7 +520,19 @@
       programar();
     }
     function pintarAuto() { el.auto.innerHTML = estado.auto ? ICONO.pausa : ICONO.play; el.auto.dataset.tAria = estado.auto ? "ui.pausar" : "ui.avanzar"; el.auto.setAttribute("aria-label", t(el.auto.dataset.tAria)); }
-    function pararAuto() { if (!estado.auto) return; estado.auto = false; clearTimeout(estado.temporizador); pintarAuto(); }
+    function pararAuto() { if (!estado.auto) return; estado.auto = false; clearTimeout(estado.temporizador); cancelAnimationFrame(estado.marco); estado.marco = 0; pintarAuto(); }
+    function cambiarVelocidad() {
+      estado.vel = VELOCIDADES[(VELOCIDADES.indexOf(estado.vel) + 1) % VELOCIDADES.length];
+      pintarVelocidad();
+      if (estado.auto && !estado.marco) programar();
+    }
+    function pintarVelocidad() { el.vel.textContent = `${E.num(estado.vel)}×`; el.vel.setAttribute("aria-label", t("ui.velocidad", { v: E.num(estado.vel) })); }
+    // Entre dos pasos, mientras el mundo avanza: la marca de la franja y los segundos siguen al reloj.
+    function pintarReloj(reloj) {
+      const { tramos } = D(), m = el.tramos.querySelector(".rv-marca");
+      if (m) m.style.left = `${(Math.min(1, reloj / tramos.total) * 100).toFixed(3)}%`;
+      el.donde.textContent = `${textoDonde(paso()).replace(/ · [^·]*$/, "")} · ${t("ui.segundos", { t: E.num(Math.round(reloj * 100) / 100) })}`;
+    }
 
     // ---------- Programa, idioma y título ----------
     function pintarTitulo() {
@@ -538,6 +571,8 @@
       if (x.dataset.accion === "antes") return ir(estado.paso - 1);
       if (x.dataset.accion === "despues") return ir(estado.paso + 1);
       if (x.dataset.accion === "auto") return alternarAuto();
+      if (x.dataset.accion === "vel") return cambiarVelocidad();
+      if (x.dataset.accion === "junto") return alternarJunto();
       if (x.dataset.accion === "cerrar") return quitarFoco();
       if (x.dataset.accion === "cerrarDoc") return cerrarDoc();
       if (x.dataset.accion === "mapa") return opciones.alMapa && opciones.alMapa();
@@ -601,69 +636,101 @@
     const roRaiz = new ResizeObserver(() => aplicarReparto());
     roRaiz.observe(raiz);
 
-    // ---------- Asa: el reparto entre el código y el diagrama ----------
-    // Se arrastra como el divisor del juego. Arriba del todo, el diagrama ocupa toda la pantalla; doble clic
-    // (o Intro) alterna entre eso y el reparto anterior. El reparto se recuerda en este navegador.
-    const CLAVE_REPARTO = "cmg-revision-reparto", PEGAR = 44;
-    let reparto = null, repartoAntes = null;
-    try { const v = parseFloat(localStorage.getItem(CLAVE_REPARTO)); if (v >= 0 && v <= 1) reparto = v; } catch (e) { /* sin almacenamiento */ }
+    // ---------- Disposición y asa ----------
+    // «apilado»: código arriba y diagrama abajo (teléfono, y «junto» en el juego, con el mapa al lado).
+    // «lado»: código a la izquierda y diagrama a la derecha (escritorio). El asa se arrastra como el divisor
+    // del juego; en un extremo, el diagrama ocupa toda la pantalla. Doble clic (o Intro) alterna entre eso y
+    // el reparto anterior. El reparto de cada disposición se recuerda en este navegador.
+    const PEGAR = 44, ANCHO_LADO = 900;
+    const CLAVES = { apilado: "cmg-revision-reparto", lado: "cmg-revision-reparto-lado" };
+    const reparto = { apilado: null, lado: null }, repartoAntes = { apilado: null, lado: null };
+    for (const k of Object.keys(CLAVES)) try { const v = parseFloat(localStorage.getItem(CLAVES[k])); if (v >= 0 && v <= 1) reparto[k] = v; } catch (e) { /* sin almacenamiento */ }
     const barra = $(".rv-barra"), pie = $(".rv-pie");
-    const disponible = () => Math.max(0, raiz.clientHeight - barra.offsetHeight - el.asa.offsetHeight);
-    const maxCodigo = () => Math.max(0, disponible() - Math.min(disponible(), el.narra.offsetHeight + pie.offsetHeight + 72));
+    const modo = () => raiz.dataset.disposicion === "lado" ? "lado" : "apilado";
+    const lado = () => modo() === "lado";
+    function elegirDisposicion() {
+      const pedida = opciones.disposicion && opciones.disposicion !== "auto" ? opciones.disposicion : null;
+      const d = pedida || (estado.junto || raiz.clientWidth < ANCHO_LADO ? "apilado" : "lado");
+      if (raiz.dataset.disposicion === d) return false;
+      raiz.dataset.disposicion = d;
+      el.asa.setAttribute("aria-orientation", d === "lado" ? "vertical" : "horizontal");
+      return true;
+    }
+    const disponible = () => lado() ? Math.max(0, raiz.clientWidth - el.asa.offsetWidth) : Math.max(0, raiz.clientHeight - barra.offsetHeight - el.asa.offsetHeight);
+    const maxCodigo = () => lado() ? Math.max(0, disponible() - 320) : Math.max(0, disponible() - Math.min(disponible(), el.narra.offsetHeight + pie.offsetHeight + 72));
+    const tamCodigo = () => lado() ? el.codigo.offsetWidth : el.codigo.offsetHeight;
     function aplicarReparto() {
-      if (reparto == null) { raiz.style.removeProperty("grid-template-rows"); raiz.removeAttribute("data-pleno"); }
+      const cambio = elegirDisposicion();
+      raiz.style.removeProperty("grid-template-rows"); raiz.style.removeProperty("grid-template-columns");
+      const r = reparto[modo()];
+      if (r == null) raiz.removeAttribute("data-pleno");
       else {
-        const h = Math.round(Math.max(0, Math.min(maxCodigo(), reparto * disponible())));
-        raiz.style.gridTemplateRows = `auto ${h}px auto minmax(0, 1fr)`;
+        const h = Math.round(Math.max(0, Math.min(maxCodigo(), r * disponible())));
+        if (lado()) raiz.style.gridTemplateColumns = `${h}px auto minmax(0, 1fr)`;
+        else raiz.style.gridTemplateRows = `auto ${h}px auto minmax(0, 1fr)`;
         raiz.toggleAttribute("data-pleno", h === 0);
       }
       const d = disponible();
-      el.asa.setAttribute("aria-valuenow", String(d ? Math.round(el.codigo.offsetHeight / d * 100) : 0));
+      el.asa.setAttribute("aria-valuenow", String(d ? Math.round(tamCodigo() / d * 100) : 0));
       if (!el.doc.hidden) colocarDoc();
+      if (cambio) requestAnimationFrame(() => { ajustarLetra(); dibujarRieles(); pintarCodigo(paso(), valorPrincipal(D().P, D().F, paso())); });
     }
     function fijarReparto(f, { guardar = true } = {}) {
-      reparto = f == null ? null : Math.max(0, Math.min(1, f));
+      const k = modo();
+      reparto[k] = f == null ? null : Math.max(0, Math.min(1, f));
       aplicarReparto();
-      if (guardar) try { if (reparto == null) localStorage.removeItem(CLAVE_REPARTO); else localStorage.setItem(CLAVE_REPARTO, String(reparto)); } catch (e) { /* sin almacenamiento */ }
+      if (guardar) try { if (reparto[k] == null) localStorage.removeItem(CLAVES[k]); else localStorage.setItem(CLAVES[k], String(reparto[k])); } catch (e) { /* sin almacenamiento */ }
     }
-    const repartoActual = () => { const d = disponible(); return d ? el.codigo.offsetHeight / d : 0; };
+    const repartoActual = () => { const d = disponible(); return d ? tamCodigo() / d : 0; };
     function alternarPleno() {
-      if (raiz.hasAttribute("data-pleno")) fijarReparto(repartoAntes);
-      else { repartoAntes = reparto; fijarReparto(0); }
+      const k = modo();
+      if (raiz.hasAttribute("data-pleno")) fijarReparto(repartoAntes[k]);
+      else { repartoAntes[k] = reparto[k]; fijarReparto(0); }
     }
     let arrastreAsa = null;
+    const coord = (ev) => lado() ? ev.clientX : ev.clientY;
     el.asa.addEventListener("pointerdown", (ev) => {
       if (ev.button > 0) return;
       ev.preventDefault();
       el.asa.setPointerCapture(ev.pointerId);
-      arrastreAsa = { y: ev.clientY, h: el.codigo.offsetHeight, antes: reparto };
+      arrastreAsa = { c: coord(ev), h: tamCodigo(), antes: reparto[modo()] };
       el.asa.classList.add("rv-arrastra");
     });
     el.asa.addEventListener("pointermove", (ev) => {
       if (!arrastreAsa) return;
-      let h = arrastreAsa.h + ev.clientY - arrastreAsa.y;
+      let h = arrastreAsa.h + coord(ev) - arrastreAsa.c;
       if (h < PEGAR) h = 0;
       fijarReparto(h / (disponible() || 1), { guardar: false });
     });
     const soltarAsa = () => {
       if (!arrastreAsa) return;
-      if (reparto === 0 && arrastreAsa.antes !== 0) repartoAntes = arrastreAsa.antes;
+      const k = modo();
+      if (reparto[k] === 0 && arrastreAsa.antes !== 0) repartoAntes[k] = arrastreAsa.antes;
       arrastreAsa = null; el.asa.classList.remove("rv-arrastra");
-      if (reparto != null) fijarReparto(reparto);
+      if (reparto[k] != null) fijarReparto(reparto[k]);
     };
     el.asa.addEventListener("pointerup", soltarAsa);
     el.asa.addEventListener("pointercancel", soltarAsa);
     el.asa.addEventListener("dblclick", alternarPleno);
     el.asa.addEventListener("keydown", (ev) => {
       const paso = 0.05;
-      if (ev.key === "ArrowUp") fijarReparto(Math.max(0, repartoActual() - paso));
-      else if (ev.key === "ArrowDown") fijarReparto(repartoActual() + paso);
-      else if (ev.key === "Home") { repartoAntes = reparto; fijarReparto(0); }
+      if (ev.key === "ArrowUp" || ev.key === "ArrowLeft") fijarReparto(Math.max(0, repartoActual() - paso));
+      else if (ev.key === "ArrowDown" || ev.key === "ArrowRight") fijarReparto(repartoActual() + paso);
+      else if (ev.key === "Home") { repartoAntes[modo()] = reparto[modo()]; fijarReparto(0); }
       else if (ev.key === "End") fijarReparto(1);
       else if (ev.key === "Enter" || ev.key === " ") alternarPleno();
       else return;
       ev.preventDefault(); ev.stopPropagation();
     });
+    // «Junto» (solo escritorio, cuando hay un mapa al lado): código y diagrama apilados y con pocos botones.
+    function alternarJunto(on = !estado.junto) {
+      estado.junto = !!on;
+      raiz.toggleAttribute("data-junto", estado.junto);
+      const b = raiz.querySelector('[data-accion="junto"]');
+      if (b) b.setAttribute("aria-pressed", String(estado.junto));
+      if (opciones.alJuntar) opciones.alJuntar(estado.junto);
+      aplicarReparto();
+    }
 
     // ---------- Documentación: mantener pulsado un elemento del diagrama ----------
     // Tapa el código con una página clásica (texto y una animación de apoyo) sobre la naturaleza de lo
@@ -707,9 +774,14 @@
     // El clic que sigue a una pulsación larga no cuenta como toque.
     raiz.addEventListener("click", (ev) => { if (sinClick && el.flujo.contains(ev.target)) { sinClick = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
     function colocarDoc() {
-      const arriba = el.codigo.offsetTop, hasta = el.abajo.offsetTop;
-      el.doc.style.top = arriba + "px";
-      el.doc.style.height = Math.max(hasta - arriba, (raiz.clientHeight - arriba) * 0.55) + "px";
+      const arriba = el.codigo.offsetTop, s = el.doc.style;
+      if (lado()) {
+        s.top = arriba + "px"; s.height = el.codigo.offsetHeight + "px";
+        s.left = el.codigo.offsetLeft + "px"; s.width = Math.max(el.codigo.offsetWidth, raiz.clientWidth * 0.45) + "px";
+      } else {
+        s.left = "0px"; s.width = "100%"; s.top = arriba + "px";
+        s.height = Math.max(el.abajo.offsetTop - arriba, (raiz.clientHeight - arriba) * 0.55) + "px";
+      }
     }
     function abrirDoc(nodo, fila = null) {
       const { P, F } = D();
@@ -736,13 +808,15 @@
       quitarFoco();
     }
 
-    dibujarTodo();
+    if (estado.junto) raiz.setAttribute("data-junto", "");
     aplicarReparto();
+    dibujarTodo();
+    pintarVelocidad();
     return {
-      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto,
-      get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto, doc: estado.doc && DOC.tema(D().P, estado.doc.nodo).clave, reparto, pleno: raiz.hasAttribute("data-pleno") }; },
+      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto, alternarJunto, alternarAuto,
+      get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto, doc: estado.doc && DOC.tema(D().P, estado.doc.nodo).clave, reparto: reparto[modo()], pleno: raiz.hasAttribute("data-pleno"), disposicion: raiz.dataset.disposicion, junto: estado.junto, vel: estado.vel }; },
       paso: () => paso(),
-      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelarPresion(); raiz.innerHTML = ""; raiz.classList.remove("rv"); raiz.removeAttribute("data-pleno"); raiz.style.removeProperty("grid-template-rows"); },
+      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelAnimationFrame(estado.marco); cancelarPresion(); raiz.innerHTML = ""; raiz.classList.remove("rv"); raiz.removeAttribute("data-pleno"); raiz.removeAttribute("data-junto"); raiz.removeAttribute("data-disposicion"); raiz.style.removeProperty("grid-template-rows"); raiz.style.removeProperty("grid-template-columns"); },
     };
   }
 
