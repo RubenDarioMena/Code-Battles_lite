@@ -8,7 +8,8 @@
 (() => {
   "use strict";
   const UNIDAD = "    ";
-  const PALABRAS_PY = new Set("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield print len range str int float bool abs min max round sum enumerate list sorted reversed any all repr info warn error match case".split(" "));
+  const PALABRAS_PY = new Set("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" "));
+  const RESERVADAS_PY = new Set([...PALABRAS_PY, ..."print len range str int float bool abs min max round sum enumerate list sorted reversed any all repr info warn error".split(" ")]);
   // Python: lambda 0, if-else 1, or 2, and 3, not 4, comparaciones 5, | 6, ^ 7, & 8, << >> 9, + - 10, * / // % 11, unarios 12, ** 13, await 14, primario 15.
   const BIN = { "||": 2, "&&": 3, "==": 5, "===": 5, "!=": 5, "!==": 5, "<": 5, ">": 5, "<=": 5, ">=": 5, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9, "+": 10, "-": 10, "*": 11, "/": 11, "%": 11, "**": 13 };
   const OP_PY = { "||": "or", "&&": "and", "===": "==", "==": "==", "!==": "!=", "!=": "!=" };
@@ -34,6 +35,87 @@
     const salida = [];
     let pendientes = comentarios.slice(), ultimaLinea = 0;
     const definidas = new Set();
+    // Python normaliza identificadores a NFKC y rechaza algunos que JavaScript admite
+    // (por ejemplo ZWNJ/ZWJ). Asigna un nombre estable y único a cada identificador JS.
+    const nombresPython = new Map(), usadosPython = new Map(), identificadores = new Set(), declarados = new Set(), anidados = new Set(), funcionesConDefault = new Set();
+    const recogerIdentificadores = (n, anidado = false) => {
+      if (!n || typeof n !== "object") return;
+      if (n.type === "Identifier") identificadores.add(n.name);
+      if (n.type === "VariableDeclarator" && n.id.type === "Identifier") {
+        declarados.add(n.id.name);
+        if (anidado) anidados.add(n.id.name);
+      }
+      if (n.type === "FunctionDeclaration" && n.id) {
+        declarados.add(n.id.name);
+        if (anidado) anidados.add(n.id.name);
+        if (n.params.some(p => p.type === "AssignmentPattern")) funcionesConDefault.add(n.id.name);
+      }
+      if (/^(FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/.test(n.type)) {
+        for (const p of n.params || []) {
+          const id = p.type === "AssignmentPattern" ? p.left : p.type === "RestElement" ? p.argument : p;
+          if (id.type === "Identifier") {
+            declarados.add(id.name);
+            anidados.add(id.name);
+          }
+        }
+      }
+      const adentro = anidado || /^(FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/.test(n.type);
+      for (const [k, v] of Object.entries(n)) {
+        if (k === "loc") continue;
+        if (Array.isArray(v)) v.forEach(x => recogerIdentificadores(x, adentro));
+        else if (v && typeof v === "object" && v.type) recogerIdentificadores(v, adentro);
+      }
+    };
+    recogerIdentificadores(ast);
+    const aliasAPI = new Map();
+    for (const [js, py] of nombres) aliasAPI.set(js, py);
+    const encuentraFuera = (raiz, nombre, excluido) => {
+      let visto = false;
+      const visita = n => {
+        if (visto || !n || typeof n !== "object" || n === excluido) return;
+        if (n.type === "Identifier" && n.name === nombre) { visto = true; return; }
+        for (const [k, v] of Object.entries(n)) {
+          if (k === "loc" || k === "id" && /Function/.test(n.type)) continue;
+          if (Array.isArray(v)) v.forEach(visita); else if (v && typeof v === "object" && v.type) visita(v);
+        }
+      };
+      visita(raiz);
+      return visto;
+    };
+    let alcanceInseguro = null;
+    const revisarAlcances = n => {
+      if (!n || typeof n !== "object" || alcanceInseguro) return;
+      if (n.type === "ForStatement" || n.type === "ForOfStatement" || n.type === "ForInStatement") {
+        const init = n.type === "ForStatement" ? n.init : n.left;
+        if (init && init.type === "VariableDeclaration") for (const d of init.declarations) if (d.id.type === "Identifier" && encuentraFuera(ast, d.id.name, n)) { alcanceInseguro = d; break; }
+      }
+      if (n.type === "BlockStatement") for (const s of n.body) if (s.type === "VariableDeclaration" && s.kind !== "var") for (const d of s.declarations) if (d.id.type === "Identifier" && encuentraFuera(ast, d.id.name, n)) { alcanceInseguro = d; break; }
+      for (const [k, v] of Object.entries(n)) {
+        if (k === "loc") continue;
+        if (Array.isArray(v)) v.forEach(revisarAlcances); else if (v && typeof v === "object" && v.type) revisarAlcances(v);
+      }
+    };
+    revisarAlcances(ast);
+    if (alcanceInseguro) return { ok: false, motivo: "Una variable declarada en un bloque o for se usa fuera de su ámbito, o el valor final del contador no coincide. Python no conserva ese alcance o valor; deja de usarla fuera o cambia el código antes de convertir.", linea: alcanceInseguro.loc.start.line };
+    const aliasAnidado = new Set(Array.from(anidados).filter(n => aliasAPI.has(n)));
+    if (aliasAnidado.size) {
+      const n = ast.body.find(s => s.type === "FunctionDeclaration" && s.params.some(p => aliasAnidado.has(p.name))) || ast;
+      return { ok: false, motivo: "Una función local oculta un nombre de la API. La conversión no puede resolver con seguridad ese ámbito; cambia el nombre local antes de convertir.", linea: n.loc && n.loc.start.line || 1 };
+    }
+    if (["console", "Math", "String", "Number", "Boolean", "parseInt", "parseFloat"].some(n => declarados.has(n)))
+      return { ok: false, motivo: "Una variable local oculta console, Math o una conversión integrada de JavaScript; no se puede garantizar el mismo significado en Python.", linea: 1 };
+    const destinosAPI = new Set(Array.from(aliasAPI, ([js, py]) => js === py ? null : py.normalize("NFKC")).filter(Boolean));
+    for (const original of identificadores) {
+      let base = original.normalize("NFKC");
+      if (!/^[$_\p{ID_Start}][$_\u200c\u200d\p{ID_Continue}]*$/u.test(original) || /[\u200c\u200d]/u.test(original) || !/^[_\p{ID_Start}][_\p{ID_Continue}]*$/u.test(base))
+        base = "_cmg_" + Array.from(original, c => c.codePointAt(0).toString(16)).join("_");
+      else if (RESERVADAS_PY.has(base)) base += "_";
+      if (destinosAPI.has(base) && !aliasAPI.has(original)) base += "__local";
+      let nombre = base, i = 2;
+      while (usadosPython.has(nombre) && usadosPython.get(nombre) !== original) nombre = `${base}__${i++}`;
+      usadosPython.set(nombre, original);
+      nombresPython.set(original, nombre);
+    }
     try {
       bloque(ast.body, 0, { funcion: false, async: true, bucle: false, fin: texto.length, raiz: true });
       return { ok: true, texto: salida.join("\n").replace(/\n{3,}/g, "\n\n") + "\n" };
@@ -158,9 +240,19 @@
           linea((s.argument ? `return ${expr(s.argument, 0)}` : "return") + finDeLinea(s), nivel); return;
         case "FunctionDeclaration": {
           if (s.generator) noCabe(s, "Los generadores (function*) no están en el Python del juego.");
+          let huboDefault = false;
+          for (const p of s.params) {
+            if (p.type === "AssignmentPattern") huboDefault = true;
+            else if (huboDefault && p.type === "Identifier") noCabe(p, "JavaScript permite parámetros obligatorios después de uno opcional; Python no. Reordena los parámetros antes de convertir.");
+          }
           const params = s.params.map(p => {
             if (p.type === "Identifier") return nombre(p.name);
-            if (p.type === "AssignmentPattern" && p.left.type === "Identifier") return `${nombre(p.left.name)}=${expr(p.right, 0)}`;
+            if (p.type === "AssignmentPattern" && p.left.type === "Identifier") {
+              const d = p.right;
+              if (!(d.type === "Literal" && (d.value === null || ["string", "number", "boolean"].includes(typeof d.value)) && !d.regex && !d.bigint))
+                noCabe(p, "Este parámetro tiene un valor por defecto dinámico. JavaScript lo evalúa en cada llamada y Python al definir la función; simplifícalo a un literal antes de convertir.");
+              return `${nombre(p.left.name)}=${expr(d, 0)}`;
+            }
             if (p.type === "RestElement" && p.argument.type === "Identifier") return "*" + nombre(p.argument.name);
             noCabe(p, "Este tipo de parámetro aún no tiene equivalente en el Python del juego.");
           });
@@ -233,8 +325,17 @@
       noCabe(n, "Esta asignación aún no tiene equivalente en el Python del juego.");
     }
     function nombre(n) {
-      if (nombres.has(n)) return nombres.get(n);
-      return PALABRAS_PY.has(n) ? n + "_" : n;
+      return nombresPython.get(n) || n;
+    }
+    function nombreReferencia(n) {
+      // Un nombre local tiene prioridad sobre el mismo nombre de la API.
+      return declarados.has(n) ? nombre(n) : (aliasAPI.get(n) || nombre(n));
+    }
+    function accesoPropiedad(obj, prop, comilla, traduccion = prop) {
+      const base = expr(obj, 15, comilla);
+      if (traduccion.normalize("NFKC") !== traduccion || !/^[_\p{ID_Start}][_\p{ID_Continue}]*$/u.test(traduccion) || PALABRAS_PY.has(traduccion))
+        return `${base}[${cadena(prop, comilla)}]`;
+      return `${base}.${traduccion}`;
     }
     function cadena(v, comilla = '"') {
       const j = JSON.stringify(v);
@@ -294,7 +395,7 @@
         case "Identifier":
           if (n.name === "undefined") return "None";
           if (n.name === "NaN" || n.name === "Infinity") noCabe(n, `${n.name} no tiene nombre propio en el Python del juego.`);
-          return nombre(n.name);
+          return nombreReferencia(n.name);
         case "TemplateLiteral": return fstring(n.quasis.flatMap((q, i) => [{ texto: q.value.cooked }, ...(n.expressions[i] ? [{ nodo: n.expressions[i] }] : [])]));
         case "ArrayExpression": return "[" + n.elements.map(e => e == null ? noCabe(n, "Las listas con huecos ([1, , 2]) no existen en Python.") : e.type === "SpreadElement" ? "*" + expr(e.argument, 15) : expr(e, 0, comilla)).join(", ") + "]";
         case "ObjectExpression": noCabe(n, "Los objetos { … } (diccionarios) aún no están en el Python del juego.");
@@ -331,7 +432,7 @@
           if (n.optional) noCabe(n, "?. no tiene equivalente en el Python del juego.");
           if (n.computed) return `${expr(n.object, 15, comilla)}[${expr(n.property, 0, comilla)}]`;
           if (n.property.name === "length") return `len(${expr(n.object, 0, comilla)})`;
-          return `${expr(n.object, 15, comilla)}.${nombre(n.property.name)}`;
+          return accesoPropiedad(n.object, n.property.name, comilla);
         }
         case "ChainExpression": noCabe(n, "?. no tiene equivalente en el Python del juego.");
         case "NewExpression": noCabe(n, "new no tiene equivalente en el Python del juego.");
@@ -344,8 +445,11 @@
     function llamada(n, comilla) {
       const c = n.callee;
       if (n.optional) noCabe(n, "?.() no tiene equivalente en el Python del juego.");
+      if (c.type === "Identifier" && funcionesConDefault.has(c.name) && n.arguments.some(a => a.type === "Identifier" && a.name === "undefined"))
+        noCabe(n, "JavaScript aplica el valor por defecto si se pasa undefined; Python recibe None. Quita ese argumento o usa un valor explícito.");
       if (c.type === "MemberExpression" && !c.computed) {
         const obj = c.object, m = c.property.name;
+        if (obj.type === "Identifier" && obj.name === "yo" && aliasAPI.has(m)) return `yo.${aliasAPI.get(m)}(${argumentos(n.arguments)})`;
         if (obj.type === "Identifier" && obj.name === "console" && CONSOLA[m]) return `${CONSOLA[m]}(${argumentos(n.arguments)})`;
         if (obj.type === "Identifier" && obj.name === "Math") {
           if (MATH[m]) return `${MATH[m]}(${argumentos(n.arguments)})`;
@@ -360,14 +464,13 @@
         if (m === "toFixed" && n.arguments.length === 1 && n.arguments[0].type === "Literal") return fstringFormato(obj, `.${n.arguments[0].value}f`, comilla);
         if (/^(indexOf|splice|shift|unshift|map|filter|forEach|reduce|find|some|every|concat|substring|substr|charAt|padStart|padEnd|repeat|toString)$/.test(m))
           noCabe(n, `.${m}() aún no tiene equivalente en el Python del juego.`);
-        const nm = nombres.has(m) ? nombres.get(m) : METODOS[m] || nombre(m);
-        return `${expr(obj, 15, comilla)}.${nm}(${argumentos(n.arguments)})`;
+        return `${accesoPropiedad(obj, m, comilla, METODOS[m] || m)}(${argumentos(n.arguments)})`;
       }
       if (c.type === "Identifier") {
         const f = { String: "str", Number: "float", parseInt: "int", parseFloat: "float", Boolean: "bool" }[c.name];
         if (f) return `${f}(${argumentos(n.arguments)})`;
         if (/^(setTimeout|setInterval|alert|prompt|require|fetch|eval)$/.test(c.name)) noCabe(n, `${c.name} no está en el juego.`);
-        return `${nombre(c.name)}(${argumentos(n.arguments)})`;
+        return `${nombreReferencia(c.name)}(${argumentos(n.arguments)})`;
       }
       return `${expr(c, 15, comilla)}(${argumentos(n.arguments)})`;
     }

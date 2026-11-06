@@ -75,7 +75,7 @@
     const propiedades = new Map();
     for (const p of opciones.propiedades || []) { propiedades.set(p, p); propiedades.set(p.replace(/[A-Z]/g, m => "_" + m.toLowerCase()), p); }
     const reservadas = new Set([...RESERVADAS_JS, ...funciones.keys(), ...miembros.keys(), ...objetos, ...propiedades.keys(), ...propiedades.values(), "log", "yo"]);
-    const jsNombre = n => reservadas.has(n) ? "$" + n : n;
+    const jsNombre = n => reservadas.has(n) || n === "__r" || /^__t\d+$/.test(n) ? "$" + n : n;
 
     let raiz;
     try { raiz = plano(L.parser.parse(src)); }
@@ -379,7 +379,7 @@
       falla(objetivo.a, "SyntaxError: illegal expression for augmented assignment");
     }
     function parametros(pl, amb) {
-      const nombres = [], js = [];
+      const nombres = [], js = [], defectos = [];
       let obligatorios = 0, estrella = false, conDefecto = false;
       const h = pl ? pl.h.filter(x => x.t !== "(" && x.t !== ")" && x.t !== "Comment") : [];
       for (let i = 0; i < h.length; i++) {
@@ -396,17 +396,17 @@
         const x = txt(p);
         if (nombres.includes(x)) falla(p.a, `SyntaxError: duplicate argument '${x}' in function definition`);
         nombres.push(x);
-        if (h[i + 1] && h[i + 1].t === "AssignOp") { conDefecto = true; js.push(`${jsNombre(x)} = ${expr(h[i + 2], amb)}`); i += 2; }
+        if (h[i + 1] && h[i + 1].t === "AssignOp") { conDefecto = true; defectos.push([nombres.length - 1, expr(h[i + 2], amb)]); js.push(jsNombre(x)); i += 2; }
         else { if (conDefecto) falla(p.a, "SyntaxError: parameter without a default follows parameter with a default"); obligatorios++; js.push(jsNombre(x)); }
       }
-      return { nombres, js, obligatorios, estrella };
+      return { nombres, js, obligatorios, estrella, defectos };
     }
     function definir(s, amb) {
       const hijo = ambitos.get(s), nombre = s.h.find(h => h.t === "VariableName"), esAsync = s.h[0].t === "async";
       const ps = parametros(s.h.find(h => h.t === "ParamList"), amb);
       if (s.h.some(h => h.t === "TypeDef")) noSoportado(s.h.find(h => h.t === "TypeDef"));
       hijo.marca = marcas.push(hijo) - 1;
-      emitir(s.a, `${nombreLigado(nombre, amb)} = __py.def(${JSON.stringify(txt(nombre))}, ${JSON.stringify(ps.nombres)}, ${ps.obligatorios}, ${ps.estrella}, ${esAsync ? "async " : ""}function (${ps.js.join(", ")}) { \u0001${hijo.marca}\u0001`);
+      emitir(s.a, `${nombreLigado(nombre, amb)} = __py.def(${JSON.stringify(txt(nombre))}, ${JSON.stringify(ps.nombres)}, ${ps.obligatorios}, ${ps.estrella}, [${ps.defectos.map(([i, v]) => `[${i}, ${v}]`).join(", ")}], ${esAsync ? "async " : ""}function (${ps.js.join(", ")}) { \u0001${hijo.marca}\u0001`);
       const b = cuerpo(s, hijo, { bucles: 0 });
       cerrar(b, "});");
     }
@@ -633,7 +633,7 @@
       const ps = parametros(pl, amb);
       const cuerpoN = n.h[n.h.length - 1];
       const e = expr(cuerpoN, hijo);
-      return `__py.def("<lambda>", ${JSON.stringify(ps.nombres)}, ${ps.obligatorios}, ${ps.estrella}, (${ps.js.join(", ")}) => { ${declaraciones(hijo)}return ${e}; })`;
+      return `__py.def("<lambda>", ${JSON.stringify(ps.nombres)}, ${ps.obligatorios}, ${ps.estrella}, [${ps.defectos.map(([i, v]) => `[${i}, ${v}]`).join(", ")}], (${ps.js.join(", ")}) => { ${declaraciones(hijo)}return ${e}; })`;
     }
 
     // Operadores: se aplana la expresión de lezer y se reasocia con la precedencia de Python.
@@ -803,7 +803,7 @@
       for (const n of Object.keys(k)) if (!permitidos.includes(n)) throw err("TypeError", `${nombre}() got an unexpected keyword argument '${n}'`);
       return k;
     }
-    function def(nombre, params, obligatorios, estrella, fn) {
+    function def(nombre, params, obligatorios, estrella, defectos, fn) {
       const w = function (...args) {
         args = args.map(nada);
         const kw = quitarKW(nombre, args, params);
@@ -816,6 +816,7 @@
           while (args.length < i) args.push(undefined);
           args[i] = nada(kw[k]);
         }
+        for (const [i, valor] of defectos) if (args[i] === undefined) args[i] = valor;
         const faltan = [];
         for (let i = 0; i < obligatorios; i++) if (args[i] === undefined) faltan.push(`'${params[i]}'`);
         if (faltan.length) throw err("TypeError", `${nombre}() missing ${faltan.length} required positional argument${faltan.length === 1 ? "" : "s"}: ${faltan.length === 1 ? faltan[0] : faltan.slice(0, -1).join(", ") + " and " + faltan[faltan.length - 1]}`);

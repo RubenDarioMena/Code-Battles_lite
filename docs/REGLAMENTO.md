@@ -58,4 +58,6 @@ Cada unidad se programa en JavaScript **o** en Python (botón **Py** de la cabec
 
 **Errores al estilo de Python.** Sintaxis y sangría se revisan antes de ejecutar (`SyntaxError`, `IndentationError`) y los errores de ejecución llegan como en Python (`NameError`, `TypeError`, `IndexError`, `ZeroDivisionError`…), siempre con la línea del programa Python. Los mensajes de la API usan los nombres Python.
 
+Los valores por defecto de `def`, `async def` y `lambda` se evalúan una vez al definir la función. Una lista por defecto se comparte entre sus llamadas; pasar `None` explícitamente conserva `None`. Al convertir desde JavaScript, un valor por defecto dinámico se avisa porque allí se evalúa en cada llamada. Los literales simples sí se convierten.
+
 **Guardado.** El texto Python es la fuente: se guarda en `fuentes-<reto>` (`{ id: { lenguaje: "python", texto, enUso } }`); `prog-<reto>` sigue siendo solo JavaScript. Volver a JS conserva el Python, y Py lo recupera. Si la unidad aún no tiene Python, Py **convierte** su JavaScript por el árbol (E7); si algo no cabe en el subconjunto, explica el motivo y el JavaScript se conserva. La telemetría lleva `lenguajes`, y los récords, el lenguaje del intento como etiqueta (una sola tabla por reto, D6).

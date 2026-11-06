@@ -186,3 +186,9 @@ Campaign, bloques nuevos para War, nodos, LSP, extracción automática de funcio
 - **Preludio** (`__py`, inyectado en el Worker con `toString()`): verdad, operadores con sus `TypeError`, igualdad profunda, índices y trozos, métodos de listas y textos, `range`, `print`/`repr`, f-strings con formato, redondeo mitad al par y mensajes de error de JS reescritos como los de Python.
 - **Conversión** (`shared/python/desde-js.js`): acorn → Python. Conserva comentarios y líneas en blanco, convierte el código comentado, `for` clásico → `range`, `??` de una lectura → `or`, sumas que empiezan por texto → f-string. Lo que no cabe devuelve motivo y línea.
 - **Límites conocidos:** sin distinción entero/real (`4 / 2` → `2`), enteros hasta 2⁵³, diccionarios y tuplas completas para la siguiente etapa, y Py recupera el último Python guardado en vez de volver a convertir.
+
+### Continuidad · 6 de noviembre de 2026
+
+E5–E7 ya estaban implementadas en `trunk` y también incorporadas a `main`. Esta revisión continúa en `trunk`: corrige valores por defecto de funciones Python y colisiones de nombres del traductor y del conversor JS → Python. Los defaults Python se evalúan una vez al definir `def`, `async def` o `lambda`; convertir defaults JS dinámicos da un diagnóstico por su distinta semántica. La conversión conserva el JS guardado cuando no puede representar el programa.
+
+La QA en un teléfono físico sigue pendiente. También quedan diferencias de Unicode en fuentes escritas directamente en Python (normalización de identificadores y operaciones sobre textos); la corrección de nombres del conversor JS → Python no completa ese trabajo. Diccionarios, tuplas completas y D8 conservan el alcance indicado arriba.
