@@ -107,7 +107,7 @@ La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage e
 
 ## Idioma de la interfaz
 
-La portada y Ajustes permiten elegir español o inglés sin recargar ni modificar programas. La preferencia de interfaz es independiente de JavaScript/Python y del idioma del seudocódigo. Están migrados la portada, Ajustes, navegación, controles principales y textos estáticos de los diálogos; algunos contenidos y ayudas siguen pendientes.
+La portada y Ajustes permiten elegir español o inglés sin recargar ni modificar programas. La preferencia de interfaz es independiente de JavaScript/Python y del idioma del seudocódigo. Están migrados la portada, Ajustes, navegación, controles principales, barras de edición y paletas de inserción, textos estáticos de los diálogos y encabezados/controles del inspector; algunos contenidos, estados y ayudas siguen pendientes.
 
 Los textos nuevos de las zonas migradas deben añadirse a los catálogos ES/EN de `shared/i18n/`, sin traducir IDs, valores de la API ni guardados. El [contrato de idiomas y el glosario](docs/IDIOMAS-INTERFAZ.md) describe cómo ampliar la migración por lotes y ejecutar sus comprobaciones. La suite de navegador puede ejecutarse con `node pruebas/ejecutar-idiomas.cjs` en un entorno con Playwright/Chromium y el servidor dedicado 8771 activo; el juego no requiere esos paquetes.
 

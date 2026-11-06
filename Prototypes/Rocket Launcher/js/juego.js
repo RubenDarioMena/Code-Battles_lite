@@ -1183,7 +1183,72 @@
   }
   const fila = (...partes) => `<div class="fila-tk">${partes.join(" ")}</div>`;
   const nota = (t) => `<span class="nota">${t}</span>`;
-  const grupo = (titulo, ...filas) => `<div class="grupo-tk">${titulo ? `<div class="g">${titulo}</div>` : ""}${filas.join("")}</div>`;
+  const TEXTOS_INSPECTOR = {
+    "inspector.grupo.encargos": "Encargos de R1", "inspector.grupo.lecturas": "Lecturas", "inspector.grupo.lugares": "Lugares",
+    "inspector.grupo.funciones": "Funciones", "inspector.grupo.propiedades": "Propiedades", "inspector.grupo.variables": "Variables y constantes",
+    "inspector.grupo.red": "Red de sensores", "inspector.grupo.nombre": "Nombre", "inspector.grupo.contenido": "Contenido",
+    "inspector.grupo.flujo": "Flujo", "inspector.grupo.sensores": "Sensores montados", "inspector.grupo.datos": "Datos",
+    "inspector.grupo.tipo": "Tipo", "inspector.grupo.ven": "Lo ven",
+    "inspector.seccion.codigo": "Para tu código", "inspector.seccion.metricas": "Métricas de este intento", "inspector.seccion.vitales": "Signos vitales",
+    "inspector.leyenda.maquina": "máquina", "inspector.leyenda.funcion": "función", "inspector.leyenda.propiedad": "propiedad",
+    "inspector.leyenda.numero": "número", "inspector.leyenda.texto": "texto",
+    "inspector.leyenda.uso": "· doble toque: lo inserta en el programa de {unidad} · también se puede arrastrar",
+    "inspector.pista.ficha": "Mantén presionada una unidad, o toca aquí, para ver su ficha completa.",
+    "inspector.pista.sin_lanzador": "Elige un lanzador para ver lo que su programa puede usar.",
+    "inspector.pista.sin_variables": "El programa todavía no declara ninguna (const o let).",
+    "inspector.accion.centrar.aria": "Centrar la cámara en {unidad}", "inspector.accion.centrar.tip": "Centrar la cámara",
+    "inspector.accion.plegar": "Plegar la ficha", "inspector.accion.abrir": "Abrir la ficha completa",
+    "inspector.accion.ficha_completa": "Ficha completa", "inspector.accion.cerrar.aria": "Cerrar el inspector",
+    "inspector.accion.cerrar.tip": "Cerrar", "inspector.accion.editar_programa": "Editar el programa de {unidad}",
+    "inspector.seleccionadas": "{cantidad} seleccionadas",
+    "inspector.vital.misiles": "Misiles", "inspector.vital.en_rango": "En rango", "inspector.vital.alcance": "Alcance",
+    "inspector.vital.cola": "Cola", "inspector.vital.reparaciones": "Reparaciones", "inspector.vital.entregados": "Entregados",
+    "inspector.vital.suministro": "Suministro", "inspector.vital.vida": "Vida", "inspector.vital.altura": "Altura",
+    "inspector.vital.posicion": "Posición", "inspector.traza.ultimos": "últimos {segundos} s", "inspector.traza.escala": "escala",
+    "inspector.traza.ahora": "ahora",
+  };
+  const textoInspector = (clave, params = {}) => {
+    const i18n = window.CMGI18n;
+    const texto = i18n && typeof i18n.t === "function" ? i18n.t(clave, params) : clave;
+    return typeof texto === "string" && texto !== clave ? texto : (TEXTOS_INSPECTOR[clave] || clave).replace(/\{([a-z]+)\}/g, (_, n) => params[n] ?? `{${n}}`);
+  };
+  const paramsInspector = (params = {}) => Object.entries(params).map(([k, v]) => ` data-ins-i18n-param-${k}="${esc(v)}"`).join("");
+  const hojaInspector = (clave, params = {}) => `data-ins-i18n-text="${clave}"${paramsInspector(params)}`;
+  const spanInspector = (clave, params = {}) => `<span ${hojaInspector(clave, params)}>${esc(textoInspector(clave, params))}</span>`;
+  const atributoInspector = (atributo, clave, params = {}) => `data-ins-i18n-${atributo}="${clave}"${paramsInspector(params)} ${atributo}="${esc(textoInspector(clave, params))}"`;
+  const aplicarTextosInspector = (raiz) => {
+    if (!raiz) return;
+    const traducir = (el, clave, atributo = null) => {
+      const params = {};
+      for (const a of el.attributes) if (a.name.startsWith("data-ins-i18n-param-")) params[a.name.slice("data-ins-i18n-param-".length)] = a.value;
+      const texto = textoInspector(clave, params);
+      if (atributo) el.setAttribute(atributo, texto);
+      else if (el.childNodes.length === 1 && el.firstChild.nodeType === Node.TEXT_NODE) el.firstChild.nodeValue = texto;
+      else el.textContent = texto;
+    };
+    for (const el of raiz.querySelectorAll("[data-ins-i18n-text]")) traducir(el, el.dataset.insI18nText);
+    for (const nombre of ["aria-label", "title", "data-tip"]) {
+      const selector = `[data-ins-i18n-${nombre}]`;
+      for (const el of raiz.querySelectorAll(selector)) traducir(el, el.getAttribute(`data-ins-i18n-${nombre}`), nombre);
+    }
+  };
+  const refrescarInspectorIdioma = () => {
+    aplicarTextosInspector($("inspector"));
+    aplicarTextosInspector($("pie-ins"));
+  };
+  window.addEventListener("cmg:idioma", refrescarInspectorIdioma);
+  const CLAVES_GRUPO = {
+    "Encargos de R1": "inspector.grupo.encargos", "Lecturas": "inspector.grupo.lecturas", "Lugares": "inspector.grupo.lugares",
+    "Funciones": "inspector.grupo.funciones", "Propiedades": "inspector.grupo.propiedades", "Variables y constantes": "inspector.grupo.variables",
+    "Red de sensores": "inspector.grupo.red", "Nombre": "inspector.grupo.nombre", "Contenido": "inspector.grupo.contenido",
+    "Flujo": "inspector.grupo.flujo", "Sensores montados": "inspector.grupo.sensores", "Datos": "inspector.grupo.datos",
+    "Tipo": "inspector.grupo.tipo", "Lo ven": "inspector.grupo.ven",
+  };
+  const grupo = (titulo, ...filas) => {
+    const clave = CLAVES_GRUPO[titulo];
+    const encabezado = titulo ? (clave ? `<div class="g">${spanInspector(clave)}</div>` : `<div class="g">${titulo}</div>`) : "";
+    return `<div class="grupo-tk">${encabezado}${filas.join("")}</div>`;
+  };
   const tkValor = (v, vivo) => typeof v === "number" ? tk("num", v, String(v), { vivo, clave: vivo }) : typeof v === "boolean" ? tk("kw", v, String(v), { vivo, clave: vivo }) : tk("str", JSON.stringify(v), JSON.stringify(v), { vivo, clave: vivo });
 
   function estadoDe(e) {
@@ -1248,7 +1313,7 @@
         + grupo("Sensores montados", fila(tk("prop", `${pre}sensors`, `${pre}sensors`), `<span class="sep">=</span>`, tk("str", '"visual"', '"visual"'), tk("str", '"thermal"', '"thermal"')),
           fila(nota(`alcance: cámara ${alcance("visual")} · térmico ${alcance("thermal")}${def.niebla ? " (niebla)" : ""}`)),
           fila(nota("tipos:"), ...Object.keys(TIPOS).map(t => tk("str", `"${t}"`, `"${t}"`))));
-      botones = (propioProg ? "" : `<button type="button" class="btn chico" data-accion="programa">Editar el programa de ${esc(e.id)}</button>`);
+      botones = (propioProg ? "" : `<button type="button" class="btn chico" data-accion="programa" ${atributoInspector("aria-label", "inspector.accion.editar_programa", { unidad: e.id })} data-ins-i18n-text="inspector.accion.editar_programa">${esc(textoInspector("inspector.accion.editar_programa", { unidad: e.id }))}</button>`);
     } else if (e.clase === "vibracion") {
       clase = "Sensor de vibración (red)";
       c1 = grupo("Nombre", fila(tk("var", varDe(e.id), varDe(e.id)), nota(`en pantalla ${e.id}`)))
@@ -1274,6 +1339,7 @@
       c2 = grupo("", fila(nota("vida:"), `<span data-vivo="${e.id}:hp">${e.hp}/${e.hpMax}</span>`), fila(nota("velocidad:"), `${-e.vx} casillas/s`), fila(nota("altura:"), `${e.z} m${tp.suelo ? " (suelo)" : ""}`),
         fila(nota("posición:"), `<span class="nota" data-vivo="${e.id}:pos">x ${e.x.toFixed(1)} · y ${e.y.toFixed(1)}</span>`), tp.frio ? fila(nota("Motor frío: el térmico no lo ve.")) : "");
     }
+    const seleccionadasTexto = seleccionadas.size > 1 ? ` · <span ${hojaInspector("inspector.seleccionadas", { cantidad: seleccionadas.size })}>${esc(textoInspector("inspector.seleccionadas", { cantidad: seleccionadas.size }))}</span>` : "";
     const [cls, txt] = estadoDe(e);
     const m = metricasDe(e);
     const abierto = insEstado === "abierto";
@@ -1281,20 +1347,22 @@
     $i.style.setProperty("--rol", f ? `var(--rol-${f.principal})` : "var(--enemigo)");
     const rol = f ? `<span class="rol">${esc(FUNCIONES[f.principal])}${f.secundaria ? ` <small>+ ${esc(FUNCIONES[f.secundaria].toLowerCase())}</small>` : ""}</span>` : `<span class="rol">Enemigo</span>`;
     $("ins-tira").innerHTML = `
-      <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadas.size > 1 ? ` · ${seleccionadas.size} seleccionadas` : ""}</h2><span class="estado ${cls}" data-estado>${esc(txt)}</span><span class="clase">${esc(clase)}</span>${rol}</div>
-        <div class="ins-acc">${V3 && vista === "3d" ? `<button type="button" data-accion="centrar" aria-label="Centrar la cámara en ${esc(e.id)}" data-tip="Centrar la cámara">⌖</button>` : ""}<button type="button" data-accion="${abierto ? "plegar" : "abrir"}" aria-label="${abierto ? "Plegar la ficha" : "Abrir la ficha completa"}" data-tip="${abierto ? "Plegar la ficha" : "Ficha completa"}">${abierto ? "▴" : "▾"}</button><button type="button" data-accion="cerrar" aria-label="Cerrar el inspector" data-tip="Cerrar">×</button></div></div>
+      <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadasTexto}</h2><span class="estado ${cls}" data-estado>${esc(txt)}</span><span class="clase">${esc(clase)}</span>${rol}</div>
+        <div class="ins-acc">${V3 && vista === "3d" ? `<button type="button" data-accion="centrar" ${atributoInspector("aria-label", "inspector.accion.centrar.aria", { unidad: e.id })} ${atributoInspector("data-tip", "inspector.accion.centrar.tip")}>⌖</button>` : ""}<button type="button" data-accion="${abierto ? "plegar" : "abrir"}" ${atributoInspector("aria-label", `inspector.accion.${abierto ? "plegar" : "abrir"}`)} ${atributoInspector("data-tip", `inspector.accion.${abierto ? "plegar" : "ficha_completa"}`)}>${abierto ? "▴" : "▾"}</button><button type="button" data-accion="cerrar" ${atributoInspector("aria-label", "inspector.accion.cerrar.aria")} ${atributoInspector("data-tip", "inspector.accion.cerrar.tip")}>×</button></div></div>
       ${abierto ? "" : `<div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>`}
-      <div class="ins-pista">Mantén presionada una unidad, o toca aquí, para ver su ficha completa.</div>`;
+      <div class="ins-pista" ${hojaInspector("inspector.pista.ficha")}>${esc(textoInspector("inspector.pista.ficha"))}</div>`;
     $("ins-cuerpo").innerHTML = `
       <div class="regla"></div>
-      <div class="ins-cols"><div class="ins-col"><h3><span class="placa">Para tu código</span></h3>${c1}</div><div class="ins-col"><h3><span class="placa">Datos</span></h3>${c2}</div></div>
+      <div class="ins-cols"><div class="ins-col"><h3><span class="placa" ${hojaInspector("inspector.seccion.codigo")}>${esc(textoInspector("inspector.seccion.codigo"))}</span></h3>${c1}</div><div class="ins-col"><h3><span class="placa" ${hojaInspector("inspector.grupo.datos")}>${esc(textoInspector("inspector.grupo.datos"))}</span></h3>${c2}</div></div>
       ${botones ? `<div class="fila-botones">${botones}</div>` : ""}
-      ${m ? `<div class="regla"></div><div class="grupo-tk"><h3 class="metricas-tit"><span class="placa">Métricas de este intento</span></h3><div class="metricas" data-metricas>${htmlMetricas(m)}</div></div>` : ""}
+      ${m ? `<div class="regla"></div><div class="grupo-tk"><h3 class="metricas-tit"><span class="placa" ${hojaInspector("inspector.seccion.metricas")}>${esc(textoInspector("inspector.seccion.metricas"))}</span></h3><div class="metricas" data-metricas>${htmlMetricas(m)}</div></div>` : ""}
       <div class="regla"></div>
-      <div class="leyenda-tk"><span class="tk-var">máquina</span><span class="tk-fn">función</span><span class="tk-prop">propiedad</span><span class="tk-num">número</span><span class="tk-str">texto</span>
-        <span style="font-family:var(--f-body);font-weight:400">· doble toque: lo inserta en el programa de <b>${esc(progSel)}</b> · también se puede arrastrar</span></div>
+      <div class="leyenda-tk"><span class="tk-var" ${hojaInspector("inspector.leyenda.maquina")}>${esc(textoInspector("inspector.leyenda.maquina"))}</span><span class="tk-fn" ${hojaInspector("inspector.leyenda.funcion")}>${esc(textoInspector("inspector.leyenda.funcion"))}</span><span class="tk-prop" ${hojaInspector("inspector.leyenda.propiedad")}>${esc(textoInspector("inspector.leyenda.propiedad"))}</span><span class="tk-num" ${hojaInspector("inspector.leyenda.numero")}>${esc(textoInspector("inspector.leyenda.numero"))}</span><span class="tk-str" ${hojaInspector("inspector.leyenda.texto")}>${esc(textoInspector("inspector.leyenda.texto"))}</span>
+        <span style="font-family:var(--f-body);font-weight:400" ${hojaInspector("inspector.leyenda.uso", { unidad: progSel })}>${esc(textoInspector("inspector.leyenda.uso", { unidad: progSel }))}</span></div>
       <div class="pista-tk" id="pista-tk"></div>
-      ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa">Signos vitales</span></h3><div class="vitales" id="ins-vitales">${htmlVitales(e)}</div></div>` : ""}`;
+      ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa" ${hojaInspector("inspector.seccion.vitales")}>${esc(textoInspector("inspector.seccion.vitales"))}</span></h3><div class="vitales" id="ins-vitales">${htmlVitales(e)}</div></div>` : ""}`;
+    aplicarTextosInspector($("ins-tira"));
+    aplicarTextosInspector($("ins-cuerpo"));
   }
 
   // Inspector del panel inferior (bajo el editor): sin nombre ni estado, solo lo que el programa
@@ -1312,10 +1380,10 @@
       + grupo("Lugares", ...mundo.entidades.map(e => fila(tk("var", e.id, varFactory(e.id)))));
   }
   function pintarPieIns() {
-    if (ES_FACTORY) { $("pie-ins").innerHTML = htmlFactoryAPI(); return; }
+    if (ES_FACTORY) { const $p = $("pie-ins"); $p.innerHTML = htmlFactoryAPI(); aplicarTextosInspector($p); return; }
     const $p = $("pie-ins"), e = mundo && mundo.porId[progSel];
     if (!$p) return;
-    if (!e) { $p.innerHTML = `<p class="nota">Elige un lanzador para ver lo que su programa puede usar.</p>`; return; }
+    if (!e) { $p.innerHTML = `<p class="nota" ${hojaInspector("inspector.pista.sin_lanzador")}>${esc(textoInspector("inspector.pista.sin_lanzador"))}</p>`; aplicarTextosInspector($p); return; }
     const vars = variablesPrograma(), red = mundo.sensores;
     $p.innerHTML = `<div class="pie-ins-cols">`
       + grupo("Funciones",
@@ -1334,10 +1402,11 @@
         fila(tk("prop", "sensors", "sensors"), `<span class="sep">=</span>`, tk("str", '"visual"', '"visual"'), tk("str", '"thermal"', '"thermal"')))
       + grupo("Variables y constantes", vars.length
         ? fila(...vars.map(([n, k]) => `<span class="var-prog">${tk("var", n, n)}${nota(k)}</span>`))
-        : fila(nota("El programa todavía no declara ninguna (const o let).")))
+        : fila(nota(`<span ${hojaInspector("inspector.pista.sin_variables")}>${esc(textoInspector("inspector.pista.sin_variables"))}</span>`)))
       + (red.length ? grupo("Red de sensores", ...red.map(x => fila(tk("fn", `${varDe(x.id)}.detect(tipo)`, `${varDe(x.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }),
         tk("prop", `${varDe(x.id)}.count`, `${varDe(x.id)}.count`), `<span class="sep">=</span>`, tkValor(enRango(x).length, `${x.id}:count`)))) : "")
       + `</div>`;
+    aplicarTextosInspector($p);
   }
   let tPieIns = 0;
 
@@ -1352,21 +1421,27 @@
     }
   }
   const celdas = (n, total, extra = "") => `<div class="celdas ${extra}">${Array.from({ length: total }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</div>`;
-  const vital = (k, v, cuerpo = "") => `<div class="vital"><div class="k"><span>${k}</span>${v != null ? `<b>${v}</b>` : ""}</div>${cuerpo}</div>`;
+  const CLAVES_VITAL = { Misiles: "inspector.vital.misiles", "En rango": "inspector.vital.en_rango", Alcance: "inspector.vital.alcance",
+    Cola: "inspector.vital.cola", Reparaciones: "inspector.vital.reparaciones", Entregados: "inspector.vital.entregados",
+    Suministro: "inspector.vital.suministro", Vida: "inspector.vital.vida", Altura: "inspector.vital.altura", Posición: "inspector.vital.posicion" };
+  const vital = (k, v, cuerpo = "") => {
+    const clave = CLAVES_VITAL[k], titulo = clave ? `<span ${hojaInspector(clave)}>${esc(textoInspector(clave))}</span>` : k;
+    return `<div class="vital"><div class="k"><span>${titulo}</span>${v != null ? `<b>${v}</b>` : ""}</div>${cuerpo}</div>`;
+  };
   function traza(id) {
     const h = historia.get(id) || [];
     const max = Math.max(0.2, ...h.map(p => p[1])) * 1.1, t1 = mundo.t, t0 = t1 - VENTANA;
     const pts = h.map(([t, f]) => `${((t - t0) / VENTANA * 100).toFixed(2)},${(30 - f / max * 28).toFixed(2)}`);
     const linea = pts.length > 1 ? `<path class="area" d="M${pts[0].split(",")[0]},30L${pts.join("L")}L${pts[pts.length - 1].split(",")[0]},30Z"/><polyline class="linea" points="${pts.join(" ")}"/>` : "";
     return `<svg class="traza" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><line class="base" x1="0" y1="30" x2="100" y2="30"/>${linea}</svg>
-      <div class="traza-pie"><span>−${VENTANA} s</span><span>escala 0–${r3(max)}</span><span>ahora</span></div>`;
+      <div class="traza-pie"><span>−${VENTANA} s</span><span><span ${hojaInspector("inspector.traza.escala")}>${esc(textoInspector("inspector.traza.escala"))}</span> 0–${r3(max)}</span><span ${hojaInspector("inspector.traza.ahora")}>${esc(textoInspector("inspector.traza.ahora"))}</span></div>`;
   }
   function htmlVitales(e) {
     if (["robot", "bodega", "fundidora"].includes(e.clase)) return metricasDe(e).map(([k, v]) => vital(esc(k), esc(v))).join("");
     if (e.clase === "lanzador") {
       return vital("Misiles", `${e.misiles}/${def.cargador}`, celdas(e.misiles, def.cargador))
         + vital("failureRate", r3(e.falla), `<div class="medidor"><i style="width:${Math.min(100, Math.round(e.falla * 100))}%"></i></div>`)
-        + `<div class="vital" style="grid-column:1/-1"><div class="k"><span>failureRate · últimos ${VENTANA} s</span><b>${esc(e.modo)}</b></div>${traza(e.id)}</div>`;
+        + `<div class="vital" style="grid-column:1/-1"><div class="k"><span>failureRate · <span ${hojaInspector("inspector.traza.ultimos", { segundos: VENTANA })}>${esc(textoInspector("inspector.traza.ultimos", { segundos: VENTANA }))}</span></span><b>${esc(e.modo)}</b></div>${traza(e.id)}</div>`;
     }
     if (e.clase === "vibracion") return vital("En rango", enRango(e).length) + vital("Alcance", `${e.alcance} casillas`);
     if (e.clase === "reparador") return vital("Cola", esc(mundo.colaReparar.join(", ") || "vacía")) + vital("Reparaciones", e.st.reparaciones);

@@ -13,25 +13,25 @@
       // Disparar no espera: el bucle trae su pausa para no girar sin control.
       esperar: "await esperar(0.5);", pausa: { js: "await esperar(0.5);", python: "await wait(0.5)" },
       propias: (sensor) => [
-        { ico: "apuntar", t: "Apuntar", b: "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);" },
-        { ico: "disparo", t: "Disparo", b: "regularShoot(/* lugar */);" },
-        { ico: "rafaga", t: "Ráfaga", b: "burstFire(/* lugar */);" },
-        { ico: "detener", t: "Detener", b: "stopFire();" },
-        { ico: "sensor", t: "Sensor de vibración", b: () => `const pos = ${sensor()}.detect(/* tipo de enemigo */);`, si: () => !!sensor() }],
+        { ico: "apuntar", t: "Apuntar", i18n: "paleta.war.apuntar", b: "const pos = autoTarget(/* tipo de enemigo */, /* sensor */);" },
+        { ico: "disparo", t: "Disparo", i18n: "paleta.war.disparo", b: "regularShoot(/* lugar */);" },
+        { ico: "rafaga", t: "Ráfaga", i18n: "paleta.war.rafaga", b: "burstFire(/* lugar */);" },
+        { ico: "detener", t: "Detener", i18n: "paleta.war.detener", b: "stopFire();" },
+        { ico: "sensor", t: "Sensor de vibración", i18n: "paleta.war.sensor_vibracion", b: () => `const pos = ${sensor()}.detect(/* tipo de enemigo */);`, si: () => !!sensor() }],
     },
     factory: {
       // Las órdenes del robot ya esperan (await): el bucle no necesita pausa extra.
       esperar: "await wait(1);", pausa: { js: "", python: "" },
       propias: () => [
-        { ico: "recoger", t: "Recoger", b: "await pickUp(/* lugar */, /* material */);" },
-        { ico: "entregar", t: "Entregar", b: "await deliver(/* lugar */);" },
-        { ico: "sensor", t: "Cuántos", b: "const cantidad = count(/* lugar */, /* material */);" }],
+        { ico: "recoger", t: "Recoger", i18n: "paleta.factory.recoger", b: "await pickUp(/* lugar */, /* material */);" },
+        { ico: "entregar", t: "Entregar", i18n: "paleta.factory.entregar", b: "await deliver(/* lugar */);" },
+        { ico: "sensor", t: "Cuántos", i18n: "paleta.factory.cuantos", b: "const cantidad = count(/* lugar */, /* material */);" }],
     },
   };
   const serieDe = s => SERIES[s] || SERIES.war;
   // Inserta «Esperar» antes de la variable y las órdenes (con su separador) antes de la consola.
   function componer(atajos, { esperar, propias, consola }) {
-    atajos.splice(atajos.findIndex(a => a.ico === "variable"), 0, { ico: "esperar", t: "Esperar", b: esperar });
+    atajos.splice(atajos.findIndex(a => a.ico === "variable"), 0, { ico: "esperar", t: "Esperar", i18n: "paleta.esperar", b: esperar });
     atajos.splice(atajos.findIndex(a => a.ico === consola), 0, ...propias, "|");
     return atajos;
   }

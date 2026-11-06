@@ -29,6 +29,7 @@ const modulos = [
   ['inicio', 'inicio'], ['ajustes', 'ajustes'],
   ['juego-estatico', 'juego'], ['disposicion', 'disposicion'], ['juego-dinamico', 'partida'],
   ['editor', 'editor'],
+  ['paleta', 'paleta'], ['inspector', 'inspector'],
 ];
 for (const [modulo, prefijo] of modulos) {
   const archivo = `shared/i18n/${modulo}.js`;

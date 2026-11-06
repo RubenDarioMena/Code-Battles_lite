@@ -132,6 +132,18 @@
 
     let ATAJOS = [];
     const textoAtajo = a => typeof a.b === "function" ? a.b() : a.b;
+  const NOMBRES_SIMBOLO = { "Sangría": "paleta.simbolo.sangria", "Ocultar teclado": "paleta.simbolo.ocultar_teclado" };
+  function textoUI(clave, respaldo, parametros = {}) {
+    if (clave) {
+      const i18n = window.CMGI18n, traducido = i18n && typeof i18n.t === "function" ? i18n.t(clave, parametros) : null;
+      if (typeof traducido === "string" && traducido !== clave) return traducido;
+    }
+    return String(respaldo ?? clave ?? "").replace(/\{([^{}]+)\}/g, (m, nombre) => Object.hasOwn(parametros, nombre) ? String(parametros[nombre]) : m);
+  }
+  const etiquetaAtajo = a => textoUI(a.i18n, a.t);
+  const ariaAtajo = a => a.variantes
+    ? etiquetaAtajo(a) + textoUI("paleta.aria.variantes", " · mantén para {cantidad} variantes", { cantidad: a.variantes.length })
+    : etiquetaAtajo(a);
   const codAtajo = (a) => a.cod || (a.operador ? a.operador.trim() : a.sufijo ? a.sufijo.trim() : a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
   const estiloIcono = (ico) => `--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}`;
   function pintarPaleta() {
@@ -144,8 +156,7 @@
       if (a === "|") return `<span class="sep-pal" aria-hidden="true"></span>`;
       if (a.si && !a.si()) return "";
       const ico = I[a.ico] || { svg: "", c1: "#7FA3FF" };
-      const mas = a.variantes ? ` · mantén para ${a.variantes.length} variantes` : "";
-      return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}${a.movil ? " solo-movil" : ""}" data-i="${i}" data-ico="${esc(a.ico)}" aria-label="${esc(a.t + mas)}" data-tip="${esc(a.t)}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
+      return `<button type="button" class="atajo${a.variantes ? " con-variantes" : ""}${a.movil ? " solo-movil" : ""}" data-i="${i}" data-ico="${esc(a.ico)}" aria-label="${esc(ariaAtajo(a))}" data-tip="${esc(etiquetaAtajo(a))}" data-tip-cod="${esc(codAtajo(a))}"${a.variantes ? ` aria-haspopup="menu"` : ""} style="${estiloIcono(ico)}">${ico.svg}</button>`;
     }).join("") + (movil ? `<span class="sep-pal sep-movil solo-movil" aria-hidden="true"></span>` : "");
   }
   function usarAtajo(a) {
@@ -186,7 +197,8 @@
     variantesDe = i;
     $variantes.innerHTML = [a, ...a.variantes].map((v, j) => {
       const ico = I[v.ico] || { svg: "", c1: "#7FA3FF" };
-      return `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${j}" data-tip="${esc(v.t)}" data-tip-cod="${esc(codAtajo(v))}" style="${estiloIcono(ico)}">${ico.svg}<span>${esc(v.t)}</span></button>`;
+      const etiqueta = etiquetaAtajo(v);
+      return `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${j}" aria-label="${esc(etiqueta)}" data-tip="${esc(etiqueta)}" data-tip-cod="${esc(codAtajo(v))}" style="${estiloIcono(ico)}">${ico.svg}<span>${esc(etiqueta)}</span></button>`;
     }).join("");
     $variantes.hidden = false;
     const r = b.getBoundingClientRect(), m = $variantes.getBoundingClientRect();
@@ -260,8 +272,10 @@
 
 
     const simbolos = $("simbolos"), TECLAS = adaptador.teclas;
-    simbolos.innerHTML = TECLAS.map((k, i) => k === "|" ? '<span class="sep-pal" aria-hidden="true"></span>'
-      : `<button type="button" data-i="${i}" class="${k.cls || ""}" aria-label="${k.n || k.t}">${k.t}</button>`).join("");
+    simbolos.innerHTML = TECLAS.map((k, i) => k === "|" ? '<span class="sep-pal" aria-hidden="true"></span>' : (() => {
+      const key = k.n && NOMBRES_SIMBOLO[k.n], nombre = textoUI(key, k.n || k.t);
+      return `<button type="button" data-i="${i}" class="${k.cls || ""}" aria-label="${esc(nombre)}"${key ? ` data-i18n-descripcion="${key}" data-tip="${esc(nombre)}"` : ""}>${k.t}</button>`;
+    })()).join("");
     vida.escuchar(simbolos, "pointerdown", ev => { if (ev.target.closest("button")) ev.preventDefault(); });
     vida.escuchar(simbolos, "click", ev => {
       const b = ev.target.closest("button[data-i]"); if (!b) return;
@@ -273,6 +287,34 @@
       if (k.sel != null && envolver(texto.slice(0,k.sel), texto.slice(k.sel))) return;
       insertar(texto,k.sel,k.sel);
     });
+    function pintarEtiquetas() {
+      for (const b of $("paleta").querySelectorAll(".atajo")) {
+        const a = ATAJOS[+b.dataset.i]; if (!a || a === "|") continue;
+        b.setAttribute("aria-label", ariaAtajo(a));
+        b.dataset.tip = etiquetaAtajo(a);
+      }
+      if (!$variantes.hidden && variantesDe >= 0) {
+        const a = ATAJOS[variantesDe];
+        if (a && a.variantes) for (const b of $variantes.querySelectorAll(".variante")) {
+          const j = +b.dataset.v, v = j ? a.variantes[j - 1] : a;
+          if (!v) continue;
+          const etiqueta = etiquetaAtajo(v);
+          b.setAttribute("aria-label", etiqueta);
+          b.dataset.tip = etiqueta;
+          const span = b.querySelector("span");
+          if (span) {
+            if (span.firstChild) span.firstChild.nodeValue = etiqueta;
+            else span.append(document.createTextNode(etiqueta));
+          }
+        }
+      }
+      for (const b of simbolos.querySelectorAll("[data-i18n-descripcion]")) {
+        const k = TECLAS[+b.dataset.i], nombre = textoUI(b.dataset.i18nDescripcion, k?.n || k?.t);
+        b.setAttribute("aria-label", nombre);
+        b.dataset.tip = nombre;
+      }
+    }
+    vida.escuchar(window, "cmg:idioma", pintarEtiquetas);
     return { insertar, envolver, alternarComentario, medirEditor, pintarResaltado, pintarBanda, seleccionarHueco, aviso: avisoEditor,
       atajos(datos) { ATAJOS = datos; pintarPaleta(); } };
   }

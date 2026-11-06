@@ -1,6 +1,6 @@
 # Idiomas de la interfaz
 
-La portada, Ajustes, la navegación y los controles principales están preparados para español e inglés. El selector recuerda la preferencia en `cmg-interfaz-idioma` y actualiza también los controles activos, los menús y las confirmaciones abiertas. La traducción global sigue en curso: quedan contenidos de retos, ayudas dinámicas, formularios, inspector, paletas y diagnósticos de ejecución. Los textos podrán revisarse en conjunto sin modificar las reglas del juego.
+La portada, Ajustes, la navegación, los controles principales y las paletas de inserción están preparados para español e inglés. El selector recuerda la preferencia en `cmg-interfaz-idioma` y actualiza también los controles activos, los menús y las confirmaciones abiertas. El inspector traduce encabezados, leyenda, controles, pistas y etiquetas de signos vitales. La traducción global sigue en curso: quedan contenidos de retos, ayudas dinámicas, formularios, estados y métricas del inspector y diagnósticos de ejecución. Los textos podrán revisarse en conjunto sin modificar las reglas del juego.
 
 El idioma de interfaz es independiente del lenguaje del programa (JavaScript/Python) y del idioma del seudocódigo. Cambiarlo no convierte código, reinicia partidas ni migra guardados. Se mantienen las claves y valores existentes de la API, las reglas, los identificadores y los formatos de guardado. La nueva preferencia es una clave separada; si no existe o no es válida, se usa español.
 
@@ -10,6 +10,8 @@ El idioma de interfaz es independiente del lenguaje del programa (JavaScript/Pyt
 - `shared/i18n/inicio.js` y `ajustes.js`: catálogos planos, separados por pantalla; registran claves ES/EN con `CMGI18n.registrar(idioma, mensajes)`.
 - `juego-estatico.js`: textos y accesibilidad del HTML del juego y sus diálogos. `disposicion.js`: paneles, menú móvil y avisos de pantalla completa. `juego-dinamico.js`: controles de ejecución, selector de lenguaje y confirmaciones; las claves de este último usan el prefijo `partida.`.
 - `editor.js`: acciones de la barra de edición, variantes móviles, selección/ProtoMouse y modo sin teclado. El componente conserva español como respaldo si el anfitrión no carga i18n o su catálogo; el cambio de idioma actualiza etiquetas sin reconstruir la barra.
+- `paleta.js`: etiquetas de inserción y variantes JS/Python, más los nombres descriptivos de teclas. Las plantillas llevan el metadato opcional `i18n`; `t`, `b`, `cod`, operadores, huecos y símbolos conservan sus valores originales. El editor sin catálogo muestra `t` como respaldo. El cambio de idioma no reconstruye la paleta ni cierra el menú abierto.
+- `inspector.js`: textos de presentación de fichas y panel inferior. Los marcadores `data-ins-i18n-*` localizan hojas y atributos sin alterar `data-ins`, `data-fin`, valores vivos o firmas de la API. Los repintados normales toman el idioma vigente; el evento de idioma solo actualiza presentación sobre los nodos actuales.
 - `CMGI18n.t(clave, parametros)`: texto, con interpolación `{nombre}` y respaldo español si falta la traducción. Una clave desconocida se devuelve literalmente para hacerla visible en QA.
 - `CMGI18n.cambiarIdioma('es' | 'en')`: actualiza los textos marcados y `html.lang`, persiste la preferencia y emite `cmg:idioma` en `window`. `CMGI18n.idioma` consulta la selección; `aplicar(raiz)` permite traducir un fragmento nuevo.
 - Los botones `data-idioma-interfaz="es"` y `="en"` comparten delegación de eventos y actualizan `aria-pressed`.
@@ -62,7 +64,7 @@ node scripts/preparar-netlify.mjs
 node pruebas/publicacion.mjs
 ```
 
-Las suites importables `pruebas/idiomas.mjs`, `pruebas/idiomas-bordes.mjs`, `pruebas/idiomas-juego.mjs` y `pruebas/idiomas-editor.mjs` usan el contrato de navegador de las suites existentes (`page.cdp`). Con el servidor dedicado 8771 y Playwright/Chromium disponibles, el runner opcional las ejecuta en contextos aislados, en vista Plano, sin añadir dependencias al juego:
+Las suites importables `pruebas/idiomas.mjs`, `pruebas/idiomas-bordes.mjs`, `pruebas/idiomas-juego.mjs`, `pruebas/idiomas-editor.mjs` y `pruebas/idiomas-paleta-inspector.mjs` usan el contrato de navegador de las suites existentes (`page.cdp`). Con el servidor dedicado 8771 y Playwright/Chromium disponibles, el runner opcional las ejecuta en contextos aislados, en vista Plano, sin añadir dependencias al juego:
 
 ```bash
 node pruebas/ejecutar-idiomas.cjs
