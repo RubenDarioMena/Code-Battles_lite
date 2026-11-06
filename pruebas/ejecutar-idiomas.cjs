@@ -18,6 +18,7 @@ async function ejecutar() {
       ['idiomas', 'probarIdiomas'],
       ['idiomas-bordes', 'probarIdiomasBordes'],
       ['idiomas-juego', 'probarIdiomasJuego'],
+      ['idiomas-editor', 'probarIdiomasEditor'],
     ]) {
       const contexto = await browser.newContext({ viewport: { width: 1366, height: 900 } });
       // La suite comprueba idioma/edición; el watchdog conocido de 3D se valida por separado.

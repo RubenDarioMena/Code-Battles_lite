@@ -1170,17 +1170,43 @@
   // Acciones que solo existen como placas del teléfono (no entran en la barra de PC ni en su orden).
   const EXTRA = { sangrar: { t: "Sangrar: un nivel más", fn: () => sangrar(1) }, desangrar: { t: "Quitar un nivel de sangría", fn: () => sangrar(-1) } };
   const accionDe = (id) => EXTRA[id] || ACCIONES[id];
+  const TRADUCCIONES_ES = {
+    "editor.accion.teclado": "Modo sin teclado", "editor.accion.deshacer": "Deshacer", "editor.accion.rehacer": "Rehacer",
+    "editor.accion.cortar": "Cortar", "editor.accion.copiar": "Copiar", "editor.accion.pegar": "Pegar", "editor.accion.borrar": "Borrar",
+    "editor.accion.ampliar": "Ampliar selección", "editor.accion.reducir": "Reducir selección", "editor.accion.duplicar": "Duplicar",
+    "editor.accion.subir": "Subir línea", "editor.accion.bajar": "Bajar línea", "editor.accion.linea": "Línea nueva",
+    "editor.accion.desenvolver": "Desenvolver: quita el if/while que lo rodea", "editor.accion.sangrar": "Sangrar: un nivel más",
+    "editor.accion.desangrar": "Quitar un nivel de sangría",
+    "editor.etiqueta.seleccion": "Selección", "editor.etiqueta.ampliar": "Ampliar", "editor.etiqueta.reducir": "Reducir",
+    "editor.etiqueta.cortar": "Cortar", "editor.etiqueta.copiar": "Copiar", "editor.etiqueta.pegar": "Pegar", "editor.etiqueta.borrar": "Borrar",
+    "editor.etiqueta.duplicar": "Duplicar", "editor.etiqueta.subir": "Subir línea", "editor.etiqueta.bajar": "Bajar línea", "editor.etiqueta.desenvolver": "Desenvolver",
+    "editor.etiqueta.linea": "Línea nueva", "editor.etiqueta.sangrar": "Sangrar", "editor.etiqueta.desangrar": "Quitar sangría",
+    "editor.aria.seleccion.encendida": "Selección: encendida, el ProtoMouse amplía lo elegido",
+    "editor.aria.seleccion.apagada": "Selección: apagada, el ProtoMouse mueve el cursor",
+    "editor.tip.seleccion": "Selección", "editor.tip.seleccion.codigo": "enciende y arrastra",
+    "editor.aria.protomouse": "ProtoMouse: mantén el dedo y arrastra para mover el cursor",
+    "editor.aria.mantener_variantes": "Mantén pulsado para más acciones",
+    "editor.toast.seleccion.encendida": "Selección encendida: arrastra el ProtoMouse para ampliarla",
+    "editor.toast.protomouse.mover_cursor": "Mantén el dedo en el ProtoMouse y arrastra para mover el cursor",
+    "editor.teclado.activo.aria": "Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)",
+    "editor.teclado.inactivo.aria": "Modo sin teclado (Ctrl+Alt+A)",
+    "editor.teclado.activo.tip": "Volver al teclado", "editor.teclado.inactivo.tip": "Modo sin teclado",
+  };
+  function textoI18n(clave) {
+    const i18n = window.CMGI18n, t = i18n && typeof i18n.t === "function" ? i18n.t(clave) : null;
+    return typeof t === "string" && t !== clave ? t : TRADUCCIONES_ES[clave] || clave;
+  }
+  const textoAccion = (id) => textoI18n(`editor.accion.${id}`);
   // Etiquetas cortas para las placas (el nombre completo sigue en el tooltip y en aria-label).
-  const CORTO = { seleccion: "Selección", ampliar: "Ampliar", reducir: "Reducir", subir: "Subir línea", bajar: "Bajar línea", desenvolver: "Desenvolver", linea: "Línea nueva", sangrar: "Sangrar", desangrar: "Quitar sangría" };
-  const tituloDe = (id) => CORTO[id] || accionDe(id).t;
+  const tituloDe = (id) => textoI18n(`editor.etiqueta.${id}`);
   // La esquina marcada y el aviso de «mantén para más» solo valen donde hay variantes (pintarBarra los ajusta).
-  const botonBarra = (id) => `<button type="button" data-accion="${id}" aria-label="${esc(ACCIONES[id].t)}" data-tip="${esc(ACCIONES[id].t)}"${id === "teclado" ? ` class="b-teclado" aria-pressed="false"` : VARIANTES_BARRA[id] ? ` class="con-variantes"` : ""}>${svg(ICONOS[id])}</button>`;
+  const botonBarra = (id) => `<button type="button" data-accion="${id}" aria-label="${esc(textoAccion(id))}" data-tip="${esc(textoAccion(id))}"${id === "teclado" ? ` class="b-teclado" aria-pressed="false"` : VARIANTES_BARRA[id] ? ` class="con-variantes"` : ""}>${svg(ICONOS[id])}</button>`;
   function construirBarra() {
     // Un grupo que solo lleva el interruptor del teclado se oculta donde el interruptor no aplica.
     $barra.innerHTML = grupos.map(g => `<span class="grupo-ed${g.length === 1 && g[0] === "teclado" ? " solo-teclado" : ""}">${g.map(botonBarra).join("")}</span>`).join("")
-      + `<span class="ed-movil"><button type="button" class="b-seleccion con-variantes" data-seleccion aria-pressed="false" aria-label="Selección: encendida, el ProtoMouse amplía lo elegido" data-tip="Selección" data-tip-cod="enciende y arrastra">${svg(ICONOS.seleccion)}</button>`
+      + `<span class="ed-movil"><button type="button" class="b-seleccion con-variantes" data-seleccion aria-pressed="false" aria-label="${esc(textoI18n("editor.aria.seleccion.apagada"))}" data-tip="${esc(textoI18n("editor.tip.seleccion"))}" data-tip-cod="${esc(textoI18n("editor.tip.seleccion.codigo"))}">${svg(ICONOS.seleccion)}</button>`
       // Sin tooltip: taparía el código mientras se arrastra (un toque sin arrastrar ya explica su uso).
-      + `<span class="protomouse" data-protomouse role="img" aria-label="ProtoMouse: mantén el dedo y arrastra para mover el cursor">${svg(ICONOS.mouse)}</span></span>`;
+      + `<span class="protomouse" data-protomouse role="img" aria-label="${esc(textoI18n("editor.aria.protomouse"))}">${svg(ICONOS.mouse)}</span></span>`;
     pintarBarra();
   }
   $("b-teclado").innerHTML = svg(ICONOS.teclado);
@@ -1211,13 +1237,16 @@
   let seleccionando = false, avisoSeleccion = false;
   function pintarInterruptor() {
     const b = $barra.querySelector("[data-seleccion]");
-    if (b) b.setAttribute("aria-pressed", String(seleccionando));
+    if (b) {
+      b.setAttribute("aria-pressed", String(seleccionando));
+      b.setAttribute("aria-label", textoI18n(seleccionando ? "editor.aria.seleccion.encendida" : "editor.aria.seleccion.apagada"));
+    }
     $barra.classList.toggle("seleccionando", seleccionando);
   }
   function alternarSeleccion(si = !seleccionando) {
     seleccionando = !!si;
     pintarInterruptor();
-    if (seleccionando && !avisoSeleccion) { avisoSeleccion = true; toast("Selección encendida: arrastra el ProtoMouse para ampliarla"); }
+    if (seleccionando && !avisoSeleccion) { avisoSeleccion = true; toast(textoI18n("editor.toast.seleccion.encendida")); }
   }
   function apagarSeleccion() { if (seleccionando) alternarSeleccion(false); }
   vida.escuchar($codigo, "input", apagarSeleccion);
@@ -1242,7 +1271,7 @@
     menuBarra();
     const id = idBoton(b), lista = [id, ...VARIANTES_BARRA[id]], quieto = $codigo.readOnly;
     $varBarra.innerHTML = lista.map((v, j) => `<button type="button" class="variante${j ? "" : " principal"}" role="menuitem" data-v="${v}" style="--c1:${LUZ[v]}"`
-      + ` data-tip="${esc(v === "seleccion" ? "Selección" : accionDe(v).t)}"${quieto && !["seleccion", "copiar", "ampliar", "reducir"].includes(v) ? " disabled" : ""}>${svg(ICONOS[v])}<span>${esc(tituloDe(v))}</span></button>`).join("");
+      + ` data-tip="${esc(v === "seleccion" ? tituloDe(v) : textoAccion(v))}"${quieto && !["seleccion", "copiar", "ampliar", "reducir"].includes(v) ? " disabled" : ""}>${svg(ICONOS[v])}<span>${esc(tituloDe(v))}</span></button>`).join("");
     $varBarra.hidden = false;
     // El aviso y el nombre del botón (tooltip del toque) taparían las placas.
     $toast.hidden = true;
@@ -1297,12 +1326,42 @@
   });
   vida.escuchar(document, "pointerdown", (ev) => { if ($varBarra && !$varBarra.hidden && !ev.target.closest(".variantes-ed, .barra-edicion .abierto")) cerrarVariantesBarra(); }, true);
   vida.escuchar(document, "keydown", (ev) => { if (ev.key === "Escape") cerrarVariantesBarra(); });
+  function pintarTextoBarra() {
+    for (const b of $barra.querySelectorAll("[data-accion]")) {
+      const texto = textoAccion(b.dataset.accion);
+      b.setAttribute("aria-label", texto);
+      b.dataset.tip = texto;
+    }
+    const seleccion = $barra.querySelector("[data-seleccion]");
+    if (seleccion) {
+      seleccion.setAttribute("aria-label", textoI18n(seleccionando ? "editor.aria.seleccion.encendida" : "editor.aria.seleccion.apagada"));
+      seleccion.dataset.tip = textoI18n("editor.tip.seleccion");
+      seleccion.dataset.tipCod = textoI18n("editor.tip.seleccion.codigo");
+    }
+    const mouse = $barra.querySelector("[data-protomouse]");
+    if (mouse) mouse.setAttribute("aria-label", textoI18n("editor.aria.protomouse"));
+    for (const b of ambito.querySelectorAll(".b-teclado")) {
+      b.setAttribute("aria-label", textoI18n(activo ? "editor.teclado.activo.aria" : "editor.teclado.inactivo.aria"));
+      b.dataset.tip = textoI18n(activo ? "editor.teclado.activo.tip" : "editor.teclado.inactivo.tip");
+    }
+    for (const b of $barra.querySelectorAll("button.con-variantes")) if (b.hasAttribute("aria-description"))
+      b.setAttribute("aria-description", textoI18n("editor.aria.mantener_variantes"));
+    if ($varBarra) for (const b of $varBarra.querySelectorAll("[data-v]")) {
+      const id = b.dataset.v;
+      b.dataset.tip = id === "seleccion" ? tituloDe(id) : textoAccion(id);
+      const nombre = b.querySelector("span");
+      if (nombre) {
+        if (nombre.firstChild) nombre.firstChild.nodeValue = tituloDe(id);
+        else nombre.append(document.createTextNode(tituloDe(id)));
+      }
+    }
+  }
+  vida.escuchar(window, "cmg:idioma", pintarTextoBarra);
   function pintarBarra() {
+    pintarTextoBarra();
     for (const b of ambito.querySelectorAll(".b-teclado")) {
       b.setAttribute("aria-pressed", String(activo));
-      b.setAttribute("aria-label", activo ? "Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)" : "Modo sin teclado (Ctrl+Alt+A)");
       b.setAttribute("aria-keyshortcuts", "Control+Alt+A");
-      b.dataset.tip = activo ? "Volver al teclado" : "Modo sin teclado";
       b.dataset.tipCod = "Ctrl+Alt+A";
     }
     const quieto = $codigo.readOnly;
@@ -1313,7 +1372,7 @@
     pintarInterruptor();
     const movil = disposicionMovil();
     for (const b of $barra.querySelectorAll("button.con-variantes")) {
-      if (movil) { b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-description", "Mantén pulsado para más acciones"); }
+      if (movil) { b.setAttribute("aria-haspopup", "menu"); b.setAttribute("aria-description", textoI18n("editor.aria.mantener_variantes")); }
       else { b.removeAttribute("aria-haspopup"); b.removeAttribute("aria-description"); }
     }
   }
@@ -1468,7 +1527,7 @@
     const p = pm; pm = null;
     p.zona.classList.remove("vivo");
     $pmFantasma.hidden = true;
-    if (!p.movido) { if (ev.type === "pointerup") toast("Mantén el dedo en el ProtoMouse y arrastra para mover el cursor"); return; }
+    if (!p.movido) { if (ev.type === "pointerup") toast(textoI18n("editor.toast.protomouse.mover_cursor")); return; }
     if (activo) pintarSeleccion(); else pintarPM();
     // Al soltar sobre un hueco /* … */ aparece su lista, como al tocarlo.
     actualizarSugerencias();

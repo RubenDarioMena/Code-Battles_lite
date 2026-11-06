@@ -9,6 +9,7 @@ El idioma de interfaz es independiente del lenguaje del programa (JavaScript/Pyt
 - `shared/i18n/i18n.js`: runtime clásico, sin dependencias ni compilación. Expone `CMGI18n`.
 - `shared/i18n/inicio.js` y `ajustes.js`: catálogos planos, separados por pantalla; registran claves ES/EN con `CMGI18n.registrar(idioma, mensajes)`.
 - `juego-estatico.js`: textos y accesibilidad del HTML del juego y sus diálogos. `disposicion.js`: paneles, menú móvil y avisos de pantalla completa. `juego-dinamico.js`: controles de ejecución, selector de lenguaje y confirmaciones; las claves de este último usan el prefijo `partida.`.
+- `editor.js`: acciones de la barra de edición, variantes móviles, selección/ProtoMouse y modo sin teclado. El componente conserva español como respaldo si el anfitrión no carga i18n o su catálogo; el cambio de idioma actualiza etiquetas sin reconstruir la barra.
 - `CMGI18n.t(clave, parametros)`: texto, con interpolación `{nombre}` y respaldo español si falta la traducción. Una clave desconocida se devuelve literalmente para hacerla visible en QA.
 - `CMGI18n.cambiarIdioma('es' | 'en')`: actualiza los textos marcados y `html.lang`, persiste la preferencia y emite `cmg:idioma` en `window`. `CMGI18n.idioma` consulta la selección; `aplicar(raiz)` permite traducir un fragmento nuevo.
 - Los botones `data-idioma-interfaz="es"` y `="en"` comparten delegación de eventos y actualizan `aria-pressed`.
@@ -61,7 +62,7 @@ node scripts/preparar-netlify.mjs
 node pruebas/publicacion.mjs
 ```
 
-Las suites importables `pruebas/idiomas.mjs`, `pruebas/idiomas-bordes.mjs` y `pruebas/idiomas-juego.mjs` usan el contrato de navegador de las suites existentes (`page.cdp`). Con el servidor dedicado 8771 y Playwright/Chromium disponibles, el runner opcional las ejecuta en contextos aislados, en vista Plano, sin añadir dependencias al juego:
+Las suites importables `pruebas/idiomas.mjs`, `pruebas/idiomas-bordes.mjs`, `pruebas/idiomas-juego.mjs` y `pruebas/idiomas-editor.mjs` usan el contrato de navegador de las suites existentes (`page.cdp`). Con el servidor dedicado 8771 y Playwright/Chromium disponibles, el runner opcional las ejecuta en contextos aislados, en vista Plano, sin añadir dependencias al juego:
 
 ```bash
 node pruebas/ejecutar-idiomas.cjs

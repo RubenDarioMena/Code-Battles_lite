@@ -207,11 +207,14 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
       const leer = () => [...document.querySelectorAll('#b-teclado, #b-teclado-movil')].map(b => [b.getAttribute('aria-label'), b.getAttribute('aria-pressed')]);
       const antes = leer();
       CMGI18n.cambiarIdioma('en');
-      const conserva = JSON.stringify(antes) === JSON.stringify(leer()) && cmg.edicion.activo;
+      const despues = leer();
+      const conserva = cmg.edicion.activo && antes.every(([, pulsado]) => pulsado === 'true')
+        && despues.every(([etiqueta, pulsado]) => pulsado === 'true' && etiqueta === CMGI18n.t('editor.teclado.activo.aria'))
+        && despues.every(([etiqueta], i) => etiqueta !== antes[i][0]);
       cmg.edicion.activar(false);
       CMGI18n.cambiarIdioma('es');
       return conserva;
-    }), true, 'los controles del editor conservan su descripción activa al cambiar idioma');
+    }), true, 'los controles del editor traducen su descripción conservando el modo activo');
     await page.evaluate(() => {
       __banco.elegirReto(4);
       __banco.programas['LAU-01'] = '// fuente uno';

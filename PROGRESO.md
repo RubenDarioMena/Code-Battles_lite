@@ -1,3 +1,12 @@
+## Idiomas de interfaz · barra de edición y modo sin teclado · 6 de noviembre de 2026
+
+- **Continuidad.** Recuperada la rama `refactor/idiomas-interfaz` tras su subida en `b0c6c6e`. La portada, Ajustes y controles ya tenían ES/EN. Se continúa con dos subagentes Luna, en esta misma rama, sobre la interfaz; el arreglo JS/Python de `trunk` es independiente.
+- **Lote.** 42 claves nuevas en `shared/i18n/editor.js`: acciones de edición, etiquetas de variantes móviles, selección/ProtoMouse y descripciones activas del modo sin teclado. El catálogo integrado suma 317 claves ES/EN. La demo autónoma conserva el respaldo español sin cargar i18n.
+- **Estado.** El evento de idioma actualiza atributos y textos de la barra y de sus variantes abiertas sin reconstruir controles ni cambiar selección, foco, historial o modo de teclado. El listener usa el ciclo de vida de la instancia. La regresión anterior del botón de teclado ahora exige traducir la descripción manteniendo su estado activo.
+- **Verificación actual.** Catálogos: 317 claves y 3463 comprobaciones; runtime i18n, lógica 124, contratos, editor Python 34 y traductor 64 correctos. Chromium/Playwright: las 105 comprobaciones previas de idiomas, las 10 nuevas de barra y las 73 de la demo autónoma pasan. La suite nueva comprueba variantes abiertas ES→EN→ES, nodos, selección, foco, modo sin teclado, undo/redo y recreación JS→Python. Sus fuentes se preparan mediante el selector de cabecera oculto en móvil; no sustituye QA manual de ese flujo. Paquete: 9 páginas y 95 referencias locales; sintaxis y `git diff --check` correctos. Sin cambios de reglas de simulación ni de formatos de guardado.
+- **Pendientes.** Paletas de inserción, demás diálogos/avisos del editor, inspector, contenido de retos/escenarios, ayudas extensas, formularios y diagnósticos; QA en teléfono real. La traducción global sigue siendo parcial.
+- **Versiones.** `edicion.js?v=7` en juego y demo; catálogo `editor.js?v=1`.
+
 ## Idiomas de interfaz · navegación, controles y diálogos · 5 de noviembre de 2026
 
 - **Rama:** `refactor/idiomas-interfaz`. Se amplía la migración a navegación, controles principales, información de pantalla completa y textos estáticos de los diálogos. El catálogo integrado suma **275 claves ES/EN**; las fuentes de traducción siguen separadas del código del juego.
