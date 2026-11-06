@@ -1,3 +1,12 @@
+## Idiomas de interfaz · formulario Factory y estados del inspector · 6 de noviembre de 2026
+
+- **Rama.** Continuación con dos subagentes Luna en `refactor/idiomas-interfaz`. Se añaden 123 claves; total 537 ES/EN. El formulario de Factory traduce etiquetas, leyendas, opciones descriptivas, botones y mensajes de JSON; los títulos, textos del reto, materiales, IDs, valores de opciones y JSON guardado se conservan.
+- **Borrador.** Cambiar idioma refresca hojas y atributos, sin reconstruir el formulario, perder valores pendientes, mover el foco ni reiniciar el estado/temporizador de copia. La delegación de clic resuelve el botón ancestro para admitir etiquetas internas. Se comprueban borradores sin guardar, selección y guardado posterior, también a 393 px.
+- **Inspector.** Estados, clases, roles y etiquetas de métricas se localizan en presentación; `estadoDe` y `metricasDe` siguen dando datos crudos. Los refrescos vivos usan el idioma vigente y el evento lee el estado actual de la entidad. Ensambladora y Muelle mantienen su identidad; los nombres personalizados se muestran sin traducir.
+- **Verificación.** Runtime i18n, 537 claves/5980 comprobaciones, lógica 124, contratos, lenguajes, editor Python 34, traductor 64 y reglas Factory correctos. Nuevas pruebas de navegador: formulario 7 e inspector 12 (incluidos estado que cambia tras abrir la ficha y nombre personalizado). Paquete: 9 páginas y 98 referencias locales. Runner completo: 170 comprobaciones de idiomas en contextos aislados y vista Plano. Sintaxis y diff-check correctos.
+- **Pendientes.** Contenido de retos/escenarios, ayudas extensas, formulario War, explicaciones/unidades aún no migradas del inspector, otros avisos del editor y diagnósticos; QA con teclado y gestos de teléfono real. El contenido escrito por el jugador conserva su idioma original.
+- **Versiones.** `juego.js?v=41`, `factory-form.js?v=2`, catálogo `inspector.js?v=2` y nuevo `factory-form.js?v=1` en `shared/i18n/`.
+
 ## Idiomas de interfaz · paletas e inspector · 6 de noviembre de 2026
 
 - **Rama y alcance.** Se continúa en `refactor/idiomas-interfaz` con dos subagentes Luna y revisión cruzada: paletas de inserción JS/Python y presentación del inspector de War/Factory. Se añaden 97 claves; total 414 claves ES/EN en los catálogos.

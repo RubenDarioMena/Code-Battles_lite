@@ -100,3 +100,71 @@ window.CMGI18n.registrar('en', {
   'inspector.traza.escala': 'scale',
   'inspector.traza.ahora': 'now'
 });
+
+window.CMGI18n.registrar('es', {
+  'inspector.estado.robot.carga': 'carga: {material}', 'inspector.estado.robot.trabajando': 'trabajando', 'inspector.estado.robot.vacio': 'manos vacías',
+  'inspector.estado.bodega': 'almacenando', 'inspector.estado.fundidora.procesando': 'procesando', 'inspector.estado.fundidora.espera': 'en espera',
+  'inspector.estado.lanzador.atascado': 'atascado', 'inspector.estado.lanzador.sin_misiles': 'sin misiles', 'inspector.estado.lanzador.rafaga': 'ráfaga',
+  'inspector.estado.lanzador.disparando': 'disparando', 'inspector.estado.lanzador.inactivo': 'inactivo',
+  'inspector.estado.reparador.reparando': 'reparando', 'inspector.estado.reparador.va': 'va a {objetivo}', 'inspector.estado.reparador.vuelve': 'vuelve', 'inspector.estado.reparador.base': 'en base',
+  'inspector.estado.vibracion': '{cantidad} en rango', 'inspector.estado.deposito': 'suministrando', 'inspector.estado.enemigo.vida': 'vida {actual}/{maximo}',
+  'inspector.clase.robot': 'Robot de carga', 'inspector.clase.bodega': 'Bodega', 'inspector.clase.fundidora': 'Fundidora', 'inspector.clase.lanzador': 'Lanzamisiles',
+  'inspector.clase.vibracion': 'Sensor de vibración (red)', 'inspector.clase.deposito': 'Depósito de misiles', 'inspector.clase.reparador': 'Robot reparador', 'inspector.clase.enemigo': 'Enemigo',
+  'inspector.clase.ensambladora': 'Ensambladora', 'inspector.clase.muelle': 'Muelle',
+  'inspector.enemigo.crawler': 'oruga', 'inspector.enemigo.drone': 'dron', 'inspector.enemigo.stealth': 'dron frío',
+  'inspector.rol.ofensiva': 'Ofensiva', 'inspector.rol.rastreo': 'Rastreo y telemetría', 'inspector.rol.utilitaria': 'Utilitaria', 'inspector.rol.fabrica': 'Fábrica',
+  'inspector.metrica.viajes': 'viajes', 'inspector.metrica.vacios': 'vacíos', 'inspector.metrica.rechazos': 'rechazos', 'inspector.metrica.entrada': 'entrada', 'inspector.metrica.producido': 'producido',
+  'inspector.metrica.lanzados': 'lanzados', 'inspector.metrica.impactos': 'impactos', 'inspector.metrica.precision': 'precisión', 'inspector.metrica.derribos': 'derribos', 'inspector.metrica.atascos': 'atascos',
+  'inspector.metrica.en_rafaga': 'en ráfaga', 'inspector.metrica.fallo_max': 'fallo máx', 'inspector.metrica.credito_gastado': '₵ gastado', 'inspector.metrica.lecturas': 'lecturas', 'inspector.metrica.reparaciones': 'reparaciones', 'inspector.metrica.misiles_entregados': 'misiles entregados'
+});
+
+window.CMGI18n.registrar('en', {
+  'inspector.estado.robot.carga': 'carrying: {material}', 'inspector.estado.robot.trabajando': 'working', 'inspector.estado.robot.vacio': 'empty-handed',
+  'inspector.estado.bodega': 'storing', 'inspector.estado.fundidora.procesando': 'processing', 'inspector.estado.fundidora.espera': 'idle',
+  'inspector.estado.lanzador.atascado': 'jammed', 'inspector.estado.lanzador.sin_misiles': 'out of missiles', 'inspector.estado.lanzador.rafaga': 'burst fire',
+  'inspector.estado.lanzador.disparando': 'firing', 'inspector.estado.lanzador.inactivo': 'inactive',
+  'inspector.estado.reparador.reparando': 'repairing', 'inspector.estado.reparador.va': 'heading to {objetivo}', 'inspector.estado.reparador.vuelve': 'returning', 'inspector.estado.reparador.base': 'at base',
+  'inspector.estado.vibracion': '{cantidad} in range', 'inspector.estado.deposito': 'supplying', 'inspector.estado.enemigo.vida': 'health {actual}/{maximo}',
+  'inspector.clase.robot': 'Cargo robot', 'inspector.clase.bodega': 'Warehouse', 'inspector.clase.fundidora': 'Smelter', 'inspector.clase.lanzador': 'Missile launcher',
+  'inspector.clase.vibracion': 'Vibration sensor (network)', 'inspector.clase.deposito': 'Missile depot', 'inspector.clase.reparador': 'Repair robot', 'inspector.clase.enemigo': 'Enemy',
+  'inspector.clase.ensambladora': 'Assembler', 'inspector.clase.muelle': 'Dock',
+  'inspector.enemigo.crawler': 'crawler', 'inspector.enemigo.drone': 'drone', 'inspector.enemigo.stealth': 'stealth drone',
+  'inspector.rol.ofensiva': 'Offense', 'inspector.rol.rastreo': 'Tracking and telemetry', 'inspector.rol.utilitaria': 'Utility', 'inspector.rol.fabrica': 'Factory',
+  'inspector.metrica.viajes': 'trips', 'inspector.metrica.vacios': 'empty trips', 'inspector.metrica.rechazos': 'rejections', 'inspector.metrica.entrada': 'input', 'inspector.metrica.producido': 'produced',
+  'inspector.metrica.lanzados': 'launched', 'inspector.metrica.impactos': 'hits', 'inspector.metrica.precision': 'accuracy', 'inspector.metrica.derribos': 'kills', 'inspector.metrica.atascos': 'jams',
+  'inspector.metrica.en_rafaga': 'in burst', 'inspector.metrica.fallo_max': 'max failure', 'inspector.metrica.credito_gastado': '₵ spent', 'inspector.metrica.lecturas': 'readings', 'inspector.metrica.reparaciones': 'repairs', 'inspector.metrica.misiles_entregados': 'missiles delivered'
+});
+
+window.CMGI18n.registrar('es', {
+  'inspector.descripcion.en_pantalla': 'en pantalla {unidad}', 'inspector.descripcion.en_programa_no_prefijo': 'en su programa no hace falta escribirlo',
+  'inspector.descripcion.solo_programa': 'Solo desde el programa de {unidad}', 'inspector.descripcion.posicion': '→ posición',
+  'inspector.descripcion.disparo_segundo': '1 disparo/s', 'inspector.descripcion.rafaga_fallo': '2,2 disparos/s · sube el fallo',
+  'inspector.descripcion.dejar_disparo': 'deja de disparar', 'inspector.descripcion.entrada': 'entrada:', 'inspector.descripcion.salida': '· salida:',
+  'inspector.descripcion.lanzamientos': 'lanzamientos', 'inspector.descripcion.suministro': 'suministro:', 'inspector.descripcion.suministro_misiles': '{cantidad} misil/s',
+  'inspector.descripcion.disparos_segundo': 'disparos/s', 'inspector.descripcion.alcance_sensores': 'alcance: cámara {visual} · térmico {thermal}{niebla}',
+  'inspector.descripcion.tipos': 'tipos:', 'inspector.descripcion.tipo': 'tipo:', 'inspector.descripcion.vibracion_suelo': 'vibración del suelo',
+  'inspector.descripcion.alcance': 'alcance:', 'inspector.descripcion.casillas': '{cantidad} casillas', 'inspector.descripcion.ve': 've:',
+  'inspector.descripcion.no_ve_drones': '· no ve drones', 'inspector.descripcion.sensor_prediccion': 'Da dónde está el enemigo ahora, no dónde estará: el misil llega tarde a lo que se mueve rápido.',
+  'inspector.descripcion.sin_nombre': 'No tiene nombre en el código en este banco.', 'inspector.descripcion.salida_misiles': '{cantidad} misil/s a cada lanzador',
+  'inspector.descripcion.cargador': 'cargador de cada lanzador:', 'inspector.descripcion.reparador': 'Trabaja solo: atiende los atascos en orden de llegada.',
+  'inspector.descripcion.velocidad': 'velocidad:', 'inspector.descripcion.velocidad_casillas': '{cantidad} casillas/s', 'inspector.descripcion.reparacion': 'reparación:',
+  'inspector.descripcion.formula_reparacion': '{base} s + {fallo} s × failureRate del fallo', 'inspector.descripcion.cola': 'cola:', 'inspector.descripcion.auto_apunta': 'lo apunta',
+  'inspector.descripcion.vida': 'vida:', 'inspector.descripcion.altura': 'altura:', 'inspector.descripcion.posicion_label': 'posición:', 'inspector.descripcion.motor_frio': 'Motor frío: el térmico no lo ve.'
+});
+
+window.CMGI18n.registrar('en', {
+  'inspector.descripcion.en_pantalla': 'shown as {unidad}', 'inspector.descripcion.en_programa_no_prefijo': 'no prefix is needed in its own program',
+  'inspector.descripcion.solo_programa': 'Only available in {unidad}’s program', 'inspector.descripcion.posicion': '→ position',
+  'inspector.descripcion.disparo_segundo': '1 shot/s', 'inspector.descripcion.rafaga_fallo': '2.2 shots/s · increases failure rate',
+  'inspector.descripcion.dejar_disparo': 'stops firing', 'inspector.descripcion.entrada': 'input:', 'inspector.descripcion.salida': '· output:',
+  'inspector.descripcion.lanzamientos': 'launches', 'inspector.descripcion.suministro': 'supply:', 'inspector.descripcion.suministro_misiles': '{cantidad} missile/s',
+  'inspector.descripcion.disparos_segundo': 'shots/s', 'inspector.descripcion.alcance_sensores': 'range: visual {visual} · thermal {thermal}{niebla}',
+  'inspector.descripcion.tipos': 'types:', 'inspector.descripcion.tipo': 'type:', 'inspector.descripcion.vibracion_suelo': 'ground vibration',
+  'inspector.descripcion.alcance': 'range:', 'inspector.descripcion.casillas': '{cantidad} tiles', 'inspector.descripcion.ve': 'detects:',
+  'inspector.descripcion.no_ve_drones': '· cannot detect drones', 'inspector.descripcion.sensor_prediccion': 'Reports where an enemy is now, not where it will be: missiles arrive too late for fast movers.',
+  'inspector.descripcion.sin_nombre': 'This bank has no name in the code.', 'inspector.descripcion.salida_misiles': '{cantidad} missile/s to each launcher',
+  'inspector.descripcion.cargador': 'launcher capacity:', 'inspector.descripcion.reparador': 'Works alone, clearing jams in the order they arrive.',
+  'inspector.descripcion.velocidad': 'speed:', 'inspector.descripcion.velocidad_casillas': '{cantidad} tiles/s', 'inspector.descripcion.reparacion': 'repair time:',
+  'inspector.descripcion.formula_reparacion': '{base} s + {fallo} s × the failure’s failureRate', 'inspector.descripcion.cola': 'queue:', 'inspector.descripcion.auto_apunta': 'can target it',
+  'inspector.descripcion.vida': 'health:', 'inspector.descripcion.altura': 'altitude:', 'inspector.descripcion.posicion_label': 'position:', 'inspector.descripcion.motor_frio': 'Cold engine: thermal sensors cannot detect it.'
+});

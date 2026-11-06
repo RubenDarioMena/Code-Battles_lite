@@ -30,6 +30,7 @@ const modulos = [
   ['juego-estatico', 'juego'], ['disposicion', 'disposicion'], ['juego-dinamico', 'partida'],
   ['editor', 'editor'],
   ['paleta', 'paleta'], ['inspector', 'inspector'],
+  ['factory-form', 'formulario'],
 ];
 for (const [modulo, prefijo] of modulos) {
   const archivo = `shared/i18n/${modulo}.js`;
@@ -58,6 +59,11 @@ for (const [archivo, html] of [['index.html', htmlInicio], ['juego', htmlJuego]]
 // Las claves dinámicas con nombre literal también deben existir en ambos idiomas.
 for (const archivo of ['layout', 'juego']) {
   for (const [, clave] of leer(`Prototypes/Rocket Launcher/js/${archivo}.js`).matchAll(/["']((?:ajustes|disposicion|partida)\.[\w.]+)["']/g)) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
+}
+for (const archivo of ['Prototypes/Rocket Launcher/js/juego.js', 'Prototypes/Rocket Launcher/js/factory-form.js']) {
+  for (const [, clave] of leer(archivo).matchAll(/["']((?:inspector|formulario)\.[\w.]+)["']/g)) {
+    if (!clave.endsWith('.')) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
+  }
 }
 for (const [modulo] of modulos.filter(([m]) => m !== 'inicio')) comprobar(htmlJuego.includes(`shared/i18n/${modulo}.js?v=`), `el juego carga el catálogo ${modulo}`);
 console.log(`${Object.keys(mapas.es).length} claves ES/EN: paridad, variables, duplicados y referencias correctos (${checks} comprobaciones).`);

@@ -1206,6 +1206,46 @@
     "inspector.vital.suministro": "Suministro", "inspector.vital.vida": "Vida", "inspector.vital.altura": "Altura",
     "inspector.vital.posicion": "Posición", "inspector.traza.ultimos": "últimos {segundos} s", "inspector.traza.escala": "escala",
     "inspector.traza.ahora": "ahora",
+    "inspector.estado.robot.carga": "carga: {material}", "inspector.estado.robot.trabajando": "trabajando", "inspector.estado.robot.vacio": "manos vacías",
+    "inspector.estado.bodega": "almacenando", "inspector.estado.fundidora.procesando": "procesando", "inspector.estado.fundidora.espera": "en espera",
+    "inspector.estado.lanzador.atascado": "atascado", "inspector.estado.lanzador.sin_misiles": "sin misiles", "inspector.estado.lanzador.rafaga": "ráfaga",
+    "inspector.estado.lanzador.disparando": "disparando", "inspector.estado.lanzador.inactivo": "inactivo",
+    "inspector.estado.reparador.reparando": "reparando", "inspector.estado.reparador.va": "va a {objetivo}",
+    "inspector.estado.reparador.vuelve": "vuelve", "inspector.estado.reparador.base": "en base",
+    "inspector.estado.vibracion": "{cantidad} en rango", "inspector.estado.deposito": "suministrando",
+    "inspector.estado.enemigo.vida": "vida {actual}/{maximo}",
+    "inspector.clase.robot": "Robot de carga", "inspector.clase.bodega": "Bodega", "inspector.clase.fundidora": "Fundidora",
+    "inspector.clase.lanzador": "Lanzamisiles", "inspector.clase.vibracion": "Sensor de vibración (red)",
+    "inspector.clase.deposito": "Depósito de misiles", "inspector.clase.reparador": "Robot reparador", "inspector.clase.enemigo": "Enemigo",
+    "inspector.clase.ensambladora": "Ensambladora", "inspector.clase.muelle": "Muelle",
+    "inspector.enemigo.crawler": "oruga", "inspector.enemigo.drone": "dron", "inspector.enemigo.stealth": "dron frío",
+    "inspector.rol.ofensiva": "Ofensiva", "inspector.rol.rastreo": "Rastreo y telemetría",
+    "inspector.rol.utilitaria": "Utilitaria", "inspector.rol.fabrica": "Fábrica",
+    "inspector.metrica.viajes": "viajes", "inspector.metrica.vacios": "vacíos", "inspector.metrica.rechazos": "rechazos",
+    "inspector.metrica.entrada": "entrada", "inspector.metrica.producido": "producido", "inspector.metrica.lanzados": "lanzados",
+    "inspector.metrica.impactos": "impactos", "inspector.metrica.precision": "precisión", "inspector.metrica.derribos": "derribos",
+    "inspector.metrica.atascos": "atascos", "inspector.metrica.en_rafaga": "en ráfaga", "inspector.metrica.fallo_max": "fallo máx",
+    "inspector.metrica.credito_gastado": "₵ gastado", "inspector.metrica.lecturas": "lecturas",
+    "inspector.metrica.reparaciones": "reparaciones", "inspector.metrica.misiles_entregados": "misiles entregados",
+    "inspector.descripcion.en_pantalla": "en pantalla {unidad}", "inspector.descripcion.en_programa_no_prefijo": "en su programa no hace falta escribirlo",
+    "inspector.descripcion.solo_programa": "Solo desde el programa de {unidad}", "inspector.descripcion.posicion": "→ posición",
+    "inspector.descripcion.disparo_segundo": "1 disparo/s", "inspector.descripcion.rafaga_fallo": "2,2 disparos/s · sube el fallo",
+    "inspector.descripcion.dejar_disparo": "deja de disparar", "inspector.descripcion.entrada": "entrada:", "inspector.descripcion.salida": "· salida:",
+    "inspector.descripcion.lanzamientos": "lanzamientos", "inspector.descripcion.suministro": "suministro:",
+    "inspector.descripcion.suministro_misiles": "{cantidad} misil/s", "inspector.descripcion.disparos_segundo": "disparos/s",
+    "inspector.descripcion.alcance_sensores": "alcance: cámara {visual} · térmico {thermal}{niebla}",
+    "inspector.descripcion.tipos": "tipos:", "inspector.descripcion.tipo": "tipo:", "inspector.descripcion.vibracion_suelo": "vibración del suelo",
+    "inspector.descripcion.alcance": "alcance:", "inspector.descripcion.casillas": "{cantidad} casillas", "inspector.descripcion.ve": "ve:",
+    "inspector.descripcion.no_ve_drones": "· no ve drones",
+    "inspector.descripcion.sensor_prediccion": "Da dónde está el enemigo ahora, no dónde estará: el misil llega tarde a lo que se mueve rápido.",
+    "inspector.descripcion.sin_nombre": "No tiene nombre en el código en este banco.",
+    "inspector.descripcion.salida_misiles": "{cantidad} misil/s a cada lanzador", "inspector.descripcion.cargador": "cargador de cada lanzador:",
+    "inspector.descripcion.reparador": "Trabaja solo: atiende los atascos en orden de llegada.",
+    "inspector.descripcion.velocidad": "velocidad:", "inspector.descripcion.velocidad_casillas": "{cantidad} casillas/s",
+    "inspector.descripcion.reparacion": "reparación:", "inspector.descripcion.formula_reparacion": "{base} s + {fallo} s × failureRate del fallo",
+    "inspector.descripcion.cola": "cola:", "inspector.descripcion.auto_apunta": "lo apunta",
+    "inspector.descripcion.vida": "vida:", "inspector.descripcion.altura": "altura:", "inspector.descripcion.posicion_label": "posición:",
+    "inspector.descripcion.motor_frio": "Motor frío: el térmico no lo ve.",
   };
   const textoInspector = (clave, params = {}) => {
     const i18n = window.CMGI18n;
@@ -1232,9 +1272,40 @@
       for (const el of raiz.querySelectorAll(selector)) traducir(el, el.getAttribute(`data-ins-i18n-${nombre}`), nombre);
     }
   };
+  const textoEstadoInspector = (e) => {
+    if (e.clase === "robot") return e.carga ? textoInspector("inspector.estado.robot.carga", { material: e.carga }) : e.tarea ? textoInspector("inspector.estado.robot.trabajando") : textoInspector("inspector.estado.robot.vacio");
+    if (e.clase === "bodega") return textoInspector("inspector.estado.bodega");
+    if (e.clase === "fundidora") return textoInspector(e.procesando ? "inspector.estado.fundidora.procesando" : "inspector.estado.fundidora.espera");
+    if (e.clase === "lanzador") return textoInspector(e.atascado ? "inspector.estado.lanzador.atascado" : e.sinMisiles && e.modo !== "idle" ? "inspector.estado.lanzador.sin_misiles" : e.modo === "burst" ? "inspector.estado.lanzador.rafaga" : e.modo === "regular" ? "inspector.estado.lanzador.disparando" : "inspector.estado.lanzador.inactivo");
+    if (e.clase === "reparador") return textoInspector(e.estado === "reparar" ? "inspector.estado.reparador.reparando" : e.estado === "ir" ? "inspector.estado.reparador.va" : e.estado === "volver" ? "inspector.estado.reparador.vuelve" : "inspector.estado.reparador.base", e.estado === "ir" ? { objetivo: e.objetivo } : {});
+    if (e.clase === "vibracion") return textoInspector("inspector.estado.vibracion", { cantidad: enRango(e).length });
+    if (e.clase === "deposito") return textoInspector("inspector.estado.deposito");
+    return textoInspector("inspector.estado.enemigo.vida", { actual: e.hp, maximo: e.hpMax });
+  };
+  const claseInspector = (e) => {
+    if (!e?.clase || e.clase === "enemigo") return `${textoInspector("inspector.clase.enemigo")} · ${textoInspector(`inspector.enemigo.${e.tipo}`)}`;
+    if (e.clase === "bodega" || e.clase === "fundidora") {
+      const claveNombre = { Bodega: "inspector.clase.bodega", Fundidora: "inspector.clase.fundidora", Ensambladora: "inspector.clase.ensambladora", Muelle: "inspector.clase.muelle" }[e.nombre];
+      return claveNombre ? textoInspector(claveNombre) : e.nombre;
+    }
+    return textoInspector(`inspector.clase.${e.clase}`);
+  };
+  const rolInspector = (f) => f ? `${textoInspector(`inspector.rol.${f.principal}`)}${f.secundaria ? ` + ${textoInspector(`inspector.rol.${f.secundaria}`).toLowerCase()}` : ""}` : textoInspector("inspector.clase.enemigo");
+  const CLAVES_METRICA = { viajes: "viajes", "vacíos": "vacios", rechazos: "rechazos", entrada: "entrada", producido: "producido", lanzados: "lanzados", impactos: "impactos", "precisión": "precision", derribos: "derribos", atascos: "atascos", "en ráfaga": "en_rafaga", "fallo máx": "fallo_max", "₵ gastado": "credito_gastado", lecturas: "lecturas", reparaciones: "reparaciones", "misiles entregados": "misiles_entregados" };
+  const etiquetaMetricaInspector = (k) => CLAVES_METRICA[k] ? spanInspector(`inspector.metrica.${CLAVES_METRICA[k]}`) : esc(k);
+  const htmlMetricas = (m) => m.map(([k, v]) => {
+    return `<span class="m">${etiquetaMetricaInspector(k)} <b>${esc(v)}</b></span>`;
+  }).join("");
   const refrescarInspectorIdioma = () => {
     aplicarTextosInspector($("inspector"));
     aplicarTextosInspector($("pie-ins"));
+    const raiz = $("inspector");
+    for (const est of raiz.querySelectorAll("[data-ins-estado]")) {
+      const e = mundo.porId[est.dataset.insEstado] || mundo.enemigos.find(x => x.id === est.dataset.insEstado);
+      if (e) est.textContent = textoEstadoInspector(e);
+    }
+    const clase = raiz.querySelector("[data-ins-clase]"); if (clase) { const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion)); if (e) clase.textContent = claseInspector(e); }
+    const rol = raiz.querySelector("[data-ins-rol]"); if (rol) { const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion)); rol.textContent = rolInspector(e && funcionDe(e)); }
   };
   window.addEventListener("cmg:idioma", refrescarInspectorIdioma);
   const CLAVES_GRUPO = {
@@ -1288,13 +1359,11 @@
     $i.dataset.estado = insEstado;
     if (!e) { $("ins-tira").innerHTML = ""; $("ins-cuerpo").innerHTML = ""; return; }
     const propioProg = e.id === progSel, pre = propioProg ? "" : `${varDe(e.id)}.`;
-    let clase, c1 = "", c2 = "", botones = "";
+    let c1 = "", c2 = "", botones = "";
     if (["robot", "bodega", "fundidora"].includes(e.clase)) {
-      clase = e.clase === "robot" ? "Robot de carga" : e.nombre;
       c1 = htmlFactoryAPI();
-      c2 = grupo("Datos", ...metricasDe(e).map(([k, v]) => fila(nota(esc(k)), esc(v))));
+      c2 = grupo("Datos", ...metricasDe(e).map(([k, v]) => fila(nota(etiquetaMetricaInspector(k)), esc(v))));
     } else if (e.clase === "lanzador") {
-      clase = "Lanzamisiles";
       const ajeno = propioProg ? null : `Solo desde el programa de ${e.id}`;
       c1 = grupo("Nombre", fila(tk("var", varDe(e.id), varDe(e.id)), nota(`en pantalla ${e.id}${propioProg ? " · en su programa no hace falta escribirlo" : ""}`)))
         + grupo("Contenido", fila(tk("prop", `${pre}missiles`, `${pre}missiles`), `<span class="sep">=</span>`, tkValor(e.misiles, `${e.id}:missiles`), nota(`/ ${def.cargador} misiles`)))
@@ -1315,23 +1384,19 @@
           fila(nota("tipos:"), ...Object.keys(TIPOS).map(t => tk("str", `"${t}"`, `"${t}"`))));
       botones = (propioProg ? "" : `<button type="button" class="btn chico" data-accion="programa" ${atributoInspector("aria-label", "inspector.accion.editar_programa", { unidad: e.id })} data-ins-i18n-text="inspector.accion.editar_programa">${esc(textoInspector("inspector.accion.editar_programa", { unidad: e.id }))}</button>`);
     } else if (e.clase === "vibracion") {
-      clase = "Sensor de vibración (red)";
       c1 = grupo("Nombre", fila(tk("var", varDe(e.id), varDe(e.id)), nota(`en pantalla ${e.id}`)))
         + grupo("Funciones", fila(tk("fn", `${varDe(e.id)}.detect(tipo)`, `${varDe(e.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }), nota("→ posición, sin predicción")))
         + grupo("Propiedades", fila(tk("prop", `${varDe(e.id)}.count`, `${varDe(e.id)}.count`), `<span class="sep">=</span>`, tkValor(enRango(e).length, `${e.id}:count`), nota("enemigos de suelo en rango")));
       c2 = grupo("", fila(nota("tipo:"), "vibración del suelo"), fila(nota("alcance:"), `${e.alcance} casillas`), fila(nota("ve:"), tk("str", '"crawler"', '"crawler"'), nota("· no ve drones")),
         fila(nota("Da dónde está el enemigo ahora, no dónde estará: el misil llega tarde a lo que se mueve rápido.")));
     } else if (e.clase === "deposito") {
-      clase = "Depósito de misiles";
       c1 = grupo("", fila(nota("No tiene nombre en el código en este banco.")));
       c2 = grupo("", fila(nota("salida:"), `${def.suministro} misil/s a cada lanzador`), fila(nota("cargador de cada lanzador:"), `${def.cargador}`));
     } else if (e.clase === "reparador") {
-      clase = "Robot reparador";
       c1 = grupo("", fila(nota("Trabaja solo: atiende los atascos en orden de llegada.")));
       c2 = grupo("", fila(nota("velocidad:"), `${REP.vel} casillas/s`), fila(nota("reparación:"), `${REP.tBase} s + ${REP.tPorFallo} s × failureRate del fallo`), fila(nota("cola:"), `<span class="nota" data-vivo="cola">${mundo.colaReparar.join(", ") || "vacía"}</span>`));
     } else {
       const tp = TIPOS[e.tipo];
-      clase = `Enemigo · ${tp.nombre}`;
       const ven = [...(tp.frio ? [] : ["thermal"]), "visual"].sort();
       const vib = mundo.sensores[0];
       c1 = grupo("Tipo", fila(tk("str", `"${e.tipo}"`, `"${e.tipo}"`), nota(`autoTarget("${e.tipo}", …) lo apunta`)))
@@ -1340,14 +1405,15 @@
         fila(nota("posición:"), `<span class="nota" data-vivo="${e.id}:pos">x ${e.x.toFixed(1)} · y ${e.y.toFixed(1)}</span>`), tp.frio ? fila(nota("Motor frío: el térmico no lo ve.")) : "");
     }
     const seleccionadasTexto = seleccionadas.size > 1 ? ` · <span ${hojaInspector("inspector.seleccionadas", { cantidad: seleccionadas.size })}>${esc(textoInspector("inspector.seleccionadas", { cantidad: seleccionadas.size }))}</span>` : "";
-    const [cls, txt] = estadoDe(e);
+    const [cls] = estadoDe(e);
     const m = metricasDe(e);
     const abierto = insEstado === "abierto";
     const f = funcionDe(e);
     $i.style.setProperty("--rol", f ? `var(--rol-${f.principal})` : "var(--enemigo)");
-    const rol = f ? `<span class="rol">${esc(FUNCIONES[f.principal])}${f.secundaria ? ` <small>+ ${esc(FUNCIONES[f.secundaria].toLowerCase())}</small>` : ""}</span>` : `<span class="rol">Enemigo</span>`;
+    const clase = claseInspector(e);
+    const rol = rolInspector(f);
     $("ins-tira").innerHTML = `
-      <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadasTexto}</h2><span class="estado ${cls}" data-estado>${esc(txt)}</span><span class="clase">${esc(clase)}</span>${rol}</div>
+      <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadasTexto}</h2><span class="estado ${cls}" data-estado data-ins-estado="${esc(e.id)}">${esc(textoEstadoInspector(e))}</span><span class="clase" data-ins-clase>${esc(clase)}</span><span class="rol" data-ins-rol>${esc(rol)}</span></div>
         <div class="ins-acc">${V3 && vista === "3d" ? `<button type="button" data-accion="centrar" ${atributoInspector("aria-label", "inspector.accion.centrar.aria", { unidad: e.id })} ${atributoInspector("data-tip", "inspector.accion.centrar.tip")}>⌖</button>` : ""}<button type="button" data-accion="${abierto ? "plegar" : "abrir"}" ${atributoInspector("aria-label", `inspector.accion.${abierto ? "plegar" : "abrir"}`)} ${atributoInspector("data-tip", `inspector.accion.${abierto ? "plegar" : "ficha_completa"}`)}>${abierto ? "▴" : "▾"}</button><button type="button" data-accion="cerrar" ${atributoInspector("aria-label", "inspector.accion.cerrar.aria")} ${atributoInspector("data-tip", "inspector.accion.cerrar.tip")}>×</button></div></div>
       ${abierto ? "" : `<div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>`}
       <div class="ins-pista" ${hojaInspector("inspector.pista.ficha")}>${esc(textoInspector("inspector.pista.ficha"))}</div>`;
@@ -1425,7 +1491,7 @@
     Cola: "inspector.vital.cola", Reparaciones: "inspector.vital.reparaciones", Entregados: "inspector.vital.entregados",
     Suministro: "inspector.vital.suministro", Vida: "inspector.vital.vida", Altura: "inspector.vital.altura", Posición: "inspector.vital.posicion" };
   const vital = (k, v, cuerpo = "") => {
-    const clave = CLAVES_VITAL[k], titulo = clave ? `<span ${hojaInspector(clave)}>${esc(textoInspector(clave))}</span>` : k;
+    const clave = CLAVES_VITAL[k], metrica = CLAVES_METRICA[k], titulo = clave ? `<span ${hojaInspector(clave)}>${esc(textoInspector(clave))}</span>` : metrica ? spanInspector(`inspector.metrica.${metrica}`) : k;
     return `<div class="vital"><div class="k"><span>${titulo}</span>${v != null ? `<b>${v}</b>` : ""}</div>${cuerpo}</div>`;
   };
   function traza(id) {
@@ -1448,7 +1514,6 @@
     if (e.clase === "deposito") return vital("Entregados", mundo.consumidos) + vital("Suministro", `${def.suministro} misil/s`);
     return vital("Vida", `${e.hp}/${e.hpMax}`, celdas(e.hp, e.hpMax, "vida")) + vital("Altura", `${e.z} m`) + vital("Posición", `x ${e.x.toFixed(1)} · y ${e.y.toFixed(1)}`);
   }
-  const htmlMetricas = (m) => m.map(([k, v]) => `<span class="m">${esc(k)} <b>${esc(v)}</b></span>`).join("");
   $("inspector").addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-accion]");
     if (!b) { if (insEstado === "tira" && ev.target.closest(".ins-tira")) abrirInspector(); return; }
@@ -1501,7 +1566,7 @@
       if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
     }
     const barra = $i.querySelector("[data-barra]"); if (barra) barra.style.width = `${Math.round(e.falla * 100)}%`;
-    const est = $i.querySelector("[data-estado]"); if (est) { const [cls, txt] = estadoDe(e); est.className = `estado ${cls}`; est.textContent = txt; }
+    const est = $i.querySelector("[data-estado]"); if (est) { const [cls] = estadoDe(e); est.className = `estado ${cls}`; est.textContent = textoEstadoInspector(e); }
     const vit = $("ins-vitales"); if (vit) { const h = htmlVitales(e); if (vit.innerHTML !== h) vit.innerHTML = h; }
     const met = $i.querySelector("[data-metricas]"); if (met) { const h = htmlMetricas(metricasDe(e)); if (met.innerHTML !== h) met.innerHTML = h; }
   }
