@@ -81,18 +81,19 @@
 
 /* ---------- Abajo: diagrama, narración y controles ---------- */
 .rv-abajo { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; background: var(--fondo); }
-.rv-flujo { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 12px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px)); }
+.rv-flujo { container-type: inline-size; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 12px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px)); }
 .rv-rejilla { position: relative; display: flex; flex-direction: column; gap: 0; padding-left: 26px; max-width: 900px; margin: 0 auto; }
 .rv-rieles { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
 .rv-riel { fill: none; stroke: var(--linea-2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .rv-punta { fill: none; stroke: var(--linea-2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 .rv-fila { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; column-gap: 8px; margin-left: calc(var(--nivel) * var(--sangria)); min-width: 0; transition: opacity .2s; }
-.rv-fila:has(> .rv-sal-et) { grid-template-columns: minmax(0, 1fr) auto minmax(0, max-content); }
+.rv-fila:has(> .rv-sal-et) { grid-template-columns: minmax(42%, 1fr) auto minmax(0, max-content); }
+/* El código largo (Array.isArray(elemento)) parte la línea en vez de salirse de su caja. */
 .rv-nodo { all: unset; position: relative; box-sizing: border-box; cursor: pointer; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 11px;
   background: var(--superficie); border: 1.5px solid var(--linea); transition: border-color .2s, box-shadow .2s, background-color .2s; }
 .rv-nodo:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
-.rv-et { min-width: 0; font: 700 14.5px/1.3 var(--f-texto); color: var(--tinta); }
+.rv-et { min-width: 0; overflow-wrap: anywhere; font: 700 14.5px/1.3 var(--f-texto); color: var(--tinta); }
 .rv-et .rv-ref, .rv-et .rv-k { font: 600 .9em var(--f-codigo); }
 .rv-val { margin-left: auto; flex: none; padding: 1px 7px; border-radius: 6px; font: 700 12px var(--f-codigo); color: var(--tono); border: 1px solid color-mix(in oklab, var(--tono) 45%, transparent); background: color-mix(in oklab, var(--tono) 10%, transparent); }
 .rv-sal-et { flex: none; font: 700 12px var(--f-codigo); color: var(--apagado); white-space: nowrap; }
@@ -212,17 +213,21 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 .rv-doc-et { position: relative; font: 700 12px var(--f-codigo); letter-spacing: .1em; color: var(--tenue); background: var(--fondo); padding: 3px 8px; border-radius: 6px; }
 .rv-doc-texto { margin: 0; font: 400 16px/1.6 var(--f-texto); color: var(--tinta); }
 
+/* Si el diagrama es estrecho (teléfono, o el panel junto al código), la salida lateral baja debajo
+   de su fila: «true → 4 Dispara…». Depende del ancho del diagrama, no de la pantalla. */
+@container (max-width: 640px) {
+  .rv-fila:has(> .rv-sal-et) { grid-template-columns: auto minmax(0, 1fr); row-gap: 4px; }
+  .rv-fila:has(> .rv-sal-et) > .rv-nodo { grid-column: 1 / -1; }
+  .rv-fila > .rv-sal-et { margin-left: 14px; }
+  .rv-lado, .rv-caja-fin { justify-self: start; }
+}
+
 @media (max-width: 640px) {
   .rv { --reparto: 43%; --sangria: 14px; }
   .rv-titulo { font-size: 12.5px; }
   .rv-rejilla { padding-left: 22px; }
   .rv-seccion { margin-left: -22px; }
   .rv-nodo { gap: 8px; padding: 6px 9px; }
-  /* En el teléfono, la salida lateral baja debajo de su fila: «true → 4 Dispara…». */
-  .rv-fila:has(> .rv-sal-et) { grid-template-columns: auto minmax(0, 1fr); row-gap: 4px; }
-  .rv-fila:has(> .rv-sal-et) > .rv-nodo { grid-column: 1 / -1; }
-  .rv-fila > .rv-sal-et { margin-left: 14px; }
-  .rv-lado, .rv-caja-fin { justify-self: start; }
   .rv-barra { gap: 6px; }
   .rv-progs button { padding: 5px 6px; font-size: 11.5px; }
   .rv-mini { width: 30px; }

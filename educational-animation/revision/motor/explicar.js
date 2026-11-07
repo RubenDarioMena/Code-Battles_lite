@@ -212,9 +212,9 @@
   function etiqueta(P, F, i) {
     const f = F.filas[i], N = P.nodos, n = N[f.nodo];
     if (f.tipo === "bucle") {
-      if (n.tipo === "ForOfStatement" || n.tipo === "ForInStatement") {
-        const l = P.hijo(f.nodo, "left"), x = N[l].tipo === "VariableDeclaration" ? P.hijo(P.hijos(l, "declarations")[0], "id") : l;
-        return tpl(n.tipo === "ForOfStatement" ? "f.porCada" : "f.porCadaClave", { x: [{ c: x }], l: expr(P, P.hijo(f.nodo, "right")), o: expr(P, P.hijo(f.nodo, "right")) });
+      if (P.porCada.has(f.nodo)) {
+        const pc = P.porCada.get(f.nodo);
+        return tpl(pc.clave ? "f.porCadaClave" : "f.porCada", { x: [{ c: pc.x }], l: expr(P, pc.l), o: expr(P, pc.l) });
       }
       if (f.infinito) return [t("f.siempre")];
       if (n.tipo === "DoWhileStatement") return tpl("f.repiteMientras", { c: pred(P, f.test) });
@@ -303,9 +303,8 @@
     const ir = (x) => [{ f: x }];
     if (f.tipo === "bucle") {
       if (paso.valor === undefined) return [t("d.entraBucle")];
-      if (n.tipo === "ForOfStatement" || n.tipo === "ForInStatement") {
-        const l = P.hijo(f.nodo, "left"), x = N[l].tipo === "VariableDeclaration" ? P.hijo(P.hijos(l, "declarations")[0], "id") : l;
-        return tpl("d.porCada", { n: paso.iter || 1, x: [{ c: x }], v: [{ v: paso.valor }] });
+      if (P.porCada.has(f.nodo)) {
+        return tpl("d.porCada", { n: paso.iter || 1, x: [{ c: P.porCada.get(f.nodo).x }], v: [{ v: paso.valor }] });
       }
       if (f.infinito) return tpl("d.siempre", { n: paso.iter || 1, c: f.test != null ? [{ c: f.test }] : [{ k: "for (;;)" }] });
       const cierre = verdad(paso.valor) ? tpl("d.entraVuelta", { n: paso.iter || 1 }) : f.sig != null ? tpl("d.saleBucle", { f: ir(f.sig) }) : [t("d.saleFin")];
@@ -616,9 +615,9 @@
     if (f.tipo === "bucle") {
       const cuerpo = filas || [t("r.vacio")];
       const conBreak = FL.dentro(P, F, i).some(k => F.filas[k].salto === "break" && F.filas[k].bucle === i);
-      if (n.tipo === "ForOfStatement" || n.tipo === "ForInStatement") {
-        const l = P.hijo(f.nodo, "left"), x = N[l].tipo === "VariableDeclaration" ? P.hijo(P.hijos(l, "declarations")[0], "id") : l;
-        out = tpl(n.tipo === "ForOfStatement" ? "r.porCada" : "r.porCadaClave", { filas: cuerpo, x: [{ c: x }], l: expr(P, P.hijo(f.nodo, "right")) });
+      if (P.porCada.has(f.nodo)) {
+        const pc = P.porCada.get(f.nodo);
+        out = tpl(pc.clave ? "r.porCadaClave" : "r.porCada", { filas: cuerpo, x: [{ c: pc.x }], l: expr(P, pc.l) });
       } else if (f.infinito) out = tpl(conBreak ? "r.siempreBreak" : "r.siempre", { filas: cuerpo });
       else if (n.tipo === "DoWhileStatement") out = tpl("r.hastaQue", { filas: cuerpo, c: condicionHumana(P, f.test) });
       else out = tpl("r.mientras", { filas: cuerpo, c: condicionHumana(P, f.test) });

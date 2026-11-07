@@ -125,6 +125,26 @@ try {
     eq(await page.locator('.rv-narra-txt').innerText(), '3Si x vale None, sigue en 4; si no, vuelve a 2.', `${nombre}: Python: la decisión con None`);
     eq(await page.evaluate(() => [...document.querySelectorAll('.rv-con-et, .rv-sal-et')].map(x => x.textContent.replace(' →', '')).filter(Boolean)), ['True'], `${nombre}: Python: True en las flechas`);
     eq(await page.evaluate(() => [...document.querySelectorAll('.rv-pre .kw')].map(x => x.textContent)), ['None', 'while', 'True', 'if', 'is', 'None'], `${nombre}: Python: sus palabras clave resaltadas`);
+    // forEach se dibuja como bucle; una condición larga no se monta sobre su salida lateral.
+    await page.selectOption('.rv-ejemplos', 'tuyo');
+    await page.waitForSelector('dialog.tuyo[open]');
+    await page.click('dialog.tuyo [data-lenguaje="js"]');
+    await page.fill('dialog.tuyo textarea', 'let resultado = []\nconst lista = [1, [2, 3]]\nlista.forEach(elemento => {\n  if (Array.isArray(elemento)) {\n    resultado = resultado.concat(aplanarListaRecursiva(elemento))\n  } else {\n    resultado.push(elemento)\n  }\n})');
+    await page.click('dialog.tuyo button[value="ok"]');
+    await page.waitForFunction(() => window.__revision && window.__revision.datos.programa && window.__revision.datos.programa.P.fuente.includes('forEach'));
+    eq(await etiqueta(3), 'Por cada elemento de lista', `${nombre}: forEach es un bucle «por cada»`);
+    for (const ancho of nombre === 'PC' ? [1280, 900, 1600] : [390]) {
+      await page.setViewportSize({ width: ancho, height: nombre === 'PC' ? 800 : 844 });
+      await page.waitForTimeout(100);
+      const choque = await page.evaluate(() => [...document.querySelectorAll('.rv-fila:has(> .rv-lado)')].map(f => {
+        const a = f.querySelector(':scope > .rv-nodo').getBoundingClientRect(), b = f.querySelector(':scope > .rv-sal-et').getBoundingClientRect(), c = f.querySelector(':scope > .rv-lado').getBoundingClientRect();
+        const cruza = (x, y) => x.left < y.right - 1 && y.left < x.right - 1 && x.top < y.bottom - 1 && y.top < x.bottom - 1;
+        const fuera = (x) => x.right > f.closest('.rv-flujo').getBoundingClientRect().right + 1;
+        return cruza(a, b) || cruza(a, c) || cruza(b, c) || fuera(a) || fuera(c);
+      }));
+      eq([choque.length > 0, choque.some(Boolean)], [true, false], `${nombre} ${ancho}px: la salida lateral no se monta ni se sale`);
+    }
+    if (nombre === 'PC') await page.setViewportSize({ width: 1280, height: 800 });
     // El reto 5 en Python: el mismo diagrama que en JavaScript.
     await abrir('reto-5-py', 'lectura');
     eq([(await est()).total, await page.locator('.rv-tramo').count()], [9, 8], `${nombre}: el reto 5 en Python, 8 filas y el final`);

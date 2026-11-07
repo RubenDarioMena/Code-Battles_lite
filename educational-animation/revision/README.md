@@ -102,10 +102,10 @@ traza ──flujo.js──▶ pasos (una visita a una fila) y vueltas ──expl
 
 | Archivo | Qué hace |
 |---|---|
-| `motor/trazador.js` | Instrumenta el JavaScript por su árbol (acorn, el mismo del juego) sin mover líneas. Ganchos: sentencia (`s`), condición (`c`, también cada vuelta de `for…of`), valor (`v`) y espera (`w`). La línea en ejecución y los errores del juego siguen coincidiendo. |
+| `motor/trazador.js` | Instrumenta el JavaScript por su árbol (acorn, el mismo del juego) sin mover líneas. Ganchos: sentencia (`s`), condición (`c`, también cada vuelta de `for…of` y de `lista.forEach(x => { … })`), valor (`v`) y espera (`w`). La línea en ejecución y los errores del juego siguen coincidiendo. |
 | `grabar.mjs` | Con serie (`war`): ejecuta el juego real en Chromium con los programas instrumentados y **repite la partida sin traza con la misma semilla**. Falla si cambia el resultado o algún evento de alguna máquina. Sin serie: ejecuta el programa en Node con `ejecutar.js`, dos veces, y comprueba que la traza no cambia. |
 | `motor/ejecutar.js` | Ejecuta un programa suelto con traza. Tiene un reloj virtual para `esperar(s)` y corta un programa que no termina a los 60 000 eventos o 3 s. |
-| `motor/flujo.js` | Del árbol, las filas del diagrama: sentencias, decisiones con su salida lateral (`true → break`), bucles con su flecha de vuelta, `else if` en cadena, `switch`, `try` y funciones como secciones aparte. De la traza, los pasos, las vueltas del bucle principal y su camino. Los valores de una recursión van a su llamada. |
+| `motor/flujo.js` | Del árbol, las filas del diagrama: sentencias, decisiones con su salida lateral (`true → break`), bucles con su flecha de vuelta (`lista.forEach(x => { … })` es un bucle «por cada», como `for…of`), `else if` en cadena, `switch`, `try` y funciones como secciones aparte. De la traza, los pasos, las vueltas del bucle principal y su camino. Los valores de una recursión van a su llamada. |
 | `motor/explicar.js` | Plantillas por tipo de nodo: la etiqueta de cada fila («¿drinkCoffee vale 8?», «Suma 1 a drinkCoffee»), la narración de cada paso con sus valores y la tarjeta «¿qué es?». |
 | `motor/documentacion.js` | El tema de la documentación de cada elemento (`doc.tema.<clave>` en textos.js), para la pulsación larga. |
 | `motor/catalogo.js` | Qué objetos, funciones y propiedades tiene el juego. **Es lo único que hay que ampliar** cuando aparece una máquina o un robot nuevo (abajo). |

@@ -124,6 +124,15 @@
         const l = n.left, d = l.type === "VariableDeclaration" ? l.declarations[0].id : l;
         abrir(n.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c");
       }
+      // lista.forEach(x => { … }) se lee como un for…of: __T.c(idSentencia, x) al abrir la función.
+      if (n.type === "ExpressionStatement" && n.expression.type === "CallExpression" && quiere("c", n, padre, campo)) {
+        const c = n.expression, m = c.callee, fn = c.arguments[0];
+        if (m.type === "MemberExpression" && !m.computed && m.property.name === "forEach" && c.arguments.length === 1 &&
+            (fn.type === "ArrowFunctionExpression" || (fn.type === "FunctionExpression" && !fn.id)) && fn.body.type === "BlockStatement" && fn.params.length) {
+          const d = fn.params[0];
+          abrir(fn.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c");
+        }
+      }
       // Condiciones.
       if (campo === "test" && padre && /^(If|While|DoWhile|For)Statement$|^ConditionalExpression$/.test(padre.type) && !enCadena) {
         if (quiere("c", n, padre, campo)) { abrir(n.start, `__T.c(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "c"); }

@@ -1,3 +1,11 @@
+## Modo revisión · forEach como bucle y salidas laterales sin solaparse · 7 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario con dos capturas del mismo programa: en Python el `for` dibuja la flecha de vuelta del `if` a su bucle, y en JavaScript el `lista.forEach(elemento => { … })` no (salía como un paso y una «Función sin nombre» aparte). Y en JavaScript la condición `Array.isArray(elemento)` se montaba sobre su salida lateral `true →`.
+- **forEach** (`motor/flujo.js`, `explicar.js`, `trazador.js`): `lista.forEach(x => { … })` (o con `function (x) { … }`) como sentencia se lee como un `for…of`: fila «Por cada elemento de lista», flechas de vuelta, el código ilumina `elemento`, y su función ya no sale en «Funciones». Un `return` dentro acaba solo esa vuelta (como `continue`). Con la traza, el trazador pone `__T.c(id, x)` al abrir la función y cuenta las vueltas. `P.porCada` reúne los tres tipos de bucle «por cada».
+- **Salidas laterales** (`motor/revision.css`): el código largo parte la línea (`overflow-wrap: anywhere`) en vez de salirse de su caja; la fila guarda al menos el 42 % para su caja; y la salida lateral baja debajo de su fila según el ancho del diagrama (container query), no de la pantalla: así también en el panel junto al código del escritorio.
+- **Juego:** los archivos del motor que cargan los binoculares llevan versión (`?v=4` en `revision-juego.js`) para que el navegador no use los de la caché.
+- **Pruebas:** `flujo.cjs` 297 (forEach = for de Python: mismas filas, flechas y frases; return; traza con 3 vueltas), `interfaz.mjs` 206 (forEach dibujado como bucle; la salida lateral no se monta ni se sale a 390, 900, 1280 y 1600 px; falla con el CSS anterior), `juego.mjs` 58, `trazador.cjs` 27.
+
 ## Modo revisión · Python · 7 de noviembre de 2026
 
 - **Lector de Python** (`educational-animation/revision/motor/python.js`): árbol de lezer → la tabla de nodos de acorn, con posiciones en el texto de Python. Con eso el diagrama, el recorrido de lectura, las tarjetas y la documentación funcionan igual que en JavaScript. El reto 5 en Python da el mismo diagrama y las mismas frases que en JavaScript (`pruebas/flujo.cjs` lo compara).

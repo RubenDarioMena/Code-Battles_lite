@@ -269,5 +269,34 @@ for (let i = 1; i <= 4; i++) {
   ok(errPy && errPy.loc && errPy.loc.line >= 2, 'python: un error de sintaxis se avisa con su línea');
   I18N.cambiarIdioma('es');
 
+  // ---------- 11 · lista.forEach(x => { … }) se lee como un bucle «por cada», igual que el for de Python ----------
+  const APLANAR_JS = 'function aplanar(lista) {\n  let resultado = []\n  lista.forEach(elemento => {\n    if (Array.isArray(elemento)) {\n      resultado = resultado.concat(aplanar(elemento))\n    } else {\n      resultado.push(elemento)\n    }\n  })\n  return resultado\n}\nconst plana = aplanar([1, [2, 3], 7])\nconsole.log(plana)';
+  const APLANAR_PY = 'def aplanar(lista):\n    resultado = []\n    for elemento in lista:\n        if isinstance(elemento, list):\n            resultado = resultado.concat(aplanar(elemento))\n        else:\n            resultado.push(elemento)\n    return resultado\nplana = aplanar([1, [2, 3], 7])\nprint(plana)';
+  const fj = leer(APLANAR_JS), fpy = leerPy(APLANAR_PY, { id: null, serie: 'libre' });
+  const forma = (v) => v.F.filas.map(f => `${f.num} ${f.tipo} ${f.nivel}`);
+  eq(forma(fj), forma(fpy), 'forEach: las mismas filas que el for de Python');
+  eq(fj.F.rieles, fpy.F.rieles, 'forEach: las mismas flechas de vuelta al bucle');
+  const bj = fj.F.filas.find(f => f.tipo === 'bucle');
+  eq(plano(fj.P, fj.F, E.etiqueta(fj.P, fj.F, bj.i)), 'Por cada [elemento] de [lista]', 'forEach: «Por cada elemento de lista»');
+  eq(fj.P.txt(bj.foco), 'elemento', 'forEach: en el código se ilumina la variable de cada vuelta');
+  eq(fj.F.filas.filter(f => f.tipo === 'funcion').length, 1, 'forEach: la función de la vuelta no sale como función aparte');
+  eq(fj.textos.map(x => x.replace(/\[[^\]]*\]/g, '[]')), fpy.textos.map(x => x.replace(/\[[^\]]*\]/g, '[]').replace('True', 'true')), 'forEach: las mismas frases que el for de Python (salvo True)');
+  // return dentro de forEach acaba solo esa vuelta: vuelve al bucle, como continue.
+  const fr = leer('[1, 2].forEach(function (n) {\n  if (n > 1) return\n  console.log(n)\n})');
+  const ret = fr.F.filas.find(f => fr.P.nodos[f.nodo].tipo === 'ReturnStatement');
+  eq(ret.salto, 'continue', 'forEach: return sigue con la siguiente vuelta');
+  ok(fr.F.rieles.some(r => r.de === ret.i), 'forEach: el return tiene flecha de vuelta');
+  // Con la traza: una vuelta por elemento, con su valor.
+  {
+    const src = 'const xs = [4, 5, 6]\nxs.forEach(x => {\n  console.log(x)\n})';
+    const x = T.instrumentar(src, { acorn, enviar: '__enviar' }), eventos = [];
+    const AF = Object.getPrototypeOf(async function () {}).constructor;
+    await new AF('console', '__enviar', x.codigo + '\n;__T.fin()')({ log() {} }, (ev) => eventos.push(...ev));
+    const P = FL.preparar({ fuente: x.fuente, nodos: x.nodos, comentarios: x.comentarios, eventos }), F = FL.construir(P), R = FL.recorrer(P, F);
+    const b = F.filas.find(f => f.tipo === 'bucle');
+    eq(R.pasos.filter(p => p.fila === b.i && p.valor !== undefined).map(p => [p.iter, p.valor]), [[1, 4], [2, 5], [3, 6]], 'forEach con traza: tres vueltas con su elemento');
+    eq(R.vueltas.length, 3, 'forEach con traza: el bucle principal agrupa tres vueltas');
+  }
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

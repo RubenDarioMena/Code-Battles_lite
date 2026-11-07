@@ -10,6 +10,8 @@
 (() => {
   "use strict";
   const BASE = "../../educational-animation/revision/";
+  // Versión de los archivos del motor: súbela al cambiarlos para que el navegador no use los de la caché.
+  const V = "?v=4";
   // [archivo, global]: con global, no se vuelve a cargar si ya está (trazador y flujo los carga el juego para
   // los pulsos). El catálogo del modo revisión es CMGCatalogoRevision: CMGCatalogo es el de la paleta del editor.
   const MOTOR = [["motor/textos.js", null], ["motor/trazador.js", "CMGTrazador"], ["motor/catalogo.js", null], ["motor/flujo.js", "CMGFlujo"], ["motor/python.js", "CMGPythonRevision"],
@@ -24,13 +26,13 @@
     if (carga) return carga;
     carga = (async () => {
       if (!document.querySelector("link[data-revision]")) {
-        const l = document.createElement("link"); l.rel = "stylesheet"; l.href = BASE + "motor/revision.css"; l.dataset.revision = "";
+        const l = document.createElement("link"); l.rel = "stylesheet"; l.href = BASE + "motor/revision.css" + V; l.dataset.revision = "";
         document.head.append(l);
       }
       for (const [f, global] of MOTOR) {
         if (global && window[global]) continue;
         await new Promise((ok, mal) => {
-          const s = document.createElement("script"); s.src = BASE + f; s.onload = ok; s.onerror = () => mal(new Error(f));
+          const s = document.createElement("script"); s.src = BASE + f + V; s.onload = ok; s.onerror = () => mal(new Error(f));
           document.head.append(s);
         });
       }

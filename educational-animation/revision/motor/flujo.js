@@ -48,7 +48,33 @@
       if (n.tipo === "FunctionDeclaration") { const f = P.hijo(n.id, "id"); if (f != null) P.funciones.set(N[f].nombre, n.id); }
       if (n.tipo === "VariableDeclarator") { const ini = P.hijo(n.id, "init"), nom = P.hijo(n.id, "id"); if (ini != null && FUNCION.test(N[ini].tipo) && N[nom].nombre) P.funciones.set(N[nom].nombre, ini); }
     }
+    // Bucles «por cada»: for…of, for…in y lista.forEach(x => { … }), que se lee igual que un for…of.
+    // sentencia → { x: la variable de cada vuelta, l: lo que recorre, cuerpo, clave: for…in, fn: la función de forEach }
+    P.porCada = new Map();
+    P.cadaFn = new Set();
+    for (const n of N) {
+      if (n.tipo === "ForOfStatement" || n.tipo === "ForInStatement") {
+        const l = P.hijo(n.id, "left"), x = N[l].tipo === "VariableDeclaration" ? P.hijo(P.hijos(l, "declarations")[0], "id") : l;
+        P.porCada.set(n.id, { x, l: P.hijo(n.id, "right"), cuerpo: P.hijo(n.id, "body"), clave: n.tipo === "ForInStatement", fn: null });
+      }
+      const fe = n.tipo === "ExpressionStatement" ? forEach(P, n.id) : null;
+      if (fe) { P.porCada.set(n.id, fe); P.cadaFn.add(fe.fn); }
+    }
     return P;
+  }
+  // lista.forEach(x => { … }) o lista.forEach(function (x) { … }) como sentencia.
+  function forEach(P, s) {
+    const N = P.nodos, c = P.hijo(s, "expression");
+    if (c == null || N[c].tipo !== "CallExpression") return null;
+    const m = P.hijo(c, "callee"), args = P.hijos(c, "arguments");
+    if (m == null || N[m].tipo !== "MemberExpression" || N[m].computado || args.length !== 1) return null;
+    const prop = P.hijo(m, "property");
+    if (prop == null || N[prop].nombre !== "forEach") return null;
+    const fn = args[0];
+    if (!/^(FunctionExpression|ArrowFunctionExpression)$/.test(N[fn].tipo) || (N[fn].tipo === "FunctionExpression" && P.hijo(fn, "id") != null)) return null;
+    const cuerpo = P.hijo(fn, "body"), x = P.hijos(fn, "params")[0];
+    if (cuerpo == null || N[cuerpo].tipo !== "BlockStatement" || x == null) return null;
+    return { x, l: P.hijo(m, "object"), cuerpo, clave: false, fn };
   }
 
   const bloque = (P, i) => i == null ? [] : P.nodos[i].tipo === "BlockStatement" ? P.hijos(i, "body") : [i];
@@ -81,7 +107,7 @@
     const simple = (s) => !COMPUESTA.test(N[s].tipo);
     function sentencia(s, nivel, ctx) {
       const n = N[s];
-      if (BUCLE.test(n.tipo)) return bucle(s, nivel, ctx);
+      if (BUCLE.test(n.tipo) || P.porCada.has(s)) return bucle(s, nivel, ctx);
       if (n.tipo === "IfStatement") return decision(s, nivel, ctx);
       if (n.tipo === "BlockStatement") { const r = seq(P.hijos(s, "body"), nivel, ctx); return r.vacia ? paso(s, nivel, ctx) : r; }
       if (n.tipo === "LabeledStatement") return sentencia(P.hijo(s, "body"), nivel, ctx);
@@ -91,7 +117,9 @@
     }
     function paso(s, nivel, ctx, lateral = false) {
       const t = N[s].tipo;
-      const f = nueva("paso", s, nivel, ctx, { lateral, salto: t === "BreakStatement" ? "break" : t === "ContinueStatement" ? "continue" : t === "ReturnStatement" || t === "ThrowStatement" ? "fin" : null });
+      // return dentro de forEach termina solo esa vuelta: sigue con la siguiente, como continue.
+      const sigue = t === "ReturnStatement" && ctx.cadaFn != null && ctx.cadaFn === ctx.bucle;
+      const f = nueva("paso", s, nivel, ctx, { lateral, salto: t === "BreakStatement" ? "break" : t === "ContinueStatement" || sigue ? "continue" : t === "ReturnStatement" || t === "ThrowStatement" ? "fin" : null });
       if (!lateral) orden.push({ fila: f.i });
       if (f.salto === "break") return { entrada: f.i, salidas: [], breaks: [f.i], continues: [] };
       if (f.salto === "continue") return { entrada: f.i, salidas: [], breaks: [], continues: [f.i] };
@@ -105,9 +133,10 @@
       if (test != null) filaDe.set(test, R.i);
       R.salida = infinito ? null : { tipo: "fin", etiqueta: test != null ? "false" : "fin" };
       orden.push({ fila: R.i });
-      const cuerpo = sinVacias(P, bloque(P, P.hijo(s, "body")));
+      const pc = P.porCada.get(s);
+      const cuerpo = sinVacias(P, bloque(P, pc ? pc.cuerpo : P.hijo(s, "body")));
       if (cuerpo.length) orden.push({ conector: true, nivel: nivel + 1, etiqueta: test != null && !infinito ? "true" : null });
-      const r = seq(cuerpo, nivel + 1, { ...ctx, bucle: R.i });
+      const r = seq(cuerpo, nivel + 1, { ...ctx, bucle: R.i, cadaFn: pc && pc.fn != null ? R.i : ctx.cadaFn });
       R.si = r.entrada;
       unir(r.salidas, R.i); unir(r.continues, R.i);
       for (const de of [...r.salidas, ...r.continues]) rieles.push({ de, a: R.i });
@@ -191,7 +220,7 @@
     unir(principal.salidas, null);
     const secciones = [];
     for (const n of N) {
-      if (!FUNCION.test(n.tipo)) continue;
+      if (!FUNCION.test(n.tipo) || P.cadaFn.has(n.id)) continue;
       const cuerpo = P.hijo(n.id, "body");
       if (cuerpo == null || N[cuerpo].tipo !== "BlockStatement") continue;
       const H = nueva("funcion", n.id, 0, {});
@@ -226,7 +255,7 @@
     }
     // El nodo que se ilumina en el código para cada fila: la condición, o la sentencia entera.
     // (en for…of / for…in, la variable de cada vuelta: «const n»).
-    for (const f of filas) f.foco = f.test != null ? f.test : /^(ForOf|ForIn)Statement$/.test(N[f.nodo].tipo) ? P.hijo(f.nodo, "left") : f.nodo;
+    for (const f of filas) f.foco = f.test != null ? f.test : N[f.nodo].tipo === "ForOfStatement" || N[f.nodo].tipo === "ForInStatement" ? P.hijo(f.nodo, "left") : P.porCada.has(f.nodo) ? P.porCada.get(f.nodo).x : f.nodo;
     // Líneas de cada fila (para el margen del código): la de su cabecera.
     for (const f of filas) f.linea = N[f.foco].linea;
     return { filas, filaDe, orden, rieles, secciones, duena, entrada: principal.entrada };
@@ -239,7 +268,7 @@
     let t = null, cur = null;
     const vueltasDe = new Map(), enEspera = new Map();
     const nuevo = (fila, nodo) => { const p = { i: pasos.length, fila, nodo, t, vals: new Map() }; pasos.push(p); return p; };
-    const esCondicion = (n) => (n.campo === "test" && /^(If|While|DoWhile|For)Statement$/.test(N[n.padre].tipo)) || /^(ForOf|ForIn)Statement$/.test(n.tipo);
+    const esCondicion = (n) => (n.campo === "test" && /^(If|While|DoWhile|For)Statement$/.test(N[n.padre].tipo)) || P.porCada.has(n.id);
     for (const e of P.eventos) {
       if (e[0] === "t") { t = e[1]; if (cur && cur.espera != null && cur.t1 == null) cur.t1 = t; continue; }
       const id = e[0], n = N[id];
@@ -260,7 +289,7 @@
       if (n.ganchos.includes("c") && esCondicion(n)) {
         const f = F.filaDe.get(id);
         const fila = F.filas[f];
-        const iter = fila.tipo === "bucle" && (verdad(v) || /^(ForOf|ForIn)Statement$/.test(n.tipo)) ? vueltasDe.set(f, (vueltasDe.get(f) || 0) + 1).get(f) : null;
+        const iter = fila.tipo === "bucle" && (verdad(v) || P.porCada.has(n.id)) ? vueltasDe.set(f, (vueltasDe.get(f) || 0) + 1).get(f) : null;
         const antes = enEspera.get(f) || new Map();
         enEspera.delete(f);
         if (cur && cur.fila === f && cur.pendiente) { for (const [a, b] of antes) cur.vals.set(a, b); cur.valor = v; cur.nodo = id; cur.pendiente = false; cur.vals.set(id, v); cur.iter = iter; continue; }
@@ -299,7 +328,7 @@
     const L = candidatos.length ? candidatos[0] : null;
     const vueltas = [];
     let fuera = false, actual = null;
-    const porCada = L && /^(ForOf|ForIn)Statement$/.test(N[L.nodo].tipo);
+    const porCada = L && P.porCada.has(L.nodo);
     const dentro = (i) => { const f = F.filas[i]; if (f.seccion != null || i === L.i) return true; for (let b = f.bucle; b != null; b = F.filas[b].bucle) if (b === L.i) return true; return false; };
     for (const p of pasos) {
       if (L && p.fila === L.i && p.valor !== undefined && !fuera) {
