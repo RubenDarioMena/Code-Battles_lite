@@ -558,13 +558,15 @@
     const r = N[sinAwait].tipo === "CallExpression" ? resolver(P, sinAwait) : null;
     if (r && r.def && r.clase === "metodo" && r.def.clase === "lectura") {
       const out = [...(textoLlamada(P, r, sinAwait, "breve") || textoLlamada(P, r, sinAwait, "hace") || [])];
-      out.push(" ", ...tpl("r.loGuarda", { x }));
-      if (r.def.nulo && existe(C.clave(r.tipo, r.def, "resultado.null"))) out.push(" ", ...tpl("r.quedaNull", { x, r: t(C.clave(r.tipo, r.def, "resultado.null")) }));
+      const nulo = r.def.nulo && existe(C.clave(r.tipo, r.def, "resultado.null"));
+      out.push(" ", ...(nulo ? tpl("r.loGuardaNull", { x, r: t(C.clave(r.tipo, r.def, "resultado.null")) }) : tpl("r.loGuarda", { x })));
       return out;
     }
     if (N[ini].tipo === "LogicalExpression" && N[ini].op === "??") {
       const partes = cadenaNula(P, ini).map(p => { const rp = N[p].tipo === "CallExpression" ? resolver(P, p) : null; return rp && rp.def ? (textoLlamada(P, rp, p, "etiqueta") || [{ c: p }]) : expr(P, p); });
-      return tpl("r.guardaPrimero", { x, l: unir(partes, " · ") });
+      // Las opciones, plegadas: el código ya las enseña y la frase cabe en el teléfono.
+      const mas = partes.flatMap((p, k) => [...(k ? [{ br: 1 }] : []), `${k + 1}. `, ...p]);
+      return [...tpl("r.guardaPrimero", { x, n: String(partes.length) }), { mas }];
     }
     if (esFuncion(P, ini)) return tpl("r.funcionGuardada", { x });
     if (esFijo(P, ini)) return tpl(N[f.nodo].clase === "const" ? "r.empiezaConst" : "r.empiezaLet", { x, v: [{ k: P.txt(ini) }] });
@@ -625,9 +627,7 @@
     else if (f.tipo === "segun") out = tpl("r.segun", { e: expr(P, P.hijo(f.nodo, "discriminant")) });
     else {
       out = [...pasoHumano(P, F, f)];
-      // Una salida lateral: solo cuando su decisión da true.
-      const dueña = f.lateral ? F.filas.find(d => d.salida && d.salida.tipo === "fila" && d.salida.fila === i) : null;
-      if (dueña) out.push(" ", ...tpl("r.soloSi", { f: fichaFila(dueña.i) }));
+      // Una salida lateral no repite «solo si…»: el paso anterior (su decisión) ya lo ha dicho.
       // La última fila de una vuelta: después vuelve al bucle (un continue ya lo dice).
       const riel = F.rieles.find(r => r.de === i);
       if (riel && f.salto !== "continue") out.push(" ", ...tpl("r.vuelveA", { f: fichaFila(riel.a) }));
@@ -637,10 +637,9 @@
   }
   // El final del recorrido: si el programa no acaba solo, por qué.
   function resumen(P, F, R) {
-    const out = [t("r.fin")];
     const L = R && R.principal != null ? F.filas[R.principal] : null;
     const sale = L && FL.dentro(P, F, L.i).some(k => F.filas[k].salto === "break" && F.filas[k].bucle === L.i);
-    if (L && L.infinito && !sale) out.push(" ", ...tpl(P.serie && P.serie !== "libre" ? "r.finSiempreJuego" : "r.finSiempre", { f: fichaFila(L.i) }));
+    const out = L && L.infinito && !sale ? tpl(P.serie && P.serie !== "libre" ? "r.finSiempreJuego" : "r.finSiempre", { f: fichaFila(L.i) }) : [t("r.fin")];
     if (F.secciones.length) out.push(" ", ...tpl("r.finFunciones", { f: unir(F.secciones.map(fichaFila), ", ") }));
     return out;
   }

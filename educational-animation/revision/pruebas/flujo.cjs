@@ -174,28 +174,30 @@ for (let i = 1; i <= 4; i++) {
   eq(lc.R.estructural && lc.R.pasos.length, 9, 'lectura: los cafés, 8 filas y el final, sin ejecutar nada');
   eq(lc.R.pasos.slice(0, -1).map(p => lc.F.filas[p.fila].num), [1, 2, 3, 4, 5, 6, 7, 8], 'lectura: en orden de lectura, cada salida lateral tras su decisión');
   eq(lc.textos, [
-    '1 Crea [drinkCoffee], que empieza valiendo 0 y puede cambiar después.',
-    '2 Mientras [drinkCoffee] es menor que 10, repite las filas (3) a (8). Al acabar, el programa acaba.',
+    '1 Crea [drinkCoffee] con 0; puede cambiar después.',
+    '2 Mientras [drinkCoffee] es menor que 10, repite las filas (3) a (8). Después, el programa acaba.',
     '3 Suma 1 a [drinkCoffee].',
     '4 Si [drinkCoffee] vale 8, sigue en (5); si no, salta a (6).',
-    '5 Sale del bucle (2) aunque su condición siga cumpliéndose, y el programa acaba. Solo pasa por aquí si (4) se cumple.',
+    '5 Sale del bucle (2) antes de tiempo y el programa acaba.',
     '6 Si [drinkCoffee] vale 5, sigue en (7); si no, salta a (8).',
-    '7 Se salta lo que queda de la vuelta y vuelve a (2). Solo pasa por aquí si (6) se cumple.',
-    "8 Escribe 'Café' en la consola. Después vuelve a (2).",
-    'Ese es todo el programa.',
+    '7 Se salta el resto de la vuelta y vuelve a (2).',
+    "8 Escribe 'Café' en la consola. Luego vuelve a (2).",
+    'Eso es todo el programa.',
   ], 'lectura: los cafés, fila a fila');
   const JUEGO = 'while (true) {\n  const pos = autoTarget("drone", "visual")\n  if (pos) regularShoot(pos)\n  stopFire()\n  await esperar(0.25)\n}';
   const lj = leer(JUEGO, { id: 'LAU-01', serie: 'war' });
-  eq(lj.textos[1], '2 Sensor cámara: busca el dron más avanzado y calcula dónde estará cuando llegue el misil. Lo guarda en [pos]. Si no ve ninguno, [pos] queda en null.', 'lectura: una lectura del juego dice qué busca y qué pasa si no hay nada');
+  eq(lj.textos[1], '2 Sensor cámara: busca el dron más avanzado y calcula dónde estará. Lo guarda en [pos] (null si no ve ninguno).', 'lectura: una lectura del juego dice qué busca y qué pasa si no hay nada');
   eq(lj.textos[2], '3 Si [pos] tiene un valor, sigue en (4); si no, salta a (5).', 'lectura: «if (pos)» es «si pos tiene un valor»');
-  eq(lj.textos[3], '4 Pone al lanzador a disparar a [pos], 1 misil por segundo, hasta que reciba otra orden. Solo pasa por aquí si (3) se cumple.', 'lectura: una orden dentro de un if');
-  ok(lj.textos[5].endsWith('Después vuelve a (1).'), 'lectura: la última fila de la vuelta vuelve al bucle');
+  eq(lj.textos[3], '4 Dispara a [pos], 1 misil por segundo, hasta otra orden.', 'lectura: una orden dentro de un if');
+  ok(lj.textos[5].endsWith('Luego vuelve a (1).'), 'lectura: la última fila de la vuelta vuelve al bucle');
   ok(lj.textos.at(-1).includes('mientras dure la partida'), 'lectura: en el juego, el bucle sin fin dura lo que la partida');
+  ok(lj.textos.every(x => x.length <= 120), 'lectura: ninguna frase del recorrido pasa de 120 caracteres (móvil)');
   const ls = leer('while (true) {\n  const pos = autoTarget("drone", "visual")\n  regularShoot(pos)\n  await esperar(0.25)\n}', { id: 'LAU-01', serie: 'war' });
   ok(ls.textos[2].endsWith('Si [pos] es null, se queda parado.'), 'lectura: una orden con un lugar que puede ser null avisa');
   const le = leer(JUEGO, { idioma: 'en', id: 'LAU-01', serie: 'war' });
   eq(le.textos[2], '3 If [pos] has a value, it goes on at (4); if not, it jumps to (5).', 'lectura: en inglés');
-  ok(le.textos[1].startsWith('2 With the camera sensor, finds the most advanced drone'), 'lectura: la frase breve del catálogo, en inglés');
+  ok(le.textos[1].startsWith('2 Uses the camera sensor to find the most advanced drone'), 'lectura: la frase breve del catálogo, en inglés');
+  ok(le.textos[1].endsWith('(null if it sees none).'), 'lectura: en inglés, null si no ve ninguno');
   I18N.cambiarIdioma('es');
   // La tarjeta de una orden: lo secundario plegado y sin cuentas (no se ejecutó nada).
   const nodoShoot = lj.P.nodos.find(x => x.tipo === 'CallExpression' && lj.P.txt(x.id).startsWith('regularShoot')).id;

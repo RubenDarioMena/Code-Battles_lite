@@ -63,7 +63,7 @@ try {
     const e = await page.evaluate(() => window.__revisionJuego.vista.estado);
     eq([e.modo, e.prog, e.total, e.paso], ['lectura', 'LAU-01', 9, 0], `${nombre}: abre el recorrido de lectura del código actual, sin haberlo ejecutado`);
     eq(e.disposicion, nombre === 'PC' ? 'lado' : 'apilado', `${nombre}: ${nombre === 'PC' ? 'código | diagrama' : 'apilado'}`);
-    ok((await page.locator('#revision-juego .rv-narra-txt').innerText()).includes('Repite las filas 2 a 8 sin fin'), `${nombre}: con la frase de la fila 1`);
+    ok((await page.locator('#revision-juego .rv-narra-txt').innerText()).includes('Repite las filas 2 a 8 sin parar'), `${nombre}: con la frase de la fila 1`);
     eq(await page.locator('#revision-juego .rv-titulo').innerText(), 'Reto 5 · ' + await page.evaluate(() => window.__banco.def.titulo), `${nombre}: con el título del reto`);
     eq(await page.locator('#revision-juego .rv-junto').count(), 0, `${nombre}: sin «junto»`);
     eq(await page.evaluate(() => window.__banco.mundo.activo), false, `${nombre}: no se ejecutó nada`);

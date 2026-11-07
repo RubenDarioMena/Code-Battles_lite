@@ -45,12 +45,21 @@ try {
     await abrir('reto-5', 'lectura');
     let e = await est();
     eq([e.modo, e.total, e.paso, e.vel, e.texto], ['lectura', 9, 0, 1, true], `${nombre}: lectura del reto 5: 8 filas y el final, a 1× y con texto`);
-    ok((await page.locator('.rv-narra-txt').innerText()).includes('Repite las filas 2 a 8 sin fin'), `${nombre}: la fila 1 dice qué repite`);
+    ok((await page.locator('.rv-narra-txt').innerText()).includes('Repite las filas 2 a 8 sin parar'), `${nombre}: la fila 1 dice qué repite`);
     eq(await page.locator('.rv-donde').innerText(), 'paso 1 de 9', `${nombre}: dónde está`);
     eq(await page.locator('.rv-tramo').count(), 8, `${nombre}: un tramo por fila en la franja`);
     eq(await page.evaluate(() => [...document.querySelectorAll('.rv-tramo')].map(x => x.style.getPropertyValue('--c')).join()), await page.evaluate(() => window.__revision.datos['LAU-01'].F.filas.map(f => f.color).join()), `${nombre}: cada tramo con el color de su fila`);
     await page.click('[data-accion="despues"]');
-    ok((await page.locator('.rv-narra-txt').innerText()).includes('Guarda en pos lo primero que no sea null'), `${nombre}: la fila 2 dice qué guarda`);
+    ok((await page.locator('.rv-narra-txt').innerText()).includes('Guarda en pos lo primero que encuentre, probando 3 opciones en orden.'), `${nombre}: la fila 2 dice qué guarda`);
+    eq(await page.locator('.rv-narra .rv-mas:not([open])').count(), 1, `${nombre}: las 3 opciones de la fila 2, plegadas`);
+    // Lo plegado no cuenta para el tiempo de lectura.
+    const visible = await page.evaluate(() => { const c = document.querySelector('.rv-narra-txt').cloneNode(true); c.querySelectorAll('details').forEach(d => d.remove()); return c.textContent.replace(/\s+/g, ' ').trim().length; });
+    ok(Math.abs(await page.evaluate(() => window.__revision.duracion()) - Math.max(1.2, visible / (238 * 5.5 / 60)) * 1150) < 1, `${nombre}: los detalles plegados no alargan el paso`);
+    ok(await page.evaluate(() => { const n = document.querySelector('.rv-narra'); return n.scrollHeight <= n.clientHeight + 1; }), `${nombre}: la frase de la fila 2 cabe sin desplazar`);
+    await page.click('[data-accion="auto"]');
+    await page.locator('.rv-narra .rv-mas summary').click();
+    await page.waitForTimeout(50);
+    eq((await est()).auto, false, `${nombre}: abrir «Más detalles» para el avance`);
     await page.evaluate(() => window.__revision.ir(2));
     ok((await page.locator('.rv-narra-txt').innerText()).includes('Si LAU-02 está atascado, sigue en 4; si no, prueba 5.'), `${nombre}: la decisión dice adónde va con true y con false`);
     await page.evaluate(() => window.__revision.ir(8));

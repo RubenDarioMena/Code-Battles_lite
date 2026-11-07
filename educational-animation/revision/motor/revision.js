@@ -525,8 +525,14 @@
     function letras() {
       if (!estado.texto || estado.foco) return 0;
       const x = el.narra.querySelector(".rv-narra-txt");
-      return x ? x.textContent.replace(/\s+/g, " ").trim().length : 0;
+      if (!x) return 0;
+      // Los detalles plegados no se leen: no cuentan (ni su «Más detalles»).
+      const c = x.cloneNode(true);
+      c.querySelectorAll("details.rv-mas").forEach(d => { if (d.open) d.querySelector("summary").remove(); else d.remove(); });
+      return c.textContent.replace(/\s+/g, " ").trim().length;
     }
+    // Quien abre «Más detalles» durante el avance quiere leerlo: el avance se para.
+    el.narra.addEventListener("toggle", (e) => { if (e.target.open && e.target.classList.contains("rv-mas")) pararAuto(); }, true);
     const tiempoLectura = () => Math.max(MINIMO, letras() / LETRAS_POR_SEGUNDO) * EXTRA * 1000;
     function duracion(p) {
       const { R } = D();

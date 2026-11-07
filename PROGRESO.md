@@ -1,3 +1,11 @@
+## Modo revisión · frases de lectura más cortas · 7 de noviembre de 2026
+
+- Recorrido de lectura: ninguna frase pasa de ~75 caracteres visibles en el reto 5 (antes, hasta 127 en ES y 143 en EN). Se quita «Solo pasa por aquí si…» (la decisión anterior ya lo dice), las órdenes del lanzador y `esperar` tienen frases breves nuevas, y el final ya no repite «Ese es todo el programa» cuando el bucle es sin fin.
+- `??` encadenado: «Guarda en pos lo primero que encuentre, probando 3 opciones en orden», con las opciones en «Más detalles».
+- Una lectura del juego dice el null en la misma frase: «Lo guarda en pos (null si no ve ninguno)». Corrige el inglés «If it it sees none».
+- Tiempo de lectura: los detalles plegados no cuentan. Abrir «Más detalles» durante ▶ para el avance.
+- Pruebas: `flujo.cjs` 232, `interfaz.mjs` 182, `juego.mjs` 50, `trazador.cjs` 27.
+
 ## Modo revisión · recorrido de lectura sin partida y pulsos del código en la batalla · 7 de noviembre de 2026
 
 - **Por qué.** Feedback del usuario: priorizar que se entienda el código antes que la precisión de lo que pasó; desligar la revisión de la batalla (sin haberlo corrido); ▶ a ritmo de lectura humana; ✕ no debe quitar la selección; tarjetas largas en el teléfono (S24 Ultra); montaña en toda la app; «Revisar» también en el menú ⋯; quitar el modo mapa/código/diagrama; en la batalla, pulsos de color en el código que se activa (inspirados en shock/wave de la bug tool).
