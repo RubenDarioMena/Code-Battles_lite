@@ -581,6 +581,8 @@
     registro: '<rect class="s1" x="3.5" y="4.5" width="17" height="15" rx="2"/><path class="s1" d="M3.5 9.5h17M9 9.5v10M12 13h5.5M12 16.2h4"/>',
     ayuda: '<path class="s1" d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v13.5H6.5A1.5 1.5 0 0 0 5 19zM5 19a1.5 1.5 0 0 0 1.5 1.5H19v-3"/><path class="s1" d="M9 8.5h6M9 12h4"/>',
     escenario: '<path class="s1" d="M12 20.5s-6.5-5.6-6.5-10.6a6.5 6.5 0 0 1 13 0c0 5-6.5 10.6-6.5 10.6z"/><circle class="s1" cx="12" cy="10" r="2.4"/>',
+    // Binoculares: el modo revisión (los mismos que en la barra del mapa).
+    revisar: '<circle class="s1" cx="6.5" cy="15.5" r="3.6"/><circle class="s1" cx="17.5" cy="15.5" r="3.6"/><path class="s1" d="M10.1 15.2h3.8M3.1 14.3l2.6-7.8a1.7 1.7 0 0 1 1.6-1.2h.6a1.7 1.7 0 0 1 1.7 1.7v6.4M20.9 14.3l-2.6-7.8a1.7 1.7 0 0 0-1.6-1.2h-.6a1.7 1.7 0 0 0-1.7 1.7v6.4"/>',
     ajustes: '<circle class="s1" cx="12" cy="12" r="3.1"/><path class="s1" d="M12 3v2.4M12 18.6V21M21 12h-2.4M5.4 12H3M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3L5.6 5.6"/>',
   };
   const MENU = [
@@ -588,6 +590,7 @@
     { id: "registro", t: () => t("disposicion.menu.registro"), c1: "#63D2E0" },
     { id: "ayuda", t: () => t("disposicion.menu.ordenes"), c1: "#CFA2FF" },
     { id: "escenario", t: () => $("t-escenario").textContent.trim(), c1: "#5FC28A" },
+    { id: "revisar", t: () => t("disposicion.menu.revisar"), c1: "#E0AE4A", fn: () => window.CMGRevisionJuego && window.CMGRevisionJuego.abrir(), ver: () => !(window.cmg && window.cmg.serie === "factory") },
     { id: "ajustes", t: () => t("disposicion.menu.ajustes"), c1: "#B7C2CC", fn: abrirAjustes },
   ];
   const $menu = document.createElement("div");
@@ -604,7 +607,7 @@
   }
   function pintarMenu() {
     const actual = zonaCodigo.dataset.pestana || "programa";
-    const botones = MENU.map(m => {
+    const botones = MENU.filter(m => !m.ver || m.ver()).map(m => {
       const esPestana = !m.fn, encendido = esPestana ? m.id === actual : m.activo ? m.activo() : false;
       const boton = document.createElement("button");
       boton.type = "button";

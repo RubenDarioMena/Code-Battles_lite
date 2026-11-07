@@ -8,10 +8,11 @@
  *   { k: "código" } código suelto      { v: valor }   valor de la traza (true verde, false rojo…)
  *   { f: fila }     número de una fila del diagrama, con su color
  *   { lista: [] }   líneas de consola  { br: 1 }      salto
+ *   { mas: [] }     detalles plegados («Más detalles»): lo secundario de una tarjeta, para que quepa en el teléfono
  * Las plantillas están en textos.js (revision.*) y se interpolan con fichas, no con texto. */
 (function (raiz, fabrica) {
-  if (typeof module === "object" && module.exports) module.exports = fabrica(raiz.CMGCatalogo, raiz.CMGFlujo, raiz.CMGI18n);
-  else raiz.CMGExplicar = fabrica(raiz.CMGCatalogo, raiz.CMGFlujo, raiz.CMGI18n);
+  if (typeof module === "object" && module.exports) module.exports = fabrica(raiz.CMGCatalogoRevision, raiz.CMGFlujo, raiz.CMGI18n);
+  else raiz.CMGExplicar = fabrica(raiz.CMGCatalogoRevision, raiz.CMGFlujo, raiz.CMGI18n);
 })(typeof globalThis !== "undefined" ? globalThis : self, function (C, FL, I18N) {
   "use strict";
   const verdad = FL.verdad;
@@ -375,22 +376,26 @@
     const cuerpo = [];
     let tipo = t("que.codigo");
     const en = (clave, p) => cuerpo.push(...tpl(clave, p), " ");
+    // Lo secundario (de quién es, notas, resultados posibles) va plegado: la tarjeta cabe en el teléfono.
+    const mas = [];
+    const masEn = (clave, p) => mas.push(...(mas.length ? [{ br: 1 }] : []), ...tpl(clave, p));
+    const masTexto = (k) => { if (existe(k)) mas.push(...(mas.length ? [{ br: 1 }] : []), t(k)); };
     if (r && r.clase === "propiedad") {
       tipo = t("que.propiedad", { id: r.objeto || P.id || "" });
       cuerpo.push(t(C.clave(r.tipo, r.def, "que")), " ");
-      if (r.propio && n.tipo === "Identifier") en("que.b.propia", { id: P.id || "" });
-      if (!r.propio) en("que.b.ajena");
-      if (r.nodoObjeto != null) en("que.b.objetoNombre", { c: [{ c: r.nodoObjeto }], id: r.objeto });
-      if (existe(C.clave(r.tipo, r.def, "nota"))) cuerpo.push(t(C.clave(r.tipo, r.def, "nota")), " ");
+      if (r.propio && n.tipo === "Identifier") masEn("que.b.propia", { id: P.id || "" });
+      if (!r.propio) masEn("que.b.ajena");
+      if (r.nodoObjeto != null) masEn("que.b.objetoNombre", { c: [{ c: r.nodoObjeto }], id: r.objeto });
+      masTexto(C.clave(r.tipo, r.def, "nota"));
       if (ahora !== undefined) cuerpo.push({ br: 1 }, ...tpl("que.b.ahora", { v: [{ v: ahora }] }));
     } else if (r && r.clase === "metodo" && r.def) {
       tipo = t("que.metodo", { clase: t("que.clase." + r.def.clase), id: r.objeto || P.id || "" });
       cuerpo.push(t(C.clave(r.tipo, r.def, "hace")), " ");
-      if (!r.propio && r.objeto && r.def.clase === "lectura") en("que.b.ajena");
-      if (r.propio && r.def.clase === "orden") en("que.b.ordenPropia");
-      if (existe(C.clave(r.tipo, r.def, "nota"))) cuerpo.push(t(C.clave(r.tipo, r.def, "nota")), " ");
+      if (!r.propio && r.objeto && r.def.clase === "lectura") masEn("que.b.ajena");
+      if (r.propio && r.def.clase === "orden") masEn("que.b.ordenPropia");
+      masTexto(C.clave(r.tipo, r.def, "nota"));
       const posibles = [...r.def.resultados.map(v => [v, C.claveResultado(r.tipo, r.def, v)]), ...(r.def.nulo ? [[null, C.clave(r.tipo, r.def, "resultado.null")]] : [])].filter(([, k]) => existe(k));
-      if (posibles.length) { cuerpo.push({ br: 1 }, t("que.b.puede"), " "); posibles.forEach(([v, k], j) => cuerpo.push(j ? " · " : "", { v }, " ", t(k))); cuerpo.push("."); }
+      if (posibles.length) { mas.push(...(mas.length ? [{ br: 1 }] : []), t("que.b.puede")); posibles.forEach(([v, k]) => mas.push({ br: 1 }, "· ", { v }, " ", t(k))); }
       if (ahora !== undefined) cuerpo.push({ br: 1 }, ...tpl("que.b.devolvio", { v: [{ v: ahora }] }));
     } else if (r && r.clase === "objeto") {
       tipo = t("que.objeto", { nombre: t(`cat.${r.tipo.clave}.nombre`), id: r.objeto });
@@ -469,9 +474,11 @@
       tipo = t("que.expresion"); en("que.b.expresion");
       if (ahora !== undefined) cuerpo.push({ br: 1 }, ...tpl("que.b.dio", { v: [{ v: ahora }] }));
     }
+    if (mas.length) cuerpo.push({ mas });
     // Si es una fila del diagrama (o su condición): cuántas veces pasó por ella en toda la ejecución.
+    // En el recorrido de lectura no se ejecutó nada: no hay cuentas.
     const fila = filaCuenta;
-    if (fila != null && R) {
+    if (fila != null && R && !R.estructural) {
       const c = R.cuentas.get(fila);
       const veces = c ? c.veces : 0;
       cuerpo.push({ br: 1 }, ...(veces === 0 ? [t("que.b.nunca")] : veces === 1 ? [t("que.b.vez")] : tpl("que.b.veces", { n: veces })));
@@ -480,5 +487,163 @@
     return { titulo: [{ c: i }], tipo, cuerpo };
   }
 
-  return { tpl, t, num, resolver, valor, expr, pred, pregunta, etiqueta, textoSalida, condicion, detalle, queEs };
+  // ---------- Recorrido de lectura: qué hace cada fila, en lenguaje de personas ----------
+  // Sin valores ni traza: sale del árbol, del diagrama y del catálogo. Frases cortas (caben en el teléfono)
+  // que dicen qué hace la fila y por dónde sigue el programa después.
+  const fichaFila = (i) => [{ f: i }];
+  function rango(P, F, i) {
+    const d = FL.dentro(P, F, i);
+    if (!d.length) return null;
+    return d.length === 1 ? tpl("r.fila", { a: fichaFila(d[0]) }) : tpl("r.filas", { a: fichaFila(d[0]), b: fichaFila(d.at(-1)) });
+  }
+  // ¿Una variable guarda un true/false? (para decir «es true» y no «tiene un valor»).
+  function booleana(P, i) {
+    const N = P.nodos, n = N[i];
+    if (n.tipo === "Literal") return typeof n.valor === "boolean";
+    if ((n.tipo === "BinaryExpression" && OPS[n.op]) || (n.tipo === "UnaryExpression" && n.op === "!")) return true;
+    if (n.tipo === "LogicalExpression" && (n.op === "&&" || n.op === "||")) return booleana(P, P.hijo(i, "left")) && booleana(P, P.hijo(i, "right"));
+    const r = resolver(P, i);
+    return !!(r && r.clase === "propiedad" && r.def.tipo === "booleano");
+  }
+  // Una condición dicha como frase: «LAU-02 está atascado», «pos tiene un valor», «misiles es menor que 3».
+  function condicionHumana(P, i) {
+    const N = P.nodos, n = N[i];
+    if (n.tipo === "BinaryExpression" && OPS[n.op]) return pred(P, i);
+    if (n.tipo === "LogicalExpression" && (n.op === "&&" || n.op === "||")) return tpl(n.op === "&&" ? "p.y" : "p.o", { a: condicionHumana(P, P.hijo(i, "left")), b: condicionHumana(P, P.hijo(i, "right")) });
+    if (n.tipo === "UnaryExpression" && n.op === "!") {
+      const a = P.hijo(i, "argument"), r = resolver(P, a);
+      if (r && r.clase === "propiedad" && r.def.tipo === "booleano") return textoCat(r, "no", { s: sujeto(P, r) }) || tpl("p.no", { x: expr(P, a) });
+      if (N[a].tipo === "Identifier") return tpl(esBooleana(P, a) ? "r.esFalse" : "r.sinValor", { x: [{ c: a }] });
+      return tpl("p.no", { x: condicionHumana(P, a) });
+    }
+    const r = resolver(P, i);
+    if (r && r.clase === "propiedad" && r.def.tipo === "booleano") return textoCat(r, "si", { s: sujeto(P, r) }) || [{ c: i }];
+    if (n.tipo === "Identifier") return esBooleana(P, i) ? tpl("p.cierto", { x: [{ c: i }] }) : tpl("r.hay", { x: [{ c: i }] });
+    if (n.tipo === "Literal") return tpl("p.cierto", { x: [{ c: i }] });
+    // Una llamada: la lectura del juego puede dar null; una función propia o de JavaScript, true o false.
+    if (n.tipo === "CallExpression" && !(r && r.def && r.def.nulo)) return tpl("r.daTrue", { x: [{ c: i }] });
+    return tpl("r.hay", { x: [{ c: i }] });
+  }
+  function esBooleana(P, i) {
+    const v = P.variables.get(P.nodos[i].nombre);
+    if (!v || v.clase === "param") return false;
+    const ini = P.hijo(v.declarador, "init");
+    return ini != null && booleana(P, ini);
+  }
+  // Por dónde sigue una fila cuando termina: la fila, el bucle al que vuelve o el final.
+  function adonde(P, F, f, sig, { salta = false } = {}) {
+    if (sig == null) return [t(f.seccion != null ? "r.acabaFuncion" : "r.acaba")];
+    const g = F.filas[sig];
+    if (g.tipo === "bucle" && (g.i === f.bucle || P.desciende(f.nodo, g.nodo))) return tpl("r.vuelve", { f: fichaFila(sig) });
+    return tpl(salta ? "r.salta" : "r.sigue", { f: fichaFila(sig) });
+  }
+  function llamadaHumana(P, F, f, i) {
+    const r = resolver(P, i);
+    if (r && r.def && r.def.clase === "consola") return tpl("r.imprime", { e: unir(P.hijos(i, "arguments").map(a => expr(P, a)), " ") });
+    if (r && r.def) {
+      const out = [...(textoLlamada(P, r, i, "breve") || textoLlamada(P, r, i, "hace") || tpl("r.ejecuta", { c: [{ c: i }] }))];
+      const a0 = P.hijos(i, "arguments")[0];
+      if (r.def.clase === "orden" && r.def.resultados.includes("sin_objetivo") && a0 != null && P.nodos[a0].tipo === "Identifier" && !f.rama) out.push(" ", ...tpl("r.siNullParado", { x: [{ c: a0 }] }));
+      return out;
+    }
+    const cal = P.hijo(i, "callee");
+    if (P.nodos[cal].tipo === "Identifier" && P.funciones.has(P.nodos[cal].nombre) && F.filaDe.has(P.funciones.get(P.nodos[cal].nombre)))
+      return tpl("r.llama", { f: [{ k: P.nodos[cal].nombre }], n: fichaFila(F.filaDe.get(P.funciones.get(P.nodos[cal].nombre))) });
+    return tpl("r.ejecuta", { c: [{ c: i }] });
+  }
+  // Lo que se guarda en una variable: una lectura del juego dice qué busca y qué pasa si no hay nada.
+  function guardaHumana(P, F, f, x, ini) {
+    const N = P.nodos;
+    const sinAwait = N[ini].tipo === "AwaitExpression" ? P.hijo(ini, "argument") : ini;
+    const r = N[sinAwait].tipo === "CallExpression" ? resolver(P, sinAwait) : null;
+    if (r && r.def && r.clase === "metodo" && r.def.clase === "lectura") {
+      const out = [...(textoLlamada(P, r, sinAwait, "breve") || textoLlamada(P, r, sinAwait, "hace") || [])];
+      out.push(" ", ...tpl("r.loGuarda", { x }));
+      if (r.def.nulo && existe(C.clave(r.tipo, r.def, "resultado.null"))) out.push(" ", ...tpl("r.quedaNull", { x, r: t(C.clave(r.tipo, r.def, "resultado.null")) }));
+      return out;
+    }
+    if (N[ini].tipo === "LogicalExpression" && N[ini].op === "??") {
+      const partes = cadenaNula(P, ini).map(p => { const rp = N[p].tipo === "CallExpression" ? resolver(P, p) : null; return rp && rp.def ? (textoLlamada(P, rp, p, "etiqueta") || [{ c: p }]) : expr(P, p); });
+      return tpl("r.guardaPrimero", { x, l: unir(partes, " · ") });
+    }
+    if (esFuncion(P, ini)) return tpl("r.funcionGuardada", { x });
+    if (esFijo(P, ini)) return tpl(N[f.nodo].clase === "const" ? "r.empiezaConst" : "r.empiezaLet", { x, v: [{ k: P.txt(ini) }] });
+    return tpl("r.guarda", { x, e: expr(P, ini) });
+  }
+  function pasoHumano(P, F, f) {
+    const N = P.nodos, s = f.nodo, n = N[s];
+    if (n.tipo === "VariableDeclaration") {
+      return unir(P.hijos(s, "declarations").map(d => {
+        const nom = P.hijo(d, "id"), ini = P.hijo(d, "init"), x = [{ c: nom }];
+        return ini == null ? tpl("r.declara", { x }) : guardaHumana(P, F, f, x, ini);
+      }), " ");
+    }
+    if (n.tipo === "ExpressionStatement") {
+      const e = P.hijo(s, "expression"), x = N[e];
+      if (x.tipo === "AwaitExpression") { const a = P.hijo(e, "argument"); return N[a].tipo === "CallExpression" ? llamadaHumana(P, F, f, a) : tpl("r.espera", { e: [{ c: a }] }); }
+      if (x.tipo === "AssignmentExpression") {
+        const l = P.hijo(e, "left"), d = P.hijo(e, "right"), xl = [{ c: l }];
+        if (x.op === "=" && N[d].tipo === "BinaryExpression" && (N[d].op === "+" || N[d].op === "-") && P.txt(P.hijo(d, "left")) === P.txt(l))
+          return tpl(N[d].op === "+" ? "r.suma" : "r.resta", { k: expr(P, P.hijo(d, "right")), x: xl });
+        if (x.op === "+=" || x.op === "-=") return tpl(x.op === "+=" ? "r.suma" : "r.resta", { k: expr(P, d), x: xl });
+        if (x.op === "=") { const sinAwait = N[d].tipo === "AwaitExpression" ? P.hijo(d, "argument") : d, r = N[sinAwait].tipo === "CallExpression" ? resolver(P, sinAwait) : null; if (r && r.def && r.def.clase === "lectura") return guardaHumana(P, F, f, xl, d); }
+        return tpl("r.asigna", { x: xl, e: x.op === "=" ? expr(P, d) : [{ c: e }] });
+      }
+      if (x.tipo === "UpdateExpression") return tpl(x.op === "++" ? "r.suma" : "r.resta", { k: "1", x: [{ c: P.hijo(e, "argument") }] });
+      if (x.tipo === "CallExpression") return llamadaHumana(P, F, f, e);
+      return tpl("r.ejecuta", { c: [{ c: e }] });
+    }
+    if (n.tipo === "ReturnStatement") { const a = P.hijo(s, "argument"); return a != null ? tpl("r.devuelve", { e: expr(P, a) }) : [t("r.termina")]; }
+    if (n.tipo === "BreakStatement") return f.bucle != null ? tpl("r.break", { f: fichaFila(f.bucle), a: adonde(P, F, f, f.sig) }) : [t("que.b.break")];
+    if (n.tipo === "ContinueStatement") { const b = f.sig != null ? f.sig : f.bucle; return b != null ? tpl("r.continue", { f: fichaFila(b) }) : [t("que.b.continue")]; }
+    if (n.tipo === "ThrowStatement") return tpl("r.lanza", { e: expr(P, P.hijo(s, "argument")) });
+    return tpl("r.ejecuta", { c: [{ c: s }] });
+  }
+  function describir(P, F, i) {
+    const f = F.filas[i], N = P.nodos, n = N[f.nodo];
+    const filas = rango(P, F, i);
+    let out;
+    if (f.tipo === "bucle") {
+      const cuerpo = filas || [t("r.vacio")];
+      const conBreak = FL.dentro(P, F, i).some(k => F.filas[k].salto === "break" && F.filas[k].bucle === i);
+      if (n.tipo === "ForOfStatement" || n.tipo === "ForInStatement") {
+        const l = P.hijo(f.nodo, "left"), x = N[l].tipo === "VariableDeclaration" ? P.hijo(P.hijos(l, "declarations")[0], "id") : l;
+        out = tpl(n.tipo === "ForOfStatement" ? "r.porCada" : "r.porCadaClave", { filas: cuerpo, x: [{ c: x }], l: expr(P, P.hijo(f.nodo, "right")) });
+      } else if (f.infinito) out = tpl(conBreak ? "r.siempreBreak" : "r.siempre", { filas: cuerpo });
+      else if (n.tipo === "DoWhileStatement") out = tpl("r.hastaQue", { filas: cuerpo, c: condicionHumana(P, f.test) });
+      else out = tpl("r.mientras", { filas: cuerpo, c: condicionHumana(P, f.test) });
+      if (!f.infinito) out.push(" ", ...tpl("r.alTerminar", { a: adonde(P, F, f, f.sig) }));
+    } else if (f.tipo === "decision") {
+      const si = f.si != null ? tpl("r.sigue", { f: fichaFila(f.si) }) : [t("r.nada")];
+      const no = f.no != null ? tpl(F.filas[f.no].cadena ? "r.prueba" : "r.va", { f: fichaFila(f.no) }) : adonde(P, F, f, f.sig, { salta: true });
+      out = tpl("r.si", { c: condicionHumana(P, f.test), a: si, b: no });
+    } else if (f.tipo === "funcion") {
+      const nom = n.tipo === "FunctionDeclaration" ? P.hijo(f.nodo, "id") : null;
+      const nombre = nom != null ? N[nom].nombre : (n.padre != null && N[n.padre].tipo === "VariableDeclarator" ? N[P.hijo(n.padre, "id")].nombre : "…");
+      out = filas ? tpl("r.funcion", { f: [{ k: nombre }], filas }) : tpl("r.funcionVacia", { f: [{ k: nombre }] });
+    } else if (f.tipo === "intento") out = tpl("r.intenta", { filas: filas || [t("r.vacio")] });
+    else if (f.tipo === "segun") out = tpl("r.segun", { e: expr(P, P.hijo(f.nodo, "discriminant")) });
+    else {
+      out = [...pasoHumano(P, F, f)];
+      // Una salida lateral: solo cuando su decisión da true.
+      const dueña = f.lateral ? F.filas.find(d => d.salida && d.salida.tipo === "fila" && d.salida.fila === i) : null;
+      if (dueña) out.push(" ", ...tpl("r.soloSi", { f: fichaFila(dueña.i) }));
+      // La última fila de una vuelta: después vuelve al bucle (un continue ya lo dice).
+      const riel = F.rieles.find(r => r.de === i);
+      if (riel && f.salto !== "continue") out.push(" ", ...tpl("r.vuelveA", { f: fichaFila(riel.a) }));
+      else if (f.sig == null && !f.salto && f.seccion == null && !f.bucle) out.push(" ", t("r.ultima"));
+    }
+    return out;
+  }
+  // El final del recorrido: si el programa no acaba solo, por qué.
+  function resumen(P, F, R) {
+    const out = [t("r.fin")];
+    const L = R && R.principal != null ? F.filas[R.principal] : null;
+    const sale = L && FL.dentro(P, F, L.i).some(k => F.filas[k].salto === "break" && F.filas[k].bucle === L.i);
+    if (L && L.infinito && !sale) out.push(" ", ...tpl(P.serie && P.serie !== "libre" ? "r.finSiempreJuego" : "r.finSiempre", { f: fichaFila(L.i) }));
+    if (F.secciones.length) out.push(" ", ...tpl("r.finFunciones", { f: unir(F.secciones.map(fichaFila), ", ") }));
+    return out;
+  }
+
+  return { tpl, t, num, resolver, valor, expr, pred, pregunta, etiqueta, textoSalida, condicion, detalle, queEs, describir, resumen };
 });

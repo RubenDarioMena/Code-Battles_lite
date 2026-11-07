@@ -107,5 +107,13 @@ console.log(total)`;
   eq(l.eventos.filter(e => e[0] === bucle && e.length > 1).map(e => e[1]), [3, 8, 5], 'una vuelta por elemento, con su valor');
   eq(l.nodos.filter(x => x.ganchos.includes('v') && x.campo === 'id').length, 0, 'ningún nombre declarado lleva gancho');
 
+  // Filtro (los pulsos del juego): solo los ganchos pedidos; w sigue enviando el lote en cada await.
+  const T = globalThis.CMGTrazador || require('../motor/trazador.js');
+  const f = T.instrumentar('while (true) {\n  const p = autoTarget("drone", "visual")\n  if (p) regularShoot(p)\n  await esperar(0.25)\n}', { acorn,
+    filtro: (g, nodo, padre) => g === 's' ? false : g === 'c' ? padre.type === 'IfStatement' : nodo.type === 'CallExpression' && nodo.callee.type === 'Identifier' && nodo.callee.name !== 'esperar' });
+  const cuerpo = f.codigo.slice(f.codigo.indexOf('})();') + 5);
+  eq([(cuerpo.match(/__T\.s\(/g) || []).length, (cuerpo.match(/__T\.c\(/g) || []).length, (cuerpo.match(/__T\.v\(/g) || []).length, (cuerpo.match(/__T\.w\(/g) || []).length], [0, 1, 2, 1], 'filtro: sin sentencias; la condición del if; las dos llamadas; el await');
+  eq(f.codigo.split('\n').length, 5, 'filtro: mismas líneas');
+
   console.log(`trazador: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

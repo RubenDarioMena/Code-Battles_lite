@@ -1,7 +1,8 @@
 /* Catálogo del modo revisión · qué objetos, funciones y propiedades tiene el juego.
  *
+ * (window.CMGCatalogoRevision: CMGCatalogo ya es el catálogo de atajos de la paleta del editor, shared/editor/plantillas.js.)
  * Es lo único que hay que ampliar cuando el juego crece: cada máquina o robot nuevo se registra una vez con
- * CMGCatalogo.registrar({ … }) y añade sus frases en textos.js (español e inglés). Desde ese momento sus
+ * CMGCatalogoRevision.registrar({ … }) y añade sus frases en textos.js (español e inglés). Desde ese momento sus
  * lecturas y órdenes se explican solas en el diagrama, en la narración y en la tarjeta «¿qué es?».
  *
  *   registrar({
@@ -16,12 +17,13 @@
  *
  * Textos de cada miembro (revision.cat.<clave>.<miembro>.<campo>):
  *   propiedad: que, nota?; si es booleana además si, no, pregunta, preguntaNo ({s} = la máquina).
- *   método:    hace, etiqueta ({0}, {1}… = argumentos), corta? (para dentro de una expresión), arg0…,
+ *   método:    hace, etiqueta ({0}, {1}… = argumentos), corta? (para dentro de una expresión), breve? (frase corta
+ *              con los argumentos para el recorrido de lectura; si falta, se usa hace), arg0…,
  *              resultado.<valor> (o revision.cat.<resultadosDe>.resultado.<valor>), resultado.null si nulo, nota?.
  * Los argumentos con grupo usan revision.cat.grupo.<grupo>.<valor> y su .detalle. */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
-  else raiz.CMGCatalogo = fabrica();
+  else raiz.CMGCatalogoRevision = fabrica();
 })(typeof globalThis !== "undefined" ? globalThis : self, function () {
   "use strict";
   const tipos = [];

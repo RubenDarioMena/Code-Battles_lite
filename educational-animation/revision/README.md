@@ -2,11 +2,15 @@
 
 La pantalla se parte en dos:
 - **el código**, que no se edita;
-- **el mismo programa como diagrama de flujo**, al estilo de la infografía de los seis cafés, y una línea que cuenta el paso actual con los valores reales.
+- **el mismo programa como diagrama de flujo**, al estilo de la infografía de los seis cafés, y una línea que dice qué hace cada fila en lenguaje de personas.
+
+Por defecto es un **recorrido de lectura** (`FL.estructura`, `E.describir`): fila a fila, en orden de lectura, sin ejecutar el programa. No hace falta haberlo corrido; primero se entiende el código y después la partida. `?modo=traza` enseña en cambio la ejecución grabada (`grabar.mjs`) con sus valores reales.
+
+**Al leer.** ▶ avanza a ritmo de lectura: cada paso dura lo que se tarda en leer su texto con un 15 % más para mirar el código y el diagrama (238 palabras por minuto en silencio, Brysbaert 2019, y 5,5 caracteres por palabra en nuestras frases: ≈ 21,8 caracteres por segundo; mínimo 1,2 s). Velocidades 0,5× 0,75× 1× 1,25× 1,5× 2× 4× (botón, o + y −). ✕ oculta el texto pero deja la selección en el código y el diagrama; el botón del globo (o T) lo vuelve a mostrar. Esc quita la selección. En las tarjetas, lo secundario va plegado en «Más detalles».
 
 En el teléfono van apilados (código arriba, diagrama abajo); en el escritorio, uno al lado del otro (código a la izquierda, diagrama y narración a la derecha, franja de tiempo abajo de borde a borde).
 
-**En el juego** (War, JavaScript) se abre con los binoculares de la barra del mapa: repite el último intento con la misma semilla y los programas instrumentados, y lo explica. En el escritorio, el botón «junto» apila código y diagrama en el panel del código y deja el mapa en su sitio: el mapa sigue al paso, así que código, diagrama y mundo se reproducen a la vez (abajo, «Dentro del juego»).
+**En el juego** (War, JavaScript) se abre con los binoculares de la barra del mapa o con «Revisar» del menú ⋯ del teléfono: lee el código que hay en el editor (abajo, «Dentro del juego»).
 
 Cada fila del diagrama tiene **número y color propios**, como cada campo de un formulario que ilumina su parte del texto generado. El número y el color se repiten en el margen del código y en la franja de tiempo. Al recorrer el programa, la fila activa y su fragmento de código se iluminan juntos. Tocar, o señalar con el ratón, cualquier cosa de un lado ilumina su pareja en el otro:
 - el código ilumina su fila y explica qué es;
@@ -17,7 +21,7 @@ Cada fila del diagrama tiene **número y color propios**, como cada campo de un 
 
 **El asa** entre el código y el diagrama se arrastra como el divisor del juego (horizontal apilado, vertical en el escritorio). En el extremo, el diagrama con su lenguaje natural ocupa toda la pantalla. Doble clic (o Intro) alterna entre eso y el reparto anterior, y el reparto se recuerda en el navegador.
 
-**La barra** lleva una montaña nevada (ver el mundo: el mapa) y `</>` (el código normal); en el escritorio del juego, también «junto». Fuera del juego, la montaña y `</>` son placeholders que vuelven al juego.
+**La barra** lleva una montaña nevada (ver el mundo: el mapa; la misma montaña que ahora usa todo el juego) y `</>` (el código normal). Fuera del juego, la montaña y `</>` son placeholders que vuelven al juego.
 
 **No hay texto escrito para ningún programa.** Todo sale de tres fuentes:
 - **el árbol del programa** (acorn), que da la forma del diagrama y las frases;
@@ -68,15 +72,14 @@ Ejemplos: `?ej=cafes`, `?ej=pares` y `?ej=reto-5`. «Tu código…» ejecuta en 
 
 ## Dentro del juego
 
-`Prototypes/Rocket Launcher/js/revision-juego.js` y unos ganchos en `juego.js` (`cmg.revision`):
-1. Al terminar un intento de War, el juego guarda sus programas, su semilla y su resultado.
-2. Los binoculares cargan el motor de esta carpeta (solo la primera vez), instrumentan los programas con el trazador y **repiten el intento** a velocidad turbo, sin contarlo como intento. El juego guarda la traza y **una foto del mundo por paso** (0,05 s).
-3. La revisión se monta con esa grabación y comprueba que la partida es la misma que la del intento. La traza es idéntica a la de `grabar.mjs`.
-4. Al cambiar de paso, el mapa enseña la foto de ese instante (`cmg.revision.ver`); al salir, el mundo vuelve al final del intento. Ejecutar, Reiniciar o cambiar de reto cierran la revisión.
+`Prototypes/Rocket Launcher/js/revision-juego.js` y `cmg.revision` en `juego.js` (los programas del reto, el elegido en el editor y el título):
+- Los binoculares cargan el motor de esta carpeta (solo la primera vez), leen con acorn el código actual de cada lanzador (sin ejecutar nada) y montan el recorrido de lectura a pantalla completa. Un error de sintaxis se avisa con su línea.
+- Python y Factory todavía no: se avisa (con programas mixtos, salen solo los de JavaScript).
+- El modo mapa/código/diagrama a la vez (la repetición del intento con fotos del mundo) se quitó: daba muchos problemas y el resultado era menos claro.
 
-**Al compás de la partida.** Con el mapa al lado, ▶ avanza como un juego de programar: mientras el programa corre, el mundo está quieto y se leen sus pasos (deprisa si la vuelta repite el camino de la anterior); mientras espera (`await esperar`), el mundo se mueve a velocidad de juego hasta el paso siguiente. El botón 1× cambia la velocidad (½×, 1×, 2×, 4×).
+**Pulsos en el editor durante la partida** (`js/pulsos.js`). Mientras el programa corre, cada fragmento que actúa late con el color de su fila de este diagrama (una onda y un anillo, como la navegación de la bug tool): las lecturas del juego solo si dan algo (ni null ni false), las órdenes (no `regularShoot(null)`), la consola y las condiciones de `if` y `?:` solo cuando se cumplen; las de los bucles, nunca. El trazador instrumenta los programas de JavaScript con un filtro (solo esos ganchos: menos coste y mensajes de error limpios); la partida es la misma que sin él (`pruebas/juego.mjs` lo compara con la grabada). En Python pulsa la línea de cada lectura con valor, orden o consola.
 
-Python y Factory todavía no: los binoculares lo avisan.
+**Catálogo.** El global del catálogo de esta carpeta es `CMGCatalogoRevision`: `CMGCatalogo` ya es el de la paleta del editor (`shared/editor/plantillas.js`) y cargarlo en el juego lo pisaba.
 
 ## Cómo funciona
 
@@ -103,7 +106,7 @@ traza ──flujo.js──▶ pasos (una visita a una fila) y vueltas ──expl
 Cada máquina se registra una vez en `motor/catalogo.js` y pone sus frases en `motor/textos.js`, en los dos idiomas. Desde ese momento, sus lecturas y órdenes salen en el diagrama, en la narración y en la tarjeta «¿qué es?». No hace falta tocar las plantillas.
 
 ```js
-CMGCatalogo.registrar({
+CMGCatalogoRevision.registrar({
   clave: "dron", patron: /^DRN_\d+$/, idDe: (n) => n.replace(/_/g, "-"),
   propiedades: { bateria: { tipo: "numero" } },
   metodos: { patrullar: { clase: "orden", args: [{}], resultados: ["ok"] } },
@@ -120,7 +123,7 @@ CMGCatalogo.registrar({
 'revision.cat.dron.patrullar.resultado.ok': 'el dron sale a patrullar',
 ```
 
-- `CMGCatalogo.clavesDe(tipo)` dice qué claves necesita un tipo.
+- `CMGCatalogoRevision.clavesDe(tipo)` dice qué claves necesita un tipo.
 - `pruebas/flujo.cjs` comprueba que todas existen en español e inglés, con los mismos huecos, y registra este mismo dron.
 
 Una propiedad booleana añade `si`, `no`, `pregunta` y `preguntaNo` («¿{s} está atascado?»). Un método que se usa dentro de una expresión puede añadir `corta`: el `autoTarget` de `pos` es solo «dron».

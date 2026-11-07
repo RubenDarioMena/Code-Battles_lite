@@ -147,10 +147,10 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await page.click('#paleta .atajo[data-ico="comentar"]');
   eq(await evaluar(() => window.cmg.codigo.value), '// regularShoot(pos);', 'comentar desde la barra de inserción');
 
-  // Menú ⋯: pestañas y Ajustes (el modo sin teclado tiene su botón en la barra).
+  // Menú ⋯: pestañas, Revisar (modo revisión) y Ajustes (el modo sin teclado tiene su botón en la barra).
   await page.click('#b-menu-cod');
   eq(await evaluar(() => [...document.querySelectorAll('#menu-cod [data-menu]')].map(b => b.dataset.menu + (b.classList.contains('activa') ? '*' : ''))),
-    ['programa*', 'registro', 'ayuda', 'escenario', 'ajustes'], 'el menú ⋯ ofrece pestañas y Ajustes con la pestaña actual encendida');
+    ['programa*', 'registro', 'ayuda', 'escenario', 'revisar', 'ajustes'], 'el menú ⋯ ofrece pestañas, Revisar y Ajustes con la pestaña actual encendida');
   await page.click('#menu-cod [data-menu="registro"]');
   eq(await evaluar(() => [document.querySelector('#zona-codigo').dataset.pestana, !!document.querySelector('#t-programa').offsetParent, document.querySelector('#menu-cod').hidden]), ['registro', true, true], 'Registro desde el menú; sus pestañas aparecen para volver');
   await page.click('#t-programa');

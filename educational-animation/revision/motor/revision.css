@@ -133,8 +133,8 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 .rv-k { font: 600 .92em var(--f-codigo); color: var(--tinta); }
 .rv-v { font: 700 .92em var(--f-codigo); color: var(--tono); }
 
-/* Narración: una frase del paso (o lo que es lo tocado), con el color de su fila. */
-.rv-narra { --c: var(--tenue); min-height: 76px; max-height: 34vh; overflow: auto; padding: 9px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+/* Narración: una frase del paso (o lo que es lo tocado), con el color de su fila. ✕ la oculta (la selección se queda). */
+.rv-narra { --c: var(--tenue); position: relative; min-height: 76px; max-height: 34vh; overflow: auto; padding: 9px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
   border-top: 1px solid var(--linea); background: linear-gradient(90deg, color-mix(in oklab, var(--c) 9%, transparent), transparent 55%), var(--superficie);
   box-shadow: inset 3px 0 0 var(--c); }
 .rv-narra-txt > .rv-num { margin-right: 6px; vertical-align: 1px; }
@@ -143,6 +143,18 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 .rv-narra-titulo { min-width: 0; overflow: hidden; }
 .rv-narra-tipo { flex: 1; }
 .rv-narra .rv-cerrar { margin-left: auto; width: 28px; height: 28px; }
+.rv-narra[hidden] { display: none; }
+.rv-narra > .rv-ocultar { float: right; margin: -2px -6px 2px 10px; }
+/* Lo secundario de una tarjeta, plegado («Más detalles»). */
+.rv-mas { margin-top: 4px; }
+.rv-mas > summary { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; list-style: none; font: 700 12px var(--f-codigo); color: var(--tenue); padding: 2px 0; }
+.rv-mas > summary::-webkit-details-marker { display: none; }
+.rv-mas > summary::before { content: "▸"; color: var(--c, var(--tenue)); transition: transform .15s; }
+.rv-mas[open] > summary::before { transform: rotate(90deg); }
+.rv-mas > summary:hover, .rv-mas > summary:focus-visible { color: var(--tinta); }
+.rv-mas-txt { margin-top: 3px; padding-left: 10px; border-left: 2px solid color-mix(in oklab, var(--c, var(--tenue)) 45%, transparent); font-size: .93em; color: color-mix(in oklab, var(--tinta) 88%, var(--tenue)); }
+.rv-texto[aria-pressed="false"] { color: var(--tenue); }
+.rv-texto[aria-pressed="true"] { color: var(--foco); border-color: color-mix(in oklab, var(--foco) 55%, var(--linea)); }
 .rv-narra-txt { margin: 0; font: 400 15px/1.5 var(--f-texto); color: var(--tinta); text-wrap: pretty; }
 .rv-pista { margin: 4px 0 0; font: 400 12px var(--f-texto); color: var(--apagado); }
 .rv-consola { margin: 6px 0 0; padding: 6px 10px; list-style: none; border-radius: 8px; background: #05080A; border: 1px solid var(--linea); font: 400 13px/1.5 var(--f-codigo); color: var(--tinta); max-height: 9em; overflow: auto; }
@@ -177,11 +189,6 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 .rv[data-disposicion="lado"] .rv-narra { grid-area: narra; max-height: 30vh; }
 .rv[data-disposicion="lado"] .rv-pie { grid-area: pie; }
 .rv-vel { width: auto; min-width: 42px; padding: 0 8px; font: 700 12.5px var(--f-codigo); color: var(--tenue); }
-/* «Junto»: código y diagrama apilados, pocos botones; el mapa del juego queda al otro lado. */
-.rv-junto[aria-pressed="true"] { color: var(--foco); border-color: var(--foco); background: color-mix(in oklab, var(--foco) 14%, var(--superficie)); }
-.rv[data-junto] .rv-ejemplos, .rv[data-junto] .rv-mundo { display: none; }
-.rv[data-junto] .rv-titulo { font-size: 12.5px; }
-@media (max-width: 899px) { .rv-junto { display: none; } }
 
 /* Pulsación larga: una barra se llena en 1,2 s y abre la documentación. */
 .rv-flujo [data-presion] { position: relative; }
@@ -224,6 +231,12 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
   .rv-num { width: 22px; height: 22px; font-size: 10.5px; }
   .rv-con { height: 17px; }
   .rv-narra-txt { font-size: 14px; }
-  .rv-boton { width: 38px; height: 38px; }
+  /* En el teléfono la tarjeta cabe en unas pocas líneas; lo demás, plegado o con scroll. */
+  .rv-narra { min-height: 64px; max-height: 24vh; padding-top: 7px; padding-bottom: 8px; }
+  .rv-pista { font-size: 11.5px; }
+  .rv-pie { gap: 8px; }
+  .rv-botones { gap: 4px; }
+  .rv-boton { width: 36px; height: 38px; }
+  .rv-vel { min-width: 40px; padding: 0 5px; }
 }
 @media (prefers-reduced-motion: reduce) { .rv *, .rv *::before, .rv *::after { transition: none !important; } .rv-doc, .rv-doc-pulso { animation: none; } }

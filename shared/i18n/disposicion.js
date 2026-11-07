@@ -31,6 +31,7 @@ window.CMGI18n.registrar('es', {
   'disposicion.menu.registro': 'Registro',
   'disposicion.menu.ordenes': 'Órdenes',
   'disposicion.menu.ajustes': 'Ajustes',
+  'disposicion.menu.revisar': 'Revisar',
   'disposicion.teclado.espacio': 'espacio',
   'disposicion.teclado.intro': 'intro'
 });
@@ -67,6 +68,7 @@ window.CMGI18n.registrar('en', {
   'disposicion.menu.registro': 'Log',
   'disposicion.menu.ordenes': 'Commands',
   'disposicion.menu.ajustes': 'Settings',
+  'disposicion.menu.revisar': 'Review',
   'disposicion.teclado.espacio': 'space',
   'disposicion.teclado.intro': 'enter'
 });

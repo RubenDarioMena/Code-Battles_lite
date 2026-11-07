@@ -16,6 +16,9 @@
  *   Cuando cambia el reloj (opciones.reloj) se añade ["t", tiempo, estado].
  *
  * No sabe nada del juego: el reloj, el estado y el envío llegan como texto de expresión en `opciones`.
+ * opciones.filtro(gancho, nodo, padre, campo) → false deja sin poner un gancho s, c o v (nodos de acorn).
+ * El juego lo usa para los pulsos del editor: solo las órdenes, lecturas y condiciones que le interesan,
+ * con menos coste y sin envolver nada más. w siempre se pone: es el que envía el lote.
  * Funciona en el navegador (window.CMGTrazador), en un Worker y en Node (require). */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -99,6 +102,7 @@
     const cerrar = (pos, texto, prof) => ins.push({ pos, texto, cierre: true, prof });
     const marcar = (x, g) => { if (!x.ganchos.includes(g)) x.ganchos += g; };
     const dentroDeCadena = new Set(); // nodos dentro de a?.b: no se tocan (se envuelve la cadena entera)
+    const quiere = typeof opciones.filtro === "function" ? (g, n, padre, campo) => opciones.filtro(g, n, padre, campo) !== false : () => true;
 
     (function visitar(n, padre, campo) {
       const x = info.get(n);
@@ -107,7 +111,8 @@
       // Sentencias en una lista: __T.s(id); delante. Sentencias sueltas (if sin llaves…): { __T.s(id); … }.
       if (SENTENCIA.test(n.type) && padre && n.type !== "FunctionDeclaration" && n.type !== "ClassDeclaration") {
         const enLista = CUERPOS.has(campo) && Array.isArray(padre[campo]);
-        if (enLista) { abrir(n.start, `;__T.s(${x.id});`, x.prof); marcar(x, "s"); }
+        if (!quiere("s", n, padre, campo)) { /* sin gancho de sentencia */ }
+        else if (enLista) { abrir(n.start, `;__T.s(${x.id});`, x.prof); marcar(x, "s"); }
         else if (n.type === "IfStatement" && campo === "alternate") { /* else if: basta su condición */ }
         else if (n.type !== "BlockStatement" && campo !== "init" && campo !== "left" && padre.type !== "LabeledStatement") {
           // El cuerpo de una etiqueta no se envuelve: «continue etiqueta» debe seguir apuntando al bucle.
@@ -115,19 +120,19 @@
         }
       }
       // Cada vuelta de for…of / for…in: __T.c(idBucle, elemento) al abrir su bloque (no tienen condición).
-      if ((n.type === "ForOfStatement" || n.type === "ForInStatement") && n.body.type === "BlockStatement") {
+      if ((n.type === "ForOfStatement" || n.type === "ForInStatement") && n.body.type === "BlockStatement" && quiere("c", n, padre, campo)) {
         const l = n.left, d = l.type === "VariableDeclaration" ? l.declarations[0].id : l;
         abrir(n.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c");
       }
       // Condiciones.
       if (campo === "test" && padre && /^(If|While|DoWhile|For)Statement$|^ConditionalExpression$/.test(padre.type) && !enCadena) {
-        abrir(n.start, `__T.c(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "c");
+        if (quiere("c", n, padre, campo)) { abrir(n.start, `__T.c(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "c"); }
       } else if (n.type === "AwaitExpression") {
         // __T.v(id, await __T.w(idArg, arg)): w envía el lote antes de esperar; v guarda lo que devolvió.
         const arg = n.argument, xa = info.get(arg);
         abrir(arg.start, `__T.w(${xa.id},`, xa.prof); cerrar(arg.end, ")", xa.prof); marcar(xa, "w");
-        if (padre && envolvible(n, padre, campo) && !enCadena) { abrir(n.start, `__T.v(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "v"); }
-      } else if (padre && !enCadena && envolvible(n, padre, campo)) {
+        if (padre && envolvible(n, padre, campo) && !enCadena && quiere("v", n, padre, campo)) { abrir(n.start, `__T.v(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "v"); }
+      } else if (padre && !enCadena && envolvible(n, padre, campo) && quiere("v", n, padre, campo)) {
         abrir(n.start, `__T.v(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "v");
       }
       for (const k of Object.keys(n)) {

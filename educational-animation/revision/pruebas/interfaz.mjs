@@ -1,6 +1,8 @@
 // Prueba de la interfaz del modo revisión en Chromium (PC 1280×800 y teléfono 390×844).
 // node educational-animation/revision/pruebas/interfaz.mjs
-// Usa un servidor propio en el puerto 8793. Recorre los tres ejemplos y «tu código»: pasos, la pareja
+// Usa un servidor propio en el puerto 8793. Primero el recorrido de lectura (por defecto): una frase por fila,
+// el tiempo de lectura de cada paso, las velocidades, ✕ que oculta el texto y deja la selección, y la tarjeta
+// corta en el teléfono. Después la traza (?modo=traza) con los tres ejemplos y «tu código»: pasos, la pareja
 // código↔fila con el mismo color, tocar y señalar, la franja de tiempo, el idioma y el avance solo.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -29,7 +31,7 @@ try {
     const errores = [];
     page.on('pageerror', e => errores.push(e.message));
     page.on('console', m => { if (m.type() === 'error') errores.push(m.text()); });
-    const abrir = async (ej) => { await page.goto(`http://127.0.0.1:8793/educational-animation/revision/?ej=${ej}`); await page.waitForFunction(() => window.__revision && document.querySelector('.rv-rejilla .rv-nodo')); };
+    const abrir = async (ej, modo = 'traza') => { await page.goto(`http://127.0.0.1:8793/educational-animation/revision/?ej=${ej}${modo === 'traza' ? '&modo=traza' : ''}`); await page.waitForFunction(() => window.__revision && document.querySelector('.rv-rejilla .rv-nodo')); };
     const est = () => page.evaluate(() => window.__revision.estado);
     // La fila activa y su fragmento de código llevan el mismo color.
     const pareja = () => page.evaluate(() => {
@@ -39,7 +41,70 @@ try {
     });
     const etiqueta = (num) => page.evaluate((num) => { const x = [...document.querySelectorAll('.rv-nodo')].find(b => b.querySelector('.rv-num').textContent === String(num)); return x && x.querySelector('.rv-et').textContent; }, num);
 
-    // ---------- Seis cafés ----------
+    // ---------- Recorrido de lectura (por defecto): el código explicado fila a fila, sin ejecutarlo ----------
+    await abrir('reto-5', 'lectura');
+    let e = await est();
+    eq([e.modo, e.total, e.paso, e.vel, e.texto], ['lectura', 9, 0, 1, true], `${nombre}: lectura del reto 5: 8 filas y el final, a 1× y con texto`);
+    ok((await page.locator('.rv-narra-txt').innerText()).includes('Repite las filas 2 a 8 sin fin'), `${nombre}: la fila 1 dice qué repite`);
+    eq(await page.locator('.rv-donde').innerText(), 'paso 1 de 9', `${nombre}: dónde está`);
+    eq(await page.locator('.rv-tramo').count(), 8, `${nombre}: un tramo por fila en la franja`);
+    eq(await page.evaluate(() => [...document.querySelectorAll('.rv-tramo')].map(x => x.style.getPropertyValue('--c')).join()), await page.evaluate(() => window.__revision.datos['LAU-01'].F.filas.map(f => f.color).join()), `${nombre}: cada tramo con el color de su fila`);
+    await page.click('[data-accion="despues"]');
+    ok((await page.locator('.rv-narra-txt').innerText()).includes('Guarda en pos lo primero que no sea null'), `${nombre}: la fila 2 dice qué guarda`);
+    await page.evaluate(() => window.__revision.ir(2));
+    ok((await page.locator('.rv-narra-txt').innerText()).includes('Si LAU-02 está atascado, sigue en 4; si no, prueba 5.'), `${nombre}: la decisión dice adónde va con true y con false`);
+    await page.evaluate(() => window.__revision.ir(8));
+    ok((await page.locator('.rv-narra-txt').innerText()).includes('mientras dure la partida'), `${nombre}: el final explica que el bucle no acaba solo`);
+    // Tiempo de lectura: ≈ 21,8 caracteres por segundo y un 15 % más (mínimo 1,2 s), dividido por la velocidad.
+    const esperado = await page.evaluate(() => Math.max(1.2, document.querySelector('.rv-narra-txt').textContent.replace(/\s+/g, ' ').trim().length / (238 * 5.5 / 60)) * 1.15 * 1000);
+    ok(Math.abs(await page.evaluate(() => window.__revision.duracion()) - esperado) < 1, `${nombre}: a 1×, el paso dura su tiempo de lectura (${Math.round(esperado)} ms)`);
+    const velocidades = [];
+    for (let k = 0; k < 7; k++) { await page.click('[data-accion="vel"]'); velocidades.push(await page.locator('.rv-vel').innerText()); }
+    eq(velocidades, ['1,25×', '1,5×', '2×', '4×', '0,5×', '0,75×', '1×'], `${nombre}: velocidades 0,5× 0,75× 1× 1,25× 1,5× 2× 4×`);
+    await page.evaluate(() => window.__revision.cambiarVelocidad(1)); await page.evaluate(() => window.__revision.cambiarVelocidad(1)); await page.evaluate(() => window.__revision.cambiarVelocidad(1));
+    eq((await est()).vel, 2, `${nombre}: a 2×`);
+    ok(Math.abs(await page.evaluate(() => window.__revision.duracion()) - esperado / 2) < 1, `${nombre}: a 2×, la mitad`);
+    await page.evaluate(() => { window.__revision.cambiarVelocidad(-1); window.__revision.cambiarVelocidad(-1); window.__revision.cambiarVelocidad(-1); });
+    // Una tarjeta del juego: lo secundario plegado, sin cuentas de ejecución.
+    await page.evaluate(() => window.__revision.ir(3));
+    await page.locator('.rv-pre .fn', { hasText: 'regularShoot' }).first().click();
+    eq(await page.locator('.rv-narra .rv-mas:not([open])').count(), 1, `${nombre}: la tarjeta de regularShoot pliega sus detalles`);
+    ok(!(await page.locator('.rv-narra').innerText()).includes('Se ejecutó'), `${nombre}: sin cuentas: no se ejecutó nada`);
+    const alto = (await page.locator('.rv-narra').boundingBox()).height;
+    ok(alto < 150, `${nombre}: la tarjeta es corta (${Math.round(alto)} px)`);
+    await page.locator('.rv-narra .rv-mas summary').click();
+    ok((await page.locator('.rv-narra .rv-mas').innerText()).includes('Puede devolver'), `${nombre}: y al abrirla, lo que puede devolver`);
+    // ✕ oculta el texto pero deja la selección en el código y en el diagrama.
+    await page.locator('.rv-narra .rv-cerrar').click();
+    eq([await page.locator('.rv-narra').isVisible(), (await est()).texto], [false, false], `${nombre}: ✕ oculta el texto`);
+    ok(await page.locator('.rv-pre .rv-sel').count() === 1 && await page.locator('.rv-flujo [data-foco]').count() >= 1, `${nombre}: la selección se queda en los dos lados`);
+    eq(await page.locator('.rv-texto').getAttribute('aria-pressed'), 'false', `${nombre}: el botón del texto queda apagado`);
+    await page.locator('.rv-pre .fn', { hasText: 'burstFire' }).click();
+    ok(await page.evaluate(() => document.querySelector('.rv-pre .rv-sel').textContent.startsWith('burstFire')) && !(await page.locator('.rv-narra').isVisible()), `${nombre}: sin texto, tocar solo selecciona`);
+    eq(await page.evaluate(() => window.__revision.duracion()), 1.2 * 1.15 * 1000, `${nombre}: sin texto, el paso dura el mínimo`);
+    await page.click('[data-accion="texto"]');
+    ok((await page.locator('.rv-narra').innerText()).includes('burstFire'), `${nombre}: el botón vuelve a mostrar el texto, con la tarjeta de lo seleccionado`);
+    await page.keyboard.press('Escape');
+    eq(await page.locator('.rv-pre .rv-sel').count(), 0, `${nombre}: Esc quita la selección`);
+    // ▶ avanza solo (a 4×, para no esperar).
+    await page.evaluate(() => { window.__revision.ir(0); for (let k = 0; k < 3; k++) window.__revision.cambiarVelocidad(-1); });
+    eq((await est()).vel, 4, `${nombre}: a 4×`);
+    await page.click('[data-accion="auto"]');
+    await page.waitForTimeout(3400);
+    ok((await est()).paso >= 2, `${nombre}: ▶ avanza solo al ritmo de lectura`);
+    await page.click('[data-accion="auto"]');
+    await page.evaluate(() => { window.__revision.cambiarVelocidad(1); window.__revision.cambiarVelocidad(1); window.__revision.cambiarVelocidad(1); });
+    eq((await est()).vel, 1, `${nombre}: de vuelta a 1×`);
+    // Tu código: se lee sin ejecutarse (un bucle sin fin no cuelga nada).
+    await page.selectOption('.rv-ejemplos', 'tuyo');
+    await page.waitForSelector('dialog.tuyo[open]');
+    eq(await page.locator('dialog.tuyo button[value="ok"]').innerText(), 'Revisar', `${nombre}: tu código: «Revisar», sin ejecutar`);
+    await page.fill('dialog.tuyo textarea', 'while (true) {\n  console.log("hola")\n}');
+    await page.click('dialog.tuyo button[value="ok"]');
+    await page.waitForFunction(() => window.__revision && window.__revision.datos.programa && window.__revision.datos.programa.P.fuente.startsWith('while (true)'));
+    eq((await est()).total, 3, `${nombre}: un bucle sin fin se lee en 3 pasos`);
+
+    // ---------- Seis cafés (traza) ----------
     await abrir('cafes');
     eq(await page.locator('.rv-rejilla .rv-nodo').count(), 8, `${nombre}: los cafés tienen 8 filas (6 en la columna y 2 al lado)`);
     eq(await page.locator('.rv-num-margen').count(), 8, `${nombre}: cada fila tiene su número en el margen del código`);
@@ -70,7 +135,7 @@ try {
     await page.locator('.rv-fila[data-fila] > .rv-nodo').filter({ hasText: 'Suma 1' }).click();
     eq(await page.evaluate(() => document.querySelector('.rv-pre .rv-sel').textContent.trim()), 'drinkCoffee = drinkCoffee + 1', `${nombre}: tocar «Suma 1» ilumina su línea de código`);
     ok((await page.locator('.rv-narra').innerText()).includes('Se ejecutó 8 veces'), `${nombre}: y dice cuántas veces se ejecutó`);
-    await page.locator('.rv-narra .rv-cerrar').click();
+    await page.keyboard.press('Escape');
     // Franja de tiempo: tocar salta a esa vuelta.
     const caja = await page.locator('.rv-tramos').boundingBox();
     await page.mouse.click(caja.x + caja.width * 0.62, caja.y + caja.height / 2);
@@ -84,12 +149,13 @@ try {
     ok((await page.locator('.rv-narra').innerText()).includes('Starts pass'), `${nombre}: y la narración también`);
     await page.evaluate(() => CMGI18n.cambiarIdioma('es'));
     eq(await etiqueta(2), '¿drinkCoffee es menor que 10?', `${nombre}: de vuelta al español`);
-    // Avance solo.
-    await page.evaluate(() => window.__revision.ir(0));
+    // Avance solo (a 2×; las vueltas que repiten camino pasan de corrido).
+    await page.evaluate(() => { window.__revision.ir(0); window.__revision.cambiarVelocidad(1); window.__revision.cambiarVelocidad(1); window.__revision.cambiarVelocidad(1); });
     await page.click('[data-accion="auto"]');
     await page.waitForTimeout(2600);
     ok((await est()).paso >= 2, `${nombre}: ▶ avanza solo`);
     await page.click('[data-accion="auto"]');
+    await page.evaluate(() => { window.__revision.cambiarVelocidad(-1); window.__revision.cambiarVelocidad(-1); window.__revision.cambiarVelocidad(-1); });
     eq((await est()).auto, false, `${nombre}: y se pausa`);
     eq(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${nombre}: sin desplazamiento horizontal`);
 
@@ -101,7 +167,7 @@ try {
     eq((await est()).disposicion, lado ? 'lado' : 'apilado', `${nombre}: disposición ${lado ? 'código | diagrama' : 'código sobre diagrama'}`);
     const [bc, bf] = await Promise.all([page.locator('.rv-codigo').boundingBox(), page.locator('.rv-flujo').boundingBox()]);
     ok(lado ? bc.x + bc.width <= bf.x + 1 && Math.abs(bc.y - bf.y) < 2 : bc.y + bc.height <= bf.y + 1, `${nombre}: el diagrama está ${lado ? 'a la derecha' : 'debajo'} del código`);
-    eq(await page.locator('.rv-junto').count(), 0, `${nombre}: sin mapa al lado, no hay botón «junto»`);
+    eq(await page.locator('.rv-junto').count(), 0, `${nombre}: sin botón «junto» (el modo mapa/código/diagrama se quitó)`);
     // Asa: arrastrar hasta el extremo deja el diagrama a pantalla completa; doble clic vuelve.
     const asa = await page.locator('.rv-asa').boundingBox();
     const tamFlujo = async () => { const b = await page.locator('.rv-flujo').boundingBox(); return lado ? b.width : b.height; };
@@ -127,7 +193,7 @@ try {
     const fila4 = page.locator('.rv-fila[data-fila] > .rv-nodo').filter({ hasText: 'vale 8' });
     await pulsar(fila4, 500);
     eq(await page.locator('.rv-doc').isVisible(), false, `${nombre}: una pulsación corta no abre la documentación`);
-    await page.locator('.rv-narra .rv-cerrar').click();
+    await page.keyboard.press('Escape');
     await pulsar(fila4, 1350);
     ok(await page.locator('.rv-doc').isVisible(), `${nombre}: mantener pulsado 1,2 s abre la documentación`);
     eq(await page.locator('.rv-doc-texto').innerText(), 'IF: PLACEHOLDER', `${nombre}: de un if, «IF: PLACEHOLDER»`);
@@ -155,7 +221,8 @@ try {
     ok(Math.abs(t2 - t1) <= 0.25, `${nombre}: en el mismo momento de la partida (${t1} → ${t2} s)`);
     eq(await etiqueta(3), '¿LAU-01 está atascado?', `${nombre}: LAU-02 pregunta por LAU-01`);
     await page.locator('.rv-pre .prop', { hasText: 'jammed' }).click();
-    ok((await page.locator('.rv-narra').innerText()).includes('otra máquina'), `${nombre}: tocar jammed explica que es de otra máquina`);
+    await page.locator('.rv-narra .rv-mas summary').click();
+    ok((await page.locator('.rv-narra').innerText()).includes('otra máquina'), `${nombre}: tocar jammed explica (en «Más detalles») que es de otra máquina`);
     eq(await page.evaluate(() => document.querySelector('.rv-pre .rv-sel').textContent), 'LAU_01.jammed', `${nombre}: y señala LAU_01.jammed entero`);
     eq(await page.locator('.rv-hito').count(), 4, `${nombre}: la franja marca 2 atascos y 2 reparaciones`);
     if (nombre === 'PC') {

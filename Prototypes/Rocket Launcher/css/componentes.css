@@ -633,15 +633,38 @@ textarea.json { width: 100%; height: 10rem; font-family: var(--f-code); font-siz
 .b-revisar { flex: none; display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: 0; color: var(--accent); }
 .b-revisar svg { width: 21px; height: 21px; display: block; }
 [data-serie="factory"] .b-revisar { display: none; }
-/* Completo: tapa el juego. Junto (PC): ocupa el panel del código y el mapa sigue a la vista. */
-.revision-juego[data-modo="completo"] { position: fixed; inset: 0; z-index: 900; }
-.revision-juego[data-modo="junto"] { position: absolute; inset: 0; z-index: 40; }
-.rj-aviso, .rj-preparando { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 950;
+/* Tapa el juego: en PC, código a la izquierda y diagrama a la derecha; en el teléfono, apilados. */
+.revision-juego { position: fixed; inset: 0; z-index: 900; }
+.revision-juego[hidden] { display: none; }
+.rj-aviso { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 950;
   max-width: min(520px, calc(100vw - 32px)); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .5); font-size: 13.5px; }
-.rj-preparando { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; width: min(420px, calc(100vw - 32px)); }
-.rj-preparando[hidden], .rj-aviso[hidden] { display: none; }
-.rj-preparando p { margin: 0; font-family: var(--f-code); font-size: 12.5px; }
-.rj-preparando .rj-barra { grid-column: 1; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
-.rj-preparando .rj-barra span { display: block; height: 100%; width: 0; background: var(--accent); }
-.rj-preparando button { grid-column: 2; grid-row: 1 / span 2; }
+.rj-aviso[hidden] { display: none; }
+
+/* ---------- Pulsos del código durante la partida (js/pulsos.js) ----------
+   Cada fragmento que se activa (una lectura que da algo, una orden, la consola, un if que se cumple) late con
+   el color de su fila del modo revisión: una onda corta (0,34 s) y un anillo que se expande y se apaga
+   (0,68 s), como la navegación de la bug tool, con la estética del juego. */
+.capa-pulsos { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.pulso { position: absolute; pointer-events: none; border-radius: 5px; }
+.pulso::before, .pulso::after { content: ""; position: absolute; inset: -2px; border-radius: 6px; opacity: 0; pointer-events: none; }
+.pulso::before { border: 1px solid transparent; background: radial-gradient(ellipse at 50% 55%, color-mix(in srgb, var(--c) 10%, transparent) 30%, color-mix(in srgb, var(--c) 26%, transparent) 75%, transparent 100%);
+  animation: pulso-onda .34s cubic-bezier(.17, .84, .32, 1); }
+.pulso::after { border: 1.5px solid var(--c); box-shadow: 0 0 5px color-mix(in srgb, var(--c) 75%, transparent), 0 0 12px color-mix(in srgb, var(--c) 35%, transparent);
+  animation: pulso-anillo .68s cubic-bezier(.16, .84, .44, 1); }
+@keyframes pulso-onda {
+  0% { opacity: 0; transform: scale(.92); border-color: transparent; box-shadow: 0 0 0 transparent; }
+  18% { opacity: .9; transform: scale(.985); border-color: var(--c); box-shadow: 0 0 5px var(--c), 0 0 11px color-mix(in srgb, var(--c) 55%, transparent); }
+  48% { opacity: .7; transform: scale(1.02); border-color: color-mix(in srgb, var(--c) 70%, #fff); box-shadow: 0 0 10px var(--c), 0 0 19px color-mix(in srgb, var(--c) 45%, transparent); }
+  100% { opacity: 0; transform: scale(1.045); border-color: transparent; box-shadow: 0 0 16px transparent; }
+}
+@keyframes pulso-anillo {
+  0% { opacity: 0; transform: scale(.96); }
+  20% { opacity: .95; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08, 1.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulso::before { animation: none; }
+  .pulso::after { animation: pulso-quieto .6s linear; }
+  @keyframes pulso-quieto { 0%, 70% { opacity: .75; } 100% { opacity: 0; } }
+}

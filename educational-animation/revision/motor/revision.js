@@ -1,7 +1,11 @@
 /* Modo revisión · interfaz. Dos franjas de borde a borde: arriba el código, abajo el mismo programa como
- * diagrama de flujo, y una línea que cuenta el paso con los valores reales.
+ * diagrama de flujo, y una línea que cuenta qué hace cada fila en lenguaje de personas.
  *
- *   CMGRevision.montar(elemento, grabacion, { salir, ejemplos: [{ id, titulo }], ejemplo, alElegir(id) })
+ *   CMGRevision.montar(elemento, grabacion, { modo, programa, ejemplos: [{ id, titulo }], ejemplo, alElegir(id), alMapa, alCodigo })
+ *
+ * modo «lectura» (por defecto): un recorrido por el programa en orden de lectura, sin ejecutarlo. Sirve para
+ * entender el código antes de entender la partida: no hace falta haberlo corrido. modo «traza»: la ejecución
+ * grabada (pasos con los valores reales), para las grabaciones de ejemplos/.
  *
  * Cada fila del diagrama tiene número y color propios, y los repite en el margen del código y en la franja
  * de tiempo. Al recorrer el programa, la fila activa y su fragmento de código se iluminan juntos. Tocar (o
@@ -18,8 +22,8 @@
     // Los mismos símbolos que el juego: el mapa (botón del mapa del editor) y </> (código a pantalla completa).
     // Montaña nevada: «ver el mundo» (el mapa del juego).
     mundo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 19.5 9.5 6.5l4.3 7.6 2.4-3.6 5.3 9z"/><path d="M7.3 10.6 9.5 6.5l2.2 4-1.2 1-1-.9-1.1.9z" fill="currentColor" stroke-width="1.2"/><path d="M14.9 12.3l1.3-1.8 1.3 1.9-.7.5-.6-.5z" fill="currentColor" stroke-width="1"/></svg>',
-    // Código y diagrama juntos a un lado, el mapa al otro.
-    junto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M10.5 4.5v15M2.5 12h8"/><path d="M12.8 16.8l2.7-4.5 1.6 2.6 1-1.4 1.6 3.3z" stroke-width="1.4"/></svg>',
+    // Mostrar u ocultar el texto (placeholder): un globo de diálogo.
+    texto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 5h15A1.5 1.5 0 0 1 21 6.5v8.5a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 3.5v-3.5h-1A1.5 1.5 0 0 1 3 15V6.5A1.5 1.5 0 0 1 4.5 5z"/><path d="M7.5 9.2h9M7.5 12.4h6"/></svg>',
     salir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     antes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
     despues: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
@@ -67,17 +71,20 @@
   function montar(raiz, G, opciones = {}) {
     const ids = Object.keys(G.programas);
     const fin = G.partida ? { t: G.partida.t } : null;
+    const lectura = opciones.modo !== "traza";
     const datos = {};
     for (const id of ids) {
       const P = FL.preparar(G.programas[id], { id: G.serie ? id : null, serie: G.serie || "libre" });
       const F = FL.construir(P);
-      const R = FL.recorrer(P, F, { fin });
+      const R = lectura ? FL.estructura(P, F) : FL.recorrer(P, F, { fin });
       // Primer paso del tramo (vuelta, antes o después del bucle) de cada paso.
       const inicio = []; let desde = 0;
       R.pasos.forEach((p, i) => { if (i && (p.vuelta !== R.pasos[i - 1].vuelta || !!p.fuera !== !!R.pasos[i - 1].fuera)) desde = i; inicio.push(desde); });
       datos[id] = { P, F, R, inicio };
     }
-    const estado = { prog: ids[0], paso: 0, foco: null, auto: false, temporizador: 0, marco: 0, vel: 1, doc: null, junto: !!opciones.junto };
+    const leer = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+    const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } };
+    const estado = { prog: ids.includes(opciones.programa) ? opciones.programa : ids[0], paso: 0, foco: null, auto: false, temporizador: 0, vel: 1, doc: null, texto: leer("cmg-revision-texto", true) !== false };
     const D = () => datos[estado.prog];
 
     raiz.classList.add("rv");
@@ -85,9 +92,8 @@
       <header class="rv-barra">
         <span class="rv-titulo"></span>
         ${opciones.ejemplos ? `<select class="rv-ejemplos" data-t-aria="ui.ejemplo">${opciones.ejemplos.map(e => `<option value="${esc(e.id)}"${e.id === opciones.ejemplo ? " selected" : ""}>${esc(e.titulo)}</option>`).join("")}</select>` : ""}
-        ${ids.length > 1 ? `<div class="rv-progs" role="group" data-t-aria="ui.programas">${ids.map((id, k) => `<button type="button" data-prog="${esc(id)}" aria-pressed="${k === 0}">${esc(id)}</button>`).join("")}</div>` : ""}
+        ${ids.length > 1 ? `<div class="rv-progs" role="group" data-t-aria="ui.programas">${ids.map((id) => `<button type="button" data-prog="${esc(id)}" aria-pressed="${id === estado.prog}">${esc(id)}</button>`).join("")}</div>` : ""}
         <div class="rv-salidas">
-          ${opciones.alJuntar ? `<button type="button" class="rv-mini rv-junto" data-accion="junto" aria-pressed="${!!opciones.junto}" data-t-aria="ui.junto" data-t-title="ui.junto">${ICONO.junto}</button>` : ""}
           <button type="button" class="rv-mini rv-mundo" data-accion="mapa" data-t-aria="ui.mapa" data-t-title="ui.mapa">${ICONO.mundo}</button>
           <button type="button" class="rv-mini rv-mini-cod" data-accion="codigo" data-t-aria="ui.codigoNormal" data-t-title="ui.codigoNormal">&lt;/&gt;</button>
         </div>
@@ -110,6 +116,7 @@
             <button type="button" class="rv-boton" data-accion="auto" data-t-aria="ui.avanzar">${ICONO.play}</button>
             <button type="button" class="rv-boton" data-accion="despues" data-t-aria="ui.siguiente">${ICONO.despues}</button>
             <button type="button" class="rv-boton rv-vel" data-accion="vel">1×</button>
+            <button type="button" class="rv-boton rv-texto" data-accion="texto" aria-pressed="true" data-t-aria="ui.texto" data-t-title="ui.texto">${ICONO.texto}</button>
           </div>
           <div class="rv-tiempo">
             <div class="rv-tramos" role="slider" tabindex="0" aria-valuemin="0"></div>
@@ -129,7 +136,7 @@
     const el = {
       pre: $(".rv-pre"), margen: $(".rv-margen"), bandas: $(".rv-bandas"), insignias: $(".rv-insignias"), scroll: $(".rv-scroll"), lienzo: $(".rv-lienzo"),
       codigo: $(".rv-codigo"), flujo: $(".rv-flujo"), rejilla: $(".rv-rejilla"), narra: $(".rv-narra"), tramos: $(".rv-tramos"), hitos: $(".rv-hitos"),
-      asa: $(".rv-asa"), abajo: $(".rv-abajo"), doc: $(".rv-doc"), donde: $(".rv-donde"), vel: $(".rv-vel"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
+      asa: $(".rv-asa"), abajo: $(".rv-abajo"), doc: $(".rv-doc"), donde: $(".rv-donde"), vel: $(".rv-vel"), texto: $(".rv-texto"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
     };
     const traducirAria = () => {
       raiz.querySelectorAll("[data-t-aria]").forEach(x => x.setAttribute("aria-label", t(x.dataset.tAria)));
@@ -160,6 +167,13 @@
         }
         if (s.br) { frag.append(document.createElement("br")); continue; }
         if (s.lista) { const ul = document.createElement("ul"); ul.className = "rv-consola"; for (const l of s.lista) { const li = document.createElement("li"); li.textContent = l; ul.append(li); } frag.append(ul); continue; }
+        // Lo secundario de una tarjeta, plegado: en el teléfono la tarjeta queda corta.
+        if (s.mas) {
+          const d = document.createElement("details"), r = document.createElement("summary"), c = document.createElement("div");
+          d.className = "rv-mas"; r.textContent = t("que.b.mas"); c.className = "rv-mas-txt";
+          c.append(segmentos(s.mas, { fichas }));
+          d.append(r, c); frag.append(d); continue;
+        }
       }
       return frag;
     }
@@ -252,10 +266,20 @@
     // ---------- Franja de tiempo ----------
     // Un tramo por vuelta (seguidas del mismo color se juntan), del color de la fila que decidió su camino.
     function dibujarTramos() {
-      const { R } = D(), pasos = R.pasos, conReloj = R.conReloj;
+      const { R, F } = D(), pasos = R.pasos, conReloj = R.conReloj;
       const pos = (p) => conReloj ? (p.t ?? 0) : p.i;
       const total = conReloj ? (pasos.at(-1).t || 1) : Math.max(1, pasos.length - 1);
       const tramos = [];
+      // Recorrido de lectura: un tramo por fila, del color de esa fila.
+      if (R.estructural) {
+        pasos.forEach((p, k) => { if (!p.fin) tramos.push({ a: k, b: k + 1, color: F.filas[p.fila].color, desde: k, hasta: k, vuelta: 0 }); });
+        D().tramos = { lista: tramos, total, pos };
+        el.tramos.innerHTML = tramos.map(x => `<span class="rv-tramo" style="left:${(x.a / total * 100).toFixed(3)}%;width:${((x.b - x.a) / total * 100).toFixed(3)}%;--c:${x.color}"></span>`).join("") + '<span class="rv-marca"></span>';
+        el.hitos.innerHTML = "";
+        el.tramos.setAttribute("aria-label", t("ui.lectura"));
+        el.tramos.setAttribute("aria-valuemax", String(pasos.length - 1));
+        return;
+      }
       const poner = (desde, hasta, color, vuelta) => {
         const a = pos(pasos[desde]), b = hasta + 1 < pasos.length ? pos(pasos[hasta + 1]) : total;
         const ult = tramos.at(-1);
@@ -281,6 +305,7 @@
     }
     function buscarEnTramos(frac) {
       const { R, tramos } = D(), x = frac * tramos.total;
+      if (R.estructural) return Math.max(0, Math.min(R.pasos.length - 1, Math.floor(x + 1e-9)));
       if (!R.vueltas.length) return Math.round(frac * (R.pasos.length - 1));
       // La vuelta que contiene ese momento; se empieza en su primer paso.
       let mejor = 0;
@@ -341,7 +366,6 @@
       pintarCodigo(p, v);
       pintarNarracion(p);
       pintarDonde(p);
-      if (opciones.alInstante && p.t != null) opciones.alInstante(p.t, { prog: estado.prog, paso: p });
       el.antes.disabled = estado.paso === 0;
       el.despues.disabled = estado.paso === R.pasos.length - 1;
     }
@@ -367,15 +391,22 @@
       }
       verEnCodigo(foco);
     }
+    // ✕ oculta el texto, no la selección: así se puede mirar el flujo sin el texto delante.
+    function botonOcultar() {
+      const b = document.createElement("button"); b.type = "button"; b.className = "rv-cerrar"; b.dataset.accion = "cerrar"; b.innerHTML = ICONO.salir;
+      b.setAttribute("aria-label", t("ui.ocultar")); b.title = t("ui.ocultar");
+      return b;
+    }
     function pintarNarracion(p) {
       const { P, F, R } = D();
       el.narra.innerHTML = "";
       el.narra.removeAttribute("data-foco");
       const txt = document.createElement("p"); txt.className = "rv-narra-txt";
       if (p.fila != null) txt.append(segmentos([{ f: p.fila }]));
-      txt.append(segmentos(E.detalle(P, F, R, p, G)));
+      txt.append(segmentos(R.estructural ? (p.fin ? E.resumen(P, F, R) : E.describir(P, F, p.fila)) : E.detalle(P, F, R, p, G)));
       el.narra.style.setProperty("--c", p.fila != null ? F.filas[p.fila].color : "var(--tenue)");
-      el.narra.append(txt);
+      const b = botonOcultar(); b.classList.add("rv-ocultar");
+      el.narra.append(b, txt);
     }
     function textoDonde(p) {
       const { R } = D(), partes = [];
@@ -395,9 +426,10 @@
     }
 
     // ---------- Foco: lo que se toca o se señala, iluminado en los dos lados ----------
-    function enfocar(id, { tarjeta = true, deFila = null } = {}) {
+    function enfocar(id, { tarjeta = estado.texto, deFila = null } = {}) {
       const { P, F, R } = D();
       const fila = deFila != null ? deFila : F.duena(id);
+      pararAuto();
       quitarFoco(false);
       estado.foco = { id, fila };
       const color = fila != null ? F.filas[fila].color : "var(--foco)";
@@ -409,8 +441,7 @@
         el.margen.querySelectorAll(`[data-fila="${fila}"]`).forEach(x => x.setAttribute("data-foco", ""));
       }
       verEnCodigo(id);
-      if (!tarjeta) return;
-      pararAuto();
+      if (!tarjeta || !estado.texto) return;
       const q = E.queEs(P, F, R, id, paso());
       el.narra.innerHTML = "";
       el.narra.setAttribute("data-foco", "");
@@ -419,8 +450,7 @@
       if (fila != null) cab.append(segmentos([{ f: fila }]));
       const tit = document.createElement("span"); tit.className = "rv-narra-titulo"; tit.append(segmentos(q.titulo, { fichas: false }));
       const tipo = document.createElement("span"); tipo.className = "rv-narra-tipo"; tipo.textContent = q.tipo;
-      const cerrar = document.createElement("button"); cerrar.type = "button"; cerrar.className = "rv-cerrar"; cerrar.dataset.accion = "cerrar"; cerrar.innerHTML = ICONO.salir; cerrar.setAttribute("aria-label", t("ui.cerrar"));
-      cab.append(tit, tipo, cerrar);
+      cab.append(tit, tipo, botonOcultar());
       const txt = document.createElement("p"); txt.className = "rv-narra-txt"; txt.append(segmentos(q.cuerpo));
       const pista = document.createElement("p"); pista.className = "rv-pista"; pista.textContent = t(deFila != null ? "ui.mantener" : "ui.otraVez");
       el.narra.append(cab, txt, pista);
@@ -472,7 +502,9 @@
     function mostrarComentario(texto) {
       quitarFoco(false);
       pararAuto();
-      el.narra.innerHTML = `<div class="rv-narra-cab"><code class="rv-k"></code><span class="rv-narra-tipo"></span><button type="button" class="rv-cerrar" data-accion="cerrar" aria-label="${esc(t("ui.cerrar"))}">${ICONO.salir}</button></div><p class="rv-narra-txt"></p>`;
+      if (!estado.texto) return;
+      el.narra.innerHTML = `<div class="rv-narra-cab"><code class="rv-k"></code><span class="rv-narra-tipo"></span></div><p class="rv-narra-txt"></p>`;
+      el.narra.querySelector(".rv-narra-cab").append(botonOcultar());
       el.narra.setAttribute("data-foco", "");
       el.narra.style.setProperty("--c", "var(--tk-com)");
       el.narra.querySelector("code").textContent = texto;
@@ -482,36 +514,33 @@
     }
 
     // ---------- Avance automático ----------
-    // Lento cuando la vuelta toma un camino distinto de la anterior; rápido cuando se repite.
-    // Con un mundo al lado (opciones.alInstante, en el juego), el avance va al compás de la partida, como en
-    // un juego de programar: mientras el programa corre, el mundo está quieto y se leen sus pasos; mientras
-    // espera (await esperar), el mundo se mueve a velocidad de juego hasta el instante del paso siguiente.
-    const VELOCIDADES = [0.5, 1, 2, 4];
-    const conMundo = () => !!opciones.alInstante && D().R.conReloj;
+    // A 1×, cada paso dura lo que se tarda en leer su texto, con un 15 % más para mirar el código y el
+    // diagrama: lectura en silencio de 238 palabras por minuto (Brysbaert, 2019) con 5,5 caracteres por
+    // palabra (lo que miden nuestras frases, contando el espacio) → ≈ 21,8 caracteres por segundo.
+    // Sin texto, o con un texto muy corto, el paso dura el mínimo. En una traza, las vueltas que repiten el
+    // camino de la anterior pasan de corrido.
+    const VELOCIDADES = [0.5, 0.75, 1, 1.25, 1.5, 2, 4];
+    const LETRAS_POR_SEGUNDO = 238 * 5.5 / 60, EXTRA = 1.15, MINIMO = 1.2;
+    estado.vel = VELOCIDADES.includes(leer("cmg-revision-vel", 1)) ? leer("cmg-revision-vel", 1) : 1;
+    function letras() {
+      if (!estado.texto || estado.foco) return 0;
+      const x = el.narra.querySelector(".rv-narra-txt");
+      return x ? x.textContent.replace(/\s+/g, " ").trim().length : 0;
+    }
+    const tiempoLectura = () => Math.max(MINIMO, letras() / LETRAS_POR_SEGUNDO) * EXTRA * 1000;
     function duracion(p) {
-      const { R } = D(), rapido = conMundo() ? 45 : 90, lento = conMundo() ? 650 : 1000;
-      if (p.fin || !R.vueltas.length || !p.vuelta || p.fuera) return 1100 / estado.vel;
-      const v = R.vueltas[p.vuelta - 1], antes = R.vueltas[p.vuelta - 2];
-      return (antes && antes.color === v.color ? rapido : lento) / estado.vel;
+      const { R } = D();
+      if (!R.estructural && R.vueltas.length && p.vuelta && !p.fuera && !p.fin) {
+        const v = R.vueltas[p.vuelta - 1], antes = R.vueltas[p.vuelta - 2];
+        if (antes && antes.color === v.color) return 90 / estado.vel;
+      }
+      return tiempoLectura() / estado.vel;
     }
     function programar() {
-      clearTimeout(estado.temporizador); cancelAnimationFrame(estado.marco); estado.marco = 0;
+      clearTimeout(estado.temporizador);
       if (!estado.auto) return;
-      const p = paso(), sig = D().R.pasos[estado.paso + 1];
-      if (!sig) return pararAuto();
-      if (conMundo() && p.t != null && sig.t != null && sig.t > p.t + 1e-9) {
-        let reloj = p.t, antes = performance.now();
-        const marco = (ahora) => {
-          reloj = Math.min(sig.t, reloj + Math.min(0.25, Math.max(0, ahora - antes) / 1000) * estado.vel); antes = ahora;
-          opciones.alInstante(reloj, { prog: estado.prog, paso: p });
-          pintarReloj(reloj);
-          if (reloj >= sig.t - 1e-9) { estado.marco = 0; ir(estado.paso + 1, { desdeAuto: true }); programar(); }
-          else estado.marco = requestAnimationFrame(marco);
-        };
-        estado.marco = requestAnimationFrame(marco);
-        return;
-      }
-      estado.temporizador = setTimeout(() => { ir(estado.paso + 1, { desdeAuto: true }); programar(); }, duracion(p));
+      if (!D().R.pasos[estado.paso + 1]) return pararAuto();
+      estado.temporizador = setTimeout(() => { ir(estado.paso + 1, { desdeAuto: true }); programar(); }, duracion(paso()));
     }
     function alternarAuto() {
       estado.auto = !estado.auto;
@@ -520,18 +549,30 @@
       programar();
     }
     function pintarAuto() { el.auto.innerHTML = estado.auto ? ICONO.pausa : ICONO.play; el.auto.dataset.tAria = estado.auto ? "ui.pausar" : "ui.avanzar"; el.auto.setAttribute("aria-label", t(el.auto.dataset.tAria)); }
-    function pararAuto() { if (!estado.auto) return; estado.auto = false; clearTimeout(estado.temporizador); cancelAnimationFrame(estado.marco); estado.marco = 0; pintarAuto(); }
-    function cambiarVelocidad() {
-      estado.vel = VELOCIDADES[(VELOCIDADES.indexOf(estado.vel) + 1) % VELOCIDADES.length];
+    function pararAuto() { if (!estado.auto) return; estado.auto = false; clearTimeout(estado.temporizador); pintarAuto(); }
+    function cambiarVelocidad(dir = 1) {
+      const k = VELOCIDADES.indexOf(estado.vel);
+      estado.vel = VELOCIDADES[(k + dir + VELOCIDADES.length) % VELOCIDADES.length];
+      guardar("cmg-revision-vel", estado.vel);
       pintarVelocidad();
-      if (estado.auto && !estado.marco) programar();
+      if (estado.auto) programar();
     }
     function pintarVelocidad() { el.vel.textContent = `${E.num(estado.vel)}×`; el.vel.setAttribute("aria-label", t("ui.velocidad", { v: E.num(estado.vel) })); }
-    // Entre dos pasos, mientras el mundo avanza: la marca de la franja y los segundos siguen al reloj.
-    function pintarReloj(reloj) {
-      const { tramos } = D(), m = el.tramos.querySelector(".rv-marca");
-      if (m) m.style.left = `${(Math.min(1, reloj / tramos.total) * 100).toFixed(3)}%`;
-      el.donde.textContent = `${textoDonde(paso()).replace(/ · [^·]*$/, "")} · ${t("ui.segundos", { t: E.num(Math.round(reloj * 100) / 100) })}`;
+    // El texto de abajo se puede ocultar (✕ o el botón del pie) sin perder la selección en el código y el diagrama.
+    function mostrarTexto(si = !estado.texto) {
+      estado.texto = !!si;
+      guardar("cmg-revision-texto", estado.texto);
+      raiz.toggleAttribute("data-sin-texto", !estado.texto);
+      el.narra.hidden = !estado.texto;
+      el.texto.setAttribute("aria-pressed", String(estado.texto));
+      if (estado.texto) {
+        const f = estado.foco;
+        if (f && f.id != null) enfocar(f.id, { deFila: f.fila });
+        else pintarNarracion(paso());
+      }
+      aplicarReparto();
+      requestAnimationFrame(dibujarRieles);
+      if (estado.auto) programar();
     }
 
     // ---------- Programa, idioma y título ----------
@@ -559,6 +600,7 @@
     const alCambiarIdioma = () => {
       const foco = estado.foco, doc = estado.doc;
       dibujarTodo();
+      pintarVelocidad();
       if (doc) abrirDoc(doc.nodo, doc.fila);
       else if (foco && foco.id != null) enfocar(foco.id, { deFila: foco.fila });
     };
@@ -571,9 +613,9 @@
       if (x.dataset.accion === "antes") return ir(estado.paso - 1);
       if (x.dataset.accion === "despues") return ir(estado.paso + 1);
       if (x.dataset.accion === "auto") return alternarAuto();
-      if (x.dataset.accion === "vel") return cambiarVelocidad();
-      if (x.dataset.accion === "junto") return alternarJunto();
-      if (x.dataset.accion === "cerrar") return quitarFoco();
+      if (x.dataset.accion === "vel") return cambiarVelocidad(ev.shiftKey ? -1 : 1);
+      if (x.dataset.accion === "texto") return mostrarTexto();
+      if (x.dataset.accion === "cerrar") return mostrarTexto(false);
       if (x.dataset.accion === "cerrarDoc") return cerrarDoc();
       if (x.dataset.accion === "mapa") return opciones.alMapa && opciones.alMapa();
       if (x.dataset.accion === "codigo") return opciones.alCodigo && opciones.alCodigo();
@@ -619,7 +661,10 @@
       else if (k === "Home") { ev.preventDefault(); ir(0); }
       else if (k === "End") { ev.preventDefault(); ir(D().R.pasos.length - 1); }
       else if (k === " " && !(ev.target.closest && ev.target.closest("button, a"))) { ev.preventDefault(); alternarAuto(); }
-      else if (k === "Escape") { if (!el.doc.hidden) cerrarDoc(); else quitarFoco(); }
+      else if (k === "Escape") { if (!el.doc.hidden) cerrarDoc(); else if (estado.foco) quitarFoco(); }
+      else if (k === "t" || k === "T") mostrarTexto();
+      else if (k === "+" || k === "=") cambiarVelocidad(1);
+      else if (k === "-" || k === "_") cambiarVelocidad(-1);
       else if (/^[1-9]$/.test(k) && ids[+k - 1]) cambiarPrograma(ids[+k - 1]);
     };
     document.addEventListener("keydown", teclado);
@@ -637,7 +682,7 @@
     roRaiz.observe(raiz);
 
     // ---------- Disposición y asa ----------
-    // «apilado»: código arriba y diagrama abajo (teléfono, y «junto» en el juego, con el mapa al lado).
+    // «apilado»: código arriba y diagrama abajo (teléfono).
     // «lado»: código a la izquierda y diagrama a la derecha (escritorio). El asa se arrastra como el divisor
     // del juego; en un extremo, el diagrama ocupa toda la pantalla. Doble clic (o Intro) alterna entre eso y
     // el reparto anterior. El reparto de cada disposición se recuerda en este navegador.
@@ -650,14 +695,14 @@
     const lado = () => modo() === "lado";
     function elegirDisposicion() {
       const pedida = opciones.disposicion && opciones.disposicion !== "auto" ? opciones.disposicion : null;
-      const d = pedida || (estado.junto || raiz.clientWidth < ANCHO_LADO ? "apilado" : "lado");
+      const d = pedida || (raiz.clientWidth < ANCHO_LADO ? "apilado" : "lado");
       if (raiz.dataset.disposicion === d) return false;
       raiz.dataset.disposicion = d;
       el.asa.setAttribute("aria-orientation", d === "lado" ? "vertical" : "horizontal");
       return true;
     }
     const disponible = () => lado() ? Math.max(0, raiz.clientWidth - el.asa.offsetWidth) : Math.max(0, raiz.clientHeight - barra.offsetHeight - el.asa.offsetHeight);
-    const maxCodigo = () => lado() ? Math.max(0, disponible() - 320) : Math.max(0, disponible() - Math.min(disponible(), el.narra.offsetHeight + pie.offsetHeight + 72));
+    const maxCodigo = () => lado() ? Math.max(0, disponible() - 320) : Math.max(0, disponible() - Math.min(disponible(), (el.narra.hidden ? 0 : el.narra.offsetHeight) + pie.offsetHeight + 72));
     const tamCodigo = () => lado() ? el.codigo.offsetWidth : el.codigo.offsetHeight;
     function aplicarReparto() {
       const cambio = elegirDisposicion();
@@ -722,16 +767,6 @@
       else return;
       ev.preventDefault(); ev.stopPropagation();
     });
-    // «Junto» (solo escritorio, cuando hay un mapa al lado): código y diagrama apilados y con pocos botones.
-    function alternarJunto(on = !estado.junto) {
-      estado.junto = !!on;
-      raiz.toggleAttribute("data-junto", estado.junto);
-      const b = raiz.querySelector('[data-accion="junto"]');
-      if (b) b.setAttribute("aria-pressed", String(estado.junto));
-      if (opciones.alJuntar) opciones.alJuntar(estado.junto);
-      aplicarReparto();
-    }
-
     // ---------- Documentación: mantener pulsado un elemento del diagrama ----------
     // Tapa el código con una página clásica (texto y una animación de apoyo) sobre la naturaleza de lo
     // pulsado: el tema sale de documentacion.js. Por ahora cada página es «TEMA: PLACEHOLDER».
@@ -801,22 +836,26 @@
       enfocar(nodo, { tarjeta: false, deFila: fila });
       el.doc.querySelector(".rv-cerrar").focus({ preventScroll: true });
     }
+    // Al cerrar la documentación, lo pulsado sigue seleccionado (como al ocultar el texto).
     function cerrarDoc() {
       if (el.doc.hidden) return;
       el.doc.hidden = true;
       estado.doc = null;
-      quitarFoco();
     }
 
-    if (estado.junto) raiz.setAttribute("data-junto", "");
+    raiz.dataset.modo = lectura ? "lectura" : "traza";
+    raiz.toggleAttribute("data-sin-texto", !estado.texto);
+    el.narra.hidden = !estado.texto;
+    el.texto.setAttribute("aria-pressed", String(estado.texto));
     aplicarReparto();
     dibujarTodo();
     pintarVelocidad();
     return {
-      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto, alternarJunto, alternarAuto,
-      get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto, doc: estado.doc && DOC.tema(D().P, estado.doc.nodo).clave, reparto: reparto[modo()], pleno: raiz.hasAttribute("data-pleno"), disposicion: raiz.dataset.disposicion, junto: estado.junto, vel: estado.vel }; },
+      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto, alternarAuto, mostrarTexto, cambiarVelocidad,
+      get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto, doc: estado.doc && DOC.tema(D().P, estado.doc.nodo).clave, reparto: reparto[modo()], pleno: raiz.hasAttribute("data-pleno"), disposicion: raiz.dataset.disposicion, vel: estado.vel, texto: estado.texto, modo: lectura ? "lectura" : "traza" }; },
       paso: () => paso(),
-      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelAnimationFrame(estado.marco); cancelarPresion(); raiz.innerHTML = ""; raiz.classList.remove("rv"); raiz.removeAttribute("data-pleno"); raiz.removeAttribute("data-junto"); raiz.removeAttribute("data-disposicion"); raiz.style.removeProperty("grid-template-rows"); raiz.style.removeProperty("grid-template-columns"); },
+      duracion: () => duracion(paso()),
+      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelarPresion(); raiz.innerHTML = ""; raiz.classList.remove("rv"); for (const a of ["data-pleno", "data-disposicion", "data-modo", "data-sin-texto"]) raiz.removeAttribute(a); raiz.style.removeProperty("grid-template-rows"); raiz.style.removeProperty("grid-template-columns"); },
     };
   }
 

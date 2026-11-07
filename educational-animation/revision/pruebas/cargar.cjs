@@ -13,10 +13,10 @@ function grabacion(id) {
   vm.runInThisContext(fs.readFileSync(path.join(RAIZ, 'educational-animation/revision/ejemplos', id, 'grabacion.js'), 'utf8'));
   return globalThis.GRABACIONES_REVISION[id];
 }
-// Segmentos → texto plano: [código], «valor», (número de fila).
+// Segmentos → texto plano: [código], «valor», (número de fila), [+ detalles plegados].
 function plano(P, F, segs) {
   const E = globalThis.CMGExplicar;
   return segs.flat(9).map(s => typeof s === 'string' || typeof s === 'number' ? String(s) : s == null ? '' : s.c != null ? `[${P.txt(s.c).replace(/\s+/g, ' ')}]`
-    : s.k != null ? s.k : 'v' in s ? `«${E.valor(s.v).texto}»` : s.f != null ? `(${F.filas[s.f].num})` : s.br ? ' | ' : s.lista ? s.lista.join(' / ') : JSON.stringify(s)).join('');
+    : s.k != null ? s.k : 'v' in s ? `«${E.valor(s.v).texto}»` : s.f != null ? `(${F.filas[s.f].num})` : s.br ? ' | ' : s.lista ? s.lista.join(' / ') : s.mas ? ` [+ ${plano(P, F, s.mas)}]` : JSON.stringify(s)).join('');
 }
 module.exports = { RAIZ, grabacion, plano };

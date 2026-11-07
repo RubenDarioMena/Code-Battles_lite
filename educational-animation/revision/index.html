@@ -14,7 +14,7 @@
   html, body { height: 100%; margin: 0; background: #070A0D; color-scheme: dark; }
   #revision { height: 100%; }
   .sin-datos { padding: 24px; color: #DCE3E6; font: 16px/1.5 Archivo, sans-serif; }
-  /* «Tu código»: un programa cualquiera, ejecutado aquí con la traza. */
+  /* «Tu código»: un programa cualquiera, leído fila a fila (o ejecutado aquí con la traza, en ?modo=traza). */
   .tuyo { width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 16px; border-radius: 14px; border: 1px solid #34414B; background: #11181E; color: #DCE3E6; font: 15px/1.45 Archivo, sans-serif; }
   .tuyo::backdrop { background: rgba(0, 0, 0, .6); }
   .tuyo p { margin: 0 0 10px; color: #8C99A3; }
@@ -39,14 +39,17 @@
 <main id="revision"></main>
 <dialog class="tuyo">
   <form method="dialog">
-    <p data-i18n="revision.ui.pegar"></p>
+    <p class="pegar"></p>
     <textarea spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
     <p class="error" aria-live="polite"></p>
-    <div class="acciones"><button value="no" data-i18n="revision.ui.cancelar"></button><button value="ok" data-i18n="revision.ui.revisar"></button></div>
+    <div class="acciones"><button value="no" data-i18n="revision.ui.cancelar"></button><button value="ok" class="revisar"></button></div>
   </form>
 </dialog>
 <script>
-  // ?ej=<carpeta de ejemplos/>. Las grabaciones salen de grabar.mjs; «tuyo» ejecuta aquí lo que escribas.
+  // ?ej=<carpeta de ejemplos/>. Por defecto, recorrido de lectura: el programa explicado fila a fila, sin
+  // ejecutarlo. ?modo=traza enseña en cambio la ejecución grabada (grabar.mjs) con sus valores; ahí «tuyo»
+  // ejecuta aquí lo que escribas.
+  const MODO = new URLSearchParams(location.search).get("modo") === "traza" ? "traza" : "lectura";
   const EJEMPLOS = [{ id: "cafes", titulo: "Seis cafés" }, { id: "pares", titulo: "Pares e impares" }, { id: "reto-5", titulo: "Reto 5 · dos lanzadores" }];
   const T = (k) => CMGI18n.t("revision." + k);
   const caja = document.getElementById("revision"), dialogo = document.querySelector(".tuyo"), area = dialogo.querySelector("textarea");
@@ -66,11 +69,16 @@ for (let i = 1; i <= 4; i++) {
   function montar(id, G) {
     if (vista) vista.destruir();
     actual = id;
-    vista = window.__revision = CMGRevision.montar(caja, G, { ejemplos: lista(), ejemplo: id, alElegir: abrir, alMapa: () => irAlJuego("mapa"), alCodigo: () => irAlJuego("codigo") });
-    history.replaceState(null, "", `?ej=${id}`);
+    vista = window.__revision = CMGRevision.montar(caja, G, { modo: MODO, ejemplos: lista(), ejemplo: id, alElegir: abrir, alMapa: () => irAlJuego("mapa"), alCodigo: () => irAlJuego("codigo") });
+    history.replaceState(null, "", `?ej=${id}${MODO === "traza" ? "&modo=traza" : ""}`);
   }
   function abrir(id) {
-    if (id === "tuyo") { dialogo.querySelector(".error").textContent = ""; CMGI18n.aplicar(dialogo); dialogo.showModal(); return; }
+    if (id === "tuyo") {
+      dialogo.querySelector(".error").textContent = "";
+      dialogo.querySelector(".pegar").textContent = T(MODO === "traza" ? "ui.pegarTraza" : "ui.pegar");
+      dialogo.querySelector(".revisar").textContent = T(MODO === "traza" ? "ui.revisarTraza" : "ui.revisar");
+      CMGI18n.aplicar(dialogo); dialogo.showModal(); return;
+    }
     if (id === "tuyo-hecho" && tuyo) return montar(id, tuyo);
     const listo = () => window.GRABACIONES_REVISION && window.GRABACIONES_REVISION[id];
     if (listo()) return montar(id, listo());
@@ -83,8 +91,10 @@ for (let i = 1; i <= 4; i++) {
   dialogo.addEventListener("close", async () => {
     if (dialogo.returnValue !== "ok") { const sel = caja.querySelector(".rv-ejemplos"); if (sel) sel.value = actual; return; }
     try {
-      const r = await CMGEjecutar.ejecutar(area.value, { acorn });
-      tuyo = { titulo: T("ui.tuCodigo").replace("…", ""), programas: { programa: r.programa }, salida: r.salida, error: r.error, cortado: r.cortado };
+      let programa, r = {};
+      if (MODO === "traza") { r = await CMGEjecutar.ejecutar(area.value, { acorn }); programa = r.programa; }
+      else { const x = CMGTrazador.instrumentar(area.value, { acorn }); programa = { lenguaje: "js", fuente: x.fuente, nodos: x.nodos, comentarios: x.comentarios, eventos: [] }; }
+      tuyo = { titulo: T("ui.tuCodigo").replace("…", ""), programas: { programa }, salida: r.salida, error: r.error, cortado: r.cortado };
       montar("tuyo-hecho", tuyo);
     } catch (e) {
       dialogo.querySelector(".error").textContent = CMGI18n.t("revision.ui.errorSintaxis", { m: e.message });

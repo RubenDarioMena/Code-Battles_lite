@@ -1,3 +1,33 @@
+## Modo revisión · recorrido de lectura sin partida y pulsos del código en la batalla · 7 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario: priorizar que se entienda el código antes que la precisión de lo que pasó; desligar la revisión de la batalla (sin haberlo corrido); ▶ a ritmo de lectura humana; ✕ no debe quitar la selección; tarjetas largas en el teléfono (S24 Ultra); montaña en toda la app; «Revisar» también en el menú ⋯; quitar el modo mapa/código/diagrama; en la batalla, pulsos de color en el código que se activa (inspirados en shock/wave de la bug tool).
+- **Motor** (`educational-animation/revision/motor`):
+  - `flujo.js`: `estructura(P, F)` (una visita por fila en orden de lectura, `R.estructural`) y `dentro(P, F, i)`.
+  - `explicar.js`: `describir` y `resumen` (qué hace cada fila y adónde sigue, en lenguaje de personas); segmento `{ mas }` plegado para lo secundario de las tarjetas; sin cuentas de ejecución en la lectura.
+  - `textos.js`: claves `revision.r.*`, `ui.texto`, `ui.ocultar`, `ui.lectura`, `que.b.mas` y frases `breve` del catálogo (ES/EN).
+  - `trazador.js`: opción `filtro` para poner solo algunos ganchos.
+  - `catalogo.js`: el global pasa a `CMGCatalogoRevision` (pisaba el `CMGCatalogo` de la paleta).
+- **Interfaz** (`revision.js`, `revision.css`, `index.html`):
+  - Modo `lectura` por defecto (`?modo=traza` conserva la traza grabada).
+  - ▶: caracteres ÷ 21,8 por segundo × 1,15, con un mínimo de 1,2 s, dividido por la velocidad. Las 7 velocidades se recuerdan.
+  - ✕ oculta el texto y deja la selección. El botón del globo (o T) lo devuelve; Esc quita la selección.
+  - En el teléfono, narración más baja.
+  - «Tu código» se lee sin ejecutarse.
+  - Fuera: «junto», el reloj del mundo y `alInstante`.
+- **Juego** (`Prototypes/Rocket Launcher`):
+  - `juego.js` vuelve a como estaba antes de la repetición del intento.
+  - `cmg.revision` mínimo: `programas()`, `reto`, `titulo`, `seleccionado`, `serie`.
+  - `revision-juego.js` lee el código actual sin ejecutar.
+  - «Revisar» en el menú ⋯ (`layout.js`).
+  - Montaña en `#b-mapa-movil` y `#b-ver-mapa`.
+  - `js/pulsos.js` y su CSS en `componentes.css`, más el trazador y flujo cargados al arrancar.
+- **Pendiente para la próxima sesión** (lo pidió el usuario): repasar la lectura y los textos (#15).
+- **Verificación.**
+  - `revision/pruebas`: `interfaz.mjs` **174** (PC y teléfono), `flujo.cjs` **230**, `trazador.cjs` **27**, `juego.mjs` **50**. Esta última comprueba que la partida instrumentada es la misma que la grabada.
+  - `pruebas/interaccion.cjs` **124**, `i18n-catalogos.cjs` 422 claves, `i18n.cjs`.
+  - `idiomas-juego.mjs` **45** (menú con «Revisar»).
+  - `editor-movil.mjs` actualizado para el menú. Su regresión 13 (consola tras ejecutar) se queda en un tiempo de espera igual en `537d92a`: no viene de este cambio.
+
 ## Modo revisión · dentro del juego, escritorio a dos columnas y las tres cosas a la vez · 6 de noviembre de 2026
 
 - **Por qué.** El usuario pidió el botón para entrar (sugirió libro o binoculares), una montaña nevada en lugar del mapa («se ve el mundo»), código y flujo lado a lado en el escritorio, y un botón solo de escritorio que junte código y flujo con el mapa en su sitio para ver las tres cosas reproduciéndose. Señaló The Farmer Was Replaced: allí ver el código ejecutarse está mucho mejor coordinado con lo que pasa en el juego.

@@ -6,6 +6,9 @@
  *   preparar(programa, { id, serie }) → P   el programa con su tabla de nodos y ayudas para recorrerla
  *   construir(P) → F                        filas del diagrama, en orden de lectura
  *   recorrer(P, F, opciones) → R            pasos (una visita a una fila cada uno) y vueltas del bucle principal
+ *   estructura(P, F) → R                    recorrido de lectura sin ejecutar: una visita por fila, en orden de
+ *                                           lectura (cada salida lateral, justo después de su decisión)
+ *   dentro(P, F, i) → [filas]               las filas que están dentro de la fila i (un bucle, una función…)
  *
  * Una fila es una sentencia (o la cabecera de un if, un bucle o una función) con número y color propios.
  * Su número y su color se repiten en el margen del código y en la franja de tiempo, igual que cada campo de
@@ -331,5 +334,22 @@
     return { pasos, vueltas, principal: L ? L.i : null, antes: antes > 0 ? antes : 0, cuentas, conReloj: pasos.some(p => p.t != null && p.t > 0) };
   }
 
-  return { preparar, construir, recorrer, verdad, PALETA };
+  // ---------- Recorrido de lectura ----------
+  // Para entender el código antes de ejecutarlo: no hay traza ni valores, solo el programa leído fila a
+  // fila. Mismo formato que recorrer (los pasos no tienen valor) y R.estructural = true.
+  function estructura(P, F) {
+    const filas = [...F.filas].sort((a, b) => a.num - b.num);
+    const pasos = filas.map((f, i) => ({ i, fila: f.i, nodo: f.foco, t: null, vals: new Map(), vuelta: 0 }));
+    pasos.push({ i: pasos.length, fin: true, fila: null, t: null, vals: new Map(), vuelta: 0 });
+    // El bucle principal: el de más fuera del programa (no de una función).
+    const L = F.filas.filter(f => f.tipo === "bucle" && f.seccion == null).sort((a, b) => a.nivel - b.nivel || a.num - b.num)[0];
+    return { pasos, vueltas: [], principal: L ? L.i : null, antes: 0, cuentas: new Map(), conReloj: false, estructural: true };
+  }
+  // Filas dentro de otra (su nodo desciende del de ella), en orden de lectura.
+  function dentro(P, F, i) {
+    const de = F.filas[i].nodo;
+    return F.filas.filter(f => f.i !== i && P.desciende(f.nodo, de)).sort((a, b) => a.num - b.num).map(f => f.i);
+  }
+
+  return { preparar, construir, recorrer, estructura, dentro, verdad, PALETA };
 });
