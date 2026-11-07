@@ -122,11 +122,12 @@
   }
 
     const alternarComentario = adaptador.comentario.crear({ codigo: $codigo, insertar, sinTeclado });
+  const localizarAviso = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
   function avisoEditor(html) {
     opciones.alAviso?.(html);
     const $a = $("aviso");
     if (!html) { $a.hidden = true; return; }
-    $a.innerHTML = html; $a.hidden = false;
+    $a.innerHTML = localizarAviso(html); $a.hidden = false;
     vida.setTimeout(() => { $a.hidden = true; }, 2500);
   }
 

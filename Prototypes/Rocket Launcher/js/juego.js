@@ -4,10 +4,12 @@
  * El reparto de pantalla, el teclado del teléfono y los tooltips viven en layout.js. */
 (() => {
   "use strict";
+  const localizarHTML = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
 
   // ---------- Constantes del mundo ----------
   const ES_FACTORY = new URLSearchParams(location.search).get("serie") === "factory";
   const ti18n = (clave, valores) => window.CMGI18n ? window.CMGI18n.t(clave, valores) : clave;
+  const htmlInterfaz = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
   // líneas (shared/python/traductor.js) y corre en el mismo Worker.
   const PYTHON = !!window.CMGAdaptadorPython && !!window.CMGPythonJS;
@@ -361,7 +363,7 @@
     if (!ejec) return;
     if (ejec.lenguajes && ejec.lenguajes[p.id] === "python") mensaje = mensajePython(mensaje);
     lineaErr = { id: p.id, linea }; marcasSucias = true;
-    consola("error", p.id, linea, escapeMsg(mensaje));
+    consola("error", p.id, linea, htmlInterfaz(escapeMsg(mensaje)));
     terminar("error", "error", mensaje, linea, p.id);
   }
   const escapeMsg = (s) => esc(s);
@@ -443,14 +445,14 @@
       mostrarBanner("victoria", "Reto cumplido", `Todo entregado. <b>${coma(mundo.t)} s</b>${etiquetaLenguaje(lenguajeIntento)}`, `Intento ${intento}`, [["Otra vez", "primario", ocultarBanner]]);
     } else if (resultado === "fallo" || resultado === "error") {
       pistaTrasFallo();
-      mostrarBanner("fallo", resultado === "error" ? (linea ? `Error en la línea ${linea}` : "Error en el programa") : "Aún no", esc(texto), def.pista,
+      mostrarBanner("fallo", resultado === "error" ? (linea ? `Error en la línea ${linea}` : "Error en el programa") : "Aún no", esc(texto), partesPista().join(" "),
         [["Editar programa", "primario", () => { ocultarBanner(); verPanel("codigo"); if (linea) irALinea(linea); }]]);
     }
     pintarControles(); pintarProgs(); pintarResumen(); pintarEdicion(); pintarRetos(); metasClave = "";
     if (!$("info-reto").hidden) pintarInfoReto();
   }
 
-  function detener() { if (ejec) { consola("sistema", null, null, "Programa detenido."); terminar("detenido", "detenido", null); } }
+  function detener() { if (ejec) { consola("sistema", null, null, htmlInterfaz("Programa detenido.")); terminar("detenido", "detenido", null); } }
 
   function vigia(now) {
     if (!ejec) return;
@@ -485,10 +487,10 @@
     if (ruteo[nivel] === "globo") globo(id, nivel, texto);
     else if (ruteo[nivel] === "pantalla") aviso(nivel, id, linea, texto);
   }
-  function avisoSistema(texto) { consola("bad", null, null, esc(texto)); aviso("error", null, null, texto); }
+  function avisoSistema(texto) { consola("bad", null, null, htmlInterfaz(esc(texto))); aviso("error", null, null, texto, true); }
 
   const $avisos = $("avisos");
-  function aviso(nivel, id, linea, texto) {
+  function aviso(nivel, id, linea, texto, delSistema = false) {
     const ult = $avisos.lastElementChild;
     const clave = `${nivel}|${id}|${texto}`;
     if (ult && ult.dataset.clave === clave) {
@@ -497,6 +499,7 @@
     const d = document.createElement("div");
     d.className = `toast ${nivel}`; d.dataset.clave = clave; d.dataset.n = 1; d.dataset.hasta = performance.now() + 4500;
     d.innerHTML = `<span class="nivel">${esc(nivel)}</span>${id ? `<button type="button" class="ref" data-ref="${esc(id)}">${esc(id)}</button>` : ""}${linea ? `<span class="veces">L${linea}</span>` : ""}<span class="txt">${esc(texto)}</span><span class="veces"></span>`;
+    if (delSistema) d.innerHTML = htmlInterfaz(d.innerHTML);
     $avisos.appendChild(d);
     while ($avisos.children.length > 3) $avisos.firstChild.remove();
   }
@@ -690,8 +693,8 @@
   }
   if (new URLSearchParams(location.search).has("poc")) {
     const d = document.createElement("details"); d.className = "poc"; d.open = innerWidth > 760;
-    d.innerHTML = `<summary>Variantes</summary>` + Object.entries(VARIANTES).map(([k, ops]) =>
-      `<div class="g"><b>${k}</b><div class="ops">${Object.entries(ops).map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${visual[k] === v}">${esc(t)}</button>`).join("")}</div></div>`).join("");
+    d.innerHTML = htmlInterfaz(`<summary>Variantes</summary>` + Object.entries(VARIANTES).map(([k, ops]) =>
+      `<div class="g"><b>${k}</b><div class="ops">${Object.entries(ops).map(([v, t]) => `<button type="button" data-k="${k}" data-v="${v}" aria-pressed="${visual[k] === v}">${esc(t)}</button>`).join("")}</div></div>`).join(""));
     d.addEventListener("click", (ev) => {
       const b = ev.target.closest("button[data-k]"); if (!b) return;
       visual[b.dataset.k] = b.dataset.v;
@@ -726,7 +729,8 @@
       if (!o.etq.hidden) puestas.push({ o, x: p.x, y: p.y, w: txt.length * 7.2 + 22, h: 21 });
       const gl = globos.get(e.id);
       if (gl && ahora < gl.hasta && p.visible) {
-        if (o.texto !== gl.nivel + gl.texto) { o.g.textContent = gl.texto; o.g.className = `globo ${gl.nivel}`; o.texto = gl.nivel + gl.texto; }
+        const textoGlobo = gl.nivel === "sistema" && window.CMGPresentacion ? CMGPresentacion.texto(gl.texto) : gl.texto;
+        if (o.texto !== gl.nivel + textoGlobo) { o.g.textContent = textoGlobo; o.g.className = `globo ${gl.nivel}`; o.texto = gl.nivel + textoGlobo; }
         o.g.hidden = false; o.g.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, calc(-100% - 22px))`;
       } else o.g.hidden = true;
     }
@@ -749,11 +753,26 @@
   }
 
   // ---------- Retos y mundo en pantalla ----------
+  // Solo los contenidos de los retos incluidos se localizan. El escenario propio sigue siendo datos del jugador.
+  const textoReto = (campo, original = def[campo], indice = retoIdx) => indice < IDX_PROPIO
+    ? ti18n(`retos.${ES_FACTORY ? "factory" : "war"}.${indice}.${campo}`) : original || "";
+  const hojaReto = (campo, original, indice = retoIdx) => `<span data-reto-campo="${campo}" data-reto-indice="${indice}">${esc(textoReto(campo, original, indice))}</span>`;
+  const hojaUIReto = (clave, params = {}) => `<span data-reto-ui="${clave}" data-reto-params="${esc(JSON.stringify(params))}">${esc(ti18n(clave, params))}</span>`;
+  function actualizarContenidoReto() {
+    for (const el of document.querySelectorAll("[data-reto-ui]")) el.textContent = ti18n(el.dataset.retoUi, JSON.parse(el.dataset.retoParams));
+    for (const [id, campo] of [["titulo", "titulo"], ["objetivo-corto", "objetivo"], ["objetivo-txt", "objetivo"], ["leccion", "leccion"]])
+      $(id).textContent = textoReto(campo);
+    $("info-reto-titulo").textContent = `${retoIdx === IDX_PROPIO ? ti18n("retos.propio") : ti18n("retos.reto", { numero: retoIdx + 1 })} · ${textoReto("titulo")}`;
+    for (const el of document.querySelectorAll("[data-reto-campo]")) {
+      const indice = +el.dataset.retoIndice;
+      if (indice < IDX_PROPIO) el.textContent = textoReto(el.dataset.retoCampo, "", indice);
+    }
+  }
   function pintarRetos() {
     const chips = RETOS.map((r, i) => [i, r.titulo]).concat(ES_FACTORY ? [] : [[IDX_PROPIO, `✎ ${propio.titulo}`]]);
     $("retos").innerHTML = chips.map(([i, t]) => {
       const clave = (ES_FACTORY ? "factory-" : "") + (i === IDX_PROPIO ? "propio" : String(i)), hecho = hechos.includes(clave);
-      return `<button type="button" class="reto-btn${hecho ? " hecho" : ""}" aria-pressed="${i === retoIdx}" data-i="${i}"><span class="n">${hecho ? "✓" : i === IDX_PROPIO ? "+" : i + 1}</span>${esc(t)}</button>`;
+      return `<button type="button" class="reto-btn${hecho ? " hecho" : ""}" aria-pressed="${i === retoIdx}" data-i="${i}"><span class="n">${hecho ? "✓" : i === IDX_PROPIO ? "+" : i + 1}</span>${i < IDX_PROPIO ? hojaReto("titulo", t, i) : esc(t)}</button>`;
     }).join("");
   }
   $("retos").addEventListener("click", (ev) => { const b = ev.target.closest(".reto-btn"); if (b) elegirReto(+b.dataset.i); });
@@ -770,20 +789,20 @@
   function estadoMetas() {
     if (ES_FACTORY) return def.metas.map((meta, i) => {
       const e = mundo.porId[meta.id], valor = meta.tipo === "vaciar" ? e.stock[meta.mat] || 0 : e.recibido[meta.mat] || 0;
-      return { k: `factory-${i}`, nombre: `${esc(meta.id)} ← ${esc(meta.mat)}`, meta: meta.tipo === "vaciar" ? "vaciar" : `mínimo ${meta.n}`, valor: meta.tipo === "vaciar" ? valor : `${valor}/${meta.n}`, estado: logistica.metaCumplida(meta) ? "ok" : mundo.fin ? "rota" : "pendiente" };
+      return { k: `factory-${i}`, nombre: `${esc(meta.id)} ← ${esc(meta.mat)}`, meta: meta.tipo === "vaciar" ? ti18n("retos.meta.vaciar") : ti18n("retos.meta.minimo", { n: meta.n }), valor: meta.tipo === "vaciar" ? valor : `${valor}/${meta.n}`, estado: logistica.metaCumplida(meta) ? "ok" : mundo.fin ? "rota" : "pendiente" };
     });
     const m = mundo, me = def.metas, acabado = m.fin === "victoria" || m.fin === "fallo";
     const decide = (rota, ok) => rota ? "rota" : ok ? "ok" : acabado ? "rota" : "pendiente";
-    const filas = [{ k: "brechas", nombre: "Brechas", meta: `máximo ${me.brechasMax}`, valor: m.brechas, estado: decide(m.brechas > me.brechasMax, acabado && m.brechas <= me.brechasMax) }];
-    if (me.derribosMin != null) filas.push({ k: "derribos", nombre: "Derribos", meta: `mínimo ${me.derribosMin}`, valor: `${m.derribos}/${m.total}`, estado: decide(false, m.derribos >= me.derribosMin) });
-    else filas.push({ k: "derribos", nombre: "Derribados", meta: "para contar", valor: `${m.derribos}/${m.total}`, estado: "info" });
-    if (me.atascosMax != null) filas.push({ k: "atascos", nombre: "Atascos", meta: `máximo ${me.atascosMax}`, valor: m.atascos, estado: decide(m.atascos > me.atascosMax, acabado && m.atascos <= me.atascosMax) });
-    if (me.tiempoMax != null) filas.push({ k: "tiempo", nombre: "Tiempo", meta: `hasta ${me.tiempoMax} s`, valor: `${coma(m.t)} s`, estado: decide(m.t > me.tiempoMax + 1e-9, m.fin === "victoria") });
+    const filas = [{ k: "brechas", nombre: ti18n("retos.meta.brechas"), meta: ti18n("retos.meta.maximo", { n: me.brechasMax }), valor: m.brechas, estado: decide(m.brechas > me.brechasMax, acabado && m.brechas <= me.brechasMax) }];
+    if (me.derribosMin != null) filas.push({ k: "derribos", nombre: ti18n("retos.meta.derribos"), meta: ti18n("retos.meta.minimo", { n: me.derribosMin }), valor: `${m.derribos}/${m.total}`, estado: decide(false, m.derribos >= me.derribosMin) });
+    else filas.push({ k: "derribos", nombre: ti18n("retos.meta.derribados"), meta: ti18n("retos.meta.contar"), valor: `${m.derribos}/${m.total}`, estado: "info" });
+    if (me.atascosMax != null) filas.push({ k: "atascos", nombre: ti18n("retos.meta.atascos"), meta: ti18n("retos.meta.maximo", { n: me.atascosMax }), valor: m.atascos, estado: decide(m.atascos > me.atascosMax, acabado && m.atascos <= me.atascosMax) });
+    if (me.tiempoMax != null) filas.push({ k: "tiempo", nombre: ti18n("retos.meta.tiempo"), meta: ti18n("retos.meta.hasta", { n: me.tiempoMax }), valor: `${coma(m.t)} s`, estado: decide(m.t > me.tiempoMax + 1e-9, m.fin === "victoria") });
     return filas;
   }
   // Pista escalonada: la pista del reto en partes (frases). La primera se puede pedir siempre;
   // cada intento fallido muestra la siguiente y permite pedir una más.
-  const partesPista = () => (def.pista || "").split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/).map(t => t.trim()).filter(Boolean);
+  const partesPista = () => (def.pista || "").split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/).map(t => t.trim()).filter(Boolean).map((t, i) => textoReto(`pista.${i}`, t));
   let pistas = guardado.leer("pistas", {});
   const pistaDe = () => ({ vistas: 0, fallos: 0, ...(pistas[claveReto()] || {}) });
   function guardarPista(p) { pistas = { ...pistas, [claveReto()]: p }; guardado.escribir("pistas", pistas); }
@@ -804,11 +823,11 @@
   const marca = (estado) => `<i class="marca ${estado}" aria-hidden="true"></i>`;
   const num = (v) => Number.isInteger(v) ? String(v) : coma(v);
   const INFO = {
-    objetivo: () => `<section class="objetivo" aria-label="Objetivo"><p id="info-reto-txt">${esc(def.objetivo)}</p><div class="leccion" id="info-reto-leccion">${esc(def.leccion)}</div></section>`,
+    objetivo: () => `<section class="objetivo" data-i18n-aria-label="juego.info_reto.objetivo" aria-label="${esc(ti18n("juego.info_reto.objetivo"))}"><p id="info-reto-txt">${hojaReto("objetivo", def.objetivo)}</p><div class="leccion" id="info-reto-leccion">${hojaReto("leccion", def.leccion)}</div></section>`,
     metas: () => {
       const m = mundo, filas = estadoMetas();
-      const est = m.fin === "victoria" ? "Cumplido" : m.fin === "fallo" || m.fin === "error" ? "No cumplido" : m.activo ? "En curso" : m.fin ? "Detenido" : "Sin ejecutar";
-      return `<p class="info-nota">${esc(est)}${m.fin || m.activo ? "" : " · se marcan en vivo al ejecutar"}</p><ul class="metas-lista">${filas.map(f =>
+      const est = ti18n(`retos.estado.${m.fin === "victoria" ? "victoria" : m.fin === "fallo" || m.fin === "error" ? "fallo" : m.activo ? "activo" : m.fin ? "detenido" : "inicial"}`);
+      return `<p class="info-nota">${esc(est)}${m.fin || m.activo ? "" : ti18n("retos.estado.nota")}</p><ul class="metas-lista">${filas.map(f =>
         `<li class="meta-fila ${f.estado}" data-meta="${f.k}">${marca(f.estado)}<span class="m-nombre">${f.nombre} <small>${esc(f.meta)}</small></span><b class="m-valor">${f.valor}</b></li>`).join("")}</ul>`;
     },
     enemigos: () => {
@@ -831,12 +850,12 @@
     },
     pista: () => {
       const partes = partesPista(), p = pistaDe(), n = partes.length, abiertas = Math.min(n, p.fallos + 1);
-      if (!n) return `<p class="info-nota">Este reto no tiene pista.</p>`;
-      const vistas = partes.slice(0, p.vistas).map((t, i) => `<li><span class="parte">${i + 1}/${n}</span> ${esc(t)}</li>`).join("");
-      const pie = p.vistas >= n ? `<p class="info-nota">Ya ves la pista completa.</p>`
-        : p.vistas < abiertas ? `<button class="btn chico" type="button" data-info-accion="ver-pista">${p.vistas ? "Ver la siguiente parte" : "Ver pista"} <small>${p.vistas + 1}/${n}</small></button>`
-        : `<p class="info-nota bloqueada"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>La parte ${p.vistas + 1}/${n} se desbloquea con otro intento fallido.</p>`;
-      return `${vistas ? `<ol class="pista-partes">${vistas}</ol>` : `<p class="info-nota">La pista viene en ${n} ${n === 1 ? "parte" : "partes"}. Pídela cuando la necesites; cada intento fallido abre la siguiente.</p>`}${pie}`;
+      if (!n) return `<p class="info-nota">${hojaUIReto("retos.pista.sin")}</p>`;
+      const vistas = partes.slice(0, p.vistas).map((t, i) => `<li><span class="parte">${i + 1}/${n}</span> ${hojaReto(`pista.${i}`, t)}</li>`).join("");
+      const pie = p.vistas >= n ? `<p class="info-nota">${hojaUIReto("retos.pista.completa")}</p>`
+        : p.vistas < abiertas ? `<button class="btn chico" type="button" data-info-accion="ver-pista">${hojaUIReto(p.vistas ? "retos.pista.siguiente" : "retos.pista.ver")} <small>${p.vistas + 1}/${n}</small></button>`
+        : `<p class="info-nota bloqueada"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${hojaUIReto("retos.pista.bloqueada", { i: p.vistas + 1, n })}</p>`;
+      return `${vistas ? `<ol class="pista-partes">${vistas}</ol>` : `<p class="info-nota">${hojaUIReto(n === 1 ? "retos.pista.intro_una" : "retos.pista.intro", { n })}</p>`}${pie}`;
     },
     intento: () => {
       const u = ultimoIntento();
@@ -873,7 +892,7 @@
   const avisarInfo = () => $("app").dispatchEvent(new CustomEvent("cmg:info", { detail: { pestana: infoPestana, abierta: !$("info-reto").hidden } }));
   function pintarInfoReto() {
     if (PORTALES[infoPestana] && !conPortales()) infoPestana = "objetivo";
-    $("info-reto-titulo").textContent = `${retoIdx === IDX_PROPIO ? "Tu escenario" : `Reto ${retoIdx + 1}`} · ${def.titulo}`;
+    actualizarContenidoReto();
     for (const b of document.querySelectorAll("#info-pestanas [data-info]")) {
       const si = b.dataset.info === infoPestana;
       b.setAttribute("aria-selected", String(si)); b.tabIndex = si ? 0 : -1;
@@ -881,13 +900,13 @@
     $("info-cuerpo").setAttribute("aria-labelledby", `info-t-${infoPestana}`);
     devolverPortales();
     if (PORTALES[infoPestana]) $("info-cuerpo").replaceChildren($(PORTALES[infoPestana]));
-    else $("info-cuerpo").innerHTML = INFO[infoPestana]();
+    else $("info-cuerpo").innerHTML = htmlInterfaz(INFO[infoPestana]());
     estadosPestanas();
   }
   // En vivo: las metas y los puntos se repintan con el marcador (pintarHud), solo con la ficha abierta.
   function vivoInfoReto() {
     if ($("info-reto").hidden) return;
-    if (infoPestana === "metas") $("info-cuerpo").innerHTML = INFO.metas();
+    if (infoPestana === "metas") $("info-cuerpo").innerHTML = htmlInterfaz(INFO.metas());
     estadosPestanas();
   }
   function elegirInfo(k, foco) {
@@ -1037,12 +1056,12 @@
     edicion = { ids: [], mixto: false };
     lineaCorre = {}; lineaErr = null;
     nuevoMundo();
-    $("titulo").textContent = def.titulo;
+    actualizarContenidoReto();
     $("reto-n").textContent = i === IDX_PROPIO ? "✎" : i + 1;
-    $("objetivo-corto").textContent = def.objetivo;
+    $("objetivo-corto").textContent = textoReto("objetivo");
     pintarPaleta();
-    $("objetivo-txt").textContent = def.objetivo;
-    $("leccion").textContent = def.leccion;
+    $("objetivo-txt").textContent = textoReto("objetivo");
+    $("leccion").textContent = textoReto("leccion");
     if (!$("info-reto").hidden) pintarInfoReto();
     ocultarBanner(); limpiarConsola(); cerrarAvisos();
     pintarRetos(); pintarProgs(); abrirPrograma(progSel); pintarResumen(); pintarEventosYa(); pintarControles(); pintarEscenario();
@@ -1054,24 +1073,24 @@
     const reloj = ti18n("partida.reloj.formato", { tiempo });
     $("reloj").textContent = reloj + (!ES_FACTORY && mundo && mundo.def.niebla ? ti18n("partida.reloj.niebla") : "");
   }
-  function pintarHud() {
+  function pintarHud(refrescarInfo = true) {
     actualizarReloj();
     if (ES_FACTORY) {
       const html = estadoMetas().map(f => `<span class="meta${f.estado === "ok" ? " cumplida" : f.estado === "rota" ? " rota" : ""}">${f.nombre} <b>${f.valor}</b></span>`).join("");
-      if (html !== metasClave) { metasClave = html; $("metas").innerHTML = html; vivoInfoReto(); }
+      if (html !== metasClave) { metasClave = html; $("metas").innerHTML = html; if (refrescarInfo) vivoInfoReto(); }
       return;
     }
     const m = mundo, me = def.metas;
-    const clave = [m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
+    const clave = [window.CMGI18n?.idioma, m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
     if (clave === metasClave) return;
     metasClave = clave;
-    vivoInfoReto();
+    if (refrescarInfo) vivoInfoReto();
     const cpd = m.derribos ? (coste() / m.derribos).toFixed(1) : "—", rec = records[claveReto()];
-    let html = `<span class="meta${m.brechas > me.brechasMax ? " rota" : ""}">brechas <b>${m.brechas}</b> · máx ${me.brechasMax}</span>`;
-    html += `<span class="meta${m.total && m.derribos === m.total ? " cumplida" : ""}">derribados <b>${m.derribos}/${m.total}</b>${me.derribosMin != null ? ` · mín ${me.derribosMin}` : ""}</span>`;
-    html += `<span class="meta${me.atascosMax != null && m.atascos > me.atascosMax ? " rota" : ""}">atascos <b>${m.atascos}</b>${me.atascosMax != null ? ` · máx ${me.atascosMax}` : ""}</span>`;
+    let html = `<span class="meta${m.brechas > me.brechasMax ? " rota" : ""}">${esc(ti18n("retos.hud.brechas"))} <b>${m.brechas}</b> · ${esc(ti18n("retos.hud.max", { n: me.brechasMax }))}</span>`;
+    html += `<span class="meta${m.total && m.derribos === m.total ? " cumplida" : ""}">${esc(ti18n("retos.hud.derribados"))} <b>${m.derribos}/${m.total}</b>${me.derribosMin != null ? ` · ${esc(ti18n("retos.hud.min", { n: me.derribosMin }))}` : ""}</span>`;
+    html += `<span class="meta${me.atascosMax != null && m.atascos > me.atascosMax ? " rota" : ""}">${esc(ti18n("retos.hud.atascos"))} <b>${m.atascos}</b>${me.atascosMax != null ? ` · ${esc(ti18n("retos.hud.max", { n: me.atascosMax }))}` : ""}</span>`;
     if (me.tiempoMax != null) html += `<span class="meta${m.t > me.tiempoMax ? " rota" : ""}">≤ ${me.tiempoMax} s</span>`;
-    html += `<span class="meta optimo" title="El número a optimizar: misiles y reparaciones divididos entre derribos">₵ por derribo <b>${cpd}</b>${rec != null ? ` · récord ${rec.toFixed(1)}` : ""}</span>`;
+    html += `<span class="meta optimo" title="${esc(ti18n("retos.hud.coste_tip"))}">${esc(ti18n("retos.hud.coste"))} <b>${cpd}</b>${rec != null ? ` · ${esc(ti18n("retos.hud.record", { n: rec.toFixed(1) }))}` : ""}</span>`;
     $("metas").innerHTML = html;
   }
 
@@ -1154,8 +1173,8 @@
 
   // ---------- Máquinas e inspector ----------
   function pintarMaquinas() {
-    $("maquinas").innerHTML = mundo.maquinas.map(e => `<button type="button" class="maq-chip" data-id="${e.id}" aria-pressed="${seleccionadas.has(e.id)}" style="--rol:var(--rol-${funcionDe(e).principal})">${e.id}</button>`).join("")
-      + `<span class="fila-bajo" style="align-self:center">En el campo: toca para elegir, mantén presionado para abrir la ficha. Doble toque en el suelo y arrastra para seleccionar en cuadro. Con dos dedos: acerca, desplaza y gira.</span>`;
+    $("maquinas").innerHTML = localizarHTML(mundo.maquinas.map(e => `<button type="button" class="maq-chip" data-id="${e.id}" aria-pressed="${seleccionadas.has(e.id)}" style="--rol:var(--rol-${funcionDe(e).principal})">${e.id}</button>`).join("")
+      + `<span class="fila-bajo" style="align-self:center">En el campo: toca para elegir, mantén presionado para abrir la ficha. Doble toque en el suelo y arrastra para seleccionar en cuadro. Con dos dedos: acerca, desplaza y gira.</span>`);
   }
   $("maquinas").addEventListener("click", (ev) => { const b = ev.target.closest(".maq-chip"); if (b) seleccionar(b.dataset.id); });
   // El inspector tiene tres estados: cerrado (nada elegido), tira (nombre y signos vitales) y abierto (ficha completa).
@@ -1214,6 +1233,46 @@
     "inspector.vital.suministro": "Suministro", "inspector.vital.vida": "Vida", "inspector.vital.altura": "Altura",
     "inspector.vital.posicion": "Posición", "inspector.traza.ultimos": "últimos {segundos} s", "inspector.traza.escala": "escala",
     "inspector.traza.ahora": "ahora",
+    "inspector.estado.robot.carga": "carga: {material}", "inspector.estado.robot.trabajando": "trabajando", "inspector.estado.robot.vacio": "manos vacías",
+    "inspector.estado.bodega": "almacenando", "inspector.estado.fundidora.procesando": "procesando", "inspector.estado.fundidora.espera": "en espera",
+    "inspector.estado.lanzador.atascado": "atascado", "inspector.estado.lanzador.sin_misiles": "sin misiles", "inspector.estado.lanzador.rafaga": "ráfaga",
+    "inspector.estado.lanzador.disparando": "disparando", "inspector.estado.lanzador.inactivo": "inactivo",
+    "inspector.estado.reparador.reparando": "reparando", "inspector.estado.reparador.va": "va a {objetivo}",
+    "inspector.estado.reparador.vuelve": "vuelve", "inspector.estado.reparador.base": "en base",
+    "inspector.estado.vibracion": "{cantidad} en rango", "inspector.estado.deposito": "suministrando",
+    "inspector.estado.enemigo.vida": "vida {actual}/{maximo}",
+    "inspector.clase.robot": "Robot de carga", "inspector.clase.bodega": "Bodega", "inspector.clase.fundidora": "Fundidora",
+    "inspector.clase.lanzador": "Lanzamisiles", "inspector.clase.vibracion": "Sensor de vibración (red)",
+    "inspector.clase.deposito": "Depósito de misiles", "inspector.clase.reparador": "Robot reparador", "inspector.clase.enemigo": "Enemigo",
+    "inspector.clase.ensambladora": "Ensambladora", "inspector.clase.muelle": "Muelle",
+    "inspector.enemigo.crawler": "oruga", "inspector.enemigo.drone": "dron", "inspector.enemigo.stealth": "dron frío",
+    "inspector.rol.ofensiva": "Ofensiva", "inspector.rol.rastreo": "Rastreo y telemetría",
+    "inspector.rol.utilitaria": "Utilitaria", "inspector.rol.fabrica": "Fábrica",
+    "inspector.metrica.viajes": "viajes", "inspector.metrica.vacios": "vacíos", "inspector.metrica.rechazos": "rechazos",
+    "inspector.metrica.entrada": "entrada", "inspector.metrica.producido": "producido", "inspector.metrica.lanzados": "lanzados",
+    "inspector.metrica.impactos": "impactos", "inspector.metrica.precision": "precisión", "inspector.metrica.derribos": "derribos",
+    "inspector.metrica.atascos": "atascos", "inspector.metrica.en_rafaga": "en ráfaga", "inspector.metrica.fallo_max": "fallo máx",
+    "inspector.metrica.credito_gastado": "₵ gastado", "inspector.metrica.lecturas": "lecturas",
+    "inspector.metrica.reparaciones": "reparaciones", "inspector.metrica.misiles_entregados": "misiles entregados",
+    "inspector.descripcion.en_pantalla": "en pantalla {unidad}", "inspector.descripcion.en_programa_no_prefijo": "en su programa no hace falta escribirlo",
+    "inspector.descripcion.solo_programa": "Solo desde el programa de {unidad}", "inspector.descripcion.posicion": "→ posición",
+    "inspector.descripcion.disparo_segundo": "1 disparo/s", "inspector.descripcion.rafaga_fallo": "2,2 disparos/s · sube el fallo",
+    "inspector.descripcion.dejar_disparo": "deja de disparar", "inspector.descripcion.entrada": "entrada:", "inspector.descripcion.salida": "· salida:",
+    "inspector.descripcion.lanzamientos": "lanzamientos", "inspector.descripcion.suministro": "suministro:",
+    "inspector.descripcion.suministro_misiles": "{cantidad} misil/s", "inspector.descripcion.disparos_segundo": "disparos/s",
+    "inspector.descripcion.alcance_sensores": "alcance: cámara {visual} · térmico {thermal}{niebla}",
+    "inspector.descripcion.tipos": "tipos:", "inspector.descripcion.tipo": "tipo:", "inspector.descripcion.vibracion_suelo": "vibración del suelo",
+    "inspector.descripcion.alcance": "alcance:", "inspector.descripcion.casillas": "{cantidad} casillas", "inspector.descripcion.ve": "ve:",
+    "inspector.descripcion.no_ve_drones": "· no ve drones",
+    "inspector.descripcion.sensor_prediccion": "Da dónde está el enemigo ahora, no dónde estará: el misil llega tarde a lo que se mueve rápido.",
+    "inspector.descripcion.sin_nombre": "No tiene nombre en el código en este banco.",
+    "inspector.descripcion.salida_misiles": "{cantidad} misil/s a cada lanzador", "inspector.descripcion.cargador": "cargador de cada lanzador:",
+    "inspector.descripcion.reparador": "Trabaja solo: atiende los atascos en orden de llegada.",
+    "inspector.descripcion.velocidad": "velocidad:", "inspector.descripcion.velocidad_casillas": "{cantidad} casillas/s",
+    "inspector.descripcion.reparacion": "reparación:", "inspector.descripcion.formula_reparacion": "{base} s + {fallo} s × failureRate del fallo",
+    "inspector.descripcion.cola": "cola:", "inspector.descripcion.auto_apunta": "lo apunta",
+    "inspector.descripcion.vida": "vida:", "inspector.descripcion.altura": "altura:", "inspector.descripcion.posicion_label": "posición:",
+    "inspector.descripcion.motor_frio": "Motor frío: el térmico no lo ve.",
   };
   const textoInspector = (clave, params = {}) => {
     const i18n = window.CMGI18n;
@@ -1240,9 +1299,40 @@
       for (const el of raiz.querySelectorAll(selector)) traducir(el, el.getAttribute(`data-ins-i18n-${nombre}`), nombre);
     }
   };
+  const textoEstadoInspector = (e) => {
+    if (e.clase === "robot") return e.carga ? textoInspector("inspector.estado.robot.carga", { material: e.carga }) : e.tarea ? textoInspector("inspector.estado.robot.trabajando") : textoInspector("inspector.estado.robot.vacio");
+    if (e.clase === "bodega") return textoInspector("inspector.estado.bodega");
+    if (e.clase === "fundidora") return textoInspector(e.procesando ? "inspector.estado.fundidora.procesando" : "inspector.estado.fundidora.espera");
+    if (e.clase === "lanzador") return textoInspector(e.atascado ? "inspector.estado.lanzador.atascado" : e.sinMisiles && e.modo !== "idle" ? "inspector.estado.lanzador.sin_misiles" : e.modo === "burst" ? "inspector.estado.lanzador.rafaga" : e.modo === "regular" ? "inspector.estado.lanzador.disparando" : "inspector.estado.lanzador.inactivo");
+    if (e.clase === "reparador") return textoInspector(e.estado === "reparar" ? "inspector.estado.reparador.reparando" : e.estado === "ir" ? "inspector.estado.reparador.va" : e.estado === "volver" ? "inspector.estado.reparador.vuelve" : "inspector.estado.reparador.base", e.estado === "ir" ? { objetivo: e.objetivo } : {});
+    if (e.clase === "vibracion") return textoInspector("inspector.estado.vibracion", { cantidad: enRango(e).length });
+    if (e.clase === "deposito") return textoInspector("inspector.estado.deposito");
+    return textoInspector("inspector.estado.enemigo.vida", { actual: e.hp, maximo: e.hpMax });
+  };
+  const claseInspector = (e) => {
+    if (!e?.clase || e.clase === "enemigo") return `${textoInspector("inspector.clase.enemigo")} · ${textoInspector(`inspector.enemigo.${e.tipo}`)}`;
+    if (e.clase === "bodega" || e.clase === "fundidora") {
+      const claveNombre = { Bodega: "inspector.clase.bodega", Fundidora: "inspector.clase.fundidora", Ensambladora: "inspector.clase.ensambladora", Muelle: "inspector.clase.muelle" }[e.nombre];
+      return claveNombre ? textoInspector(claveNombre) : e.nombre;
+    }
+    return textoInspector(`inspector.clase.${e.clase}`);
+  };
+  const rolInspector = (f) => f ? `${textoInspector(`inspector.rol.${f.principal}`)}${f.secundaria ? ` + ${textoInspector(`inspector.rol.${f.secundaria}`).toLowerCase()}` : ""}` : textoInspector("inspector.clase.enemigo");
+  const CLAVES_METRICA = { viajes: "viajes", "vacíos": "vacios", rechazos: "rechazos", entrada: "entrada", producido: "producido", lanzados: "lanzados", impactos: "impactos", "precisión": "precision", derribos: "derribos", atascos: "atascos", "en ráfaga": "en_rafaga", "fallo máx": "fallo_max", "₵ gastado": "credito_gastado", lecturas: "lecturas", reparaciones: "reparaciones", "misiles entregados": "misiles_entregados" };
+  const etiquetaMetricaInspector = (k) => CLAVES_METRICA[k] ? spanInspector(`inspector.metrica.${CLAVES_METRICA[k]}`) : esc(k);
+  const htmlMetricas = (m) => m.map(([k, v]) => {
+    return `<span class="m">${etiquetaMetricaInspector(k)} <b>${esc(v)}</b></span>`;
+  }).join("");
   const refrescarInspectorIdioma = () => {
     aplicarTextosInspector($("inspector"));
     aplicarTextosInspector($("pie-ins"));
+    const raiz = $("inspector");
+    for (const est of raiz.querySelectorAll("[data-ins-estado]")) {
+      const e = mundo.porId[est.dataset.insEstado] || mundo.enemigos.find(x => x.id === est.dataset.insEstado);
+      if (e) est.textContent = textoEstadoInspector(e);
+    }
+    const clase = raiz.querySelector("[data-ins-clase]"); if (clase) { const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion)); if (e) clase.textContent = claseInspector(e); }
+    const rol = raiz.querySelector("[data-ins-rol]"); if (rol) { const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion)); rol.textContent = rolInspector(e && funcionDe(e)); }
   };
   window.addEventListener("cmg:idioma", refrescarInspectorIdioma);
   const CLAVES_GRUPO = {
@@ -1294,15 +1384,13 @@
     const e = seleccion && (mundo.porId[seleccion] || mundo.enemigos.find(x => x.id === seleccion));
     if (!e) insEstado = "cerrado";
     $i.dataset.estado = insEstado;
-    if (!e) { $("ins-tira").innerHTML = ""; $("ins-cuerpo").innerHTML = ""; return; }
+    if (!e) { $("ins-tira").innerHTML = htmlInterfaz(""); $("ins-cuerpo").innerHTML = htmlInterfaz(""); return; }
     const propioProg = e.id === progSel, pre = propioProg ? "" : `${varDe(e.id)}.`;
-    let clase, c1 = "", c2 = "", botones = "";
+    let c1 = "", c2 = "", botones = "";
     if (["robot", "bodega", "fundidora"].includes(e.clase)) {
-      clase = e.clase === "robot" ? "Robot de carga" : e.nombre;
       c1 = htmlFactoryAPI();
-      c2 = grupo("Datos", ...metricasDe(e).map(([k, v]) => fila(nota(esc(k)), esc(v))));
+      c2 = grupo("Datos", ...metricasDe(e).map(([k, v]) => fila(nota(etiquetaMetricaInspector(k)), esc(v))));
     } else if (e.clase === "lanzador") {
-      clase = "Lanzamisiles";
       const ajeno = propioProg ? null : `Solo desde el programa de ${e.id}`;
       c1 = grupo("Nombre", fila(tk("var", varDe(e.id), varDe(e.id)), nota(`en pantalla ${e.id}${propioProg ? " · en su programa no hace falta escribirlo" : ""}`)))
         + grupo("Contenido", fila(tk("prop", `${pre}missiles`, `${pre}missiles`), `<span class="sep">=</span>`, tkValor(e.misiles, `${e.id}:missiles`), nota(`/ ${def.cargador} misiles`)))
@@ -1323,23 +1411,19 @@
           fila(nota("tipos:"), ...Object.keys(TIPOS).map(t => tk("str", `"${t}"`, `"${t}"`))));
       botones = (propioProg ? "" : `<button type="button" class="btn chico" data-accion="programa" ${atributoInspector("aria-label", "inspector.accion.editar_programa", { unidad: e.id })} data-ins-i18n-text="inspector.accion.editar_programa">${esc(textoInspector("inspector.accion.editar_programa", { unidad: e.id }))}</button>`);
     } else if (e.clase === "vibracion") {
-      clase = "Sensor de vibración (red)";
       c1 = grupo("Nombre", fila(tk("var", varDe(e.id), varDe(e.id)), nota(`en pantalla ${e.id}`)))
         + grupo("Funciones", fila(tk("fn", `${varDe(e.id)}.detect(tipo)`, `${varDe(e.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }), nota("→ posición, sin predicción")))
         + grupo("Propiedades", fila(tk("prop", `${varDe(e.id)}.count`, `${varDe(e.id)}.count`), `<span class="sep">=</span>`, tkValor(enRango(e).length, `${e.id}:count`), nota("enemigos de suelo en rango")));
       c2 = grupo("", fila(nota("tipo:"), "vibración del suelo"), fila(nota("alcance:"), `${e.alcance} casillas`), fila(nota("ve:"), tk("str", '"crawler"', '"crawler"'), nota("· no ve drones")),
         fila(nota("Da dónde está el enemigo ahora, no dónde estará: el misil llega tarde a lo que se mueve rápido.")));
     } else if (e.clase === "deposito") {
-      clase = "Depósito de misiles";
       c1 = grupo("", fila(nota("No tiene nombre en el código en este banco.")));
       c2 = grupo("", fila(nota("salida:"), `${def.suministro} misil/s a cada lanzador`), fila(nota("cargador de cada lanzador:"), `${def.cargador}`));
     } else if (e.clase === "reparador") {
-      clase = "Robot reparador";
       c1 = grupo("", fila(nota("Trabaja solo: atiende los atascos en orden de llegada.")));
       c2 = grupo("", fila(nota("velocidad:"), `${REP.vel} casillas/s`), fila(nota("reparación:"), `${REP.tBase} s + ${REP.tPorFallo} s × failureRate del fallo`), fila(nota("cola:"), `<span class="nota" data-vivo="cola">${mundo.colaReparar.join(", ") || "vacía"}</span>`));
     } else {
       const tp = TIPOS[e.tipo];
-      clase = `Enemigo · ${tp.nombre}`;
       const ven = [...(tp.frio ? [] : ["thermal"]), "visual"].sort();
       const vib = mundo.sensores[0];
       c1 = grupo("Tipo", fila(tk("str", `"${e.tipo}"`, `"${e.tipo}"`), nota(`autoTarget("${e.tipo}", …) lo apunta`)))
@@ -1348,18 +1432,19 @@
         fila(nota("posición:"), `<span class="nota" data-vivo="${e.id}:pos">x ${e.x.toFixed(1)} · y ${e.y.toFixed(1)}</span>`), tp.frio ? fila(nota("Motor frío: el térmico no lo ve.")) : "");
     }
     const seleccionadasTexto = seleccionadas.size > 1 ? ` · <span ${hojaInspector("inspector.seleccionadas", { cantidad: seleccionadas.size })}>${esc(textoInspector("inspector.seleccionadas", { cantidad: seleccionadas.size }))}</span>` : "";
-    const [cls, txt] = estadoDe(e);
+    const [cls] = estadoDe(e);
     const m = metricasDe(e);
     const abierto = insEstado === "abierto";
     const f = funcionDe(e);
     $i.style.setProperty("--rol", f ? `var(--rol-${f.principal})` : "var(--enemigo)");
-    const rol = f ? `<span class="rol">${esc(FUNCIONES[f.principal])}${f.secundaria ? ` <small>+ ${esc(FUNCIONES[f.secundaria].toLowerCase())}</small>` : ""}</span>` : `<span class="rol">Enemigo</span>`;
-    $("ins-tira").innerHTML = `
-      <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadasTexto}</h2><span class="estado ${cls}" data-estado>${esc(txt)}</span><span class="clase">${esc(clase)}</span>${rol}</div>
+    const clase = claseInspector(e);
+    const rol = rolInspector(f);
+    $("ins-tira").innerHTML = htmlInterfaz(`
+      <div class="ins-cab"><div class="nombre"><h2>${esc(e.id)}${seleccionadasTexto}</h2><span class="estado ${cls}" data-estado data-ins-estado="${esc(e.id)}">${esc(textoEstadoInspector(e))}</span><span class="clase" data-ins-clase>${esc(clase)}</span><span class="rol" data-ins-rol>${esc(rol)}</span></div>
         <div class="ins-acc">${V3 && vista === "3d" ? `<button type="button" data-accion="centrar" ${atributoInspector("aria-label", "inspector.accion.centrar.aria", { unidad: e.id })} ${atributoInspector("data-tip", "inspector.accion.centrar.tip")}>⌖</button>` : ""}<button type="button" data-accion="${abierto ? "plegar" : "abrir"}" ${atributoInspector("aria-label", `inspector.accion.${abierto ? "plegar" : "abrir"}`)} ${atributoInspector("data-tip", `inspector.accion.${abierto ? "plegar" : "ficha_completa"}`)}>${abierto ? "▴" : "▾"}</button><button type="button" data-accion="cerrar" ${atributoInspector("aria-label", "inspector.accion.cerrar.aria")} ${atributoInspector("data-tip", "inspector.accion.cerrar.tip")}>×</button></div></div>
       ${abierto ? "" : `<div class="vitales" id="ins-vitales">${htmlVitales(e)}</div>`}
-      <div class="ins-pista" ${hojaInspector("inspector.pista.ficha")}>${esc(textoInspector("inspector.pista.ficha"))}</div>`;
-    $("ins-cuerpo").innerHTML = `
+      <div class="ins-pista" ${hojaInspector("inspector.pista.ficha")}>${esc(textoInspector("inspector.pista.ficha"))}</div>`);
+    $("ins-cuerpo").innerHTML = htmlInterfaz(`
       <div class="regla"></div>
       <div class="ins-cols"><div class="ins-col"><h3><span class="placa" ${hojaInspector("inspector.seccion.codigo")}>${esc(textoInspector("inspector.seccion.codigo"))}</span></h3>${c1}</div><div class="ins-col"><h3><span class="placa" ${hojaInspector("inspector.grupo.datos")}>${esc(textoInspector("inspector.grupo.datos"))}</span></h3>${c2}</div></div>
       ${botones ? `<div class="fila-botones">${botones}</div>` : ""}
@@ -1368,7 +1453,7 @@
       <div class="leyenda-tk"><span class="tk-var" ${hojaInspector("inspector.leyenda.maquina")}>${esc(textoInspector("inspector.leyenda.maquina"))}</span><span class="tk-fn" ${hojaInspector("inspector.leyenda.funcion")}>${esc(textoInspector("inspector.leyenda.funcion"))}</span><span class="tk-prop" ${hojaInspector("inspector.leyenda.propiedad")}>${esc(textoInspector("inspector.leyenda.propiedad"))}</span><span class="tk-num" ${hojaInspector("inspector.leyenda.numero")}>${esc(textoInspector("inspector.leyenda.numero"))}</span><span class="tk-str" ${hojaInspector("inspector.leyenda.texto")}>${esc(textoInspector("inspector.leyenda.texto"))}</span>
         <span style="font-family:var(--f-body);font-weight:400" ${hojaInspector("inspector.leyenda.uso", { unidad: progSel })}>${esc(textoInspector("inspector.leyenda.uso", { unidad: progSel }))}</span></div>
       <div class="pista-tk" id="pista-tk"></div>
-      ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa" ${hojaInspector("inspector.seccion.vitales")}>${esc(textoInspector("inspector.seccion.vitales"))}</span></h3><div class="vitales" id="ins-vitales">${htmlVitales(e)}</div></div>` : ""}`;
+      ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa" ${hojaInspector("inspector.seccion.vitales")}>${esc(textoInspector("inspector.seccion.vitales"))}</span></h3><div class="vitales" id="ins-vitales">${htmlVitales(e)}</div></div>` : ""}`);
     aplicarTextosInspector($("ins-tira"));
     aplicarTextosInspector($("ins-cuerpo"));
   }
@@ -1388,12 +1473,12 @@
       + grupo("Lugares", ...mundo.entidades.map(e => fila(tk("var", e.id, varFactory(e.id)))));
   }
   function pintarPieIns() {
-    if (ES_FACTORY) { const $p = $("pie-ins"); $p.innerHTML = htmlFactoryAPI(); aplicarTextosInspector($p); return; }
+    if (ES_FACTORY) { const $p = $("pie-ins"); $p.innerHTML = htmlInterfaz(htmlFactoryAPI()); aplicarTextosInspector($p); return; }
     const $p = $("pie-ins"), e = mundo && mundo.porId[progSel];
     if (!$p) return;
-    if (!e) { $p.innerHTML = `<p class="nota" ${hojaInspector("inspector.pista.sin_lanzador")}>${esc(textoInspector("inspector.pista.sin_lanzador"))}</p>`; aplicarTextosInspector($p); return; }
+    if (!e) { $p.innerHTML = htmlInterfaz(`<p class="nota" ${hojaInspector("inspector.pista.sin_lanzador")}>${esc(textoInspector("inspector.pista.sin_lanzador"))}</p>`); aplicarTextosInspector($p); return; }
     const vars = variablesPrograma(), red = mundo.sensores;
-    $p.innerHTML = `<div class="pie-ins-cols">`
+    $p.innerHTML = htmlInterfaz(`<div class="pie-ins-cols">`
       + grupo("Funciones",
         fila(tk("fn", "autoTarget(tipo, sensor)", "autoTarget(/* tipo de enemigo */, /* sensor */)", { fin: "// → posición {x, y, z} o null" }), nota("→ posición")),
         fila(tk("fn", "regularShoot(lugar)", "regularShoot(/* lugar */);"), nota("1 disparo/s")),
@@ -1413,7 +1498,7 @@
         : fila(nota(`<span ${hojaInspector("inspector.pista.sin_variables")}>${esc(textoInspector("inspector.pista.sin_variables"))}</span>`)))
       + (red.length ? grupo("Red de sensores", ...red.map(x => fila(tk("fn", `${varDe(x.id)}.detect(tipo)`, `${varDe(x.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }),
         tk("prop", `${varDe(x.id)}.count`, `${varDe(x.id)}.count`), `<span class="sep">=</span>`, tkValor(enRango(x).length, `${x.id}:count`)))) : "")
-      + `</div>`;
+      + `</div>`);
     aplicarTextosInspector($p);
   }
   let tPieIns = 0;
@@ -1433,7 +1518,7 @@
     Cola: "inspector.vital.cola", Reparaciones: "inspector.vital.reparaciones", Entregados: "inspector.vital.entregados",
     Suministro: "inspector.vital.suministro", Vida: "inspector.vital.vida", Altura: "inspector.vital.altura", Posición: "inspector.vital.posicion" };
   const vital = (k, v, cuerpo = "") => {
-    const clave = CLAVES_VITAL[k], titulo = clave ? `<span ${hojaInspector(clave)}>${esc(textoInspector(clave))}</span>` : k;
+    const clave = CLAVES_VITAL[k], metrica = CLAVES_METRICA[k], titulo = clave ? `<span ${hojaInspector(clave)}>${esc(textoInspector(clave))}</span>` : metrica ? spanInspector(`inspector.metrica.${metrica}`) : k;
     return `<div class="vital"><div class="k"><span>${titulo}</span>${v != null ? `<b>${v}</b>` : ""}</div>${cuerpo}</div>`;
   };
   function traza(id) {
@@ -1456,7 +1541,6 @@
     if (e.clase === "deposito") return vital("Entregados", mundo.consumidos) + vital("Suministro", `${def.suministro} misil/s`);
     return vital("Vida", `${e.hp}/${e.hpMax}`, celdas(e.hp, e.hpMax, "vida")) + vital("Altura", `${e.z} m`) + vital("Posición", `x ${e.x.toFixed(1)} · y ${e.y.toFixed(1)}`);
   }
-  const htmlMetricas = (m) => m.map(([k, v]) => `<span class="m">${esc(k)} <b>${esc(v)}</b></span>`).join("");
   $("inspector").addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-accion]");
     if (!b) { if (insEstado === "tira" && ev.target.closest(".ins-tira")) abrirInspector(); return; }
@@ -1509,7 +1593,7 @@
       if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
     }
     const barra = $i.querySelector("[data-barra]"); if (barra) barra.style.width = `${Math.round(e.falla * 100)}%`;
-    const est = $i.querySelector("[data-estado]"); if (est) { const [cls, txt] = estadoDe(e); est.className = `estado ${cls}`; est.textContent = txt; }
+    const est = $i.querySelector("[data-estado]"); if (est) { const [cls] = estadoDe(e); est.className = `estado ${cls}`; est.textContent = textoEstadoInspector(e); }
     const vit = $("ins-vitales"); if (vit) { const h = htmlVitales(e); if (vit.innerHTML !== h) vit.innerHTML = h; }
     const met = $i.querySelector("[data-metricas]"); if (met) { const h = htmlMetricas(metricasDe(e)); if (met.innerHTML !== h) met.innerHTML = h; }
   }
@@ -1519,7 +1603,7 @@
   document.addEventListener("click", (ev) => {
     const t = ev.target.closest(".tk"); if (!t) return;
     const $p = $("pista-tk");
-    if (t.dataset.ajeno) { if ($p) $p.textContent = `${t.dataset.ajeno}. Desde aquí puedes leer sus propiedades.`; return; }
+    if (t.dataset.ajeno) { if ($p) { const mensaje = `${t.dataset.ajeno}. Desde aquí puedes leer sus propiedades.`; if (window.CMGPresentacion) CMGPresentacion.rotular($p, mensaje); else $p.textContent = mensaje; } return; }
     const ahora = performance.now();
     document.querySelectorAll(".tk.armado").forEach(x => x.classList.remove("armado"));
     if (armado.clave === t.dataset.clave && ahora - armado.t < 550) {
@@ -1527,11 +1611,11 @@
       insertarRef(t.dataset.ins, t.dataset.fin);
       insercion.dobleClic++;
       t.classList.add("hecho"); setTimeout(() => t.classList.remove("hecho"), 400);
-      if ($p) $p.innerHTML = `Insertado <code>${esc(t.dataset.ins)}</code> en ${esc(progSel)}.`;
+      if ($p) $p.innerHTML = htmlInterfaz(`Insertado <code>${esc(t.dataset.ins)}</code> en ${esc(progSel)}.`);
     } else {
       armado = { clave: t.dataset.clave, t: ahora };
       t.classList.add("armado");
-      if ($p) $p.innerHTML = `Doble clic inserta <code>${esc(t.dataset.ins)}</code> donde está el cursor del programa.`;
+      if ($p) $p.innerHTML = htmlInterfaz(`Doble clic inserta <code>${esc(t.dataset.ins)}</code> donde está el cursor del programa.`);
     }
   });
   // Una paleta que no se puede armar (p. ej. una caché con archivos de versiones distintas) no debe
@@ -1593,12 +1677,23 @@
   function mostrarBanner(tipo, titulo, html, stats, acciones) {
     const $b = $("banner");
     $b.className = `banner ${tipo}`;
-    $b.innerHTML = `<h2>${esc(titulo)}</h2>${html ? (html.startsWith("<p") ? html : `<p>${html}</p>`) : ""}${stats ? `<p class="stats">${esc(stats)}</p>` : ""}<div class="acciones"></div>`;
+    $b.innerHTML = htmlInterfaz(`<h2>${esc(titulo)}</h2>${html ? (html.startsWith("<p") ? html : `<p>${html}</p>`) : ""}${stats ? `<p class="stats">${esc(stats)}</p>` : ""}<div class="acciones"></div>`);
     const $a = $b.querySelector(".acciones");
     for (const [txt, cls, fn] of acciones) {
-      const b = document.createElement("button"); b.type = "button"; b.className = `btn chico ${cls}`; b.textContent = txt; b.addEventListener("click", fn); $a.appendChild(b);
+      const b = document.createElement("button"); b.type = "button"; b.className = `btn chico ${cls}`; if (window.CMGPresentacion) CMGPresentacion.rotular(b, txt); else b.textContent = txt; b.addEventListener("click", fn); $a.appendChild(b);
+    }
+    const pista = $b.querySelector('.stats');
+    if (pista && stats && (stats === def.pista || stats === partesPista().join(" ") || /^Pista[ :]/.test(stats))) {
+      pista.dataset.bannerPista = stats === def.pista || stats === partesPista().join(" ") ? "completa" : "parte";
+      actualizarPistaBanner();
     }
     $b.hidden = false;
+  }
+  function actualizarPistaBanner() {
+    const el = $("banner").querySelector('[data-banner-pista]'); if (!el) return;
+    const partes = partesPista(), i = pistaDe().vistas;
+    el.textContent = el.dataset.bannerPista === "completa" ? partes.join(" ")
+      : `${ti18n("juego.info_reto.pista")}${partes.length > 1 ? ` ${i}/${partes.length}` : ""}: ${partes[Math.max(0, i - 1)] || ""}`;
   }
   function ocultarBanner() { $("banner").hidden = true; }
 
@@ -1725,7 +1820,7 @@
         if (js !== textoInicial(def, id) && js.trim()) {
           const r = convertirAPython(js);
           if (r.ok) texto = r.texto;
-          else { sinConvertir.push(`<b>${esc(id)}</b>: ${esc(r.motivo)}${r.linea ? ` (línea ${r.linea} del JavaScript)` : ""}`); texto = `# Programa de ${id} en Python.\n# Tu programa JavaScript no se pudo convertir; sigue guardado: vuelve con JS para verlo.\n\n`; }
+          else { sinConvertir.push(`<b>${esc(id)}</b>: <span>${esc(r.motivo)}</span>${r.linea ? ` <span>(línea ${r.linea} del JavaScript)</span>` : ""}`); texto = `# Programa de ${id} en Python.\n# Tu programa JavaScript no se pudo convertir; sigue guardado: vuelve con JS para verlo.\n\n`; }
         }
         fuentes[id] = { lenguaje: "python", texto, enUso: true };
       } else if (fuentes[id]) fuentes[id].enUso = false;
@@ -2098,12 +2193,12 @@
   // ---------- Órdenes (ayuda) ----------
   function pintarAyuda() {
     if (ES_FACTORY) {
-      $("v-ayuda").innerHTML = `<h3>Robot de carga</h3><p><code>await pickUp(lugar, material)</code> lleva a R1 hasta una bodega y carga una pieza. <code>await deliver(lugar)</code> la lleva al destino. <code>await wait(segundos)</code> deja pasar tiempo mientras las máquinas trabajan.</p><p><code>count(lugar, material)</code> consulta las existencias sin avanzar el reloj.</p><p>Se gana al cumplir las metas, aunque el programa siga en un bucle. Usa await en los encargos: el robot tarda en viajar y operar; durante esa espera las máquinas siguen trabajando. Las lecturas no avanzan el reloj: 0 significa edificio vacío y null, edificio inexistente. Una entrega llena devuelve «lleno» y conserva la carga. Los nombres españoles y yo. siguen aceptados.</p>`;
+      $("v-ayuda").innerHTML = htmlInterfaz(`<h3>Robot de carga</h3><p><code>await pickUp(lugar, material)</code> lleva a R1 hasta una bodega y carga una pieza. <code>await deliver(lugar)</code> la lleva al destino. <code>await wait(segundos)</code> deja pasar tiempo mientras las máquinas trabajan.</p><p><code>count(lugar, material)</code> consulta las existencias sin avanzar el reloj.</p><p>Se gana al cumplir las metas, aunque el programa siga en un bucle. Usa await en los encargos: el robot tarda en viajar y operar; durante esa espera las máquinas siguen trabajando. Las lecturas no avanzan el reloj: 0 significa edificio vacío y null, edificio inexistente. Una entrega llena devuelve «lleno» y conserva la carga. Los nombres españoles y yo. siguen aceptados.</p>`);
       return;
     }
     const f = (firma, texto, cls = "") => `<div class="firma ${cls}"><code>${firma}</code><p>${texto}</p></div>`;
     const k = (tipo, t, ins) => tk(tipo, t, ins ?? t);
-    $("v-ayuda").innerHTML = `
+    $("v-ayuda").innerHTML = htmlInterfaz(`
       <h3>Cómo leer el inspector</h3>
       <ul>
         <li><b>Para tu código</b> (izquierda): el nombre de la máquina, lo que contiene y sus funciones. Es lo que más vas a escribir.</li>
@@ -2162,18 +2257,24 @@
     burstFire(pos);
   }
   await esperar(0.4);
-}</pre>`;
+}</pre>`);
   }
 
   // ---------- Escenario propio ----------
+  const hojaEscenario = clave => `<span data-i18n="${clave}">${esc(ti18n(clave))}</span>`;
+  let escenarioJsonCopiado = false, temporizadorCopiaEscenario;
+  function actualizarCopiaEscenario() {
+    const boton = $("esc-json-copiar");
+    if (boton) boton.textContent = ti18n(escenarioJsonCopiado ? "escenario.json.copiado" : "escenario.json.copiar");
+  }
   const filaOla = (o, i, dis) => `<div class="ola" data-i="${i}">
-      <label class="campo-f">Tipo<select data-k="tipo" ${dis}>${Object.keys(TIPOS).map(t => `<option value="${t}"${o.tipo === t ? " selected" : ""}>${t}</option>`).join("")}</select></label>
-      <label class="campo-f">Cuántos<input data-k="n" type="number" min="0" max="40" value="${o.n}" ${dis}></label>
-      <label class="campo-f">Desde (s)<input data-k="t" type="number" min="0" step="0.5" value="${o.t}" ${dis}></label>
-      <label class="campo-f">Cada (s)<input data-k="cada" type="number" min="0.1" step="0.05" value="${o.cada}" ${dis}></label>
-      <label class="campo-f">Carriles (filas 0–17)<input data-k="carriles" value="${o.carriles.join(", ")}" ${dis}></label>
-      <label class="campo-f">Vida<input data-k="hp" type="number" min="1" max="9" placeholder="${TIPOS[o.tipo].hp}" value="${o.hp ?? ""}" ${dis}></label>
-      <button type="button" class="btn chico quitar" data-quitar="${i}" ${dis}>Quitar</button>
+      <label class="campo-f">${hojaEscenario("escenario.oleada.tipo")}<select data-k="tipo" ${dis}>${Object.keys(TIPOS).map(t => `<option value="${t}"${o.tipo === t ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="campo-f">${hojaEscenario("escenario.oleada.cantidad")}<input data-k="n" type="number" min="0" max="40" value="${o.n}" ${dis}></label>
+      <label class="campo-f">${hojaEscenario("escenario.oleada.desde")}<input data-k="t" type="number" min="0" step="0.5" value="${o.t}" ${dis}></label>
+      <label class="campo-f">${hojaEscenario("escenario.oleada.cada")}<input data-k="cada" type="number" min="0.1" step="0.05" value="${o.cada}" ${dis}></label>
+      <label class="campo-f">${hojaEscenario("escenario.oleada.carriles")}<input data-k="carriles" value="${o.carriles.join(", ")}" ${dis}></label>
+      <label class="campo-f">${hojaEscenario("escenario.oleada.vida")}<input data-k="hp" type="number" min="1" max="9" placeholder="${TIPOS[o.tipo].hp}" value="${o.hp ?? ""}" ${dis}></label>
+      <button type="button" class="btn chico quitar" data-quitar="${i}" ${dis}>${hojaEscenario("escenario.oleada.quitar")}</button>
     </div>`;
   // `d` es el escenario que se muestra: el del reto o un borrador que todavía no se guardó.
   function pintarEscenario(d = def) {
@@ -2181,45 +2282,46 @@
     const propioSel = retoIdx === IDX_PROPIO, dis = propioSel ? "" : "disabled";
     const me = d.metas, num = (v) => v == null ? "" : v;
     $("esc-aviso").hidden = propioSel;
-    $("esc-aviso").innerHTML = propioSel ? "" : `Este reto es fijo. Puedes copiarlo a «Tu escenario» y cambiar lo que quieras, también el enunciado. <button type="button" class="btn chico" id="esc-copiar-reto">Usar como base de Tu escenario</button>`;
+    $("esc-aviso").innerHTML = propioSel ? "" : `${hojaEscenario("escenario.aviso.reto_fijo")} <button type="button" class="btn chico" id="esc-copiar-reto">${hojaEscenario("escenario.reto.copiar_base")}</button>`;
     $("esc-form").innerHTML = `
-      <fieldset ${dis}><legend>Enunciado</legend>
-        <label class="campo-f">Título<input id="esc-titulo" maxlength="60" value="${esc(d.titulo)}"></label>
-        <label class="campo-f">Lo que pides (aparece arriba como objetivo)<textarea id="esc-objetivo">${esc(d.objetivo)}</textarea></label>
-        <label class="campo-f">Pista cuando falle<input id="esc-pista" value="${esc(d.pista)}"></label>
+      <fieldset ${dis}><legend>${hojaEscenario("escenario.enunciado")}</legend>
+        <label class="campo-f">${hojaEscenario("escenario.titulo")}<input id="esc-titulo" maxlength="60" value="${esc(d.titulo)}"></label>
+        <label class="campo-f">${hojaEscenario("escenario.objetivo")}<textarea id="esc-objetivo">${esc(d.objetivo)}</textarea></label>
+        <label class="campo-f">${hojaEscenario("escenario.pista")}<input id="esc-pista" value="${esc(d.pista)}"></label>
       </fieldset>
-      <fieldset ${dis}><legend>Metas: lo que tiene que salir</legend>
+      <fieldset ${dis}><legend>${hojaEscenario("escenario.metas")}</legend>
         <div class="dos">
-          <label class="campo-f">Brechas máximas<input id="esc-brechas" type="number" min="0" value="${num(me.brechasMax)}"></label>
-          <label class="campo-f">Atascos máximos (vacío = sin límite)<input id="esc-atascos" type="number" min="0" value="${num(me.atascosMax)}"></label>
-          <label class="campo-f">Derribos mínimos (vacío = todos los que haga)<input id="esc-derribos" type="number" min="0" value="${num(me.derribosMin)}"></label>
-          <label class="campo-f">Tiempo máximo en s (vacío = sin límite)<input id="esc-tiempo" type="number" min="1" value="${num(me.tiempoMax)}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.metas.brechas")}<input id="esc-brechas" type="number" min="0" value="${num(me.brechasMax)}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.metas.atascos")}<input id="esc-atascos" type="number" min="0" value="${num(me.atascosMax)}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.metas.derribos")}<input id="esc-derribos" type="number" min="0" value="${num(me.derribosMin)}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.metas.tiempo")}<input id="esc-tiempo" type="number" min="1" value="${num(me.tiempoMax)}"></label>
         </div>
       </fieldset>
-      <fieldset ${dis}><legend>Defensa</legend>
+      <fieldset ${dis}><legend>${hojaEscenario("escenario.defensa")}</legend>
         <div class="dos">
-          <label class="campo-f">Lanzadores<select id="esc-lanzadores"><option value="1"${d.lanzadores.length === 1 ? " selected" : ""}>1 · LAU-01</option><option value="2"${d.lanzadores.length === 2 ? " selected" : ""}>2 · LAU-01 y LAU-02</option></select></label>
-          <label class="campo-f">Robots reparadores<input id="esc-rep" type="number" min="0" max="3" value="${d.reparadores}"></label>
-          <label class="campo-f">Cargador (misiles)<input id="esc-cargador" type="number" min="1" max="40" value="${d.cargador}"></label>
-          <label class="campo-f">Suministro (misiles/s)<input id="esc-suministro" type="number" min="0" max="5" step="0.1" value="${d.suministro}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.lanzadores")}<select id="esc-lanzadores"><option value="1"${d.lanzadores.length === 1 ? " selected" : ""}>1 · LAU-01</option><option value="2" data-i18n="escenario.lanzadores.dos"${d.lanzadores.length === 2 ? " selected" : ""}>${esc(ti18n("escenario.lanzadores.dos"))}</option></select></label>
+          <label class="campo-f">${hojaEscenario("escenario.reparadores")}<input id="esc-rep" type="number" min="0" max="3" value="${d.reparadores}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.cargador")}<input id="esc-cargador" type="number" min="1" max="40" value="${d.cargador}"></label>
+          <label class="campo-f">${hojaEscenario("escenario.suministro")}<input id="esc-suministro" type="number" min="0" max="5" step="0.1" value="${d.suministro}"></label>
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap">
-          <label class="check"><input type="checkbox" id="esc-vib"${d.sensores.length ? " checked" : ""}> Sensor de vibración VIB-01</label>
-          <label class="check"><input type="checkbox" id="esc-niebla"${d.niebla ? " checked" : ""}> Niebla</label>
+          <label class="check"><input type="checkbox" id="esc-vib"${d.sensores.length ? " checked" : ""}> ${hojaEscenario("escenario.vibracion")}</label>
+          <label class="check"><input type="checkbox" id="esc-niebla"${d.niebla ? " checked" : ""}> ${hojaEscenario("escenario.niebla")}</label>
         </div>
       </fieldset>
-      <fieldset ${dis}><legend>Oleadas (entran por la derecha)</legend>
+      <fieldset ${dis}><legend>${hojaEscenario("escenario.oleadas")}</legend>
         <div class="oleadas" id="esc-oleadas">${d.oleadas.map((o, i) => filaOla(o, i, dis)).join("")}</div>
-        <div><button type="button" class="btn chico" id="esc-mas" ${dis}>+ Oleada</button></div>
+        <div><button type="button" class="btn chico" id="esc-mas" ${dis}>${hojaEscenario("escenario.oleada.mas")}</button></div>
       </fieldset>
       ${propioSel ? `<div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn primario" id="esc-guardar">Guardar y jugar</button>
-        <button type="button" class="btn" id="esc-json-copiar">Copiar JSON</button>
+        <button type="button" class="btn primario" id="esc-guardar">${hojaEscenario("escenario.guardar")}</button>
+        <button type="button" class="btn" id="esc-json-copiar"></button>
       </div>
-      <details class="caja"><summary>Pegar un escenario en JSON</summary><div class="dentro">
-        <textarea class="json" id="esc-json" aria-label="Escenario en JSON" placeholder='{"titulo": "…", "oleadas": […]}'></textarea>
-        <div><button type="button" class="btn chico" id="esc-json-aplicar">Aplicar</button> <span class="fila-bajo" id="esc-json-msg"></span></div>
+      <details class="caja"><summary>${hojaEscenario("escenario.json.pegar")}</summary><div class="dentro">
+        <textarea class="json" id="esc-json" data-i18n-aria-label="escenario.json.aria" aria-label="${esc(ti18n("escenario.json.aria"))}" placeholder='{"titulo": "…", "oleadas": […]}'></textarea>
+        <div><button type="button" class="btn chico" id="esc-json-aplicar">${hojaEscenario("escenario.json.aplicar")}</button> <span class="fila-bajo" id="esc-json-msg"></span></div>
       </div></details>` : ""}`;
+    actualizarCopiaEscenario();
   }
   function leerEscenario() {
     const v = (id) => $(id).value.trim();
@@ -2244,8 +2346,8 @@
   }
   $("v-escenario").addEventListener("click", (ev) => {
     if (ES_FACTORY) return;
-    const id = ev.target.id;
-    if (ev.target.dataset.quitar != null) { const d = leerEscenario(); d.oleadas.splice(+ev.target.dataset.quitar, 1); pintarEscenario(d); return; }
+    const boton = ev.target.closest?.("button") || ev.target, id = boton.id;
+    if (boton.dataset.quitar != null) { const d = leerEscenario(); d.oleadas.splice(+boton.dataset.quitar, 1); pintarEscenario(d); return; }
     if (id === "esc-mas") { const d = leerEscenario(); d.oleadas.push({ tipo: "drone", n: 4, t: 0, cada: 1, carriles: [9] }); pintarEscenario(d); return; }
     if (id === "esc-guardar") { guardarPropio(leerEscenario(), true); abrirPestana("programa"); return; }
     if (id === "esc-copiar-reto") {
@@ -2255,13 +2357,17 @@
     }
     if (id === "esc-json-copiar") {
       const txt = JSON.stringify(leerEscenario(), null, 2);
-      try { navigator.clipboard.writeText(txt).then(() => { ev.target.textContent = "Copiado"; setTimeout(() => ev.target.textContent = "Copiar JSON", 1500); }, () => { $("esc-json").value = txt; $("esc-json").closest("details").open = true; $("esc-json").select(); }); }
+      try { navigator.clipboard.writeText(txt).then(() => {
+        escenarioJsonCopiado = true; actualizarCopiaEscenario();
+        clearTimeout(temporizadorCopiaEscenario);
+        temporizadorCopiaEscenario = setTimeout(() => { escenarioJsonCopiado = false; actualizarCopiaEscenario(); }, 1500);
+      }, () => { $("esc-json").value = txt; $("esc-json").closest("details").open = true; $("esc-json").select(); }); }
       catch { $("esc-json").value = txt; }
       return;
     }
     if (id === "esc-json-aplicar") {
       try { guardarPropio(normalizar(JSON.parse($("esc-json").value)), true); }
-      catch (e) { $("esc-json-msg").textContent = `No es un JSON válido: ${e.message}`; }
+      catch (e) { $("esc-json-msg").innerHTML = `${hojaEscenario("escenario.json.error")}: <span>${esc(e.message)}</span>`; }
     }
   });
 
@@ -2378,6 +2484,18 @@
     actualizarEtiquetasConfirmaciones();
     actualizarTextoReplace();
     actualizarReloj();
+    actualizarCopiaEscenario();
+    actualizarPistaBanner();
+    actualizarContenidoReto();
+    metasClave = ""; pintarHud(false);
+    // Solo las etiquetas de las metas; no se repinta la ficha ni se mueven sus portales.
+    if (infoPestana === "metas" && !$("info-reto").hidden) {
+      const temporal = document.createElement("div"); temporal.innerHTML = INFO.metas();
+      for (const [i, el] of [...$("info-cuerpo").querySelectorAll(".info-nota, .m-nombre")].entries()) {
+        const nuevo = temporal.querySelectorAll(".info-nota, .m-nombre")[i];
+        if (nuevo) el.innerHTML = nuevo.innerHTML;
+      }
+    }
     const consolaVacia = $("consola").querySelector('[data-partida-i18n="consola.vacia"]');
     if (consolaVacia) consolaVacia.textContent = ti18n("partida.consola.vacia");
   }

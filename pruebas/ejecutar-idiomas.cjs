@@ -20,6 +20,11 @@ async function ejecutar() {
       ['idiomas-juego', 'probarIdiomasJuego'],
       ['idiomas-editor', 'probarIdiomasEditor'],
       ['idiomas-paleta-inspector', 'probarIdiomasPaletaInspector'],
+      ['idiomas-formulario', 'probarIdiomasFormulario'],
+      ['idiomas-inspector-estados', 'probarIdiomasInspectorEstados'],
+      ['idiomas-escenario-war', 'probarIdiomasEscenarioWar'],
+      ['idiomas-retos', 'probarIdiomasRetos'],
+      ['idiomas-pendientes', 'probarIdiomasPendientes'],
     ]) {
       const contexto = await browser.newContext({ viewport: { width: 1366, height: 900 } });
       // La suite comprueba idioma/edición; el watchdog conocido de 3D se valida por separado.

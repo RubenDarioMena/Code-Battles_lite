@@ -1,6 +1,7 @@
 /* Interfaz extraída; juego y demo crean instancias de este mismo módulo. */
 (() => {
   "use strict";
+  const localizarHTML = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
   function crear({ cmg, $, ambito, preferencias, vida, adaptador, iconos = {}, historiales: externos }) {
   const E = adaptador.estructura;
   const app = $("app"), $editor = $("editor"), $codigo = cmg.codigo, $gutter = $("gutter"), $barra = $("edicion");
@@ -815,9 +816,9 @@
     if (d && !(ev.pointerType === "mouse" && ev.button !== 0)) iniciarAsa(ev, +d.dataset.l);
   });
   function pintarAsas() {
-    if (!activo || asa !== "borde") { $asasIn.innerHTML = ""; return; }
-    $asasIn.innerHTML = filas.map((f, i) => $codigo.value.slice(f.a, f.b).trim()
-      ? `<div class="asa" data-l="${i}" style="top:${f.el.offsetTop}px" title="Arrastra la línea ${i + 1}"></div>` : "").join("");
+    if (!activo || asa !== "borde") { $asasIn.innerHTML = localizarHTML(""); return; }
+    $asasIn.innerHTML = localizarHTML(filas.map((f, i) => $codigo.value.slice(f.a, f.b).trim()
+      ? `<div class="asa" data-l="${i}" style="top:${f.el.offsetTop}px" title="Arrastra la línea ${i + 1}"></div>` : "").join(""));
     $asasIn.style.transform = `translateY(${-$vista.scrollTop}px)`;
   }
   vida.escuchar($vista, "scroll", () => {
@@ -864,8 +865,9 @@
       }
     }
     html += `<button type="button" class="sug escribir" data-escribir>✎ Escribir otro valor…</button>`;
-    $sug.innerHTML = html;
-    $sug.setAttribute("aria-label", `Valores para ${datos.titulo.toLowerCase()}`);
+    $sug.innerHTML = localizarHTML(html);
+    const rotuloSugerencias = `Valores para ${datos.titulo.toLowerCase()}`;
+    $sug.setAttribute("aria-label", window.CMGPresentacion ? CMGPresentacion.texto(rotuloSugerencias) : rotuloSugerencias);
     sugerido = { a, b, c, items, activo: -1 };
     $sug.hidden = false;
     colocarSugerencias(true);
@@ -976,7 +978,7 @@
   function escribirValor() {
     if (!sugerido) return;
     const actual = $codigo.value.slice(sugerido.a, sugerido.b), valor = sugerido.c.hueco || sugerido.c.vacio ? "" : actual;
-    $sug.innerHTML = `<form class="sug-escribir"><label>Valor<input type="text" value="${esc(valor)}" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></label><button class="btn chico" type="submit">Poner</button></form>`;
+    $sug.innerHTML = localizarHTML(`<form class="sug-escribir"><label>Valor<input type="text" value="${esc(valor)}" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></label><button class="btn chico" type="submit">Poner</button></form>`);
     const input = $sug.querySelector("input");
     input.focus(); input.select();
     vida.escuchar($sug.querySelector("form"), "submit", (ev) => { ev.preventDefault(); if (input.value.trim()) ponerValor(input.value.trim()); else cerrarSugerencias(); });
@@ -1383,7 +1385,7 @@
   vida.portal($toast);
   let tToast = 0;
   function toast(texto) {
-    $toast.textContent = texto; $toast.hidden = false;
+    if (window.CMGPresentacion) CMGPresentacion.rotular($toast, texto); else $toast.textContent = texto; $toast.hidden = false;
     const r = ($barra.getClientRects().length ? $barra : $editor).getBoundingClientRect();
     // Con la barra al pie de la pantalla (teléfono), el aviso sale encima de ella.
     const y = r.bottom > innerHeight * .55 ? r.top - $toast.offsetHeight - 6 : r.bottom + 6;
@@ -1673,10 +1675,10 @@
   // del grupo, a otro grupo o a «Grupo nuevo». Mientras se arrastra, el elemento se mueve en vivo.
   const $orden = $("orden-barra"), $grupos = $("orden-grupos");
   function pintarOrden() {
-    $grupos.innerHTML = grupos.map((g, i) => `<div class="orden-grupo" data-g="${i}">
+    $grupos.innerHTML = localizarHTML(grupos.map((g, i) => `<div class="orden-grupo" data-g="${i}">
         <span class="orden-asa" aria-label="Mover el grupo ${i + 1}" title="Mover el grupo">⋮⋮</span>
         <div class="orden-btns">${g.map(id => `<span class="orden-btn" data-id="${id}" title="${esc(ACCIONES[id].t)}">${svg(ICONOS[id])}<span>${esc(ACCIONES[id].t)}</span></span>`).join("")}</div>
-      </div>`).join("") + `<div class="orden-grupo nuevo"><div class="orden-btns"><span class="orden-vacio">Grupo nuevo</span></div></div>`;
+      </div>`).join("") + `<div class="orden-grupo nuevo"><div class="orden-btns"><span class="orden-vacio">Grupo nuevo</span></div></div>`);
   }
   function leerOrden() {
     grupos = validarGrupos([...$grupos.querySelectorAll(".orden-grupo")].map(g => [...g.querySelectorAll(".orden-btn")].map(b => b.dataset.id)));
