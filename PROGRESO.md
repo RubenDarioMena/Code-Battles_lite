@@ -1,3 +1,11 @@
+## Modo revisión · también en Factory · 7 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario: Factory comparte la interfaz con War pero no tenía el visor. El motor ya era genérico y el catálogo ya tenía al robot con sus textos ES/EN; lo que lo apagaba eran tres bloqueos: el aviso «El modo revisión todavía no está en Factory» en `revision-juego.js`, el botón oculto con `[data-serie="factory"] .b-revisar` y la entrada «Revisar» del menú ⋯ oculta en `layout.js`.
+- Se quitan los tres; la revisión recibe la serie real (`cmg.revision.serie`), así `pickUp`, `deliver`, `count` y `wait` (y `pick_up` en Python) se explican con el catálogo del robot: «Va a "ENT-1" y recoge "cobre"», «¿cuánto "cobre" hay en "ENT-1" es mayor que 0?».
+- Textos nuevos `revision.cat.robot.{recoger,entregar}.corta` (ES/EN) para `const r = await deliver("FUN")`: «Guarda en r: el resultado de entregar en "FUN"». Se borra la clave `juego.revision.factory`.
+- Fuera de este cambio: los pulsos del código durante la partida siguen solo en War (el runtime de Factory no los envía).
+- **Pruebas:** `juego.mjs` 72 (Factory en PC y teléfono: botón y menú ⋯, filas y frase del robot en JavaScript y en Python, sin ejecutar nada). Siguen pasando `flujo.cjs` 297, `interfaz.mjs` 206, `interaccion.cjs` 124, i18n y catálogos (1146 claves).
+
 ## Modo revisión · forEach como bucle y salidas laterales sin solaparse · 7 de noviembre de 2026
 
 - **Por qué.** Feedback del usuario con dos capturas del mismo programa: en Python el `for` dibuja la flecha de vuelta del `if` a su bucle, y en JavaScript el `lista.forEach(elemento => { … })` no (salía como un paso y una «Función sin nombre» aparte). Y en JavaScript la condición `Array.isArray(elemento)` se montaba sobre su salida lateral `true →`.

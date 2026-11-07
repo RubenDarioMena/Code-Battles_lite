@@ -11,7 +11,7 @@
   "use strict";
   const BASE = "../../educational-animation/revision/";
   // Versión de los archivos del motor: súbela al cambiarlos para que el navegador no use los de la caché.
-  const V = "?v=4";
+  const V = "?v=5";
   // [archivo, global]: con global, no se vuelve a cargar si ya está (trazador y flujo los carga el juego para
   // los pulsos). El catálogo del modo revisión es CMGCatalogoRevision: CMGCatalogo es el de la paleta del editor.
   const MOTOR = [["motor/textos.js", null], ["motor/trazador.js", "CMGTrazador"], ["motor/catalogo.js", null], ["motor/flujo.js", "CMGFlujo"], ["motor/python.js", "CMGPythonRevision"],
@@ -50,7 +50,6 @@
   async function abrir() {
     const r = R();
     if (!r) return;
-    if (r.serie === "factory") return avisar(ti("juego.revision.factory"));
     const todos = r.programas();
     try { await cargar(); }
     catch (e) { return avisar(ti("juego.revision.error", { m: e.message })); }
@@ -71,7 +70,7 @@
     if (!caja) { caja = document.createElement("div"); caja.id = "revision-juego"; caja.className = "revision-juego"; document.body.append(caja); }
     caja.hidden = false;
     app.dataset.revision = "";
-    const G = { formato: 2, serie: "war", reto: r.reto, titulo: r.titulo, programas };
+    const G = { formato: 2, serie: r.serie, reto: r.reto, titulo: r.titulo, programas };
     vista = window.CMGRevision.montar(caja, G, { modo: "lectura", programa: r.seleccionado, alMapa: () => salir("mapa"), alCodigo: () => salir("codigo") });
     window.__revisionJuego = { vista };
   }

@@ -590,7 +590,7 @@
     { id: "registro", t: () => t("disposicion.menu.registro"), c1: "#63D2E0" },
     { id: "ayuda", t: () => t("disposicion.menu.ordenes"), c1: "#CFA2FF" },
     { id: "escenario", t: () => $("t-escenario").textContent.trim(), c1: "#5FC28A" },
-    { id: "revisar", t: () => t("disposicion.menu.revisar"), c1: "#E0AE4A", fn: () => window.CMGRevisionJuego && window.CMGRevisionJuego.abrir(), ver: () => !(window.cmg && window.cmg.serie === "factory") },
+    { id: "revisar", t: () => t("disposicion.menu.revisar"), c1: "#E0AE4A", fn: () => window.CMGRevisionJuego && window.CMGRevisionJuego.abrir() },
     { id: "ajustes", t: () => t("disposicion.menu.ajustes"), c1: "#B7C2CC", fn: abrirAjustes },
   ];
   const $menu = document.createElement("div");

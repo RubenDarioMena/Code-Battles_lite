@@ -637,7 +637,6 @@ textarea.json { width: 100%; height: 10rem; font-family: var(--f-code); font-siz
 /* ---------- Modo revisión (js/revision-juego.js) ---------- */
 .b-revisar { flex: none; display: grid; place-items: center; min-width: 40px; min-height: 40px; padding: 0; color: var(--accent); }
 .b-revisar svg { width: 21px; height: 21px; display: block; }
-[data-serie="factory"] .b-revisar { display: none; }
 /* Tapa el juego: en PC, código a la izquierda y diagrama a la derecha; en el teléfono, apilados. */
 .revision-juego { position: fixed; inset: 0; z-index: 900; }
 .revision-juego[hidden] { display: none; }

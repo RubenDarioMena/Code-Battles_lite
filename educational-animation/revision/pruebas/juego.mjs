@@ -149,6 +149,45 @@ try {
     eq(errores, [], `${nombre}: sin errores en la página`);
     await contexto.close();
   }
+
+  // Factory: los mismos binoculares y la misma revisión, con el catálogo del robot.
+  for (const [nombre, opc, forma] of [['Factory PC', { viewport: { width: 1440, height: 900 } }, 'escritorio'], ['Factory teléfono', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }, 'movil']]) {
+    const contexto = await navegador.newContext(opc);
+    await contexto.addInitScript(() => localStorage.setItem('cmg-interfaz-idioma', 'es'));
+    const page = await contexto.newPage();
+    const errores = [];
+    page.on('pageerror', e => errores.push(e.message));
+    await page.goto(`http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?serie=factory&forma=${forma}`);
+    await page.waitForFunction(() => window.__juegoListo && window.__banco);
+    if (nombre === 'Factory PC') ok(await page.locator('#b-revisar').isVisible(), `${nombre}: con los binoculares`);
+    else {
+      await page.evaluate(() => document.getElementById('app').dispatchEvent(new CustomEvent('cmg:pantalla', { detail: 'codigo' })));
+      await page.click('#b-menu-cod');
+      ok(await page.locator('#menu-cod [data-menu="revisar"]').isVisible(), `${nombre}: el menú ⋯ tiene «Revisar»`);
+      await page.click('#b-menu-cod');
+    }
+    const leer = async () => {
+      await page.evaluate(() => window.CMGRevisionJuego.abrir());
+      await page.waitForFunction(() => window.__revisionJuego && window.__revisionJuego.vista, null, { timeout: 30000 });
+      const filas = await page.evaluate(() => [...document.querySelectorAll('#revision-juego .rv-nodo .rv-et')].map(x => x.textContent));
+      await page.evaluate(() => window.__revisionJuego.vista.ir(2));
+      const frase = await page.locator('#revision-juego .rv-narra-txt').innerText();
+      const e = await page.evaluate(() => window.__revisionJuego.vista.estado);
+      await page.evaluate(() => window.CMGRevisionJuego.cerrar());
+      return { filas, frase, e };
+    };
+    const FILAS = ['¿cuánto "cobre" hay en "ENT-1" es mayor que 0?', 'Recoge "cobre" en "ENT-1"', 'Guarda en r: el resultado de entregar en "FUN"', '¿r vale "lleno"?', 'Espera 2 s'];
+    await page.evaluate(() => { window.__banco.programas['R1'] = 'while (count("ENT-1", "cobre") > 0) {\n  await pickUp("ENT-1", "cobre")\n  const r = await deliver("FUN")\n  if (r === "lleno") {\n    await wait(2)\n  }\n}'; });
+    const js = await leer();
+    eq([js.e.modo, js.e.prog], ['lectura', 'R1'], `${nombre}: abre la lectura de R1`);
+    eq(js.filas, FILAS, `${nombre}: las filas con las frases del robot`);
+    eq(js.frase, '3Calcula el resultado de entregar en "FUN" y lo guarda en r.', `${nombre}: la frase de deliver`);
+    await page.evaluate(() => { window.__banco.fuentes['R1'] = { lenguaje: 'python', enUso: true, texto: 'while count("ENT-1", "cobre") > 0:\n    pick_up("ENT-1", "cobre")\n    r = deliver("FUN")\n    if r == "lleno":\n        wait(2)\n' }; });
+    eq((await leer()).filas, FILAS, `${nombre}: en Python, las mismas filas`);
+    eq(await page.evaluate(() => window.__banco.mundo.activo), false, `${nombre}: no se ejecutó nada`);
+    eq(errores, [], `${nombre}: sin errores en la página`);
+    await contexto.close();
+  }
   console.log(`juego: ${n} comprobaciones`);
 } finally {
   await navegador.close();

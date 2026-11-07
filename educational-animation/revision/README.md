@@ -85,7 +85,7 @@ Solo se lee: el modo traza (con valores) sigue siendo solo de JavaScript. En la 
 
 `Prototypes/Rocket Launcher/js/revision-juego.js` y `cmg.revision` en `juego.js` (los programas del reto, el elegido en el editor y el título):
 - Los binoculares cargan el motor de esta carpeta (solo la primera vez), leen el código actual de cada lanzador (acorn para JavaScript, lezer para Python; sin ejecutar nada) y montan el recorrido de lectura a pantalla completa. Un error de sintaxis se avisa con su línea.
-- Factory todavía no: se avisa.
+- Factory usa los mismos binoculares (y «Revisar» en el menú ⋯ del teléfono) con la serie `factory`: `pickUp`/`pick_up`, `deliver`, `count` y `wait` se explican con el catálogo del robot. Los pulsos de la batalla siguen siendo solo de War.
 - El modo mapa/código/diagrama a la vez (la repetición del intento con fotos del mundo) se quitó: daba muchos problemas y el resultado era menos claro.
 
 **Pulsos en el editor durante la partida** (`js/pulsos.js`). Mientras el programa corre, cada fragmento que actúa late con el color de su fila de este diagrama (una onda y un anillo, como la navegación de la bug tool): las lecturas del juego solo si dan algo (ni null ni false), las órdenes (no `regularShoot(null)`), la consola y las condiciones de `if` y `?:` solo cuando se cumplen; las de los bucles, nunca. El trazador instrumenta los programas de JavaScript con un filtro (solo esos ganchos: menos coste y mensajes de error limpios); la partida es la misma que sin él (`pruebas/juego.mjs` lo compara con la grabada). En Python (sin ganchos: corre traducido a JS) los mensajes del Worker traen la línea; con el lector de Python, en esa línea pulsa la llamada (`auto_target(…)`, `regular_shoot(…)`, `print(…)`) con el color de su fila.
@@ -139,7 +139,7 @@ CMGCatalogoRevision.registrar({
 
 Una propiedad booleana añade `si`, `no`, `pregunta` y `preguntaNo` («¿{s} está atascado?»). Un método que se usa dentro de una expresión puede añadir `corta`: el `autoTarget` de `pos` es solo «dron».
 
-Ya están el lanzador (`LAU_xx`), el sensor de vibración (`VIB_xx`), `esperar`, `console` y el robot de Factory (`yo`, sin grabación de ejemplo).
+Ya están el lanzador (`LAU_xx`), el sensor de vibración (`VIB_xx`), `esperar`, `console` y el robot de Factory (`pickUp`, `deliver`, `count`, `wait` y sus nombres en español; `yo.` también; sin grabación de ejemplo).
 
 ## El reto 5
 
