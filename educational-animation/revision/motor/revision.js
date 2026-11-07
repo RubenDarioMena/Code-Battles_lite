@@ -36,15 +36,20 @@
   const reducido = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Fichas de color para el código (las mismas clases que el editor del juego).
-  function fichas(src) {
-    const out = [], re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\d*\.?\d+(?:e[+-]?\d+)?)|([A-Za-z_$][\w$]*)|(\n)|([ \t]+)|([^\w\s])/gy;
+  // En Python: comentarios con #, cadenas con prefijo (f"", r'') o triples y sus palabras clave.
+  const PALABRAS_PY = new Set("and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield True False None".split(" "));
+  function fichas(src, lenguaje = "js") {
+    const py = lenguaje === "python", palabras = py ? PALABRAS_PY : PALABRAS;
+    const out = [], re = py
+      ? /(#[^\n]*)|((?:[rRbBuUfF]{1,2})?(?:"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'))|(\d*\.?\d+(?:e[+-]?\d+)?)|([A-Za-z_][\w]*)|(\n)|([ \t]+)|([^\w\s])/gy
+      : /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\d*\.?\d+(?:e[+-]?\d+)?)|([A-Za-z_$][\w$]*)|(\n)|([ \t]+)|([^\w\s])/gy;
     let m, i = 0;
     while (i < src.length && (re.lastIndex = i, m = re.exec(src))) {
       const [x] = m, a = i;
       let k = m[1] ? "com" : m[2] ? "str" : m[3] ? "num" : m[4] ? "id" : m[5] ? "nl" : m[6] ? "esp" : "op";
       if (k === "id") {
         const antes = src.slice(0, a).replace(/\s+$/, ""), despues = src.slice(a + x.length).replace(/^\s+/, "");
-        k = PALABRAS.has(x) ? "kw" : antes.endsWith(".") ? "prop" : despues.startsWith("(") ? "fn" : "var";
+        k = palabras.has(x) ? "kw" : antes.endsWith(".") ? "prop" : despues.startsWith("(") ? "fn" : "var";
       }
       out.push({ k, t: x, a, b: a + x.length });
       i += x.length;
@@ -59,7 +64,7 @@
     for (const l of abre.values()) l.sort((x, y) => y.b - x.b || x.prof - y.prof);
     const pila = [];
     let html = "";
-    for (const f of fichas(P.fuente)) {
+    for (const f of fichas(P.fuente, P.lenguaje)) {
       while (pila.length && pila.at(-1).b <= f.a) { html += "</span>"; pila.pop(); }
       for (const n of abre.get(f.a) || []) { if (n.b <= n.a) continue; html += `<span class="n" data-n="${n.id}">`; pila.push(n); }
       html += f.k === "nl" || f.k === "esp" ? esc(f.t) : `<span class="${f.k}">${esc(f.t)}</span>`;
@@ -147,6 +152,7 @@
     const corto = (P, i, max = 34) => { const x = P.txt(i).replace(/\s+/g, " "); return x.length <= max ? x : x.slice(0, max - 1) + "…"; };
     function segmentos(segs, { fichas = true } = {}) {
       const { P, F } = D(), frag = document.createDocumentFragment();
+      E.lenguaje(P);
       for (const s of segs.flat(9)) {
         if (s == null || s === "") continue;
         if (typeof s === "string" || typeof s === "number") { frag.append(String(s)); continue; }
@@ -221,9 +227,10 @@
     // ---------- Diagrama ----------
     function dibujarFlujo() {
       const { P, F } = D();
+      E.lenguaje(P); // true/false o True/False en las flechas
       let html = "", hayFunciones = false;
       for (const e of F.orden) {
-        if (e.conector) { html += `<div class="rv-con" style="--nivel:${e.nivel}"${e.etiqueta ? ` data-et="${esc(e.etiqueta)}"` : ""}><span class="rv-flecha">↓</span>${e.etiqueta ? `<span class="rv-con-et">${esc(e.etiqueta)}</span>` : ""}</div>`; continue; }
+        if (e.conector) { html += `<div class="rv-con" style="--nivel:${e.nivel}"${e.etiqueta ? ` data-et="${esc(e.etiqueta)}"` : ""}><span class="rv-flecha">↓</span>${e.etiqueta ? `<span class="rv-con-et">${esc(E.palabra(e.etiqueta))}</span>` : ""}</div>`; continue; }
         const f = F.filas[e.fila != null ? e.fila : e.seccion];
         if (e.seccion != null && !hayFunciones) { hayFunciones = true; html += `<div class="rv-seccion" data-t="ui.funciones"></div>`; }
         html += `<div class="rv-fila" data-fila="${f.i}" data-tipo="${f.tipo}" style="--nivel:${f.nivel};--c:${f.color}">${nodo(f)}`;

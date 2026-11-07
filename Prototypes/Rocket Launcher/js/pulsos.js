@@ -11,18 +11,19 @@
  * JavaScript: el programa se instrumenta con el trazador del modo revisión, con un filtro que solo pone esos
  * ganchos (educational-animation/revision/motor/trazador.js); los lotes llegan en cada await. Los colores salen
  * de las filas del diagrama (flujo.js), los mismos que en el modo revisión.
- * Python: no hay árbol de JavaScript; pulsa la línea de cada lectura con resultado, orden o consola (los
- * mensajes lee, cmd y consola del Worker ya traen su línea), con un color por clase.
+ * Python: el programa corre traducido a JS, sin ganchos; los mensajes lee, cmd y consola del Worker traen su
+ * línea. El lector de Python del modo revisión (motor/python.js) da el árbol: en esa línea pulsa la llamada
+ * de esa clase (auto_target(…), regular_shoot(…), print(…)) con el color de su fila. Sin lector, la línea entera.
  *
  *   CMGPulsos.preparar(id, fuente) → código instrumentado para el Worker (o la fuente tal cual si no se puede)
- *   CMGPulsos.python(id)           el programa id es Python: sus pulsos son por línea
+ *   CMGPulsos.python(id, fuente)   el programa id es Python: sus pulsos salen de los mensajes con línea
  *   CMGPulsos.traza(id, eventos)   un lote del trazador
  *   CMGPulsos.linea(id, linea, clase, valor)   Python: lee | cmd | consola
  *   CMGPulsos.conectar({ visibles })           ids cuyo código está ahora en el editor
  *   CMGPulsos.reiniciar()          al empezar otra ejecución */
 (() => {
   "use strict";
-  const T = window.CMGTrazador, FL = window.CMGFlujo;
+  const T = window.CMGTrazador, FL = window.CMGFlujo, PY = window.CMGPythonRevision;
   const LECTURAS = new Set(["autoTarget", "detect"]);
   const ORDENES = new Set(["regularShoot", "burstFire", "stopFire"]);
   const CONSOLA = new Set(["log", "info", "warn", "error"]);
@@ -95,7 +96,33 @@
       return fuente;
     }
   }
-  const python = (id) => programas.set(id, { python: true });
+  // Python: por cada línea, sus llamadas del juego y de la consola con su fila (para el color).
+  const camello = (n) => n.replace(/_+([a-z0-9])/g, (m, x) => x.toUpperCase());
+  const CLASE_PY = { lectura: "lee", orden: "cmd", consola: "consola" };
+  function python(id, fuente) {
+    const pr = { python: true, fuente: fuente || "", lineas: new Map(), colorLinea: new Map() };
+    programas.set(id, pr);
+    if (!PY || !FL || !fuente) return;
+    try {
+      const x = PY.leer(fuente);
+      const P = FL.preparar(x, { id }), F = FL.construir(P), N = x.nodos;
+      for (const n of N) {
+        if (/(Statement|Declaration)$/.test(n.tipo) && !pr.colorLinea.has(n.linea)) { const f = F.duena(n.id); if (f != null) pr.colorLinea.set(n.linea, F.filas[f].color); }
+        if (n.tipo !== "CallExpression") continue;
+        const c = N[n.hijos.find(h => N[h].campo === "callee")];
+        let nombre = null, objeto = null;
+        if (c.tipo === "Identifier") nombre = c.nombre;
+        else if (c.tipo === "MemberExpression" && !c.computado) { nombre = N[c.hijos.find(h => N[h].campo === "property")].nombre; const o = N[c.hijos.find(h => N[h].campo === "object")]; objeto = o.tipo === "Identifier" ? o.nombre : null; }
+        if (!nombre) continue;
+        const m = camello(nombre);
+        const clase = nombre === "print" || (objeto == null && CONSOLA.has(nombre)) ? "consola" : LECTURAS.has(m) ? "lectura" : ORDENES.has(m) ? "orden" : null;
+        if (!clase) continue;
+        const f = F.duena(n.id);
+        const l = pr.lineas.get(n.linea) || pr.lineas.set(n.linea, []).get(n.linea);
+        l.push({ a: n.a, b: n.b, tipo: CLASE_PY[clase], color: f != null ? F.filas[f].color : COLOR_PY[CLASE_PY[clase]], n: n.id });
+      }
+    } catch (e) { /* Sin árbol: pulsos por línea */ }
+  }
   function reiniciar() { programas.clear(); ultimo.clear(); limpiarCapa(); }
 
   // ¿Este valor del trazador «da algo»? undefined llega como { $: "u" }.
@@ -131,12 +158,15 @@
     ultimo.set(k, ahora);
     const cod = document.getElementById("codigo");
     if (!cod) return;
+    // Con árbol: las llamadas de esa clase en esa línea, con el color de su fila.
+    const llamadas = (pr.lineas && pr.lineas.get(l) || []).filter(x => x.tipo === clase);
+    if (llamadas.length && cod.value === pr.fuente) { for (const x of llamadas) pulsar(pr.fuente, x.a, x.b, x.color, x.n); return; }
     const lineas = cod.value.split("\n"), txt = lineas[l - 1];
     if (txt == null || !txt.trim()) return;
     let a = 0;
     for (let k2 = 0; k2 < l - 1; k2++) a += lineas[k2].length + 1;
     const sangria = txt.match(/^\s*/)[0].length;
-    pulsar(cod.value, a + sangria, a + txt.replace(/\s+$/, "").length, COLOR_PY[clase] || COLOR_PY.lee, "L" + l);
+    pulsar(cod.value, a + sangria, a + txt.replace(/\s+$/, "").length, (pr.colorLinea && pr.colorLinea.get(l)) || COLOR_PY[clase] || COLOR_PY.lee, "L" + l);
   }
 
   // ---------- Dibujo ----------

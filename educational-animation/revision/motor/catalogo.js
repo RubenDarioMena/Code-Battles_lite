@@ -82,10 +82,12 @@
   });
 
   // ---------- Tiempo y consola (comunes) ----------
-  registrar({ clave: "tiempo", propias: ["war", "libre"], metodos: { esperar: { clase: "espera", args: [{}], resultados: ["ok"] } } });
+  // En Python, esperar se escribe wait y console.log, print (mismos textos).
+  registrar({ clave: "tiempo", propias: ["war", "libre"], metodos: { esperar: { clase: "espera", args: [{}], resultados: ["ok"] }, wait: { clase: "espera", args: [{}], resultados: ["ok"], textos: "esperar" } } });
   registrar({
     clave: "consola", patron: /^console$/,
-    metodos: { log: { clase: "consola", args: [{}] }, info: { clase: "consola", args: [{}] }, warn: { clase: "consola", args: [{}] }, error: { clase: "consola", args: [{}] } },
+    metodos: { log: { clase: "consola", args: [{}] }, info: { clase: "consola", args: [{}] }, warn: { clase: "consola", args: [{}] }, error: { clase: "consola", args: [{}] },
+      print: { clase: "consola", args: [{}], textos: "log" } },
   });
 
   // ---------- Robot de Factory (aún sin grabación de muestra) ----------
@@ -111,8 +113,15 @@
     }
     return null;
   }
+  // Nombre de Python → nombre del catálogo: auto_target → autoTarget, failure_rate → failureRate. Solo si el
+  // catálogo lo conoce: los nombres del jugador (es_par, mi_pos) se quedan como están.
+  function desdePython(nombre) {
+    if (!nombre.includes("_") || /^[A-Z]/.test(nombre)) return nombre;
+    const c = nombre.replace(/_+([a-z0-9])/g, (m, x) => x.toUpperCase());
+    return tipos.some(t => Object.hasOwn(t.metodos, c) || Object.hasOwn(t.propiedades, c)) ? c : nombre;
+  }
   // Un valor que es un enemigo del juego ({ id, tipo, x, y }) → grupo y valor para nombrarlo.
   const esEnemigo = (v) => !!(v && typeof v === "object" && v.id && grupos.enemigo.includes(v.tipo) && "x" in v);
 
-  return { registrar, tipos, grupos, tipoDeObjeto, propia, clave, claveResultado, claveGrupo, clavesDe, esEnemigo };
+  return { registrar, tipos, grupos, tipoDeObjeto, propia, desdePython, clave, claveResultado, claveGrupo, clavesDe, esEnemigo };
 });

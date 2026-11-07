@@ -22,15 +22,21 @@
   .tuyo .error { min-height: 1.4em; margin: 6px 0 0; color: #F07A70; }
   .tuyo .acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
   .tuyo button { padding: 9px 14px; border-radius: 9px; border: 1px solid #34414B; background: #18212A; color: #DCE3E6; font: 700 14px Archivo, sans-serif; cursor: pointer; }
+  .tuyo .lenguaje { display: flex; gap: 6px; margin: 0 0 8px; }
+  .tuyo .lenguaje button { padding: 5px 11px; font-size: 13px; }
+  .tuyo .lenguaje button[aria-pressed="true"] { border-color: #E0AE4A; color: #E0AE4A; }
+  .tuyo .lenguaje[hidden] { display: none; }
   .tuyo button[value="ok"] { background: #E0AE4A; border-color: #E0AE4A; color: #070A0D; }
 </style>
 <script src="../../shared/i18n/i18n.js"></script>
 <script src="motor/textos.js"></script>
 <script src="../../shared/vendor/acorn-8.11.3.js"></script>
+<script src="../../shared/vendor/lezer-python-1.1.19.js" charset="utf-8"></script>
 <script src="motor/trazador.js"></script>
 <script src="motor/ejecutar.js"></script>
 <script src="motor/catalogo.js"></script>
 <script src="motor/flujo.js"></script>
+<script src="motor/python.js"></script>
 <script src="motor/explicar.js"></script>
 <script src="motor/documentacion.js"></script>
 <script src="motor/revision.js"></script>
@@ -40,6 +46,7 @@
 <dialog class="tuyo">
   <form method="dialog">
     <p class="pegar"></p>
+    <div class="lenguaje" role="group"><button type="button" data-lenguaje="js" aria-pressed="true">JavaScript</button><button type="button" data-lenguaje="python" aria-pressed="false">Python</button></div>
     <textarea spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
     <p class="error" aria-live="polite"></p>
     <div class="acciones"><button value="no" data-i18n="revision.ui.cancelar"></button><button value="ok" class="revisar"></button></div>
@@ -50,13 +57,35 @@
   // ejecutarlo. ?modo=traza enseña en cambio la ejecución grabada (grabar.mjs) con sus valores; ahí «tuyo»
   // ejecuta aquí lo que escribas.
   const MODO = new URLSearchParams(location.search).get("modo") === "traza" ? "traza" : "lectura";
-  const EJEMPLOS = [{ id: "cafes", titulo: "Seis cafés" }, { id: "pares", titulo: "Pares e impares" }, { id: "reto-5", titulo: "Reto 5 · dos lanzadores" }];
-  const T = (k) => CMGI18n.t("revision." + k);
-  const caja = document.getElementById("revision"), dialogo = document.querySelector(".tuyo"), area = dialogo.querySelector("textarea");
-  let vista = null, actual = null, tuyo = null;
-  // Placeholder: fuera del juego, el mapa y </> vuelven al juego. Integrado, abrirán su pantalla.
-  const irAlJuego = (pantalla) => { location.href = `../../Prototypes/Rocket%20Launcher/#${pantalla}`; };
-  area.value = `// Cualquier programa: el modo revisión lo explica solo
+  const EJEMPLOS = [{ id: "cafes", titulo: "Seis cafés" }, { id: "pares", titulo: "Pares e impares" }, { id: "reto-5", titulo: "Reto 5 · dos lanzadores" },
+    ...(MODO === "lectura" ? [{ id: "reto-5-py", titulo: "Reto 5 · Python" }] : [])];
+  // El reto 5 en Python: se lee aquí mismo (lezer), sin grabación.
+  const RETO5_PY = (otro) => `# Un solo reparador para LAU-01 y LAU-02
+while True:
+    pos = (auto_target("drone", "visual")
+        or auto_target("stealth", "visual")
+        or auto_target("crawler", "visual"))
+    if ${otro}.jammed:
+        # El reparador está ocupado
+        regular_shoot(pos)
+    elif failure_rate < 0.12:
+        burst_fire(pos)
+    else:
+        # Que baje el failure_rate
+        regular_shoot(pos)
+    wait(0.25)
+`;
+  const leerPython = (texto) => CMGPythonRevision.leer(texto, { nombre: CMGCatalogoRevision.desdePython });
+  const EJEMPLO_JS = area_inicial_js(), EJEMPLO_PY = `# Cualquier programa: el modo revisión lo explica solo
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+for i in range(1, 5):
+    print(i, factorial(i))
+`;
+  function area_inicial_js() { return `// Cualquier programa: el modo revisión lo explica solo
 function factorial(n) {
   if (n <= 1) return 1
   return n * factorial(n - 1)
@@ -64,7 +93,23 @@ function factorial(n) {
 
 for (let i = 1; i <= 4; i++) {
   console.log(i, factorial(i))
-}`;
+}`; }
+  let lenguaje = "js";
+  const T = (k) => CMGI18n.t("revision." + k);
+  const caja = document.getElementById("revision"), dialogo = document.querySelector(".tuyo"), area = dialogo.querySelector("textarea");
+  let vista = null, actual = null, tuyo = null;
+  // Placeholder: fuera del juego, el mapa y </> vuelven al juego. Integrado, abrirán su pantalla.
+  const irAlJuego = (pantalla) => { location.href = `../../Prototypes/Rocket%20Launcher/#${pantalla}`; };
+  area.value = EJEMPLO_JS;
+  const botonesLenguaje = dialogo.querySelectorAll("[data-lenguaje]");
+  function elegirLenguaje(l) {
+    if (l === lenguaje) return;
+    // Si el texto es el de ejemplo, se cambia por el del otro lenguaje.
+    if (area.value === (lenguaje === "js" ? EJEMPLO_JS : EJEMPLO_PY)) area.value = l === "js" ? EJEMPLO_JS : EJEMPLO_PY;
+    lenguaje = l;
+    botonesLenguaje.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lenguaje === l)));
+  }
+  botonesLenguaje.forEach(b => b.addEventListener("click", () => elegirLenguaje(b.dataset.lenguaje)));
   function lista() { return [...EJEMPLOS, ...(tuyo ? [{ id: "tuyo-hecho", titulo: T("ui.titulo") + " · " + T("ui.tuCodigo").replace("…", "") }] : []), { id: "tuyo", titulo: T("ui.tuCodigo") }]; }
   function montar(id, G) {
     if (vista) vista.destruir();
@@ -77,9 +122,13 @@ for (let i = 1; i <= 4; i++) {
       dialogo.querySelector(".error").textContent = "";
       dialogo.querySelector(".pegar").textContent = T(MODO === "traza" ? "ui.pegarTraza" : "ui.pegar");
       dialogo.querySelector(".revisar").textContent = T(MODO === "traza" ? "ui.revisarTraza" : "ui.revisar");
+      // Python solo se lee: en el modo traza (que ejecuta) solo hay JavaScript.
+      dialogo.querySelector(".lenguaje").hidden = MODO === "traza";
+      if (MODO === "traza") elegirLenguaje("js");
       CMGI18n.aplicar(dialogo); dialogo.showModal(); return;
     }
     if (id === "tuyo-hecho" && tuyo) return montar(id, tuyo);
+    if (id === "reto-5-py") return montar(id, { formato: 2, serie: "war", reto: 5, titulo: "Reto 5 · Python", programas: { "LAU-01": leerPython(RETO5_PY("LAU_02")), "LAU-02": leerPython(RETO5_PY("LAU_01")) } });
     const listo = () => window.GRABACIONES_REVISION && window.GRABACIONES_REVISION[id];
     if (listo()) return montar(id, listo());
     const s = document.createElement("script");
@@ -93,6 +142,7 @@ for (let i = 1; i <= 4; i++) {
     try {
       let programa, r = {};
       if (MODO === "traza") { r = await CMGEjecutar.ejecutar(area.value, { acorn }); programa = r.programa; }
+      else if (lenguaje === "python") programa = leerPython(area.value);
       else { const x = CMGTrazador.instrumentar(area.value, { acorn }); programa = { lenguaje: "js", fuente: x.fuente, nodos: x.nodos, comentarios: x.comentarios, eventos: [] }; }
       tuyo = { titulo: T("ui.tuCodigo").replace("…", ""), programas: { programa }, salida: r.salida, error: r.error, cortado: r.cortado };
       montar("tuyo-hecho", tuyo);

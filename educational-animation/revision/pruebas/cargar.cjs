@@ -4,8 +4,9 @@ const fs = require('node:fs'), vm = require('node:vm'), path = require('node:pat
 const RAIZ = path.resolve(__dirname, '../../..');
 globalThis.window = globalThis;
 globalThis.acorn = require(path.join(RAIZ, 'shared/vendor/acorn-8.11.3.js'));
+vm.runInThisContext(fs.readFileSync(path.join(RAIZ, 'shared/vendor/lezer-python-1.1.19.js'), 'utf8') + ';globalThis.LezerPython = LezerPython;', { filename: 'lezer-python' });
 for (const f of ['shared/i18n/i18n.js', 'educational-animation/revision/motor/textos.js', 'educational-animation/revision/motor/trazador.js',
-  'educational-animation/revision/motor/catalogo.js', 'educational-animation/revision/motor/flujo.js', 'educational-animation/revision/motor/explicar.js', 'educational-animation/revision/motor/documentacion.js',
+  'educational-animation/revision/motor/catalogo.js', 'educational-animation/revision/motor/flujo.js', 'educational-animation/revision/motor/python.js', 'educational-animation/revision/motor/explicar.js', 'educational-animation/revision/motor/documentacion.js',
   'educational-animation/revision/motor/ejecutar.js'])
   vm.runInThisContext(fs.readFileSync(path.join(RAIZ, f), 'utf8'), { filename: f });
 // Una grabación de ejemplos/<id>/grabacion.js.

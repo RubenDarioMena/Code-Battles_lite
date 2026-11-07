@@ -16,7 +16,14 @@
 })(typeof globalThis !== "undefined" ? globalThis : self, function (C, FL, I18N) {
   "use strict";
   const verdad = FL.verdad;
-  const t = (k, p) => I18N.t("revision." + k, p);
+  // Python: las mismas frases con sus palabras (None, True, False, print, elif…). Lo fija cada llamada de fuera
+  // con el programa que explica, y se queda puesto para pintar sus valores justo después.
+  let py = false;
+  const PALABRAS_PY = [[/\bnull\b|\bundefined\b/g, "None"], [/\btrue\b/g, "True"], [/\bfalse\b/g, "False"], [/\bconsole\.log\b/g, "print"],
+    [/\belse if\b/g, "elif"], [/\bcatch\b/g, "except"], [/===/g, "=="], [/!==/g, "!="], [/&&/g, "and"], [/\|\|/g, "or"]];
+  const aPython = (x) => PALABRAS_PY.reduce((s, [re, v]) => s.replace(re, v), x);
+  const palabra = (x) => py && typeof x === "string" ? aPython(x) : x;
+  const t = (k, p) => palabra(I18N.t("revision." + k, p));
   const existe = (k) => I18N.t("revision." + k) !== "revision." + k;
   const idioma = () => I18N.idioma;
   // Números en la prosa: «0,25 s» en español, «0.25 s» en inglés. En el código y sus valores, siempre JS.
@@ -101,10 +108,10 @@
       if (v.$ === "o" && v.r) return { texto: v.r.length > 40 ? v.r.slice(0, 39) + "…" : v.r, tono: "valor" };
       return { texto: { u: "undefined", f: t("val.funcion"), p: t("val.promesa"), n: v.v, o: t("val.objeto") }[v.$] || "?", tono: "neutro" };
     }
-    if (v === undefined) return { texto: "undefined", tono: "neutro" };
-    if (v === null) return { texto: "null", tono: "neutro" };
-    if (v === true) return { texto: "true", tono: "ok" };
-    if (v === false) return { texto: "false", tono: "bad" };
+    if (v === undefined) return { texto: py ? "None" : "undefined", tono: "neutro" };
+    if (v === null) return { texto: py ? "None" : "null", tono: "neutro" };
+    if (v === true) return { texto: py ? "True" : "true", tono: "ok" };
+    if (v === false) return { texto: py ? "False" : "false", tono: "bad" };
     if (typeof v === "number") return { texto: String(+v.toFixed(4)), tono: "valor" };
     if (typeof v === "string") return { texto: JSON.stringify(v), tono: TONO_RESULTADO[v] || "texto" };
     if (C.esEnemigo(v)) return { texto: t("val.objetivo", { tipo: t(C.claveGrupo("enemigo", v.tipo)), id: v.id, x: num(v.x, 1), y: num(v.y, 1) }), tono: "valor" };
@@ -119,13 +126,14 @@
   const plano = (v) => typeof v === "string" ? v : texto(v);
 
   // ---------- Frases sin valores (las etiquetas de las filas) ----------
-  function cadenaNula(P, i) { const N = P.nodos, partes = []; (function ir(x) { if (N[x].tipo === "LogicalExpression" && N[x].op === "??") { ir(P.hijo(x, "left")); ir(P.hijo(x, "right")); } else partes.push(x); })(i); return partes; }
+  // a ?? b ?? c (o, en Python, a or b or c) → [a, b, c].
+  function cadenaNula(P, i) { const N = P.nodos, partes = [], op = N[i].op; (function ir(x) { if (N[x].tipo === "LogicalExpression" && N[x].op === op && (op === "??" || op === "||")) { ir(P.hijo(x, "left")); ir(P.hijo(x, "right")); } else partes.push(x); })(i); return partes; }
   // Una expresión como sustantivo: «dron», «pos», «0,25»… o la ficha de su código.
   function expr(P, i) {
     const N = P.nodos, n = N[i];
     if (n.tipo === "Literal") return [{ k: P.txt(i) }];
     if (n.tipo === "AwaitExpression") return expr(P, P.hijo(i, "argument"));
-    if (n.tipo === "LogicalExpression" && n.op === "??") return cadenaNula(P, i).map(x => expr(P, x)).reduce((a, b) => tpl("f.siNo", { a, b }));
+    if (n.tipo === "LogicalExpression" && (n.op === "??" || (P.lenguaje === "python" && n.op === "||" && cadenaNula(P, i).every(p => N[p].tipo === "CallExpression")))) return cadenaNula(P, i).map(x => expr(P, x)).reduce((a, b) => tpl("f.siNo", { a, b }));
     const r = resolver(P, i);
     if (r && r.clase === "objeto") return [r.objeto];
     if (r && r.clase === "metodo" && r.def) return textoLlamada(P, r, i, "corta") || textoLlamada(P, r, i, "etiqueta") || [{ c: i }];
@@ -562,7 +570,7 @@
       out.push(" ", ...(nulo ? tpl("r.loGuardaNull", { x, r: t(C.clave(r.tipo, r.def, "resultado.null")) }) : tpl("r.loGuarda", { x })));
       return out;
     }
-    if (N[ini].tipo === "LogicalExpression" && N[ini].op === "??") {
+    if (N[ini].tipo === "LogicalExpression" && (N[ini].op === "??" || (P.lenguaje === "python" && N[ini].op === "||" && cadenaNula(P, ini).every(p => N[p].tipo === "CallExpression")))) {
       const partes = cadenaNula(P, ini).map(p => { const rp = N[p].tipo === "CallExpression" ? resolver(P, p) : null; return rp && rp.def ? (textoLlamada(P, rp, p, "etiqueta") || [{ c: p }]) : expr(P, p); });
       // Las opciones, plegadas: el código ya las enseña y la frase cabe en el teléfono.
       const mas = partes.flatMap((p, k) => [...(k ? [{ br: 1 }] : []), `${k + 1}. `, ...p]);
@@ -644,5 +652,9 @@
     return out;
   }
 
-  return { tpl, t, num, resolver, valor, expr, pred, pregunta, etiqueta, textoSalida, condicion, detalle, queEs, describir, resumen };
+  // Lo que se llama desde fuera con un programa fija el lenguaje de sus palabras.
+  const con = (fn) => function (P, ...a) { py = !!(P && P.lenguaje === "python"); return fn(P, ...a); };
+  return { tpl, t, num, resolver, valor, palabra, expr: con(expr), pred: con(pred), pregunta: con(pregunta), etiqueta: con(etiqueta),
+    textoSalida: (f) => palabra(textoSalida(f)), condicion: con(condicion), detalle: con(detalle), queEs: con(queEs), describir: con(describir), resumen: con(resumen),
+    lenguaje: (P) => { py = !!(P && P.lenguaje === "python"); } };
 });

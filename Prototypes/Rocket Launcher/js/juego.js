@@ -242,7 +242,7 @@
       }
       // Pulsos en el editor (js/pulsos.js): JS con los ganchos del trazador; Python, por línea.
       if (!err && !ES_FACTORY && window.CMGPulsos) {
-        if (lenguaje === "python") window.CMGPulsos.python(l.id);
+        if (lenguaje === "python") window.CMGPulsos.python(l.id, texto);
         else codigos[l.id] = window.CMGPulsos.preparar(l.id, texto);
       }
       if (err) {

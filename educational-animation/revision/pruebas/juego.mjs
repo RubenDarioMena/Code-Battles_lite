@@ -75,6 +75,16 @@ try {
     ok((await page.locator('.rj-aviso').innerText()).startsWith('LAU-02 no se puede leer (línea 3)'), `${nombre}: un error de sintaxis se avisa con su línea`);
     eq(await page.evaluate(() => window.CMGRevisionJuego.abierta), false, `${nombre}: y no se abre`);
     await page.evaluate((c) => { window.__banco.programas['LAU-02'] = c; }, programas['LAU-02']);
+    // Python: los binoculares también lo leen (lezer), con el mismo recorrido.
+    await page.evaluate(() => { window.__banco.fuentes['LAU-02'] = { lenguaje: 'python', enUso: true, texto: 'while True:\n    pos = auto_target("drone", "visual")\n    if LAU_01.jammed:\n        regular_shoot(pos)\n    wait(0.25)\n' }; window.CMGRevisionJuego.abrir(); });
+    await page.waitForFunction(() => window.__revisionJuego && window.__revisionJuego.vista, null, { timeout: 30000 });
+    await page.evaluate(() => window.__revisionJuego.vista.cambiarPrograma('LAU-02'));
+    eq(await page.evaluate(() => [window.__revisionJuego.vista.estado.prog, window.__revisionJuego.vista.estado.total, window.__revisionJuego.vista.datos['LAU-02'].P.lenguaje]), ['LAU-02', 6, 'python'], `${nombre}: un programa en Python se lee en la revisión`);
+    await page.evaluate(() => window.__revisionJuego.vista.ir(1));
+    eq(await page.locator('#revision-juego .rv-narra-txt').innerText(), '2Sensor cámara: busca el dron más avanzado y calcula dónde estará. Lo guarda en pos (None si no ve ninguno).', `${nombre}: Python: auto_target, con None`);
+    ok(!(await page.evaluate(() => [...document.querySelectorAll('.rj-aviso:not([hidden])')].map(x => x.textContent).join(' '))).includes('JavaScript'), `${nombre}: sin aviso de «solo JavaScript»`);
+    await page.click('#revision-juego [data-accion="mapa"]');
+    await page.evaluate(() => { delete window.__banco.fuentes['LAU-02']; });
 
     // ---------- Pulsos ----------
     if (nombre === 'teléfono') await page.evaluate(() => document.getElementById('app').dispatchEvent(new CustomEvent('cmg:pantalla', { detail: 'codigo' })));
@@ -98,10 +108,18 @@ try {
       // Python: sin árbol de JS, pulsa la línea (una orden sí; una lectura null, no).
       P.python('LAU-01'); P.linea('LAU-01', 2, 'cmd', 'ok'); P.linea('LAU-01', 3, 'lee', null);
       const py = [!!document.querySelector('.capa-pulsos .pulso[data-n="L2"]'), !!document.querySelector('.capa-pulsos .pulso[data-n="L3"]')];
+      // Con el lector de Python: pulsa la llamada (no la línea) con el color de su fila.
+      P.reiniciar();
+      const antesPy = area.value, srcPy = 'while True:\n    pos = auto_target("drone", "visual")\n    regular_shoot(pos)\n';
+      area.value = srcPy; area.dispatchEvent(new Event('input', { bubbles: true }));
+      P.python('LAU-01', srcPy); P.linea('LAU-01', 2, 'lee', { x: 1, y: 2 }); P.linea('LAU-01', 3, 'cmd', 'ok');
+      const pyArbol = [...new Map([...document.querySelectorAll('.capa-pulsos .pulso')].map(x => [x.dataset.n, [x.dataset.n.startsWith('L'), x.style.getPropertyValue('--c').trim()]])).values()];
+      const filasPy = (() => { const x = window.CMGPythonRevision.leer(srcPy), Pp = window.CMGFlujo.preparar(x, {}), F = window.CMGFlujo.construir(Pp); return F.filas.map(f => f.color); })();
+      area.value = antesPy; area.dispatchEvent(new Event('input', { bubbles: true }));
       P.reiniciar();
       return { nodos: [a1, a2, atasco, falla, rafaga, normal].every(x => x != null), clases: [...new Set(N.map(([, x]) => x.clase))].sort(), primera,
         si: [a2, falla, rafaga].map(String), no: [a1, atasco, normal].map(String), colores: Object.fromEntries([a2, falla, rafaga].map(id => [id, pr.nodos.get(id).color])),
-        seguidos: repetidos === 0 && cajas > 0, py, dentro: N.some(([, x]) => x.clase === 'lectura' && src.slice(x.a, x.b) === 'LAU_02.jammed') };
+        seguidos: repetidos === 0 && cajas > 0, py, pyArbol, filasPy, dentro: N.some(([, x]) => x.clase === 'lectura' && src.slice(x.a, x.b) === 'LAU_02.jammed') };
     });
     ok(pulsos.nodos, `${nombre}: pulsos: encuentra las lecturas, las condiciones y las órdenes del programa`);
     eq(pulsos.clases, ['condicion', 'lectura', 'orden'], `${nombre}: pulsos: lecturas, condiciones de if y órdenes`);
@@ -112,6 +130,7 @@ try {
     eq(vistos.map(id => pulsos.primera[id]), vistos.map(id => pulsos.colores[id]), `${nombre}: pulsos: cada uno con el color de su fila`);
     ok(pulsos.seguidos, `${nombre}: pulsos: el mismo fragmento no vuelve a pulsar al momento`);
     eq(pulsos.py, [true, false], `${nombre}: pulsos en Python: la línea de una orden sí; la de una lectura null, no`);
+    eq(pulsos.pyArbol, [[false, pulsos.filasPy[1]], [false, pulsos.filasPy[2]]], `${nombre}: pulsos en Python: auto_target(…) y regular_shoot(…) pulsan con el color de su fila`);
     // La partida instrumentada para los pulsos es la misma que la grabada.
     const partida = await page.evaluate(async () => {
       const b = window.__banco, vistos = new Set();

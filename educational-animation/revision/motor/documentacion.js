@@ -29,7 +29,14 @@
 
   function tema(P, i) {
     const N = P.nodos, n = N[i];
-    const r = (clave, params) => ({ clave, params: params || {}, titulo: t("doc.tema." + clave, params) });
+    // En Python, el título con su nombre de Python si lo tiene (ELIF, FOR…IN, NONE…) y sus operadores.
+    const py = P.lenguaje === "python";
+    const r = (clave, params) => {
+      if (py) E.lenguaje(P);
+      const p = params || {}, pp = py && p.op ? { ...p, op: E.palabra(p.op) } : p;
+      const conPy = py && I18N.t("revision.doc.tema." + clave + ".py") !== "revision.doc.tema." + clave + ".py";
+      return { clave, params: p, titulo: t("doc.tema." + clave + (conPy ? ".py" : ""), pp) };
+    };
     if (!n) return r("generico");
     if (n.tipo === "Program") return r("programa");
     if (n.tipo === "IfStatement") return r(n.campo === "alternate" ? "elseIf" : "if");
@@ -44,6 +51,7 @@
     }
     // Lo que es del juego (órdenes, lecturas, máquinas) va antes que lo genérico de JavaScript.
     const juego = E.resolver(P, i);
+    if (juego && juego.def && juego.def.clase === "consola" && n.tipo === "CallExpression") return r("consola", { m: juego.nombre });
     if (juego && juego.clase === "metodo") return r("juegoMetodo", { m: juego.nombre });
     if (juego && juego.clase === "propiedad") return r("juegoPropiedad", { m: juego.nombre });
     if (juego && juego.clase === "objeto") return r("juegoObjeto", { m: n.nombre });

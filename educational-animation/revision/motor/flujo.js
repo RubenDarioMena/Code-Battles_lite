@@ -31,7 +31,7 @@
 
   function preparar(programa, { id = null, serie = "libre" } = {}) {
     const N = programa.nodos, src = programa.fuente;
-    const P = { id, serie, fuente: src, nodos: N, comentarios: programa.comentarios || [], eventos: programa.eventos || [], cache: new Map() };
+    const P = { id, serie, lenguaje: programa.lenguaje === "python" ? "python" : "js", fuente: src, nodos: N, comentarios: programa.comentarios || [], eventos: programa.eventos || [], cache: new Map() };
     P.txt = (i) => src.slice(N[i].a, N[i].b);
     P.hijo = (i, campo) => { const h = N[i].hijos.find(x => N[x].campo === campo); return h === undefined ? null : h; };
     P.hijos = (i, campo) => N[i].hijos.filter(x => N[x].campo === campo);

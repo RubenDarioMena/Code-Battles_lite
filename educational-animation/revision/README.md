@@ -70,14 +70,25 @@ Ejemplos: `?ej=cafes`, `?ej=pares` y `?ej=reto-5`. «Tu código…» ejecuta en 
 
 **Idioma:** el de la interfaz del juego, con su runtime de idiomas (`shared/i18n/i18n.js`) y la misma preferencia `cmg-interfaz-idioma`. No hay selector propio; si cambia, todo se traduce al momento (también la documentación abierta).
 
+## Python
+
+`motor/python.js` (`CMGPythonRevision.leer`) lee un programa de Python con lezer (el analizador del editor, `shared/vendor/lezer-python-1.1.19.js`) y devuelve la misma tabla de nodos que el trazador da para JavaScript, con los tipos de acorn y las posiciones en el texto de Python. El diagrama, el recorrido, las tarjetas y la documentación son los mismos:
+- la primera asignación de un nombre en su ámbito es una declaración; `if/elif/else` son `if` encadenados; `for … in` es `for…of`; `and`/`or`/`not` son `&&`/`||`/`!`; `None`/`True`/`False`, literales;
+- la precedencia se rehace con la tabla de Python, porque lezer deja `not a and b` plano (como hace el traductor);
+- los nombres del juego en Python (`auto_target`, `failure_rate`, `wait`, `print`) se buscan en el catálogo por su nombre de JavaScript (`CMGCatalogoRevision.desdePython`); el código se ve como está escrito;
+- las frases dicen `None`, `True`, `False`, `print`, `elif`…, también en las flechas del diagrama y en los títulos de la documentación (`revision.doc.tema.<clave>.py`);
+- lo que no tiene equivalente (clases, `import`, comprensiones) sale como sentencia o expresión con su código.
+
+Solo se lee: el modo traza (con valores) sigue siendo solo de JavaScript. En la página, «Reto 5 · Python» y «Tu código» (JavaScript o Python).
+
 ## Dentro del juego
 
 `Prototypes/Rocket Launcher/js/revision-juego.js` y `cmg.revision` en `juego.js` (los programas del reto, el elegido en el editor y el título):
-- Los binoculares cargan el motor de esta carpeta (solo la primera vez), leen con acorn el código actual de cada lanzador (sin ejecutar nada) y montan el recorrido de lectura a pantalla completa. Un error de sintaxis se avisa con su línea.
-- Python y Factory todavía no: se avisa (con programas mixtos, salen solo los de JavaScript).
+- Los binoculares cargan el motor de esta carpeta (solo la primera vez), leen el código actual de cada lanzador (acorn para JavaScript, lezer para Python; sin ejecutar nada) y montan el recorrido de lectura a pantalla completa. Un error de sintaxis se avisa con su línea.
+- Factory todavía no: se avisa.
 - El modo mapa/código/diagrama a la vez (la repetición del intento con fotos del mundo) se quitó: daba muchos problemas y el resultado era menos claro.
 
-**Pulsos en el editor durante la partida** (`js/pulsos.js`). Mientras el programa corre, cada fragmento que actúa late con el color de su fila de este diagrama (una onda y un anillo, como la navegación de la bug tool): las lecturas del juego solo si dan algo (ni null ni false), las órdenes (no `regularShoot(null)`), la consola y las condiciones de `if` y `?:` solo cuando se cumplen; las de los bucles, nunca. El trazador instrumenta los programas de JavaScript con un filtro (solo esos ganchos: menos coste y mensajes de error limpios); la partida es la misma que sin él (`pruebas/juego.mjs` lo compara con la grabada). En Python pulsa la línea de cada lectura con valor, orden o consola.
+**Pulsos en el editor durante la partida** (`js/pulsos.js`). Mientras el programa corre, cada fragmento que actúa late con el color de su fila de este diagrama (una onda y un anillo, como la navegación de la bug tool): las lecturas del juego solo si dan algo (ni null ni false), las órdenes (no `regularShoot(null)`), la consola y las condiciones de `if` y `?:` solo cuando se cumplen; las de los bucles, nunca. El trazador instrumenta los programas de JavaScript con un filtro (solo esos ganchos: menos coste y mensajes de error limpios); la partida es la misma que sin él (`pruebas/juego.mjs` lo compara con la grabada). En Python (sin ganchos: corre traducido a JS) los mensajes del Worker traen la línea; con el lector de Python, en esa línea pulsa la llamada (`auto_target(…)`, `regular_shoot(…)`, `print(…)`) con el color de su fila.
 
 **Catálogo.** El global del catálogo de esta carpeta es `CMGCatalogoRevision`: `CMGCatalogo` ya es el de la paleta del editor (`shared/editor/plantillas.js`) y cargarlo en el juego lo pisaba.
 
@@ -161,12 +172,8 @@ Sin ese `if`, la misma semilla también gana, pero con 3 atascos. En un barrido 
 
 ## Límites y siguientes pasos
 
-- **Solo JavaScript.** Python se ejecuta en el juego traducido a JS con las mismas líneas. Para Python harían falta dos cosas:
-  - el diagrama, sacado del árbol de lezer que ya usa el editor, porque el JS traducido lleva auxiliares `__py.*`;
-  - que el traductor conserve las columnas, para que el resaltado llegue a expresiones y no solo a líneas.
-
-  Las etiquetas del diagrama ya son lenguaje natural, sin sintaxis de JS, así que valen para los dos.
-- **En el juego, solo War y JavaScript.** Falta unir este catálogo con `Prototypes/Rocket Launcher/js/proveedor.js`, que ya tiene nombres y firmas. Las fotos del mundo ocupan memoria (unas 730 en el reto 5); para partidas muy largas habría que espaciarlas.
+- **Python solo se lee.** El recorrido de lectura, el diagrama y los pulsos funcionan con Python; la traza con valores (`?modo=traza`) no, porque Python corre traducido a JS y el traductor no conserva columnas.
+- **En el juego, solo War.** Falta unir este catálogo con `Prototypes/Rocket Launcher/js/proveedor.js`, que ya tiene nombres y firmas. Las fotos del mundo ocupan memoria (unas 730 en el reto 5); para partidas muy largas habría que espaciarlas.
 - **Una vuelta = el bucle principal.** Los bucles anidados y las funciones se recorren paso a paso, pero la franja solo divide por el bucle de fuera.
 - **Detalles sin resolver:**
   - En una llamada a una función propia, la narración del paso ya enseña lo que devolvió.

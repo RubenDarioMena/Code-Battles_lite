@@ -1,3 +1,12 @@
+## Modo revisión · Python · 7 de noviembre de 2026
+
+- **Lector de Python** (`educational-animation/revision/motor/python.js`): árbol de lezer → la tabla de nodos de acorn, con posiciones en el texto de Python. Con eso el diagrama, el recorrido de lectura, las tarjetas y la documentación funcionan igual que en JavaScript. El reto 5 en Python da el mismo diagrama y las mismas frases que en JavaScript (`pruebas/flujo.cjs` lo compara).
+- La precedencia de `not`, `and`/`or`, `is not` y `not in` se rehace con la tabla de Python. Los nombres del juego en Python se buscan en el catálogo por su nombre de JS (`desdePython`); `wait` y `print` son alias de `esperar` y `console.log`.
+- Las frases, los valores, las flechas del diagrama, el resaltado del código y los títulos de la documentación usan `None`, `True`, `False`, `print`, `elif`, `FOR…IN`…
+- **Juego:** los binoculares leen también los programas en Python (se quita el aviso «solo JavaScript»). Los pulsos de Python laten en la llamada de su línea con el color de su fila (antes, la línea entera con un color por clase).
+- **Página de revisión:** ejemplo «Reto 5 · Python» y selector JavaScript/Python en «Tu código».
+- **Pruebas:** `flujo.cjs` 287, `interfaz.mjs` 200, `juego.mjs` 58, `trazador.cjs` 27. Siguen pasando i18n, catálogos (420 claves), interacción 124, traductor 64, editor Python 34, Python en el juego 27, ejecución 26 e idiomas del juego 45.
+
 ## Modo revisión · frases de lectura más cortas · 7 de noviembre de 2026
 
 - Recorrido de lectura: ninguna frase pasa de ~75 caracteres visibles en el reto 5 (antes, hasta 127 en ES y 143 en EN). Se quita «Solo pasa por aquí si…» (la decisión anterior ya lo dice), las órdenes del lanzador y `esperar` tienen frases breves nuevas, y el final ya no repite «Ese es todo el programa» cuando el bucle es sin fin.

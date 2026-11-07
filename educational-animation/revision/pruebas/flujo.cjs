@@ -214,5 +214,60 @@ for (let i = 1; i <= 4; i++) {
   ok(lb.textos.some(x => x.includes('hasta que un break lo saca')), 'lectura: un bucle sin fin con break dice que el break lo saca');
   I18N.cambiarIdioma('es');
 
+  // ---------- 10 · Python: el mismo diagrama y las mismas frases, con las palabras de Python ----------
+  const PY = globalThis.CMGPythonRevision;
+  const leerPy = (src, { idioma = 'es', id = 'LAU-01', serie = 'war' } = {}) => {
+    I18N.cambiarIdioma(idioma);
+    const P = FL.preparar(PY.leer(src, { nombre: C.desdePython }), { id, serie }), F = FL.construir(P), R = FL.estructura(P, F);
+    return { P, F, R, et: F.filas.map(f => `${f.num} ${plano(P, F, E.etiqueta(P, F, f.i))}`),
+      textos: R.pasos.map(p => p.fin ? plano(P, F, E.resumen(P, F, R)) : `${F.filas[p.fila].num} ${plano(P, F, E.describir(P, F, p.fila))}`) };
+  };
+  const RETO5_PY = '# Un solo reparador\nwhile True:\n    pos = (auto_target("drone", "visual")\n        or auto_target("stealth", "visual")\n        or auto_target("crawler", "visual"))\n    if LAU_02.jammed:\n        regular_shoot(pos)\n    elif failure_rate < 0.12:\n        burst_fire(pos)\n    else:\n        regular_shoot(pos)\n    wait(0.25)\n';
+  const p5 = leerPy(RETO5_PY);
+  // El mismo programa en JavaScript da el mismo diagrama (solo cambia el código de las fichas).
+  const j5 = leer(grabacion('reto-5').programas['LAU-01'].fuente, { id: 'LAU-01', serie: 'war' });
+  eq(p5.F.filas.map(f => [f.tipo, f.num, f.nivel, f.si, f.no, f.sig]), j5.F.filas.map(f => [f.tipo, f.num, f.nivel, f.si, f.no, f.sig]), 'python: el reto 5 da el mismo diagrama que en JavaScript');
+  eq(p5.textos.map(x => x.replace(/\[[^\]]*\]/g, '[]')), j5.textos.map(x => x.replace(/\[[^\]]*\]/g, '[]')), 'python: y las mismas frases del recorrido');
+  eq(p5.et.slice(0, 3), ['1 Repite siempre', '2 Guarda en [pos]: dron, si no dron frío, si no oruga', '3 ¿LAU-02 está atascado?'], 'python: «or» entre lecturas es «lo primero que encuentre»; LAU_02.jammed, del catálogo');
+  eq(p5.textos[4], '5 Si [failure_rate] es menor que 0.12, sigue en (6); si no, va a (7).', 'python: failure_rate es la propiedad failureRate (el código se ve como está escrito)');
+  eq(p5.textos[7], '8 Espera 0,25 s; mientras, sigue con su última orden. Luego vuelve a (1).', 'python: wait es esperar');
+  const ps = leerPy('while True:\n    pos = auto_target("drone", "visual")\n    if pos:\n        regular_shoot(pos)\n    wait(0.25)\n');
+  eq(ps.textos[1], '2 Sensor cámara: busca el dron más avanzado y calcula dónde estará. Lo guarda en [pos] (None si no ve ninguno).', 'python: None en lugar de null');
+  eq(ps.textos[2], '3 Si [pos] tiene un valor, sigue en (4); si no, salta a (5).', 'python: «if pos:»');
+  const pe = leerPy('while True:\n    pos = auto_target("drone", "visual")\n    if pos:\n        regular_shoot(pos)\n    wait(0.25)\n', { idioma: 'en' });
+  ok(pe.textos[1].endsWith('(None if it sees none).'), 'python: en inglés');
+  // Precedencia de Python (lezer la deja plana): not, and/or, is not, not in.
+  const pp = leerPy('if not LAU_02.jammed and x is not None:\n    stop_fire()\nif not a == b:\n    pass\n', { serie: 'war' });
+  const tipo = (P, i) => P.nodos[i].tipo + (P.nodos[i].op ? ' ' + P.nodos[i].op : '');
+  const t1 = pp.F.filas[0].test, t2 = pp.F.filas[2].test;
+  eq([tipo(pp.P, t1), tipo(pp.P, pp.P.hijo(t1, 'left')), tipo(pp.P, pp.P.hijo(t1, 'right'))], ['LogicalExpression &&', 'UnaryExpression !', 'BinaryExpression !=='], 'python: not a and b es (not a) and b; is not es !==');
+  eq([tipo(pp.P, t2), tipo(pp.P, pp.P.hijo(t2, 'argument'))], ['UnaryExpression !', 'BinaryExpression ==='], 'python: not a == b es not (a == b)');
+  eq(pp.et[0], '1 ¿LAU-02 funciona y [x] no vale None?', 'python: la pregunta, con None');
+  // Un programa de Python cualquiera: bucles, funciones, break, continue, try, tuplas.
+  const CAFES_PY = 'drink_coffee = 0\nwhile drink_coffee < 10:\n    drink_coffee += 1\n    if drink_coffee == 8:\n        break\n    if drink_coffee == 5:\n        continue\n    print("Café")\n';
+  const pc = leerPy(CAFES_PY, { id: null, serie: 'libre' }), jc = leer(CAFES);
+  eq(pc.textos.map(x => x.replace(/\[[^\]]*\]/g, '[]')), jc.textos.map(x => x.replace(/\[[^\]]*\]/g, '[]').replace("'Café'", '"Café"')), 'python: los cafés, igual que en JavaScript');
+  for (const idioma of ['es', 'en']) for (const [k, src] of [RETO5_PY, CAFES_PY,
+    'def es_par(n):\n    return n % 2 == 0\n\nnumeros = [3, 8, 5, 12]\npares = 0\nfor n in numeros:\n    if es_par(n):\n        pares += 1\n        print(n, "es par")\n    else:\n        print(n, "es impar")\nprint("Pares:", pares)\n',
+    'try:\n    x = VIB_01.detect("crawler")\nexcept Exception as e:\n    print("error", e)\nf = lambda t: t * 2\na, b = 1, 2\nfor i, x in enumerate([1]):\n    pass\n',
+    'import math\nclass A:\n    pass\nx = [i for i in range(3)]\nwhile x and not y or z:\n    x = x[1:]\n'].entries()) {
+    const v = leerPy(src, { idioma });
+    sinClaves(v.textos.join(' ‖ ') + v.et.join(' ‖ '), `python ${idioma} ${k + 1}`);
+    eq(v.R.pasos.length, v.F.filas.length + 1, `python ${idioma} ${k + 1}: un paso por fila y el final`);
+    ok(!/\b(null|true|false|undefined)\b/.test(v.textos.join(' ')), `python ${idioma} ${k + 1}: sin palabras de JavaScript`);
+    // Los nodos se anidan (el resaltado del código depende de ello) y caen en el texto de Python.
+    ok(v.P.nodos.every(x => x.padre == null || (x.a >= v.P.nodos[x.padre].a && x.b <= v.P.nodos[x.padre].b)), `python ${idioma} ${k + 1}: los nodos se anidan`);
+  }
+  // La documentación (pulsación larga), con los nombres de Python.
+  I18N.cambiarIdioma('es');
+  const titulo = (v, pred) => DOC.tema(v.P, v.P.nodos.find(pred).id).titulo;
+  eq([titulo(p5, x => x.tipo === 'IfStatement' && x.campo === 'alternate'), titulo(p5, x => x.tipo === 'CallExpression' && p5.P.txt(x.id).startsWith('burst_fire'))], ['ELIF', 'ORDEN DEL JUEGO · burstFire'], 'python: documentación de elif y de una orden');
+  const pd = leerPy('for n in [1]:\n    print(n and None)\n');
+  eq([titulo(pd, x => x.tipo === 'ForOfStatement'), titulo(pd, x => x.tipo === 'CallExpression'), titulo(pd, x => x.tipo === 'LogicalExpression'), titulo(pd, x => x.tipo === 'Literal' && x.valor === null)], ['FOR…IN', 'CONSOLA · print', 'LÓGICA and', 'NONE'], 'python: for…in, print, and, None');
+  let errPy = null;
+  try { PY.leer('while True:\n    regular_shoot(\n'); } catch (e) { errPy = e; }
+  ok(errPy && errPy.loc && errPy.loc.line >= 2, 'python: un error de sintaxis se avisa con su línea');
+  I18N.cambiarIdioma('es');
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

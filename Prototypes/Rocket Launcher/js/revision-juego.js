@@ -4,7 +4,7 @@
  * hay ahora en el editor: no hace falta haberlo ejecutado. Es un recorrido de lectura (CMGRevision, modo
  * «lectura»): fila a fila, qué hace el programa en lenguaje de personas. Primero se entiende el código;
  * después, la partida (y en ella, los pulsos del editor: js/pulsos.js).
- * Tapa el juego. La montaña vuelve al mapa y </> al editor.
+ * JavaScript y Python (lector de lezer: motor/python.js). Tapa el juego. La montaña vuelve al mapa y </> al editor.
  * El motor del modo revisión se carga la primera vez que se abre (trazador.js y flujo.js ya están cargados:
  * los usan los pulsos). */
 (() => {
@@ -12,7 +12,7 @@
   const BASE = "../../educational-animation/revision/";
   // [archivo, global]: con global, no se vuelve a cargar si ya está (trazador y flujo los carga el juego para
   // los pulsos). El catálogo del modo revisión es CMGCatalogoRevision: CMGCatalogo es el de la paleta del editor.
-  const MOTOR = [["motor/textos.js", null], ["motor/trazador.js", "CMGTrazador"], ["motor/catalogo.js", null], ["motor/flujo.js", "CMGFlujo"],
+  const MOTOR = [["motor/textos.js", null], ["motor/trazador.js", "CMGTrazador"], ["motor/catalogo.js", null], ["motor/flujo.js", "CMGFlujo"], ["motor/python.js", "CMGPythonRevision"],
     ["motor/explicar.js", null], ["motor/documentacion.js", null], ["motor/revision.js", null]];
   const $ = (id) => document.getElementById(id);
   const app = $("app"), boton = $("b-revisar");
@@ -49,21 +49,22 @@
     const r = R();
     if (!r) return;
     if (r.serie === "factory") return avisar(ti("juego.revision.factory"));
-    const todos = r.programas(), js = todos.filter(p => p.lenguaje !== "python");
-    if (!js.length) return avisar(ti("juego.revision.python"));
+    const todos = r.programas();
     try { await cargar(); }
     catch (e) { return avisar(ti("juego.revision.error", { m: e.message })); }
-    // Solo se lee el programa (acorn): nada se ejecuta.
+    // Solo se lee el programa (acorn para JavaScript, lezer para Python): nada se ejecuta.
     const programas = {};
-    for (const p of js) {
+    for (const p of todos) {
       try {
-        const x = window.CMGTrazador.instrumentar(p.texto, { acorn });
-        programas[p.id] = { lenguaje: "js", fuente: x.fuente, nodos: x.nodos, comentarios: x.comentarios, eventos: [] };
+        if (p.lenguaje === "python") programas[p.id] = window.CMGPythonRevision.leer(p.texto, { nombre: window.CMGCatalogoRevision.desdePython });
+        else {
+          const x = window.CMGTrazador.instrumentar(p.texto, { acorn });
+          programas[p.id] = { lenguaje: "js", fuente: x.fuente, nodos: x.nodos, comentarios: x.comentarios, eventos: [] };
+        }
       } catch (e) {
-        return avisar(ti("juego.revision.sintaxis", { id: p.id, l: e.loc ? e.loc.line : "?", m: String(e.message).replace(/\s*\(\d+:\d+\)$/, "") }));
+        return avisar(ti("juego.revision.sintaxis", { id: p.id, l: e.loc ? e.loc.line : "?", m: String(e.message).replace(/\s*\(\d+:\d+\)$/, "").replace(/\s*\(\d+\)$/, "") }));
       }
     }
-    if (js.length < todos.length) avisar(ti("juego.revision.algunos_python"));
     cerrar();
     if (!caja) { caja = document.createElement("div"); caja.id = "revision-juego"; caja.className = "revision-juego"; document.body.append(caja); }
     caja.hidden = false;

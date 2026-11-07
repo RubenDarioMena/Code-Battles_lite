@@ -112,6 +112,27 @@ try {
     await page.click('dialog.tuyo button[value="ok"]');
     await page.waitForFunction(() => window.__revision && window.__revision.datos.programa && window.__revision.datos.programa.P.fuente.startsWith('while (true)'));
     eq((await est()).total, 3, `${nombre}: un bucle sin fin se lee en 3 pasos`);
+    // Tu código en Python: el mismo recorrido, con las palabras de Python.
+    await page.selectOption('.rv-ejemplos', 'tuyo');
+    await page.waitForSelector('dialog.tuyo[open]');
+    ok(await page.locator('dialog.tuyo .lenguaje').isVisible(), `${nombre}: tu código: se elige JavaScript o Python`);
+    await page.click('dialog.tuyo [data-lenguaje="python"]');
+    await page.fill('dialog.tuyo textarea', 'x = None\nwhile True:\n    if x is None:\n        print("hola")\n');
+    await page.click('dialog.tuyo button[value="ok"]');
+    await page.waitForFunction(() => window.__revision && window.__revision.datos.programa && window.__revision.datos.programa.P.lenguaje === 'python');
+    eq((await est()).total, 5, `${nombre}: Python: 4 filas y el final`);
+    await page.evaluate(() => window.__revision.ir(2));
+    eq(await page.locator('.rv-narra-txt').innerText(), '3Si x vale None, sigue en 4; si no, vuelve a 2.', `${nombre}: Python: la decisión con None`);
+    eq(await page.evaluate(() => [...document.querySelectorAll('.rv-con-et, .rv-sal-et')].map(x => x.textContent.replace(' →', '')).filter(Boolean)), ['True'], `${nombre}: Python: True en las flechas`);
+    eq(await page.evaluate(() => [...document.querySelectorAll('.rv-pre .kw')].map(x => x.textContent)), ['None', 'while', 'True', 'if', 'is', 'None'], `${nombre}: Python: sus palabras clave resaltadas`);
+    // El reto 5 en Python: el mismo diagrama que en JavaScript.
+    await abrir('reto-5-py', 'lectura');
+    eq([(await est()).total, await page.locator('.rv-tramo').count()], [9, 8], `${nombre}: el reto 5 en Python, 8 filas y el final`);
+    eq(await etiqueta(3), '¿LAU-02 está atascado?', `${nombre}: Python: LAU_02.jammed, del catálogo`);
+    await page.locator('.rv-pre .fn', { hasText: 'burst_fire' }).click();
+    ok((await page.locator('.rv-narra').innerText()).includes('burst_fire(pos)'), `${nombre}: Python: tocar burst_fire abre su tarjeta`);
+    await page.evaluate(() => window.__revision.ir(7));
+    eq(await page.locator('.rv-narra-txt').innerText(), '8Espera 0,25 s; mientras, sigue con su última orden. Luego vuelve a 1.', `${nombre}: Python: wait es esperar`);
 
     // ---------- Seis cafés (traza) ----------
     await abrir('cafes');
