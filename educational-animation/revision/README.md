@@ -70,6 +70,59 @@ Ejemplos: `?ej=cafes`, `?ej=pares` y `?ej=reto-5`. «Tu código…» ejecuta en 
 
 **Idioma:** el de la interfaz del juego, con su runtime de idiomas (`shared/i18n/i18n.js`) y la misma preferencia `cmg-interfaz-idioma`. No hay selector propio; si cambia, todo se traduce al momento (también la documentación abierta).
 
+## Depurar una representación
+
+**Depurar**, en la esquina inferior derecha del diagrama, abre una captura de solo lectura con **Copiar JSON** y **Descargar JSON** (`revision-debug.json`). Funciona en la página de ejemplos y dentro de War/Factory, con JavaScript y Python. Abrirla pausa el recorrido automático; cerrar con ✕ o Escape conserva el programa, el paso y la selección. Si el portapapeles no está disponible, selecciona el JSON para copiarlo manualmente; la descarga sigue disponible.
+
+El informe `cmg-revision-debug`, versión 1, contiene:
+
+- `entrada`: todos los programas de la revisión, con su fuente original completa (Python permanece Python), tabla de nodos, comentarios y eventos, además del contexto del reto o de la grabación. No incluye otros guardados del navegador.
+- `salida[programa]`: filas con número, color, código original y rango UTF-16 `[a, b)`, etiqueta y frase de lectura; destinos `si`/`no`/`sig`, orden, salidas laterales, flechas de vuelta (`rieles`), secciones y recorrido. Los `Map` del recorrido se serializan como listas de pares; los `Set`, como listas. BigInt y números no finitos usan `{ "$": "bigint" | "number", "v": "…" }`.
+- `contexto`: idioma, modo lectura/traza, programa, paso, foco, documentación, texto, velocidad y reparto actuales.
+- `vista`: tamaño de pantalla, escala, desplazamiento y medidas de las filas del programa visible, HTML del diagrama con sus flechas SVG y narración actual. Es evidencia de presentación; no es una captura de píxeles ni un HTML autónomo.
+- `motor`: URL y versión de los scripts y el CSS cargados del motor. Su código está en `educational-animation/revision/motor/`.
+
+Un agente con acceso a la página puede leer la misma estructura sin abrir el diálogo:
+
+```js
+const informe = window.__revisionJuego.vista.depurar(); // dentro del juego
+// const informe = window.__revision.depurar();        // página de ejemplos
+JSON.stringify(informe, null, 2);
+```
+
+Cada llamada devuelve un objeto independiente; no mueve el recorrido ni ejecuta el programa. El JSON abierto en el diálogo permanece fijo hasta la próxima apertura, también si cambia el idioma. Para entregar el caso a otro agente, adjunta el archivo descargado o pega el JSON; no necesita acceso al localStorage del jugador.
+
+Para reproducir y comparar el resultado con una versión nueva del motor, cargar sus dependencias en la página de revisión y volver a montar la entrada del informe (usar el origen de QA 8771):
+
+```js
+const informe = JSON.parse(textoDelArchivo, (_, v) => {
+  if (v && v.$ === 'bigint') return BigInt(v.v);
+  if (v && v.$ === 'number') return Number(v.v);
+  return v;
+});
+CMGI18n.cambiarIdioma(informe.contexto.idioma);
+// Destruir la vista anterior antes de reutilizar su raíz.
+const vista = CMGRevision.montar(raiz, informe.entrada, informe.contexto);
+vista.ir(informe.contexto.paso);
+const foco = informe.contexto.foco;
+if (foco && foco.id != null) vista.enfocar(foco.id, { deFila: foco.fila });
+const resultadoActual = vista.depurar().salida;
+// Comparar resultadoActual con informe.salida; conservar el caso como fixture de regresión.
+```
+
+La reproducción recalcula las filas y frases a partir del árbol original; para investigar cambios en el analizador, volver a leer también `entrada.programas[id].fuente` con acorn/lezer. Las medidas visuales se comparan usando el mismo ancho, escala y reparto del informe.
+
+Prueba del informe con Ego Browser y el servidor de QA 8771 activo:
+
+```bash
+ego-browser nodejs <<'JS'
+const task = await taskSpace('QA depuración revisión');
+const { probarDepuracion } = await import('file:///Users/rubenmena/Documents/Dev/Code-battle-lite/educational-animation/revision/pruebas/depuracion.mjs');
+console.log(await probarDepuracion(task.page('p1')));
+await task.finish({ keep: [] });
+JS
+```
+
 ## Python
 
 `motor/python.js` (`CMGPythonRevision.leer`) lee un programa de Python con lezer (el analizador del editor, `shared/vendor/lezer-python-1.1.19.js`) y devuelve la misma tabla de nodos que el trazador da para JavaScript, con los tipos de acorn y las posiciones en el texto de Python. El diagrama, el recorrido, las tarjetas y la documentación son los mismos:

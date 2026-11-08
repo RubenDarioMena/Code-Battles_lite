@@ -11,6 +11,15 @@
  *   doc.*  pantalla de documentación (pulsación larga en el diagrama): doc.tema.<clave> de documentacion.js
  *   cat.*  objetos del juego (catalogo.js): cat.<tipo>.<miembro>.<campo>. Un robot nuevo añade aquí sus textos. */
 window.CMGI18n.registrar('es', {
+  'revision.debug.abrir': 'Depurar',
+  'revision.debug.ayuda': 'Ver el código original y la representación generada',
+  'revision.debug.titulo': 'Código y representación',
+  'revision.debug.descripcion': 'Captura del código original, diagrama, frases y vista actual. Copia o descarga el JSON para compartirlo con un agente y revisar cómo se representa este programa.',
+  'revision.debug.informe': 'Informe JSON de la revisión (solo lectura)',
+  'revision.debug.copiar': 'Copiar JSON',
+  'revision.debug.descargar': 'Descargar JSON',
+  'revision.debug.copiado': 'JSON copiado.',
+  'revision.debug.copiaManual': 'El portapapeles no está disponible. El JSON está seleccionado: cópialo con el teclado o descárgalo.',
   'revision.ui.titulo': 'Revisión',
   'revision.ui.programas': 'Programa de cada máquina',
   'revision.ui.codigo': 'Código de {id}. Toca un fragmento para ver qué es.',
@@ -481,6 +490,15 @@ window.CMGI18n.registrar('es', {
 });
 
 window.CMGI18n.registrar('en', {
+  'revision.debug.abrir': 'Debug',
+  'revision.debug.ayuda': 'View the original code and generated representation',
+  'revision.debug.titulo': 'Code and representation',
+  'revision.debug.descripcion': 'Snapshot of the original code, diagram, wording and current view. Copy or download the JSON to share it with an agent and review how this program is represented.',
+  'revision.debug.informe': 'Review JSON report (read only)',
+  'revision.debug.copiar': 'Copy JSON',
+  'revision.debug.descargar': 'Download JSON',
+  'revision.debug.copiado': 'JSON copied.',
+  'revision.debug.copiaManual': 'The clipboard is unavailable. The JSON is selected: copy it with the keyboard or download it.',
   'revision.ui.titulo': 'Review',
   'revision.ui.programas': 'Each machine’s program',
   'revision.ui.codigo': '{id}’s code. Tap any part to see what it is.',

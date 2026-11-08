@@ -81,6 +81,10 @@
 
 /* ---------- Abajo: diagrama, narración y controles ---------- */
 .rv-abajo { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; background: var(--fondo); }
+.rv-diagrama { min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+.rv-herramientas { display: flex; justify-content: flex-end; padding: 0 max(12px, env(safe-area-inset-right, 0px)) 4px 12px; }
+.rv .rv-depurar { min-height: 44px; padding: 5px 10px; border: 1px solid var(--linea); border-radius: 8px; background: var(--fondo-cod); color: var(--tenue); cursor: pointer; font-size: 12px; }
+.rv-depurar:hover { color: var(--tinta); border-color: var(--apagado); }
 .rv-flujo { container-type: inline-size; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 12px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px)); }
 .rv-rejilla { position: relative; display: flex; flex-direction: column; gap: 0; padding-left: 26px; max-width: 900px; margin: 0 auto; }
 .rv-rieles { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
@@ -186,7 +190,7 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 .rv[data-disposicion="lado"] > .rv-asa span { width: 5px; height: 56px; background: repeating-linear-gradient(180deg, var(--linea-2) 0 2px, transparent 2px 4px); }
 .rv[data-disposicion="lado"] > .rv-asa:is(:hover, .rv-arrastra, :focus-visible) span { background: repeating-linear-gradient(180deg, var(--foco) 0 2px, transparent 2px 4px); }
 .rv[data-disposicion="lado"] > .rv-abajo { display: contents; }
-.rv[data-disposicion="lado"] .rv-flujo { grid-area: flujo; }
+.rv[data-disposicion="lado"] .rv-diagrama { grid-area: flujo; }
 .rv[data-disposicion="lado"] .rv-narra { grid-area: narra; max-height: 30vh; }
 .rv[data-disposicion="lado"] .rv-pie { grid-area: pie; }
 .rv-vel { width: auto; min-width: 42px; padding: 0 8px; font: 700 12.5px var(--f-codigo); color: var(--tenue); }
@@ -212,6 +216,20 @@ button.rv-ref:hover, button.rv-ref:focus-visible { background: color-mix(in okla
 @keyframes rv-doc-pulso { 0%, 100% { transform: scale(.7); opacity: .25; } 50% { transform: scale(1.15); opacity: .8; } }
 .rv-doc-et { position: relative; font: 700 12px var(--f-codigo); letter-spacing: .1em; color: var(--tenue); background: var(--fondo); padding: 3px 8px; border-radius: 6px; }
 .rv-doc-texto { margin: 0; font: 400 16px/1.6 var(--f-texto); color: var(--tinta); }
+
+/* Captura JSON legible por personas y agentes. El diálogo nativo contiene el foco y restaura la vista. */
+.rv-depuracion { width: min(900px, calc(100% - 24px)); max-width: none; max-height: calc(100% - 24px); margin: auto; padding: 16px;
+  border: 1px solid var(--linea-2); border-radius: 12px; background: var(--fondo-cod); color: var(--tinta); }
+.rv-depuracion[open] { display: flex; flex-direction: column; gap: 12px; }
+.rv-depuracion::backdrop { background: rgb(0 0 0 / .7); }
+.rv-debug-cab { display: flex; align-items: center; gap: 10px; }
+.rv-debug-cab h2 { flex: 1; min-width: 0; margin: 0; font-size: 17px; }
+.rv-debug-cab .rv-cerrar { min-width: 44px; min-height: 44px; }
+.rv-depuracion p { margin: 0; font: 13px/1.5 var(--f-texto); color: var(--tenue); }
+.rv-debug-json { flex: 1 1 auto; min-height: 80px; height: 48dvh; width: 100%; resize: none; white-space: pre; overflow: auto;
+  border: 1px solid var(--linea); border-radius: 8px; padding: 10px; background: var(--fondo); color: var(--tinta); font: 12px/1.5 var(--f-codigo); }
+.rv-debug-acciones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.rv-debug-acciones button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--linea-2); border-radius: 8px; background: var(--superficie); cursor: pointer; font-size: 13px; }
 
 /* Si el diagrama es estrecho (teléfono, o el panel junto al código), la salida lateral baja debajo
    de su fila: «true → 4 Dispara…». Depende del ancho del diagrama, no de la pantalla. */

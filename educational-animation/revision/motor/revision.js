@@ -113,7 +113,10 @@
       </section>
       <div class="rv-asa" role="separator" tabindex="0" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" data-t-aria="ui.asa"><span></span></div>
       <section class="rv-abajo">
-        <div class="rv-flujo"><div class="rv-rejilla"></div></div>
+        <div class="rv-diagrama">
+          <div class="rv-flujo"><div class="rv-rejilla"></div></div>
+          <div class="rv-herramientas"><button type="button" class="rv-depurar" data-accion="depurar" data-t="debug.abrir" data-t-title="debug.ayuda"></button></div>
+        </div>
         <div class="rv-narra" aria-live="polite"></div>
         <footer class="rv-pie">
           <div class="rv-botones">
@@ -136,22 +139,34 @@
           <div class="rv-doc-animacion" aria-hidden="true"><span class="rv-doc-pulso"></span><span class="rv-doc-et"></span></div>
           <p class="rv-doc-texto"></p>
         </div>
-      </section>`;
+      </section>
+      <dialog class="rv-depuracion" data-t-aria="debug.titulo">
+        <header class="rv-debug-cab"><h2 data-t="debug.titulo"></h2><button type="button" class="rv-cerrar" data-accion="cerrarDepuracion" data-t-aria="ui.cerrar">${ICONO.salir}</button></header>
+        <p data-t="debug.descripcion"></p>
+        <textarea class="rv-debug-json" readonly spellcheck="false" data-t-aria="debug.informe"></textarea>
+        <p class="rv-debug-estado" role="status"></p>
+        <div class="rv-debug-acciones">
+          <button type="button" data-accion="copiarDepuracion" data-t="debug.copiar"></button>
+          <button type="button" data-accion="descargarDepuracion" data-t="debug.descargar"></button>
+        </div>
+      </dialog>`;
     const $ = (s) => raiz.querySelector(s);
     const el = {
       pre: $(".rv-pre"), margen: $(".rv-margen"), bandas: $(".rv-bandas"), insignias: $(".rv-insignias"), scroll: $(".rv-scroll"), lienzo: $(".rv-lienzo"),
       codigo: $(".rv-codigo"), flujo: $(".rv-flujo"), rejilla: $(".rv-rejilla"), narra: $(".rv-narra"), tramos: $(".rv-tramos"), hitos: $(".rv-hitos"),
       asa: $(".rv-asa"), abajo: $(".rv-abajo"), doc: $(".rv-doc"), donde: $(".rv-donde"), vel: $(".rv-vel"), texto: $(".rv-texto"), auto: $('[data-accion="auto"]'), antes: $('[data-accion="antes"]'), despues: $('[data-accion="despues"]'), titulo: $(".rv-titulo"),
+      depuracion: $(".rv-depuracion"), json: $(".rv-debug-json"), debugEstado: $(".rv-debug-estado"), herramientas: $(".rv-herramientas"),
     };
     const traducirAria = () => {
       raiz.querySelectorAll("[data-t-aria]").forEach(x => x.setAttribute("aria-label", t(x.dataset.tAria)));
       raiz.querySelectorAll("[data-t-title]").forEach(x => x.setAttribute("title", t(x.dataset.tTitle)));
+      raiz.querySelectorAll("[data-t]").forEach(x => { x.textContent = t(x.dataset.t); });
     };
 
     // ---------- Segmentos de texto → DOM ----------
     const corto = (P, i, max = 34) => { const x = P.txt(i).replace(/\s+/g, " "); return x.length <= max ? x : x.slice(0, max - 1) + "…"; };
-    function segmentos(segs, { fichas = true } = {}) {
-      const { P, F } = D(), frag = document.createDocumentFragment();
+    function segmentos(segs, { fichas = true, programa = D() } = {}) {
+      const { P, F } = programa, frag = document.createDocumentFragment();
       E.lenguaje(P);
       for (const s of segs.flat(9)) {
         if (s == null || s === "") continue;
@@ -177,12 +192,92 @@
         if (s.mas) {
           const d = document.createElement("details"), r = document.createElement("summary"), c = document.createElement("div");
           d.className = "rv-mas"; r.textContent = t("que.b.mas"); c.className = "rv-mas-txt";
-          c.append(segmentos(s.mas, { fichas }));
+          c.append(segmentos(s.mas, { fichas, programa }));
           d.append(r, c); frag.append(d); continue;
         }
       }
       return frag;
     }
+
+    // ---------- Informe de depuración: entrada original + salida del motor + vista actual ----------
+    // Objeto JSON separado de los datos vivos. No ejecuta código ni escribe en los guardados.
+    // Los Maps/Sets del recorrido se conservan como listas; las posiciones del árbol son offsets UTF-16.
+    function depurar() {
+      const caja = (x) => {
+        const r = x.getBoundingClientRect();
+        return { x: r.x, y: r.y, ancho: r.width, alto: r.height };
+      };
+      const salida = {};
+      try {
+        for (const id of ids) {
+          const { P, F, R } = datos[id];
+          const texto = (s) => segmentos(s, { fichas: false, programa: datos[id] }).textContent;
+          salida[id] = {
+            entrada: F.entrada,
+            filas: F.filas.map(f => ({ ...f, codigo: P.txt(f.nodo),
+              rango: { a: P.nodos[f.nodo].a, b: P.nodos[f.nodo].b },
+              etiqueta: texto(E.etiqueta(P, F, f.i)), lectura: texto(E.describir(P, F, f.i)),
+              salidaTexto: f.salida ? E.textoSalida(f) : null })),
+            orden: F.orden, rieles: F.rieles, secciones: F.secciones,
+            recorrido: R, resumen: texto(E.resumen(P, F, R)),
+          };
+        }
+      } finally { E.lenguaje(D().P); }
+      const informe = {
+        formato: "cmg-revision-debug", version: 1,
+        contexto: { idioma: I18N.idioma, modo: lectura ? "lectura" : "traza", programa: estado.prog,
+          paso: estado.paso, foco: estado.foco, documentacion: estado.doc, texto: estado.texto, velocidad: estado.vel,
+          disposicion: raiz.dataset.disposicion, reparto: reparto[modo()], pleno: raiz.hasAttribute("data-pleno") },
+        motor: [...document.querySelectorAll("script[src], link[rel=stylesheet]")]
+          .map(x => x.src || x.href).filter(url => /\/revision\/motor\//.test(url)),
+        // Se puede volver a montar con CMGRevision.montar(raiz, informe.entrada, informe.contexto).
+        entrada: G, salida,
+        vista: {
+          viewport: { ancho: innerWidth, alto: innerHeight, escala: devicePixelRatio },
+          revision: caja(raiz), diagrama: caja(el.flujo),
+          desplazamiento: { x: el.flujo.scrollLeft, y: el.flujo.scrollTop },
+          filas: [...el.rejilla.querySelectorAll(".rv-nodo")].map(x => ({ fila: +x.dataset.fila, ...caja(x) })),
+          html: el.rejilla.outerHTML, narracion: el.narra.textContent, narracionHtml: el.narra.innerHTML,
+        },
+      };
+      return JSON.parse(JSON.stringify(informe, (_, v) => v instanceof Map ? [...v] : v instanceof Set ? [...v]
+        : typeof v === "bigint" ? { $: "bigint", v: String(v) }
+        : typeof v === "number" && !Number.isFinite(v) ? { $: "number", v: String(v) } : v));
+    }
+    function abrirDepuracion() {
+      pararAuto();
+      // Completa las flechas pendientes de requestAnimationFrame antes de capturar el HTML.
+      dibujarRieles();
+      el.json.value = JSON.stringify(depurar(), null, 2);
+      delete el.debugEstado.dataset.t;
+      el.debugEstado.textContent = "";
+      el.depuracion.showModal();
+      el.json.focus();
+      el.json.setSelectionRange(0, 0); el.json.scrollTop = 0; el.json.scrollLeft = 0;
+    }
+    async function copiarDepuracion() {
+      const contenido = el.json.value;
+      try {
+        await navigator.clipboard.writeText(contenido);
+        if (el.depuracion.open && el.json.value === contenido) { el.debugEstado.dataset.t = "debug.copiado"; el.debugEstado.textContent = t("debug.copiado"); }
+      } catch (e) {
+        if (!el.depuracion.open || el.json.value !== contenido) return;
+        el.json.focus(); el.json.select();
+        el.debugEstado.dataset.t = "debug.copiaManual";
+        el.debugEstado.textContent = t("debug.copiaManual");
+      }
+    }
+    function descargarDepuracion() {
+      const url = URL.createObjectURL(new Blob([el.json.value], { type: "application/json;charset=utf-8" }));
+      const a = document.createElement("a"); a.href = url; a.download = "revision-debug.json";
+      el.depuracion.append(a); a.click(); a.remove();
+      // Safari necesita que la URL siga viva al empezar la descarga.
+      const timer = setTimeout(() => { URL.revokeObjectURL(url); descargas.delete(url); }, 10000);
+      descargas.set(url, timer);
+    }
+    const descargas = new Map();
+    el.depuracion.addEventListener("keydown", ev => ev.stopPropagation());
+    el.depuracion.addEventListener("close", () => $('[data-accion="depurar"]')?.focus({ preventScroll: true }));
 
     // ---------- Código ----------
     let medida = { lh: 24, ch: 9, pad: 8 };
@@ -630,6 +725,10 @@
       if (x.dataset.accion === "texto") return mostrarTexto();
       if (x.dataset.accion === "cerrar") return mostrarTexto(false);
       if (x.dataset.accion === "cerrarDoc") return cerrarDoc();
+      if (x.dataset.accion === "depurar") return abrirDepuracion();
+      if (x.dataset.accion === "cerrarDepuracion") return el.depuracion.close();
+      if (x.dataset.accion === "copiarDepuracion") return copiarDepuracion();
+      if (x.dataset.accion === "descargarDepuracion") return descargarDepuracion();
       if (x.dataset.accion === "mapa") return opciones.alMapa && opciones.alMapa();
       if (x.dataset.accion === "codigo") return opciones.alCodigo && opciones.alCodigo();
       if (x.dataset.prog) return cambiarPrograma(x.dataset.prog);
@@ -667,6 +766,7 @@
       if (ev.key === "ArrowLeft" && v > 1) { ev.preventDefault(); ev.stopPropagation(); ir(R.vueltas[v - 2].desde); }
     });
     const teclado = (ev) => {
+      if (el.depuracion.open) return;
       if (ev.altKey || ev.ctrlKey || ev.metaKey || (ev.target.closest && ev.target.closest("select, textarea, input"))) return;
       const k = ev.key;
       if (k === "ArrowRight" || k === "PageDown") { ev.preventDefault(); ir(estado.paso + 1); }
@@ -715,7 +815,7 @@
       return true;
     }
     const disponible = () => lado() ? Math.max(0, raiz.clientWidth - el.asa.offsetWidth) : Math.max(0, raiz.clientHeight - barra.offsetHeight - el.asa.offsetHeight);
-    const maxCodigo = () => lado() ? Math.max(0, disponible() - 320) : Math.max(0, disponible() - Math.min(disponible(), (el.narra.hidden ? 0 : el.narra.offsetHeight) + pie.offsetHeight + 72));
+    const maxCodigo = () => lado() ? Math.max(0, disponible() - 320) : Math.max(0, disponible() - Math.min(disponible(), (el.narra.hidden ? 0 : el.narra.offsetHeight) + pie.offsetHeight + el.herramientas.offsetHeight + 72));
     const tamCodigo = () => lado() ? el.codigo.offsetWidth : el.codigo.offsetHeight;
     function aplicarReparto() {
       const cambio = elegirDisposicion();
@@ -864,11 +964,11 @@
     dibujarTodo();
     pintarVelocidad();
     return {
-      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto, alternarAuto, mostrarTexto, cambiarVelocidad,
+      datos, ir, cambiarPrograma, enfocar, quitarFoco, abrirDoc, cerrarDoc, fijarReparto, alternarAuto, mostrarTexto, cambiarVelocidad, depurar,
       get estado() { return { prog: estado.prog, paso: estado.paso, total: D().R.pasos.length, foco: estado.foco, auto: estado.auto, doc: estado.doc && DOC.tema(D().P, estado.doc.nodo).clave, reparto: reparto[modo()], pleno: raiz.hasAttribute("data-pleno"), disposicion: raiz.dataset.disposicion, vel: estado.vel, texto: estado.texto, modo: lectura ? "lectura" : "traza" }; },
       paso: () => paso(),
       duracion: () => duracion(paso()),
-      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelarPresion(); raiz.innerHTML = ""; raiz.classList.remove("rv"); for (const a of ["data-pleno", "data-disposicion", "data-modo", "data-sin-texto"]) raiz.removeAttribute(a); raiz.style.removeProperty("grid-template-rows"); raiz.style.removeProperty("grid-template-columns"); },
+      destruir() { ro.disconnect(); roRaiz.disconnect(); document.removeEventListener("keydown", teclado); window.removeEventListener("cmg:idioma", alCambiarIdioma); clearTimeout(estado.temporizador); cancelarPresion(); for (const [url, timer] of descargas) { clearTimeout(timer); URL.revokeObjectURL(url); } descargas.clear(); el.depuracion.remove(); raiz.innerHTML = ""; raiz.classList.remove("rv"); for (const a of ["data-pleno", "data-disposicion", "data-modo", "data-sin-texto"]) raiz.removeAttribute(a); raiz.style.removeProperty("grid-template-rows"); raiz.style.removeProperty("grid-template-columns"); },
     };
   }
 
