@@ -50,7 +50,8 @@
       if (n.operator) x.op = n.operator;
       if (n.type === "Literal") x.valor = n.regex ? String(n.value) : n.value;
       if (n.type === "VariableDeclaration") x.clase = n.kind;
-      if (n.generator) x.generador = true; // function*: llamarla crea un generador sin ejecutar su cuerpo
+      if (n.generator) x.generador = true;
+      if (n.async && /Function/.test(n.type)) x.async = true; // function*: llamarla crea un generador sin ejecutar su cuerpo
       if (n.type === "YieldExpression" && n.delegate) x.delega = true; // yield*: entrega uno a uno los de otro
       if (n.type === "MemberExpression") { x.computado = !!n.computed; if (n.optional) x.opcional = true; }
       if (n.type === "CallExpression" && n.optional) x.opcional = true;
@@ -104,6 +105,8 @@
     const cerrar = (pos, texto, prof) => ins.push({ pos, texto, cierre: true, prof });
     const marcar = (x, g) => { if (!x.ganchos.includes(g)) x.ganchos += g; };
     const dentroDeCadena = new Set(); // nodos dentro de a?.b: no se tocan (se envuelve la cadena entera)
+    const cuerposForEach = new Set(); // cuerpos expresión de un forEach ya instrumentado
+    const sinValor = new Set();       // nodos sin gancho v (un forEach anidado: su id es el de sus vueltas)
     const quiere = typeof opciones.filtro === "function" ? (g, n, padre, campo) => opciones.filtro(g, n, padre, campo) !== false : () => true;
 
     (function visitar(n, padre, campo) {
@@ -131,13 +134,27 @@
         else { abrir(n.body.start, "{" + gancho, x.prof); cerrar(n.body.end, "}", x.prof); }
         marcar(x, "c");
       }
-      // lista.forEach(x => { … }) se lee como un for…of: __T.c(idSentencia, x) al abrir la función.
-      if (n.type === "ExpressionStatement" && n.expression.type === "CallExpression" && quiere("c", n, padre, campo)) {
-        const c = n.expression, m = c.callee, fn = c.arguments[0];
+      // lista.forEach(x => { … }) se lee como un for…of: __T.c(idSentencia, x) al abrir la función. También cuando la
+      // llamada es el cuerpo expresión de otro forEach (l => l.forEach(x => …)): entonces el id es el de la llamada.
+      // Un callback async no: forEach no lo espera y sus continuaciones no son vueltas.
+      const llamadaForEach = n.type === "ExpressionStatement" ? n.expression : n.type === "CallExpression" && cuerposForEach.has(n) ? n : null;
+      if (llamadaForEach && llamadaForEach.type === "CallExpression" && quiere("c", n, padre, campo)) {
+        const c = llamadaForEach, m = c.callee, fn = c.arguments[0];
         if (m.type === "MemberExpression" && !m.computed && m.property.name === "forEach" && c.arguments.length === 1 &&
-            (fn.type === "ArrowFunctionExpression" || (fn.type === "FunctionExpression" && !fn.id)) && fn.body.type === "BlockStatement" && fn.params.length) {
+            (fn.type === "ArrowFunctionExpression" || (fn.type === "FunctionExpression" && !fn.id)) && fn.params.length && !fn.async) {
+          if (fn.body.type !== "BlockStatement") cuerposForEach.add(fn.body);
+          // Un forEach anidado usa su propio id para las vueltas: su valor (siempre undefined) no se envía.
+          if (n.type === "CallExpression") sinValor.add(n);
           const d = fn.params[0];
-          abrir(fn.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c");
+          if (fn.body.type === "BlockStatement") { abrir(fn.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c"); }
+          else {
+            // x => expr: (__T.c(id,x),__T.s(idExpr),expr) en las mismas posiciones; la expresión es la fila del cuerpo
+            // y su valor sigue siendo lo que devuelve la flecha. x = 7 (por defecto) ya está inicializada.
+            const xb = info.get(fn.body), nom = d.type === "Identifier" ? d.name : d.type === "AssignmentPattern" && d.left.type === "Identifier" ? d.left.name : "true";
+            const c = `__T.c(${x.id},${nom}),`, st = quiere("s", fn.body, fn, "body") ? `__T.s(${xb.id}),` : "";
+            abrir(fn.body.start, "(" + c + st, info.get(fn).prof); cerrar(fn.body.end, ")", info.get(fn).prof);
+            marcar(x, "c"); if (st) marcar(xb, "s");
+          }
         }
       }
       // Condiciones.
@@ -148,7 +165,7 @@
         const arg = n.argument, xa = info.get(arg);
         abrir(arg.start, `__T.w(${xa.id},`, xa.prof); cerrar(arg.end, ")", xa.prof); marcar(xa, "w");
         if (padre && envolvible(n, padre, campo) && !enCadena && quiere("v", n, padre, campo)) { abrir(n.start, `__T.v(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "v"); }
-      } else if (padre && !enCadena && envolvible(n, padre, campo) && quiere("v", n, padre, campo)) {
+      } else if (padre && !enCadena && !sinValor.has(n) && envolvible(n, padre, campo) && quiere("v", n, padre, campo)) {
         abrir(n.start, `__T.v(${x.id},`, x.prof); cerrar(n.end, ")", x.prof); marcar(x, "v");
       }
       for (const k of Object.keys(n)) {

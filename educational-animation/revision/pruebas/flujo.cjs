@@ -503,5 +503,38 @@ for (let i = 1; i <= 4; i++) {
     eq(lsw, 'Sale del bucle (1) antes de tiempo y sigue en (5).', 'break fuera: lectura');
   }
 
+  // ---------- forEach con cuerpo expresión frente a bloque (caso 05) ----------
+  {
+    const leer = (x) => fs.readFileSync(path.join(RAIZ, 'educational-animation/revision/pruebas/casos/05-foreach-expresion', x), 'utf8');
+    const ex = await revisar(leer('a-expresion.js')), bl = await revisar(leer('b-bloque.js'));
+    eq(ex.pasos, bl.pasos, 'forEach(x => expr): los mismos pasos que con llaves');
+    eq([ex.etiqueta(0), ex.etiqueta(ex.F.filas.find(f => f.num === 2).i)], ['1 Por cada [x] de [[1, 2]]', '2 Imprime [x]'], 'forEach(x => expr): bucle y fila del cuerpo');
+    eq(ex.R.vueltas.length, 2, 'forEach(x => expr): vueltas en la franja');
+    ok(T.instrumentar(leer('a-expresion.js'), { acorn }).codigo.includes('x => (__T.c(1,x),__T.s(10),__T.v(10,console.log('), 'instrumentación: (__T.c, __T.s, expresión), en la misma línea');
+    const ci = await revisar(leer('c-indice.js'));
+    eq(ci.pasos.slice(0, 2), ['1 Vuelta 1: [x] = «"a"».', '2 Escribe «"0 a"» en la consola.'], 'forEach((x, i) => …)');
+    eq((await revisar(leer('d-ternario.js'))).r.salida.map(x => x.texto), ['chico 1', 'grande 2', 'grande 3'], 'cuerpo ternario');
+    eq((await revisar(leer('e-secuencia.js'))).r.salida.map(x => x.texto), ['1', '3'], 'cuerpo secuencia');
+    const ob = await revisar(leer('f-objeto.js'));
+    eq([ob.r.salida.map(x => x.texto), ob.pasos.filter(p => p.startsWith('3 ')).length], [['2'], 2], 'cuerpo con objeto literal: un paso por vuelta');
+    ok((await revisar(leer('g-patron.js'))).pasos[0] === '1 Vuelta 1: [[a, b]] toma el siguiente elemento.', 'parámetro con patrón');
+    const ce = await revisar(leer('h-contraejemplos.js'));
+    ok(!ce.F.filas.some(f => f.tipo === 'bucle'), 'map y forEach(f) no son bucles «por cada»');
+    const th = await revisar(leer('i-this.js'));
+    eq([th.r.salida.map(x => x.texto), th.F.filas.some(f => f.tipo === 'bucle')], [['11'], false], 'forEach(function, this): sin tocar');
+    const ag = await revisar(leer('j-agenda.js'));
+    eq(ag.pasos.map(p => p.split(' ')[0]), ['1', '2', '1', '2', '3', '2', '2', '-'], 'forEach(x => setTimeout(…)): agenda en cada vuelta y corre al final');
+    // Turno 2 de Astra (ciclo 05): async, anidado y una función devuelta.
+    const as = await revisar(leer('k-async.js'));
+    eq(as.r.salida.map(x => x.texto), ['fin', 'ok 1', 'ok 2'], 'forEach(async …): consola');
+    ok(!as.F.filas.some(f => f.tipo === 'bucle'), 'forEach(async …) no es un bucle «por cada» (forEach no lo espera)');
+    eq(as.pasos.filter(p => p.includes('se había quedado esperando')).map(p => p.match(/«"(ok \d)"»/)[1]), ['ok 1', 'ok 2'], 'continuaciones async: una por ejecución, en orden y sin «agendada»');
+    const an = await revisar(leer('l-anidado.js'));
+    eq(an.pasos.map(p => p.split(':')[0]), ['1 Vuelta 1', '2 Vuelta 1', '3 Escribe «"1"» en la consola.', '2 Vuelta 2', '3 Escribe «"2"» en la consola.', '1 Vuelta 2', '2 Vuelta 1', '3 Escribe «"3"» en la consola.', '4 Escribe «"fin"» en la consola.', '- El programa termina. | Consola'], 'forEach anidado en el cuerpo expresión: vueltas de los dos, sin vuelta espuria');
+    eq((await revisar(leer('m-devuelve-funcion.js'))).pasos[1], '2 Crea la función [y => x], sin llamarla.', 'x => y => x: crea una función, no la ejecuta');
+    const ab = await revisar(leer('n-async-bloque.js'));
+    eq([ab.r.salida.map(x => x.texto), ab.F.filas.some(f => f.tipo === 'bucle')], [['fin', '1', '2'], false], 'forEach(async x => { … }): tampoco es un bucle');
+  }
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

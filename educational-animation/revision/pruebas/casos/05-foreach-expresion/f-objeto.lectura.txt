@@ -1,0 +1,26 @@
+# prog · js · lectura · es
+1 paso n0 | const r = [];
+    etiqueta: [r] empieza en []
+    lectura:  Crea [r] con []; no cambia después.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | [1, 2].forEach(x => r.push({ v: x }));
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite la fila (3) una vez por cada [x] de [[1, 2]]. Después, sigue en (4).
+    sigue: sig=4 si=3 no=· salida=fin
+3 paso n1 | r.push({ v: x })
+    etiqueta: [r.push({ v: x })]
+    lectura:  Ejecuta [r.push({ v: x })]. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+4 paso n0 | console.log(r.length);
+    etiqueta: Imprime [r.length]
+    lectura:  Escribe [r.length] en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 3→2
+consola: 2
+resumen: Eso es todo el programa.
+pasos:
+  1 [r] = [].
+  2 Entra en el bucle.
+  3 Ejecuta [r.push({ v: x })].
+  4 Escribe «"undefined"» en la consola.
+  · El programa termina. | Consola:2

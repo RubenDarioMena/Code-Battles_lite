@@ -430,7 +430,7 @@
       const f = F.filas[p.fila], N = P.nodos, n = N[f.nodo];
       let x = null;
       if (n.tipo === "VariableDeclaration") x = P.hijo(P.hijos(f.nodo, "declarations").at(-1), "init");
-      else if (n.tipo === "ExpressionStatement") { const e = P.hijo(f.nodo, "expression"); x = N[e].tipo === "AssignmentExpression" ? P.hijo(e, "right") : e; }
+      else if (FL.expresion(P, f.nodo) != null) { const e = FL.expresion(P, f.nodo); x = N[e].tipo === "AssignmentExpression" ? P.hijo(e, "right") : e; }
       else if (n.tipo === "ReturnStatement") x = P.hijo(f.nodo, "argument");
       return x != null && p.vals.has(x) ? p.vals.get(x) : undefined;
     }

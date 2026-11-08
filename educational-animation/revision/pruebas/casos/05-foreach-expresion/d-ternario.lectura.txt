@@ -1,0 +1,16 @@
+# prog · js · lectura · es
+1 bucle n0 | [1, 2, 3].forEach(x => x > 1 ? console.log("grande", x) : console.log(
+    etiqueta: Por cada [x] de [[1, 2, 3]]
+    lectura:  Repite la fila (2) una vez por cada [x] de [[1, 2, 3]]. Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | x > 1 ? console.log("grande", x) : console.log("chico", x)
+    etiqueta: [x > 1 ? console.log("grande", x) : console.log("chico", x)]
+    lectura:  Ejecuta [x > 1 ? console.log("grande", x) : console.log("chico", x)]. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+rieles: 2→1
+consola: chico 1 / grande 2 / grande 3
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Ejecuta [x > 1 ? console.log("grande", x) : console.log("chico", x)].
+  · El programa termina. | Consola:chico 1 / grande 2 / grande 3

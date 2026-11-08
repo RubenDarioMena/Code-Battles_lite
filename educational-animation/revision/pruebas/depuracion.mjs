@@ -46,7 +46,7 @@ export async function probarDepuracion(page) {
     ok(r.salida['LAU-02'].filas[2].lectura.includes('sigue en 4'), `${ancho}: frase de lectura`);
     ok(r.salida['LAU-02'].rieles.length > 0 && r.vista.html.includes('rv-riel'), `${ancho}: flechas estructurales y dibujadas`);
     ok(Array.isArray(r.salida['LAU-02'].recorrido.pasos[0].vals), `${ancho}: Maps del recorrido serializados`);
-    ok(r.motor.some(x => x.includes('/motor/revision.js?v=6')), `${ancho}: versión del renderizador`);
+    ok(r.motor.some(x => x.includes('/motor/revision.js?v=11')), `${ancho}: versión del renderizador`);
     eq(r.vista.filas.length, 8, `${ancho}: medidas de cada fila`);
     eq(await page.evaluate(() => [document.querySelector('.rv-debug-json').readOnly, document.querySelector('.rv-debug-json').scrollTop]), [true, 0], `${ancho}: JSON de solo lectura y empieza arriba`);
     ok(await page.evaluate(() => {

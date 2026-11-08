@@ -1,0 +1,34 @@
+# prog · js · traza · es
+1 paso n0 | const o = { k: 10, ver(l) { l.forEach(function (x) { console.log(this.
+    etiqueta: Guarda en [o]: [{ k: 10, ver(l) { l.forEach(function (x) { console.log(this.k + x); }, this); } }]
+    lectura:  Calcula [{ k: 10, ver(l) { l.forEach(function (x) { console.log(this.k + x); }, this); } }] y lo guarda en [o].
+    sigue: sig=2 si=· no=·
+2 paso n0 | o.ver([1]);
+    etiqueta: [o.ver([1])]
+    lectura:  Ejecuta [o.ver([1])]. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+3 funcion n0 | (l) { l.forEach(function (x) { console.log(this.k + x); }, this); }
+    etiqueta: Función sin nombre, línea 1(l)
+    lectura:  Define la función …. Su cuerpo, las filas (4) a (6), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=4 no=·
+4 paso n1 | l.forEach(function (x) { console.log(this.k + x); }, this);
+    etiqueta: [l.forEach(function (x) { console.log(this.k + x); }, this)]
+    lectura:  Ejecuta [l.forEach(function (x) { console.log(this.k + x); }, this)].
+    sigue: sig=· si=· no=·
+5 funcion n0 | function (x) { console.log(this.k + x); }
+    etiqueta: Función sin nombre, línea 1(x)
+    lectura:  Define la función …. Su cuerpo, la fila (6), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=6 no=·
+6 paso n1 | console.log(this.k + x);
+    etiqueta: Imprime [this.k + x]
+    lectura:  Escribe [this.k + x] en la consola.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: 11
+resumen: Eso es todo el programa. Las funciones de (3), (5) solo se ejecutan si alguien las llama.
+pasos:
+  1 [o] = { k: 10, ver(l) { l.forEach(function (x) { console.log(this.k + x); }, this); } }.
+  2 [o.ver([1])] → «undefined».
+  4 [l.forEach(function (x) { console.log(this.k + x); }, this)] → «undefined».
+  6 Escribe «"11"» en la consola.
+  · El programa termina. | Consola:11

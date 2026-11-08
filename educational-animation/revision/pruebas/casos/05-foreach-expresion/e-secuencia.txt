@@ -1,0 +1,23 @@
+# prog · js · traza · es
+1 paso n0 | let s = 0;
+    etiqueta: [s] empieza en 0
+    lectura:  Crea [s] con 0; puede cambiar después.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | [1, 2].forEach(x => (s += x, console.log(s)));
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite la fila (3) una vez por cada [x] de [[1, 2]]. Después, el programa acaba.
+    sigue: sig=· si=3 no=· salida=fin
+3 paso n1 | s += x, console.log(s)
+    etiqueta: [s += x, console.log(s)]
+    lectura:  Ejecuta [s += x, console.log(s)]. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+rieles: 3→2
+consola: 1 / 3
+resumen: Eso es todo el programa.
+pasos:
+  1 [s] = «0».
+  2 Vuelta 1: [x] = «1».
+  3 Ejecuta [s += x, console.log(s)].
+  2 Vuelta 2: [x] = «2».
+  3 Ejecuta [s += x, console.log(s)].
+  · El programa termina. | Consola:1 / 3

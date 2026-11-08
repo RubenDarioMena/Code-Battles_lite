@@ -1,0 +1,31 @@
+# prog · js · traza · es
+1 bucle n0 | [[1, 2], [3]].forEach( l => l.forEach(x => console.log(x)) );
+    etiqueta: Por cada [l] de [[[1, 2], [3]]]
+    lectura:  Repite las filas (2) a (3) una vez por cada [l] de [[[1, 2], [3]]]. Después, sigue en (4).
+    sigue: sig=4 si=2 no=· salida=fin
+2 bucle n1 | l.forEach(x => console.log(x))
+    etiqueta: Por cada [x] de [l]
+    lectura:  Repite la fila (3) una vez por cada [x] de [l]. Después, vuelve a (1).
+    sigue: sig=1 si=3 no=· salida=fin
+3 paso n2 | console.log(x)
+    etiqueta: Imprime [x]
+    lectura:  Escribe [x] en la consola. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+4 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 3→2 2→1
+consola: 1 / 2 / 3 / fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Vuelta 1: [l] = «[1,2]».
+  2 Vuelta 1: [x] = «1».
+  3 Escribe «"1"» en la consola.
+  2 Vuelta 2: [x] = «2».
+  3 Escribe «"2"» en la consola.
+  1 Vuelta 2: [l] = «[3]».
+  2 Vuelta 1: [x] = «3».
+  3 Escribe «"3"» en la consola.
+  4 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:1 / 2 / 3 / fin

@@ -1,0 +1,31 @@
+# prog · js · lectura · es
+1 paso n0 | [1, 2].forEach(async x => { await esperar(0.01); console.log(x); });
+    etiqueta: [[1, 2].forEach(async x => { await esperar(0.01); console.log(x); })]
+    lectura:  Ejecuta [[1, 2].forEach(async x => { await esperar(0.01); console.log(x); })].
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+3 funcion n0 | async x => { await esperar(0.01); console.log(x); }
+    etiqueta: Función sin nombre, línea 1(x)
+    lectura:  Define la función …. Su cuerpo, las filas (4) a (5), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=4 no=·
+4 paso n1 | await esperar(0.01);
+    etiqueta: Espera 0,01 s
+    lectura:  Espera 0,01 s; mientras, sigue con su última orden.
+    sigue: sig=5 si=· no=·
+5 paso n1 | console.log(x);
+    etiqueta: Imprime [x]
+    lectura:  Escribe [x] en la consola.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin / 1 / 2
+resumen: Eso es todo el programa. Las funciones de (3) solo se ejecutan si alguien las llama.
+pasos:
+  1 Ejecuta [[1, 2].forEach(async x => { await esperar(0.01); console.log(x); })].
+  2 Escribe «"fin"» en la consola.
+  3 Ejecuta [async x => { await esperar(0.01); console.log(x); }].
+  4 Espera 0,01 s.
+  5 Escribe «"undefined"» en la consola.
+  · El programa termina. | Consola:fin / 1 / 2

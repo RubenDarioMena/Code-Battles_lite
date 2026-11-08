@@ -1,3 +1,15 @@
+## Revisión · ciclo 05 con Astra (xhigh): forEach con cuerpo expresión · 8 de noviembre de 2026
+
+- **Proceso.** Quinto ciclo. Astra en Codex CLI con esfuerzo xhigh y solo lectura. Hubo 3 turnos: diagnóstico, un rechazo y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/05-foreach-expresion/`.
+- **Pregunta.** ¿Cuántas vueltas y qué vale `x`? `forEach(x => console.log(x))` era una sola fila «Ejecuta […] → undefined». Con llaves, en cambio, era un bucle «por cada».
+- **Trazador (compartido con el juego).** `x => (__T.c(id,x),__T.s(idExpr),expr)` en las mismas posiciones. Un `forEach` anidado en un cuerpo expresión también se reconoce, y su llamada queda sin gancho de valor. Un callback `async` ya no se instrumenta como bucle. Con llaves (no async), el resultado es idéntico byte a byte a HEAD; los pulsos salen idénticos en 77 programas (comprobado por Astra).
+- **Diagrama.** El cuerpo expresión es una fila cuyo nodo es la expresión (`P.cuerpoExpr`, `FL.expresion`); etiqueta, lectura, traza, tarjeta y píldora la tratan como una sentencia expresión. Las continuaciones `async` se narran «sigue […], que se había quedado esperando», una por ejecución. `x => y => x` se narra «Crea la función […], sin llamarla».
+- **Verificación actual.** Flujo **420** (18 nuevas), trazador **27**, lógica **124**, i18n **1146 / 12697**, editor Python **34**, traductor Python **64**. Navegador 8771: `depuracion.mjs` **173** (la versión del renderizador pasa a v11). Capturas antes/después revisadas.
+- **Límites.**
+  - `l?.forEach`, `forEach(f)` y `forEach` con segundo argumento no se representan como bucle.
+  - No se repitió `juego.mjs` (falta Playwright).
+  - Versiones: en War, trazador v6, flujo v9 y revisión v11; en la página de ejemplos, v11.
+
 ## Revisión · ciclo 04 con Astra (xhigh): for…of con y sin llaves, y saltos con etiqueta · 8 de noviembre de 2026
 
 - **Proceso.** Cuarto ciclo. Astra en Codex CLI con esfuerzo **xhigh**, en la misma sesión y solo lectura. Hubo 3 turnos: diagnóstico, «aceptar con cambios» y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/04-forof-llaves/`.

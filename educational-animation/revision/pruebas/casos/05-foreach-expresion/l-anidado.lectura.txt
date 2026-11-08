@@ -1,0 +1,26 @@
+# prog · js · lectura · es
+1 bucle n0 | [[1, 2], [3]].forEach( l => l.forEach(x => console.log(x)) );
+    etiqueta: Por cada [l] de [[[1, 2], [3]]]
+    lectura:  Repite las filas (2) a (3) una vez por cada [l] de [[[1, 2], [3]]]. Después, sigue en (4).
+    sigue: sig=4 si=2 no=· salida=fin
+2 bucle n1 | l.forEach(x => console.log(x))
+    etiqueta: Por cada [x] de [l]
+    lectura:  Repite la fila (3) una vez por cada [x] de [l]. Después, vuelve a (1).
+    sigue: sig=1 si=3 no=· salida=fin
+3 paso n2 | console.log(x)
+    etiqueta: Imprime [x]
+    lectura:  Escribe [x] en la consola. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+4 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 3→2 2→1
+consola: 1 / 2 / 3 / fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Entra en el bucle.
+  3 Escribe «"undefined"» en la consola.
+  4 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:1 / 2 / 3 / fin

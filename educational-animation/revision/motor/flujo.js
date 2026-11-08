@@ -54,19 +54,22 @@
     // sentencia → { x: la variable de cada vuelta, l: lo que recorre, cuerpo, clave: for…in, fn: la función de forEach }
     P.porCada = new Map();
     P.cadaFn = new Set();
+    P.cuerpoExpr = new Set();
     for (const n of N) {
       if (n.tipo === "ForOfStatement" || n.tipo === "ForInStatement") {
         const l = P.hijo(n.id, "left"), x = N[l].tipo === "VariableDeclaration" ? P.hijo(P.hijos(l, "declarations")[0], "id") : l;
         P.porCada.set(n.id, { x, l: P.hijo(n.id, "right"), cuerpo: P.hijo(n.id, "body"), clave: n.tipo === "ForInStatement", fn: null });
       }
-      const fe = n.tipo === "ExpressionStatement" ? forEach(P, n.id) : null;
+      // Un forEach que es el cuerpo expresión de otro (l => l.forEach(x => …)) también es un bucle: su fila es la llamada.
+      const fe = n.tipo === "ExpressionStatement" ? forEach(P, P.hijo(n.id, "expression")) : P.cuerpoExpr.has(n.id) ? forEach(P, n.id) : null;
       if (fe) { P.porCada.set(n.id, fe); P.cadaFn.add(fe.fn); }
     }
     return P;
   }
-  // lista.forEach(x => { … }) o lista.forEach(function (x) { … }) como sentencia.
-  function forEach(P, s) {
-    const N = P.nodos, c = P.hijo(s, "expression");
+  // lista.forEach(x => { … }) o lista.forEach(function (x) { … }): la llamada c. Un callback async no es un bucle:
+  // forEach no lo espera.
+  function forEach(P, c) {
+    const N = P.nodos;
     if (c == null || N[c].tipo !== "CallExpression") return null;
     const m = P.hijo(c, "callee"), args = P.hijos(c, "arguments");
     if (m == null || N[m].tipo !== "MemberExpression" || N[m].computado || args.length !== 1) return null;
@@ -74,8 +77,11 @@
     if (prop == null || N[prop].nombre !== "forEach") return null;
     const fn = args[0];
     if (!/^(FunctionExpression|ArrowFunctionExpression)$/.test(N[fn].tipo) || (N[fn].tipo === "FunctionExpression" && P.hijo(fn, "id") != null)) return null;
+    if (N[fn].async || /^async\b/.test(P.txt(fn))) return null;
     const cuerpo = P.hijo(fn, "body"), x = P.hijos(fn, "params")[0];
-    if (cuerpo == null || N[cuerpo].tipo !== "BlockStatement" || x == null) return null;
+    if (cuerpo == null || x == null) return null;
+    // Cuerpo de una expresión (x => console.log(x)): esa expresión es la fila del cuerpo, sin inventar una sentencia.
+    if (N[cuerpo].tipo !== "BlockStatement") P.cuerpoExpr.add(cuerpo);
     return { x, l: P.hijo(m, "object"), cuerpo, clave: false, fn };
   }
 
@@ -360,7 +366,9 @@
       // propio paso en la fila donde se escribió (paso.diferido = la función).
       const fnL = F.enLinea(id);
       if (fnL != null) {
-        if ((luego || enCallback) && !(cur && cur.diferido === fnL && cur.ronda === ronda)) { cur = nuevo(F.duena(fnL), fnL); cur.diferido = fnL; cur.ronda = ronda; cur.luego = luego; }
+        // Sin marcas (la continuación de un await, un then…), un mismo nodo que vuelve a evaluarse es otra ejecución.
+        const otra = cur && cur.diferido === fnL && !enCallback && cur.vals.has(id);
+        if ((luego || enCallback) && (otra || !(cur && cur.diferido === fnL && cur.ronda === ronda))) { cur = nuevo(F.duena(fnL), fnL); cur.diferido = fnL; cur.ronda = ronda; cur.luego = luego; cur.continua = !enCallback; }
         if (cur) { cur.vals.set(id, v); if (cur.diferido == null) (cur.pend || (cur.pend = [])).push([id, v]); }
         continue;
       }
@@ -454,6 +462,9 @@
     return F.filas.filter(f => f.i !== i && P.desciende(f.nodo, de)).sort((a, b) => a.num - b.num).map(f => f.i);
   }
 
+  // La expresión que hace la fila s: la de una sentencia expresión, o la fila misma si es el cuerpo expresión de
+  // un forEach (x => console.log(x)). null si la fila es otra cosa.
+  const expresion = (P, s) => P.nodos[s].tipo === "ExpressionStatement" ? P.hijo(s, "expression") : P.cuerpoExpr && P.cuerpoExpr.has(s) ? s : null;
   // ---------- Ámbitos: a qué declaración se refiere un nombre ----------
   // La función (o el programa, 0) donde está el nodo i.
   function funcionDe(P, i) { const N = P.nodos; for (let x = N[i].padre; x != null; x = N[x].padre) if (FUNCION.test(N[x].tipo)) return x; return 0; }
@@ -615,5 +626,5 @@
     return out;
   }
 
-  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, agendada, generadora, creaGenerador, avance, delega, verdad, PALETA };
+  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, agendada, generadora, creaGenerador, avance, delega, expresion, verdad, PALETA };
 });

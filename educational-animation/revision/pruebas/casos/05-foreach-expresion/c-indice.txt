@@ -1,0 +1,18 @@
+# prog · js · traza · es
+1 bucle n0 | ["a", "b"].forEach((x, i) => console.log(i, x));
+    etiqueta: Por cada [x] de [["a", "b"]]
+    lectura:  Repite la fila (2) una vez por cada [x] de [["a", "b"]]. Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | console.log(i, x)
+    etiqueta: Imprime [i] [x]
+    lectura:  Escribe [i] [x] en la consola. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+rieles: 2→1
+consola: 0 a / 1 b
+resumen: Eso es todo el programa.
+pasos:
+  1 Vuelta 1: [x] = «"a"».
+  2 Escribe «"0 a"» en la consola.
+  1 Vuelta 2: [x] = «"b"».
+  2 Escribe «"1 b"» en la consola.
+  · El programa termina. | Consola:0 a / 1 b

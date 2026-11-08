@@ -1,0 +1,21 @@
+# prog · js · lectura · es
+1 bucle n0 | [1, 2].forEach(x => setTimeout(() => console.log("t", x), 0));
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite la fila (2) una vez por cada [x] de [[1, 2]]. Después, sigue en (3).
+    sigue: sig=3 si=2 no=· salida=fin
+2 paso n1 | setTimeout(() => console.log("t", x), 0)
+    etiqueta: Agenda [() => console.log("t", x)] para después
+    lectura:  Agenda [() => console.log("t", x)] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).] Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+3 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (2).
+    sigue: sig=· si=· no=·
+rieles: 2→1
+consola: fin / t 1 / t 2
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Agenda [() => console.log("t", x)]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  3 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:fin / t 1 / t 2
