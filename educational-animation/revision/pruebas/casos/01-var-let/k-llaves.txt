@@ -1,0 +1,39 @@
+# prog · js · traza · es
+1 paso n0 | const f = [];
+    etiqueta: [f] empieza en []
+    lectura:  Crea [f] con []; no cambia después.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | for (let i = 0; i < 2; i++) { f.push(() => { return i; }); }
+    etiqueta: ¿[i] es menor que 2?
+    lectura:  Mientras [i] es menor que 2, repite las filas (3) a (6). Después, sigue en (4).
+    sigue: sig=4 si=3 no=· salida=fin
+3 paso n1 | f.push(() => { return i; });
+    etiqueta: [f.push(() => { return i; })]
+    lectura:  Ejecuta [f.push(() => { return i; })]. Luego vuelve a (2). [() => { return i; }] no se ejecuta aquí: se queda con la [i] de esta vuelta, porque cada vuelta tiene la suya.
+    sigue: sig=2 si=· no=·
+4 paso n0 | console.log(f[0](), f[1]());
+    etiqueta: Imprime [f[0]()] [f[1]()]
+    lectura:  Escribe [f[0]()] [f[1]()] en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+5 funcion n0 | () => { return i; }
+    etiqueta: Función sin nombre, línea 2()
+    lectura:  Define la función …. Su cuerpo, la fila (6), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=6 no=·
+6 paso n1 | return i;
+    etiqueta: Devuelve [i]
+    lectura:  Termina la función y devuelve [i].
+    sigue: sig=· si=· no=·
+rieles: 3→2
+consola: 0 1
+resumen: Eso es todo el programa. Las funciones de (5) solo se ejecutan si alguien las llama.
+pasos:
+  1 [f] = [].
+  2 [i] vale «0»; 0 < 2 es «true». Entra en la vuelta 1.
+  3 [f.push(() => { return i; })] → «1». [() => { return i; }] no se ejecuta aquí: se queda con la [i] de esta vuelta, porque cada vuelta tiene la suya.
+  2 [i] vale «1»; 1 < 2 es «true». Entra en la vuelta 2.
+  3 [f.push(() => { return i; })] → «2».
+  2 [i] vale «2»; 2 < 2 es «false». Sale del bucle y sigue en (4).
+  4 Escribe «"0 1"» en la consola.
+  6 Devuelve «0» a quien llamó a la función.
+  6 Devuelve «1» a quien llamó a la función.
+  · El programa termina. | Consola:0 1

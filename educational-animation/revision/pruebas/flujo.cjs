@@ -298,5 +298,57 @@ for (let i = 1; i <= 4; i++) {
     eq(R.vueltas.length, 3, 'forEach con traza: el bucle principal agrupa tres vueltas');
   }
 
+  // ---------- Funciones en línea: cuándo se ejecutan y qué variable leen (caso 01 · var/let) ----------
+  {
+    const casos = path.join(RAIZ, 'educational-animation/revision/pruebas/casos/01-var-let');
+    const leer = (x) => fs.readFileSync(path.join(casos, x), 'utf8');
+    const lec = (c, num) => plano(c.P, c.F, E.describir(c.P, c.F, c.F.filas.find(f => f.num === num).i));
+    const llamadas = (c) => c.pasos.filter(p => p.includes('Al llamar'));
+    const vr = await revisar(leer('a-var.js')), lt = await revisar(leer('b-let.js'));
+    eq([vr.r.salida[0].texto, lt.r.salida[0].texto], ['3 3 3', '0 1 2'], 'var/let: las consolas que hay que poder predecir');
+    ok(lec(vr, 3).includes('[() => i] no se ejecuta aquí: leerá [i] cuando la llamen, y todas las de este bucle comparten la misma [i].'), 'var: la función comparte la i del bucle');
+    ok(lec(lt, 3).includes('[() => i] no se ejecuta aquí: se queda con la [i] de esta vuelta'), 'let: la función se queda con la i de su vuelta');
+    eq(llamadas(vr), ['4 Al llamar: [f[0]()] lee [i] «3» · [f[1]()] lee [i] «3» · [f[2]()] lee [i] «3». Escribe «"3 3 3"» en la consola.'], 'var: cada llamada lee 3');
+    eq(llamadas(lt), ['4 Al llamar: [f[0]()] lee [i] «0» · [f[1]()] lee [i] «1» · [f[2]()] lee [i] «2». Escribe «"0 1 2"» en la consola.'], 'let: cada llamada lee la i de su vuelta');
+    // Lo que se lee al llamar es de ese paso: no vuelve a los pasos del push (antes llegaba invertido, 2·1·0).
+    const push = lt.F.filas.find(f => f.num === 3), dentroFn = lt.P.nodos.filter(x => lt.F.enLinea(x.id) != null).map(x => x.id);
+    ok(lt.R.pasos.filter(p => p.fila === push.i).every(p => dentroFn.every(x => !p.vals.has(x))), 'let: los pasos del push no reciben lecturas de llamadas posteriores');
+    const valor = await revisar(leer('c-valor.js'));
+    ok(!lec(valor, 3).includes('no se ejecuta aquí') && !llamadas(valor).length, 'f.push(i) guarda el valor: sin captura ni lecturas');
+    const inm = await revisar(leer('d-inmediata.js'));
+    ok(!inm.F.filas.some(f => lec(inm, f.num).includes('no se ejecuta aquí')), 'una función llamada ahí mismo no se describe como guardada');
+    eq(llamadas(inm).map(p => p.match(/«\d»/)[0]), ['«0»', '«1»'], 'llamada inmediata: lee la i de cada vuelta en su paso');
+    const par = await revisar(leer('e-parametro.js'));
+    ok(!lec(par, 2).includes('no se ejecuta aquí') && !llamadas(par).length, 'un parámetro con el mismo nombre no es la i del bucle');
+    const ext = await revisar(leer('f-externa.js'));
+    ok(lec(ext, 4).includes('comparten la misma [i]'), 'let de fuera del for: compartida');
+    ok(llamadas(ext)[0].includes('[f[0]()] lee [i] «7» · [f[1]()] lee [i] «7»'), 'let de fuera: leen el valor reasignado después del bucle');
+    const dos = await revisar(leer('g-dos-llamadas.js'));
+    eq(llamadas(dos), ['3 Al llamar: [f()] lee [i] «0» · [f()] lee [i] «1». Escribe «"1 2"» en la consola.'], 'dos llamadas del mismo nodo, en orden');
+    I18N.cambiarIdioma('en');
+    ok(lec(vr, 3).includes('[() => i] does not run here: it will read [i] when called'), 'inglés: compartida');
+    I18N.cambiarIdioma('es');
+    const py = globalThis.CMGPythonRevision.leer(leer('i-python.py')), Ppy = FL.preparar(py, { serie: 'libre' }), Fpy = FL.construir(Ppy);
+    ok(plano(Ppy, Fpy, E.describir(Ppy, Fpy, Fpy.filas.find(f => f.num === 3).i)).includes('[lambda: i] no se ejecuta aquí: leerá [i] cuando la llamen, y todas las de este bucle comparten la misma [i].'), 'Python: el bucle comparte su variable (2 2 2)');
+    // Turno 2 de Astra: callbacks que sí se ejecutan, llaves, ámbito de bloque y await.
+    const mp = await revisar(leer('j-map.js'));
+    ok(!mp.pasos.some(p => p.includes('no se ejecuta aquí')) && lec(mp, 2).includes('[() => (i = i + 1)] usa la [i] de esta vuelta'), 'map: no se afirma que el callback no se ejecute');
+    ok(llamadas(mp)[0].includes('lee [i] «0», [i] «1»'), 'map: las dos lecturas de i, cada una con su valor');
+    const ll = await revisar(leer('k-llaves.js'));
+    ok(lec(ll, 3).includes('[() => { return i; }] no se ejecuta aquí: se queda con la [i] de esta vuelta'), 'con llaves: la misma explicación que () => i');
+    const bh = await revisar(leer('l-bloque-hermano.js'));
+    ok(!bh.F.filas.some(f => /no se ejecuta aquí|usa (la )?\[i\]/.test(lec(bh, f.num))), 'un let i de un bloque hermano no es la i que ve la función');
+    eq(llamadas(bh)[0].slice(0, 54), '6 Al llamar: [f[0]()] lee [i] «10» · [f[1]()] lee [i] ', 'bloque hermano: leen la i de fuera');
+    eq(llamadas(await revisar(leer('m-await.js'))), ['3 Al llamar: [f()] lee [i] «4». Escribe «"4"» en la consola.'], 'await f(): la lectura es de f(), no de console.log');
+    const hc = await revisar(leer('h-sin-cambio.js'));
+    ok(lec(hc, 4).includes('[+ [() => base] no se ejecuta aquí'), 'const del cuerpo: la pista va plegada');
+    eq(vr.pasos.filter(p => p.includes('no se ejecuta aquí')).length, 1, 'traza: la pista de ámbito solo en la primera visita');
+    // Turno 3 de Astra: un método que se llama push no acredita que guarde la función.
+    const rp = await revisar(leer('n-receptor-push.js'));
+    eq(rp.r.salida.map(x => x.texto), ['0', '1'], 'receptor.push: el callback se ejecuta ahí mismo');
+    ok(!rp.pasos.some(p => p.includes('no se ejecuta aquí')) && lec(rp, 3).includes('[() => i] usa la [i] de esta vuelta'), 'receptor.push: frase neutral, sin «no se ejecuta aquí»');
+    ok(llamadas(rp)[0].includes('[receptor.push(() => i)] lee [i] «0»'), 'receptor.push: lectura conservada');
+  }
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

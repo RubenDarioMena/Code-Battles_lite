@@ -123,6 +123,8 @@ await task.finish({ keep: [] });
 JS
 ```
 
+**Casos sin navegador.** `node educational-animation/revision/pruebas/caso.cjs <programa.js | revision-debug.json> [--lectura|--traza] [--en]` imprime en texto comparable, para cada programa, sus filas (código, etiqueta, frase de lectura y destinos), la consola y la narración de cada paso. Con un `.js`, ejecuta el programa como «Tu código»; con un informe, vuelve a montar su `entrada`. Los ciclos de revisión entre agentes guardan cada caso en `pruebas/casos/<nn-nombre>/`, con su pregunta, su par mínimo, sus contraejemplos, las salidas y el registro de turnos, y lo convierten en regresión de `pruebas/flujo.cjs`.
+
 ## Python
 
 `motor/python.js` (`CMGPythonRevision.leer`) lee un programa de Python con lezer (el analizador del editor, `shared/vendor/lezer-python-1.1.19.js`) y devuelve la misma tabla de nodos que el trazador da para JavaScript, con los tipos de acorn y las posiciones en el texto de Python. El diagrama, el recorrido, las tarjetas y la documentación son los mismos:

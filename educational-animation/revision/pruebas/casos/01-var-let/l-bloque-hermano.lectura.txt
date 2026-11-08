@@ -1,0 +1,36 @@
+# prog · js · lectura · es
+1 paso n0 | let i = 10;
+    etiqueta: [i] empieza en 10
+    lectura:  Crea [i] con 10; puede cambiar después.
+    sigue: sig=2 si=· no=·
+2 paso n0 | const f = [];
+    etiqueta: [f] empieza en []
+    lectura:  Crea [f] con []; no cambia después.
+    sigue: sig=3 si=· no=·
+3 bucle n0 | for (let k = 0; k < 2; k++) { { let i = k; } f.push(() => i); }
+    etiqueta: ¿[k] es menor que 2?
+    lectura:  Mientras [k] es menor que 2, repite las filas (4) a (5). Después, sigue en (6).
+    sigue: sig=6 si=4 no=· salida=fin
+4 paso n1 | let i = k;
+    etiqueta: Guarda en [i]: [k]
+    lectura:  Calcula [k] y lo guarda en [i].
+    sigue: sig=5 si=· no=·
+5 paso n1 | f.push(() => i);
+    etiqueta: [f.push(() => i)]
+    lectura:  Ejecuta [f.push(() => i)]. Luego vuelve a (3).
+    sigue: sig=3 si=· no=·
+6 paso n0 | console.log(f[0](), f[1]());
+    etiqueta: Imprime [f[0]()] [f[1]()]
+    lectura:  Escribe [f[0]()] [f[1]()] en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 5→3
+consola: 10 10
+resumen: Eso es todo el programa.
+pasos:
+  1 [i] = «10».
+  2 [f] = [].
+  3 Entra en el bucle.
+  4 [i] = k.
+  5 Ejecuta [f.push(() => i)].
+  6 Escribe «"undefined undefined"» en la consola.
+  · El programa termina. | Consola:10 10

@@ -253,16 +253,29 @@
       duenas.set(i, r);
       return r;
     }
+    // Una función escrita dentro de una fila sin sección propia («() => i»): la más externa que contiene el
+    // nodo i por debajo de su fila, o null. Lo de dentro se ejecuta cuando alguien la llama, no en su fila.
+    const enLineas = new Map();
+    function enLinea(i) {
+      if (i == null) return null;
+      if (enLineas.has(i)) return enLineas.get(i);
+      const f = duena(i);
+      let r = null;
+      if (f != null) for (let x = i; x != null && x !== filas[f].nodo; x = N[x].padre) if (FUNCION.test(N[x].tipo) && !P.cadaFn.has(x)) r = x;
+      enLineas.set(i, r);
+      return r;
+    }
     // El nodo que se ilumina en el código para cada fila: la condición, o la sentencia entera.
     // (en for…of / for…in, la variable de cada vuelta: «const n»).
     for (const f of filas) f.foco = f.test != null ? f.test : N[f.nodo].tipo === "ForOfStatement" || N[f.nodo].tipo === "ForInStatement" ? P.hijo(f.nodo, "left") : P.porCada.has(f.nodo) ? P.porCada.get(f.nodo).x : f.nodo;
     // Líneas de cada fila (para el margen del código): la de su cabecera.
     for (const f of filas) f.linea = N[f.foco].linea;
-    return { filas, filaDe, orden, rieles, secciones, duena, entrada: principal.entrada };
+    return { filas, filaDe, orden, rieles, secciones, duena, enLinea, entrada: principal.entrada };
   }
 
   // ---------- La traza como recorrido ----------
-  // paso = { i, fila, nodo, valor?, vals: Map(nodo → valor), t, t1?, espera?, vuelta, fuera? } y al final { fin: true }.
+  // paso = { i, fila, nodo, valor?, vals: Map(nodo → valor), t, t1?, espera?, vuelta, fuera?, lecturas? } y al final { fin: true }.
+  // lecturas = [{ llamada, lee: [[nodo, valor]…] }]: lo que leyó cada función en línea al llamarla en este paso.
   function recorrer(P, F, { fin = null } = {}) {
     const N = P.nodos, pasos = [];
     let t = null, cur = null;
@@ -299,6 +312,14 @@
         // Si la condición llamó a funciones del programa, los valores de antes de la llamada siguen siendo suyos.
         for (let k = pasos.length - 2; k >= Math.max(0, pasos.length - 80); k--) if (pasos[k].fila === f && pasos[k].pendiente) { for (const [a, b] of pasos[k].vals) if (!cur.vals.has(a)) cur.vals.set(a, b); break; }
         continue;
+      }
+      // Lo de dentro de una función en línea pasa cuando alguien la llama: es del paso en curso (el que la
+      // llama), no de la fila donde se escribió. Se junta con la llamada que llega justo después.
+      if (F.enLinea(id) != null) { if (cur) (cur.pend || (cur.pend = [])).push([id, v]); continue; }
+      if (cur && cur.pend && F.duena(id) === cur.fila) {
+        const llamada = n.tipo === "CallExpression" ? id : n.tipo === "AwaitExpression" && N[P.hijo(id, "argument")].tipo === "CallExpression" ? P.hijo(id, "argument") : null;
+        const c = llamada != null ? N[P.hijo(llamada, "callee")] : null, propia = c && c.tipo === "Identifier" ? P.funciones.get(c.nombre) : undefined;
+        if (llamada != null && (propia === undefined || cur.pend.some(([x]) => F.enLinea(x) === propia))) { (cur.lecturas || (cur.lecturas = [])).push({ llamada, lee: cur.pend }); cur.pend = null; }
       }
       // Lo que se lee para una condición llega antes que la condición: se guarda para su paso.
       const f = F.duena(id);
@@ -344,6 +365,7 @@
         if (actual.fila == null && F.filas[p.fila].rama && F.filas[p.fila].seccion == null) { actual.fila = p.fila; actual.color = F.filas[p.fila].color; }
       }
     }
+    for (const p of pasos) delete p.pend;
     // Último paso: cómo termina (partida, error, corte o fin del programa).
     const ultimo = pasos.length ? pasos[pasos.length - 1] : null;
     const pasoFin = { i: pasos.length, fin: true, fila: null, t: fin && fin.t != null ? fin.t : ultimo ? (ultimo.t1 ?? ultimo.t) : null, vals: new Map(), vuelta: ultimo ? ultimo.vuelta : 0, fuera: ultimo ? ultimo.fuera : false };
@@ -380,5 +402,103 @@
     return F.filas.filter(f => f.i !== i && P.desciende(f.nodo, de)).sort((a, b) => a.num - b.num).map(f => f.i);
   }
 
-  return { preparar, construir, recorrer, estructura, dentro, verdad, PALETA };
+  // ---------- Ámbitos: a qué declaración se refiere un nombre ----------
+  // La función (o el programa, 0) donde está el nodo i.
+  function funcionDe(P, i) { const N = P.nodos; for (let x = N[i].padre; x != null; x = N[x].padre) if (FUNCION.test(N[x].tipo)) return x; return 0; }
+  // ¿Es el identificador i un uso de una variable? (no un nombre de propiedad, de parámetro o de declaración)
+  function esUso(P, i) {
+    const N = P.nodos, n = N[i];
+    if (n.tipo !== "Identifier" || !n.nombre || n.campo === "params" || n.campo === "key" || n.campo === "id" || n.campo === "label") return false;
+    return !(n.campo === "property" && N[n.padre].tipo === "MemberExpression" && !N[n.padre].computado);
+  }
+  // La declaración que ve el identificador i: { nodo, clase: let|const|var|param, ambito } o null (un nombre del
+  // juego o global). let/const valen en su bloque (y la cabecera de su for); var y Python, en toda su función.
+  function declaracion(P, i) {
+    const N = P.nodos, nom = N[i].nombre, py = P.lenguaje === "python";
+    const nombre = (d) => N[P.hijo(d, "id")]?.nombre;
+    const deFuncion = (fn) => {
+      for (const d of N) if (d.tipo === "VariableDeclarator" && nombre(d.id) === nom && funcionDe(P, d.id) === fn) {
+        const c = N[d.padre].clase;
+        if (py || c === "var") return { nodo: d.id, clase: py ? "var" : c, ambito: fn };
+      }
+      return null;
+    };
+    for (let x = N[i].padre; x != null; x = N[x].padre) {
+      const n = N[x];
+      if (!py) {
+        const lista = n.tipo === "ForStatement" ? P.hijos(x, "init") : /^For(Of|In)Statement$/.test(n.tipo) ? P.hijos(x, "left")
+          : n.tipo === "BlockStatement" || n.tipo === "Program" ? P.hijos(x, "body") : [];
+        for (const h of lista) if (N[h].tipo === "VariableDeclaration" && (N[h].clase === "let" || N[h].clase === "const"))
+          for (const d of P.hijos(h, "declarations")) if (nombre(d) === nom) return { nodo: d, clase: N[h].clase, ambito: x };
+      }
+      if (FUNCION.test(n.tipo)) {
+        const p = P.hijos(x, "params").find(q => N[q].nombre === nom);
+        if (p != null) return { nodo: p, clase: "param", ambito: x };
+        const d = deFuncion(x);
+        if (d) return d;
+      }
+      if (x === 0) return deFuncion(0);
+    }
+    return null;
+  }
+  // ¿El identificador i lee una variable del programa declarada fuera de la función fn?
+  function deFuera(P, i, fn) {
+    if (!esUso(P, i)) return false;
+    const d = declaracion(P, i);
+    return !!d && !P.desciende(d.nodo, fn);
+  }
+  // Una función que se guarda para después (no se ejecuta en su fila): en una variable, una propiedad, una
+  // lista, un return, o como argumento de algo que se sabe que la guarda: push/unshift/append/insert de una
+  // lista del programa ([]), add de un new Set, set de un new Map, o setTimeout/setInterval/queueMicrotask sin
+  // redefinir. Un método que solo se llama igual (receptor.push) no lo acredita: de las demás (map, forEach,
+  // una función cualquiera) no se sabe si se llaman ahí mismo, y la frase no dice cuándo se ejecutan.
+  const AGENDAN = new Set(["setTimeout", "setInterval", "queueMicrotask"]);
+  const GUARDAN = { push: "ArrayExpression", unshift: "ArrayExpression", append: "ArrayExpression", insert: "ArrayExpression", add: "Set", set: "Map" };
+  function guardada(P, fn) {
+    const N = P.nodos, n = N[fn], p = N[n.padre];
+    if (p.tipo === "VariableDeclarator" || p.tipo === "AssignmentExpression" || p.tipo === "ArrayExpression" || p.tipo === "Property" || p.tipo === "ReturnStatement") return true;
+    if (p.tipo !== "CallExpression" || n.campo !== "arguments") return false;
+    const c = P.hijo(n.padre, "callee");
+    if (N[c].tipo === "Identifier") return AGENDAN.has(N[c].nombre) && !declaracion(P, c);
+    if (N[c].tipo !== "MemberExpression" || N[c].computado) return false;
+    const o = P.hijo(c, "object"), tipo = GUARDAN[N[P.hijo(c, "property")]?.nombre];
+    if (!tipo || N[o].tipo !== "Identifier") return false;
+    const d = declaracion(P, o), ini = d && N[d.nodo].tipo === "VariableDeclarator" ? P.hijo(d.nodo, "init") : null;
+    if (ini == null) return false;
+    if (tipo === "ArrayExpression") return N[ini].tipo === "ArrayExpression";
+    return N[ini].tipo === "NewExpression" && N[P.hijo(ini, "callee")]?.nombre === tipo;
+  }
+  // Funciones escritas en la fila i (en línea o con su propio cuerpo) que usan una variable de un bucle que
+  // las rodea: [{ fn, x, tipo, cabecera, guardada }].
+  //   tipo 'propia': let/const declarada dentro de ese bucle (JS): cada vuelta tiene la suya y la función se
+  //     queda con la de su vuelta. cabecera: es la del for («for (let i…)»), no una del cuerpo.
+  //   tipo 'compartida': una sola variable (var, de fuera o de Python) que cambia dentro del bucle: la función
+  //     leerá la que valga cuando se ejecute. Si no cambia dentro del bucle, no se dice nada.
+  function capturas(P, F, i) {
+    const N = P.nodos, f = F.filas[i], out = [], vistas = new Set();
+    if (f.bucle == null) return out;
+    const fns = N.filter(n => FUNCION.test(n.tipo) && !P.cadaFn.has(n.id) && F.duena(n.padre) === i && F.enLinea(n.padre) == null);
+    for (const fn of fns.map(n => n.id)) {
+      if (N[fn].campo === "callee" && N[N[fn].padre].tipo === "CallExpression") continue;
+      for (const n of N) {
+        if (!P.desciende(n.id, fn) || !esUso(P, n.id)) continue;
+        const d = declaracion(P, n.id);
+        if (!d || d.clase === "param" || P.desciende(d.nodo, fn) || vistas.has(`${fn}:${d.nodo}`)) continue;
+        const misma = (x) => esUso(P, x) && N[x].nombre === n.nombre && declaracion(P, x)?.nodo === d.nodo;
+        for (let b = f.bucle; b != null; b = F.filas[b].bucle) {
+          const L = F.filas[b].nodo, en = (x) => P.desciende(x, L) && !P.desciende(x, fn);
+          const propia = d.clase !== "var" && P.desciende(d.nodo, L);
+          const cambia = en(d.nodo) || N.some(x => en(x.id) && ((x.tipo === "AssignmentExpression" && misma(P.hijo(x.id, "left")))
+            || (x.tipo === "UpdateExpression" && misma(P.hijo(x.id, "argument")))));
+          if (!propia && !cambia) continue;
+          out.push({ fn, x: n.id, tipo: propia ? "propia" : "compartida", cabecera: d.ambito === L, guardada: guardada(P, fn) });
+          vistas.add(`${fn}:${d.nodo}`);
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, verdad, PALETA };
 });

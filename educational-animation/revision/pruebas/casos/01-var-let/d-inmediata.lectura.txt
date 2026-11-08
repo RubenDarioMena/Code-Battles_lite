@@ -1,0 +1,16 @@
+# prog · js · lectura · es
+1 bucle n0 | for (let i = 0; i < 2; i++) { console.log((() => i)()); }
+    etiqueta: ¿[i] es menor que 2?
+    lectura:  Mientras [i] es menor que 2, repite la fila (2). Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | console.log((() => i)());
+    etiqueta: Imprime [(() => i)()]
+    lectura:  Escribe [(() => i)()] en la consola. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+rieles: 2→1
+consola: 0 / 1
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Escribe «"undefined"» en la consola.
+  · El programa termina. | Consola:0 / 1

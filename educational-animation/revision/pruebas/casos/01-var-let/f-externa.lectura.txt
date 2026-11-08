@@ -1,0 +1,36 @@
+# prog · js · lectura · es
+1 paso n0 | const f = [];
+    etiqueta: [f] empieza en []
+    lectura:  Crea [f] con []; no cambia después.
+    sigue: sig=2 si=· no=·
+2 paso n0 | let i;
+    etiqueta: Crea [i]
+    lectura:  Crea [i], todavía sin valor.
+    sigue: sig=3 si=· no=·
+3 bucle n0 | for (i = 0; i < 2; i++) { f.push(() => i); }
+    etiqueta: ¿[i] es menor que 2?
+    lectura:  Mientras [i] es menor que 2, repite la fila (4). Después, sigue en (5).
+    sigue: sig=5 si=4 no=· salida=fin
+4 paso n1 | f.push(() => i);
+    etiqueta: [f.push(() => i)]
+    lectura:  Ejecuta [f.push(() => i)]. Luego vuelve a (3). [() => i] no se ejecuta aquí: leerá [i] cuando la llamen, y todas las de este bucle comparten la misma [i].
+    sigue: sig=3 si=· no=·
+5 paso n0 | i = 7;
+    etiqueta: [i] pasa a ser 7
+    lectura:  [i] pasa a valer 7.
+    sigue: sig=6 si=· no=·
+6 paso n0 | console.log(f[0](), f[1]());
+    etiqueta: Imprime [f[0]()] [f[1]()]
+    lectura:  Escribe [f[0]()] [f[1]()] en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 4→3
+consola: 7 7
+resumen: Eso es todo el programa.
+pasos:
+  1 [f] = [].
+  2 Crea [i], todavía sin valor.
+  3 Entra en el bucle.
+  4 Ejecuta [f.push(() => i)]. [() => i] no se ejecuta aquí: leerá [i] cuando la llamen, y todas las de este bucle comparten la misma [i].
+  5 [i] pasa a valer «7».
+  6 Escribe «"undefined undefined"» en la consola.
+  · El programa termina. | Consola:7 7

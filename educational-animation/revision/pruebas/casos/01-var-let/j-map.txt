@@ -1,0 +1,17 @@
+# prog · js · traza · es
+1 bucle n0 | for (let i = 0; i < 1; i++) { console.log([0, 0].map(() => (i = i + 1)
+    etiqueta: ¿[i] es menor que 1?
+    lectura:  Mientras [i] es menor que 1, repite la fila (2). Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | console.log([0, 0].map(() => (i = i + 1)));
+    etiqueta: Imprime [[0, 0].map(() => (i = i + 1))]
+    lectura:  Escribe [[0, 0].map(() => (i = i + 1))] en la consola. Luego vuelve a (1). [() => (i = i + 1)] usa la [i] de esta vuelta: cada vuelta tiene la suya.
+    sigue: sig=1 si=· no=·
+rieles: 2→1
+consola: [1,2]
+resumen: Eso es todo el programa.
+pasos:
+  1 [i] vale «0»; 0 < 1 es «true». Entra en la vuelta 1.
+  2 Al llamar: [[0, 0].map(() => (i = i + 1))] lee [i] «0», [i] «1». Escribe «"[1,2]"» en la consola. [() => (i = i + 1)] usa la [i] de esta vuelta: cada vuelta tiene la suya.
+  1 [i] vale «3»; 3 < 1 es «false». Sale del bucle y el programa termina.
+  · El programa termina. | Consola:[1,2]

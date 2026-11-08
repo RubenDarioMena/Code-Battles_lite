@@ -11,7 +11,7 @@
   "use strict";
   const BASE = "../../educational-animation/revision/";
   // Versión de los archivos del motor: súbela al cambiarlos para que el navegador no use los de la caché.
-  const V = "?v=6";
+  const V = "?v=7";
   // [archivo, global]: con global, no se vuelve a cargar si ya está (trazador y flujo los carga el juego para
   // los pulsos). El catálogo del modo revisión es CMGCatalogoRevision: CMGCatalogo es el de la paleta del editor.
   const MOTOR = [["motor/textos.js", null], ["motor/trazador.js", "CMGTrazador"], ["motor/catalogo.js", null], ["motor/flujo.js", "CMGFlujo"], ["motor/python.js", "CMGPythonRevision"],

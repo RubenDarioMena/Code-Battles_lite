@@ -1,0 +1,16 @@
+# prog · js · lectura · es
+1 bucle n0 | for (let i = 0; i < 1; i++) { console.log([0, 0].map(() => (i = i + 1)
+    etiqueta: ¿[i] es menor que 1?
+    lectura:  Mientras [i] es menor que 1, repite la fila (2). Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | console.log([0, 0].map(() => (i = i + 1)));
+    etiqueta: Imprime [[0, 0].map(() => (i = i + 1))]
+    lectura:  Escribe [[0, 0].map(() => (i = i + 1))] en la consola. Luego vuelve a (1). [() => (i = i + 1)] usa la [i] de esta vuelta: cada vuelta tiene la suya.
+    sigue: sig=1 si=· no=·
+rieles: 2→1
+consola: [1,2]
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Escribe «"undefined"» en la consola. [() => (i = i + 1)] usa la [i] de esta vuelta: cada vuelta tiene la suya.
+  · El programa termina. | Consola:[1,2]

@@ -297,8 +297,29 @@
     }
     return v !== undefined ? [...tpl("d.da", { c: [{ c: i }], v: [{ v }] }), "."] : tpl("d.ejecuta", { c: [{ c: i }] });
   }
+  // Lo que leyó de fuera cada función en línea al llamarla en este paso: «[f[0]()] lee [i] «3»».
+  function lecturas(P, F, paso) {
+    const grupos = (paso.lecturas || []).map(g => {
+      // Una misma lectura repetida (i + i) se dice una vez; la misma variable con otro valor (un map), cada vez.
+      const vistos = new Set(), lee = g.lee.filter(([x, v]) => { const k = `${x}:${valor(v).texto}`; return !vistos.has(k) && vistos.add(k) && FL.deFuera(P, x, F.enLinea(x)); });
+      return lee.length ? tpl("d.lee", { c: [{ c: g.llamada }], l: unir(lee.map(([x, v]) => [{ c: x }, " ", { v }]), ", ") }) : null;
+    }).filter(Boolean);
+    return grupos.length ? [...tpl("d.alLlamar", { l: unir(grupos, " · ") }), " "] : [];
+  }
+  // Una función que usa la variable de un bucle: ¿se queda con la de su vuelta o comparte la misma? «No se ejecuta
+  // aquí» solo si se sabe que se guarda para después. La variable de cada vuelta declarada en el cuerpo (no en la
+  // cabecera del for) va plegada: es cierto, pero rara vez es lo que cambia el resultado.
+  const capturas = (P, F, i) => FL.capturas(P, F, i).flatMap(c => {
+    const frase = tpl(`r.captura.${c.tipo}${c.guardada ? "" : "Uso"}`, { fn: [{ c: c.fn }], x: [{ c: c.x }] });
+    return [" ", ...(c.tipo === "propia" && !c.cabecera ? [{ mas: frase }] : frase)];
+  });
   function detalle(P, F, R, paso, G = {}) {
     if (paso.fin) return final(P, R, paso, G);
+    // En la traza, la pista de ámbito va en la primera visita a la fila: no se repite en cada vuelta.
+    const primera = !R || !R.pasos.some(p => p.i < paso.i && p.fila === paso.fila);
+    return [...lecturas(P, F, paso), ...detalleFila(P, F, R, paso), ...(primera ? capturas(P, F, paso.fila) : [])];
+  }
+  function detalleFila(P, F, R, paso) {
     const N = P.nodos, f = F.filas[paso.fila], vals = paso.vals, n = N[f.nodo];
     const ir = (x) => [{ f: x }];
     if (f.tipo === "bucle") {
@@ -640,7 +661,7 @@
       if (riel && f.salto !== "continue") out.push(" ", ...tpl("r.vuelveA", { f: fichaFila(riel.a) }));
       else if (f.sig == null && !f.salto && f.seccion == null && !f.bucle) out.push(" ", t("r.ultima"));
     }
-    return out;
+    return [...out, ...capturas(P, F, i)];
   }
   // El final del recorrido: si el programa no acaba solo, por qué.
   function resumen(P, F, R) {

@@ -1,0 +1,31 @@
+# prog · js · lectura · es
+1 paso n0 | const f = [];
+    etiqueta: [f] empieza en []
+    lectura:  Crea [f] con []; no cambia después.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | for (let i = 0; i < 3; i++) { const base = 10; f.push(() => base); }
+    etiqueta: ¿[i] es menor que 3?
+    lectura:  Mientras [i] es menor que 3, repite las filas (3) a (4). Después, sigue en (5).
+    sigue: sig=5 si=3 no=· salida=fin
+3 paso n1 | const base = 10;
+    etiqueta: [base] empieza en 10
+    lectura:  Crea [base] con 10; no cambia después.
+    sigue: sig=4 si=· no=·
+4 paso n1 | f.push(() => base);
+    etiqueta: [f.push(() => base)]
+    lectura:  Ejecuta [f.push(() => base)]. Luego vuelve a (2). [+ [() => base] no se ejecuta aquí: se queda con la [base] de esta vuelta, porque cada vuelta tiene la suya.]
+    sigue: sig=2 si=· no=·
+5 paso n0 | console.log(f[0]());
+    etiqueta: Imprime [f[0]()]
+    lectura:  Escribe [f[0]()] en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 4→2
+consola: 10
+resumen: Eso es todo el programa.
+pasos:
+  1 [f] = [].
+  2 Entra en el bucle.
+  3 [base] = «10».
+  4 Ejecuta [f.push(() => base)]. [+ [() => base] no se ejecuta aquí: se queda con la [base] de esta vuelta, porque cada vuelta tiene la suya.]
+  5 Escribe «"undefined"» en la consola.
+  · El programa termina. | Consola:10

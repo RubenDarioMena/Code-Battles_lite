@@ -1,0 +1,24 @@
+# prog · js · traza · es
+1 paso n0 | const receptor = { push: fn => fn() };
+    etiqueta: [receptor] empieza en { push: fn => fn() }
+    lectura:  Crea [receptor] con { push: fn => fn() }; no cambia después.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | for (let i = 0; i < 2; i++) { console.log(receptor.push(() => i)); }
+    etiqueta: ¿[i] es menor que 2?
+    lectura:  Mientras [i] es menor que 2, repite la fila (3). Después, el programa acaba.
+    sigue: sig=· si=3 no=· salida=fin
+3 paso n1 | console.log(receptor.push(() => i));
+    etiqueta: Imprime [receptor.push(() => i)]
+    lectura:  Escribe [receptor.push(() => i)] en la consola. Luego vuelve a (2). [() => i] usa la [i] de esta vuelta: cada vuelta tiene la suya.
+    sigue: sig=2 si=· no=·
+rieles: 3→2
+consola: 0 / 1
+resumen: Eso es todo el programa.
+pasos:
+  1 [receptor] = { push: fn => fn() }.
+  2 [i] vale «0»; 0 < 2 es «true». Entra en la vuelta 1.
+  3 Al llamar: [receptor.push(() => i)] lee [i] «0». Escribe «"0"» en la consola. [() => i] usa la [i] de esta vuelta: cada vuelta tiene la suya.
+  2 [i] vale «1»; 1 < 2 es «true». Entra en la vuelta 2.
+  3 Al llamar: [receptor.push(() => i)] lee [i] «1». Escribe «"1"» en la consola.
+  2 [i] vale «2»; 2 < 2 es «false». Sale del bucle y el programa termina.
+  · El programa termina. | Consola:0 / 1
