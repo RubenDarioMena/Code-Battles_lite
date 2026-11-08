@@ -1,0 +1,21 @@
+# prog · js · lectura · es
+1 paso n0 | let x;
+    etiqueta: Crea [x]
+    lectura:  Crea [x], todavía sin valor.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | for (x of [1, 2]) console.log(x);
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite la fila (3) una vez por cada [x] de [[1, 2]]. Después, el programa acaba.
+    sigue: sig=· si=3 no=· salida=fin
+3 paso n1 | console.log(x);
+    etiqueta: Imprime [x]
+    lectura:  Escribe [x] en la consola. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+rieles: 3→2
+consola: 1 / 2
+resumen: Eso es todo el programa.
+pasos:
+  1 Crea [x], todavía sin valor.
+  2 Entra en el bucle.
+  3 Escribe «"undefined"» en la consola.
+  · El programa termina. | Consola:1 / 2

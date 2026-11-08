@@ -1,0 +1,26 @@
+# prog · js · lectura · es
+1 bucle n0 | for (const x of [1, 2, 3]) if (x === 2) break;
+    etiqueta: Por cada [x] de [[1, 2, 3]]
+    lectura:  Repite las filas (2) a (3) una vez por cada [x] de [[1, 2, 3]]. Después, sigue en (4).
+    sigue: sig=4 si=2 no=· salida=fin
+2 decision n1 | if (x === 2) break;
+    etiqueta: ¿[x] vale 2?
+    lectura:  Si [x] vale 2, sigue en (3); si no, vuelve a (1).
+    sigue: sig=1 si=3 no=· salida=fila:3
+3 paso (lateral) n2 | break;
+    etiqueta: break
+    lectura:  Sale del bucle (1) antes de tiempo y sigue en (4).
+    sigue: sig=4 si=· no=·
+4 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 2→1
+consola: fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Calcula [x === 2]…
+  3 break: sale del bucle aquí mismo y sigue en (4).
+  4 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:fin

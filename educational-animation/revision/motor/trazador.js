@@ -122,9 +122,14 @@
         }
       }
       // Cada vuelta de for…of / for…in: __T.c(idBucle, elemento) al abrir su bloque (no tienen condición).
-      if ((n.type === "ForOfStatement" || n.type === "ForInStatement") && n.body.type === "BlockStatement" && quiere("c", n, padre, campo)) {
+      // Sin llaves, el cuerpo se envuelve en uno, en las mismas posiciones: {__T.c(id, x);sentencia}. Por fuera
+      // del {__T.s(…);…} de la sentencia suelta (profundidad del bucle), y un cuerpo con llaves queda igual.
+      if ((n.type === "ForOfStatement" || n.type === "ForInStatement") && quiere("c", n, padre, campo)) {
         const l = n.left, d = l.type === "VariableDeclaration" ? l.declarations[0].id : l;
-        abrir(n.body.start + 1, `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`, x.prof); marcar(x, "c");
+        const gancho = `__T.c(${x.id},${d.type === "Identifier" ? d.name : "true"});`;
+        if (n.body.type === "BlockStatement") abrir(n.body.start + 1, gancho, x.prof);
+        else { abrir(n.body.start, "{" + gancho, x.prof); cerrar(n.body.end, "}", x.prof); }
+        marcar(x, "c");
       }
       // lista.forEach(x => { … }) se lee como un for…of: __T.c(idSentencia, x) al abrir la función.
       if (n.type === "ExpressionStatement" && n.expression.type === "CallExpression" && quiere("c", n, padre, campo)) {

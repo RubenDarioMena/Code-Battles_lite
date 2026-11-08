@@ -467,5 +467,41 @@ for (let i = 1; i <= 4; i++) {
     I18N.cambiarIdioma('es');
   }
 
+  // ---------- for…of con llaves frente a sin llaves (caso 04) ----------
+  {
+    const leer = (x) => fs.readFileSync(path.join(RAIZ, 'educational-animation/revision/pruebas/casos/04-forof-llaves', x), 'utf8');
+    const sin = await revisar(leer('a-sin-llaves.js')), con = await revisar(leer('b-con-llaves.js'));
+    eq(sin.pasos, con.pasos, 'sin llaves: los mismos pasos que con llaves');
+    eq(sin.pasos.slice(0, 3), ['1 Vuelta 1: [x] = «1».', '2 Escribe «"1"» en la consola.', '1 Vuelta 2: [x] = «2».'], 'sin llaves: vueltas con su valor');
+    eq([sin.R.vueltas.length, con.R.vueltas.length], [2, 2], 'sin llaves: la franja tiene sus vueltas');
+    // El cuerpo con llaves se instrumenta igual que antes; sin llaves, envuelto en las mismas líneas.
+    eq(T.instrumentar(leer('b-con-llaves.js'), { acorn }).codigo.includes('{__T.c(1,x);\n'), true, 'con llaves: el gancho tras la llave, como siempre');
+    ok(T.instrumentar(leer('a-sin-llaves.js'), { acorn }).codigo.includes('{__T.c(1,x);{__T.s('), 'sin llaves: {__T.c(…);{__T.s(…);…}}');
+    const vueltas = async (x) => (await revisar(leer(x))).pasos.filter(p => /Vuelta \d/.test(p));
+    eq(await vueltas('c-for-in.js'), ['2 Vuelta 1: [k] = «"a"».', '2 Vuelta 2: [k] = «"b"».'], 'for…in sin llaves');
+    eq((await vueltas('d-sin-declaracion.js')).length, 2, 'for (x of …) sin declaración');
+    eq(await vueltas('e-desestructura.js'), ['1 Vuelta 1: [[a, b]] toma el siguiente elemento.', '1 Vuelta 2: [[a, b]] toma el siguiente elemento.'], 'desestructuración: sin el falso «= true»');
+    const ie = await revisar(leer('f-if-else.js'));
+    eq([ie.r.salida.map(x => x.texto), (await vueltas('f-if-else.js')).length], [['no', '2', '3', 'fin'], 3], 'if (…) for … if … else …: el else sigue con su if');
+    eq((await vueltas('h-vacio.js')).length, 2, 'cuerpo vacío «;»');
+    eq((await revisar(leer('i-break.js'))).r.salida.map(x => x.texto), ['fin'], 'break sin llaves');
+    // Saltos con etiqueta: van al bucle que la lleva (antes, siempre al más cercano).
+    const et = await revisar(leer('g-etiqueta.js')), el = await revisar(leer('j-etiqueta-llaves.js')), eb = await revisar(leer('k-break-etiqueta.js'));
+    eq([et.r.salida.map(x => x.texto), et.pasos.filter(p => p.includes('continue'))[0]], [['1 1', '2 1'], '4 continue: se salta el resto de la vuelta y vuelve a (1).'], 'continue fuera (sin llaves) vuelve al bucle de fuera');
+    ok(el.pasos.some(p => p === '4 continue: se salta el resto de la vuelta y vuelve a (1).') && el.F.rieles.some(r => el.F.filas[r.de].num === 4 && el.F.filas[r.a].num === 1), 'continue fuera (con llaves): flecha al bucle de fuera');
+    eq([eb.r.salida.map(x => x.texto), eb.pasos.find(p => p.includes('break'))], [['1 1', 'fin'], '4 break: sale del bucle aquí mismo y sigue en (6).'], 'break fuera sale de los dos bucles');
+    // Turno 2 de Astra (ciclo 04): varias etiquetas, bloque con etiqueta y switch atravesado.
+    const riel = (c) => c.F.rieles.map(r => `${c.F.filas[r.de].num}→${c.F.filas[r.a].num}`).sort();
+    const de = await revisar(leer('l-dos-etiquetas.js'));
+    eq([de.r.salida.map(x => x.texto), riel(de)], [['2', 'fin'], ['3→1', '4→1']], 'a: b: for: continue a también vuelve al bucle (con su flecha)');
+    const bl = await revisar(leer('m-bloque-etiqueta.js'));
+    eq(bl.r.salida.map(x => x.texto), ['despues 1', 'dentro', 'despues 2', 'fin'], 'bloque con etiqueta: consola');
+    ok(bl.pasos.includes('3 break b: sale del bloque b aquí mismo y sigue en (5).') && !bl.pasos.slice(0, -1).some(p => p.includes('termina')), 'break b: sale del bloque, no del bucle ni del programa');
+    const sw = await revisar(leer('n-switch-etiqueta.js'));
+    eq([sw.r.salida.map(x => x.texto), sw.pasos.find(p => p.startsWith('3 '))], [['fin'], '3 break: sale del bucle aquí mismo y sigue en (5).'], 'break fuera dentro de un switch sale del bucle');
+    const lsw = plano(sw.P, sw.F, E.describir(sw.P, sw.F, sw.F.filas.find(f => f.num === 3).i));
+    eq(lsw, 'Sale del bucle (1) antes de tiempo y sigue en (5).', 'break fuera: lectura');
+  }
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

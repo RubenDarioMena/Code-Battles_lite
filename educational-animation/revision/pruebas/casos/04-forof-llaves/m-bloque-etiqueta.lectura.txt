@@ -1,0 +1,36 @@
+# prog · js · lectura · es
+1 bucle n0 | for (const x of [1, 2]) { b: { if (x === 1) break b; console.log("dent
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite las filas (2) a (5) una vez por cada [x] de [[1, 2]]. Después, sigue en (6).
+    sigue: sig=6 si=2 no=· salida=fin
+2 decision n1 | if (x === 1) break b;
+    etiqueta: ¿[x] vale 1?
+    lectura:  Si [x] vale 1, sigue en (3); si no, salta a (4).
+    sigue: sig=4 si=3 no=· salida=fila:3
+3 paso (lateral) n2 | break b;
+    etiqueta: break b
+    lectura:  Sale del bloque b antes de tiempo y sigue en (5).
+    sigue: sig=5 si=· no=·
+4 paso n1 | console.log("dentro");
+    etiqueta: Imprime "dentro"
+    lectura:  Escribe "dentro" en la consola.
+    sigue: sig=5 si=· no=·
+5 paso n1 | console.log("despues", x);
+    etiqueta: Imprime "despues" [x]
+    lectura:  Escribe "despues" [x] en la consola. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+6 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 5→1
+consola: despues 1 / dentro / despues 2 / fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Entra en el bucle.
+  2 Calcula [x === 1]…
+  3 break b: sale del bloque b aquí mismo y sigue en (5).
+  4 Escribe «"dentro"» en la consola.
+  5 Escribe «"despues undefined"» en la consola.
+  6 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:despues 1 / dentro / despues 2 / fin

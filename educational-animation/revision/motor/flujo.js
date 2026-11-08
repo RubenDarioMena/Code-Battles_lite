@@ -84,7 +84,7 @@
 
   function construir(P) {
     const N = P.nodos;
-    const filas = [], filaDe = new Map(), orden = [], rieles = [];
+    const filas = [], filaDe = new Map(), orden = [], rieles = [], saltoA = new Map();
     const nueva = (tipo, nodo, nivel, ctx, extra = {}) => {
       const f = { i: filas.length, tipo, nodo, nivel, rama: !!ctx.rama, bucle: ctx.bucle ?? null, seccion: ctx.seccion ?? null, sig: null, ...extra };
       filas.push(f); filaDe.set(nodo, f.i);
@@ -107,12 +107,24 @@
       return { entrada, salidas: salidas || [], breaks, continues, vacia: entrada == null };
     }
     const simple = (s) => !COMPUESTA.test(N[s].tipo);
+    // Las etiquetas de una sentencia (a: b: for…): todas las LabeledStatement seguidas que la envuelven.
+    const etiquetasDe = (s) => { const out = []; for (let x = N[s].padre; x != null && N[x].tipo === "LabeledStatement"; x = N[x].padre) out.push(N[P.hijo(x, "label")].nombre); return out; };
     function sentencia(s, nivel, ctx) {
       const n = N[s];
       if (BUCLE.test(n.tipo) || P.porCada.has(s)) return bucle(s, nivel, ctx);
       if (n.tipo === "IfStatement") return decision(s, nivel, ctx);
       if (n.tipo === "BlockStatement") { const r = seq(P.hijos(s, "body"), nivel, ctx); return r.vacia ? paso(s, nivel, ctx) : r; }
-      if (n.tipo === "LabeledStatement") return sentencia(P.hijo(s, "body"), nivel, ctx);
+      if (n.tipo === "LabeledStatement") {
+        // Un bucle o un switch con etiqueta(s) resuelve sus saltos él mismo (etiquetasDe). Un bloque con etiqueta
+        // consume los break que la nombran: salen del bloque y siguen detrás.
+        let dentro = s;
+        while (N[dentro].tipo === "LabeledStatement") dentro = P.hijo(dentro, "body");
+        if (BUCLE.test(N[dentro].tipo) || P.porCada.has(dentro) || N[dentro].tipo === "SwitchStatement") return sentencia(dentro, nivel, ctx);
+        const r = sentencia(dentro, nivel, ctx), suyas = etiquetasDe(dentro);
+        const mios = r.breaks.filter(x => suyas.includes(saltoA.get(x)));
+        for (const x of mios) filas[x].destino = { tipo: "bloque", nombre: saltoA.get(x) };
+        return { ...r, salidas: [...r.salidas, ...mios], breaks: r.breaks.filter(x => !mios.includes(x)) };
+      }
       if (n.tipo === "TryStatement") return intento(s, nivel, ctx);
       if (n.tipo === "SwitchStatement") return segun(s, nivel, ctx);
       return paso(s, nivel, ctx);
@@ -122,6 +134,8 @@
       // return dentro de forEach termina solo esa vuelta: sigue con la siguiente, como continue.
       const sigue = t === "ReturnStatement" && ctx.cadaFn != null && ctx.cadaFn === ctx.bucle;
       const f = nueva("paso", s, nivel, ctx, { lateral, salto: t === "BreakStatement" ? "break" : t === "ContinueStatement" || sigue ? "continue" : t === "ReturnStatement" || t === "ThrowStatement" ? "fin" : null });
+      // break/continue con etiqueta: es del bucle que la lleva, no del más cercano.
+      if (t === "BreakStatement" || t === "ContinueStatement") { const l = P.hijo(s, "label"); if (l != null) saltoA.set(f.i, N[l].nombre); }
       if (!lateral) orden.push({ fila: f.i });
       if (f.salto === "break") return { entrada: f.i, salidas: [], breaks: [f.i], continues: [] };
       if (f.salto === "continue") return { entrada: f.i, salidas: [], breaks: [], continues: [f.i] };
@@ -140,9 +154,14 @@
       if (cuerpo.length) orden.push({ conector: true, nivel: nivel + 1, etiqueta: test != null && !infinito ? "true" : null });
       const r = seq(cuerpo, nivel + 1, { ...ctx, bucle: R.i, cadaFn: pc && pc.fn != null ? R.i : ctx.cadaFn });
       R.si = r.entrada;
-      unir(r.salidas, R.i); unir(r.continues, R.i);
-      for (const de of [...r.salidas, ...r.continues]) rieles.push({ de, a: R.i });
-      return { entrada: R.i, salidas: infinito ? [...r.breaks] : [R.i, ...r.breaks], breaks: [], continues: [] };
+      // Los saltos sin etiqueta o con la de este bucle son suyos; los demás siguen hacia fuera.
+      const etiquetas = etiquetasDe(s);
+      const mio = (x) => !saltoA.has(x) || etiquetas.includes(saltoA.get(x));
+      const continues = r.continues.filter(mio), breaks = r.breaks.filter(mio);
+      for (const x of breaks) filas[x].destino = { tipo: "bucle", fila: R.i };
+      unir(r.salidas, R.i); unir(continues, R.i);
+      for (const de of [...r.salidas, ...continues]) rieles.push({ de, a: R.i });
+      return { entrada: R.i, salidas: infinito ? [...breaks] : [R.i, ...breaks], breaks: r.breaks.filter(x => !mio(x)), continues: r.continues.filter(x => !mio(x)) };
     }
     function decision(s, nivel, ctx) {
       let x = s, primera = true, anterior = null, abajo = null;
@@ -212,9 +231,12 @@
         if (!r.vacia) { if (S.si == null) S.si = r.entrada; unir(previas, r.entrada); previas = r.salidas; }
         breaks.push(...r.breaks); continues.push(...r.continues);
       }
-      // break dentro de switch sale del switch, no del bucle.
-      salidas.push(...previas, ...breaks, S.i);
-      return { entrada: S.i, salidas, breaks: [], continues };
+      // break dentro de switch sale del switch, no del bucle; uno con la etiqueta de otro sitio sigue hacia fuera.
+      const etiquetas = etiquetasDe(s), mio = (x) => !saltoA.has(x) || etiquetas.includes(saltoA.get(x));
+      const propios = breaks.filter(mio);
+      for (const x of propios) filas[x].destino = { tipo: "segun", fila: S.i };
+      salidas.push(...previas, ...propios, S.i);
+      return { entrada: S.i, salidas, breaks: breaks.filter(x => !mio(x)), continues };
     }
 
     // El programa, y después cada función con cuerpo de bloque como sección aparte.

@@ -1,3 +1,16 @@
+## Revisión · ciclo 04 con Astra (xhigh): for…of con y sin llaves, y saltos con etiqueta · 8 de noviembre de 2026
+
+- **Proceso.** Cuarto ciclo. Astra en Codex CLI con esfuerzo **xhigh**, en la misma sesión y solo lectura. Hubo 3 turnos: diagnóstico, «aceptar con cambios» y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/04-forof-llaves/`.
+- **Pregunta.** ¿Cuántas vueltas da y qué vale `x`? `for (const x of l) f(x)` sin llaves no tenía ni vueltas ni valores, y con llaves sí. El trazador solo ponía el gancho de cada vuelta dentro de un bloque.
+- **Trazador (compartido con el juego).** Sin llaves, el cuerpo se envuelve en las mismas líneas: `{__T.c(id,x);{__T.s(…);sentencia}}`. Con llaves, el resultado es **idéntico byte a byte**: lo comprobé en 51 programas, y Astra en 68 programas y sondas con el filtro de pulsos. `pulsos.js`: el filtro de condiciones exige `campo === "test"` (antes aceptaba cualquier sentencia colgada de un `if`).
+- **Diagrama.** Los saltos con etiqueta van a su destino: `continue fuera` vuelve al bucle de fuera, `a: b: for` reconoce las dos etiquetas, un bloque `b: {…}` consume su `break b`, y un `switch` deja pasar `break fuera`. Cada `break` dice si sale de un bucle, de un `switch` o de un bloque. Una desestructuración ya no narra `= true`.
+- **Verificación actual.** Flujo **402** (19 nuevas), trazador **27**, lógica **124**, i18n **1146 / 12697**, editor Python **34**, traductor Python **64**. Navegador 8771: `depuracion.mjs` **173**. Capturas antes/después; la del `continue fuera` «antes» se sacó de HEAD en un worktree temporal (puerto 8772).
+- **Límites.**
+  - `forEach(x => expr)` con cuerpo expresión sigue sin vueltas: es el ciclo 05 propuesto.
+  - `do…while` cuenta una sola vuelta (ya pasaba antes).
+  - No se repitió `juego.mjs` (falta Playwright).
+  - Versiones: en War, trazador v5, flujo v8, pulsos v3 y revisión v10; en la página de ejemplos, v10.
+
 ## Revisión · ciclo 03 con Astra: crear un generador frente a consumirlo · 7 de noviembre de 2026
 
 - **Proceso.** Tercer ciclo adversarial. Astra en Codex CLI, con esfuerzo alto y solo lectura. Hubo 4 turnos: diagnóstico, dos rechazos y la aceptación. El caso, las respuestas, el registro y la imagen antes/después están en `revision/pruebas/casos/03-generador/`.

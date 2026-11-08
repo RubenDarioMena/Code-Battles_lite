@@ -1,0 +1,30 @@
+# prog · js · traza · es
+1 bucle n0 | for (const x of [1, 2]) { switch (x) { case 1: break fuera; } console.
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite las filas (2) a (4) una vez por cada [x] de [[1, 2]]. Después, sigue en (5).
+    sigue: sig=5 si=2 no=· salida=fin
+2 segun n1 | switch (x) { case 1: break fuera; }
+    etiqueta: Según [x]
+    lectura:  Según lo que valga [x], va al caso que coincida.
+    sigue: sig=4 si=3 no=·
+3 paso n2 | break fuera;
+    etiqueta: Sale del bucle
+    lectura:  Sale del bucle (1) antes de tiempo y sigue en (5).
+    sigue: sig=5 si=· no=·
+4 paso n1 | console.log("no");
+    etiqueta: Imprime "no"
+    lectura:  Escribe "no" en la consola. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+5 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: 4→1
+consola: fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Vuelta 1: [x] = «1».
+  2 Ejecuta [switch (x) { case 1: break fuera; }].
+  3 break: sale del bucle aquí mismo y sigue en (5).
+  5 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:fin

@@ -1,0 +1,40 @@
+# prog · js · traza · es
+1 bucle n0 | for (const a of [1, 2]) for (const b of [1, 2]) { if (b === 2) continu
+    etiqueta: Por cada [a] de [[1, 2]]
+    lectura:  Repite las filas (2) a (5) una vez por cada [a] de [[1, 2]]. Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 bucle n1 | for (const b of [1, 2]) { if (b === 2) continue fuera; console.log(a, 
+    etiqueta: Por cada [b] de [[1, 2]]
+    lectura:  Repite las filas (3) a (5) una vez por cada [b] de [[1, 2]]. Después, vuelve a (1).
+    sigue: sig=1 si=3 no=· salida=fin
+3 decision n2 | if (b === 2) continue fuera;
+    etiqueta: ¿[b] vale 2?
+    lectura:  Si [b] vale 2, sigue en (4); si no, salta a (5).
+    sigue: sig=5 si=4 no=· salida=fila:4
+4 paso (lateral) n3 | continue fuera;
+    etiqueta: continue fuera
+    lectura:  Se salta el resto de la vuelta y vuelve a (1).
+    sigue: sig=1 si=· no=·
+5 paso n2 | console.log(a, b);
+    etiqueta: Imprime [a] [b]
+    lectura:  Escribe [a] [b] en la consola. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+rieles: 5→2 2→1 4→1
+consola: 1 1 / 2 1
+resumen: Eso es todo el programa.
+pasos:
+  1 Vuelta 1: [a] = «1».
+  2 Vuelta 1: [b] = «1».
+  3 [b] vale «1»; 1 === 2 es «false». Como es false, se salta el bloque y sigue en (5).
+  5 Escribe «"1 1"» en la consola.
+  2 Vuelta 2: [b] = «2».
+  3 [b] vale «2»; 2 === 2 es «true». Como es true, sigue en (4).
+  4 continue: se salta el resto de la vuelta y vuelve a (1).
+  1 Vuelta 2: [a] = «2».
+  2 Vuelta 1: [b] = «1».
+  3 [b] vale «1»; 1 === 2 es «false». Como es false, se salta el bloque y sigue en (5).
+  5 Escribe «"2 1"» en la consola.
+  2 Vuelta 2: [b] = «2».
+  3 [b] vale «2»; 2 === 2 es «true». Como es true, sigue en (4).
+  4 continue: se salta el resto de la vuelta y vuelve a (1).
+  · El programa termina. | Consola:1 1 / 2 1

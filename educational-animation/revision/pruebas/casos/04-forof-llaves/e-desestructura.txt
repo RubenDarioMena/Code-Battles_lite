@@ -1,0 +1,18 @@
+# prog · js · traza · es
+1 bucle n0 | for (const [a, b] of [[1, 2], [3, 4]]) console.log(a + b);
+    etiqueta: Por cada [[a, b]] de [[[1, 2], [3, 4]]]
+    lectura:  Repite la fila (2) una vez por cada [[a, b]] de [[[1, 2], [3, 4]]]. Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | console.log(a + b);
+    etiqueta: Imprime [a + b]
+    lectura:  Escribe [a + b] en la consola. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+rieles: 2→1
+consola: 3 / 7
+resumen: Eso es todo el programa.
+pasos:
+  1 Vuelta 1: [[a, b]] toma el siguiente elemento.
+  2 Escribe «"3"» en la consola.
+  1 Vuelta 2: [[a, b]] toma el siguiente elemento.
+  2 Escribe «"7"» en la consola.
+  · El programa termina. | Consola:3 / 7

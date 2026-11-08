@@ -1,0 +1,23 @@
+# prog · js · traza · es
+1 paso n0 | const o = { a: 1, b: 2 };
+    etiqueta: [o] empieza en { a: 1, b: 2 }
+    lectura:  Crea [o] con { a: 1, b: 2 }; no cambia después.
+    sigue: sig=2 si=· no=·
+2 bucle n0 | for (const k in o) console.log(k);
+    etiqueta: Por cada clave [k] de [o]
+    lectura:  Repite la fila (3) una vez por cada clave [k] de [o]. Después, el programa acaba.
+    sigue: sig=· si=3 no=· salida=fin
+3 paso n1 | console.log(k);
+    etiqueta: Imprime [k]
+    lectura:  Escribe [k] en la consola. Luego vuelve a (2).
+    sigue: sig=2 si=· no=·
+rieles: 3→2
+consola: a / b
+resumen: Eso es todo el programa.
+pasos:
+  1 [o] = { a: 1, b: 2 }.
+  2 Vuelta 1: [k] = «"a"».
+  3 Escribe «"a"» en la consola.
+  2 Vuelta 2: [k] = «"b"».
+  3 Escribe «"b"» en la consola.
+  · El programa termina. | Consola:a / b

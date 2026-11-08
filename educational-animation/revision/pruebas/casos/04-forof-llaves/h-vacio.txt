@@ -1,0 +1,17 @@
+# prog · js · traza · es
+1 bucle n0 | for (const x of [1, 2]);
+    etiqueta: Por cada [x] de [[1, 2]]
+    lectura:  Repite un bloque vacío una vez por cada [x] de [[1, 2]]. Después, sigue en (2).
+    sigue: sig=2 si=· no=· salida=fin
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Vuelta 1: [x] = «1».
+  1 Vuelta 2: [x] = «2».
+  2 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:fin

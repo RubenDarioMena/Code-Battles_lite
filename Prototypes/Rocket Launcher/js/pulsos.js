@@ -48,7 +48,8 @@
     if (n.type === "MemberExpression" && !n.computed && n.property.type === "Identifier" && PROPIEDADES.has(n.property.name) && n.object.type === "Identifier") return "lectura";
     return null;
   }
-  const filtro = (g, n, padre) => g === "s" ? false : g === "c" ? (padre.type === "IfStatement" || padre.type === "ConditionalExpression") && n.type !== "Literal" : !!claseAcorn(n);
+  // Condiciones: solo la de un if o un ?: (su campo test), no cualquier sentencia que cuelgue de un if.
+  const filtro = (g, n, padre, campo) => g === "s" ? false : g === "c" ? campo === "test" && (padre.type === "IfStatement" || padre.type === "ConditionalExpression") && n.type !== "Literal" : !!claseAcorn(n);
 
   // La misma clase, desde la tabla de nodos del trazador (para los lotes).
   function claseTabla(N, x) {

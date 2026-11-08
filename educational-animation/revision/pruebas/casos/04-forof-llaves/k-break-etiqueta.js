@@ -1,0 +1,7 @@
+fuera: for (const a of [1, 2]) {
+  for (const b of [1, 2]) {
+    if (b === 2) break fuera;
+    console.log(a, b);
+  }
+}
+console.log("fin");

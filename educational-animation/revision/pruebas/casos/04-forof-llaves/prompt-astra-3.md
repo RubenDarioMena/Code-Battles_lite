@@ -1,0 +1,7 @@
+Ciclo 04 · turno 3 de Astra (cierre). Aceptaste la instrumentación y el filtro con un cambio pendiente: completar las etiquetas. Opus lo hizo, sin commitear (`git diff motor/flujo.js motor/explicar.js`). Máximo ~300 palabras.
+- `etiquetasDe(s)`: todas las LabeledStatement seguidas (a: b: for…). Bucles y switch consumen los saltos sin etiqueta o con una de las suyas, y propagan el resto (el switch ya no se traga `break fuera`).
+- Bloque con etiqueta: consume los `break` que lo nombran; siguen detrás del bloque.
+- Cada break guarda `destino` {bucle|segun|bloque}. Lectura y traza dicen «Sale del bloque b…» / «sale del switch…» / «Sale del bucle (1)…». Este último usa el bucle de destino, no el más cercano.
+Fixtures l-dos-etiquetas, m-bloque-etiqueta y n-switch-etiqueta (sig, rieles, frases y consola). Flujo 402.
+
+Verifica SOLO tus tres programas, más UNA variante nueva si ves un riesgo concreto en esta resolución (p. ej. `break` sin etiqueta dentro de un bloque etiquetado dentro de un bucle, `continue` con etiqueta a un bucle con switch en medio, o un bloque etiquetado en el nivel superior cuyo `break` es la última fila). Da el veredicto final del ciclo 04 (aceptar / aceptar con cambio mínimo / rechazar) y, en una línea, propón el par del ciclo 05 entre los pendientes (`forEach(x => expr)` sin llaves, la píldora `undefined`/`{}` de las filas que agendan o crean, el vaciado final del Worker) u otro que hayas visto.

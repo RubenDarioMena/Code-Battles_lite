@@ -380,7 +380,10 @@
     if (f.tipo === "bucle") {
       if (paso.valor === undefined) return [t("d.entraBucle")];
       if (P.porCada.has(f.nodo)) {
-        return tpl("d.porCada", { n: paso.iter || 1, x: [{ c: P.porCada.get(f.nodo).x }], v: [{ v: paso.valor }] });
+        // Con desestructuración ([a, b], {a}) el trazador no lee el elemento (solo marca la vuelta): no hay valor.
+        const px = P.porCada.get(f.nodo).x;
+        if (P.nodos[px].tipo !== "Identifier") return tpl("d.porCadaPatron", { n: paso.iter || 1, x: [{ c: px }] });
+        return tpl("d.porCada", { n: paso.iter || 1, x: [{ c: px }], v: [{ v: paso.valor }] });
       }
       if (f.infinito) return tpl("d.siempre", { n: paso.iter || 1, c: f.test != null ? [{ c: f.test }] : [{ k: "for (;;)" }] });
       const cierre = verdad(paso.valor) ? tpl("d.entraVuelta", { n: paso.iter || 1 }) : f.sig != null ? tpl("d.saleBucle", { f: ir(f.sig) }) : [t("d.saleFin")];
@@ -447,7 +450,13 @@
       return vals.has(e) ? tpl("d.ejecutaValor", { c: [{ c: e }], v: [{ v: vals.get(e) }] }) : tpl("d.ejecuta", { c: [{ c: e }] });
     }
     if (n.tipo === "ReturnStatement") { const a = P.hijo(f.nodo, "argument"); return a != null ? tpl("d.devuelve", { v: [{ v: valorDe(P, vals, a) }] }) : [t("d.termina")]; }
-    if (n.tipo === "BreakStatement") return f.sig != null ? tpl("d.break", { f: ir(f.sig) }) : [t("d.breakFin")];
+    if (n.tipo === "BreakStatement") {
+      // Sale de lo que nombra: un bucle, un switch o un bloque con etiqueta.
+      const d = f.destino;
+      if (d && d.tipo === "bloque") return f.sig != null ? tpl("d.breakBloque", { e: [{ k: d.nombre }], f: ir(f.sig) }) : tpl("d.breakBloqueFin", { e: [{ k: d.nombre }] });
+      if (d && d.tipo === "segun") return f.sig != null ? tpl("d.breakSegun", { f: ir(f.sig) }) : [t("d.breakSegunFin")];
+      return f.sig != null ? tpl("d.break", { f: ir(f.sig) }) : [t("d.breakFin")];
+    }
     if (n.tipo === "ContinueStatement") return tpl("d.continue", { f: ir(f.sig != null ? f.sig : f.bucle) });
     if (n.tipo === "ThrowStatement") { const a = P.hijo(f.nodo, "argument"); return tpl("d.lanza", { v: [{ v: valorDe(P, vals, a) }] }); }
     return tpl("d.ejecuta", { c: [{ c: f.nodo }] });
@@ -710,7 +719,13 @@
       return tpl("r.ejecuta", { c: [{ c: e }] });
     }
     if (n.tipo === "ReturnStatement") { const a = P.hijo(s, "argument"); return a != null ? tpl("r.devuelve", { e: expr(P, a) }) : [t("r.termina")]; }
-    if (n.tipo === "BreakStatement") return f.bucle != null ? tpl("r.break", { f: fichaFila(f.bucle), a: adonde(P, F, f, f.sig) }) : [t("que.b.break")];
+    if (n.tipo === "BreakStatement") {
+      const d = f.destino;
+      if (d && d.tipo === "bloque") return tpl("r.breakBloque", { e: [{ k: d.nombre }], a: adonde(P, F, f, f.sig) });
+      if (d && d.tipo === "segun") return tpl("r.breakSegun", { f: fichaFila(d.fila), a: adonde(P, F, f, f.sig) });
+      const b = d && d.tipo === "bucle" ? d.fila : f.bucle;
+      return b != null ? tpl("r.break", { f: fichaFila(b), a: adonde(P, F, f, f.sig) }) : [t("que.b.break")];
+    }
     if (n.tipo === "ContinueStatement") { const b = f.sig != null ? f.sig : f.bucle; return b != null ? tpl("r.continue", { f: fichaFila(b) }) : [t("que.b.continue")]; }
     if (n.tipo === "ThrowStatement") return tpl("r.lanza", { e: expr(P, P.hijo(s, "argument")) });
     // Python: yield es una sentencia sin hijos; su valor es el texto de detrás («yield» solo entrega None).
