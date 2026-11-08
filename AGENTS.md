@@ -13,6 +13,7 @@ Este proyecto es autónomo. Lee `README.md`, `docs/VISION.md` y el estado recien
 - Verificación habitual: `node pruebas/interaccion.cjs` y `node --check` de los scripts modificados; con Python, también `node pruebas/editor-python.cjs` y `node pruebas/python-traductor.cjs`. Usa la prueba de navegador cuando el cambio afecte interacción o arranque; no ejecutes pruebas Godot.
 - Para navegador usa el puerto dedicado 8771. La suite escribe en localStorage; evita usar el origen donde el usuario esté jugando.
 - Registra cambios relevantes y pendientes en `PROGRESO.md`. Distingue resultados actuales de comprobaciones históricas y emulación de teclado real.
+- **Al terminar una tarea con push, entrega siempre el enlace raw.githack** de lo publicado, para probarlo sin descargar nada: `https://raw.githack.com/RubenDarioMena/Code-Battles_lite/<rama>/<ruta>` (por ejemplo `educational-animation/revision/index.html?ej=cafes&modo=traza` o `Prototypes/Rocket%20Launcher/index.html`). Da también el mismo enlace fijado al commit nuevo (`/<hash completo>/…`, que no depende de la caché) y, si sirve para comparar, el del commit anterior al push. Comprueba que responden 200 antes de pasarlos.
 - No hagas commits, push ni publicación sin instrucciones del usuario. No crees tareas paralelas ni delegues salvo petición explícita.
 
 En el resumen indica qué cambió, cómo se verificó y cualquier límite material. No conviertas una migración de carpetas en una reescritura del juego.
