@@ -48,6 +48,8 @@
       if (n.tipo === "FunctionDeclaration") { const f = P.hijo(n.id, "id"); if (f != null) P.funciones.set(N[f].nombre, n.id); }
       if (n.tipo === "VariableDeclarator") { const ini = P.hijo(n.id, "init"), nom = P.hijo(n.id, "id"); if (ini != null && FUNCION.test(N[ini].tipo) && N[nom].nombre) P.funciones.set(N[nom].nombre, ini); }
     }
+    // Un nombre que se reasigna (g = otra cosa) ya no dice a qué función se llama: no se enlaza a ningún cuerpo.
+    for (const n of N) if (n.tipo === "AssignmentExpression") { const l = P.hijo(n.id, "left"); if (l != null && N[l].tipo === "Identifier") P.funciones.delete(N[l].nombre); }
     // Bucles «por cada»: for…of, for…in y lista.forEach(x => { … }), que se lee igual que un for…of.
     // sentencia → { x: la variable de cada vuelta, l: lo que recorre, cuerpo, clave: for…in, fn: la función de forEach }
     P.porCada = new Map();
@@ -276,6 +278,7 @@
   // ---------- La traza como recorrido ----------
   // paso = { i, fila, nodo, valor?, vals: Map(nodo → valor), t, t1?, espera?, vuelta, fuera?, lecturas?, diferido? } y al final { fin: true }.
   // diferido = la función en línea que corre, agendada, cuando ya acabó el código principal.
+  // regreso = la llamada next() cuyo resultado llega en este paso, después del cuerpo del generador.
   // lecturas = [{ llamada, lee: [[nodo, valor]…] }]: lo que leyó cada función en línea al llamarla en este paso.
   function recorrer(P, F, { fin = null } = {}) {
     const N = P.nodos, pasos = [];
@@ -287,6 +290,13 @@
     // código principal espera; ["luego"]: ya terminó el código principal. Al salir de un callback, el paso en
     // curso vuelve a ser el del código principal.
     let luego = false, ronda = 0, enCallback = false, principalCur = null;
+    // next() de un generador → el nodo cuyo valor trae su resultado: la llamada, o el await que la espera
+    // (generador async: la llamada solo da una promesa, que no dice nada).
+    const avances = new Map();
+    const esperados = new Set();
+    for (const n of N) if (n.tipo === "CallExpression" && avance(P, n.id)) {
+      if (N[n.padre].tipo === "AwaitExpression") { avances.set(n.padre, n.id); esperados.add(n.id); } else avances.set(n.id, n.id);
+    }
     for (const e of P.eventos) {
       if (e[0] === "luego") { luego = true; cur = null; continue; }
       if (e[0] === "corre") { ronda++; enCallback = true; principalCur = cur; continue; }
@@ -344,6 +354,10 @@
         (enEspera.get(f) || enEspera.set(f, new Map()).get(f)).set(id, v);
         continue;
       }
+      // next() de un generador: si su cuerpo ha corrido entre medias, el resultado llega después, en un paso
+      // propio de vuelta a la fila (paso.regreso), no en el paso de antes del cuerpo.
+      if (esperados.has(id)) continue;
+      if (f != null && cur && cur.fila !== f && avances.has(id)) { const c = avances.get(id); cur = nuevo(f, c); cur.regreso = c; cur.vals.set(id, v); cur.vals.set(c, v); continue; }
       // Un valor va al último paso de su fila: una llamada a una función propia intercala otros pasos.
       // En una recursión, el paso de fuera recibe su valor después que los de dentro: va al paso más reciente
       // de su fila que todavía no lo tenga (y si todos lo tienen, al más reciente).
@@ -490,6 +504,53 @@
     if (tipo === "ArrayExpression") return N[ini].tipo === "ArrayExpression";
     return N[ini].tipo === "NewExpression" && N[P.hijo(ini, "callee")]?.nombre === tipo;
   }
+  // ---------- Generadores ----------
+  // ¿El yield i delega (yield*, yield from)? Sin la marca (tablas antiguas o Python), por su texto.
+  const delega = (P, i) => !!P.nodos[i].delega || /^yield\s*(\*|from\b)/.test(P.txt(i));
+  // ¿Es generadora la función fn? (function*; en Python, un def con yield). Sin la marca (tablas antiguas), por su texto.
+  const generadora = (P, fn) => fn != null && FUNCION.test(P.nodos[fn].tipo) && (!!P.nodos[fn].generador || /^(async\s+)?function\s*\*/.test(P.txt(fn)));
+  // La función propia a la que llama la llamada i, si se sabe por su nombre (function g, const g = function…).
+  function funcionDeLlamada(P, i) {
+    const N = P.nodos, c = P.hijo(i, "callee");
+    if (N[c].tipo !== "Identifier") return null;
+    const d = declaracion(P, c);
+    if (!d) return null;
+    // Si el nombre se reasigna (g = otra cosa), ya no se sabe a qué función llama.
+    if (N.some(x => x.tipo === "AssignmentExpression" && (() => { const l = P.hijo(x.id, "left"); return N[l].tipo === "Identifier" && N[l].nombre === N[c].nombre && declaracion(P, l)?.nodo === d.nodo; })())) return null;
+    if (d.clase === "funcion") return d.nodo;
+    if (N[d.nodo].tipo === "VariableDeclarator" && d.clase === "const") { const ini = P.hijo(d.nodo, "init"); return ini != null && FUNCION.test(N[ini].tipo) ? ini : null; }
+    return null;
+  }
+  // ¿La llamada i crea un generador? (llama a una función generadora) → esa función, o null.
+  function creaGenerador(P, i) {
+    if (i == null || P.nodos[i].tipo !== "CallExpression") return null;
+    const fn = funcionDeLlamada(P, i);
+    return generadora(P, fn) ? fn : null;
+  }
+  // ¿La llamada i avanza un generador? g().next(), it.next() (it = g(), sin reasignar) o next(it) en Python
+  // → { fn, gen } (la función generadora y el nodo del generador en el código), o null.
+  function avance(P, i) {
+    const N = P.nodos;
+    if (N[i].tipo !== "CallExpression") return null;
+    const c = P.hijo(i, "callee");
+    let gen = null;
+    if (N[c].tipo === "MemberExpression" && !N[c].computado && N[P.hijo(c, "property")]?.nombre === "next") gen = P.hijo(c, "object");
+    else if (P.lenguaje === "python" && N[c].tipo === "Identifier" && N[c].nombre === "next" && !declaracion(P, c)) gen = P.hijos(i, "arguments")[0];
+    if (gen == null) return null;
+    // Un generador async: next() da una promesa; si nadie la espera (await), el programa sigue sin el valor.
+    const con = (r) => r && { ...r, async: /^async\b/.test(P.txt(r.fn)), esperado: N[N[i].padre].tipo === "AwaitExpression" };
+    if (N[gen].tipo === "CallExpression") { const fn = creaGenerador(P, gen); return fn != null ? con({ fn, gen }) : null; }
+    if (N[gen].tipo !== "Identifier") return null;
+    const d = declaracion(P, gen);
+    if (!d || N[d.nodo].tipo !== "VariableDeclarator") return null;
+    const fn = creaGenerador(P, P.hijo(d.nodo, "init"));
+    if (fn == null) return null;
+    // Si se reasigna, ya no se sabe qué generador es.
+    const misma = (x) => N[x].tipo === "Identifier" && N[x].nombre === N[gen].nombre && declaracion(P, x)?.nodo === d.nodo;
+    if (N.some(x => x.tipo === "AssignmentExpression" && misma(P.hijo(x.id, "left")))) return null;
+    if (P.lenguaje === "python" && N.some(x => x.tipo === "VariableDeclarator" && x.id !== d.nodo && misma(P.hijo(x.id, "id")))) return null;
+    return con({ fn, gen });
+  }
   // La llamada i agenda una función para después del código principal (queueMicrotask, setTimeout, setInterval
   // sin redefinir)? → el nodo de la función (escrita ahí o por su nombre), o null.
   function agendada(P, i) {
@@ -532,5 +593,5 @@
     return out;
   }
 
-  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, agendada, verdad, PALETA };
+  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, agendada, generadora, creaGenerador, avance, delega, verdad, PALETA };
 });

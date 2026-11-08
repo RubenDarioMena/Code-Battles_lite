@@ -1,0 +1,36 @@
+# prog · js · lectura · es
+1 paso n0 | const it = g();
+    etiqueta: Crea un generador con [g()] y lo guarda en [it]
+    lectura:  Crea un generador con [g()] y lo guarda en [it]: todavía no ejecuta el cuerpo, en (4).
+    sigue: sig=2 si=· no=·
+2 paso n0 | it.next();
+    etiqueta: Pide el siguiente valor a [it]
+    lectura:  Pide a [it] su siguiente valor sin esperarlo: el cuerpo, en (4), empieza a correr, next() devuelve una promesa y el programa sigue aquí sin el valor.
+    sigue: sig=3 si=· no=·
+3 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+4 funcion n0 | async function* g() { await esperar(0.01); yield 1; }
+    etiqueta: Generador g()
+    lectura:  Define el generador g. Llamarlo crea un generador sin ejecutar nada: su cuerpo, las filas (5) a (6), corre a trozos, cada vez que alguien le pide el siguiente valor (con next o recorriéndolo con for).
+    sigue: sig=· si=5 no=·
+5 paso n1 | await esperar(0.01);
+    etiqueta: Espera 0,01 s
+    lectura:  Espera 0,01 s; mientras, sigue con su última orden.
+    sigue: sig=6 si=· no=·
+6 paso n1 | yield 1;
+    etiqueta: Entrega 1 y se para
+    lectura:  Se para aquí y entrega 1 a quien pidió el siguiente valor; el generador sigue desde aquí cuando le pidan otro.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin
+resumen: Eso es todo el programa. Los generadores de (4) solo avanzan cuando alguien les pide un valor.
+pasos:
+  1 Crea un generador con [g()] y lo guarda en [it]: el cuerpo, en (4), todavía no se ejecuta.
+  2 Pide a [it] su siguiente valor sin esperarlo: el cuerpo, en (4), empieza a correr, y next() devuelve enseguida una promesa.
+  3 Escribe «"fin"» en la consola.
+  4 Ejecuta [async function* g() { await esperar(0.01); yield 1; }].
+  5 Espera 0,01 s.
+  6 Se para aquí y entrega «1» a quien pidió el valor; el generador seguirá desde aquí cuando le pidan otro.
+  · El programa termina. | Consola:fin

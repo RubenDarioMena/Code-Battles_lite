@@ -1,0 +1,31 @@
+# prog · js · lectura · es
+1 paso n0 | const o = { next() { console.log("n"); return 1; } };
+    etiqueta: Guarda en [o]: [{ next() { console.log("n"); return 1; } }]
+    lectura:  Calcula [{ next() { console.log("n"); return 1; } }] y lo guarda en [o].
+    sigue: sig=2 si=· no=·
+2 paso n0 | o.next();
+    etiqueta: [o.next()]
+    lectura:  Ejecuta [o.next()]. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+3 funcion n0 | () { console.log("n"); return 1; }
+    etiqueta: Función sin nombre, línea 1()
+    lectura:  Define la función …. Su cuerpo, las filas (4) a (5), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=4 no=·
+4 paso n1 | console.log("n");
+    etiqueta: Imprime "n"
+    lectura:  Escribe "n" en la consola.
+    sigue: sig=5 si=· no=·
+5 paso n1 | return 1;
+    etiqueta: Devuelve 1
+    lectura:  Termina la función y devuelve 1.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: n
+resumen: Eso es todo el programa. Las funciones de (3) solo se ejecutan si alguien las llama.
+pasos:
+  1 [o] = { next() { console.log("n"); return 1; } }.
+  2 Ejecuta [o.next()].
+  3 Ejecuta [() { console.log("n"); return 1; }].
+  4 Escribe «"n"» en la consola.
+  5 Devuelve «1» a quien llamó a la función.
+  · El programa termina. | Consola:n

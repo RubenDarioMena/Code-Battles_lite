@@ -4,7 +4,7 @@
  *   codigo  el mismo programa con ganchos __T en línea: misma cantidad de líneas, así la línea en ejecución
  *           y los errores del juego siguen coincidiendo (el juego añade después sus __L(linea)).
  *   nodos   tabla de todos los nodos del árbol: { id, tipo, a, b, linea, lineaFin, padre, campo, hijos, prof,
- *           ganchos, nombre?, op?, valor?, clase? }. a y b son posiciones en la fuente original.
+ *           ganchos, nombre?, op?, valor?, clase?, generador?, delega? }. a y b son posiciones en la fuente original.
  *   comentarios  [{ a, b, linea, texto, bloque }]: las notas del autor, para explicar la intención.
  *
  * Ganchos (cada uno deja un evento en la traza, en orden de ejecución):
@@ -50,6 +50,8 @@
       if (n.operator) x.op = n.operator;
       if (n.type === "Literal") x.valor = n.regex ? String(n.value) : n.value;
       if (n.type === "VariableDeclaration") x.clase = n.kind;
+      if (n.generator) x.generador = true; // function*: llamarla crea un generador sin ejecutar su cuerpo
+      if (n.type === "YieldExpression" && n.delegate) x.delega = true; // yield*: entrega uno a uno los de otro
       if (n.type === "MemberExpression") { x.computado = !!n.computed; if (n.optional) x.opcional = true; }
       if (n.type === "CallExpression" && n.optional) x.opcional = true;
       nodos.push(x); info.set(n, x);

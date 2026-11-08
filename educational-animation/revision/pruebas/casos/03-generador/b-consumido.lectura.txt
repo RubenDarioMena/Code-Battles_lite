@@ -1,0 +1,26 @@
+# prog · js · lectura · es
+1 paso n0 | g().next();
+    etiqueta: Pide el siguiente valor a [g()]
+    lectura:  Pide a [g()] su siguiente valor: el cuerpo, en (3), corre hasta el siguiente yield o hasta el final, y después sigue aquí.
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+3 funcion n0 | function* g() { console.log("cuerpo"); }
+    etiqueta: Generador g()
+    lectura:  Define el generador g. Llamarlo crea un generador sin ejecutar nada: su cuerpo, la fila (4), corre a trozos, cada vez que alguien le pide el siguiente valor (con next o recorriéndolo con for).
+    sigue: sig=· si=4 no=·
+4 paso n1 | console.log("cuerpo");
+    etiqueta: Imprime "cuerpo"
+    lectura:  Escribe "cuerpo" en la consola.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: cuerpo / fin
+resumen: Eso es todo el programa. Los generadores de (3) solo avanzan cuando alguien les pide un valor.
+pasos:
+  1 Pide a [g()] su siguiente valor: corre el cuerpo, en (3), hasta el siguiente yield o hasta el final.
+  2 Escribe «"fin"» en la consola.
+  3 Ejecuta [function* g() { console.log("cuerpo"); }].
+  4 Escribe «"cuerpo"» en la consola.
+  · El programa termina. | Consola:cuerpo / fin

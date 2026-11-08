@@ -51,10 +51,12 @@
     const raizL = plano(L.parser.parse(src));
 
     // Un error de sintaxis se avisa como acorn: mensaje y loc.line.
-    (function errores(n) {
+    // lezer 1.1.19 no acepta «yield» sin valor: deja un error vacío justo detrás. Python sí lo acepta.
+    (function errores(n, padre) {
+      if (n.e && n.a === n.b && padre && /^Yield(Statement|Expression)$/.test(padre.t)) return;
       if (n.e) { const e = new SyntaxError(`«${src.slice(n.a, n.a + 12).split("\n")[0].trim() || "…"}» (${lineaDe(n.a)})`); e.loc = { line: lineaDe(n.a), column: n.a - inicios[lineaDe(n.a) - 1] }; throw e; }
-      n.h.forEach(errores);
-    })(raizL);
+      n.h.forEach(h => errores(h, n));
+    })(raizL, null);
 
     const comentarios = [];
     (function notas(n) { if (n.t === "Comment") comentarios.push({ a: n.a, b: n.b, linea: lineaDe(n.a), texto: txt(n).replace(/^#\s?/, "").trim(), bloque: false }); n.h.forEach(notas); })(raizL);
@@ -128,7 +130,9 @@
           const fuera = ambito;
           ambito = new Set();
           const ps = parametros(params);
-          const f = nodo("FunctionDeclaration", n.a, n.b, [["id", nom ? expresion(nom) : null], ...ps.map(p => ["params", p]), ["body", cuerpo(body)]], { async: h[0].t === "async" });
+          // Un yield en su cuerpo (no en una función o lambda de dentro) la hace generadora.
+          const generador = (function hay(x) { return x !== body && /^(FunctionDefinition|LambdaExpression)$/.test(x.t) ? false : /^Yield(Statement|Expression)$/.test(x.t) || x.h.some(hay); })(body);
+          const f = nodo("FunctionDeclaration", n.a, n.b, [["id", nom ? expresion(nom) : null], ...ps.map(p => ["params", p]), ["body", cuerpo(body)]], { async: h[0].t === "async", ...(generador ? { generador } : {}) });
           ambito = fuera;
           return [f];
         }
@@ -296,7 +300,7 @@
       // Sin los saltos de línea del final (lezer los incluye en los cuerpos).
       const b = x.a + src.slice(x.a, x.b).trimEnd().length;
       const y = { id: nodos.length, tipo: x.tipo, a: x.a, b, linea: lineaDe(x.a), lineaFin: lineaDe(Math.max(x.a, b - 1)), padre, campo, hijos: [], prof, ganchos: "" };
-      for (const k of ["nombre", "op", "valor", "clase", "computado", "py", "async"]) if (x[k] !== undefined) y[k] = x[k];
+      for (const k of ["nombre", "op", "valor", "clase", "computado", "py", "async", "generador"]) if (x[k] !== undefined) y[k] = x[k];
       nodos.push(y);
       if (padre != null) nodos[padre].hijos.push(y.id);
       for (const [c, h] of x.hijos) visitar(h, y.id, c, prof + 1);

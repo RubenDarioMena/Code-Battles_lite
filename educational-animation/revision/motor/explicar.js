@@ -170,7 +170,12 @@
   }
   const esFuncion = (P, i) => /^(FunctionExpression|ArrowFunctionExpression)$/.test(P.nodos[i].tipo);
   const esFijo = (P, i) => { const n = P.nodos[i]; return n.tipo === "Literal" || (n.tipo === "UnaryExpression" && P.nodos[P.hijo(i, "argument")].tipo === "Literal") || ((n.tipo === "ArrayExpression" || n.tipo === "ObjectExpression" || n.tipo === "TemplateLiteral") && P.txt(i).length <= 24); };
+  // La fila del cuerpo de la función generadora fn (su sección), como ficha; o el código de la llamada.
+  const filaGenerador = (F, fn, i) => F.filaDe.has(fn) ? [{ f: F.filaDe.get(fn) }] : [{ c: i }];
   function etiquetaLlamada(P, i) {
+    if (FL.creaGenerador(P, i) != null) return tpl("f.creaGenerador", { c: [{ c: i }] });
+    const av = FL.avance(P, i);
+    if (av) return tpl("f.avanza", { g: [{ c: av.gen }] });
     const r = resolver(P, i);
     if (r && r.clase === "metodo" && r.def) { const x = textoLlamada(P, r, i, "etiqueta"); if (x) return x; }
     const f = P.hijo(i, "callee");
@@ -185,6 +190,7 @@
         if (ini == null) return tpl("f.declara", { x });
         if (esFuncion(P, ini)) return tpl("f.defineFuncion", { x });
         if (FL.agendada(P, ini) != null) return tpl("f.agendaGuarda", { fn: [{ c: FL.agendada(P, ini) }], x });
+        if (FL.creaGenerador(P, ini) != null) return tpl("f.creaGeneradorEn", { c: [{ c: ini }], x });
         if (esFijo(P, ini)) return tpl("f.empieza", { x, v: [{ k: P.txt(ini) }] });
         return tpl("f.guarda", { x, e: expr(P, ini) });
       }), "; ");
@@ -198,10 +204,12 @@
           return tpl(N[d].op === "+" ? "f.suma" : "f.resta", { k: expr(P, P.hijo(d, "right")), x: xl });
         if (x.op === "+=" || x.op === "-=") return tpl(x.op === "+=" ? "f.suma" : "f.resta", { k: expr(P, d), x: xl });
         if (x.op === "=" && FL.agendada(P, d) != null) return tpl("f.agendaGuarda", { fn: [{ c: FL.agendada(P, d) }], x: xl });
+        if (x.op === "=" && FL.creaGenerador(P, d) != null) return tpl("f.creaGeneradorEn", { c: [{ c: d }], x: xl });
         return tpl("f.asigna", { x: xl, e: x.op === "=" ? expr(P, d) : [{ c: e }] });
       }
       if (x.tipo === "UpdateExpression") return tpl(x.op === "++" ? "f.suma" : "f.resta", { k: "1", x: [{ c: P.hijo(e, "argument") }] });
       if (x.tipo === "CallExpression") { const fn = FL.agendada(P, e); return fn != null ? tpl("f.agenda", { fn: [{ c: fn }] }) : etiquetaLlamada(P, e); }
+      if (x.tipo === "YieldExpression") { const a = P.hijo(e, "argument"); return tpl(FL.delega(P, e) ? "f.yieldDelega" : "f.yield", { v: a != null ? expr(P, a) : [{ k: "undefined" }] }); }
       return [{ c: e }];
     }
     if (n.tipo === "ReturnStatement") { const a = P.hijo(s, "argument"); return a != null ? tpl("f.devuelve", { e: expr(P, a) }) : [t("f.termina")]; }
@@ -226,7 +234,7 @@
     if (f.tipo === "funcion") {
       const nom = n.tipo === "FunctionDeclaration" ? P.hijo(f.nodo, "id") : null;
       const nombre = nom != null ? N[nom].nombre : (n.padre != null && N[n.padre].tipo === "VariableDeclarator" ? N[P.hijo(n.padre, "id")].nombre : null);
-      return tpl("f.funcion", { f: nombre != null ? [{ k: nombre }] : t("f.anonima", { l: n.linea }), p: [{ k: P.hijos(f.nodo, "params").map(p => P.txt(p)).join(", ") }] });
+      return tpl(FL.generadora(P, f.nodo) ? "f.generador" : "f.funcion", { f: nombre != null ? [{ k: nombre }] : t("f.anonima", { l: n.linea }), p: [{ k: P.hijos(f.nodo, "params").map(p => P.txt(p)).join(", ") }] });
     }
     if (f.tipo === "intento") return [t("f.intenta")];
     if (f.tipo === "segun") return tpl("f.segun", { e: expr(P, P.hijo(f.nodo, "discriminant")) });
@@ -281,6 +289,11 @@
     return [];
   }
   function llamada(P, F, i, vals) {
+    const gfn = FL.creaGenerador(P, i);
+    if (gfn != null) return tpl("d.creaGenerador", { c: [{ c: i }], f: filaGenerador(F, gfn, i) });
+    const av = FL.avance(P, i);
+    if (av && !vals.has(i)) return tpl(av.async && !av.esperado ? "d.avanzaAsync" : "d.avanza", { g: [{ c: av.gen }], f: filaGenerador(F, av.fn, i) });
+    if (av) return regreso(P, F, i, vals.get(i));
     const r = resolver(P, i), v = vals.get(i);
     if (r && r.def && r.def.clase === "consola") {
       const args = P.hijos(i, "arguments").map(a => plano(valorDe(P, vals, a)));
@@ -306,6 +319,14 @@
     if (n.tipo !== "ExpressionStatement") return null;
     const e = P.hijo(s, "expression");
     return N[e].tipo === "AssignmentExpression" && N[e].op === "=" ? FL.agendada(P, P.hijo(e, "right")) : FL.agendada(P, e);
+  }
+  // El resultado de next(): se paró en un yield (con su valor) o el cuerpo terminó.
+  function regreso(P, F, i, v) {
+    if (v && typeof v === "object" && !("$" in v) && "done" in v) {
+      if (v.done === true) return tpl("d.regresoFin", { c: [{ c: i }], v: [{ v: "value" in v ? v.value : { $: "u" } }] });
+      return tpl("d.regresoYield", { c: [{ c: i }], v: [{ v: "value" in v ? v.value : { $: "u" } }] });
+    }
+    return [...tpl("d.da", { c: [{ c: i }], v: [{ v }] }), "."];
   }
   // Lo que hace una función en línea al ejecutarse (su cuerpo de una expresión); con llaves, lo dicen sus filas.
   function hace(P, F, fn, vals) {
@@ -337,6 +358,17 @@
   });
   function detalle(P, F, R, paso, G = {}) {
     if (paso.fin) return final(P, R, paso, G);
+    if (paso.regreso != null) {
+      // De vuelta del cuerpo: el resultado de next() y, si la sentencia hace algo más con él, el resto.
+      const st = F.filas[paso.fila].nodo, sola = P.nodos[st].tipo === "ExpressionStatement" && P.hijo(st, "expression") === paso.regreso;
+      const vuelta = regreso(P, F, paso.regreso, paso.vals.get(paso.regreso));
+      return sola ? vuelta : [...vuelta, " ", ...detalleFila(P, F, R, paso)];
+    }
+    {
+      // Antes del cuerpo: si la fila avanza un generador y su resultado llegará después, solo se dice que lo pide.
+      const N = P.nodos, av = paso.fila != null ? N.filter(x => x.tipo === "CallExpression" && F.duena(x.id) === paso.fila && !paso.vals.has(x.id) && FL.avance(P, x.id)) : [];
+      if (av.length && R && R.pasos.some(p => p.i > paso.i && p.regreso === av[0].id)) { const a = FL.avance(P, av[0].id); return tpl(a.async && !a.esperado ? "d.avanzaAsync" : "d.avanza", { g: [{ c: a.gen }], f: filaGenerador(F, a.fn, av[0].id) }); }
+    }
     if (paso.diferido != null) return [...tpl(paso.luego ? "d.diferido" : "d.diferidoEspera", { fn: [{ c: paso.diferido }] }), ...hace(P, F, paso.diferido, paso.vals)];
     // En la traza, la pista de ámbito va en la primera visita a la fila: no se repite en cada vuelta.
     const primera = !R || !R.pasos.some(p => p.i < paso.i && p.fila === paso.fila);
@@ -369,6 +401,7 @@
         if (ini == null) return tpl("d.declara", { x });
         if (esFuncion(P, ini)) return tpl("d.funcionGuardada", { x });
         if (FL.agendada(P, ini) != null) return tpl("d.agendaGuarda", { fn: [{ c: FL.agendada(P, ini) }], x, v: [{ v: valorDe(P, vals, ini) }] });
+        if (FL.creaGenerador(P, ini) != null) return tpl("d.creaGeneradorEn", { c: [{ c: ini }], x, f: filaGenerador(F, FL.creaGenerador(P, ini), ini) });
         const v = vals.has(ini) || P.nodos[ini].tipo === "Literal" ? [{ v: valorDe(P, vals, ini) }] : [{ k: P.txt(ini).replace(/\s+/g, " ") }];
         return [...evaluacion(P, ini, vals), ...tpl("d.guarda", { x, v })];
       }), " ");
@@ -388,8 +421,17 @@
       if (x.tipo === "AssignmentExpression") {
         const l = P.hijo(e, "left"), d = P.hijo(e, "right");
         if (x.op === "=" && FL.agendada(P, d) != null) return tpl("d.agendaGuarda", { fn: [{ c: FL.agendada(P, d) }], x: [{ c: l }], v: [{ v: valorDe(P, vals, d) }] });
+        if (x.op === "=" && FL.creaGenerador(P, d) != null) return tpl("d.creaGeneradorEn", { c: [{ c: d }], x: [{ c: l }], f: filaGenerador(F, FL.creaGenerador(P, d), d) });
+        // Una función no deja valor en la traza: no es «undefined».
+        if (x.op === "=" && esFuncion(P, d)) return tpl("d.funcionGuardada", { x: [{ c: l }] });
         if (x.op === "=") return [...evaluacion(P, d, vals), ...tpl("d.ahoraVale", { x: [{ c: l }], v: [{ v: valorDe(P, vals, d) }] })];
         return tpl("d.ejecuta", { c: [{ c: e }] });
+      }
+      if (x.tipo === "YieldExpression") {
+        const a = P.hijo(e, "argument");
+        // yield*: lo que entrega es cada valor del otro, no el argumento; no se inventa cuál.
+        if (FL.delega(P, e)) return tpl("d.yieldDelega", { v: a != null ? [{ c: a }] : [{ k: "undefined" }] });
+        return tpl("d.yield", { v: [{ v: a != null ? valorDe(P, vals, a) : { $: "u" } }] });
       }
       if (x.tipo === "UpdateExpression" && typeof vals.get(e) === "number") {
         const v = vals.get(e), d = x.op === "++" ? 1 : -1, prefijo = P.txt(e).startsWith(x.op);
@@ -596,6 +638,10 @@
     return tpl(salta ? "r.salta" : "r.sigue", { f: fichaFila(sig) });
   }
   function llamadaHumana(P, F, f, i) {
+    const gfn = FL.creaGenerador(P, i);
+    if (gfn != null) return tpl("r.creaGenerador", { c: [{ c: i }], f: filaGenerador(F, gfn, i) });
+    const av = FL.avance(P, i);
+    if (av) return tpl(av.async && !av.esperado ? "r.avanzaAsync" : "r.avanza", { g: [{ c: av.gen }], f: filaGenerador(F, av.fn, i) });
     const r = resolver(P, i);
     if (r && r.def && r.def.clase === "consola") return tpl("r.imprime", { e: unir(P.hijos(i, "arguments").map(a => expr(P, a)), " ") });
     if (r && r.def) {
@@ -635,6 +681,7 @@
     if (n.tipo === "VariableDeclaration") {
       return unir(P.hijos(s, "declarations").map(d => {
         const nom = P.hijo(d, "id"), ini = P.hijo(d, "init"), x = [{ c: nom }];
+        if (ini != null && FL.creaGenerador(P, ini) != null) return tpl("r.creaGeneradorEn", { c: [{ c: ini }], x, f: filaGenerador(F, FL.creaGenerador(P, ini), ini) });
         if (ini != null && FL.agendada(P, ini) != null) return [...tpl("r.agendaGuarda", { fn: [{ c: FL.agendada(P, ini) }], x }), " ", { mas: [t("r.agendaCuando")] }];
         return ini == null ? tpl("r.declara", { x }) : guardaHumana(P, F, f, x, ini);
       }), " ");
@@ -648,10 +695,12 @@
           return tpl(N[d].op === "+" ? "r.suma" : "r.resta", { k: expr(P, P.hijo(d, "right")), x: xl });
         if (x.op === "+=" || x.op === "-=") return tpl(x.op === "+=" ? "r.suma" : "r.resta", { k: expr(P, d), x: xl });
         if (x.op === "=" && FL.agendada(P, d) != null) return [...tpl("r.agendaGuarda", { fn: [{ c: FL.agendada(P, d) }], x: xl }), " ", { mas: [t("r.agendaCuando")] }];
+        if (x.op === "=" && FL.creaGenerador(P, d) != null) return tpl("r.creaGeneradorEn", { c: [{ c: d }], x: xl, f: filaGenerador(F, FL.creaGenerador(P, d), d) });
         if (x.op === "=") { const sinAwait = N[d].tipo === "AwaitExpression" ? P.hijo(d, "argument") : d, r = N[sinAwait].tipo === "CallExpression" ? resolver(P, sinAwait) : null; if (r && r.def && r.def.clase === "lectura") return guardaHumana(P, F, f, xl, d); }
         return tpl("r.asigna", { x: xl, e: x.op === "=" ? expr(P, d) : [{ c: e }] });
       }
       if (x.tipo === "UpdateExpression") return tpl(x.op === "++" ? "r.suma" : "r.resta", { k: "1", x: [{ c: P.hijo(e, "argument") }] });
+      if (x.tipo === "YieldExpression") { const a = P.hijo(e, "argument"); return tpl(FL.delega(P, e) ? "r.yieldDelega" : "r.yield", { v: a != null ? expr(P, a) : [{ k: "undefined" }] }); }
       if (x.tipo === "CallExpression") {
         const fn = FL.agendada(P, e), cal = P.hijo(e, "callee");
         if (fn != null) return [...tpl("r.agenda", { fn: [{ c: fn }] }), " ", { mas: [t("r.agendaCuando")] }];
@@ -664,6 +713,12 @@
     if (n.tipo === "BreakStatement") return f.bucle != null ? tpl("r.break", { f: fichaFila(f.bucle), a: adonde(P, F, f, f.sig) }) : [t("que.b.break")];
     if (n.tipo === "ContinueStatement") { const b = f.sig != null ? f.sig : f.bucle; return b != null ? tpl("r.continue", { f: fichaFila(b) }) : [t("que.b.continue")]; }
     if (n.tipo === "ThrowStatement") return tpl("r.lanza", { e: expr(P, P.hijo(s, "argument")) });
+    // Python: yield es una sentencia sin hijos; su valor es el texto de detrás («yield» solo entrega None).
+    if (n.tipo === "PySentencia" && n.py === "YieldStatement") {
+      if (FL.delega(P, s)) return tpl("r.yieldDelega", { v: [{ k: P.txt(s).replace(/^yield\s+from\b/, "").trim() }] });
+      const v = P.txt(s).replace(/^yield\b/, "").trim();
+      return tpl("r.yield", { v: [{ k: v || "None" }] });
+    }
     return tpl("r.ejecuta", { c: [{ c: s }] });
   }
   function describir(P, F, i) {
@@ -687,11 +742,17 @@
     } else if (f.tipo === "funcion") {
       const nom = n.tipo === "FunctionDeclaration" ? P.hijo(f.nodo, "id") : null;
       const nombre = nom != null ? N[nom].nombre : (n.padre != null && N[n.padre].tipo === "VariableDeclarator" ? N[P.hijo(n.padre, "id")].nombre : "…");
-      out = filas ? tpl("r.funcion", { f: [{ k: nombre }], filas }) : tpl("r.funcionVacia", { f: [{ k: nombre }] });
+      if (FL.generadora(P, f.nodo)) out = tpl("r.generador", { f: [{ k: nombre }], filas: filas || [t("r.vacio")] });
+      else out = filas ? tpl("r.funcion", { f: [{ k: nombre }], filas }) : tpl("r.funcionVacia", { f: [{ k: nombre }] });
     } else if (f.tipo === "intento") out = tpl("r.intenta", { filas: filas || [t("r.vacio")] });
     else if (f.tipo === "segun") out = tpl("r.segun", { e: expr(P, P.hijo(f.nodo, "discriminant")) });
     else {
       out = [...pasoHumano(P, F, f)];
+      const st = P.nodos[f.nodo], propia = st.tipo === "ExpressionStatement" ? P.hijo(f.nodo, "expression") : null;
+      for (const x of N.filter(x => x.tipo === "CallExpression" && x.id !== propia && F.duena(x.id) === i && FL.avance(P, x.id))) {
+        const a = FL.avance(P, x.id);
+        out.push(" ", ...tpl("r.avanzaDentro", { c: [{ c: x.id }], g: [{ c: a.gen }], f: filaGenerador(F, a.fn, x.id) }));
+      }
       // Una salida lateral no repite «solo si…»: el paso anterior (su decisión) ya lo ha dicho.
       // La última fila de una vuelta: después vuelve al bucle (un continue ya lo dice).
       const riel = F.rieles.find(r => r.de === i);
@@ -709,7 +770,9 @@
     const L = R && R.principal != null ? F.filas[R.principal] : null;
     const sale = L && FL.dentro(P, F, L.i).some(k => F.filas[k].salto === "break" && F.filas[k].bucle === L.i);
     const out = L && L.infinito && !sale ? tpl(P.serie && P.serie !== "libre" ? "r.finSiempreJuego" : "r.finSiempre", { f: fichaFila(L.i) }) : [t("r.fin")];
-    if (F.secciones.length) out.push(" ", ...tpl("r.finFunciones", { f: unir(F.secciones.map(fichaFila), ", ") }));
+    const gens = F.secciones.filter(s => FL.generadora(P, F.filas[s].nodo)), fns = F.secciones.filter(s => !gens.includes(s));
+    if (fns.length) out.push(" ", ...tpl("r.finFunciones", { f: unir(fns.map(fichaFila), ", ") }));
+    if (gens.length) out.push(" ", ...tpl("r.finGeneradores", { f: unir(gens.map(fichaFila), ", ") }));
     return out;
   }
 

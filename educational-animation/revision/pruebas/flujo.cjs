@@ -412,5 +412,60 @@ for (let i = 1; i <= 4; i++) {
     I18N.cambiarIdioma('es');
   }
 
+  // ---------- Crear un generador frente a consumirlo (caso 03) ----------
+  {
+    const leer = (x) => fs.readFileSync(path.join(RAIZ, 'educational-animation/revision/pruebas/casos/03-generador', x), 'utf8');
+    const lec = (c, num) => plano(c.P, c.F, E.describir(c.P, c.F, c.F.filas.find(f => f.num === num).i));
+    const cr = await revisar(leer('a-creado.js')), co = await revisar(leer('b-consumido.js'));
+    eq([cr.r.salida.map(x => x.texto), co.r.salida.map(x => x.texto)], [['fin'], ['cuerpo', 'fin']], 'generador: las consolas que hay que predecir');
+    eq([cr.etiqueta(0), co.etiqueta(0)], ['1 Crea un generador con [g()]', '1 Pide el siguiente valor a [g()]'], 'generador: etiquetas de la fila 1');
+    eq(lec(cr, 1), 'Crea un generador con [g()]: todavía no ejecuta el cuerpo, en (3).', 'creado: ya no dice que ejecuta la función');
+    ok(lec(cr, 3).startsWith('Define el generador g. Llamarlo crea un generador sin ejecutar nada'), 'la fila de function* dice que es un generador');
+    ok(plano(cr.P, cr.F, E.resumen(cr.P, cr.F, cr.R)).includes('Los generadores de (3) solo avanzan cuando alguien les pide un valor.'), 'resumen de generadores');
+    eq(cr.pasos.slice(0, 1), ['1 Crea un generador con [g()]: el cuerpo, en (3), todavía no se ejecuta.'], 'creado: sin «sigue en (3)» ni «{}»');
+    eq(co.pasos, ['1 Pide a [g()] su siguiente valor: corre el cuerpo, en (3), hasta el siguiente yield o hasta el final.', '4 Escribe «"cuerpo"» en la consola.',
+      '1 Vuelve de [g().next()]: el cuerpo del generador terminó (done: true) y da «undefined».', '2 Escribe «"fin"» en la consola.', '- El programa termina. | Consola:cuerpo / fin'], 'consumido: el cuerpo antes del resultado de next()');
+    const vy = await revisar(leer('c-varios-yield.js'));
+    eq(vy.r.salida.map(x => x.texto), ['a', '1', 'b', 'fin'], 'varios yield: consola');
+    eq(vy.pasos.map(p => p.split(' ')[0]), ['1', '2', '6', '7', '2', '3', '8', '9', '3', '4', '-'], 'varios yield: cada next() reanuda donde se paró');
+    eq(vy.pasos[4], '2 Vuelve de [it.next()]: el generador se paró en un yield y da «1». Escribe «"1"» en la consola.', 'varios yield: vuelve con el valor y lo imprime');
+    eq(lec(vy, 7), 'Se para aquí y entrega 1 a quien pidió el siguiente valor; el generador sigue desde aquí cuando le pidan otro.', 'la fila del yield');
+    ok(lec(vy, 2).includes('Antes, [it.next()] pide a [it] su siguiente valor'), 'un next() dentro de otra cosa también se dice');
+    const nm = await revisar(leer('e-normal.js'));
+    eq([nm.etiqueta(0), lec(nm, 1)], ['1 Llama a [h()]', 'Ejecuta la función h ((3)) y, cuando acaba, sigue aquí.'], 'función normal: sin cambios');
+    const np = await revisar(leer('f-next-propio.js'));
+    ok(!np.F.filas.some(f => /generador/.test(lec(np, f.num))), 'un objeto con next propio no es un generador');
+    const ra = await revisar(leer('g-reasignado.js'));
+    eq([ra.etiqueta(2), ra.pasos[2]], ['3 [it.next()]', '3 [it.next()] → «{"done":true}».'], 'it reasignado: no se afirma de qué generador es');
+    const as = await revisar(leer('h-async.js'));
+    ok(!as.F.filas.some(f => /generador/.test(lec(as, f.num))), 'async no es generador');
+    const ex = await revisar(leer('i-expresion.js'));
+    eq(ex.etiqueta(1), '2 Crea un generador con [g()] y lo guarda en [it]', 'const g = function* (): también');
+    const py = (x) => { const p = globalThis.CMGPythonRevision.leer(leer(x)), P = FL.preparar(p, { serie: 'libre' }), F = FL.construir(P); return { P, F, lec: (num) => plano(P, F, E.describir(P, F, F.filas.find(f => f.num === num).i)) }; };
+    const pc = py('j-python-creado.py'), pn = py('k-python-next.py');
+    eq([pc.lec(1), pn.lec(1).slice(0, 33)], ['Crea un generador con [g()]: todavía no ejecuta el cuerpo, en (3).', 'Pide a [g()] su siguiente valor: '], 'Python: g() frente a next(g())');
+    eq(pc.lec(5), 'Se para aquí y entrega None a quien pidió el siguiente valor; el generador sigue desde aquí cuando le pidan otro.', 'Python: yield sin valor (antes, error de sintaxis)');
+    // Turno 2 de Astra (ciclo 03): reasignada, yield* y generador async.
+    const rs = await revisar(leer('l-reasignada.js'));
+    ok(!rs.pasos.some(p => /generador/.test(p)) && !/generador/.test(lec(rs, 2)) && rs.r.salida[0].texto === 'normal', 'function* g reasignada: no se afirma que g() cree un generador');
+    eq(rs.pasos[0], '1 Guarda la función en [g]: se ejecuta cuando alguien la llama.', 'asignar una función no es «undefined»');
+    const dl = await revisar(leer('m-delega.js'));
+    eq([dl.etiqueta(4), dl.pasos[2]], ['5 Entrega uno a uno los valores de [[1, 2]]', '5 Entrega uno a uno los valores de [[1, 2]]: se para en cada uno, y cada next() recibe el siguiente.'], 'yield*: delega, sin inventar el valor');
+    ok(dl.pasos[3].startsWith('2 Vuelve de [it.next()]: el generador se paró en un yield y da «1».'), 'yield*: el primer next() da 1');
+    const an = await revisar(leer('n-async.js'));
+    eq(an.pasos.map(p => p.split(' ')[0]), ['1', '2', '5', '6', '2', '3', '-'], 'generador async: pide → espera → entrega → vuelve');
+    ok(an.pasos[4].startsWith('2 Vuelve de [it.next()]: el generador se paró en un yield y da «1».'), 'await it.next(): el resultado, después del cuerpo');
+    const pd = (() => { const p = globalThis.CMGPythonRevision.leer(leer('o-python-delega.py')), P = FL.preparar(p, { serie: 'libre' }), F = FL.construir(P); return plano(P, F, E.describir(P, F, F.filas.find(f => f.num === 3).i)); })();
+    ok(pd.startsWith('Entrega uno a uno los valores de [1, 2]'), 'Python: yield from');
+    // Turno 3 de Astra (ciclo 03): sin enlace al cuerpo viejo, y un next() async sin await.
+    eq([rs.etiqueta(1), lec(rs, 2), rs.pasos[1]], ['2 [g()]', 'Ejecuta [g()].', '2 [g()] → «undefined».'], 'g reasignada: no se enlaza al cuerpo de la function* original');
+    const sa = await revisar(leer('p-async-sin-await.js'));
+    ok(lec(sa, 2).startsWith('Pide a [it] su siguiente valor sin esperarlo: el cuerpo, en (4), empieza a correr, next() devuelve una promesa y el programa sigue aquí sin el valor.'), 'next() async sin await: no promete «después sigue aquí»');
+    eq(sa.r.salida.map(x => x.texto), ['fin'], 'next() async sin await: consola');
+    I18N.cambiarIdioma('en');
+    eq(cr.etiqueta(0), '1 Create a generator with [g()]', 'inglés: etiqueta');
+    I18N.cambiarIdioma('es');
+  }
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

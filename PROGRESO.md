@@ -1,3 +1,24 @@
+## Revisión · ciclo 03 con Astra: crear un generador frente a consumirlo · 7 de noviembre de 2026
+
+- **Proceso.** Tercer ciclo adversarial. Astra en Codex CLI, con esfuerzo alto y solo lectura. Hubo 4 turnos: diagnóstico, dos rechazos y la aceptación. El caso, las respuestas, el registro y la imagen antes/después están en `revision/pruebas/casos/03-generador/`.
+- **Pregunta.** ¿Se imprime «cuerpo»? Antes, el motor **afirmaba algo falso**: «Ejecuta la función g y, cuando acaba, sigue aquí» y «sigue en (3)», cuando el cuerpo no corre. Además, en `g().next()` narraba el resultado antes que el cuerpo.
+- **Árbol.** `trazador.js` marca `generador` y `delega` (`yield*`) en la tabla de nodos. Son solo metadatos: no cambian los ganchos ni `V`, y el juego no los lee. En `python.js`, un `def` con `yield` es generador; además, un **`yield` sin valor ya no da error de sintaxis** (limitación de lezer 1.1.19 tolerada solo ahí).
+- **Vista.**
+  - Etiquetas: «Crea un generador con [g()]», «Pide el siguiente valor a [g()]», «Generador g()», «Entrega 1 y se para» y «Entrega uno a uno los valores de…».
+  - Lectura: «todavía no ejecuta el cuerpo», y en la fila del generador «corre a trozos».
+  - Traza: pide → cuerpo → yield → **«Vuelve de [it.next()]: el generador se paró en un yield y da «1»»**, también con `await it.next()`. Con un generador async sin `await`: «sin esperarlo… devuelve una promesa».
+  - Un nombre de función que se reasigna ya no se enlaza a ningún cuerpo. Asignar una función ya no se narra como «undefined».
+- **Verificación actual.**
+  - Flujo **383**: 30 nuevas (creado o consumido, varios yield, yield dentro de otra sentencia, función normal, `next` propio, reasignaciones, async, `function*` en expresión, `yield*`, Python `yield`/`yield from`, inglés).
+  - Trazador **27**, lógica **124**, i18n **1146 / 12697**, editor Python **34**, traductor Python **64**.
+  - Navegador 8771: `depuracion.mjs` **173**. Capturas antes/después revisadas.
+- **Límites.**
+  - El objeto generador sigue como `{}` en la píldora de la traza.
+  - Un `for (x of …)` sin llaves no da pasos por vuelta (ya pasaba antes).
+  - Las tablas antiguas solo se acreditan por la sintaxis reconocida.
+  - Python solo tiene lectura. No se repitieron `interfaz.mjs`/`juego.mjs`.
+  - Versiones: en War/Factory, trazador v4, flujo v7, python v2 y revisión v9; en la página de ejemplos, v9.
+
 ## Revisión · ciclo 02 con Astra: agendar un callback frente a ejecutarlo · 7 de noviembre de 2026
 
 - **Proceso.** Segundo ciclo adversarial. Astra en Codex CLI con esfuerzo **alto**, en la misma sesión que el ciclo 01 y solo lectura. Hubo 4 turnos: diagnóstico, dos rechazos y la aceptación final. El caso, las respuestas, el registro y la imagen antes/después están en `revision/pruebas/casos/02-agendar/`.

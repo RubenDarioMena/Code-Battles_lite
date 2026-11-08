@@ -1,0 +1,31 @@
+# prog · js · traza · es
+1 bucle n0 | for (const x of g()) console.log(x);
+    etiqueta: Por cada [x] de [g()]
+    lectura:  Repite la fila (2) una vez por cada [x] de [g()]. Después, el programa acaba.
+    sigue: sig=· si=2 no=· salida=fin
+2 paso n1 | console.log(x);
+    etiqueta: Imprime [x]
+    lectura:  Escribe [x] en la consola. Luego vuelve a (1).
+    sigue: sig=1 si=· no=·
+3 funcion n0 | function* g() { yield 1; yield 2; }
+    etiqueta: Generador g()
+    lectura:  Define el generador g. Llamarlo crea un generador sin ejecutar nada: su cuerpo, las filas (4) a (5), corre a trozos, cada vez que alguien le pide el siguiente valor (con next o recorriéndolo con for).
+    sigue: sig=· si=4 no=·
+4 paso n1 | yield 1;
+    etiqueta: Entrega 1 y se para
+    lectura:  Se para aquí y entrega 1 a quien pidió el siguiente valor; el generador sigue desde aquí cuando le pidan otro.
+    sigue: sig=5 si=· no=·
+5 paso n1 | yield 2;
+    etiqueta: Entrega 2 y se para
+    lectura:  Se para aquí y entrega 2 a quien pidió el siguiente valor; el generador sigue desde aquí cuando le pidan otro.
+    sigue: sig=· si=· no=·
+rieles: 2→1
+consola: 1 / 2
+resumen: Eso es todo el programa. Los generadores de (3) solo avanzan cuando alguien les pide un valor.
+pasos:
+  1 Entra en el bucle.
+  4 Se para aquí y entrega «1» a quien pidió el valor; el generador seguirá desde aquí cuando le pidan otro.
+  2 Escribe «"1"» en la consola.
+  5 Se para aquí y entrega «2» a quien pidió el valor; el generador seguirá desde aquí cuando le pidan otro.
+  2 Escribe «"2"» en la consola.
+  · El programa termina. | Consola:1 / 2

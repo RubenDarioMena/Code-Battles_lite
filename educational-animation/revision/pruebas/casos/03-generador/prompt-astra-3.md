@@ -1,0 +1,6 @@
+Ciclo 03 · turno 3 de Astra (cierre). Rechazaste por 3 afirmaciones falsas. Opus las corrigió, sin commitear (`git diff`). Máximo ~300 palabras.
+1. `funcionDeLlamada`: si el nombre se reasigna (`g = …`, resuelto por `declaracion`), ya no se acredita ninguna función. Fixture l-reasignada. De paso, `g = () => …` ya no se narra como «pasa a valer «undefined»», sino «Guarda la función en [g]».
+2. `yield*`: el trazador marca `delega` (metadato; sin marca, por el texto `yield*` / `yield from`). Lectura y etiqueta: «Entrega uno a uno los valores de [[1, 2]]…». Traza: «…se para en cada uno, y cada next() recibe el siguiente», sin inventar el valor. Fixtures m-delega y o-python-delega.
+3. `await it.next()`: el disparo del regreso es el AwaitExpression, y el evento de la llamada (una promesa) se ignora. Orden de n-async: 1 → 2 pide → 5 espera → 6 entrega → 2 vuelve con «1» → 3. Flujo 380.
+
+Verifica SOLO tus tres programas, más UNA variante nueva si ves un riesgo concreto en estas correcciones (p. ej. `for await`, un next() de un generador async sin await, la reasignación dentro de otra función). Después da el veredicto final del ciclo 03 (aceptar / aceptar con cambio mínimo / rechazar) y, en una línea, lo que debería quedar como límite documentado.
