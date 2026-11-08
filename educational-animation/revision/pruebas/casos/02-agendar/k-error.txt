@@ -1,0 +1,25 @@
+# prog · js · traza · es
+1 paso n0 | queueMicrotask(() => { throw new Error("fallo callback"); });
+    etiqueta: Agenda [() => { throw new Error("fallo callback"); }] para después
+    lectura:  Agenda [() => { throw new Error("fallo callback"); }] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (1).
+    sigue: sig=· si=· no=·
+3 funcion n0 | () => { throw new Error("fallo callback"); }
+    etiqueta: Función sin nombre, línea 1()
+    lectura:  Define la función …. Su cuerpo, la fila (4), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=4 no=·
+4 paso n1 | throw new Error("fallo callback");
+    etiqueta: Lanza un error: [new Error("fallo callback")]
+    lectura:  Lanza un error con [new Error("fallo callback")]: el programa se detiene si nada lo atrapa.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin  ERROR Error: fallo callback
+resumen: Eso es todo el programa. Las funciones de (3) solo se ejecutan si alguien las llama.
+pasos:
+  1 Agenda [() => { throw new Error("fallo callback"); }]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  2 Escribe «"fin"» en la consola.
+  4 Lanza un error: «{}».
+  · Se detuvo por un error: Error: fallo callback | Consola:fin

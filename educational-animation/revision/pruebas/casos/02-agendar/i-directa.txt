@@ -1,0 +1,27 @@
+# prog · js · traza · es
+1 paso n0 | const cb = () => console.log("cb");
+    etiqueta: [cb] es una función
+    lectura:  Guarda en [cb] una función: se ejecuta cuando alguien la llama.
+    sigue: sig=2 si=· no=·
+2 paso n0 | queueMicrotask(cb);
+    etiqueta: Agenda [cb] para después
+    lectura:  Agenda [cb] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=3 si=· no=·
+3 paso n0 | cb();
+    etiqueta: Llama a [cb()]
+    lectura:  Ejecuta [cb()].
+    sigue: sig=4 si=· no=·
+4 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (2).
+    sigue: sig=· si=· no=·
+rieles: —
+consola: cb / fin / cb
+resumen: Eso es todo el programa.
+pasos:
+  1 Guarda la función en [cb]: se ejecuta cuando alguien la llama.
+  2 Agenda [cb]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  3 [cb()] → «undefined».
+  4 Escribe «"fin"» en la consola.
+  1 Ya terminó el código principal: ahora se ejecuta [() => console.log("cb")], la que estaba agendada. Escribe «"cb"» en la consola.
+  · El programa termina. | Consola:cb / fin / cb

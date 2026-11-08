@@ -1,0 +1,17 @@
+# prog · js · traza · es
+1 paso n0 | setTimeout(() => console.log("tarde"), 30);
+    etiqueta: Agenda [() => console.log("tarde")] para después
+    lectura:  Agenda [() => console.log("tarde")] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (1).
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin / tarde
+resumen: Eso es todo el programa.
+pasos:
+  1 Agenda [() => console.log("tarde")]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  2 Escribe «"fin"» en la consola.
+  1 Ya terminó el código principal: ahora se ejecuta [() => console.log("tarde")], la que estaba agendada. Escribe «"tarde"» en la consola.
+  · El programa termina. | Consola:fin / tarde

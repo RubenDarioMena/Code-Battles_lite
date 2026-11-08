@@ -350,5 +350,67 @@ for (let i = 1; i <= 4; i++) {
     ok(llamadas(rp)[0].includes('[receptor.push(() => i)] lee [i] «0»'), 'receptor.push: lectura conservada');
   }
 
+  // ---------- Agendar frente a ejecutar ahora (caso 02) ----------
+  {
+    const casos = path.join(RAIZ, 'educational-animation/revision/pruebas/casos');
+    const leer = (x) => fs.readFileSync(path.join(casos, x), 'utf8');
+    const lec = (c, num) => plano(c.P, c.F, E.describir(c.P, c.F, c.F.filas.find(f => f.num === num).i));
+    const ps = await revisar(leer('01-var-let/o-push-sustituido.js'));
+    ok(!ps.pasos.some(p => p.includes('no se ejecuta aquí')) && lec(ps, 4).includes('usa la [i] de esta vuelta'), 'f.push sustituido: el método ya no acredita que guarde');
+    const ag = await revisar(leer('02-agendar/a-agendado.js')), ya = await revisar(leer('02-agendar/b-inmediato.js'));
+    eq([ag.r.salida.map(x => x.texto), ya.r.salida.map(x => x.texto)], [['fin', 'callback'], ['callback', 'fin']], 'agendar/ahora: las consolas que hay que predecir');
+    eq(ag.etiqueta(0), '1 Agenda [() => console.log("callback")] para después', 'agendado: la etiqueta de la fila ya lo dice');
+    ok(lec(ag, 1).startsWith('Agenda [() => console.log("callback")] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla.'), 'agendado: lectura');
+    ok(lec(ag, 2).includes('Aquí acaba el código principal; después corre lo que siga agendado de (1).'), 'agendado: el programa no acaba en la última fila');
+    eq(ag.pasos, ['1 Agenda [() => console.log("callback")]: todavía no se ejecuta, y el programa sigue sin esperarla.', '2 Escribe «"fin"» en la consola.',
+      '1 Ya terminó el código principal: ahora se ejecuta [() => console.log("callback")], la que estaba agendada. Escribe «"callback"» en la consola.',
+      '- El programa termina. | Consola:fin / callback'], 'agendado: 1 agenda → 2 imprime → 1 callback → final');
+    eq(lec(ya, 1), 'Ejecuta [() => console.log("callback")] ahora mismo. Escribe "callback" en la consola.', 'inmediato: lectura');
+    eq(ya.pasos.slice(0, 2), ['1 Ejecuta [() => console.log("callback")] ahora mismo. Escribe «"callback"» en la consola.', '2 Escribe «"fin"» en la consola.'], 'inmediato: imprime en su paso');
+    const aw = await revisar(leer('02-agendar/c-await.js'));
+    eq(aw.pasos.map(p => p.split(' ')[0]), ['1', '2', '1', '3', '-'], 'con await: el callback corre mientras el código principal espera');
+    ok(aw.pasos[2].startsWith('1 El código principal está esperando: mientras, se ejecuta'), 'con await: no se dice que el código principal terminó');
+    const rd = await revisar(leer('02-agendar/d-redefinido.js'));
+    ok(!rd.F.filas.some(f => lec(rd, f.num).includes('Agenda')) && !rd.pasos.some(p => p.includes('agendada')), 'function queueMicrotask propia: no es agendar');
+    const fe = await revisar(leer('02-agendar/e-foreach.js'));
+    ok(!fe.F.filas.some(f => lec(fe, f.num).includes('Agenda')) && !fe.pasos.some(p => p.includes('agendada')), 'forEach: síncrono, sin agenda');
+    const st = await revisar(leer('02-agendar/f-settimeout-nombre.js'));
+    eq(st.pasos.map(p => p.split(' ')[0]), ['1', '2', '3', '1', '-'], 'setTimeout(avisar, 0): corre al final, en la fila de avisar');
+    ok(lec(st, 2).startsWith('Agenda [avisar] para más tarde'), 'setTimeout con una función por su nombre');
+    const th = await revisar(leer('02-agendar/g-then.js'));
+    ok(th.pasos[2].includes('Ya terminó el código principal') && !lec(th, 1).includes('Agenda'), 'then: la traza lo muestra después; la lectura no promete nada');
+    // Turno 2 de Astra (ciclo 02): cada ejecución es un paso, la llamada directa no es agendada, nada sobrevive
+    // al resultado y un error del callback queda en el informe.
+    const num = (c) => c.pasos.map(p => p.split(' ')[0]);
+    const dv = await revisar(leer('02-agendar/h-dos-veces.js'));
+    eq([num(dv), dv.pasos.filter(p => p.includes('la que estaba agendada')).length], [['1', '2', '3', '4', '1', '1', '-'], 2], 'dos queueMicrotask(cb): dos pasos, uno por ejecución');
+    const di = await revisar(leer('02-agendar/i-directa.js'));
+    ok(di.pasos[2] === '3 [cb()] → «undefined».' && di.pasos.filter(p => p.includes('agendada')).length === 1, 'cb() directo: no se narra como agendado');
+    eq(di.r.salida.map(x => x.texto), ['cb', 'fin', 'cb'], 'cb() directo: consola');
+    const rt = await revisar(leer('02-agendar/j-retraso.js'));
+    eq([rt.r.salida.map(x => x.texto), rt.r.cortado, rt.r.error], [['fin', 'tarde'], false, null], 'setTimeout de 30 ms: corre con el reloj virtual, antes de devolver');
+    eq(rt.pasos[2].slice(0, 39), '1 Ya terminó el código principal: ahora', 'setTimeout de 30 ms: su paso');
+    const er = await revisar(leer('02-agendar/k-error.js'));
+    eq([er.r.error && er.r.error.mensaje, er.r.salida.map(x => x.texto)], ['fallo callback', ['fin']], 'error en un callback: queda en el informe, sin excepción suelta');
+    const iv = await revisar(leer('02-agendar/l-intervalo.js'));
+    eq([iv.r.salida.map(x => x.texto), iv.pasos[2]], [['n = 2'], '3 Espera 0,25 s: de 0 s a 0,25 s.'], 'setInterval durante una espera: la espera dura lo suyo');
+    const mo = await revisar(leer('02-agendar/m-orden.js'));
+    eq(mo.r.salida.map(x => x.texto), ['fin', 'a', 'a2', 'b'], 'temporizadores por tiempo y la microtarea de un callback antes del siguiente');
+    const ii = await revisar(leer('02-agendar/n-intervalo-infinito.js'));
+    ok(ii.r.cortado && ii.pasos.at(-1).includes('no terminaba'), 'setInterval sin parar: se corta');
+    // Turno 3 de Astra (ciclo 02): el rechazo de un callback async y agendar guardando el número.
+    const ar = await revisar(leer('02-agendar/o-async-rechazo.js'));
+    eq([ar.r.error && ar.r.error.mensaje, ar.r.salida.map(x => x.texto)], ['rechazo asincrono', ['fin']], 'callback async que falla: error en el informe');
+    const cp = await revisar(leer('02-agendar/p-cancelar-propio.js'));
+    eq(cp.r.salida.map(x => x.texto), ['fin', 'una'], 'setInterval que se cancela a sí mismo: una vez');
+    ok(lec(cp, 1).startsWith('Agenda [() => { console.log("una"); clearTimeout(id); }] para más tarde y guarda en [id] su número'), 'const id = setInterval(…): agenda y guarda el número');
+    ok(lec(cp, 2).includes('Aquí acaba el código principal; después corre lo que siga agendado de (1).'), 'const id = setInterval(…): el principal no es todo el programa');
+    const ac = await revisar(leer('02-agendar/q-asignar-cancelar.js'));
+    eq([ac.r.salida.map(x => x.texto), ac.pasos[1]], [['fin'], '2 Agenda [() => console.log("nunca")] y guarda su número, «1», en [id]: todavía no se ejecuta, y el programa sigue sin esperarla.'], 'id = setTimeout(…) y clearTimeout: nunca corre');
+    I18N.cambiarIdioma('en');
+    eq(ag.etiqueta(0), '1 Schedule [() => console.log("callback")] for later', 'inglés: etiqueta');
+    I18N.cambiarIdioma('es');
+  }
+
   console.log(`flujo: ${n} comprobaciones`);
 })().catch(e => { console.error(e); process.exit(1); });

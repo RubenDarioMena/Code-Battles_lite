@@ -1,0 +1,16 @@
+# prog · js · lectura · es
+1 paso n0 | [1].forEach(() => console.log("callback"));
+    etiqueta: [[1].forEach(() => console.log("callback"))]
+    lectura:  Ejecuta [[1].forEach(() => console.log("callback"))].
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+rieles: —
+consola: callback / fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Ejecuta [[1].forEach(() => console.log("callback"))].
+  2 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:callback / fin

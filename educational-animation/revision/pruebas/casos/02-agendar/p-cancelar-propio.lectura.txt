@@ -1,0 +1,31 @@
+# prog · js · lectura · es
+1 paso n0 | const id = setInterval(() => { console.log("una"); clearTimeout(id); }
+    etiqueta: Agenda [() => { console.log("una"); clearTimeout(id); }]; su número, en [id]
+    lectura:  Agenda [() => { console.log("una"); clearTimeout(id); }] para más tarde y guarda en [id] su número, para poder cancelarla (clearTimeout/clearInterval). No se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (1).
+    sigue: sig=· si=· no=·
+3 funcion n0 | () => { console.log("una"); clearTimeout(id); }
+    etiqueta: Función sin nombre, línea 1()
+    lectura:  Define la función …. Su cuerpo, las filas (4) a (5), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=4 no=·
+4 paso n1 | console.log("una");
+    etiqueta: Imprime "una"
+    lectura:  Escribe "una" en la consola.
+    sigue: sig=5 si=· no=·
+5 paso n1 | clearTimeout(id);
+    etiqueta: [clearTimeout(id)]
+    lectura:  Ejecuta [clearTimeout(id)].
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin / una
+resumen: Eso es todo el programa. Las funciones de (3) solo se ejecutan si alguien las llama.
+pasos:
+  1 Agenda [() => { console.log("una"); clearTimeout(id); }] y guarda su número, «undefined», en [id]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  2 Escribe «"fin"» en la consola.
+  3 Ejecuta [() => { console.log("una"); clearTimeout(id); }].
+  4 Escribe «"una"» en la consola.
+  5 Ejecuta [clearTimeout(id)].
+  · El programa termina. | Consola:fin / una

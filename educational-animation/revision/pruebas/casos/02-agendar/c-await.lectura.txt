@@ -1,0 +1,21 @@
+# prog · js · lectura · es
+1 paso n0 | queueMicrotask(() => console.log("callback"));
+    etiqueta: Agenda [() => console.log("callback")] para después
+    lectura:  Agenda [() => console.log("callback")] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=2 si=· no=·
+2 paso n0 | await null;
+    etiqueta: Espera a [null]
+    lectura:  Espera a [null].
+    sigue: sig=3 si=· no=·
+3 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (1).
+    sigue: sig=· si=· no=·
+rieles: —
+consola: callback / fin
+resumen: Eso es todo el programa.
+pasos:
+  1 Agenda [() => console.log("callback")]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  2 Espera a [null]: «undefined».
+  3 Escribe «"fin"» en la consola.
+  · El programa termina. | Consola:callback / fin

@@ -1,0 +1,26 @@
+# prog · js · lectura · es
+1 paso n0 | queueMicrotask(() => console.log("callback"));
+    etiqueta: Llama a [queueMicrotask(() => console.log("callback"))]
+    lectura:  Ejecuta la función queueMicrotask ((3)) y, cuando acaba, sigue aquí.
+    sigue: sig=2 si=· no=·
+2 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el programa.
+    sigue: sig=· si=· no=·
+3 funcion n0 | function queueMicrotask(f) { f(); }
+    etiqueta: Función queueMicrotask(f)
+    lectura:  Define la función queueMicrotask. Su cuerpo, la fila (4), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=4 no=·
+4 paso n1 | f();
+    etiqueta: [f()]
+    lectura:  Ejecuta [f()].
+    sigue: sig=· si=· no=·
+rieles: —
+consola: callback / fin
+resumen: Eso es todo el programa. Las funciones de (3) solo se ejecutan si alguien las llama.
+pasos:
+  1 Llama a [queueMicrotask(() => console.log("callback"))]: sigue en (3).
+  2 Escribe «"fin"» en la consola.
+  3 Ejecuta [function queueMicrotask(f) { f(); }].
+  4 Ejecuta [f()].
+  · El programa termina. | Consola:callback / fin

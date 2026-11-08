@@ -1,0 +1,49 @@
+# prog · js · traza · es
+1 paso n0 | let n = 0;
+    etiqueta: [n] empieza en 0
+    lectura:  Crea [n] con 0; puede cambiar después.
+    sigue: sig=2 si=· no=·
+2 paso n0 | const id = setInterval(() => { n++; if (n === 3) clearInterval(id); },
+    etiqueta: Agenda [() => { n++; if (n === 3) clearInterval(id); }]; su número, en [id]
+    lectura:  Agenda [() => { n++; if (n === 3) clearInterval(id); }] para más tarde y guarda en [id] su número, para poder cancelarla (clearTimeout/clearInterval). No se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=3 si=· no=·
+3 paso n0 | await esperar(0.25);
+    etiqueta: Espera 0,25 s
+    lectura:  Espera 0,25 s; mientras, sigue con su última orden.
+    sigue: sig=4 si=· no=·
+4 paso n0 | console.log("n =", n);
+    etiqueta: Imprime "n =" [n]
+    lectura:  Escribe "n =" [n] en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (2).
+    sigue: sig=· si=· no=·
+5 funcion n0 | () => { n++; if (n === 3) clearInterval(id); }
+    etiqueta: Función sin nombre, línea 2()
+    lectura:  Define la función …. Su cuerpo, las filas (6) a (8), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=6 no=·
+6 paso n1 | n++;
+    etiqueta: Suma 1 a [n]
+    lectura:  Suma 1 a [n].
+    sigue: sig=7 si=· no=·
+7 decision n1 | if (n === 3) clearInterval(id);
+    etiqueta: ¿[n] vale 3?
+    lectura:  Si [n] vale 3, sigue en (8); si no, la función acaba.
+    sigue: sig=· si=8 no=· salida=fila:8
+8 paso (lateral) n2 | clearInterval(id);
+    etiqueta: [clearInterval(id)]
+    lectura:  Ejecuta [clearInterval(id)].
+    sigue: sig=· si=· no=·
+rieles: —
+consola: n = 2
+resumen: Eso es todo el programa. Las funciones de (5) solo se ejecutan si alguien las llama.
+pasos:
+  1 [n] = «0».
+  2 Agenda [() => { n++; if (n === 3) clearInterval(id); }] y guarda su número, «1», en [id]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  3 Espera 0,25 s: de 0 s a 0,25 s.
+  6 [n] pasa de «0» a «1».
+  7 [n] vale «1»; 1 === 3 es «false». Como es false, se salta el bloque.
+  6 [n] pasa de «1» a «2».
+  7 [n] vale «2»; 2 === 3 es «false». Como es false, se salta el bloque.
+  4 Escribe «"n = 2"» en la consola.
+  6 [n] pasa de «2» a «3».
+  7 [n] vale «3»; 3 === 3 es «true». Como es true, sigue en (8).
+  8 [clearInterval(id)] → «undefined».
+  · El programa termina. | Consola:n = 2

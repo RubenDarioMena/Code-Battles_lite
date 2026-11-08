@@ -1,0 +1,37 @@
+# prog · js · traza · es
+1 paso n0 | setTimeout(() => console.log("b"), 20);
+    etiqueta: Agenda [() => console.log("b")] para después
+    lectura:  Agenda [() => console.log("b")] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=2 si=· no=·
+2 paso n0 | setTimeout(() => { console.log("a"); queueMicrotask(() => console.log(
+    etiqueta: Agenda [() => { console.log("a"); queueMicrotask(() => console.log("a2")); }] para después
+    lectura:  Agenda [() => { console.log("a"); queueMicrotask(() => console.log("a2")); }] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=3 si=· no=·
+3 paso n0 | console.log("fin");
+    etiqueta: Imprime "fin"
+    lectura:  Escribe "fin" en la consola. Aquí acaba el código principal; después corre lo que siga agendado de (1), (2).
+    sigue: sig=· si=· no=·
+4 funcion n0 | () => { console.log("a"); queueMicrotask(() => console.log("a2")); }
+    etiqueta: Función sin nombre, línea 2()
+    lectura:  Define la función …. Su cuerpo, las filas (5) a (6), se ejecuta cuando alguien la llama.
+    sigue: sig=· si=5 no=·
+5 paso n1 | console.log("a");
+    etiqueta: Imprime "a"
+    lectura:  Escribe "a" en la consola.
+    sigue: sig=6 si=· no=·
+6 paso n1 | queueMicrotask(() => console.log("a2"));
+    etiqueta: Agenda [() => console.log("a2")] para después
+    lectura:  Agenda [() => console.log("a2")] para más tarde: no se ejecuta ahora y el programa sigue sin esperarla. [+ Correrá cuando el código principal termine o se pare a esperar en un await (setTimeout, además, no antes de su tiempo).]
+    sigue: sig=· si=· no=·
+rieles: —
+consola: fin / a / a2 / b
+resumen: Eso es todo el programa. Las funciones de (4) solo se ejecutan si alguien las llama.
+pasos:
+  1 Agenda [() => console.log("b")]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  2 Agenda [() => { console.log("a"); queueMicrotask(() => console.log("a2")); }]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  3 Escribe «"fin"» en la consola.
+  5 Escribe «"a"» en la consola.
+  6 Agenda [() => console.log("a2")]: todavía no se ejecuta, y el programa sigue sin esperarla.
+  6 Ya terminó el código principal: ahora se ejecuta [() => console.log("a2")], la que estaba agendada. Escribe «"a2"» en la consola.
+  1 Ya terminó el código principal: ahora se ejecuta [() => console.log("b")], la que estaba agendada. Escribe «"b"» en la consola.
+  · El programa termina. | Consola:fin / a / a2 / b

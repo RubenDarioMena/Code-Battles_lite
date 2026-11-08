@@ -274,7 +274,8 @@
   }
 
   // ---------- La traza como recorrido ----------
-  // paso = { i, fila, nodo, valor?, vals: Map(nodo → valor), t, t1?, espera?, vuelta, fuera?, lecturas? } y al final { fin: true }.
+  // paso = { i, fila, nodo, valor?, vals: Map(nodo → valor), t, t1?, espera?, vuelta, fuera?, lecturas?, diferido? } y al final { fin: true }.
+  // diferido = la función en línea que corre, agendada, cuando ya acabó el código principal.
   // lecturas = [{ llamada, lee: [[nodo, valor]…] }]: lo que leyó cada función en línea al llamarla en este paso.
   function recorrer(P, F, { fin = null } = {}) {
     const N = P.nodos, pasos = [];
@@ -282,8 +283,16 @@
     const vueltasDe = new Map(), enEspera = new Map();
     const nuevo = (fila, nodo) => { const p = { i: pasos.length, fila, nodo, t, vals: new Map() }; pasos.push(p); return p; };
     const esCondicion = (n) => (n.campo === "test" && /^(If|While|DoWhile|For)Statement$/.test(N[n.padre].tipo)) || P.porCada.has(n.id);
+    // Callbacks agendados: cada ejecución va entre ["corre"] y ["/corre"] (ronda), también si corre mientras el
+    // código principal espera; ["luego"]: ya terminó el código principal. Al salir de un callback, el paso en
+    // curso vuelve a ser el del código principal.
+    let luego = false, ronda = 0, enCallback = false, principalCur = null;
     for (const e of P.eventos) {
-      if (e[0] === "t") { t = e[1]; if (cur && cur.espera != null && cur.t1 == null) cur.t1 = t; continue; }
+      if (e[0] === "luego") { luego = true; cur = null; continue; }
+      if (e[0] === "corre") { ronda++; enCallback = true; principalCur = cur; continue; }
+      if (e[0] === "/corre") { enCallback = false; if (!luego) cur = principalCur; continue; }
+      // Un callback que corre durante una espera mueve el reloj, pero la espera sigue hasta que vuelve el principal.
+      if (e[0] === "t") { t = e[1]; if (!enCallback && cur && cur.espera != null && cur.t1 == null) cur.t1 = t; continue; }
       const id = e[0], n = N[id];
       if (!n) continue;
       if (e.length === 1) {
@@ -315,7 +324,14 @@
       }
       // Lo de dentro de una función en línea pasa cuando alguien la llama: es del paso en curso (el que la
       // llama), no de la fila donde se escribió. Se junta con la llamada que llega justo después.
-      if (F.enLinea(id) != null) { if (cur) (cur.pend || (cur.pend = [])).push([id, v]); continue; }
+      // Después del código principal (luego), una función en línea que corre es un callback agendado: abre su
+      // propio paso en la fila donde se escribió (paso.diferido = la función).
+      const fnL = F.enLinea(id);
+      if (fnL != null) {
+        if ((luego || enCallback) && !(cur && cur.diferido === fnL && cur.ronda === ronda)) { cur = nuevo(F.duena(fnL), fnL); cur.diferido = fnL; cur.ronda = ronda; cur.luego = luego; }
+        if (cur) { cur.vals.set(id, v); if (cur.diferido == null) (cur.pend || (cur.pend = [])).push([id, v]); }
+        continue;
+      }
       if (cur && cur.pend && F.duena(id) === cur.fila) {
         const llamada = n.tipo === "CallExpression" ? id : n.tipo === "AwaitExpression" && N[P.hijo(id, "argument")].tipo === "CallExpression" ? P.hijo(id, "argument") : null;
         const c = llamada != null ? N[P.hijo(llamada, "callee")] : null, propia = c && c.tipo === "Identifier" ? P.funciones.get(c.nombre) : undefined;
@@ -417,6 +433,7 @@
     const N = P.nodos, nom = N[i].nombre, py = P.lenguaje === "python";
     const nombre = (d) => N[P.hijo(d, "id")]?.nombre;
     const deFuncion = (fn) => {
+      for (const d of N) if (d.tipo === "FunctionDeclaration" && nombre(d.id) === nom && funcionDe(P, d.id) === fn) return { nodo: d.id, clase: "funcion", ambito: fn };
       for (const d of N) if (d.tipo === "VariableDeclarator" && nombre(d.id) === nom && funcionDe(P, d.id) === fn) {
         const c = N[d.padre].clase;
         if (py || c === "var") return { nodo: d.id, clase: py ? "var" : c, ambito: fn };
@@ -465,8 +482,23 @@
     if (!tipo || N[o].tipo !== "Identifier") return false;
     const d = declaracion(P, o), ini = d && N[d.nodo].tipo === "VariableDeclarator" ? P.hijo(d.nodo, "init") : null;
     if (ini == null) return false;
+    // Un método sustituido (f.push = cb => cb()) ya no acredita nada.
+    const metodo = N[P.hijo(c, "property")].nombre;
+    if (N.some(x => x.tipo === "AssignmentExpression" && (() => { const l = P.hijo(x.id, "left"); if (N[l].tipo !== "MemberExpression") return false;
+      const lo = P.hijo(l, "object"), lp = P.hijo(l, "property");
+      return N[lo].tipo === "Identifier" && declaracion(P, lo)?.nodo === d.nodo && (N[l].computado ? N[lp].valor === metodo : N[lp].nombre === metodo); })())) return false;
     if (tipo === "ArrayExpression") return N[ini].tipo === "ArrayExpression";
     return N[ini].tipo === "NewExpression" && N[P.hijo(ini, "callee")]?.nombre === tipo;
+  }
+  // La llamada i agenda una función para después del código principal (queueMicrotask, setTimeout, setInterval
+  // sin redefinir)? → el nodo de la función (escrita ahí o por su nombre), o null.
+  function agendada(P, i) {
+    const N = P.nodos;
+    if (N[i].tipo !== "CallExpression") return null;
+    const c = P.hijo(i, "callee"), a0 = P.hijos(i, "arguments")[0];
+    if (N[c].tipo !== "Identifier" || !AGENDAN.has(N[c].nombre) || declaracion(P, c) || a0 == null) return null;
+    if (FUNCION.test(N[a0].tipo)) return a0;
+    return N[a0].tipo === "Identifier" && P.funciones.has(N[a0].nombre) ? a0 : null;
   }
   // Funciones escritas en la fila i (en línea o con su propio cuerpo) que usan una variable de un bucle que
   // las rodea: [{ fn, x, tipo, cabecera, guardada }].
@@ -500,5 +532,5 @@
     return out;
   }
 
-  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, verdad, PALETA };
+  return { preparar, construir, recorrer, estructura, dentro, declaracion, deFuera, capturas, agendada, verdad, PALETA };
 });

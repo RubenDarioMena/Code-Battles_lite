@@ -184,6 +184,7 @@
         const nom = P.hijo(d, "id"), ini = P.hijo(d, "init"), x = [{ c: nom }];
         if (ini == null) return tpl("f.declara", { x });
         if (esFuncion(P, ini)) return tpl("f.defineFuncion", { x });
+        if (FL.agendada(P, ini) != null) return tpl("f.agendaGuarda", { fn: [{ c: FL.agendada(P, ini) }], x });
         if (esFijo(P, ini)) return tpl("f.empieza", { x, v: [{ k: P.txt(ini) }] });
         return tpl("f.guarda", { x, e: expr(P, ini) });
       }), "; ");
@@ -196,10 +197,11 @@
         if (x.op === "=" && N[d].tipo === "BinaryExpression" && (N[d].op === "+" || N[d].op === "-") && P.txt(P.hijo(d, "left")) === P.txt(l))
           return tpl(N[d].op === "+" ? "f.suma" : "f.resta", { k: expr(P, P.hijo(d, "right")), x: xl });
         if (x.op === "+=" || x.op === "-=") return tpl(x.op === "+=" ? "f.suma" : "f.resta", { k: expr(P, d), x: xl });
+        if (x.op === "=" && FL.agendada(P, d) != null) return tpl("f.agendaGuarda", { fn: [{ c: FL.agendada(P, d) }], x: xl });
         return tpl("f.asigna", { x: xl, e: x.op === "=" ? expr(P, d) : [{ c: e }] });
       }
       if (x.tipo === "UpdateExpression") return tpl(x.op === "++" ? "f.suma" : "f.resta", { k: "1", x: [{ c: P.hijo(e, "argument") }] });
-      if (x.tipo === "CallExpression") return etiquetaLlamada(P, e);
+      if (x.tipo === "CallExpression") { const fn = FL.agendada(P, e); return fn != null ? tpl("f.agenda", { fn: [{ c: fn }] }) : etiquetaLlamada(P, e); }
       return [{ c: e }];
     }
     if (n.tipo === "ReturnStatement") { const a = P.hijo(s, "argument"); return a != null ? tpl("f.devuelve", { e: expr(P, a) }) : [t("f.termina")]; }
@@ -297,6 +299,26 @@
     }
     return v !== undefined ? [...tpl("d.da", { c: [{ c: i }], v: [{ v }] }), "."] : tpl("d.ejecuta", { c: [{ c: i }] });
   }
+  // La función que agenda la sentencia s (queueMicrotask(f); const id = setTimeout(f); id = setInterval(f)…), o null.
+  function agendaDe(P, s) {
+    const N = P.nodos, n = N[s];
+    if (n.tipo === "VariableDeclaration") { for (const d of P.hijos(s, "declarations")) { const ini = P.hijo(d, "init"); if (ini != null && FL.agendada(P, ini) != null) return FL.agendada(P, ini); } return null; }
+    if (n.tipo !== "ExpressionStatement") return null;
+    const e = P.hijo(s, "expression");
+    return N[e].tipo === "AssignmentExpression" && N[e].op === "=" ? FL.agendada(P, P.hijo(e, "right")) : FL.agendada(P, e);
+  }
+  // Lo que hace una función en línea al ejecutarse (su cuerpo de una expresión); con llaves, lo dicen sus filas.
+  function hace(P, F, fn, vals) {
+    const N = P.nodos, b = P.hijo(fn, "body");
+    if (b == null || N[b].tipo === "BlockStatement") return [];
+    if (N[b].tipo === "CallExpression") return [" ", ...llamada(P, F, b, vals)];
+    return vals.has(b) ? [" ", ...tpl("d.devuelve", { v: [{ v: vals.get(b) }] })] : [];
+  }
+  function haceHumano(P, F, f, fn) {
+    const N = P.nodos, b = P.hijo(fn, "body");
+    if (b == null || N[b].tipo === "BlockStatement") return [];
+    return [" ", ...(N[b].tipo === "CallExpression" ? llamadaHumana(P, F, f, b) : tpl("r.devuelve", { e: expr(P, b) }))];
+  }
   // Lo que leyó de fuera cada función en línea al llamarla en este paso: «[f[0]()] lee [i] «3»».
   function lecturas(P, F, paso) {
     const grupos = (paso.lecturas || []).map(g => {
@@ -315,6 +337,7 @@
   });
   function detalle(P, F, R, paso, G = {}) {
     if (paso.fin) return final(P, R, paso, G);
+    if (paso.diferido != null) return [...tpl(paso.luego ? "d.diferido" : "d.diferidoEspera", { fn: [{ c: paso.diferido }] }), ...hace(P, F, paso.diferido, paso.vals)];
     // En la traza, la pista de ámbito va en la primera visita a la fila: no se repite en cada vuelta.
     const primera = !R || !R.pasos.some(p => p.i < paso.i && p.fila === paso.fila);
     return [...lecturas(P, F, paso), ...detalleFila(P, F, R, paso), ...(primera ? capturas(P, F, paso.fila) : [])];
@@ -345,6 +368,7 @@
         const nom = P.hijo(d, "id"), ini = P.hijo(d, "init"), x = [{ c: nom }];
         if (ini == null) return tpl("d.declara", { x });
         if (esFuncion(P, ini)) return tpl("d.funcionGuardada", { x });
+        if (FL.agendada(P, ini) != null) return tpl("d.agendaGuarda", { fn: [{ c: FL.agendada(P, ini) }], x, v: [{ v: valorDe(P, vals, ini) }] });
         const v = vals.has(ini) || P.nodos[ini].tipo === "Literal" ? [{ v: valorDe(P, vals, ini) }] : [{ k: P.txt(ini).replace(/\s+/g, " ") }];
         return [...evaluacion(P, ini, vals), ...tpl("d.guarda", { x, v })];
       }), " ");
@@ -363,6 +387,7 @@
       }
       if (x.tipo === "AssignmentExpression") {
         const l = P.hijo(e, "left"), d = P.hijo(e, "right");
+        if (x.op === "=" && FL.agendada(P, d) != null) return tpl("d.agendaGuarda", { fn: [{ c: FL.agendada(P, d) }], x: [{ c: l }], v: [{ v: valorDe(P, vals, d) }] });
         if (x.op === "=") return [...evaluacion(P, d, vals), ...tpl("d.ahoraVale", { x: [{ c: l }], v: [{ v: valorDe(P, vals, d) }] })];
         return tpl("d.ejecuta", { c: [{ c: e }] });
       }
@@ -371,7 +396,12 @@
         const a = prefijo ? v - d : v, b = prefijo ? v : v + d;
         return tpl("d.pasaDe", { x: [{ c: P.hijo(e, "argument") }], a: [{ v: a }], b: [{ v: b }] });
       }
-      if (x.tipo === "CallExpression") return llamada(P, F, e, vals);
+      if (x.tipo === "CallExpression") {
+        const fn = FL.agendada(P, e), cal = P.hijo(e, "callee");
+        if (fn != null) return tpl("d.agenda", { fn: [{ c: fn }] });
+        if (esFuncion(P, cal)) return [...tpl("d.llamaAhora", { fn: [{ c: cal }] }), ...hace(P, F, cal, vals)];
+        return llamada(P, F, e, vals);
+      }
       return vals.has(e) ? tpl("d.ejecutaValor", { c: [{ c: e }], v: [{ v: vals.get(e) }] }) : tpl("d.ejecuta", { c: [{ c: e }] });
     }
     if (n.tipo === "ReturnStatement") { const a = P.hijo(f.nodo, "argument"); return a != null ? tpl("d.devuelve", { v: [{ v: valorDe(P, vals, a) }] }) : [t("d.termina")]; }
@@ -605,6 +635,7 @@
     if (n.tipo === "VariableDeclaration") {
       return unir(P.hijos(s, "declarations").map(d => {
         const nom = P.hijo(d, "id"), ini = P.hijo(d, "init"), x = [{ c: nom }];
+        if (ini != null && FL.agendada(P, ini) != null) return [...tpl("r.agendaGuarda", { fn: [{ c: FL.agendada(P, ini) }], x }), " ", { mas: [t("r.agendaCuando")] }];
         return ini == null ? tpl("r.declara", { x }) : guardaHumana(P, F, f, x, ini);
       }), " ");
     }
@@ -616,11 +647,17 @@
         if (x.op === "=" && N[d].tipo === "BinaryExpression" && (N[d].op === "+" || N[d].op === "-") && P.txt(P.hijo(d, "left")) === P.txt(l))
           return tpl(N[d].op === "+" ? "r.suma" : "r.resta", { k: expr(P, P.hijo(d, "right")), x: xl });
         if (x.op === "+=" || x.op === "-=") return tpl(x.op === "+=" ? "r.suma" : "r.resta", { k: expr(P, d), x: xl });
+        if (x.op === "=" && FL.agendada(P, d) != null) return [...tpl("r.agendaGuarda", { fn: [{ c: FL.agendada(P, d) }], x: xl }), " ", { mas: [t("r.agendaCuando")] }];
         if (x.op === "=") { const sinAwait = N[d].tipo === "AwaitExpression" ? P.hijo(d, "argument") : d, r = N[sinAwait].tipo === "CallExpression" ? resolver(P, sinAwait) : null; if (r && r.def && r.def.clase === "lectura") return guardaHumana(P, F, f, xl, d); }
         return tpl("r.asigna", { x: xl, e: x.op === "=" ? expr(P, d) : [{ c: e }] });
       }
       if (x.tipo === "UpdateExpression") return tpl(x.op === "++" ? "r.suma" : "r.resta", { k: "1", x: [{ c: P.hijo(e, "argument") }] });
-      if (x.tipo === "CallExpression") return llamadaHumana(P, F, f, e);
+      if (x.tipo === "CallExpression") {
+        const fn = FL.agendada(P, e), cal = P.hijo(e, "callee");
+        if (fn != null) return [...tpl("r.agenda", { fn: [{ c: fn }] }), " ", { mas: [t("r.agendaCuando")] }];
+        if (esFuncion(P, cal)) return [...tpl("r.llamaAhora", { fn: [{ c: cal }] }), ...haceHumano(P, F, f, cal)];
+        return llamadaHumana(P, F, f, e);
+      }
       return tpl("r.ejecuta", { c: [{ c: e }] });
     }
     if (n.tipo === "ReturnStatement") { const a = P.hijo(s, "argument"); return a != null ? tpl("r.devuelve", { e: expr(P, a) }) : [t("r.termina")]; }
@@ -659,7 +696,11 @@
       // La última fila de una vuelta: después vuelve al bucle (un continue ya lo dice).
       const riel = F.rieles.find(r => r.de === i);
       if (riel && f.salto !== "continue") out.push(" ", ...tpl("r.vuelveA", { f: fichaFila(riel.a) }));
-      else if (f.sig == null && !f.salto && f.seccion == null && !f.bucle) out.push(" ", t("r.ultima"));
+      else if (f.sig == null && !f.salto && f.seccion == null && !f.bucle) {
+        // Con algo agendado, el programa no acaba aquí: después corre lo agendado.
+        const agendas = F.filas.filter(g => g.seccion == null && agendaDe(P, g.nodo) != null);
+        out.push(" ", ...(agendas.length ? tpl("r.ultimaAgenda", { f: unir(agendas.map(g => fichaFila(g.i)), ", ") }) : [t("r.ultima")]));
+      }
     }
     return [...out, ...capturas(P, F, i)];
   }

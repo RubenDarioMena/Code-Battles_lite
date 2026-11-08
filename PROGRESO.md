@@ -1,3 +1,24 @@
+## Revisión · ciclo 02 con Astra: agendar un callback frente a ejecutarlo · 7 de noviembre de 2026
+
+- **Proceso.** Segundo ciclo adversarial. Astra en Codex CLI con esfuerzo **alto**, en la misma sesión que el ciclo 01 y solo lectura. Hubo 4 turnos: diagnóstico, dos rechazos y la aceptación final. El caso, las respuestas, el registro y la imagen antes/después están en `revision/pruebas/casos/02-agendar/`.
+- **Pregunta.** ¿Qué se imprime primero, «callback» o «fin»? `queueMicrotask(cb)` y `(cb)()` se veían iguales («→ undefined»), y la traza ni siquiera tenía los eventos del callback, porque el trazador vaciaba su búfer antes de que corriera.
+- **Ejecutor (`ejecutar.js`, solo «Tu código» y la página de ejemplos).** `setTimeout`/`setInterval`/`clear*`/`queueMicrotask` propios, con temporizadores virtuales sobre el reloj del programa (`esperar` es uno más) y un bucle de eventos propio. Nada queda vivo al devolver el resultado, y los errores de los callbacks, también los `async`, van al informe. Marcas `["corre"]`/`["/corre"]` por ejecución y `["luego"]` desde el `finally` del cuerpo. Un `setInterval` sin fin se corta.
+- **Vista.**
+  - Etiqueta «Agenda [fn] para después», o «…; su número, en [id]».
+  - Lectura «no se ejecuta ahora y el programa sigue sin esperarla», con el «cuándo» plegado, frente a «Ejecuta [fn] ahora mismo. Escribe "callback"».
+  - La última fila dice «Aquí acaba el código principal; después corre lo que siga agendado de (1)».
+  - Traza: 1 agenda → 2 imprime → **1 «Ya terminó el código principal: ahora se ejecuta [fn]…»**, o «El código principal está esperando: mientras…» si corre durante un `await`. Un paso por ejecución.
+  - El ciclo 01 se reforzó: un `push` sustituido (`f.push = cb => cb()`) ya no acredita que la función se guarde.
+- **Verificación actual.** Flujo **353** (30 nuevas del ciclo 02: orden, `await`, redefinido, `forEach`, `setTimeout` por nombre, `then`, dos ejecuciones, llamada directa, retraso de 30 ms, errores síncrono y `async`, intervalos, orden de temporizadores, intervalo infinito, cancelaciones e inglés), trazador **27**, lógica **124**, i18n **1146 / 12697**. Navegador 8771: `depuracion.mjs` **173**. Capturas antes/después a 1000 px revisadas (`antes-despues.png`).
+- **Límites.**
+  - Los tiempos y el orden entre fuentes de tareas no son fieles al navegador ni a Node (el reloj es virtual).
+  - No se capturan los rechazos sueltos de promesas. Los `then` no llevan marcas durante un `await`.
+  - La píldora `undefined` sigue en la fila que agenda.
+  - El juego no cambia: su visor solo lee el código. El Worker sigue sin vaciado final de pulsos.
+  - No se repitieron `interfaz.mjs`/`juego.mjs` (falta Playwright).
+  - Versiones: `flujo.js` v6 en War/Factory; motor v8.
+- **Siguiente ciclo propuesto por Astra.** Un generador creado (`g()`) frente a uno consumido (`g().next()`).
+
 ## Revisión · ciclo 01 con Astra: funciones guardadas en un bucle (`var`/`let`) · 7 de noviembre de 2026
 
 - **Proceso.** Primer ciclo adversarial: Opus implementa y Astra ataca (Codex CLI, `codex exec`, esfuerzo medio, sandbox de solo lectura). Antes se verificó que `revision-flujo` ya contenía todo lo remoto (`origin/*`: nada pendiente de pull) y se commiteó Depurar (`05e3812`). Hubo 3 turnos de Astra. El caso, las respuestas y el registro están en `revision/pruebas/casos/01-var-let/` (`caso.md`, `astra-1..3.md`).

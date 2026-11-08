@@ -123,6 +123,8 @@ await task.finish({ keep: [] });
 JS
 ```
 
+**Lo agendado en «Tu código».** `ejecutar.js` da al programa `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval` y `queueMicrotask` propios. Los temporizadores son virtuales, sobre el mismo reloj que `esperar`, y corren por orden de tiempo cuando el programa no puede seguir solo. Nada queda vivo al devolver el resultado. En la traza, cada ejecución de un callback va entre `["corre"]` y `["/corre"]`, y lo que pasa tras el código principal, después de `["luego"]`. El recorrido da a cada ejecución su propio paso (`paso.diferido`).
+
 **Casos sin navegador.** `node educational-animation/revision/pruebas/caso.cjs <programa.js | revision-debug.json> [--lectura|--traza] [--en]` imprime en texto comparable, para cada programa, sus filas (código, etiqueta, frase de lectura y destinos), la consola y la narración de cada paso. Con un `.js`, ejecuta el programa como «Tu código»; con un informe, vuelve a montar su `entrada`. Los ciclos de revisión entre agentes guardan cada caso en `pruebas/casos/<nn-nombre>/`, con su pregunta, su par mínimo, sus contraejemplos, las salidas y el registro de turnos, y lo convierten en regresión de `pruebas/flujo.cjs`.
 
 ## Python
