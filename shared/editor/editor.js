@@ -108,6 +108,10 @@
       alternarEjecucion: () => opciones.alEjecutar?.(),
       alDesplazar: () => ui.pintarBanda(),
     };
+    // El puerto público se conserva para los anfitriones; la escritura y su geometría son del motor.
+    const usarCodeMirror = opciones.motorTexto !== "textarea" && new URLSearchParams(location.search).get("editor") !== "textarea";
+    cmg.motorTexto = usarCodeMirror ? window.CMGEditorCodeMirror.crear({ codigo, contenedor: $("area"), editor: $("editor"), cmg, adaptador, vida }) : null;
+    cmg.tieneFoco = () => cmg.motorTexto ? cmg.motorTexto.tieneFoco() : document.activeElement === codigo;
     // Vistas derivadas del árbol (Seudo y, en Factory, Bloques). Las pide el juego; una instancia autónoma
     // solo las tiene con opciones.vistas. Hoy el árbol solo entra y sale como JS.
     const vistas = new Set(opciones.vistas || (opciones.adoptar ? ["pseudo"] : []));
@@ -303,11 +307,12 @@
         codigo.value = doc.texto; marcasActuales.corre = marcasActuales.err = null;
         if (otro) {
           adaptador = adaptadores[lenguaje];
+          cmg.motorTexto?.documento(adaptador);
           montarInterior(); ui.atajos(atajosActuales());
           codigo.dispatchEvent(new CustomEvent("cmg:estado"));
           if (antes.sinTeclado) cmg.edicion.activar(true);
           raiz.dispatchEvent(new CustomEvent("cmg:lenguaje", { detail: { lenguaje } }));
-        } else codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } }));
+        } else { cmg.motorTexto?.documento(adaptador); codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } })); }
         ui.medirEditor();
       },
       lenguajes: () => window.CMGLenguajes.disponibles(adaptadores, opciones.lenguajes),
@@ -323,6 +328,7 @@
         const lineas = codigo.value.split("\n"), pos = lineas.slice(0, n - 1).reduce((s,l) => s + l.length + 1, 0);
         codigo.setSelectionRange(pos, pos + (lineas[n - 1] || "").length);
         codigo.dispatchEvent(new CustomEvent("cmg:seleccion"));
+        cmg.motorTexto?.mostrar(pos);
         if (!cmg.edicion.activo) codigo.focus();
       },
       modoSinTeclado(si) { if (!vida.destruida) cmg.edicion.activar(si); },
@@ -332,6 +338,7 @@
       destruir() {
         if (vida.destruida) return;
         autonomo?.destruir();
+        cmg.motorTexto?.destruir();
         vida.destruir(); for (const n of propios) n.remove();
         if (anfitrionNuevo) anfitrion.classList.remove("cmg-anfitrion");
         for (const [viejo, nuevo] of reemplazos.reverse()) nuevo.replaceWith(viejo);

@@ -2,6 +2,8 @@
 
 Se sirven directamente; jugar no necesita npm, compilación ni CDN.
 
+CodeMirror 6 se distribuye en `codemirror/`, preparado desde `herramientas/codemirror/` con versiones y lockfile fijados (`npm ci && npm run build`). `codemirror/manifest.json` lista los paquetes transitivos y los hashes; `LICENSES.txt` conserva sus licencias MIT. La compilación solo prepara terceros: el juego carga un script clásico local. No editar el bundle a mano.
+
 | Archivo | Versión | Fuente fijada |
 | --- | --- | --- |
 | acorn-8.11.3.js | 8.11.3 | `nodejs/node`, tag `v22.0.0`, `deps/acorn/acorn/dist/acorn.js` |

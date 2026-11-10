@@ -13,8 +13,12 @@
   const desplazamiento = () => sinTecladoActivo() ? $bloques.scrollTop : $codigo.scrollTop;
   let alturas = [];
   function medirEditor() {
+    if (cmg.motorTexto && !sinTecladoActivo()) {
+      cmg.motorTexto.refrescar(); pintarBanda();
+      $codigo.dispatchEvent(new CustomEvent("cmg:medido")); return;
+    }
     const lineas = $codigo.value.split("\n");
-    $espejo.style.width = `${$codigo.clientWidth}px`;
+    $espejo.style.width = `${cmg.motorTexto ? $bloques.clientWidth : $codigo.clientWidth}px`;
     $espejo.innerHTML = lineas.map(l => `<div>${esc(l) || " "}</div>`).join("");
     alturas = [...$espejo.children].map(d => d.getBoundingClientRect().height);
     $gutter.innerHTML = alturas.map((h, i) => `<div style="height:${h}px">${i + 1}</div>`).join("");
@@ -23,6 +27,7 @@
     $codigo.dispatchEvent(new CustomEvent("cmg:medido"));
   }
   function pintarResaltado() {
+    if (cmg.motorTexto) { cmg.motorTexto.refrescar(); return; }
     if (!$editor.classList.contains("colores")) return;
     const toks = lexico($codigo.value);
     let html = "";
@@ -38,6 +43,10 @@
   const pad = () => parseFloat(getComputedStyle($codigo).paddingTop) || 10;
   function pintarBanda() {
     const { corre, err } = marcasActuales;
+    if (cmg.motorTexto && !sinTecladoActivo()) {
+      cmg.motorTexto.marcas({ corre, err });
+      $codigo.dispatchEvent(new CustomEvent("cmg:marcas")); return;
+    }
     const l = err || corre;
     $banda.className = `banda ${l ? (err ? "err" : "corre") : ""}`;
     if (l && alturas.length >= l) {
@@ -82,7 +91,7 @@
     if (rango) { ev.preventDefault(); $codigo.setSelectionRange(...rango); }
   });
   vida.escuchar($codigo, "drop", () => { opciones.alArrastrar?.(); $editor.classList.remove("soltar"); vida.setTimeout(seleccionarHueco, 0); });
-  vida.observar(new ResizeObserver(() => medirEditor())).observe($codigo);
+  vida.observar(new ResizeObserver(() => medirEditor())).observe(cmg.motorTexto ? $("area") : $codigo);
   vida.escuchar($codigo, "keydown", (ev) => {
     if (ev.key === "Tab") { ev.preventDefault(); insertar(adaptador.sangria.unidad); }
     else if (ev.key === "/" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); alternarComentario(); }
@@ -96,11 +105,12 @@
   });
   // Inserta con execCommand para que Ctrl+Z lo deshaga; si el navegador no lo permite, cambia el valor a mano.
   const tactil = matchMedia("(pointer: coarse)");
-  const sinTeclado = () => sinTecladoActivo() || (tactil.matches && document.activeElement !== $codigo);
+  const sinTeclado = () => sinTecladoActivo() || (tactil.matches && !cmg.tieneFoco());
   function insertar(texto, selDesde, selHasta) {
     if ($codigo.readOnly || opciones.soloLectura?.()) return false;
     const quieto = sinTeclado();
     if (!quieto) $codigo.focus();
+    if (cmg.motorTexto) return cmg.motorTexto.insertar(texto, selDesde, selHasta);
     const a = $codigo.selectionStart;
     let ok = false;
     if (!quieto) { try { ok = document.execCommand("insertText", false, texto); } catch { ok = false; } }

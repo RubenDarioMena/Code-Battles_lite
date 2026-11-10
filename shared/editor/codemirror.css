@@ -1,0 +1,33 @@
+/* El motor hereda las métricas y la paleta existentes; ningún CDN ni fuente externa. */
+.editor.con-codemirror:not(.sin-teclado) { grid-template-columns: minmax(0, 1fr) auto; }
+.editor.con-codemirror:not(.sin-teclado) > .gutter,
+.editor.con-codemirror:not(.sin-teclado) .banda,
+.editor.con-codemirror .resaltado { display: none; }
+.editor.con-codemirror textarea.codigo-puerto { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
+.cmg-codemirror { position: absolute; inset: 0; }
+.cmg-codemirror .cm-editor { height: 100%; font: inherit; color: var(--ink); background: transparent; }
+.cmg-codemirror .cm-scroller { font: inherit; line-height: var(--lh); overscroll-behavior: contain; }
+.cmg-codemirror .cm-content { padding: var(--pad) 0; caret-color: var(--accent); font-variant-ligatures: none; }
+.cmg-codemirror .cm-line { padding: 0 10px; overflow-wrap: anywhere; }
+.cmg-codemirror .cm-gutters { color: var(--muted); background: var(--code-bg); border-color: var(--line); }
+.cmg-codemirror .cm-gutterElement { padding: 0 4px; }
+.cmg-codemirror .cm-foldGutter .cm-gutterElement { cursor: pointer; padding: 0 6px; }
+.cmg-codemirror .cm-foldPlaceholder { color: var(--muted); background: var(--surface-2); border-color: var(--line); padding: 0 5px; }
+.cmg-codemirror .cm-cursor { border-left-color: var(--accent); }
+.cmg-codemirror .cm-selectionBackground, .cmg-codemirror .cm-focused .cm-selectionBackground { background: var(--accent-soft); }
+.cmg-codemirror .cm-content ::selection { background: var(--accent-soft); }
+.cmg-codemirror .cm-matchingBracket { background: var(--accent-soft); outline: 1px solid var(--accent); border-radius: 2px; }
+.cmg-codemirror .cm-nonmatchingBracket { outline: 1px solid var(--bad); }
+.cmg-codemirror .cmg-linea-corre { background: var(--accent-soft); }
+.cmg-codemirror .cmg-linea-err { background: var(--bad-soft); }
+.cmg-codemirror .com { color: var(--tk-com); font-style: italic; }
+.cmg-codemirror .str { color: var(--tk-str); }
+.cmg-codemirror .num { color: var(--tk-num); }
+.cmg-codemirror .kw { color: var(--tk-kw); font-weight: 600; }
+.cmg-codemirror .fn { color: var(--tk-fn); }
+.cmg-codemirror .prop { color: var(--tk-prop); }
+.editor:not(.colores) .cmg-codemirror .cm-line span { color: inherit; font-style: normal; font-weight: inherit; }
+.cmg-codemirror .cm-tooltip { background: var(--surface-2); color: var(--ink); border-color: var(--line); max-width: min(420px, 80vw); }
+.cmg-codemirror .cm-diagnostic { white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmg-codemirror .cm-focused { outline: none; }
+.cmg-codemirror .cm-foldGutter { min-width: 22px; }

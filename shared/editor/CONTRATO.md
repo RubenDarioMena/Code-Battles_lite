@@ -18,6 +18,16 @@ Para mantener ambos anfitriones: corregir el módulo de `shared/editor/` corresp
 
 ## Límites de responsabilidad
 
+### Superficie CodeMirror (rama de evaluación)
+
+Las entradas del juego y la demo cargan `shared/vendor/codemirror/codemirror.min.js`, `codemirror.js` y `codemirror.css`. La superficie editable es `.cm-content`. `codigo` sigue siendo el textarea real, oculto y fuera de tabulación/lectores de pantalla, como puerto para `value`, `readOnly`, `setSelectionRange`, `focus`, `blur`, desplazamiento y eventos del anfitrión. El puente modifica únicamente propiedades de esa instancia y las restaura al destruirse; no modifica prototipos.
+
+No se debe consultar la geometría ni comparar el foco DOM con ese puerto oculto. La fachada ofrece `tieneFoco()` y `motorTexto` (`rect`, `rects`, `posicion`, `scroll`, `mostrar`). El ProtoMouse, las sugerencias, el layout del teléfono y los pulsos usan esas consultas. La escritura real emite `input` hacia el puerto; asignar `value` desde el anfitrión conserva la semántica anterior y necesita su evento explícito cuando sea una edición.
+
+El historial sigue siendo el de `edicion.js`, compartido con botones, documentos y selecciones múltiples; no hay otro historial CodeMirror. La composición del teclado queda en manos del motor. Se mantienen las vistas de fichas/Seudo/Bloques; el plegado solo se presenta en la superficie CodeMirror y nunca elimina texto. `irALinea` expande el rango oculto al que se navega. `motorTexto: "textarea"` o la query `editor=textarea` permiten comparar con la superficie anterior.
+
+Los diagnósticos de CodeMirror son de sintaxis: Acorn con las opciones del juego para JS y Lezer para Python, con la excepción conocida de `yield` sin valor. Las restricciones del traductor Python y los errores del runtime conservan su validación propia. La dependencia se prepara con `npm ci && npm run build` dentro de `herramientas/codemirror/`; jugar no necesita npm ni red. Versiones transitivas, integridad y licencias están fijadas. QA y límites: `docs/CODEMIRROR-QA.md`; suite: `node pruebas/codemirror.cjs` con el servidor dedicado 8771.
+
 El editor mantiene texto original, selección, historial y presentación. El anfitrión decide qué documento abrir, cuándo bloquearlo, cómo guardarlo y cómo ejecutarlo. El adaptador conoce la sintaxis y las operaciones del lenguaje. El proveedor aporta nombres, funciones y sugerencias del proyecto. La instrumentación, el traductor y el Worker pertenecen al juego.
 
 Los nombres Python y la espera explícita se describen en [D1/D2](../../docs/EDITOR-D1-D2.md). No son el contrato de ciclo de vida de una instancia del editor.

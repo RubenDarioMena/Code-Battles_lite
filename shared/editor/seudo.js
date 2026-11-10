@@ -717,7 +717,7 @@
     $paleta.hidden = modo === "js";
     $editor.hidden = modo !== "js";
     $("paleta").hidden = modo !== "js";
-    if (modo !== "js" && document.activeElement === $codigo) $codigo.blur();
+    if (modo !== "js" && cmg.tieneFoco()) $codigo.blur();
     for (const b of ambito.querySelectorAll("[data-modo-codigo]")) b.setAttribute("aria-pressed", String(b.dataset.modoCodigo === modo));
     if (modo !== "js") { pintarPaleta(); pintar(); }
     else cmg.medirEditor();

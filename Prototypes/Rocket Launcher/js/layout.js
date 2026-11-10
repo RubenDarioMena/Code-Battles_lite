@@ -98,12 +98,12 @@
     app.dataset.primero = primero;
     // Reordena los mismos paneles: conserva estado, selección y orden de tabulación.
     const activo = document.activeElement;
-    const seleccion = activo === codigo() ? [activo.selectionStart, activo.selectionEnd, activo.selectionDirection] : null;
+    const seleccion = (codigo()?.cmgMotor ? codigo().cmgMotor.tieneFoco() : activo === codigo()) ? [codigo().selectionStart, codigo().selectionEnd, codigo().selectionDirection] : null;
     const primerPanel = primero === "mapa" ? $("zona-mapa") : zonaCodigo;
     const segundoPanel = primero === "mapa" ? zonaCodigo : $("zona-mapa");
     app.insertBefore(primerPanel, app.firstChild);
     primerPanel.after(divisor, segundoPanel);
-    if (seleccion) { activo.focus({ preventScroll: true }); activo.setSelectionRange(...seleccion); }
+    if (seleccion) { codigo().focus({ preventScroll: true }); codigo().setSelectionRange(...seleccion); }
     app.dispatchEvent(new Event("cmg:forma"));
     divisor.setAttribute("aria-orientation", eje === "vertical" ? "horizontal" : "vertical");
     aplicarPantalla();
@@ -207,10 +207,11 @@
   let teclaEspacioSim = null, teclaIntroSim = null;
   let simulado = 0;
   const codigo = () => window.cmg && window.cmg.codigo;
+  const focoCodigo = () => codigo()?.cmgMotor ? codigo().cmgMotor.tieneFoco() : document.activeElement === codigo();
   function actualizarTeclado() {
     const vv = window.visualViewport;
     const real = vv ? Math.max(0, innerHeight - vv.height - vv.offsetTop) : 0;
-    const enCodigo = document.activeElement && document.activeElement === codigo();
+    const enCodigo = focoCodigo();
     const teclado = enMarco ? simulado : real;
     const abierto = forma === "movil" && enCodigo && teclado > 100;
     if (abierto !== app.classList.contains("teclado")) expandidoTeclado = false;
@@ -242,7 +243,7 @@
   });
   document.addEventListener("focusout", (ev) => {
     if (ev.target !== codigo()) return;
-    setTimeout(() => { if (document.activeElement !== codigo()) { simulado = 0; actualizarTeclado(); } }, 60);
+    setTimeout(() => { if (!focoCodigo()) { simulado = 0; actualizarTeclado(); } }, 60);
   });
 
   // Teclado simulado (solo en probar.html): un dibujo para ver el reparto; se escribe con el teclado del PC.

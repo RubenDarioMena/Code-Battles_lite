@@ -362,7 +362,7 @@
   function guardarCopia(t) { portapapeles = t; try { sessionStorage.setItem("cmg-portapapeles", t); } catch { /* solo en memoria */ } }
   function aSistema(t) {
     if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).catch(() => {}); return; }
-    if (document.activeElement === $codigo && $codigo.value.slice($codigo.selectionStart, $codigo.selectionEnd) === t) { try { document.execCommand("copy"); } catch { /* queda la copia interna */ } return; }
+    if (cmg.tieneFoco() && $codigo.value.slice($codigo.selectionStart, $codigo.selectionEnd) === t) { try { document.execCommand("copy"); } catch { /* queda la copia interna */ } return; }
     // Textarea de solo lectura: no abre el teclado del teléfono.
     const antes = document.activeElement, tmp = document.createElement("textarea");
     tmp.value = t; tmp.readOnly = true;
@@ -842,7 +842,7 @@
     const v = ++versionSug;
     vida.queueMicrotask(() => {
       if (v !== versionSug || (gesto && gesto.arrastre)) return;
-      if ($codigo.readOnly || !editorVisible() || (!activo && document.activeElement !== $codigo)) return cerrarSugerencias();
+      if ($codigo.readOnly || !editorVisible() || (!activo && !cmg.tieneFoco())) return cerrarSugerencias();
       if (sinSugerir === claveSel()) return;
       const [a, b] = sel(), e = estructura(), c = E.contexto(e, a, b);
       if (!c || !(c.hueco || c.vacio || (activo && c.hoja && c.tipo))) return cerrarSugerencias();
@@ -881,6 +881,7 @@
       const rs = renglones(a === b ? [rectCaret(a)].filter(Boolean).map(r => ({ ...r, width: 1, right: r.left + 1 })) : rectsDe(a, b));
       return rs.length ? { left: rs[0].left, top: rs[0].top, bottom: rs[rs.length - 1].bottom } : null;
     }
+    if (cmg.motorTexto) { const aRect = cmg.motorTexto.rect(a), bRect = cmg.motorTexto.rect(b); return aRect && bRect ? { left: aRect.left, top: aRect.top, bottom: bRect.bottom } : null; }
     const cs = getComputedStyle($codigo), r = $codigo.getBoundingClientRect(), espejo = document.createElement("div"), v = $codigo.value, marca = document.createElement("span");
     for (const k of METRICAS) espejo.style[k] = cs[k];
     Object.assign(espejo.style, { position: "fixed", left: `${r.left}px`, top: `${r.top}px`, width: `${$codigo.clientWidth}px`, height: `${$codigo.clientHeight}px`, overflow: "hidden", visibility: "hidden", pointerEvents: "none" });
@@ -1021,8 +1022,8 @@
     if (!$sug.hidden && !$sug.contains(ev.target) && !$vista.contains(ev.target) && ev.target !== $codigo) cerrarSugerencias();
   }, true);
   for (const tipo of ["select", "keyup", "pointerup", "focus"]) vida.escuchar($codigo, tipo, () => { if (!activo) actualizarSugerencias(); });
-  vida.escuchar(document, "selectionchange", () => { if (!activo && document.activeElement === $codigo) actualizarSugerencias(); });
-  vida.escuchar($codigo, "blur", () => vida.setTimeout(() => { if (!activo && document.activeElement !== $codigo && !$sug.contains(document.activeElement)) cerrarSugerencias(); }, 120));
+  vida.escuchar(document, "selectionchange", () => { if (!activo && cmg.tieneFoco()) actualizarSugerencias(); });
+  vida.escuchar($codigo, "blur", () => vida.setTimeout(() => { if (!activo && !cmg.tieneFoco() && !$sug.contains(document.activeElement)) cerrarSugerencias(); }, 120));
   vida.escuchar(window, "resize", () => { if (sugerido) colocarSugerencias(); });
   if (window.visualViewport) vida.escuchar(visualViewport, "resize", () => { if (sugerido) colocarSugerencias(); });
 
@@ -1417,6 +1418,7 @@
     return t && t.nodeType === 3 ? [t, Math.min(pos - inicio, t.length)] : [d, 0];
   }
   function rectTexto(pos) {
+    if (cmg.motorTexto) { const r = cmg.motorTexto.rect(pos); return r ? { ...r, height: r.bottom - r.top } : null; }
     const p = puntoEspejo(pos);
     if (!p) return null;
     const r = document.createRange();
@@ -1425,6 +1427,7 @@
     return { left: c.left - $codigo.scrollLeft, top: c.top - $codigo.scrollTop, height: alto, bottom: c.top - $codigo.scrollTop + alto };
   }
   function rectsTexto(a, b) {
+    if (cmg.motorTexto) return cmg.motorTexto.rects(a,b);
     const p = puntoEspejo(a), q = puntoEspejo(b);
     if (!p || !q) return [];
     const r = document.createRange(), sl = $codigo.scrollLeft, st = $codigo.scrollTop;
@@ -1432,6 +1435,7 @@
     return [...r.getClientRects()].filter(x => x.width > 0 || x.height > 0).map(x => ({ left: x.left - sl, right: x.right - sl, top: x.top - st, bottom: x.bottom - st }));
   }
   function posTexto(x, y) {
+    if (cmg.motorTexto) return cmg.motorTexto.posicion(x,y);
     const divs = $espejo ? $espejo.children : [];
     if (!divs.length) return 0;
     const ey = y + $codigo.scrollTop, ex = x + $codigo.scrollLeft;
@@ -1445,13 +1449,13 @@
   const caretEn = (pos) => activo ? rectCaret(pos) : rectTexto(pos);
   const posPunto = (x, y) => activo ? posEn(x, y) : posTexto(x, y);
   function cajaVisible() {
-    const s = activo ? $vista : $codigo, r = s.getBoundingClientRect(), cs = getComputedStyle(activo ? $texto : $codigo);
+    const s = activo ? $vista : cmg.motorTexto?.scroll || $codigo, r = s.getBoundingClientRect(), cs = getComputedStyle(activo ? $texto : cmg.motorTexto?.elemento || $codigo);
     return { s, left: r.left + (parseFloat(cs.paddingLeft) || 0) - 2, right: r.right - (parseFloat(cs.paddingRight) || 0), top: r.top + 3, bottom: r.bottom - 3 };
   }
   // Cursor y selección propios mientras el textarea no tiene el foco (el navegador no los pinta).
   function pintarPM() {
     $pmSel.replaceChildren(); $pmCursor.hidden = true;
-    if (!$area || !pmMarca || activo || document.activeElement === $codigo || !$codigo.getClientRects().length) return;
+    if (!$area || !pmMarca || activo || cmg.tieneFoco() || !(cmg.motorTexto?.elemento || $codigo).getClientRects().length) return;
     const base = $area.getBoundingClientRect(), [a, b] = sel();
     if (a === b) {
       const r = rectTexto(a); if (!r) return;
@@ -1483,7 +1487,7 @@
     let movil = b;
     if (a !== b) movil = pmUltimo && pmUltimo.a === a && pmUltimo.b === b ? pmUltimo.movil : $codigo.selectionDirection === "backward" ? a : b;
     const ancla = seleccionando ? (a === b ? a : movil === a ? b : a) : null;
-    if (!activo && document.activeElement !== $codigo) pmMarca = true;
+    if (!activo && !cmg.tieneFoco()) pmMarca = true;
     // Si el cursor quedó fuera de la vista, primero se trae: el arrastre sigue desde donde estaba.
     let r = caretEn(movil), c = cajaVisible();
     if (r && (r.top < c.top || r.bottom > c.bottom)) {
@@ -1553,12 +1557,12 @@
     app.dataset.sinTeclado = String(activo);
     $vista.hidden = !activo;
     $asas.hidden = !(activo && asa === "borde");
-    $codigo.tabIndex = activo ? -1 : 0;
+    $codigo.tabIndex = cmg.motorTexto ? -1 : activo ? -1 : 0;
     if (activo) $codigo.setAttribute("inputmode", "none"); else $codigo.removeAttribute("inputmode");
     cerrarSugerencias();
     pintarBarra();
     if (activo) {
-      if (document.activeElement === $codigo) $codigo.blur();   // cierra el teclado del teléfono
+      if (cmg.tieneFoco()) $codigo.blur();   // cierra el teclado del teléfono
       pintarVista();
       $vista.scrollTop = $codigo.scrollTop;
       cmg.medirEditor();

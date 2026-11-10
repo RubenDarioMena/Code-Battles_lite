@@ -8,7 +8,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   eq(await page.evaluate(() => [typeof window.cmg, typeof window.__banco, typeof window.RUNTIME, typeof window.WAR]), ['undefined','undefined','undefined','undefined'], 'sin globals del juego');
   eq(await page.evaluate(() => new Set([...document.querySelectorAll('[id]')].map(n=>n.id)).size === document.querySelectorAll('[id]').length), true, 'IDs únicos');
   const segundo = await page.evaluate(() => demoEditores[1].documento().texto);
-  await page.fill('#demo-uno textarea', 'console.log("primero");');
+  await page.fill('#demo-uno .cm-content', 'console.log("primero");');
   eq(await page.evaluate(() => demoEditores[1].documento().texto), segundo, 'documentos aislados');
   eq(await page.evaluate(() => demoEditores[0].documento().revision > 0), true, 'revisión al editar');
   await page.evaluate(() => demoEditores[0].fachada.edicion.deshacer());
@@ -19,7 +19,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   eq(await page.evaluate(() => demoEditores[1].documento().texto), segundo, 'deshacer del segundo no toma historial ajeno');
   await page.evaluate(() => document.querySelector('[data-demo="0"] [data-documento]').value = 'borrador');
   await page.evaluate(() => document.querySelector('[data-demo="0"] [data-documento]').dispatchEvent(new Event('change')));
-  await page.fill('#demo-uno textarea', 'console.log("borrador");');
+  await page.fill('#demo-uno .cm-content', 'console.log("borrador");');
   await page.evaluate(() => { const s=document.querySelector('[data-demo="0"] [data-documento]');s.value='principal';s.dispatchEvent(new Event('change')); });
   eq(await page.evaluate(() => demoEditores[0].documento().texto), 'console.log("primero");', 'volver al documento');
   await page.evaluate(() => demoEditores[0].fachada.edicion.deshacer());
@@ -37,8 +37,8 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   eq(await page.evaluate(() => {const e=demoEditores[0],r=e.documento().revision;e.abrir({id:'nuevo',lenguaje:'js',texto:'// nuevo',revision:0});return e.marcas(r,[{linea:1,clase:'err'}]);}), false, 'descarta marcas de otro documento');
   // Recrear varias veces no duplica edición, menús ni atajos globales.
   for(let i=0;i<3;i++) await page.click('[data-demo="0"] [data-recrear]');
-  eq(await page.evaluate(() => document.querySelectorAll('#demo-uno textarea').length), 1, 'una interfaz tras recrear');
-  await page.fill('#demo-uno textarea', 'console.log("reinicio");');
+  eq(await page.evaluate(() => document.querySelectorAll('#demo-uno .cm-content').length), 1, 'una interfaz tras recrear');
+  await page.fill('#demo-uno .cm-content', 'console.log("reinicio");');
   await page.click('#demo-uno [data-editor="b-teclado"]');
   await page.click('#demo-uno [data-editor="bloques"]');
   await page.keyboard.press('Control+Alt+A');
@@ -55,7 +55,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   // E3 · lenguaje del documento. El IDE no trae Seudo: sus vistas son opcionales y la demo no carga seudo.js.
   eq(await page.evaluate(() => { const s = document.querySelector('#demo-uno [data-editor="lenguaje"]'); return [[...s.options].map(o => o.textContent), s.disabled, s.value, document.querySelector('#demo-uno').dataset.lenguaje]; }), [['JavaScript', 'Python'], false, 'js', 'js'], 'la demo ofrece JavaScript y Python');
   eq(await page.evaluate(() => { const r = document.createElement('div'); document.body.append(r); const e = CMGEditor.crear({ raiz: r, documento: { id: 'u', lenguaje: 'js', texto: '', revision: 0 }, adaptadores: { js: CMGAdaptadorJS } }); const s = r.querySelector('[data-editor="lenguaje"]'); const x = [[...s.options].map(o => o.textContent), s.disabled]; e.destruir(); r.remove(); return x; }), [['JavaScript'], true], 'un solo lenguaje: el selector lo indica sin permitir cambiarlo');
-  eq(await page.evaluate(() => [typeof window.CMGSeudo, document.querySelector('#demo-uno [data-editor="modos-codigo"]').hidden, document.querySelector('#demo-uno textarea').getAttribute('aria-label')]), ['undefined', true, 'Código JavaScript'], 'sin vistas de seudocódigo en el IDE');
+  eq(await page.evaluate(() => [typeof window.CMGSeudo, document.querySelector('#demo-uno [data-editor="modos-codigo"]').hidden, document.querySelector('#demo-uno .cm-content').getAttribute('aria-label')]), ['undefined', true, 'Código JavaScript'], 'sin vistas de seudocódigo en el IDE');
   // Un segundo adaptador de prueba (no es un lenguaje del proyecto): basta para cambiar el interior.
   await page.evaluate(() => {
     const root = document.createElement('div'); root.id = 'lenguajes'; document.body.append(root);
@@ -68,9 +68,9 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   });
   const lenguaje = id => page.evaluate(v => { const s = document.querySelector('#lenguajes [data-editor="lenguaje"]'); s.value = v; s.dispatchEvent(new Event('change')); }, id).then(() => page.waitForTimeout(30));
   eq(await page.evaluate(() => { const s = document.querySelector('#lenguajes [data-editor="lenguaje"]'); return [[...s.options].map(o => o.value + ':' + o.textContent), s.disabled]; }), [['js:JavaScript', 'prueba:Prueba'], false], 'el selector lista los adaptadores con el nombre del catálogo o del adaptador');
-  await page.fill('#lenguajes textarea', 'let a = 2;');
+  await page.fill('#lenguajes .cm-content', 'let a = 2;');
   await lenguaje('prueba');
-  eq(await page.evaluate(() => [editorL.documento().lenguaje, editorL.documento().texto, document.querySelector('#lenguajes').dataset.lenguaje, document.querySelector('#lenguajes textarea').getAttribute('aria-label'),
+  eq(await page.evaluate(() => [editorL.documento().lenguaje, editorL.documento().texto, document.querySelector('#lenguajes').dataset.lenguaje, document.querySelector('#lenguajes .cm-content').getAttribute('aria-label'),
     document.querySelectorAll('#lenguajes .simbolos button').length, document.querySelectorAll('#lenguajes .paleta .atajo').length]),
     ['prueba', '# uno', 'prueba', 'Código Prueba', 1, 0], 'cambiar de lenguaje abre su documento con su adaptador, teclas y paleta');
   await page.evaluate(() => editorL.fachada.edicion.deshacer());
@@ -116,7 +116,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
     };
   });
   const py = (texto, op, sinTeclado) => page.evaluate(({ texto, op, sinTeclado }) => py(texto, eval(op), sinTeclado), { texto, op: op.toString(), sinTeclado });
-  eq(await page.evaluate(() => [document.querySelector('#py').dataset.lenguaje, document.querySelector('#py textarea').getAttribute('aria-label'), document.querySelectorAll('#py .simbolos button').length > 20]), ['python', 'Código Python', true], 'documento Python con su barra de símbolos');
+  eq(await page.evaluate(() => [document.querySelector('#py').dataset.lenguaje, document.querySelector('#py .cm-content').getAttribute('aria-label'), document.querySelectorAll('#py .simbolos button').length > 20]), ['python', 'Código Python', true], 'documento Python con su barra de símbolos');
   const subir = e => e.moverLineas(-1), bajar = e => e.moverLineas(1);
   eq(await py('if x:\n    a()\n|b()\n', subir), 'if x:\n    a()\n    b()\n', 'subir tras un bloque entra al final del bloque');
   eq(await py('if x:\n    a()\n    |b()\n', subir), 'if x:\n    b()\n    a()\n', 'dentro del bloque, sube una línea');
@@ -160,7 +160,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   await page.evaluate(() => edPy.modoSinTeclado(false));
   // El selector cambia de documento y de lenguaje sin mezclar sus herramientas.
   await page.evaluate(() => { const s = document.querySelector('#demo-uno [data-editor="lenguaje"]'); s.value = 'python'; s.dispatchEvent(new Event('change')); });
-  eq(await page.evaluate(() => [demoEditores[0].documento().lenguaje, demoEditores[0].documento().id, document.querySelector('#demo-uno .resaltado .kw')?.textContent]), ['python', 'principal.py', 'if'], 'la demo abre el documento Python del mismo espacio');
+  eq(await page.evaluate(() => [demoEditores[0].documento().lenguaje, demoEditores[0].documento().id, document.querySelector('#demo-uno .cm-line .kw')?.textContent]), ['python', 'principal.py', 'if'], 'la demo abre el documento Python del mismo espacio');
   await page.evaluate(() => { edPy.destruir(); document.querySelector('#py').remove(); });
 
   // E2.1 · paridad con el editor del juego y pantalla completa.
@@ -194,7 +194,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   const caja = n => page.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return [b.x, b.y, b.width, b.height].map(Math.round); }, raiz(n));
   eq(await caja(1), [0, 0, 1400, 900], 'pantalla completa cubre la ventana');
   eq(await page.evaluate(() => [document.querySelector('#demo-dos .editor').getBoundingClientRect().height > 600, document.documentElement.dataset.cmgPantalla !== undefined, document.querySelector('#demo-uno').dataset.pantallaCompleta]), [true, true, undefined], 'el código ocupa el alto y el otro editor no cambia');
-  await page.click('#demo-dos textarea');
+  await page.click('#demo-dos .cm-content');
   await page.keyboard.press('Escape');
   eq(await page.evaluate(() => [document.querySelector('#demo-dos').dataset.pantallaCompleta, document.documentElement.dataset.cmgPantalla]), ['false', undefined], 'Esc sale de la pantalla completa');
   // Salir de la pantalla completa del navegador (su propio Esc) también devuelve el editor.
@@ -218,7 +218,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   await page.waitForFunction(() => document.querySelector('#demo-uno').dataset.forma === 'movil');
   eq(await page.evaluate(() => [document.querySelector('#demo-uno .atajo').getBoundingClientRect().height, getComputedStyle(document.querySelector('#demo-uno .barra-edicion')).display]), [40, 'flex'], 'en el teléfono paleta compacta y barra de edición');
   eq(await visible('#demo-uno .simbolos'), false, 'sin escribir no hay barra de símbolos');
-  await page.focus('#demo-uno textarea');
+  await page.focus('#demo-uno .cm-content');
   eq(await visible('#demo-uno .simbolos'), true, 'al escribir aparece la barra de símbolos');
   await page.evaluate(() => document.activeElement.blur());
   await page.evaluate(() => demoEditores[0].destruir());

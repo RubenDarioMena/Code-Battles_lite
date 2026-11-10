@@ -198,6 +198,8 @@
       const r = document.createRange(), p0 = piezas[0], p1 = piezas.at(-1);
       r.setStart(p0.firstChild, Math.max(0, a - +p0.dataset.a)); r.setEnd(p1.firstChild, Math.min(p1.textContent.length, b - +p1.dataset.a));
       rects = [...r.getClientRects()];
+    } else if (cod.cmgMotor) {
+      rects = cod.cmgMotor.rects(a,b);
     } else {
       const espejo = document.getElementById("espejo");
       if (!espejo) return null;
