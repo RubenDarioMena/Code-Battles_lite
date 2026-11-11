@@ -661,7 +661,10 @@ def componer(vista, escena, zesc, est, cfg, modo):
             desx -= H["dx"] * k * H["ppm"]
             desy -= H["dy"] * k * H["ppm"]
         for O in ondas:
-            pulso = O["amplitud"] * np.exp(-((O["r"] - O["radio"]) / O["ancho"]) ** 2) * O["visible"]
+            # La onda es una esfera que crece: se mide con la distancia real al punto de fusión, así
+            # recorre el suelo y los edificios en vez de ser un aro pegado a la pantalla.
+            r3 = np.sqrt(O["r2"] + (np.minimum(zesc, 1e3) - O["zc"]) ** 2)
+            pulso = O["amplitud"] * np.exp(-((r3 - O["radio"]) / O["ancho"]) ** 2)
             O["pulso"] = pulso
             rr = np.maximum(O["r"], 1e-3)
             desx -= O["dx"] / rr * pulso * O["ppm"]
