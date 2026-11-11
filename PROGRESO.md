@@ -1,3 +1,9 @@
+## 10-nov-2026 · Torreta de observación: fuentes y propuestas de mecanismo
+
+- Incorporados en `arte/blender/torreta_observacion/` el modelo Blender de 1 m, la secuencia de observación y dos propuestas animadas (cardán dentado y ruedas omni), con documentación y visor HTML.
+- Verificación: integridad SHA-256 de los recursos copiados; videos ya comprobados con ffprobe (19 s base, 13 s propuestas). Cambio limitado a arte y documentación; sin cambios de reglas o código del juego.
+- Pendiente: elección del mecanismo, dimensionamiento mecánico y preparación de LOD, colisiones, animaciones horneadas y exportación GLB para integrar al juego.
+
 ## Revisión · ciclo 05 con Astra (xhigh): forEach con cuerpo expresión · 8 de noviembre de 2026
 
 - **Proceso.** Quinto ciclo. Astra en Codex CLI con esfuerzo xhigh y solo lectura. Hubo 3 turnos: diagnóstico, un rechazo y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/05-foreach-expresion/`.

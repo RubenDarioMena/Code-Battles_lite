@@ -1,0 +1,18 @@
+PROPUESTAS DE MECANISMO / CONCEPTO
+
+PROPUESTA B / TRES RUEDAS OMNIDIRECCIONALES
+Centro a Z=0.700 m: 50 mm mas bajo que la version anterior y 60 mm bajo el borde.
+Tres ruedas omni con ejes tangentes inclinados 45 grados actuan sobre la esfera.
+Sus rodillos perifericos giran libres lateralmente. La mezcla de velocidades permite los tres giros de la esfera.
+La base permanece fija: esta alternativa reemplaza el motor de azimut de la base por el tercer motor omni.
+Las pistas dentadas se sustituyen por bandas lisas, y las bisagras pasan al interior para mantener la superficie de rodadura.
+Las velocidades de las ruedas se calculan a partir del giro real de la esfera; las tres actuan de forma coordinada.
+Ventaja: conjunto mas compacto y esfera sin munones. Coste: depende de precarga, adherencia y realimentacion por encoders.
+Pendiente de validar: friccion y carga, perfil de rodillos, juntas de las tapas, recuperacion de deslizamiento y recorrido de precarga.
+Matriz de accionamiento: determinante 0.999392. Separacion minima de contacto a los polos: 23.58 grados.
+
+ESCENA
+Vista en corte. La torre completa se conserva oculta en 07_REFERENCIA_MONTAJE.
+La secuencia tiene 312 fotogramas a 24 fps (13 segundos): reposo, inversion, apertura, extension y miradas combinadas.
+Allen y telescopio mantienen la escala del modelo anterior. El tubo frontal sigue vacio, sin cristal.
+Las coronas son perfiles de presentacion, no engranajes calculados para fabricar.

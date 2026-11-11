@@ -1,0 +1,58 @@
+TORRETA DE OBSERVACION / REVISION 04
+==================================
+Escala: metros. Carcasa esferica: diametro nominal 1.000 m, pared 0.012 m.
+Boca realmente abierta: no hay lente, cristal ni disco frontal. Diametro interior 112 mm.
+
+ALINEACION CORREGIDA
+La compuerta y el telescopio comparten eje radial.
+Su meridiano biseca exactamente el espacio entre las dos pistas perpendiculares.
+En el sistema local de la esfera: azimut -45 grados, latitud -45 grados en reposo.
+Al invertir la esfera 180 grados: compuerta a +45 grados sobre el ecuador.
+El centro esta a mitad angular entre el ecuador y el polo, no en el tropico geografico de 23.5 grados.
+Hueco: 310 x 250 mm en el plano tangente. Sus esquinas dejan libres ambas pistas.
+
+DOS POSICIONES
+Reposo / fotograma 1: tornillo principal hacia +Z, compuerta oculta bajo el ecuador.
+Uso / fotograma 456: tornillo principal hacia -Z, compuerta y telescopio en la mitad superior.
+El polo opuesto al tornillo lleva un tapon liso; ya no hay dos tornillos principales identicos.
+
+ANIMACION Y CONTROLES
+Selecciona CONTROL_TORRETA en 00_CONTROLES.
+Inversion_uso: preset de 0 a 1 que combina inclinacion X de 180 grados y giro de base de -90 grados. Usa los ejes del mecanismo.
+Apertura_compuertas y Extension_telescopio: 0 a 1.
+Giro_base_grados: ajuste de observacion del eje 3. El preset de servicio suma -90 grados al giro de base.
+Inclinacion_X_grados e Inclinacion_Y_grados: ajustes conceptuales adicionales.
+La secuencia invierte la esfera con todo cerrado; despues abre las hojas y extiende los tubos.
+Fotogramas: 1 reposo, 108 invertida, 156 hojas abiertas, 216 telescopio desplegado, 228-444 barrido de observacion, 456 final.
+Los seis controles de secuencia y observacion estan animados. Borra sus claves para manejarlos manualmente.
+
+MONTAJE
+Centro esferico: Z=0.750 m. El labio de referencia permanece a Z=0.760 m y oculta aproximadamente media esfera.
+07_REFERENCIA_MONTAJE es una torre orientativa, separada del asset. No reproduce medidas deducidas de las capturas.
+Oculta 07_REFERENCIA_MONTAJE para inspeccionar la mitad inferior, el tornillo y los apoyos.
+La base se conserva como mecanismo interior independiente del muro de la torre.
+
+IMPORTAR EN TU TORRE
+File > Append > Torreta_observacion_1m.blend > Collection > TORRETA_OBSERVACION | conjunto editable.
+El asset excluye la torre de contexto y el estudio. Sustituye la referencia por la torre real.
+
+ALCANCE
+Concepto visual editable, no plano de fabricacion ni simulacion de engranes.
+Las pistas y los accionamientos propuestos requieren validar contacto continuo, perfil y holguras.
+La ubicacion propuesta de los dos motores sigue aislada y oculta en 06_ACCIONAMIENTOS_PROPUESTA.
+
+AJUSTES SUTILES / REVISION 04
+Alojamiento Allen: radio de vertices de 34 a 37 mm; profundidad de 18.5 a 24.5 mm.
+Esfera y apoyos superiores: 10 mm mas abajo; anillo de base y torre conservan su altura.
+Pieza_actualizada.png muestra el aspecto final en reposo. Las laminas de revision 02 documentan la alineacion angular.
+
+ANIMACION COMPLETA / REVISION 04
+Duracion: 19 segundos a 24 fps, fotogramas 1 a 456.
+La inversion usa los ejes de base y esfera. Las miradas combinan base y dos inclinaciones con transiciones solapadas.
+Los pivotes se mantienen en el centro de la esfera; la torre permanece fija.
+Animacion_torreta.mp4 es el video de presentacion. La accion nativa permite ajustar o volver a renderizar cada pose.
+
+REPRODUCIR
+El archivo abre en el fotograma 1. Pulsa Espacio para ver la secuencia.
+Para importarla en otra escena, ajusta el rango a 1-456 y la velocidad a 24 fps.
+El video mantiene la camara fija y usa sombreado de presentacion para leer el movimiento. El .blend conserva materiales y configuracion Cycles.

@@ -1,0 +1,17 @@
+PROPUESTAS DE MECANISMO / CONCEPTO
+
+PROPUESTA A / CARDAN DENTADO
+Centro a Z=0.725 m: 25 mm mas bajo que la version anterior y 35 mm bajo el borde.
+M1: corona y pinon en el munon X; inclina la cuna exterior hasta invertir la esfera.
+M2: motor montado sobre la cuna; corona y pinon en el munon Y.
+M3: pinon y corona para girar la base completa. Los movimientos se combinan.
+Las pistas originales de la esfera se conservan como referencia visual; en esta opcion el par entra por los munones.
+Evita depender del contacto simultaneo de dos pinones fijos sobre pistas esfericas que cambian de plano.
+Ventaja: accionamiento positivo y ejes definidos. Coste: mas volumen y estructura de apoyo.
+Pendiente de dimensionar: cargas en munones, refuerzos de carcasa, rodamientos, frenos, perfil dentado y holguras.
+
+ESCENA
+Vista en corte. La torre completa se conserva oculta en 07_REFERENCIA_MONTAJE.
+La secuencia tiene 312 fotogramas a 24 fps (13 segundos): reposo, inversion, apertura, extension y miradas combinadas.
+Allen y telescopio mantienen la escala del modelo anterior. El tubo frontal sigue vacio, sin cristal.
+Las coronas son perfiles de presentacion, no engranajes calculados para fabricar.
