@@ -1,3 +1,15 @@
+## VFX · singularidad y explosiones, pruebas de concepto en Blender · 11 de noviembre de 2026
+
+Rama `vfx-explosiones-singularidad`. Todo vive en `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify. Sigue el plan de VFX con WebGPU del 10 de noviembre, que va por otro camino que `docs/PLAN-VFX.md` (ese descartaba Blender y hojas de sprites para el juego actual en r128).
+
+- **Singularidad (`singularidad.py`, `singularidad_config.json`).** Agujero negro diminuto y cargado que flota sobre el piso. La apariencia depende de la masa: lente y oscuridad crecen, el brillo de Hawking decrece hasta apagarse cerca de la masa crítica. Arcos eléctricos al piso, una línea de luz por enemigo absorbido, y la secuencia de fusión de dos agujeros (repulsión, órbita que se acelera, deriva, destello, anillo de onda, retroceso y ringdown). Sin disco de acreción estable.
+- **Reparto.** Blender solo renderiza el escenario de prueba (color y profundidad). El efecto es un pase de numpy que prototipa lo que hará el motor: lente de espacio de pantalla ponderada por profundidad y polilíneas sin estado.
+- **Parámetros y eventos.** Curvas, umbrales, velocidades y duraciones están en el JSON. La ejecución escribe los eventos (`fusion`, `super_arma`, `masa_critica`…); `carga_perdida` queda reservado y el efecto no depende de la carga.
+- **Explosiones (`explosion.py`, `empaquetar.py`), en pausa.** Simulación de gas con Mantaflow, tres variantes por receta y semilla. Solo se probó en calidad borrador; el atlas y las calidades media y final no se han ejecutado.
+- **Entorno.** Hace falta el Blender oficial (5.2.4 LTS): el `bpy` de PyPI y el Blender 4.0.2 de `apt` no arrancan Mantaflow. Sin GPU, todo se renderizó por CPU.
+- **Verificado:** las dos demos (`--demo fusion`, `--demo masa`) y `--modo simple` corren completas; se revisaron hojas de contactos y cuadros sueltos, también desde un ángulo bajo. **No verificado:** el movimiento en vídeo (solo cuadros), nada en WebGL/WebGPU, ni rendimiento en GPU.
+- **Pendiente:** revisión visual del usuario, estirar la malla del enemigo en vez de sustituirla por luz, arcos que busquen objetos, y portar el pase a TSL tras la migración.
+
 ## Correcciones del review del editor móvil · 5 de noviembre de 2026
 
 - **Ficha accesible en todas las vistas.** JS, Seudo y Bloques comparten un contenedor para el programa y la ficha ⓘ. Ocultar el textarea ya no retira el acceso al Inspector y a la Consola; el asa mide ese contenedor común. Se conservan los mismos nodos, valores vivos y preferencias de alto.
