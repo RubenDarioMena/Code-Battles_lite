@@ -49,7 +49,7 @@ Blender solo renderiza el escenario de prueba: color y profundidad. Todo el efec
 | `lente` | Aberración cromática, alcance, peso por profundidad, suavizado, bloom y número máximo de lentes. |
 | `flotacion` | Altura, altura por masa, vaivén, frecuencia y temblor. |
 | `arcos` | Cantidad, alcance y brillo según la masa; frecuencia de resorteo; tramos, zigzag, ancho, ramas, colores, luz en el suelo y arcos entre agujeros. |
-| `espagueti` | Duración del estiramiento y de la órbita, vueltas, inclinación, forma de la espiral, ancho, brillo, tramos y color final. |
+| `espagueti` | Duración del estiramiento y de la órbita, largo de la línea, despegue del suelo, vueltas, inclinación, forma de la espiral, ancho, brillo, tramos y color final. |
 | `aparicion` | Destello al crearse un agujero. |
 | `fusion` | Velocidad de disparo, distancias, duración de repulsión y órbita, vueltas, exponentes del inspiral, inclinación, deriva y su dirección, retroceso y su asimetría, destello, onda y ringdown. |
 | `eventos` | Ganchos que emite y los reservados. |

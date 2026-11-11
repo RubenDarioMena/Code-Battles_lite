@@ -269,8 +269,8 @@
  },
  "tiempos_fusion": null,
  "segundos": {
-  "total": 41.9,
-  "por_cuadro": 0.19,
+  "total": 45.0,
+  "por_cuadro": 0.21,
   "renders_escenario": 1
  },
  "config": {
@@ -393,7 +393,9 @@
     3.0
    ],
    "inclinacion_max_grados": 32,
-   "avance": 0.7,
+   "largo": 0.4,
+   "despegue": 3.0,
+   "avance": 1.3,
    "espiral": 0.6,
    "ancho_m": 0.03,
    "tamano_enemigo_m": 0.22,

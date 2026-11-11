@@ -205,10 +205,11 @@ def escenario(n_enemigos):
     L(fondo.outputs[0], N("ShaderNodeOutputWorld").inputs["Surface"])
     # Enemigos de la demo: se mueven y desaparecen al ser absorbidos (los coloca el bucle de render).
     enemigos = []
-    rojo = _material("enemigo", (0.70, 0.07, 0.03))
-    for i in range(n_enemigos):
-        cuerpo = _caja(f"enemigo{i}", 0, 0, 0.8, 0.9, 0.55, rojo if i % 3 else naranja, col)
-        torre = _caja(f"enemigo_torre{i}", 0, 0, 0.42, 0.42, 0.3, grafito, col)
+    rojos = (_material("enemigo", (0.70, 0.07, 0.03)), _material("enemigo_claro", (0.72, 0.16, 0.04)))
+    torreta = _material("enemigo_torre", (0.07, 0.08, 0.09))
+    for i in range(n_enemigos):  # materiales propios: no comparten nada con el escenario fijo
+        cuerpo = _caja(f"enemigo{i}", 0, 0, 0.8, 0.9, 0.55, rojos[i % 3 == 0], col)
+        torre = _caja(f"enemigo_torre{i}", 0, 0, 0.42, 0.42, 0.3, torreta, col)
         enemigos.append((cuerpo, torre))
     return col, enemigos
 
@@ -742,6 +743,11 @@ def componer(vista, escena, zesc, est, cfg, modo):
         xi, yi = np.clip(px.astype(int), 0, w - 1), np.clip(py.astype(int), 0, h - 1)
         ver &= zesc[yi, xi] > pz - 0.15
         ppm_p = (h / 2) / (np.maximum(pz, 0.5) * vista.ty)
+        # Al pasar por detrás de un agujero la lente puede separar mucho dos puntos seguidos: ese
+        # tramo se corta en vez de dibujar una recta que cruza la imagen.
+        paso = np.hypot(np.diff(px), np.diff(py))
+        if len(paso) > 2 and not L.get("arco"):
+            ver[:-1] &= paso < max(0.04 * w, 5 * float(np.median(paso)))
         trazar(luz, px, py, L["ancho"] * ppm_p, L["color"].astype(np.float32), ver)
         if "suelo" in L and ver[-1]:  # chispa donde el arco toca el piso
             salpicar(luz, px[-1:], py[-1:], L["color"][-1:].astype(np.float32) * 0.8, np.array([0.07 * ppm_p[-1]]))
@@ -839,10 +845,11 @@ def main():
             firma = nueva
             orientar(co, a.elevacion, yaw, a.distancia)
             for (cuerpo, torre), p in zip(enemigos, est["enemigos"]):
-                cuerpo.hide_render = torre.hide_render = p is None
-                if p is not None:
-                    cuerpo.location = (p[0], p[1], 0.275)
-                    torre.location = (p[0], p[1], 0.7)
+                # Un enemigo absorbido se aparta bajo el suelo en vez de ocultarse: con datos persistentes,
+                # cambiar la visibilidad de un objeto dejaba en negro otros materiales del escenario.
+                x, y, hundido = (p[0], p[1], 0.0) if p is not None else (0.0, 0.0, -400.0)
+                cuerpo.location = (x, y, 0.275 + hundido)
+                torre.location = (x, y, 0.7 + hundido)
             capa.update()
             escena = render(os.path.join(tmp, "escena.exr"), False)[..., :3]
             z = render(os.path.join(tmp, "z.exr"), True)
