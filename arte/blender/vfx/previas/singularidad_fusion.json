@@ -1,0 +1,445 @@
+{
+ "demo": "fusion",
+ "fps": 24,
+ "cuadros": 276,
+ "resolucion": [
+  768,
+  432
+ ],
+ "calidad": "final",
+ "modo": "completo",
+ "eventos": [
+  {
+   "t": 0.4,
+   "evento": "agujero_creado",
+   "agujero": "A"
+  },
+  {
+   "t": 1.1,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 1.958,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 2.967,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 3.0,
+   "evento": "agujero_creado",
+   "agujero": "B"
+  },
+  {
+   "t": 3.867,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 4.883,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 5.7,
+   "evento": "repulsion"
+  },
+  {
+   "t": 5.742,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 6.55,
+   "evento": "orbita"
+  },
+  {
+   "t": 6.875,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 7.158,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 8.0,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 8.708,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 9.55,
+   "evento": "fusion",
+   "masa": 3.0,
+   "asimetria": 0.333,
+   "retroceso": 4.0
+  },
+  {
+   "t": 9.55,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 9.625,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 9.917,
+   "evento": "enemigo_absorbido",
+   "agujero": "A",
+   "masa": 0.1
+  },
+  {
+   "t": 10.43,
+   "evento": "ringdown_fin"
+  }
+ ],
+ "por_masa": {
+  "1": {
+   "x": 0.1,
+   "radio": 0.07,
+   "lente": 0.9,
+   "hawking": 1.7,
+   "oscuridad": 0.014,
+   "arcos": 2.0,
+   "brillo_arcos": 1.5,
+   "alcance_arcos": 0.9,
+   "radio_absorcion": 1.4,
+   "letalidad": 0.0063
+  },
+  "2": {
+   "x": 0.2,
+   "radio": 0.131,
+   "lente": 1.364,
+   "hawking": 0.69,
+   "oscuridad": 0.099,
+   "arcos": 3.364,
+   "brillo_arcos": 1.847,
+   "alcance_arcos": 1.318,
+   "radio_absorcion": 2.438,
+   "letalidad": 0.029
+  },
+  "3": {
+   "x": 0.3,
+   "radio": 0.188,
+   "lente": 1.74,
+   "hawking": 0.408,
+   "oscuridad": 0.193,
+   "arcos": 4.559,
+   "brillo_arcos": 2.086,
+   "alcance_arcos": 1.647,
+   "radio_absorcion": 3.372,
+   "letalidad": 0.0707
+  },
+  "4": {
+   "x": 0.4,
+   "radio": 0.244,
+   "lente": 2.068,
+   "hawking": 0.28,
+   "oscuridad": 0.291,
+   "arcos": 5.657,
+   "brillo_arcos": 2.274,
+   "alcance_arcos": 1.929,
+   "radio_absorcion": 4.244,
+   "letalidad": 0.1332
+  },
+  "6": {
+   "x": 0.6,
+   "radio": 0.351,
+   "lente": 2.637,
+   "hawking": 0.123,
+   "oscuridad": 0.497,
+   "arcos": 7.667,
+   "brillo_arcos": 2.568,
+   "alcance_arcos": 2.411,
+   "radio_absorcion": 5.87,
+   "letalidad": 0.325
+  },
+  "8": {
+   "x": 0.8,
+   "radio": 0.455,
+   "lente": 3.134,
+   "hawking": 0.014,
+   "oscuridad": 0.71,
+   "arcos": 9.514,
+   "brillo_arcos": 2.799,
+   "alcance_arcos": 2.825,
+   "radio_absorcion": 7.389,
+   "letalidad": 0.6121
+  },
+  "10.0": {
+   "x": 1.0,
+   "radio": 0.556,
+   "lente": 3.583,
+   "hawking": 0.0,
+   "oscuridad": 0.93,
+   "arcos": 11.247,
+   "brillo_arcos": 2.993,
+   "alcance_arcos": 3.193,
+   "radio_absorcion": 8.833,
+   "letalidad": 1.0
+  }
+ },
+ "tiempos_fusion": {
+  "t_d": 3.0,
+  "t_r": 5.7,
+  "t_o": 6.55,
+  "t_f": 9.55
+ },
+ "segundos": {
+  "total": 1353.5,
+  "por_cuadro": 4.9,
+  "renders_escenario": 240
+ },
+ "config": {
+  "masa": {
+   "agujero": 1.0,
+   "enemigo": 0.1,
+   "super_arma": 8.0,
+   "critica": 10.0
+  },
+  "curvas": {
+   "radio_horizonte": {
+    "base": 0.07,
+    "exponente": 0.9
+   },
+   "lente": {
+    "base": 0.9,
+    "exponente": 0.6
+   },
+   "radio_absorcion": {
+    "base": 1.4,
+    "exponente": 0.8
+   },
+   "letalidad": {
+    "exponente": 2.2
+   }
+  },
+  "hawking": {
+   "brillo": 1.7,
+   "exponente": 1.3,
+   "apagado": [
+    0.45,
+    0.9
+   ],
+   "color_pequeno": [
+    0.7,
+    0.85,
+    1.0
+   ],
+   "color_grande": [
+    0.42,
+    0.36,
+    0.85
+   ],
+   "nucleo_m": 0.07,
+   "halo": 0.1,
+   "halo_m": 0.45,
+   "raya": 0.18,
+   "parpadeo": 0.22
+  },
+  "oscuridad": {
+   "inicio": 0.08,
+   "exponente": 1.1,
+   "maxima": 0.93,
+   "contraste": 2.0,
+   "radio_m": [
+    2.5,
+    9.0
+   ],
+   "pozo": 0.75,
+   "desaturar": 0.7
+  },
+  "lente": {
+   "aberracion": 0.012,
+   "alcance": [
+    2.6,
+    1.0
+   ],
+   "largo_profundidad": 1.5,
+   "suavizado": 0.02,
+   "bloom": 0.3,
+   "max_lentes": 4
+  },
+  "flotacion": {
+   "altura": 1.8,
+   "altura_por_masa": 0.04,
+   "vaiven": 0.07,
+   "frecuencia": 1.3,
+   "temblor": 0.02
+  },
+  "arcos": {
+   "cantidad": {
+    "base": 2.0,
+    "exponente": 0.75
+   },
+   "frecuencia": 14.0,
+   "segmentos": 14,
+   "zigzag": 0.13,
+   "zigzag_fino": 0.03,
+   "alcance": {
+    "base": 0.9,
+    "exponente": 0.55
+   },
+   "brillo": {
+    "base": 1.5,
+    "exponente": 0.3
+   },
+   "ancho_m": 0.022,
+   "ramas": 0.4,
+   "color": [
+    0.5,
+    0.76,
+    1.0
+   ],
+   "color_critico": [
+    0.72,
+    0.42,
+    1.0
+   ],
+   "luz_suelo": 0.22,
+   "entre_agujeros": 3
+  },
+  "espagueti": {
+   "estiramiento": 0.15,
+   "orbita": [
+    1.2,
+    2.0
+   ],
+   "vueltas": [
+    1.6,
+    3.0
+   ],
+   "inclinacion_max_grados": 32,
+   "largo": 0.4,
+   "despegue": 3.0,
+   "avance": 1.3,
+   "espiral": 0.6,
+   "ancho_m": 0.03,
+   "tamano_enemigo_m": 0.22,
+   "brillo": 2.6,
+   "segmentos": 24,
+   "color_final": [
+    0.8,
+    0.9,
+    1.0
+   ]
+  },
+  "aparicion": {
+   "brillo": 1.6,
+   "duracion": 0.25,
+   "radio_m": 0.5
+  },
+  "fusion": {
+   "velocidad_disparo": 3.5,
+   "distancia_inicial": 7.0,
+   "distancia_minima": 0.7,
+   "repulsion": 0.85,
+   "distancia_orbita": 1.7,
+   "orbita": 3.0,
+   "vueltas": 4.5,
+   "exponente_fase": 0.625,
+   "exponente_separacion": 0.25,
+   "inclinacion_grados": 14,
+   "deriva": 0.45,
+   "direccion_deriva": [
+    0.0,
+    1.0
+   ],
+   "retroceso": {
+    "velocidad": 2.0,
+    "asimetria": 3.0,
+    "frenado": 0.7
+   },
+   "destello": {
+    "brillo": 3.0,
+    "duracion": 0.12,
+    "radio_m": 0.6
+   },
+   "onda": {
+    "velocidad": 11.0,
+    "amplitud_m": 0.6,
+    "ancho_m": 0.5,
+    "duracion": 1.1,
+    "luz": 0.5
+   },
+   "ringdown": {
+    "frecuencia": 7.0,
+    "amortiguacion": 0.22,
+    "amplitud": 0.45
+   }
+  },
+  "eventos": {
+   "emite": [
+    "agujero_creado",
+    "enemigo_absorbido",
+    "repulsion",
+    "orbita",
+    "fusion",
+    "ringdown_fin",
+    "super_arma",
+    "masa_critica"
+   ],
+   "reservados": [
+    "carga_perdida"
+   ]
+  },
+  "demo": {
+   "fusion": {
+    "duracion": 11.5,
+    "agujero_a": {
+     "t": 0.4,
+     "pos": [
+      0.0,
+      0.0
+     ]
+    },
+    "agujero_b": {
+     "t": 3.0,
+     "direccion_grados": -78
+    },
+    "enemigos": {
+     "cantidad": 13,
+     "velocidad": 1.2,
+     "primero_y": 2.6,
+     "separacion_y": 1.25,
+     "carriles_x": [
+      -0.55,
+      0.15,
+      0.5,
+      -0.2
+     ]
+    }
+   },
+   "masa": {
+    "duracion": 9.0,
+    "exponente": 1.6,
+    "lineas_por_segundo": 3.0
+   }
+  }
+ },
+ "blender": "5.2.4 LTS"
+}
