@@ -435,28 +435,35 @@ class Guion:
         e = cfg["espagueti"]
         n = e["segmentos"] // (2 if simple else 1)
         for ab in self.absorciones:
-            s = (t - ab["t"]) / ab["dur"]
-            retraso = e["estiramiento"] / ab["dur"]
-            if s <= 0 or s >= 1 + retraso:
+            tau = t - ab["t"]
+            if tau <= 0 or tau >= ab["dur"]:
                 continue
             ag = por_id.get(self.id_actual(ab["agujero"], t))
             if ag is None:
                 continue
             h0 = self.pos(ab["agujero"], ab["t"])
+            # La órbita es casi horizontal (eje poco inclinado): el enemigo está en el suelo, así que la
+            # línea despega mientras gira y se une al plano orbital del agujero.
             rel = ab["pos"] - h0
-            rho0 = np.linalg.norm(rel)
-            er = rel / rho0
+            alto0 = float(rel @ ab["eje"])
+            radial = rel - alto0 * ab["eje"]
+            rho0 = max(1e-3, float(np.linalg.norm(radial)))
+            er = radial / rho0
             et = np.cross(ab["eje"], er)
-            et /= np.linalg.norm(et)
-            q = np.linspace(max(0.0, s - retraso) ** e["avance"], min(1.0, s) ** e["avance"], n + 1)
+            # Estiramiento: la cabeza sale disparada y la cola se queda en el enemigo. Órbita: la cabeza
+            # sigue hasta el horizonte y la cola la alcanza justo allí, así la línea se acorta al caer.
+            u1 = min(1.0, tau / e["estiramiento"])
+            u2 = max(0.0, (tau - e["estiramiento"]) / (ab["dur"] - e["estiramiento"]))
+            cabeza = e["largo"] * suave(u1) + (1 - e["largo"]) * u2 ** e["avance"]
+            q = np.linspace(cabeza * math.sqrt(u2), cabeza, n + 1)
             rho = ag["radio"] + (rho0 - ag["radio"]) * (1 - q)
             ang = math.tau * ab["vueltas"] * (1 - (1 - q) ** e["espiral"])
-            pts = ag["pos"] + (rho * np.cos(ang))[:, None] * er + (rho * np.sin(ang))[:, None] * et
-            u1 = min(1.0, (t - ab["t"]) / e["estiramiento"])        # 0→1 durante el estiramiento
+            pts = ag["pos"] + (rho * np.cos(ang))[:, None] * er + (rho * np.sin(ang))[:, None] * et \
+                + (alto0 * (1 - q) ** e["despegue"])[:, None] * ab["eje"]
             k = np.linspace(0, 1, n + 1)                             # 0 en la cola, 1 en la cabeza
             ancho = e["ancho_m"] + (e["tamano_enemigo_m"] * 0.5 - e["ancho_m"]) * (1 - u1) ** 2 * (1 - k) ** 2
             color = ab["color"] + (np.array(e["color_final"]) - ab["color"]) * (0.25 + 0.75 * u1) * (0.4 + 0.6 * k[:, None])
-            apagar = 1 - suave((s - 1) / retraso)
+            apagar = 1 - suave((u2 - 0.85) / 0.15)
             est["lineas"].append(dict(pts=pts, ancho=ancho, color=color * (e["brillo"] * (0.35 + 0.65 * k[:, None]) * apagar)))
 
         # Arcos eléctricos: se sortean de nuevo en cada intervalo; la semilla es (agujero, intervalo, arco).

@@ -79,12 +79,14 @@
  },
 
  "espagueti": {
-  "_": "Cada enemigo absorbido es una línea independiente: se estira en «estiramiento», orbita cerrando la espiral y se apaga al cruzar el horizonte.",
+  "_": "Cada enemigo absorbido es una línea independiente: se estira en «estiramiento» hasta ocupar la fracción «largo» de su trayectoria, orbita cerrando la espiral y se acorta y apaga al cruzar el horizonte.",
   "estiramiento": 0.15,
   "orbita": [1.2, 2.0],
   "vueltas": [1.6, 3.0],
   "inclinacion_max_grados": 32,
-  "avance": 0.7,
+  "largo": 0.4,
+  "despegue": 3.0,
+  "avance": 1.3,
   "espiral": 0.6,
   "ancho_m": 0.03,
   "tamano_enemigo_m": 0.22,
