@@ -28,6 +28,14 @@ Sirve la entrada y ambos juegos. Mantén como raíz la carpeta completa: los jue
 
 La aplicación sirve Acorn 8.11.3, Three.js r128 y GLTFLoader r128 desde `shared/vendor/`, con licencias y hashes fijados. Usa fuentes instaladas en el dispositivo. Los juegos funcionan desde el servidor local sin CDN ni conexión a Internet. La telemetría remota opcional necesita red para enviar datos.
 
+## Editor de terreno · fase A
+
+[Abrir el editor de terreno](http://localhost:8770/herramientas/terreno/) para esculpir el paisaje de War, pintar cuatro materiales y agua, y preparar el blocking con primitivas. Usa Three.js r180 local, prefiere WebGPU y dispone de respaldo WebGL 2; el juego mantiene su renderizador actual. No requiere instalación ni compilación.
+
+Incluye ratón/lápiz con presión, cámara táctil, edición de vértices, extrusión de triángulos, unión de mallas, deshacer/rehacer, borrador local, abrir/guardar JSON y exportar altura PNG de 16 bits + mezcla RGBA + máscara de agua. «Probar en War» abre una copia visual del escenario en el juego. El campo jugable conserva altura cero; las reglas y los programas se mantienen. [Uso, formato y límites](docs/EDITOR-TERRENO.md). El S Pen necesita comprobación en dispositivo físico.
+
+Pruebas del formato, las mallas y las texturas: `node pruebas/terreno.cjs`, `node pruebas/terreno-bloques.cjs` y `node pruebas/terreno-png.mjs`. Las suites `pruebas/terreno-navegador.mjs` y `pruebas/terreno-modelado.mjs` exportan `probarTerreno(page)` y `probarModelado(page)` para una Page de Playwright, con servidor de QA en el puerto 8771.
+
 ## Estructura
 
 La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguientes son relativas a esa carpeta:
@@ -101,7 +109,7 @@ node scripts/preparar-netlify.mjs
 node pruebas/publicacion.mjs
 ```
 
-Sube el **contenido de `dist/`**. La carpeta es generada e ignorada por Git. No incluye el laboratorio de animación, sus dependencias, documentos, pruebas ni metadatos del repositorio. Incluye una página 404; conserva las URL existentes bajo `Prototypes/`. No hay una redirección global de SPA que oculte recursos ausentes.
+Sube el **contenido de `dist/`**. La carpeta es generada e ignorada por Git. Incluye el editor de terreno y únicamente los tres módulos compartidos del motor de revisión que el juego ya carga; excluye las páginas y proyectos del laboratorio de animación, sus dependencias, documentos, pruebas y metadatos del repositorio. Incluye una página 404; conserva las URL existentes bajo `Prototypes/`. No hay una redirección global de SPA que oculte recursos ausentes.
 
 La preparación no publica nada. Al cambiar a un dominio Netlify, localStorage empieza separado del origen local: aún no existe importación/exportación de programas. El paquete incluye las dependencias locales.
 

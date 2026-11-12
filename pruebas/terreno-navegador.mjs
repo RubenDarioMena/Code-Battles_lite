@@ -1,0 +1,92 @@
+// Recibe una Page de Playwright. Usa el puerto dedicado de QA, nunca el origen del jugador.
+import assert from 'node:assert/strict';
+export async function probarTerreno(page, base = 'http://127.0.0.1:8771') {
+  let comprobaciones = 0;
+  const verificar = (valor, mensaje) => { assert.ok(valor, mensaje); comprobaciones++; };
+  const errores = [];
+  page.on('pageerror', e => errores.push(e.message));
+  await page.goto(base + '/herramientas/terreno/?motor=webgl');
+  await page.waitForFunction(() => window.__terreno?.listo);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload(); await page.waitForFunction(() => window.__terreno?.listo);
+  verificar(await page.evaluate(() => __terreno.motor === 'webgl'), 'Respaldo WebGL 2 real');
+  verificar(await page.locator('[data-material]').count() === 5, 'Cuatro materiales de suelo y agua');
+  await page.locator('#cenital').click();
+  await page.waitForTimeout(400); // Permitir que se asiente la amortiguación de la cámara.
+  const punto = () => page.evaluate(() => __terreno.proyectar(40, 23));
+  const estado = () => page.evaluate(() => JSON.stringify(__terreno.mapa));
+  const inicial = await estado();
+  let p = await punto();
+  await page.mouse.move(p.x, p.y); await page.mouse.down(); await page.mouse.move(p.x + 18, p.y, { steps: 5 }); await page.mouse.up();
+  const esculpido = await estado();
+  verificar(esculpido !== inicial, 'El arrastre esculpe altura');
+  await page.locator('#deshacer').click(); verificar(await estado() === inicial, 'Deshacer recupera el mapa exacto');
+  await page.locator('#rehacer').click(); verificar(await estado() === esculpido, 'Rehacer recupera el trazo exacto');
+  // Trazo sin confirmar mientras vence el guardado de la operación anterior.
+  p = await punto(); await page.mouse.move(p.x, p.y); await page.mouse.down();
+  await page.waitForTimeout(750);
+  await page.keyboard.press('Escape'); await page.mouse.up();
+  verificar(await estado() === esculpido, 'Escape revierte también los puntos de una pulsación mantenida');
+  verificar(await page.evaluate(() => localStorage.getItem(CMGTerreno.CLAVE_BORRADOR)) === esculpido, 'El autoguardado excluye el trazo cancelable');
+  await page.reload(); await page.waitForFunction(() => window.__terreno?.listo);
+  verificar(await estado() === esculpido, 'La recarga conserva el último mapa confirmado');
+  await page.locator('#cenital').click(); await page.waitForTimeout(400);
+  const centro = await page.evaluate(() => __terreno.proyectar(16, 9));
+  const alturasAntes = await page.evaluate(() => JSON.stringify(__terreno.mapa.alturas));
+  await page.mouse.move(centro.x, centro.y); await page.mouse.down(); await page.mouse.move(centro.x + 10, centro.y); await page.mouse.up();
+  verificar(await page.evaluate(() => JSON.stringify(__terreno.mapa.alturas)) === alturasAntes, 'El campo protegido no se eleva');
+  await page.locator('[data-material="3"]').click();
+  verificar(await page.locator('[data-modo="pintar"]').getAttribute('aria-pressed') === 'true', 'Elegir material activa Pintar');
+  await page.mouse.move(centro.x, centro.y); await page.mouse.down(); await page.mouse.up();
+  verificar(await page.evaluate(() => { const m=__terreno.mapa, i=(54*129+64)*4; return m.pesos[i+3]>0; }), 'Pintar arena modifica su peso dentro del campo');
+  await page.locator('[data-material="4"]').click();
+  await page.mouse.move(centro.x, centro.y); await page.mouse.down(); await page.mouse.up();
+  const aguaPintada = await page.evaluate(() => __terreno.mapa.agua.mascara[54*129+64]);
+  verificar(aguaPintada > 0, 'Pintar agua crea máscara independiente de los cuatro materiales');
+  await page.keyboard.down('Shift'); await page.mouse.down(); await page.mouse.up(); await page.keyboard.up('Shift');
+  verificar(await page.evaluate(() => __terreno.mapa.agua.mascara[54*129+64]) < aguaPintada, 'Shift borra agua');
+  // Presión real de PointerEvent generada a través de CDP, sin hardware físico.
+  await page.locator('[data-modo="subir"]').click();
+  const cdp = await page.context().newCDPSession(page); p = await punto();
+  const altura = () => page.evaluate(() => CMGTerreno.alturaEn(__terreno.mapa, 40, 23));
+  const antesPen = await altura();
+  async function lapiz(presion) {
+    await cdp.send('Input.dispatchMouseEvent', { type:'mousePressed', x:p.x, y:p.y, button:'left', buttons:1, pointerType:'pen', force:presion });
+    await cdp.send('Input.dispatchMouseEvent', { type:'mouseReleased', x:p.x, y:p.y, button:'left', buttons:0, pointerType:'pen', force:0 });
+  }
+  await lapiz(.2); const suave = await altura() - antesPen; await page.locator('#deshacer').click();
+  await lapiz(.8); const fuerte = await altura() - antesPen;
+  verificar(suave > 0 && fuerte > suave * 3.5, 'La presión del lápiz cambia la intensidad');
+  await cdp.detach();
+  const antesCamara = await estado(); await page.locator('[data-modo="camara"]').click();
+  p = await punto(); await page.mouse.move(p.x,p.y); await page.mouse.down(); await page.mouse.move(p.x+35,p.y+10,{steps:5}); await page.mouse.up();
+  verificar(await estado() === antesCamara, 'Mover cámara no pinta');
+  const downloadJSON = page.waitForEvent('download'); await page.locator('#json').click();
+  verificar((await downloadJSON).suggestedFilename().endsWith('.json'), 'Exportación JSON descargable');
+  const descargas = []; const registrar = d => descargas.push(d.suggestedFilename()); page.on('download', registrar);
+  await page.locator('#png').click(); await page.waitForFunction(() => !document.getElementById('png').disabled);
+  await page.waitForTimeout(150); page.off('download', registrar);
+  verificar(descargas.length === 3 && descargas.some(n=>n.endsWith('-altura16.png')) && descargas.some(n=>n.endsWith('-mezcla.png')) && descargas.some(n=>n.endsWith('-agua.png')), 'Descarga de las tres texturas PNG');
+  const antesImportar = await estado();
+  await page.locator('#archivo').setInputFiles({ name:'invalido.json', mimeType:'application/json', buffer:Buffer.from('{"formato":"otro"}') });
+  await page.waitForFunction(() => document.getElementById('aviso').textContent.startsWith('No se abrió'));
+  verificar(await estado() === antesImportar, 'JSON inválido conserva el mapa abierto');
+  const plano = await page.evaluate(() => CMGTerreno.serializar(CMGTerreno.crear({nombre:'Mapa importado',relieve:false})));
+  await page.locator('#archivo').setInputFiles({ name:'mapa.json', mimeType:'application/json', buffer:Buffer.from(plano) });
+  await page.waitForFunction(() => __terreno.mapa.nombre === 'Mapa importado');
+  verificar(await estado() === plano, 'JSON válido conserva todos sus datos');
+  await page.locator('#deshacer').click(); verificar(await estado() === antesImportar, 'La importación se puede deshacer');
+  await page.locator('#nuevo').click(); await page.getByRole('button',{name:'Terreno plano',exact:true}).click();
+  await page.waitForFunction(() => __terreno.mapa.alturas.every(h=>h===0));
+  verificar(await page.evaluate(() => __terreno.mapa.alturas.every(h=>h===0)), 'Nuevo terreno plano');
+  await page.locator('#deshacer').click(); verificar(await estado() === antesImportar, 'Nuevo mapa también se puede deshacer');
+  const popup = page.waitForEvent('popup'); await page.locator('#probar').click(); const war = await popup;
+  await war.waitForURL('**/*terreno=editor');
+  verificar(war.url().includes('terreno=editor'), 'La vista previa abre War explícitamente');
+  await war.waitForFunction(() => window.__juegoListo); verificar(true, 'War arranca con el terreno guardado'); await war.close();
+  await page.setViewportSize({width:390,height:844});
+  verificar(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'La interfaz móvil no desborda horizontalmente');
+  verificar(await page.locator('#visor').evaluate(n => n.clientHeight >= 260), 'El móvil conserva un visor utilizable');
+  verificar(errores.length === 0, 'Sin excepciones de navegador: ' + errores.join('; '));
+  return { comprobaciones, motor: await page.evaluate(() => __terreno.motor) };
+}

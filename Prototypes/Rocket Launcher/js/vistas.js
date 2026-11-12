@@ -151,6 +151,29 @@
     // Las montañas son columnas de casillas de 1 m con alturas de 0,5 en 0,5 m: la misma cuadrícula que el
     // campo, baratas de pintar (una sola malla instanciada) y fáciles de usar para colisiones en retos futuros.
     const TERRENO = { x0: -48, x1: estado.cols + 48, z0: -40, z1: estado.rows + 34 };
+    // La vista previa usa solo datos visuales. El suelo de la simulación sigue siendo plano.
+    let terrenoEditor = null;
+    if (!ES_FACTORY && new URLSearchParams(location.search).get("terreno") === "editor") {
+      try {
+        const api = window.CMGTerreno;
+        if (!api || !api.crearGeometria) throw new Error("No se cargaron los recursos del editor de terreno.");
+        const guardado = localStorage.getItem(api.CLAVE_JUEGO);
+        if (!guardado) throw new Error("No hay un terreno guardado para probar.");
+        terrenoEditor = api.validar(JSON.parse(guardado));
+      } catch (error) {
+        console.warn("Terreno del editor: se conserva el paisaje predeterminado.", error.message);
+      }
+    }
+    // El desplazamiento de profundidad evita interferencias con la cuadrícula sobre la malla plana.
+    const matTerrenoEditor = terrenoEditor ? new THREE.MeshLambertMaterial({
+      color: 0xffffff, vertexColors: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+    }) : null;
+    const matAguaEditor = terrenoEditor ? new THREE.MeshLambertMaterial({
+      color: 0xffffff, vertexColors: true, transparent: true, opacity: .72, depthWrite: false, side: THREE.DoubleSide,
+    }) : null;
+    const materialesBloques = new Map((terrenoEditor?.bloques || []).map(b => [b.id,
+      new THREE.MeshPhongMaterial({ color: b.color, flatShading: true, shininess: 8, side: THREE.DoubleSide }),
+    ]));
     const MONTES = { x0: -40, x1: estado.cols + 40, z0: -30, z1: -2 };
     const PICOS = [[-30, -17, 12, 13], [-14, -13, 10, 11], [0, -19, 13, 15], [12, -12, 8, 9], [22, -20, 13, 17], [33, -13, 9, 10], [45, -18, 12, 14], [58, -14, 10, 11], [70, -20, 12, 13]];
     // Ruido suave y fijo por casilla (sin Math.random): el paisaje es siempre el mismo.
@@ -193,7 +216,23 @@
     function construirTerreno(conMontes = true) {
       const { x0, x1, z0, z1 } = TERRENO;
       const afuera = mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), M.afuera);
-      afuera.rotation.x = -Math.PI / 2; afuera.position.set((x0 + x1) / 2, -.02, (z0 + z1) / 2); afuera.raycast = () => {};
+      afuera.rotation.x = -Math.PI / 2; afuera.position.set((x0 + x1) / 2, terrenoEditor ? -2.02 : -.02, (z0 + z1) / 2); afuera.raycast = () => {};
+      if (terrenoEditor) {
+        const terreno = mesh(window.CMGTerreno.crearGeometria(THREE, terrenoEditor), matTerrenoEditor);
+        terreno.name = "Terreno del editor";
+        terreno.raycast = () => {};
+        fijo.add(afuera, terreno);
+        const agua = mesh(window.CMGTerreno.crearGeometriaAgua(THREE, terrenoEditor), matAguaEditor);
+        agua.name = "Agua del editor"; agua.visible = agua.geometry.drawRange.count > 0;
+        agua.renderOrder = 1; agua.raycast = () => {}; fijo.add(agua);
+        for (const b of terrenoEditor.bloques) {
+          const bloque = mesh(window.CMGTerreno.BLOQUES.geometria(THREE, b), materialesBloques.get(b.id));
+          bloque.name = `Bloque del editor: ${b.nombre}`;
+          bloque.position.fromArray(b.posicion); bloque.rotation.set(...b.rotacion); bloque.scale.fromArray(b.escala);
+          bloque.raycast = () => {}; fijo.add(bloque);
+        }
+        return;
+      }
       const p = [];
       for (let i = x0; i <= x1; i++) p.push([i, -.01, z0], [i, -.01, z1]);
       for (let j = z0; j <= z1; j++) p.push([x0, -.01, j], [x1, -.01, j]);
@@ -210,7 +249,9 @@
     function construir() {
       limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
       prepararVisual();
-      const suelo = mesh(new THREE.PlaneGeometry(estado.cols, estado.rows), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(estado.cols / 2, 0, estado.rows / 2); fijo.add(suelo);
+      if (!terrenoEditor) {
+        const suelo = mesh(new THREE.PlaneGeometry(estado.cols, estado.rows), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(estado.cols / 2, 0, estado.rows / 2); fijo.add(suelo);
+      }
       construirTerreno(!ES_FACTORY);
       const p1 = [], p2 = [];
       for (let i = 0; i <= estado.cols; i++) (i % 4 ? p1 : p2).push([i, .01, 0], [i, .01, estado.rows]);
