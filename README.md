@@ -90,6 +90,13 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - Comparación histórica: 28 casos, con [13 diferencias aprobadas](pruebas/factory-deltas.json) y 15 resultados idénticos. El [oráculo original](pruebas/factory-oraculo.md) se conserva.
 - El Factory original (`Prototypes/Tres vistas/`) está retirado: sus URL y `Prototypes/02_tres_vistas.html` redirigen aquí conservando query y hash. Su código queda en el historial de git (`b76411b`).
 
+## Campaign · nivel 1 (prototipo)
+
+- [Abrir](http://localhost:8770/Prototypes/Rocket%20Launcher/?serie=campaign): una planta continua con seis hitos (H0–H5), de la primera tarima a la munición en la muralla. Mismo editor, JS y Python.
+- Ejecutar arranca los programas y el mundo sigue en vivo; cada hito guarda un checkpoint (pestaña Historial, botón «↺ Checkpoint»).
+- Mapa de 200 × 104 m en 3D low-poly o plano; el botón «Batalla» deja solo la cuadrícula.
+- Reglas, API y límites: [docs/CAMPAIGN-NIVEL-1.md](docs/CAMPAIGN-NIVEL-1.md). Pruebas: `node pruebas/campaign-reglas.cjs`.
+
 ## Preparar Netlify
 
 El repositorio incluye `netlify.toml`. Para conectar el repo en Netlify, usa la raíz del repositorio como base; el comando es `node scripts/preparar-netlify.mjs` y el directorio publicado es `dist`. No requiere `npm install` ni backend. El comando usa Node.js 22 y copia una lista permitida: entrada, Campaign, aplicación común, recursos compartidos y entradas heredadas.

@@ -13,9 +13,21 @@
     { nombre: "burstFire", nombres: { python: "burst_fire" }, firma: ["lugar"], nota: "ráfaga · sube el fallo" },
     { nombre: "stopFire", nombres: { python: "stop_fire" }, firma: [], nota: "deja de disparar" },
   ];
+  // Campaign: encargos de los robots (con await) y modos de máquinas, banda y bahía (al instante).
+  const planta = [
+    { nombre: "pickUp", nombres: { python: "pick_up" }, alias: ["recoger"], firma: ["lugar", "material"], await: true, nota: "recoge" },
+    { nombre: "deliver", alias: ["entregar"], firma: ["lugar"], await: true, nota: "entrega" },
+    { nombre: "goTo", nombres: { python: "go_to" }, alias: ["irA"], firma: ["lugar"], await: true, nota: "va a un lugar" },
+    { nombre: "wait", alias: ["esperar"], firma: ["segundos"], await: true, nota: "pausa el programa" },
+    { nombre: "count", alias: ["cuantos"], firma: ["lugar", "material"], await: false, nota: "cuántas hay" },
+    { nombre: "start", firma: [], nota: "arranca" }, { nombre: "stop", firma: [], nota: "se detiene" },
+    { nombre: "light", firma: ["color"], nota: "luz" },
+    { nombre: "setRecipe", nombres: { python: "set_recipe" }, firma: ["receta"], nota: "cambia de receta" },
+    { nombre: "request", firma: ["materia"], nota: "pide una tarima" },
+  ];
   function crear({ serie, sensores = () => [], objetos = () => [], propiedades = () => [] }) {
     function funciones() {
-      const propias = serie === "factory"
+      const propias = serie === "campaign" ? planta.map(f => ({ grupo: "Planta", ...f })) : serie === "factory"
         ? robot.map(f => ({ grupo: "Robot", ...f }))
         : [...lanzador.map(f => ({ grupo: "Lanzador", ...f })),
           { grupo: "Tiempo", nombre: "esperar", nombres: { python: "wait" }, firma: ["segundos"], await: true, nota: "pausa el programa" },

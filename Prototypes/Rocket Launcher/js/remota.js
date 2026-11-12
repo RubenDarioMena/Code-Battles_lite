@@ -3,7 +3,7 @@
 // Identificador anónimo por navegador; `?quien=Nombre` en el enlace lo etiqueta (se recuerda).
 (() => {
   "use strict";
-  if (window.cmg?.serie === "factory") return;
+  if (window.cmg?.serie !== "war") return;
   const DESTINO = "/api/t";
   const CLAVE = "cmg-banco03:remota";
   const MAX_CODIGO = 12000;

@@ -7,7 +7,10 @@
   const localizarHTML = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
 
   // ---------- Constantes del mundo ----------
-  const ES_FACTORY = new URLSearchParams(location.search).get("serie") === "factory";
+  const SERIE = (() => { const q = new URLSearchParams(location.search).get("serie"); return q === "factory" || q === "campaign" ? q : "war"; })();
+  const ES_FACTORY = SERIE === "factory", ES_CAMPAIGN = SERIE === "campaign";
+  // Prefijo de las claves guardadas de cada serie (War conserva las suyas, sin prefijo).
+  const PREFIJO = ES_CAMPAIGN ? "campaign-" : ES_FACTORY ? "factory-" : "";
   const ti18n = (clave, valores) => window.CMGI18n ? window.CMGI18n.t(clave, valores) : clave;
   const htmlInterfaz = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
@@ -33,9 +36,15 @@
     reparador: { principal: "utilitaria" },
     deposito: { principal: "fabrica" },
     robot: { principal: "utilitaria" }, bodega: { principal: "fabrica" }, fundidora: { principal: "fabrica" },
+    // Campaign
+    obrero: { principal: "utilitaria" }, montacargas: { principal: "utilitaria" }, prensa: { principal: "fabrica" }, moldeadora: { principal: "fabrica" },
+    mezcladora: { principal: "fabrica" }, ensambladora: { principal: "fabrica" }, banda: { principal: "fabrica" }, bahia: { principal: "fabrica" },
+    lugar: { principal: "fabrica" }, pad: { principal: "fabrica" }, pila: { principal: "fabrica" }, arsenal: { principal: "fabrica" },
+    torreta: { principal: "ofensiva" }, control: { principal: "rastreo" },
   };
   const funcionDe = (e) => FUNCION_DE[e.clase] || null;
-  const RADIO_DE = { lanzador: .9, vibracion: .6, deposito: 1.2, reparador: .5 };
+  const RADIO_DE = { lanzador: .9, vibracion: .6, deposito: 1.2, reparador: .5,
+    obrero: .8, montacargas: 1.3, prensa: 1.7, moldeadora: 1.7, mezcladora: 1.7, ensambladora: 2.4, banda: 1.2, bahia: 1.9, lugar: 1, pad: 1.4, pila: 1, arsenal: 1.9, torreta: 1.1, control: 1.2 };
   const radioDe = (e) => RADIO_DE[e.clase] || .6;
   // Luces de cada clase en coordenadas locales (x, altura, y del mapa). El frente mira a la derecha.
   const LUCES = { lanzador: [[.56, .32, .3], [.56, .32, -.3]], vibracion: [[0, 1.4, 0]], deposito: [[.71, .52, .55], [.71, .52, -.55]], reparador: [[.12, .7, .12]] };
@@ -78,8 +87,9 @@
   // Avisos para quien escuche fuera del juego (telemetría remota): nunca interrumpen la partida.
   const avisar = (tipo, detalle) => { try { window.dispatchEvent(new CustomEvent(tipo, { detail: detalle })); } catch { /* sin oyentes */ } };
 
-  const RETOS = ES_FACTORY ? window.FACTORY_RETOS.RETOS : RETOS_WAR;
-  const programablesDe = d => d.robots || d.lanzadores;
+  const RETOS = ES_CAMPAIGN ? window.CAMPAIGN_NIVEL.RETOS : ES_FACTORY ? window.FACTORY_RETOS.RETOS : RETOS_WAR;
+  // En Campaign las unidades se encienden por hitos: solo las encendidas se programan y se ejecutan.
+  const programablesDe = d => d.serie === "campaign" && mundo ? mundo.programables : d.robots || d.lanzadores;
 
   // ---------- Almacenamiento local (comodidad del jugador) ----------
   const guardado = {
@@ -95,9 +105,11 @@
 
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
   const KW = new Set("await async break case catch class const continue default delete do else false finally for function if in instanceof let new null of return switch this throw true try typeof undefined var void while".split(" "));
-  const FN_PROPIAS = new Set(ES_FACTORY ? ["pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos", "log"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
-  const FN_MIEMBRO = new Set(["pickUp", "deliver", "wait", "count", "recoger", "entregar", "cuantos", "esperar", "autoTarget", "regularShoot", "burstFire", "stopFire", "detect", "log", "info", "warn", "error"]);
-  const PROPS = new Set(["failureRate", "missiles", "mode", "jammed", "fireRate", "sensors", "target", "count"]);
+  const FN_PROPIAS = new Set(ES_CAMPAIGN ? ["pickUp", "deliver", "goTo", "wait", "count", "start", "stop", "light", "setRecipe", "request", "recoger", "entregar", "esperar", "cuantos", "irA", "log"] : ES_FACTORY ? ["pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos", "log"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
+  const FN_MIEMBRO = new Set(["pickUp", "deliver", "wait", "count", "recoger", "entregar", "cuantos", "esperar", "autoTarget", "regularShoot", "burstFire", "stopFire", "detect", "log", "info", "warn", "error",
+    ...(ES_CAMPAIGN ? ["goTo", "irA", "start", "stop", "light", "setRecipe", "request"] : [])]);
+  const PROPS = new Set(ES_CAMPAIGN ? ["cargo", "busy", "input", "output", "outputFull", "state", "recipe", "made", "running", "pallet", "items", "free", "pending", "machine", "missiles", "received", "power", "budget", "milestone", "used", "max"]
+    : ["failureRate", "missiles", "mode", "jammed", "fireRate", "sensors", "target", "count"]);
   // Nombres de los huecos /* … */ que dejan las plantillas y el modo sin teclado.
   const { NOMBRES_HUECO, HUECO, RE_HUECO, lexico } = window.CMGEditorJS;
   // Vecino significativo (salta espacios y comentarios en la misma línea).
@@ -110,7 +122,7 @@
   // Cada llamada de la API lleva su número de línea, para iluminarla y para los mensajes de error.
   function instrumentar(src) {
     const locales = new Set();
-    if (ES_FACTORY && window.acorn) {
+    if ((ES_FACTORY || ES_CAMPAIGN) && window.acorn) {
       try {
         const ast = acorn.parse(src, { ecmaVersion: 2022, allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true });
         const binding = n => { if (!n) return; if (n.type === "Identifier") locales.add(n.name); else if (n.type === "RestElement") binding(n.argument); else if (n.type === "AssignmentPattern") binding(n.left); else if (n.type === "ArrayPattern") n.elements.forEach(binding); else if (n.type === "ObjectPattern") n.properties.forEach(p => binding(p.value || p.argument)); };
@@ -141,10 +153,10 @@
   const alcance = sensor => combate.alcance(sensor);
   const enRango = sensor => combate.enRango(sensor);
   const coste = () => combate.coste();
-  const crearMundo = (def, semilla) => def.serie === "factory" ? window.FACTORY.crear(def, semilla) : window.WAR.crear(def, semilla);
-  const instantanea = () => ES_FACTORY ? { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: window.FACTORY.instantanea(mundo) } : combate.instantanea();
-  const paso = dt => (logistica || combate).paso(dt);
-  const evaluar = () => (logistica || combate).evaluar();
+  const crearMundo = (def, semilla) => def.serie === "campaign" ? window.CAMPAIGN.crear(def, estadoCampaign) : def.serie === "factory" ? window.FACTORY.crear(def, semilla) : window.WAR.crear(def, semilla);
+  const instantanea = () => ES_CAMPAIGN ? { t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: campana.instantanea() } : ES_FACTORY ? { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: window.FACTORY.instantanea(mundo) } : combate.instantanea();
+  const paso = dt => (campana || logistica || combate).paso(dt);
+  const evaluar = () => (campana || logistica || combate).evaluar();
   function registrar(maquina, linea, que, resultado, clase) {
     mundo.eventos.push({ t: +mundo.t.toFixed(2), maquina, linea: linea ?? "", que, resultado, clase });
     eventosSucios = true;
@@ -154,7 +166,8 @@
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
   const varDe = (id) => id.replace(/-/g, "_");
-  const nombresVar = () => mundo ? (ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => varDe(e.id)) : [];
+  const nombradas = () => ES_CAMPAIGN ? mundo.unidades : ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores];
+  const nombresVar = () => mundo ? nombradas().map(e => varDe(e.id)) : [];
   const RUTEO_DEF = { log: "globo", info: "globo", warn: "globo", error: "pantalla" };
   const IDX_PROPIO = RETOS.length;
 
@@ -165,17 +178,19 @@
     let viejo = 0; try { viejo = JSON.parse(localStorage.getItem("cmg-banco02:reto")) || 0; } catch (_) { /* Sin selección antigua. */ }
     return guardado.leer("factory-reto", viejo);
   };
-  let retoIdx = Math.min(IDX_PROPIO, Math.max(0, (ES_FACTORY ? retoFactoryInicial() : guardado.leer("reto", 0)) | 0));
-  let propio = ES_FACTORY ? window.FACTORY_RETOS.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(localStorage.getItem("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
+  let retoIdx = Math.min(IDX_PROPIO, Math.max(0, (ES_CAMPAIGN ? 0 : ES_FACTORY ? retoFactoryInicial() : guardado.leer("reto", 0)) | 0));
+  let propio = ES_CAMPAIGN ? null : ES_FACTORY ? window.FACTORY_RETOS.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(localStorage.getItem("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
   let hechos = guardado.leer("hechos", []);
   let records = guardado.leer("records", {});
   // D6: una tabla de récords por reto; el lenguaje del intento es solo una etiqueta (War la guarda aparte para no cambiar «records»).
   let recordsLenguaje = guardado.leer("records-lenguaje", {});
   const etiquetaLenguaje = l => l && l !== "js" ? ` <span class="etq-lenguaje">${l === "python" ? "Python" : "JS + Python"}</span>` : "";
-  let telemetria = guardado.leer(ES_FACTORY ? "factory-telemetria" : "telemetria", []);
-  let logistica = null, combate = null;
+  let telemetria = guardado.leer(`${PREFIJO}telemetria`, []);
+  let logistica = null, combate = null, campana = null;
+  // Campaign: estado con el que se monta el mundo (el guardado en vivo o un checkpoint) e hito recién cumplido.
+  let estadoCampaign = null, hitoPendiente = null;
   let ruteo = { ...RUTEO_DEF, ...guardado.leer("ruteo", {}) };
-  let vista = guardado.leer(ES_FACTORY ? "factory-vista" : "vista", "3d");
+  let vista = guardado.leer(`${PREFIJO}vista`, "3d");
   let colores = guardado.leer("colores", true);
   let tamLetra = guardado.leer("letra", 14);
   let semillaFija = !!guardado.leer("semillaFija", false);
@@ -194,8 +209,8 @@
   let eventosSucios = false, marcasSucias = false;
   const globos = new Map();   // id de máquina → { nivel, texto, hasta }
 
-  const defActual = () => retoIdx === IDX_PROPIO ? propio : ES_FACTORY ? RETOS[retoIdx] : normalizar(RETOS[retoIdx]);
-  const claveReto = () => (ES_FACTORY ? "factory-" : "") + (retoIdx === IDX_PROPIO ? "propio" : String(retoIdx));
+  const defActual = () => ES_CAMPAIGN ? RETOS[0] : retoIdx === IDX_PROPIO ? propio : ES_FACTORY ? RETOS[retoIdx] : normalizar(RETOS[retoIdx]);
+  const claveReto = () => PREFIJO + (retoIdx === IDX_PROPIO ? "propio" : String(retoIdx));
 
   // ---------- Ciclo de los programas (lockstep) ----------
   const algunoCorre = () => window.RUNTIME.algunoCorre(ejec);
@@ -243,7 +258,7 @@
         err = ES_FACTORY ? null : revisar(texto);
       }
       // Pulsos en el editor (js/pulsos.js): JS con los ganchos del trazador; Python, por línea.
-      if (!err && !ES_FACTORY && window.CMGPulsos) {
+      if (!err && !ES_FACTORY && !ES_CAMPAIGN && window.CMGPulsos) {
         if (lenguaje === "python") window.CMGPulsos.python(l.id, texto);
         else codigos[l.id] = window.CMGPulsos.preparar(l.id, texto);
       }
@@ -257,27 +272,30 @@
     }
     intento++;
     if (!semillaFija) semilla = intento;
-    nuevoMundo(intento);
+    // Campaign: el mundo sigue en vivo; ejecutar solo arranca los programas.
+    if (ES_CAMPAIGN) { mundo.fin = null; mundo.eventos = []; eventosSucios = true; hitoPendiente = null; }
+    else nuevoMundo(intento);
     mundo.activo = true;
     limpiarConsola(); ocultarBanner(); cerrarAvisos();
     lineaCorre = {}; lineaErr = null; marcasSucias = true;
     const snap = instantanea();
-    const nombres = (ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id);
     ejec = { progs: new Map(), inicio: new Date().toISOString(), codigos: {}, lenguajes };
-    for (const l of mundo.programables) {
-      const codigo = codigos[l.id] || "";
-      const w = new Worker(WORKER_URL);
-      const p = { id: l.id, worker: w, estado: "corre", desde: performance.now(), mensajes: 0, espera: null, despertar: 0 };
-      w.onmessage = (ev) => alMensaje(p, ev.data);
-      w.onerror = (ev) => { ev.preventDefault(); errorPrograma(p, ev.message || "Error en el programa.", null); };
-      ejec.progs.set(l.id, p);
-      ejec.codigos[l.id] = fuentesTexto[l.id] ?? codigo;
-      w.postMessage({ type: "run", serie: def.serie, lenguaje: lenguajes[l.id], codigo: instrumentar(codigo), propia: l.id, nombres, tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
-        conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga }, snap });
-    }
+    for (const l of mundo.programables) arrancarPrograma(l.id, codigos[l.id] || "", fuentesTexto[l.id], snap);
     pausa = false;
     pintarControles(); pintarProgs(); pintarEdicion();
     if (ES_FACTORY) evaluar();
+  }
+
+  // Un Worker por unidad programable. Campaign también lo usa para las unidades que se encienden a mitad de ejecución.
+  function arrancarPrograma(id, codigo, fuente, snap = instantanea()) {
+    const w = new Worker(WORKER_URL);
+    const p = { id, worker: w, estado: "corre", desde: performance.now(), mensajes: 0, espera: null, despertar: 0, pend: new Map() };
+    w.onmessage = (ev) => alMensaje(p, ev.data);
+    w.onerror = (ev) => { ev.preventDefault(); errorPrograma(p, ev.message || "Error en el programa.", null); };
+    ejec.progs.set(id, p);
+    ejec.codigos[id] = fuente ?? codigo;
+    w.postMessage({ type: "run", serie: def.serie, lenguaje: ejec.lenguajes[id], codigo: instrumentar(codigo), propia: id, nombres: nombradas().map(e => e.id), tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
+      conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga }, snap });
   }
 
   const fmtLugar = (l) => l ? `{x: ${r2(l.x)}, y: ${r2(l.y)}, z: ${r2(l.z || 0)}${l.id ? `, id: "${l.id}"` : ""}}` : "null";
@@ -286,6 +304,7 @@
 
   function alMensaje(p, m) {
     if (!ejec || ejec.progs.get(p.id) !== p || !mundo.activo) return;
+    if (ES_CAMPAIGN) return mensajeCampaign(p, m);
     if (m.type === "traza") { if (window.CMGPulsos) window.CMGPulsos.traza(p.id, m.ev); return; }
     if (window.CMGPulsos && !ES_FACTORY && (m.type === "lee" || m.type === "cmd" || m.type === "consola")) window.CMGPulsos.linea(p.id, m.linea, m.type, m.type === "lee" ? m.valor : m.type === "cmd" ? m.res : null);
     if (ES_FACTORY && m.type === "encargo") {
@@ -352,7 +371,7 @@
     registrar(id, m.linea, `${m.verbo}(${arg})`, m.res, m.res === "ok" ? "ok" : "warn");
   }
 
-  const despertarProgramas = () => window.RUNTIME.despertar(ejec, mundo, instantanea);
+  const despertarProgramas = () => ES_CAMPAIGN ? window.RUNTIME.despertarCampaign(ejec, mundo, instantanea) : window.RUNTIME.despertar(ejec, mundo, instantanea);
 
   let acum = 0;
   function avanzar() {
@@ -373,9 +392,11 @@
     ejec = null;
     pausa = false;
     if (mundo) { mundo.activo = false; if (ES_FACTORY) mundo.robot.tarea = null; }
+    if (ES_CAMPAIGN && campana) { campana.cancelarTareas(); campana.soltarLuces(); }
   }
 
   function terminar(resultado, motivo, texto, linea, idProg) {
+    if (ES_CAMPAIGN) return terminarCampaign(resultado, motivo, texto, linea, idProg);
     if (!mundo || mundo.fin) return;
     const m = mundo;
     const codigos = ejec ? ejec.codigos : { ...programas };
@@ -452,13 +473,13 @@
     if (!$("info-reto").hidden) pintarInfoReto();
   }
 
-  function detener() { if (ejec) { consola("sistema", null, null, htmlInterfaz("Programa detenido.")); terminar("detenido", "detenido", null); } }
+  function detener() { if (ejec) { consola("sistema", null, null, ES_CAMPAIGN ? esc(ti18n("campaign.aviso.detenido")) : htmlInterfaz("Programa detenido.")); terminar("detenido", "detenido", null); } }
 
   function vigia(now) {
     if (!ejec) return;
     for (const p of ejec.progs.values()) {
       if (p.estado === "corre" && now - p.desde > VIGIA_MS)
-        return errorPrograma(p, (ES_FACTORY ? "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.…." : `El programa de ${p.id} giró ${VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`), lineaCorre[p.id] ?? null);
+        return errorPrograma(p, (ES_CAMPAIGN ? ti18n("campaign.vigia", { unidad: p.id }) : ES_FACTORY ? "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.…." : `El programa de ${p.id} giró ${VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`), lineaCorre[p.id] ?? null);
     }
   }
 
@@ -517,8 +538,9 @@
     get mundo() { return mundo; }, get seleccionadas() { return seleccionadas; }, get seleccion() { return seleccion; },
     get arrastreCampo() { return arrastreCampo; }, get cols() { return COLS; }, get rows() { return ROWS; },
     get col() { return col; }, get geo2() { return geo2; }, set geo2(g) { geo2 = g; },
+    get def() { return def; }, get vista() { return vista; },
   };
-  const V3 = window.VISTAS.crear3D(estadoVista, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual });
+  const V3 = ES_CAMPAIGN ? (window.CAMPAIGN_3D ? window.CAMPAIGN_3D.crear(estadoVista, { $, FUNCIONES, funcionDe, leerVar, radioDe }) : null) : window.VISTAS.crear3D(estadoVista, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual });
 
   // ---------- Vista de plano (2D) ----------
   const $c2d = $("c2d"), ctx2 = $c2d.getContext("2d");
@@ -531,7 +553,7 @@
   const rgba = (hex, a) => `rgba(${rgb(hex).join(",")},${a})`;
   const mezclaBlanco = (hex, u) => `rgb(${rgb(hex).map(v => Math.round(v + (255 - v) * u)).join(",")})`;
   let geo2 = { T: 10, ox: 0, oy: 0 };
-  const dibujar2D = window.VISTAS.crearPlano(estadoVista, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 });
+  const dibujar2D = ES_CAMPAIGN ? window.CAMPAIGN_PLANO.crear(estadoVista, { $c2d, ctx2, FUNCIONES, funcionDe, radioDe, rgba, mezclaBlanco }) : window.VISTAS.crearPlano(estadoVista, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 });
   function proyectar2D(x, y) { return { x: geo2.ox + x * geo2.T, y: geo2.oy + y * geo2.T, visible: true }; }
   function elegir2D(px, py) {
     const x = (px - geo2.ox) / geo2.T, y = (py - geo2.oy) / geo2.T;
@@ -709,8 +731,9 @@
   function pintarCapa(off, ahora) {
     const W = $capa.clientWidth, H = $capa.clientHeight;
     const vivos = new Set(), puestas = [];
+    const cercaC = ES_CAMPAIGN && (vista === "3d" && V3 ? V3.camara().dist < 55 : geo2.T > 9);
     for (const e of mundo.maquinas) {
-      const alto = e.clase === "lanzador" ? 1.45 : e.clase === "vibracion" ? 1.7 : e.clase === "deposito" ? 1.1 : .9;
+      const alto = ES_CAMPAIGN ? uiC.altoEtiqueta(e) : e.clase === "lanzador" ? 1.45 : e.clase === "vibracion" ? 1.7 : e.clase === "deposito" ? 1.1 : .9;
       const p = vista === "3d" && V3 ? V3.proyectar(e.cx, alto, e.cy, W, H) : proyectar2D(e.cx, e.cy - radioDe(e));
       vivos.add(e.id);
       let o = etiquetas.get(e.id);
@@ -721,11 +744,13 @@
         $capa.append(etq, g); o = { etq, g, texto: "", txtEtq: "" }; etiquetas.set(e.id, o);
       }
       const atasco = e.clase === "lanzador" && e.atascado;
-      const txt = e.clase === "lanzador" ? `${e.id} · ${e.misiles}▮${atasco ? " ⚠" : ""}` : e.id;
+      // Campaign: los contadores de tarimas y máquinas se ven de cerca sin seleccionar nada.
+      const fija = ES_CAMPAIGN && !seleccionadas.has(e.id) && cercaC && uiC.siempre(e);
+      const txt = ES_CAMPAIGN ? (fija ? uiC.etiqueta(e).replace(`${e.id} · `, "") : uiC.etiqueta(e)) : e.clase === "lanzador" ? `${e.id} · ${e.misiles}▮${atasco ? " ⚠" : ""}` : e.id;
       if (txt !== o.txtEtq) { o.etq.textContent = txt; o.txtEtq = txt; }
-      o.etq.className = `etq${e.id === seleccion ? " principal" : ""}${atasco ? " atasco" : ""}`;
+      o.etq.className = `etq${e.id === seleccion ? " principal" : ""}${atasco ? " atasco" : ""}${fija ? " fija" : ""}`;
       // Los nombres solo aparecen en las unidades seleccionadas: sin selección no tapan a nadie.
-      o.etq.hidden = !p.visible || !seleccionadas.has(e.id);
+      o.etq.hidden = !p.visible || !(seleccionadas.has(e.id) || fija);
       if (!o.etq.hidden) puestas.push({ o, x: p.x, y: p.y, w: txt.length * 7.2 + 22, h: 21 });
       const gl = globos.get(e.id);
       if (gl && ahora < gl.hasta && p.visible) {
@@ -754,28 +779,29 @@
 
   // ---------- Retos y mundo en pantalla ----------
   // Solo los contenidos de los retos incluidos se localizan. El escenario propio sigue siendo datos del jugador.
-  const textoReto = (campo, original = def[campo], indice = retoIdx) => indice < IDX_PROPIO
-    ? ti18n(`retos.${ES_FACTORY ? "factory" : "war"}.${indice}.${campo}`) : original || "";
+  const textoReto = (campo, original = def[campo], indice = retoIdx) => ES_CAMPAIGN ? ti18n(`campaign.hito.${mundo ? mundo.hito : 0}.${campo}`) : indice < IDX_PROPIO
+    ? ti18n(`retos.${SERIE}.${indice}.${campo}`) : original || "";
   const hojaReto = (campo, original, indice = retoIdx) => `<span data-reto-campo="${campo}" data-reto-indice="${indice}">${esc(textoReto(campo, original, indice))}</span>`;
   const hojaUIReto = (clave, params = {}) => `<span data-reto-ui="${clave}" data-reto-params="${esc(JSON.stringify(params))}">${esc(ti18n(clave, params))}</span>`;
   function actualizarContenidoReto() {
     for (const el of document.querySelectorAll("[data-reto-ui]")) el.textContent = ti18n(el.dataset.retoUi, JSON.parse(el.dataset.retoParams));
     for (const [id, campo] of [["titulo", "titulo"], ["objetivo-corto", "objetivo"], ["objetivo-txt", "objetivo"], ["leccion", "leccion"]])
       $(id).textContent = textoReto(campo);
-    $("info-reto-titulo").textContent = `${retoIdx === IDX_PROPIO ? ti18n("retos.propio") : ti18n("retos.reto", { numero: retoIdx + 1 })} · ${textoReto("titulo")}`;
+    $("info-reto-titulo").textContent = `${ES_CAMPAIGN ? hitoActual().clave : retoIdx === IDX_PROPIO ? ti18n("retos.propio") : ti18n("retos.reto", { numero: retoIdx + 1 })} · ${textoReto("titulo")}`;
     for (const el of document.querySelectorAll("[data-reto-campo]")) {
       const indice = +el.dataset.retoIndice;
       if (indice < IDX_PROPIO) el.textContent = textoReto(el.dataset.retoCampo, "", indice);
     }
   }
   function pintarRetos() {
+    if (ES_CAMPAIGN) { $("retos").innerHTML = uiC.chipsHitos(historialC); return; }
     const chips = RETOS.map((r, i) => [i, r.titulo]).concat(ES_FACTORY ? [] : [[IDX_PROPIO, `✎ ${propio.titulo}`]]);
     $("retos").innerHTML = chips.map(([i, t]) => {
-      const clave = (ES_FACTORY ? "factory-" : "") + (i === IDX_PROPIO ? "propio" : String(i)), hecho = hechos.includes(clave);
+      const clave = PREFIJO + (i === IDX_PROPIO ? "propio" : String(i)), hecho = hechos.includes(clave);
       return `<button type="button" class="reto-btn${hecho ? " hecho" : ""}" aria-pressed="${i === retoIdx}" data-i="${i}"><span class="n">${hecho ? "✓" : i === IDX_PROPIO ? "+" : i + 1}</span>${i < IDX_PROPIO ? hojaReto("titulo", t, i) : esc(t)}</button>`;
     }).join("");
   }
-  $("retos").addEventListener("click", (ev) => { const b = ev.target.closest(".reto-btn"); if (b) elegirReto(+b.dataset.i); });
+  $("retos").addEventListener("click", (ev) => { const b = ev.target.closest(".reto-btn"); if (!b) return; if (ES_CAMPAIGN) volverAHito(+b.dataset.i); else elegirReto(+b.dataset.i); });
   function abrirHoja(si) {
     $("hoja-reto").hidden = !si;
     $("b-reto").setAttribute("aria-expanded", si);
@@ -787,6 +813,7 @@
   const MOTIVOS = { brecha: "Brecha", atascos: "Demasiados atascos", tiempo: "Fuera de tiempo", limite: "Tiempo agotado", derribos: "Pocos derribos", error: "Error en el programa", detenido: "Detenido", reinicio: "Reiniciado" };
   // Estado de cada meta: «ok» (verde), «rota» (rojo) o «pendiente». Al acabar un intento todas quedan decididas.
   function estadoMetas() {
+    if (ES_CAMPAIGN) return uiC.metas();
     if (ES_FACTORY) return def.metas.map((meta, i) => {
       const e = mundo.porId[meta.id], valor = meta.tipo === "vaciar" ? e.stock[meta.mat] || 0 : e.recibido[meta.mat] || 0;
       return { k: `factory-${i}`, nombre: `${esc(meta.id)} ← ${esc(meta.mat)}`, meta: meta.tipo === "vaciar" ? ti18n("retos.meta.vaciar") : ti18n("retos.meta.minimo", { n: meta.n }), valor: meta.tipo === "vaciar" ? valor : `${valor}/${meta.n}`, estado: logistica.metaCumplida(meta) ? "ok" : mundo.fin ? "rota" : "pendiente" };
@@ -802,10 +829,12 @@
   }
   // Pista escalonada: la pista del reto en partes (frases). La primera se puede pedir siempre;
   // cada intento fallido muestra la siguiente y permite pedir una más.
-  const partesPista = () => (def.pista || "").split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/).map(t => t.trim()).filter(Boolean).map((t, i) => textoReto(`pista.${i}`, t));
+  const partesPista = () => ES_CAMPAIGN ? uiC.pistas() : (def.pista || "").split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/).map(t => t.trim()).filter(Boolean).map((t, i) => textoReto(`pista.${i}`, t));
   let pistas = guardado.leer("pistas", {});
-  const pistaDe = () => ({ vistas: 0, fallos: 0, ...(pistas[claveReto()] || {}) });
-  function guardarPista(p) { pistas = { ...pistas, [claveReto()]: p }; guardado.escribir("pistas", pistas); }
+  // En Campaign cada hito lleva la cuenta de sus propias pistas.
+  const clavePista = () => ES_CAMPAIGN ? `campaign-h${mundo.hito}` : claveReto();
+  const pistaDe = () => ({ vistas: 0, fallos: 0, ...(pistas[clavePista()] || {}) });
+  function guardarPista(p) { pistas = { ...pistas, [clavePista()]: p }; guardado.escribir("pistas", pistas); }
   function pistaTrasFallo() {
     const p = pistaDe(), n = partesPista().length;
     p.fallos++; p.vistas = Math.min(n, Math.max(p.vistas, p.fallos));
@@ -960,9 +989,12 @@
   function textoInicial(d, id) {
     if (d.serie === "factory") return (d.inicial[id] || []).join("\n") + "\n";
     const lineas = d.inicial[id] || [];
+    if (d.serie === "campaign" && d.vivos.includes(id)) return lineas.join("\n") + "\n";
     if (!lineas.length) return `/* Programa de ${id}.\n * Doble clic en el inspector inserta nombres, funciones y valores. */\n\n`;
     return `/* Programa de ${id} · el código de partida está comentado.\n * Quita las // (Ctrl+/ o el botón «//») o escribe el tuyo. */\n` + lineas.map(l => "// " + l).join("\n") + "\n";
   }
+  // Todas las unidades con programa, estén encendidas o no (en War y Factory son las mismas).
+  const conPrograma = d => d.serie === "campaign" ? d.robots : programablesDe(d);
   function cargarProgramas() {
     let g = guardado.leer(`prog-${claveReto()}`, null);
     if (ES_FACTORY && g == null) {
@@ -972,11 +1004,11 @@
       guardado.escribir(`prog-${claveReto()}`, g);
     }
     g ||= {};
-    return Object.fromEntries(programablesDe(def).map(l => [l.id, typeof g[l.id] === "string" ? g[l.id] : textoInicial(def, l.id)]));
+    return Object.fromEntries(conPrograma(def).map(l => [l.id, typeof g[l.id] === "string" ? g[l.id] : textoInicial(def, l.id)]));
   }
   function cargarFuentes() {
     if (!PYTHON) return {};
-    const g = guardado.leer(`fuentes-${claveReto()}`, null) || {}, ids = new Set(programablesDe(def).map(l => l.id));
+    const g = guardado.leer(`fuentes-${claveReto()}`, null) || {}, ids = new Set(conPrograma(def).map(l => l.id));
     return Object.fromEntries(Object.entries(g).filter(([id, f]) => ids.has(id) && f && f.lenguaje === "python" && typeof f.texto === "string")
       .map(([id, f]) => [id, { lenguaje: "python", texto: f.texto, enUso: f.enUso !== false }]));
   }
@@ -1004,6 +1036,7 @@
     if (!lineas.length || d.serie === "factory") return `# Programa de ${id} en Python.\n# Doble clic en el inspector inserta nombres, funciones y valores.\n\n`;
     const r = convertirAPython(lineas.join("\n"));
     const cuerpo = r.ok ? r.texto.replace(/\n$/, "").split("\n") : lineas;
+    if (d.serie === "campaign" && d.vivos.includes(id) && r.ok) return cuerpo.join("\n") + "\n";
     return `# Programa de ${id} · el código de partida está comentado.\n# Quita los # (Ctrl+/ o el botón de comentar) o escribe el tuyo.\n` + cuerpo.map(l => "# " + l).join("\n") + "\n";
   }
   function convertirAPython(js) {
@@ -1018,7 +1051,8 @@
   function nuevoMundo(nIntento = intento + 1) {
     COLS = def.mapa?.cols || 32; ROWS = def.mapa?.rows || 18;
     mundo = crearMundo(def, ES_FACTORY ? nIntento : semilla);
-    if (ES_FACTORY) logistica = window.FACTORY.conectar(mundo, {
+    if (ES_CAMPAIGN) campana = window.CAMPAIGN.conectar(mundo, { terminarOrden: finEncargoCampaign, hito: info => { hitoPendiente = info; }, entrega: entregaCampaign });
+    else if (ES_FACTORY) logistica = window.FACTORY.conectar(mundo, {
       terminarOrden: terminarEncargo, terminar,
       programaAcabado: () => !!ejec && [...ejec.progs.values()].every(p => p.acabado),
       llamadaPendiente: () => !!ejec && [...ejec.progs.values()].some(p => p.encargo),
@@ -1042,9 +1076,10 @@
     if (ES_FACTORY && def && programas.R1 !== undefined) guardarFactoryAhora();
     clearTimeout(tFicha); cancelarArrastre(); ultimoToque = null;
     cerrarProgramas();
-    retoIdx = i; guardado.escribir(ES_FACTORY ? "factory-reto" : "reto", i);
+    retoIdx = i; guardado.escribir(`${PREFIJO}reto`, i);
     def = defActual();
-    if (!ES_FACTORY) avisar("cmg:reto", { reto: i + 1, titulo: def.titulo });
+    if (ES_CAMPAIGN) { estadoCampaign = (guardado.leer(CLAVE_VIVO, null) || {}).mundo || null; hitoPendiente = null; }
+    if (!ES_FACTORY && !ES_CAMPAIGN) avisar("cmg:reto", { reto: i + 1, titulo: def.titulo });
     intento = telemetria.filter(t => t.reto === i + 1).length;
     if (!semillaFija) semilla = intento + 1;
     programas = cargarProgramas();
@@ -1057,7 +1092,8 @@
     lineaCorre = {}; lineaErr = null;
     nuevoMundo();
     actualizarContenidoReto();
-    $("reto-n").textContent = i === IDX_PROPIO ? "✎" : i + 1;
+    $("reto-n").textContent = ES_CAMPAIGN ? mundo.hito : i === IDX_PROPIO ? "✎" : i + 1;
+    if (ES_CAMPAIGN && !historialC.length) guardarCheckpoint();
     $("objetivo-corto").textContent = textoReto("objetivo");
     pintarPaleta();
     $("objetivo-txt").textContent = textoReto("objetivo");
@@ -1075,8 +1111,8 @@
   }
   function pintarHud(refrescarInfo = true) {
     actualizarReloj();
-    if (ES_FACTORY) {
-      const html = estadoMetas().map(f => `<span class="meta${f.estado === "ok" ? " cumplida" : f.estado === "rota" ? " rota" : ""}">${f.nombre} <b>${f.valor}</b></span>`).join("");
+    if (ES_FACTORY || ES_CAMPAIGN) {
+      const html = estadoMetas().map(f => `<span class="meta${f.estado === "ok" ? " cumplida" : f.estado === "rota" ? " rota" : ""}">${f.nombre} <b>${f.valor}</b></span>`).join("") + (ES_CAMPAIGN ? uiC.hudExtra() : "");
       if (html !== metasClave) { metasClave = html; $("metas").innerHTML = html; if (refrescarInfo) vivoInfoReto(); }
       return;
     }
@@ -1110,7 +1146,8 @@
     const reto = retoIdx === IDX_PROPIO
       ? ti18n("partida.intento.escenario_propio")
       : ti18n("partida.intento.reto", { numero: retoIdx + 1 });
-    $("intento-txt").textContent = ti18n("partida.intento.etiqueta", { numero: intento + (corriendo ? 0 : 1), reto });
+    $("intento-txt").textContent = ES_CAMPAIGN ? ti18n("campaign.intento", { numero: intento + (corriendo ? 0 : 1), hito: hitoActual().clave }) : ti18n("partida.intento.etiqueta", { numero: intento + (corriendo ? 0 : 1), reto });
+    if (ES_CAMPAIGN) { const $r = $("b-reiniciar"); $r.textContent = ti18n(confirmarCheckpoint ? "campaign.reiniciar.confirmar" : "campaign.reiniciar", { hito: hitoActual().clave }); $r.dataset.tip = ti18n("campaign.reiniciar.tip"); }
   }
   function pintarControles() {
     const corriendo = !!ejec;
@@ -1146,7 +1183,16 @@
   $("b-ejecutar-movil").addEventListener("click", ejecutarDesdeCodigo);
   $("b-pausa").addEventListener("click", () => { pausa = !pausa; pintarControles(); });
   $("b-vel").addEventListener("click", () => { velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : velocidad === 4 ? 8 : 1; pintarControles(); });
+  let confirmarCheckpoint = false;
   $("b-reiniciar").addEventListener("click", () => {
+    if (ES_CAMPAIGN) {
+      // Vuelve al inicio del hito en curso (su checkpoint); pide confirmación con un segundo toque.
+      if (!confirmarCheckpoint) { confirmarCheckpoint = true; actualizarEtiquetasControles(); setTimeout(() => { confirmarCheckpoint = false; actualizarEtiquetasControles(); }, 3000); return; }
+      confirmarCheckpoint = false;
+      const cp = [...historialC].reverse().find(c => c.hito === mundo.hito) || historialC[historialC.length - 1];
+      if (cp) volverA(cp, false);
+      return;
+    }
     if (ejec) terminar("detenido", "reinicio", null);
     nuevoMundo(); lineaCorre = {}; lineaErr = null; marcasSucias = true; ocultarBanner(); cerrarAvisos(); pintarControles();
   });
@@ -1159,7 +1205,7 @@
   // Vista 3D o plano
   function aplicarVista(v) {
     vista = V3 ? v : "2d";
-    guardado.escribir(ES_FACTORY ? "factory-vista" : "vista", v);
+    guardado.escribir(`${PREFIJO}vista`, v);
     $("c3d").hidden = vista !== "3d"; $("c2d").hidden = vista !== "2d";
     $("sin3d").hidden = !!V3;
     $("b-centrar").hidden = vista !== "3d";
@@ -1300,6 +1346,7 @@
     }
   };
   const textoEstadoInspector = (e) => {
+    if (ES_CAMPAIGN) return uiC.estado(e)[1];
     if (e.clase === "robot") return e.carga ? textoInspector("inspector.estado.robot.carga", { material: e.carga }) : e.tarea ? textoInspector("inspector.estado.robot.trabajando") : textoInspector("inspector.estado.robot.vacio");
     if (e.clase === "bodega") return textoInspector("inspector.estado.bodega");
     if (e.clase === "fundidora") return textoInspector(e.procesando ? "inspector.estado.fundidora.procesando" : "inspector.estado.fundidora.espera");
@@ -1310,6 +1357,7 @@
     return textoInspector("inspector.estado.enemigo.vida", { actual: e.hp, maximo: e.hpMax });
   };
   const claseInspector = (e) => {
+    if (ES_CAMPAIGN) return uiC.clase(e);
     if (!e?.clase || e.clase === "enemigo") return `${textoInspector("inspector.clase.enemigo")} · ${textoInspector(`inspector.enemigo.${e.tipo}`)}`;
     if (e.clase === "bodega" || e.clase === "fundidora") {
       const claveNombre = { Bodega: "inspector.clase.bodega", Fundidora: "inspector.clase.fundidora", Ensambladora: "inspector.clase.ensambladora", Muelle: "inspector.clase.muelle" }[e.nombre];
@@ -1350,6 +1398,7 @@
   const tkValor = (v, vivo) => typeof v === "number" ? tk("num", v, String(v), { vivo, clave: vivo }) : typeof v === "boolean" ? tk("kw", v, String(v), { vivo, clave: vivo }) : tk("str", JSON.stringify(v), JSON.stringify(v), { vivo, clave: vivo });
 
   function estadoDe(e) {
+    if (ES_CAMPAIGN) return uiC.estado(e);
     if (e.clase === "robot") return [e.tarea ? "activo" : "", e.carga ? `carga: ${e.carga}` : e.tarea ? "trabajando" : "manos vacías"];
     if (e.clase === "bodega") return ["", "almacenando"];
     if (e.clase === "fundidora") return [e.procesando ? "activo" : "", e.procesando ? "procesando" : "en espera"];
@@ -1366,6 +1415,7 @@
     return ["mal", `vida ${e.hp}/${e.hpMax}`];
   }
   const metricasDe = (e) => {
+    if (ES_CAMPAIGN) return uiC.metricas(e);
     if (e.clase === "robot") return [["viajes", e.viajes], ["vacíos", mundo.vacios], ["rechazos", mundo.rechazos]];
     if (e.clase === "bodega") return Object.entries(e.stock).map(([mat, n]) => [mat, e.oculto && !mundo.revelado ? "?" : n]);
     if (e.clase === "fundidora") return [["entrada", `${e.entrada}/${e.cap}`], ["producido", e.producido], ["rechazos", e.rechazos]];
@@ -1387,7 +1437,8 @@
     if (!e) { $("ins-tira").innerHTML = htmlInterfaz(""); $("ins-cuerpo").innerHTML = htmlInterfaz(""); return; }
     const propioProg = e.id === progSel, pre = propioProg ? "" : `${varDe(e.id)}.`;
     let c1 = "", c2 = "", botones = "";
-    if (["robot", "bodega", "fundidora"].includes(e.clase)) {
+    if (ES_CAMPAIGN) ({ c1, c2, botones } = uiC.ficha(e));
+    else if (["robot", "bodega", "fundidora"].includes(e.clase)) {
       c1 = htmlFactoryAPI();
       c2 = grupo("Datos", ...metricasDe(e).map(([k, v]) => fila(nota(etiquetaMetricaInspector(k)), esc(v))));
     } else if (e.clase === "lanzador") {
@@ -1473,6 +1524,7 @@
       + grupo("Lugares", ...mundo.entidades.map(e => fila(tk("var", e.id, varFactory(e.id)))));
   }
   function pintarPieIns() {
+    if (ES_CAMPAIGN) { const $p = $("pie-ins"); if ($p && mundo) $p.innerHTML = uiC.pie(); return; }
     if (ES_FACTORY) { const $p = $("pie-ins"); $p.innerHTML = htmlInterfaz(htmlFactoryAPI()); aplicarTextosInspector($p); return; }
     const $p = $("pie-ins"), e = mundo && mundo.porId[progSel];
     if (!$p) return;
@@ -1530,6 +1582,7 @@
       <div class="traza-pie"><span>−${VENTANA} s</span><span><span ${hojaInspector("inspector.traza.escala")}>${esc(textoInspector("inspector.traza.escala"))}</span> 0–${r3(max)}</span><span ${hojaInspector("inspector.traza.ahora")}>${esc(textoInspector("inspector.traza.ahora"))}</span></div>`;
   }
   function htmlVitales(e) {
+    if (ES_CAMPAIGN) return uiC.vitales(e);
     if (["robot", "bodega", "fundidora"].includes(e.clase)) return metricasDe(e).map(([k, v]) => vital(esc(k), esc(v))).join("");
     if (e.clase === "lanzador") {
       return vital("Misiles", `${e.misiles}/${def.cargador}`, celdas(e.misiles, def.cargador))
@@ -1557,6 +1610,7 @@
     else if (insEstado === "abierto") ponerInspector("tira");
   });
   function valorVivo(clave) {
+    if (ES_CAMPAIGN) return uiC.vivo(clave);
     const [id, p] = clave.split(":");
     if (clave === "cola") return mundo.colaReparar.join(", ") || "vacía";
     const e = mundo.porId[id] || mundo.enemigos.find(x => x.id === id);
@@ -1592,7 +1646,7 @@
       const txt = textoVivo(el, v);
       if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
     }
-    const barra = $i.querySelector("[data-barra]"); if (barra) barra.style.width = `${Math.round(e.falla * 100)}%`;
+    const barra = $i.querySelector("[data-barra]"); if (barra && !ES_CAMPAIGN) barra.style.width = `${Math.round(e.falla * 100)}%`;
     const est = $i.querySelector("[data-estado]"); if (est) { const [cls] = estadoDe(e); est.className = `estado ${cls}`; est.textContent = textoEstadoInspector(e); }
     const vit = $("ins-vitales"); if (vit) { const h = htmlVitales(e); if (vit.innerHTML !== h) vit.innerHTML = h; }
     const met = $i.querySelector("[data-metricas]"); if (met) { const h = htmlMetricas(metricasDe(e)); if (met.innerHTML !== h) met.innerHTML = h; }
@@ -1623,21 +1677,21 @@
   let paletaRota = null;
   const paletaSegura = hacer => { try { return hacer(); } catch (e) { paletaRota ||= e; console.error("Paleta no disponible:", e); return { atajos: [] }; } };
   const { atajos: ATAJOS } = paletaSegura(() => window.CMGPaleta.crear({
-    serie: ES_FACTORY ? "factory" : "war",
+    serie: SERIE,
     sensor: () => mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null,
   }));
   const preferenciasEditor = prefijo => ({
     leer(k, d) { try { const v = localStorage.getItem(prefijo + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
     escribir(k, v) { try { localStorage.setItem(prefijo + k, JSON.stringify(v)); } catch { /* sesión */ } },
   });
-  const preferenciasVistas = preferenciasEditor(`cmg-juego-${ES_FACTORY ? "factory-" : ""}`);
+  const preferenciasVistas = preferenciasEditor(`cmg-juego-${PREFIJO}`);
   if (ES_FACTORY) for (const [k, viejo] of [["modo", "modo"], ["idioma-seudo", "idioma"]]) {
     if (preferenciasVistas.leer(k, null) == null) try { const v = JSON.parse(localStorage.getItem(`cmg-banco02:${viejo}`)); if (v != null) preferenciasVistas.escribir(k, v); } catch { /* importación de solo lectura */ }
   }
   const editorPrograma = window.CMGEditor.crear({
     raiz: $("v-programa"), app: $("app"), ambito: document, elemento: $, adoptar: true, atajosGlobales: true,
     documento: { id: "inicio", lenguaje: "js", texto: "", revision: 0 },
-    adaptadores: PYTHON ? { js: window.CMGAdaptadorJS, python: window.CMGAdaptadorPython } : { js: window.CMGAdaptadorJS }, serie: ES_FACTORY ? "factory" : "war", aplazarVistas: true,
+    adaptadores: PYTHON ? { js: window.CMGAdaptadorJS, python: window.CMGAdaptadorPython } : { js: window.CMGAdaptadorJS }, serie: SERIE, aplazarVistas: true,
     preferencias: preferenciasEditor("cmg-juego-"), preferenciasVistas,
     soloLectura: () => !!ejec, alEjecutar: () => ejec ? detener() : ejecutar(),
     alAtajo: () => insercion.atajo++, alArrastrar: () => insercion.arrastre++,
@@ -1700,7 +1754,7 @@
   // ---------- Programas ----------
   function actualizarEtiquetasProgs() {
     const $progs = $("progs");
-    $progs.setAttribute("aria-label", ti18n(ES_FACTORY ? "partida.progs.aria.factory" : "partida.progs.aria.war"));
+    $progs.setAttribute("aria-label", ti18n(ES_CAMPAIGN ? "campaign.progs.aria" : ES_FACTORY ? "partida.progs.aria.factory" : "partida.progs.aria.war"));
     for (const b of $progs.querySelectorAll(".prog-tab")) {
       const id = b.dataset.id;
       const pre = b.querySelector(".prog-pre");
@@ -1708,6 +1762,8 @@
       b.setAttribute("aria-label", ti18n("partida.progs.unidad", { unidad: id }));
     }
   }
+  // Campaign: las otras unidades encendidas de la misma clase (a ellas se copia un programa).
+  const gemelos = id => { const e = mundo && mundo.porId[id]; return e ? mundo.programables.filter(u => u.id !== id && u.clase === e.clase) : []; };
   function pintarProgs() {
     const varios = programablesDe(def).length > 1;
     $("progs").innerHTML = programablesDe(def).map(l => {
@@ -1715,7 +1771,7 @@
       const est = lineaErr && lineaErr.id === l.id ? "error" : p ? (p.estado === "corre" ? "corre" : p.estado === "espera" ? "espera" : "") : "";
       return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span><span class="prog-pre"></span>${l.id}</button>`;
     }).join("");
-    $("b-copiar-prog").hidden = !varios || edicion.ids.length > 1;
+    $("b-copiar-prog").hidden = !varios || edicion.ids.length > 1 || (ES_CAMPAIGN && !gemelos(progSel).length);
     $("b-restaurar").hidden = edicion.ids.length > 1;
     actualizarEtiquetasProgs();
   }
@@ -1766,6 +1822,8 @@
     };
     agregarOpcion("js", "partida.lenguaje.javascript");
     if (PYTHON) agregarOpcion("python", "partida.lenguaje.python");
+    // Campaign se programa en JavaScript o Python; todavía no tiene vistas de seudocódigo ni bloques.
+    if (ES_CAMPAIGN) { $selLenguaje.dataset.opcionesI18n = "1"; return; }
     const vistas = document.createElement("optgroup"); vistas.dataset.i18nLabel = "partida.selector.vistas_js";
     const seudo = document.createElement("option"); seudo.value = "pseudo"; seudo.dataset.i18n = "partida.selector.seudocodigo"; vistas.appendChild(seudo);
     if (ES_FACTORY) { const bloques = document.createElement("option"); bloques.value = "bloques"; bloques.dataset.i18n = "partida.selector.bloques"; vistas.appendChild(bloques); }
@@ -1879,7 +1937,8 @@
   let confirmarCopia = false;
   let confirmarRestaurar = false;
   function actualizarEtiquetasConfirmaciones() {
-    $("b-copiar-prog").textContent = ti18n(confirmarCopia ? "partida.programa.copiar.confirmar" : "partida.programa.copiar", { unidad: progSel });
+    $("b-copiar-prog").textContent = ES_CAMPAIGN ? ti18n(confirmarCopia ? "campaign.copiar.confirmar" : "campaign.copiar", { clase: ti18n(mundo && mundo.porId[progSel] && mundo.porId[progSel].clase === "obrero" ? "campaign.copiar.obrero" : "campaign.copiar.maquina") })
+      : ti18n(confirmarCopia ? "partida.programa.copiar.confirmar" : "partida.programa.copiar", { unidad: progSel });
     $("b-restaurar").textContent = ti18n(confirmarRestaurar ? "partida.programa.restaurar.confirmar" : "partida.programa.restaurar");
     $("b-copiar").textContent = ti18n("partida.telemetria.copiar");
     $("b-borrar").textContent = ti18n(confirmarBorrado ? "partida.telemetria.borrar.confirmar" : "partida.telemetria.borrar");
@@ -1895,7 +1954,7 @@
     confirmarCopia = false; actualizarEtiquetasConfirmaciones();
     // Se copia el programa en su lenguaje: los demás pasan a ese lenguaje y conservan el otro.
     const py = lenguajeDe(progSel) === "python";
-    for (const l of def.lanzadores) if (l.id !== progSel) {
+    for (const l of (ES_CAMPAIGN ? gemelos(progSel) : def.lanzadores)) if (l.id !== progSel) {
       if (py) fuentes[l.id] = { lenguaje: "python", texto: fuentes[progSel].texto.split(progSel).join(l.id), enUso: true };
       else { programas[l.id] = programas[progSel].split(progSel).join(l.id); if (fuentes[l.id]) fuentes[l.id].enUso = false; }
     }
@@ -1956,6 +2015,7 @@
   const FIRMAS = {
     autoTarget: ["tipo de enemigo", "sensor"], detect: ["tipo de enemigo"], regularShoot: ["lugar"], burstFire: ["lugar"], stopFire: [],
     pickUp: ["lugar", "material"], deliver: ["lugar"], wait: ["segundos"], count: ["lugar", "material"],
+    goTo: ["lugar"], irA: ["lugar"], setRecipe: ["receta"], light: ["color"], request: ["materia"], start: [], stop: [],
     recoger: ["lugar", "material"], entregar: ["lugar"], cuantos: ["lugar", "material"],
     esperar: ["segundos"], log: ["mensaje"], info: ["mensaje"], warn: ["mensaje"], error: ["mensaje"],
   };
@@ -2019,7 +2079,7 @@
     const sensor = mundo && mundo.sensores[0] ? varDe(mundo.sensores[0].id) : null;
     if (atajosPy && atajosPySensor === sensor) return atajosPy;
     atajosPySensor = sensor;
-    atajosPy = paletaSegura(() => window.CMGPaleta.crearPython({ serie: ES_FACTORY ? "factory" : "war", sensor: () => sensor, aPython })).atajos;
+    atajosPy = paletaSegura(() => window.CMGPaleta.crearPython({ serie: SERIE, sensor: () => sensor, aPython })).atajos;
     return atajosPy;
   }
   const OPERADORES_COND = [["&&", "y · se cumplen las dos", "condición"], ["||", "o · basta una", "condición"], ["!", "no · lo contrario", "condición"],
@@ -2028,6 +2088,7 @@
     const clase = c.hueco ? (c.hueco === "tipo" ? "tipo de enemigo" : c.hueco)
       : c.tipo === "argumento" ? (FIRMAS[c.funcion] || [])[c.indice]
       : c.tipo === "condicion" ? "condición" : c.tipo === "valor" ? "valor" : null;
+    if (ES_CAMPAIGN) return def && mundo ? uiC.sugerencias(c, clase) : null;
     if (!clase || !def) return null;
     if (ES_FACTORY && ["lugar", "material", "valor", "condición"].includes(clase)) {
       const items = clase === "lugar" ? mundo.entidades.map(e => ({ ins: varFactory(e.id), cls: "var", nota: e.nombre }))
@@ -2187,11 +2248,12 @@
       return;
     }
     confirmarBorrado = false; actualizarEtiquetasConfirmaciones();
-    telemetria = []; guardado.escribir(ES_FACTORY ? "factory-telemetria" : "telemetria", telemetria); intento = 0; pintarResumen(); pintarControles();
+    telemetria = []; guardado.escribir(`${PREFIJO}telemetria`, telemetria); intento = 0; pintarResumen(); pintarControles();
   });
 
   // ---------- Órdenes (ayuda) ----------
   function pintarAyuda() {
+    if (ES_CAMPAIGN) { $("v-ayuda").innerHTML = uiC.ayuda(); return; }
     if (ES_FACTORY) {
       $("v-ayuda").innerHTML = htmlInterfaz(`<h3>Robot de carga</h3><p><code>await pickUp(lugar, material)</code> lleva a R1 hasta una bodega y carga una pieza. <code>await deliver(lugar)</code> la lleva al destino. <code>await wait(segundos)</code> deja pasar tiempo mientras las máquinas trabajan.</p><p><code>count(lugar, material)</code> consulta las existencias sin avanzar el reloj.</p><p>Se gana al cumplir las metas, aunque el programa siga en un bucle. Usa await en los encargos: el robot tarda en viajar y operar; durante esa espera las máquinas siguen trabajando. Las lecturas no avanzan el reloj: 0 significa edificio vacío y null, edificio inexistente. Una entrega llena devuelve «lleno» y conserva la carga. Los nombres españoles y yo. siguen aceptados.</p>`);
       return;
@@ -2278,6 +2340,7 @@
     </div>`;
   // `d` es el escenario que se muestra: el del reto o un borrador que todavía no se guardó.
   function pintarEscenario(d = def) {
+    if (ES_CAMPAIGN) { $("esc-aviso").hidden = true; $("esc-form").innerHTML = uiC.historial(historialC); return; }
     if (ES_FACTORY) return formularioFactory.pintar(d);
     const propioSel = retoIdx === IDX_PROPIO, dis = propioSel ? "" : "disabled";
     const me = d.metas, num = (v) => v == null ? "" : v;
@@ -2340,11 +2403,12 @@
     });
   }
   function guardarPropio(nuevo, jugar) {
-    propio = nuevo; guardado.escribir(ES_FACTORY ? "factory-propio" : "propio", propio);
+    propio = nuevo; guardado.escribir(`${PREFIJO}propio`, propio);
     if (jugar || retoIdx === IDX_PROPIO) { elegirReto(IDX_PROPIO); abrirPestana("escenario"); }
     pintarRetos();
   }
   $("v-escenario").addEventListener("click", (ev) => {
+    if (ES_CAMPAIGN) return clicHistorial(ev);
     if (ES_FACTORY) return;
     const boton = ev.target.closest?.("button") || ev.target, id = boton.id;
     if (boton.dataset.quitar != null) { const d = leerEscenario(); d.oleadas.splice(+boton.dataset.quitar, 1); pintarEscenario(d); return; }
@@ -2371,6 +2435,203 @@
     }
   });
 
+  // ---------- Campaign: planta en vivo, hitos, checkpoints e historial ----------
+  // El mundo no se reinicia al ejecutar. Cada hito cumplido guarda un checkpoint (mundo y programas);
+  // además se guarda el estado en vivo para seguir tras recargar la página.
+  const CLAVE_VIVO = "campaign-1-vivo", CLAVE_HIST = "campaign-1-historial", MAX_CHECKPOINTS = 30;
+  let historialC = ES_CAMPAIGN ? guardado.leer(CLAVE_HIST, []).filter(c => c && c.mundo && c.mundo.rev === RETOS[0].revision) : [];
+  let pielBatalla = ES_CAMPAIGN && !!guardado.leer("campaign-piel", false), ponerPiel = () => {};
+  let tVivo = 0;
+  const uiC = ES_CAMPAIGN ? window.CAMPAIGN_UI.crear({
+    esc, coma, varDe, t: ti18n,
+    tk: (...a) => tk(...a), fila: (...a) => fila(...a), nota: (...a) => nota(...a), grupo: (...a) => grupo(...a), tkValor: (...a) => tkValor(...a),
+    vital: (...a) => vital(...a), celdas: (...a) => celdas(...a), variables: () => variablesPrograma(),
+    get mundo() { return mundo; }, get def() { return def; }, get progSel() { return progSel; },
+  }) : null;
+  const hitoActual = () => def.hitos[mundo.hito];
+  const guardarVivo = () => guardado.escribir(CLAVE_VIVO, { cuando: Date.now(), mundo: window.CAMPAIGN.serializar(mundo) });
+  addEventListener("pagehide", () => { if (ES_CAMPAIGN && mundo) { guardarVivo(); clearTimeout(tGuardar); guardado.escribir(`prog-${claveReto()}`, { ...programas }); if (PYTHON) guardado.escribir(`fuentes-${claveReto()}`, copiaFuentes()); } });
+  function guardarCheckpoint() {
+    historialC.push({ id: Date.now() + historialC.length, hito: mundo.hito, t: r2(mundo.t), cuando: Date.now(), mundo: window.CAMPAIGN.serializar(mundo), programas: { ...programas }, fuentes: PYTHON ? copiaFuentes() : {} });
+    // Se conservan el inicio del nivel y los más recientes.
+    if (historialC.length > MAX_CHECKPOINTS) historialC.splice(1, historialC.length - MAX_CHECKPOINTS);
+    guardado.escribir(CLAVE_HIST, historialC);
+  }
+  // Lo que cambia en pantalla al pasar de hito o al volver a un checkpoint.
+  function refrescarHito() {
+    $("reto-n").textContent = mundo.hito;
+    actualizarContenidoReto();
+    $("objetivo-corto").textContent = textoReto("objetivo");
+    pintarRetos(); pintarProgs(); pintarMaquinas(); pintarInspector(); pintarPieIns(); pintarEscenario(); pintarControles();
+    metasClave = "";
+    if (!$("info-reto").hidden) pintarInfoReto();
+  }
+  function volverA(cp, conProgramas) {
+    if (!cp) return;
+    cerrarProgramas();
+    estadoCampaign = cp.mundo; hitoPendiente = null;
+    if (conProgramas) {
+      programas = { ...programas, ...cp.programas };
+      if (PYTHON) { fuentes = JSON.parse(JSON.stringify(cp.fuentes || {})); textosPython = vistaPython(); }
+      guardarProgramas(); borradoresMulti.clear();
+    }
+    lineaCorre = {}; lineaErr = null; marcasSucias = true;
+    nuevoMundo();
+    if (conProgramas) configurarEdicion([progSel], true);
+    refrescarHito(); guardarVivo();
+    ocultarBanner(); cerrarAvisos();
+    consola("sistema", null, null, esc(ti18n(conProgramas ? "campaign.historial.vuelto_programas" : "campaign.historial.vuelto", { hito: hitoActual().clave, t: coma(mundo.t) })));
+  }
+  function volverAHito(n) {
+    const cp = [...historialC].reverse().find(c => c.hito === n);
+    if (!cp) return;
+    abrirHoja(false);
+    mostrarBanner("fallo", `${def.hitos[n].clave} · ${uiC.tituloHito(n)}`, esc(ti18n("campaign.historial.intro")), ti18n("campaign.historial.detalle", { t: coma(cp.t), presupuesto: cp.mundo.presupuesto, cuando: new Date(cp.cuando).toLocaleString() }),
+      [[ti18n("campaign.historial.volver"), "primario", () => volverA(cp, false)], [ti18n("campaign.historial.volver_programas"), "", () => volverA(cp, true)], ["×", "", ocultarBanner]]);
+  }
+  function nivelDeNuevo() {
+    cerrarProgramas();
+    estadoCampaign = null; hitoPendiente = null; historialC = [];
+    nuevoMundo(); guardarCheckpoint(); refrescarHito(); guardarVivo(); ocultarBanner(); cerrarAvisos(); limpiarConsola();
+  }
+  let cpConfirmar = null;
+  function clicHistorial(ev) {
+    const b = ev.target.closest("button"); if (!b) return;
+    const clave = b.dataset.cpNuevo ? "nuevo" : b.dataset.cpVolver ? `${b.dataset.cpVolver}:${b.dataset.cpProgramas || ""}` : null;
+    if (!clave) return;
+    // Segundo toque para confirmar: volver pierde el avance posterior.
+    if (cpConfirmar !== clave) {
+      cpConfirmar = clave; const antes = b.textContent; b.textContent = ti18n("campaign.historial.confirmar");
+      setTimeout(() => { if (cpConfirmar === clave) cpConfirmar = null; if (b.isConnected) b.textContent = antes; }, 3000);
+      return;
+    }
+    cpConfirmar = null;
+    if (clave === "nuevo") nivelDeNuevo();
+    else volverA(historialC.find(c => String(c.id) === b.dataset.cpVolver), !!b.dataset.cpProgramas);
+  }
+
+  // Mensajes de los programas. Un programa puede tener varios encargos y esperas a la vez (p.pend).
+  function mensajeCampaign(p, m) {
+    if (m.type === "encargo") {
+      const clave = `${p.id}#${m.id}`;
+      p.pend.set(m.id, { tipo: "encargo", unidad: m.unidad, linea: m.linea, texto: m.texto });
+      p.estado = "espera"; lineaCorre[p.id] = m.linea; marcasSucias = true;
+      contarUso(p.id, m.verbo);
+      campana.iniciarOrden(m.unidad, { id: clave, verbo: m.verbo, args: m.args });
+    } else if (m.type === "modo") {
+      contarUso(p.id, m.verbo);
+      const res = campana.aplicarModo(m.unidad, m.verbo, m.args);
+      registrar(p.id, m.linea, m.texto, res, res === "ok" ? "ok" : "warn");
+      if (res !== "ok") consola("warn", p.id, m.linea, esc(ti18n("campaign.aviso.resultado", { orden: m.texto, resultado: res })));
+      lineaCorre[p.id] = m.linea; marcasSucias = true;
+    } else if (m.type === "lectura") {
+      contarUso(p.id, "count");
+      registrar(p.id, m.linea, m.texto, String(m.valor), "sensor");
+    } else if (m.type === "consola") {
+      mostrarConsola(p.id, m.linea, m.nivel, m.texto);
+    } else if (m.type === "espera") {
+      contarUso(p.id, "wait");
+      p.pend.set(m.id, { tipo: "espera", despertar: mundo.t + m.s });
+      p.estado = "espera"; lineaCorre[p.id] = m.linea; marcasSucias = true;
+    } else if (m.type === "cede") {
+      if (p.estado === "corre" && p.pend.size) p.estado = "espera";
+    } else if (m.type === "done") {
+      p.acabado = true; p.estado = "fin"; p.finT = mundo.t; lineaCorre[p.id] = null; marcasSucias = true; pintarProgs();
+    } else if (m.type === "error") {
+      return errorPrograma(p, m.mensaje, m.linea);
+    }
+    if ((m.type === "modo" || m.type === "lectura" || m.type === "consola") && ++p.mensajes > MAX_ORDENES)
+      return errorPrograma(p, ti18n("campaign.ordenes_sin_esperar", { unidad: p.id, n: MAX_ORDENES }), m.linea);
+    if (!algunoCorre()) avanzar();
+  }
+  // Un robot terminó su encargo: se anota y se despierta al programa que lo esperaba.
+  function finEncargoCampaign(unidad, clave, res) {
+    if (!ejec) return;
+    const corte = String(clave).lastIndexOf("#"), p = ejec.progs.get(String(clave).slice(0, corte)), id = +String(clave).slice(corte + 1);
+    const orden = p && p.pend.get(id);
+    if (!orden) return;
+    p.pend.delete(id);
+    registrar(unidad, orden.linea, orden.texto, res, res === "ok" ? "ok" : "warn");
+    if (res !== "ok") { consola("warn", unidad, orden.linea, esc(ti18n("campaign.aviso.resultado", { orden: orden.texto, resultado: res }))); globo(unidad, "warn", res); }
+    if (p.acabado) return;
+    p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0;
+    p.worker.postMessage({ type: "despierta", id, resultado: res, snap: instantanea() });
+  }
+  function entregaCampaign(bahia, pedido) {
+    consola("sistema", bahia.id, null, esc(ti18n("campaign.aviso.entrega", { n: pedido.n, pieza: pedido.pieza })));
+    globo(bahia.id, "info", `${pedido.n} × ${pedido.pieza}`);
+  }
+  function terminarCampaign(resultado, motivo, texto, linea, idProg) {
+    if (!mundo || !ejec) return;
+    const codigos = ejec.codigos, inicio = ejec.inicio, lenguajes = { ...ejec.lenguajes };
+    cerrarProgramas();
+    if (resultado !== "error") { lineaCorre = {}; marcasSucias = true; }
+    telemetria.push({ sandbox: "campaign", reto: 1, clave: claveReto(), titulo: def.titulo, hito: hitoActual().clave, intento, inicio, resultado, motivo, mensaje: texto ?? null, linea: linea ?? null, programa: idProg ?? null,
+      tiempoJuego: r2(mundo.t), presupuesto: mundo.presupuesto, producidos: { ...mundo.producidos }, uso: mundo.uso, consolas: mundo.consolas, codigos, lenguajes });
+    if (telemetria.length > 200) telemetria.splice(0, telemetria.length - 200);
+    mundo.uso = {};
+    guardado.escribir(`${PREFIJO}telemetria`, telemetria);
+    guardarVivo();
+    if (resultado === "error") {
+      pistaTrasFallo();
+      ultimoAviso[claveReto()] = { resultado, motivo, texto, linea, id: idProg, intento, t: r2(mundo.t), cuando: Date.now() };
+      mostrarBanner("fallo", linea ? ti18n("campaign.banner.error_linea", { linea, unidad: idProg }) : ti18n("campaign.banner.error", { unidad: idProg }), esc(texto), null,
+        [[ti18n("campaign.banner.ir"), "primario", () => { ocultarBanner(); abrirPrograma(idProg); if (linea) irALinea(linea); }]]);
+    } else if (motivo === "quieto") consola("sistema", null, null, esc(ti18n("campaign.aviso.quieto")));
+    pintarControles(); pintarProgs(); pintarResumen(); pintarEdicion(); pintarInspector(); metasClave = "";
+    if (!$("info-reto").hidden) pintarInfoReto();
+  }
+  // Programas de las unidades recién encendidas: arrancan al seguir tras un hito.
+  function arrancarNuevos() {
+    if (!ejec) return;
+    for (const l of mundo.programables) {
+      if (ejec.progs.has(l.id)) continue;
+      const lenguaje = lenguajeDe(l.id), texto = textoDe(l.id) || "";
+      let codigo = texto, err = null;
+      if (lenguaje === "python") { const r = window.CMGPythonJS.traducirCache(texto, opcionesPython()); if (r.ok) codigo = r.js; else err = r.diagnosticos[0]; }
+      else err = revisar(texto);
+      if (err) { consola("warn", l.id, err.linea, esc(ti18n("campaign.aviso.sin_programa", { unidad: l.id, motivo: err.mensaje }))); continue; }
+      ejec.lenguajes[l.id] = lenguaje;
+      arrancarPrograma(l.id, codigo, texto);
+    }
+    pintarProgs();
+  }
+  function seguirCampaign() { ocultarBanner(); pausa = false; arrancarNuevos(); pintarControles(); }
+  function alCumplirHito(h) {
+    const corriendo = !!ejec;
+    pausa = corriendo;
+    // Hay unidades nuevas o recién encendidas: se rehace el escenario 3D y se repinta la interfaz.
+    if (V3) { V3.construir(); V3.anillosDe(seleccion); }
+    for (const o of etiquetas.values()) { o.etq.remove(); o.g.remove(); }
+    etiquetas.clear();
+    guardarCheckpoint(); guardarVivo();
+    refrescarHito();
+    const stats = ti18n("campaign.banner.stats", { t: coma(mundo.t), presupuesto: mundo.presupuesto });
+    const premio = `<p>${esc(ti18n("campaign.banner.premio", { n: def.premioHito }))}</p>`;
+    const editar = [ti18n("campaign.banner.editar"), "", () => { ocultarBanner(); if (ejec) detener(); verPanel("codigo"); abrirPestana("programa"); }];
+    if (h.completado) {
+      mostrarBanner("victoria", ti18n("campaign.banner.fin"), premio + `<p>${esc(ti18n("campaign.banner.fin_texto", { misiles: mundo.arsenal.porBanda + mundo.arsenal.aMano, t: coma(mundo.t), presupuesto: mundo.presupuesto }))}</p>`, stats,
+        [[ti18n("campaign.banner.ver_salva"), "primario", () => { ponerPiel(true); if (V3 && vista === "3d") V3.verCampo(); seguirCampaign(); }], [ti18n("campaign.banner.quedarse"), "", seguirCampaign]]);
+    } else {
+      const sig = h.siguiente, nuevas = mundo.maquinas.filter(u => (u.desde ?? 0) === sig).map(u => u.id);
+      mostrarBanner("victoria", ti18n("campaign.banner.hito", { hito: def.hitos[h.hecho].clave, titulo: uiC.tituloHito(h.hecho) }),
+        premio + `<p><b>${esc(ti18n("campaign.banner.siguiente", { hito: def.hitos[sig].clave, titulo: uiC.tituloHito(sig) }))}</b> · ${esc(ti18n(`campaign.hito.${sig}.objetivo`))}</p>`
+        + (nuevas.length ? `<p>${esc(ti18n("campaign.aviso.nuevas", { unidades: nuevas.join(", ") }))}</p>` : ""), stats,
+        corriendo ? [[ti18n("campaign.banner.seguir"), "primario", seguirCampaign], editar] : [editar]);
+    }
+    if (!hechos.includes(`campaign-h${h.hecho}`)) { hechos.push(`campaign-h${h.hecho}`); guardado.escribir("hechos", hechos); }
+    telemetria.push({ sandbox: "campaign", reto: 1, clave: claveReto(), titulo: def.titulo, hito: def.hitos[h.hecho].clave, intento, inicio: new Date().toISOString(), resultado: "victoria", motivo: "hito", tiempoJuego: r2(mundo.t), presupuesto: mundo.presupuesto });
+    guardado.escribir(`${PREFIJO}telemetria`, telemetria);
+    pintarResumen();
+  }
+  // Cada fotograma: hitos recién cumplidos, guardado en vivo y parada cuando ya no queda nada en marcha.
+  function cicloCampaign(now) {
+    if (hitoPendiente) { const h = hitoPendiente; hitoPendiente = null; alCumplirHito(h); }
+    if (!ejec || !mundo.activo || pausa) return;
+    if (now - tVivo > 5000) { tVivo = now; guardarVivo(); }
+    if ([...ejec.progs.values()].every(p => p.estado === "fin") && campana.quieto()) terminar("detenido", "quieto", null);
+  }
+
   // ---------- Bucle de juego ----------
   let ultimo = performance.now(), ultVivos = 0;
   function bucle(now) {
@@ -2378,9 +2639,10 @@
     ultimo = now;
     if (mundo.activo && !mundo.fin && !pausa) { if (!algunoCorre()) acum += real * velocidad * turbo; avanzar(); }
     else if (!mundo.activo) acum = 0;
+    if (ES_CAMPAIGN) cicloCampaign(now);
     vigia(now);
     const off = mundo.activo && !pausa && !algunoCorre() ? Math.min(acum, DT) : 0;
-    if (vista === "3d" && V3) { V3.actualizar(off, now); V3.render(); } else dibujar2D(off);
+    if (vista === "3d" && V3) { V3.actualizar(off, now); V3.render(); } else dibujar2D(off, now);
     pintarCapa(off, now);
     caducarAvisos(now);
     pintarHud();
@@ -2392,9 +2654,9 @@
   }
 
   const proveedorEditor = window.CMGProveedor.crear({
-    serie: ES_FACTORY ? "factory" : "war",
+    serie: SERIE,
     sensores: () => mundo ? mundo.sensores.map(s => varDe(s.id)) : [],
-    objetos: () => ["yo", ...(mundo ? (ES_FACTORY ? mundo.entidades : mundo.maquinas).map(e => varDe(e.id)) : [])],
+    objetos: () => ["yo", ...(mundo ? (ES_CAMPAIGN ? mundo.unidades : ES_FACTORY ? mundo.entidades : mundo.maquinas).map(e => varDe(e.id)) : [])],
     propiedades: () => [...PROPS],
   });
 
@@ -2405,8 +2667,10 @@
   window.__banco = {
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, get fuentes() { return fuentes; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
+    // Campaign: la planta, sus checkpoints y la piel del mapa.
+    get campana() { return campana; }, get checkpoints() { return historialC; }, volverA: (i, conProgramas) => volverA(historialC[i], !!conProgramas), seguir: () => seguirCampaign(), nivelDeNuevo: () => nivelDeNuevo(),
   }; // para depurar y probar desde la consola
-  window.cmg = { editor: editorPrograma, get edicion() { return editorPrograma.fachada.edicion; }, get seudo() { return editorPrograma.fachada.seudo; }, serie: ES_FACTORY ? "factory" : "war", insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
+  window.cmg = { editor: editorPrograma, get edicion() { return editorPrograma.fachada.edicion; }, get seudo() { return editorPrograma.fachada.seudo; }, serie: SERIE, insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico, clasificar, sugerencias, firma: (f) => FIRMAS[f] || null, reHueco: RE_HUECO, aviso: avisoEditor, alDesplazar: pintarBanda, alternarEjecucion: () => ejec ? detener() : ejecutar(),
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
@@ -2429,7 +2693,7 @@
     inicial: () => edicion.mixto ? null : { texto: textoInicial(def, progSel), codigo: (def.inicial[progSel] || []).join("\n") + ((def.inicial[progSel] || []).length ? "\n" : "") },
     // Modo revisión (js/revision-juego.js): el código que hay ahora en el editor, sin ejecutarlo.
     revision: {
-      get serie() { return ES_FACTORY ? "factory" : "war"; },
+      get serie() { return SERIE; },
       get reto() { return retoIdx === IDX_PROPIO ? null : { numero: retoIdx + 1, titulo: def.titulo }; },
       get titulo() { return def.titulo; },
       get seleccionado() { return progSel; },
@@ -2439,10 +2703,10 @@
   // Pulsos: solo del programa (o programas con el mismo texto) que está en el editor.
   if (window.CMGPulsos) window.CMGPulsos.conectar({ visibles: () => edicion.mixto ? [] : edicion.ids });
   function actualizarEtiquetasSerie() {
-    const sufijo = ES_FACTORY ? "factory" : "war";
-    $("c2d").setAttribute("aria-label", ti18n(`partida.canvas.${sufijo}.2d`));
-    $("c3d").setAttribute("aria-label", ti18n(`partida.canvas.${sufijo}.3d`));
-    $("t-escenario").textContent = ti18n(ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
+    const sufijo = SERIE;
+    $("c2d").setAttribute("aria-label", ti18n(ES_CAMPAIGN ? "campaign.canvas.2d" : `partida.canvas.${sufijo}.2d`));
+    $("c3d").setAttribute("aria-label", ti18n(ES_CAMPAIGN ? "campaign.canvas.3d" : `partida.canvas.${sufijo}.3d`));
+    $("t-escenario").textContent = ti18n(ES_CAMPAIGN ? "campaign.tab.historial" : ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
     actualizarEtiquetasProgs();
   }
   if (ES_FACTORY) {
@@ -2456,10 +2720,27 @@
     // cortando el arranque de Factory (pantalla negra, sin inspector ni Ejecutar).
     const probar = $("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "factory"); probar.href = u.pathname + u.search; }
   }
+  if (ES_CAMPAIGN) {
+    document.title = ti18n("campaign.doc.titulo");
+    document.documentElement.dataset.serie = "campaign";
+    document.querySelector(".fila-sem").hidden = true;
+    document.querySelector(".coordenadas-manuales").hidden = true;
+    $("info-t-enemigos").hidden = true;
+    $("b-reiniciar").removeAttribute("data-i18n");
+    for (const b of document.querySelectorAll('[data-modo-codigo="pseudo"], [data-modo-codigo="bloques"]')) b.hidden = true;
+    const probar = $("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "campaign"); probar.href = u.pathname + u.search; }
+    const $piel = $("b-piel");
+    if ($piel) {
+      $piel.hidden = false;
+      const poner = (si) => { pielBatalla = !!si; guardado.escribir("campaign-piel", pielBatalla); $piel.setAttribute("aria-pressed", String(pielBatalla)); if (V3) V3.batalla(pielBatalla); };
+      $piel.addEventListener("click", () => poner(!pielBatalla));
+      ponerPiel = poner; poner(pielBatalla);
+    }
+  }
   for (const enlace of document.querySelectorAll("[data-serie]")) {
     const url = new URL(location.href); url.searchParams.set("serie", enlace.dataset.serie);
     enlace.href = url.pathname + url.search + url.hash;
-    enlace.setAttribute("aria-current", enlace.dataset.serie === (ES_FACTORY ? "factory" : "war") ? "page" : "false");
+    enlace.setAttribute("aria-current", enlace.dataset.serie === (SERIE) ? "page" : "false");
   }
   const formularioFactory = ES_FACTORY ? window.FACTORY_FORM.crear({
     retoActual: () => def, propioSel: () => retoIdx === IDX_PROPIO,
@@ -2467,8 +2748,8 @@
     copiarPrograma: () => guardado.escribir("prog-factory-propio", { ...programas }),
   }) : null;
   pintarRuteo();
-  pintarAyuda();
   def = defActual();
+  pintarAyuda();
   aplicarVista(vista);
   aplicarLetra();
   elegirReto(retoIdx);
@@ -2478,6 +2759,7 @@
     actualizarEtiquetasEdicion();
     actualizarEtiquetasSelectorLenguaje();
     actualizarEtiquetasSerie();
+    if (ES_CAMPAIGN && mundo) { document.title = ti18n("campaign.doc.titulo"); pintarRetos(); pintarInspector(); pintarPieIns(); pintarAyuda(); pintarEscenario(); }
     actualizarEtiquetasRuteo();
     actualizarEtiquetasResumen();
     actualizarEtiquetaEventosVacios();

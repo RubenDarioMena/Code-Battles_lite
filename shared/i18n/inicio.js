@@ -28,6 +28,7 @@ window.CMGI18n.registrar('es', {
   'inicio.campaign.titulo': 'Campaign',
   'inicio.campaign.descripcion': 'Próximamente.',
   'inicio.campaign.lema': 'Una nueva forma de avanzar',
+  'inicio.campaign.prototipo': 'Probar el prototipo del nivel 1 →',
   'inicio.editor.probar': 'Probar el editor de código',
   'inicio.footer.dispositivos': 'En PC y móvil · Sin instalar'
 });
@@ -61,6 +62,7 @@ window.CMGI18n.registrar('en', {
   'inicio.campaign.titulo': 'Campaign',
   'inicio.campaign.descripcion': 'Coming soon.',
   'inicio.campaign.lema': 'A new way to progress',
+  'inicio.campaign.prototipo': 'Try the level 1 prototype →',
   'inicio.editor.probar': 'Try the code editor',
   'inicio.footer.dispositivos': 'Desktop and mobile · No installation'
 });

@@ -10,6 +10,67 @@ const validarFactory = ${window.FACTORY.validar.toString()};
 // Auxiliares de Python (E5): el traductor genera JS que llama a __py con las mismas líneas del programa.
 const __py = (${window.CMGPythonJS ? window.CMGPythonJS.preludio.toString() : "() => null"})();
 let LENGUAJE = "js";
+// Campaign: muchas unidades con encargos, modos y lecturas. La validación y el resultado de los modos
+// son las mismas funciones puras del mundo (campaign.js), para que el programa y la planta coincidan.
+let ES_CAMPAIGN = false, acabado = false;
+const validarCampaign = ${window.CAMPAIGN ? window.CAMPAIGN.validar.toString() : "() => null"};
+const modoCampaign = ${window.CAMPAIGN ? window.CAMPAIGN.modoEnSnap.toString() : "() => 'ok'"};
+const pend = new Map();  // encargos y esperas que el programa tiene en marcha: id → { resolve, linea, texto, unidad }
+const ORDENES_C = { pickUp: "encargo", deliver: "encargo", goTo: "encargo", start: "modo", stop: "modo", light: "modo", setRecipe: "modo", request: "modo" };
+const DE_C = { robot: ["pickUp", "deliver", "goTo"], carretilla: ["pickUp", "deliver", "goTo"], maquina: ["start", "stop", "light", "setRecipe"], banda: ["start", "stop"], bahia: ["request"] };
+const PROPS_C = { robot: ["cargo", "busy"], carretilla: ["cargo", "busy"], maquina: ["input", "output", "outputFull", "state", "recipe", "made", "running"],
+  lugar: ["pallet", "items", "free"], bahia: ["pallet", "items", "free", "pending"], pad: ["free", "machine"], pila: [], banda: ["items", "running", "state"],
+  arsenal: ["missiles", "received"], torreta: ["missiles"], control: ["power", "budget", "milestone"] };
+const ALIAS_C = { recoger: "pickUp", entregar: "deliver", irA: "goTo" };
+const idDe = (a) => a && typeof a === "object" && typeof a.id === "string" ? a.id : a;
+function ordenC(linea, unidad, verbo, args) {
+  args = args.map(idDe);
+  const C = SNAP.campaign, error = validarCampaign(C, PROPIA, unidad, verbo, args);
+  if (error) throw fallo(linea, error);
+  const texto = (unidad === PROPIA ? "" : nombreVar(unidad) + ".") + verbo + "(" + args.map(a => a === undefined ? "" : typeof a === "string" && C.u[a] ? nombreVar(a) : JSON.stringify(a)).join(", ") + ")";
+  if (ORDENES_C[verbo] === "modo") {
+    const res = modoCampaign(C, unidad, verbo, args);
+    postMessage({ type: "modo", linea, unidad, verbo, args, texto, res });
+    return res;
+  }
+  for (const p of pend.values()) if (p.unidad === unidad) throw fallo(p.linea, "Falta await en la línea " + p.linea + ": " + unidad + " seguía con " + p.texto + " cuando llegó la orden de la línea " + linea + ".");
+  const id = ++seq;
+  postMessage({ type: "encargo", id, linea, unidad, verbo, args, texto });
+  return new Promise(resolve => pend.set(id, { resolve, linea, texto, unidad }));
+}
+function esperaC(linea, s) {
+  if (typeof s !== "number" || !(s >= 0.05) || s > 60) throw fallo(linea, "wait necesita segundos entre 0.05 y 60, por ejemplo await wait(0.5). Recibió " + q(s) + ".");
+  for (const p of pend.values()) if (p.unidad === null) throw fallo(p.linea, "Falta await en la línea " + p.linea + ": el programa seguía esperando cuando llegó otra espera en la línea " + linea + ".");
+  const id = ++seq;
+  postMessage({ type: "espera", id, linea, s });
+  return new Promise(resolve => pend.set(id, { resolve, linea, texto: "wait(" + s + ")", unidad: null }));
+}
+function contarC(linea, lugar, pieza) {
+  lugar = idDe(lugar);
+  const C = SNAP.campaign, error = validarCampaign(C, PROPIA, PROPIA, "count", [lugar, pieza]);
+  if (error) throw fallo(linea, error);
+  const d = C.u[lugar], n = (a) => a.filter(x => x === pieza).length;
+  // null: ese lugar no existe; 0: existe y no tiene esa pieza.
+  const valor = !d ? null : d.k === "lugar" || d.k === "bahia" ? n(d.tiene) : d.k === "maquina" ? n(d.sale) + (d.tiene[pieza] || 0)
+    : d.k === "banda" ? (pieza === "missile" ? d.items : 0) : d.k === "arsenal" || d.k === "torreta" ? (pieza === "missile" ? d.missiles : 0)
+    : d.k === "robot" ? (d.cargo === pieza ? 1 : 0) : 0;
+  postMessage({ type: "lectura", linea, texto: "count(" + nombreVar(String(lugar)) + ", " + q(pieza) + ")", valor });
+  return valor;
+}
+function unidadC(id, linea) {
+  const d = SNAP.campaign.u[id], k = d ? d.k : "pila", o = {};
+  for (const verbo of Object.keys(ORDENES_C)) o[verbo] = (...a) => ordenC(linea, id, verbo, a);
+  for (const [alias, verbo] of Object.entries(ALIAS_C)) o[alias] = o[verbo];
+  for (const p of PROPS_C[k] || []) Object.defineProperty(o, p, { enumerable: true, get: () => copia(SNAP.campaign.u[id][p]) });
+  Object.defineProperty(o, "id", { enumerable: true, value: id });
+  return new Proxy(o, { get(t, p) {
+    if (typeof p === "symbol" || p in t || p === "then" || p === "toJSON") return t[p];
+    throw fallo(linea, nombreVar(id) + "." + String(p) + " no existe. " + nombreVar(id) + " tiene: " + [...(DE_C[k] || []), ...(PROPS_C[k] || [])].join(", ") + ".");
+  } });
+}
+// Tras despertar, el programa corre hasta su siguiente await. Si sigue esperando encargos que ya había dado
+// (por ejemplo dentro de un Promise.all), avisa de que cede el turno para que el reloj pueda avanzar.
+function cederLuego() { setTimeout(() => { if (pend.size && !acabado) postMessage({ type: "cede" }); }, 0); }
 function robotAPI(linea) {
   const api = {};
   for (const verbo of ["recoger", "entregar", "esperar", "cuantos"]) api[verbo] = (...args) => {
@@ -102,6 +163,7 @@ function esperarAPI(linea, s) {
 }
 function consola(linea, nivel, a) { postMessage({ type: "consola", linea, nivel, texto: a.map(fmt).join(" ") }); }
 function maquina(id, linea) {
+  if (ES_CAMPAIGN) return unidadC(id, linea);
   if (ES_ROBOT && id === PROPIA) return robotAPI(linea);
   const o = {};
   if (id.startsWith("LAU")) {
@@ -120,7 +182,22 @@ function maquina(id, linea) {
     throw fallo(linea, nombreVar(id) + "." + String(p) + " no existe. " + nombreVar(id) + " tiene: " + Object.keys(t).join(", ") + ".");
   } });
 }
+function LCampaign(linea) {
+  const o = {
+    wait: (s) => esperaC(linea, s), esperar: (s) => esperaC(linea, s),
+    count: (l, p) => contarC(linea, l, p), cuantos: (l, p) => contarC(linea, l, p),
+    log: (...a) => consola(linea, "log", a),
+    console: { log: (...a) => consola(linea, "log", a), info: (...a) => consola(linea, "info", a), warn: (...a) => consola(linea, "warn", a), error: (...a) => consola(linea, "error", a) },
+  };
+  for (const verbo of Object.keys(ORDENES_C)) o[verbo] = (...a) => ordenC(linea, PROPIA, verbo, a);
+  for (const [alias, verbo] of Object.entries(ALIAS_C)) o[alias] = o[verbo];
+  Object.defineProperty(o, "yo", { get: () => unidadC(PROPIA, linea) });
+  for (const id of NOMBRES) Object.defineProperty(o, nombreVar(id), { get: () => unidadC(id, linea) });
+  return o;
+}
+const GLOBALES_C = ["wait", "esperar", "count", "cuantos", "log", "console", ...Object.keys(ORDENES_C), ...Object.keys(ALIAS_C)];
 function __L(linea) {
+  if (ES_CAMPAIGN) return LCampaign(linea);
   const o = {
     autoTarget: (t, s) => apuntarAPI(linea, PROPIA, t, s),
     regularShoot: (...a) => orden(linea, PROPIA, "regularShoot", a),
@@ -138,6 +215,15 @@ function __L(linea) {
 // Sin instrumentar (dentro de plantillas de texto, por ejemplo) también funcionan, solo que sin línea.
 function instalarGlobales() {
   const base = __L(null);
+  if (ES_CAMPAIGN) {
+    for (const k of GLOBALES_C) self[k] = base[k];
+    Object.defineProperty(self, "yo", { configurable: true, get: () => unidadC(PROPIA, null) });
+    for (const id of NOMBRES) Object.defineProperty(self, nombreVar(id), { configurable: true, get: () => unidadC(id, null) });
+    // Lo propio se escribe sin prefijo: outputFull, cargo, power…
+    const k = (SNAP.campaign.u[PROPIA] || {}).k;
+    for (const p of PROPS_C[k] || []) Object.defineProperty(self, p, { configurable: true, get: () => copia(SNAP.campaign.u[PROPIA][p]) });
+    return;
+  }
   for (const k of (ES_ROBOT ? ["recoger", "entregar", "esperar", "cuantos", "pickUp", "deliver", "wait", "count", "log", "console"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log", "console"])) self[k] = base[k];
   Object.defineProperty(self, "yo", { configurable: true, get: () => maquina(PROPIA, null) });
   for (const id of NOMBRES) Object.defineProperty(self, nombreVar(id), { configurable: true, get: () => maquina(id, null) });
@@ -147,13 +233,19 @@ onmessage = async (ev) => {
   const m = ev.data;
   if (m.type === "despierta") {
     SNAP = m.snap;
+    if (ES_CAMPAIGN) {
+      const p = pend.get(m.id);
+      if (p) { pend.delete(m.id); p.resolve(m.resultado === undefined ? "ok" : m.resultado); }
+      cederLuego();
+      return;
+    }
     const e = espera;
     if (e && e.id === m.id) { espera = null; e.resolve(m.resultado === undefined ? "ok" : m.resultado); }
     return;
   }
   if (m.type !== "run") return;
-  ES_ROBOT = m.serie === "factory"; LENGUAJE = m.lenguaje === "python" ? "python" : "js";
-  SNAP = m.snap; PROPIA = m.propia; NOMBRES = m.nombres.filter(id => (!ES_ROBOT || !(nombreVar(id) in self)) && /^[A-Za-z_$][\\w$]*$/.test(nombreVar(id)) && m.nombres.filter(n => nombreVar(n) === nombreVar(id)).length === 1 && !["yo", "console", "log", "pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos"].includes(nombreVar(id))); TIPOS = m.tipos; SENSORES = m.sensores; CONF = m.conf;
+  ES_ROBOT = m.serie === "factory"; ES_CAMPAIGN = m.serie === "campaign"; LENGUAJE = m.lenguaje === "python" ? "python" : "js";
+  SNAP = m.snap; PROPIA = m.propia; NOMBRES = m.nombres.filter(id => (!(ES_ROBOT || ES_CAMPAIGN) || !(nombreVar(id) in self)) && /^[A-Za-z_$][\\w$]*$/.test(nombreVar(id)) && m.nombres.filter(n => nombreVar(n) === nombreVar(id)).length === 1 && !["yo", "console", "log", "pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos"].includes(nombreVar(id))); TIPOS = m.tipos; SENSORES = m.sensores; CONF = m.conf;
   if (OFF === null) {
     try { await new AF("\\nthrow new Error('x')")(); } catch (e) { const n = lineaDe(e); OFF = n == null ? NaN : n - 2; }
   }
@@ -161,8 +253,9 @@ onmessage = async (ev) => {
   let fn;
   try { fn = new AF("__L", m.codigo); }
   catch (e) { postMessage({ type: "error", mensaje: "Error de sintaxis: " + e.message, linea: null }); return; }
-  try { await fn(__L); postMessage({ type: "done" }); }
+  try { await fn(__L); acabado = true; postMessage({ type: "done" }); }
   catch (e) {
+    acabado = true;
     let linea = e && e.__linea;
     if (linea == null) { const n = lineaDe(e); if (n != null && !isNaN(OFF)) linea = n - OFF; }
     const msg = String(LENGUAJE === "python" && __py ? __py.mensaje(e) : (e && e.message) || e).replace(/__L\\((?:\\d+|null)\\)\\./g, "");
@@ -182,5 +275,17 @@ onmessage = async (ev) => {
     for (const p of listos) { p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0; p.worker.postMessage({ type: "despierta", id: p.espera, snap }); }
     return true;
   }
-  window.RUNTIME = { url: WORKER_URL, algunoCorre, despertar };
+  // Campaign: cada programa puede tener varias esperas y encargos a la vez (p.pend).
+  function despertarCampaign(ejec, mundo, instantanea) {
+    if (!ejec) return false;
+    let snap = null, alguno = false;
+    for (const p of ejec.progs.values()) for (const [id, e] of p.pend) {
+      if (e.tipo !== "espera" || e.despertar > mundo.t + 1e-9) continue;
+      p.pend.delete(id); snap ||= instantanea();
+      p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0; alguno = true;
+      p.worker.postMessage({ type: "despierta", id, snap });
+    }
+    return alguno;
+  }
+  window.RUNTIME = { url: WORKER_URL, algunoCorre, despertar, despertarCampaign };
 })();

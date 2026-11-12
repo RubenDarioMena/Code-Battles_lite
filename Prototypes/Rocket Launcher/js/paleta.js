@@ -27,6 +27,14 @@
         { ico: "entregar", t: "Entregar", i18n: "paleta.factory.entregar", b: "await deliver(/* lugar */);" },
         { ico: "sensor", t: "Cuántos", i18n: "paleta.factory.cuantos", b: "const cantidad = count(/* lugar */, /* material */);" }],
     },
+    campaign: {
+      // Los encargos ya esperan; las máquinas y el control maestro usan la pausa.
+      esperar: "await wait(0.5);", pausa: { js: "await wait(0.5);", python: "await wait(0.5)" },
+      propias: () => [
+        { ico: "recoger", t: "Recoger", i18n: "paleta.factory.recoger", b: "await pickUp(/* lugar */, /* material */);" },
+        { ico: "entregar", t: "Entregar", i18n: "paleta.factory.entregar", b: "await deliver(/* lugar */);" },
+        { ico: "sensor", t: "Cuántos", i18n: "paleta.factory.cuantos", b: "const cantidad = count(/* lugar */, /* material */);" }],
+    },
   };
   const serieDe = s => SERIES[s] || SERIES.war;
   // Inserta «Esperar» antes de la variable y las órdenes (con su separador) antes de la consola.

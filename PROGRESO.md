@@ -1,3 +1,13 @@
+## Campaign · nivel 1 «Primera fábrica» (H0–H5) · 12 de noviembre de 2026 · rama `campaign-nivel-1`
+
+- **Qué es.** Primer nivel de la campaña como tercera serie de la aplicación común (`?serie=campaign`), con la misma interfaz, JS y Python. Decisiones, API, hitos y límites en [docs/CAMPAIGN-NIVEL-1.md](docs/CAMPAIGN-NIVEL-1.md). War y Factory no cambian de reglas.
+- **Mundo.** Planta continua en vivo (Ejecutar no reinicia el mundo), checkpoints autoguardados por hito, historial para volver y estado en vivo que sobrevive a recargar. Seis hitos: montacargas guiado, prensa rápida, dos estaciones lentas, pedidos y reubicación, ensambladora por lotes con control maestro y banda hasta la bodega de la muralla; al final, salva de prueba.
+- **Mapa.** 200 × 104 m calcado del boceto (fábrica, muralla, dos carriles y flanco, montes y río). Diorama low-poly en WebGL (Three r128) con modo batalla (cuadrícula de War) y plano 2D con zoom.
+- **Runtime.** Un programa puede esperar varios encargos a la vez; el Worker avisa («cede») cuando vuelve a esperar. Validación y resultado de los modos compartidos entre el Worker y el mundo (`campaign.js`).
+- **Verificación actual.** `campaign-reglas.cjs` (reglas, conservación, checkpoints, determinismo y partida de referencia H0–H5); i18n **1438 claves**; lógica **124**; editor Python **34**; traductor **64**; contrato y lenguajes del editor; reglas de Factory. Navegador (Playwright + Chromium con SwiftShader, 8771): `campaign-juego.cjs` completa H0–H5 en escritorio y en formato móvil sin errores de página; Python comprobado en H0 y en la luz de PRS-01; War y Factory arrancan y ejecutan.
+- **Límites.** No se probó en teléfono real ni con WebGL de GPU real. No se ejecutaron las suites de Ego Browser (`navegador.mjs` y afines). Mensajes del runtime de Campaign solo en español. Robots y máquinas con primitivas. Números de ritmo y economía sin QA humano.
+- **Pendiente.** QA del autor; decidir cuándo pasa a `trunk`; modelos (T1, torreta de observación); oleadas en los carriles; relación local/maestro; divisores de banda.
+
 ## 10-nov-2026 · Torreta de observación: fuentes y propuestas de mecanismo
 
 - Incorporados en `arte/blender/torreta_observacion/` el modelo Blender de 1 m, la secuencia de observación y dos propuestas animadas (cardán dentado y ruedas omni), con documentación y visor HTML.

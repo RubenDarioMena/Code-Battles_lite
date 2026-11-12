@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="css/componentes.css?v=26">
 <link rel="stylesheet" href="../../shared/css/edicion.css?v=7">
 <link rel="stylesheet" href="css/factory.css?v=1">
+<link rel="stylesheet" href="css/campaign.css?v=1">
 <link rel="stylesheet" href="css/layout.css?v=24">
 
 </head>
@@ -53,6 +54,7 @@
           <div class="vistas" role="group" aria-label="Vista del campo" data-i18n-aria-label="juego.vista.etiqueta">
             <button type="button" data-vista="3d" aria-pressed="true">3D</button>
             <button type="button" data-vista="2d" aria-pressed="false" data-i18n="juego.vista.plano">Plano</button>
+            <button type="button" id="b-piel" hidden aria-pressed="false" aria-label="Alternar entre el paisaje y el modo batalla" data-i18n-aria-label="campaign.piel.aria" data-tip="Modo batalla" data-i18n-data-tip="campaign.piel.tip" data-i18n="campaign.piel.batalla">Batalla</button>
             <button type="button" id="b-centrar" aria-label="Recentrar la cámara" data-i18n-aria-label="juego.camara.recentrar" data-tip="Recentrar la cámara" data-i18n-data-tip="juego.camara.recentrar">⌖</button>
           </div>
           <div class="reloj" id="reloj">t 0.0 s</div>
@@ -79,7 +81,7 @@
           <span class="placa" data-i18n="juego.retos.titulo">Retos</span>
           <button class="cerrar" type="button" data-cerrar-hoja aria-label="Cerrar" data-i18n-aria-label="juego.accion.cerrar">×</button>
         </div>
-        <nav class="fila-botones" aria-label="Series de retos" data-i18n-aria-label="juego.retos.series"><a class="btn chico" data-serie="war" href="?serie=war">War</a><a class="btn chico" data-serie="factory" href="?serie=factory">Factory</a></nav>
+        <nav class="fila-botones" aria-label="Series de retos" data-i18n-aria-label="juego.retos.series"><a class="btn chico" data-serie="war" href="?serie=war">War</a><a class="btn chico" data-serie="factory" href="?serie=factory">Factory</a><a class="btn chico" data-serie="campaign" href="?serie=campaign">Campaign</a></nav>
         <nav class="retos" id="retos" aria-label="Retos" data-i18n-aria-label="juego.retos.aria"></nav>
         <div class="regla"></div>
         <section class="objetivo" aria-label="Objetivo" data-i18n-aria-label="juego.objetivo.aria">
@@ -427,10 +429,12 @@
 <script src="js/factory-vista.js?v=1" charset="utf-8"></script>
 <script src="js/war.js?v=1" charset="utf-8"></script>
 <script src="js/war-retos.js?v=2" charset="utf-8"></script>
+<script src="js/campaign-nivel.js?v=1" charset="utf-8"></script>
+<script src="js/campaign.js?v=1" charset="utf-8"></script>
 <script src="js/nucleo.js?v=1" charset="utf-8"></script>
 <script src="../../shared/python/traductor.js?v=2" charset="utf-8"></script>
 <script src="../../shared/python/desde-js.js?v=3" charset="utf-8"></script>
-<script src="js/runtime.js?v=4" charset="utf-8"></script>
+<script src="js/runtime.js?v=5" charset="utf-8"></script>
 <script src="../../shared/i18n/juego-estatico.js?v=2" charset="utf-8"></script>
 <script src="../../shared/i18n/juego-dinamico.js?v=1" charset="utf-8"></script>
 <script src="../../shared/i18n/disposicion.js?v=2" charset="utf-8"></script>
@@ -442,10 +446,15 @@
 <script src="../../shared/i18n/pendientes.js?v=1" charset="utf-8"></script>
 <script src="../../shared/i18n/retos.js?v=1" charset="utf-8"></script>
 <script src="../../shared/i18n/war-form.js?v=1" charset="utf-8"></script>
+<script src="../../shared/i18n/campaign.js?v=1" charset="utf-8"></script>
 <script src="js/vistas.js?v=2" charset="utf-8"></script>
+<script src="js/campaign-terreno.js?v=1" charset="utf-8"></script>
+<script src="js/campaign-3d.js?v=1" charset="utf-8"></script>
+<script src="js/campaign-plano.js?v=1" charset="utf-8"></script>
+<script src="js/campaign-ui.js?v=1" charset="utf-8"></script>
 <script src="js/factory-3d.js?v=2" charset="utf-8"></script>
 <script src="js/factory-form.js?v=3" charset="utf-8"></script>
-<script src="js/proveedor.js?v=1" charset="utf-8"></script>
+<script src="js/proveedor.js?v=2" charset="utf-8"></script>
 <script src="../../shared/editor/lenguajes.js?v=2" charset="utf-8"></script>
 <script src="../../shared/js/estructura.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/javascript.js?v=1" charset="utf-8"></script>
@@ -462,15 +471,15 @@
 <script src="../../shared/editor/nucleo-ui.js?v=6" charset="utf-8"></script>
 <script src="../../shared/editor/editor.js?v=4" charset="utf-8"></script>
 <script src="../../shared/editor/tips.js?v=1" charset="utf-8"></script>
-<script src="js/paleta.js?v=6" charset="utf-8"></script>
+<script src="js/paleta.js?v=7" charset="utf-8"></script>
 <!-- Pulsos del código durante la partida: el trazador y el diagrama del modo revisión dan fragmentos y colores. -->
 <script src="../../educational-animation/revision/motor/trazador.js?v=6" charset="utf-8"></script>
 <script src="../../educational-animation/revision/motor/flujo.js?v=9" charset="utf-8"></script>
 <script src="../../educational-animation/revision/motor/python.js?v=2" charset="utf-8"></script>
 <script src="js/pulsos.js?v=3" charset="utf-8"></script>
-<script src="js/juego.js?v=45" charset="utf-8"></script>
+<script src="js/juego.js?v=46" charset="utf-8"></script>
 <script src="js/layout.js?v=21" charset="utf-8"></script>
-<script src="js/remota.js?v=3" charset="utf-8"></script>
+<script src="js/remota.js?v=4" charset="utf-8"></script>
 <script src="js/revision-juego.js?v=11" charset="utf-8"></script>
 <script>
   addEventListener("load", () => {

@@ -32,6 +32,7 @@ const modulos = [
   ['paleta', 'paleta'], ['inspector', 'inspector'],
   ['factory-form', 'formulario'],
   ['war-form', 'escenario'], ['retos', 'retos'], ['pendientes', 'pendientes'],
+  ['campaign', 'campaign'],
 ];
 for (const [modulo, prefijo] of modulos) {
   const archivo = `shared/i18n/${modulo}.js`;
