@@ -4,60 +4,74 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101918">
-  <title>Editor de terreno · Code Battle Lite</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23162220'/%3E%3Cpath d='M5 30 15 13l8 10 5-6 8 13' fill='%23b6d8a2'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="editor.css?v=1">
-  <link rel="stylesheet" href="bloques.css?v=1">
+  <title>Estudio de terreno · Code Battle Lite</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="editor.css?v=2">
+  <link rel="stylesheet" href="bloques.css?v=2">
   <script type="importmap">{"imports":{"three":"../../shared/vendor/three-r180/three.webgpu.min.js"}}</script>
 </head>
 <body>
   <header class="cabecera">
-    <a href="../../" class="marca"><span class="sello">CBL</span><span>Code Battle <b>Lite</b><small>Herramientas de desarrollo</small></span></a>
-    <div class="titulo"><span class="punto"></span> Estudio de terreno <span class="fase">FASE A</span></div>
-    <a href="../../Prototypes/Rocket%20Launcher/" class="volver">Volver al juego ↗</a>
+    <a href="../../" class="marca" title="Code Battle Lite">CB<span>L</span></a>
+    <div class="identidad"><span class="ceja">ESTUDIO DE TERRENO</span><input id="nombre" value="Valle de práctica" maxlength="80" aria-label="Nombre del mapa"></div>
+    <div class="historial"><button id="deshacer" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>↶</button><button id="rehacer" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer" disabled>↷</button></div>
+    <button id="pantalla" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
+    <button id="abrir-archivo" aria-expanded="false" aria-controls="panel-archivo">Archivo</button>
+    <button id="probar" class="principal" disabled>Probar en War ↗</button>
   </header>
   <main>
     <section class="lienzo" aria-label="Vista del terreno">
-      <div class="barra-escena">
-        <div><span class="ceja">MAPA / WAR</span><label class="nombre-label" for="nombre">Nombre del mapa</label><input id="nombre" value="Valle de práctica" maxlength="80" aria-label="Nombre del mapa"></div>
-        <div class="historial"><button id="deshacer" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled>↶</button><button id="rehacer" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer" disabled>↷</button></div>
-      </div>
-      <div id="visor" tabindex="0" aria-label="Terreno 3D. Dibuja con el pincel o activa Mover cámara.">
-        <canvas id="terreno" aria-label="Terreno editable en tres dimensiones"></canvas>
-        <div class="etiquetas"><span class="placa">64 × 48 m <i>·</i> 0,5 m por muestra</span><span class="placa motor" id="motor">Iniciando renderizador…</span></div>
+      <div id="visor" tabindex="0" aria-label="Terreno 3D editable">
+        <canvas id="terreno" aria-label="Terreno editable en tres dimensiones" tabindex="0"></canvas>
+        <div class="etiquetas"><span class="placa" id="dimensiones">64 × 48 m · 0,5 m</span><span class="placa motor" id="motor">Iniciando…</span></div>
         <div id="arranque" class="arranque" role="status">Preparando el terreno…</div>
-        <div class="controles-vista"><button id="encuadrar" title="Encuadrar el mapa">⌖ Encuadrar</button><button id="cenital" title="Ver desde arriba">↓ Desde arriba</button><button id="rejilla" aria-pressed="true">▦ Cuadrícula</button></div>
-        <div class="leyenda-campo"><span></span> Campo jugable · altura protegida</div>
+        <div class="controles-vista"><button id="encuadrar" title="Encuadrar el mapa (F)">⌖ Encuadrar</button><button id="cenital" title="Ver desde arriba">↓ Cenital</button><button id="rejilla" aria-pressed="true">▦ Rejilla</button><button id="navegar" aria-pressed="false">✥ Cámara</button></div>
+        <div class="leyenda-campo"><span></span> Campo War · altura protegida</div>
       </div>
-      <footer class="pie-escena"><span id="coordenadas">X — &nbsp; Z — &nbsp; H —</span><span>Ratón / lápiz: pintar <i>·</i> Botón derecho: girar <i>·</i> Rueda: zoom</span></footer>
+      <footer class="pie-escena"><span id="coordenadas">X — &nbsp; Y — &nbsp; Z —</span><span id="estado-herramienta">Subir</span><span class="atajos">Derecho: orbitar · Central: desplazar · Rueda: zoom · [ ]: radio · F: encuadrar</span></footer>
     </section>
-    <aside class="panel" aria-label="Herramientas de terreno">
-      <div class="intro"><p class="ceja">DAR FORMA AL MUNDO</p><h1>Un mapa, a tu manera.</h1><p>Esculpe el entorno, pinta agua y construye el blocking de tu escenario.</p></div>
-      <div class="modos-editor" role="group" aria-label="Área de edición"><button id="modo-terreno" aria-pressed="true">▱ Terreno</button><button id="modo-bloques" aria-pressed="false">◇ Bloques</button></div>
-      <section id="panel-terreno" aria-label="Pinceles de terreno">
-      <fieldset class="herramientas"><legend><span>01</span> Pincel</legend><div class="tools" role="group" aria-label="Herramienta activa">
-        <button data-modo="subir" aria-pressed="true"><b>↟</b>Subir</button><button data-modo="bajar" aria-pressed="false"><b>↡</b>Bajar</button><button data-modo="suavizar" aria-pressed="false"><b>≈</b>Suavizar</button><button data-modo="aplanar" aria-pressed="false"><b>⇥</b>Aplanar</button><button data-modo="pintar" aria-pressed="false"><b>◒</b>Pintar</button><button data-modo="camara" aria-pressed="false"><b>✥</b>Mover cámara</button>
-      </div></fieldset>
-      <div class="ajustes">
-        <label for="radio">Radio <output id="radio-valor" for="radio">3 m</output></label><input id="radio" type="range" min="0.5" max="10" step="0.5" value="3">
-        <label for="fuerza">Intensidad <output id="fuerza-valor" for="fuerza">45 %</output></label><input id="fuerza" type="range" min="1" max="100" value="45">
-        <div id="ajuste-altura" hidden><label for="altura">Altura de aplanado <output id="altura-valor" for="altura">2 m</output></label><input id="altura" type="range" min="-2" max="20" step="0.5" value="2"></div>
-        <div id="ajuste-agua" hidden><label for="nivel-agua">Cota de agua (m)<input id="nivel-agua" type="number" min="-2" max="20" step="0.05" value="0.35"></label><p class="ayuda">El agua ocupa el suelo bajo esta cota. Mantén Shift para borrar agua.</p></div>
-        <label class="check"><input id="presion" type="checkbox" checked> Usar presión del lápiz</label>
-        <p class="ayuda" id="pista-pincel">Eleva el terreno fuera del campo protegido. Shift invierte Subir y Bajar.</p>
+    <nav class="barra-herramientas" aria-label="Herramientas de edición">
+      <div class="modos-editor" role="group" aria-label="Área de edición"><button id="modo-terreno" aria-pressed="true" title="Esculpir terreno">▱<small>Terreno</small></button><button id="modo-bloques" aria-pressed="false" title="Modelar bloques">◇<small>Bloques</small></button></div>
+      <div class="tools" role="group" aria-label="Herramienta activa">
+        <button data-modo="subir" aria-pressed="true" title="Subir (1)"><b>↟</b><small>Subir</small></button>
+        <button data-modo="bajar" aria-pressed="false" title="Bajar (2)"><b>↡</b><small>Bajar</small></button>
+        <button data-modo="inflar" aria-pressed="false" title="Inflar (3)"><b>◠</b><small>Inflar</small></button>
+        <button data-modo="detalle" aria-pressed="false" title="Detalle (4)"><b>⌁</b><small>Detalle</small></button>
+        <button data-modo="suavizar" aria-pressed="false" title="Suavizar (5)"><b>≈</b><small>Suavizar</small></button>
+        <button data-modo="aplanar" aria-pressed="false" title="Aplanar (6)"><b>⇥</b><small>Aplanar</small></button>
+        <button data-modo="pintar" aria-pressed="false" title="Pintar (7)"><b>◒</b><small>Pintar</small></button>
+        <button data-modo="camara" aria-pressed="false" title="Mover cámara (8)"><b>✥</b><small>Cámara</small></button>
       </div>
-      <fieldset class="materiales"><legend><span>02</span> Material</legend><div id="paleta" class="paleta" role="group" aria-label="Material del pincel"></div><p class="ayuda">Elige un material para activar Pintar.</p></fieldset>
+      <button id="ajustes-toggle" aria-expanded="true" aria-controls="inspector" title="Abrir o cerrar ajustes">☷<small>Ajustes</small></button>
+    </nav>
+    <aside class="panel" id="inspector" aria-label="Herramientas de terreno">
+      <div class="panel-titulo"><div><p class="ceja">INSPECTOR</p><h1 id="titulo-herramienta">Subir terreno</h1></div><button id="cerrar-ajustes" aria-label="Cerrar ajustes">×</button></div>
+      <section id="panel-terreno" aria-label="Pinceles de terreno">
+        <div class="ajustes">
+          <label for="radio">Radio <output id="radio-valor">3 m</output></label><div class="rango-numero"><input id="radio" type="range" min="0.25" max="32" step="0.25" value="3"><input id="radio-numero" aria-label="Radio exacto en metros" type="number" min="0.25" max="32" step="0.25" value="3"></div>
+          <label for="fuerza">Intensidad <output id="fuerza-valor">45 %</output></label><div class="rango-numero"><input id="fuerza" type="range" min="1" max="100" value="45"><input id="fuerza-numero" aria-label="Intensidad exacta" type="number" min="1" max="100" value="45"></div>
+          <label for="dureza">Dureza del borde <output id="dureza-valor">0 %</output></label><input id="dureza" type="range" min="0" max="95" value="0">
+          <label for="forma">Forma<select id="forma"><option value="circulo">Circular</option><option value="cuadrado">Cuadrada · áreas grandes</option></select></label>
+          <div id="ajuste-altura" hidden><label for="altura">Altura de aplanado <output id="altura-valor">2 m</output></label><input id="altura" type="number" min="-2" max="20" step="0.05" value="2"><button id="muestrear-altura">Tomar altura del siguiente punto</button></div>
+          <div id="ajuste-agua" hidden><label for="nivel-agua">Cota de agua (m)<input id="nivel-agua" type="number" min="-2" max="20" step="0.05" value="0.35"></label></div>
+          <label class="check"><input id="invertir" type="checkbox"> Invertir / borrar (Shift)</label>
+          <label class="check"><input id="presion" type="checkbox" checked> Presión del lápiz</label>
+          <p class="ayuda" id="pista-pincel"></p>
+        </div>
+        <fieldset class="materiales"><legend>Material</legend><div id="paleta" class="paleta" role="group" aria-label="Material del pincel"></div><p class="ayuda">Pinta el relieve a cualquier altura. Sobre bloques, colorea la cara triangular visible.</p></fieldset>
+        <details id="precision"><summary>Punto preciso · XYZ</summary><p class="ayuda">Selecciona un punto del terreno y fija su altura. X/Z se ajustan a la muestra más próxima.</p><button id="elegir-punto">Seleccionar en el mapa</button><div class="xyz"><label>X<input id="punto-x" type="number" step="0.25" value="-8"></label><label>Y · altura<input id="punto-y" type="number" min="-2" max="20" step="0.01" value="2"></label><label>Z<input id="punto-z" type="number" step="0.25" value="-8"></label></div><button id="aplicar-punto">Fijar altura del punto</button></details>
+        <details id="tamano"><summary>Extensión y resolución</summary><p class="ayuda">Amplía con suelo plano o recorta los bordes. Conserva el centro y los bloques. El recorte se puede deshacer.</p><div class="xyz"><label>Ancho X (m)<input id="ancho" type="number" min="36" max="128" step="1" value="64"></label><label>Fondo Z (m)<input id="fondo" type="number" min="28" max="128" step="1" value="48"></label><label>Paso (m)<select id="resolucion"><option value="1">1</option><option value="0.5" selected>0,5</option><option value="0.25">0,25</option></select></label></div><button id="redimensionar">Aplicar dimensiones</button><div class="exportaciones"><button data-extension="8">＋ Franja de 4 m</button><button data-extension="-8">− Franja de 4 m</button></div><p class="ayuda">Franjas en los cuatro bordes. Máximo 257 muestras por eje; 25 cm permite mapas de hasta 64 × 64 m.</p></details>
       </section>
       <section id="panel-bloques" aria-label="Modelado de bloques" hidden></section>
-      <section class="archivo" aria-label="Guardar y probar"><p class="ceja">TU MAPA, REUTILIZABLE</p><button id="probar" class="principal" disabled>Probar en War <span>↗</span></button><div class="exportaciones"><button id="json" disabled>↓ Mapa JSON</button><button id="png" disabled>↓ Texturas PNG</button></div><div class="exportaciones"><button id="importar" disabled>↑ Abrir JSON</button><button id="nuevo" disabled>Nuevo mapa</button></div><input id="archivo" type="file" accept=".json,application/json" hidden><p class="ayuda">PNG exporta altura16, mezcla RGBA y máscara de agua. JSON incluye también los bloques.</p><p id="estado-guardado" class="guardado" role="status">El borrador se guarda en este navegador.</p></section>
-      <details><summary>Gestos y atajos</summary><p>Ratón: botón izquierdo para pintar; derecho para girar; botón central para desplazar. Rueda para acercar.</p><p>Lápiz: la presión regula la intensidad. En táctil, usa Mover cámara para girar con un dedo y zoom con dos. Mientras dibujas con el lápiz se ignoran los dedos.</p><p>Ctrl/⌘ Z: deshacer. Ctrl/⌘ Shift Z: rehacer. Escape: cancelar el trazo. La altura del campo de War se mantiene en cero, también al importar.</p></details>
+      <details><summary>Gestos y atajos</summary><p class="ayuda">1–8: pinceles · [ y ]: radio · F: encuadrar · Ctrl/⌘ Z: deshacer · Ctrl/⌘ Shift Z: rehacer · Escape: cancelar trazo. Shift invierte o borra agua.</p><p class="ayuda">Cámara: un dedo gira; dos dedos acercan y desplazan. Cambia a Cámara para navegar sin dibujar. El campo de War conserva su altura.</p></details>
     </aside>
+    <aside id="panel-archivo" class="archivo" aria-label="Guardar y abrir" hidden><p class="ceja">TU MAPA, REUTILIZABLE</p><div class="exportaciones"><button id="json" disabled>↓ Mapa JSON</button><button id="png" disabled>↓ Texturas PNG</button><button id="importar" disabled>↑ Abrir JSON</button><button id="nuevo" disabled>Nuevo mapa</button></div><input id="archivo" type="file" accept=".json,application/json" hidden><p class="ayuda">JSON conserva terreno, agua y bloques. PNG exporta altura16, mezcla y agua.</p><p id="estado-guardado" class="guardado" role="status">Borrador automático en este navegador.</p><a href="../../Prototypes/Rocket%20Launcher/">Volver al juego ↗</a></aside>
   </main>
   <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
-  <dialog id="nuevo-dialogo"><form method="dialog"><p class="ceja">EMPEZAR DE NUEVO</p><h2>¿Qué terreno preparamos?</h2><p>Exporta el mapa actual si quieres conservar una copia. Podrás deshacer este cambio durante la sesión.</p><div class="opciones-nuevo"><button value="relieve">Valle con relieve</button><button value="plano">Terreno plano</button><button value="cancelar">Cancelar</button></div></form></dialog>
-  <script src="../../shared/terreno/datos.js?v=1"></script>
-  <script src="../../shared/terreno/malla.js?v=1"></script>
-  <script src="../../shared/terreno/bloques.js?v=1"></script>
-  <script type="module" src="editor.js?v=1"></script>
+  <dialog id="nuevo-dialogo"><form method="dialog"><p class="ceja">EMPEZAR DE NUEVO</p><h2>¿Qué terreno preparamos?</h2><p>Exporta el mapa actual para conservar una copia. Puedes deshacer este cambio durante la sesión.</p><div class="opciones-nuevo"><button value="relieve">Valle con relieve</button><button value="plano">Terreno plano</button><button value="cancelar">Cancelar</button></div></form></dialog>
+  <script src="../../shared/terreno/datos.js?v=2"></script>
+  <script src="../../shared/terreno/malla.js?v=2"></script>
+  <script src="../../shared/terreno/bloques.js?v=2"></script>
+  <script type="module" src="editor.js?v=2"></script>
 </body>
 </html>

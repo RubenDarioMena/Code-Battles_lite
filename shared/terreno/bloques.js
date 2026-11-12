@@ -15,6 +15,7 @@
     for (let i = 0; i < indices.length; i += 3) {
       if (indices[i] === indices[i + 1] || indices[i] === indices[i + 2] || indices[i + 1] === indices[i + 2]) return false;
     }
+    if (bloque.coloresCaras && (bloque.coloresCaras.length !== indices.length / 3 || bloque.coloresCaras.some(c => !/^#[0-9a-f]{6}$/i.test(c)))) return false;
     return true;
   }
   function lista(mapa) {
@@ -32,6 +33,7 @@
     // La validación incluye los límites agregados y sucede antes de escribir en el mapa.
     terreno.validar({ ...mapa, bloques });
     mapa.bloques = bloques;
+    if (bloques.some(b => b.coloresCaras)) mapa.version = 3;
   }
   function primitiva(tipo) {
     const base = [-2, 0, -2, 2, 0, -2, 2, 0, 2, -2, 0, 2];
@@ -73,9 +75,18 @@
   }
   function geometria(THREE, bloque) {
     if (!valido(bloque)) throw new Error("El bloque contiene una geometría o transformación no válida.");
-    const resultado = new THREE.BufferGeometry();
+    let resultado = new THREE.BufferGeometry();
     resultado.setAttribute("position", new THREE.BufferAttribute(new Float32Array(bloque.vertices), 3));
     resultado.setIndex(new THREE.BufferAttribute(new Uint16Array(bloque.indices), 1));
+    if (bloque.coloresCaras) {
+      const indexada = resultado; resultado = indexada.toNonIndexed(); indexada.dispose();
+      const colores = new Float32Array(bloque.indices.length * 3);
+      bloque.coloresCaras.forEach((hex, cara) => {
+        const color = new THREE.Color(hex);
+        for (let i = 0; i < 3; i++) color.toArray(colores, cara * 9 + i * 3);
+      });
+      resultado.setAttribute("color", new THREE.BufferAttribute(colores, 3));
+    }
     resultado.computeVertexNormals(); resultado.computeBoundingBox(); resultado.computeBoundingSphere();
     return resultado;
   }
@@ -85,7 +96,7 @@
     if (elegidos.length < 2) throw new Error("Selecciona al menos dos bloques para unir.");
     const seleccion = elegidos.map(id => bloques.find(b => b.id === id));
     if (seleccion.some(b => !b || !valido(b))) throw new Error("La selección contiene un bloque ausente o no válido.");
-    const vertices = [], indices = [], punto = new THREE.Vector3();
+    const vertices = [], indices = [], coloresCaras = [], punto = new THREE.Vector3();
     for (const bloque of seleccion) {
       const desplazamiento = vertices.length / 3;
       const matriz = new THREE.Matrix4().compose(
@@ -98,10 +109,11 @@
         vertices.push(punto.x, punto.y, punto.z);
       }
       for (const indice of bloque.indices) indices.push(indice + desplazamiento);
+      coloresCaras.push(...(bloque.coloresCaras || new Array(bloque.indices.length / 3).fill(bloque.color)));
     }
     const combinado = {
       id: nuevoId(bloques), nombre: "Unión de bloques", color: seleccion[0].color,
-      vertices, indices, posicion: [0, 0, 0], rotacion: [0, 0, 0], escala: [1, 1, 1],
+      vertices, indices, coloresCaras, posicion: [0, 0, 0], rotacion: [0, 0, 0], escala: [1, 1, 1],
     };
     confirmar(mapa, [...bloques.filter(b => !elegidos.includes(b.id)), combinado]);
     return combinado.id;
@@ -127,7 +139,9 @@
       // El mismo orden también crea las paredes de una cavidad al extruir hacia dentro.
       indices.push(originales[i], originales[n], nuevos[n], originales[i], nuevos[n], nuevos[i]);
     }
-    if (!valido({ ...bloque, vertices, indices })) return false;
+    const coloresCaras = bloque.coloresCaras ? [...bloque.coloresCaras, ...new Array(6).fill(bloque.coloresCaras[indiceCara])] : undefined;
+    if (!valido({ ...bloque, vertices, indices, coloresCaras })) return false;
+    if (coloresCaras) bloque.coloresCaras = coloresCaras;
     bloque.vertices = vertices; bloque.indices = indices;
     return true;
   }

@@ -61,6 +61,7 @@ export async function probarTerreno(page, base = 'http://127.0.0.1:8771') {
   const antesCamara = await estado(); await page.locator('[data-modo="camara"]').click();
   p = await punto(); await page.mouse.move(p.x,p.y); await page.mouse.down(); await page.mouse.move(p.x+35,p.y+10,{steps:5}); await page.mouse.up();
   verificar(await estado() === antesCamara, 'Mover cámara no pinta');
+  await page.locator('#abrir-archivo').click();
   const downloadJSON = page.waitForEvent('download'); await page.locator('#json').click();
   verificar((await downloadJSON).suggestedFilename().endsWith('.json'), 'Exportación JSON descargable');
   const descargas = []; const registrar = d => descargas.push(d.suggestedFilename()); page.on('download', registrar);

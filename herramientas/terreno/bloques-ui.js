@@ -29,6 +29,11 @@ export function crearBloquesUI({ THREE, escena, camara, canvas, contenedor, obte
     </fieldset>
     <section class="bloques-inspector" aria-label="Propiedades del objeto" data-bloques-inspector hidden>
       <h3 data-bloques-titulo></h3><p class="bloques-ayuda" data-bloques-seleccion></p>
+      <fieldset><legend>Mover por eje</legend>
+        <label class="bloques-distancia">Paso (m)<input data-bloques-paso type="number" min="0.001" max="20" step="0.01" value="0.25"></label>
+        <div class="bloques-xyz">${['X','Y','Z'].map((e,i) => `<div><button data-mover-eje="${i}" data-signo="-1">−${e}</button><button data-mover-eje="${i}" data-signo="1">+${e}</button></div>`).join('')}</div>
+        <p class="bloques-ayuda">Objeto: ejes del mundo, toda la selección. Vértice: ejes locales, punto seleccionado.</p>
+      </fieldset>
       <div data-bloques-objeto>
         <div class="bloques-identidad"><label>Nombre<input data-bloques-nombre type="text" maxlength="80"></label><label>Color<input data-bloques-color type="color"></label></div>
         <fieldset><legend>Posición en el mundo (m)</legend><div class="bloques-xyz" data-bloques-posicion></div></fieldset>
@@ -150,6 +155,7 @@ export function crearBloquesUI({ THREE, escena, camara, canvas, contenedor, obte
     const b = bloqueActivo(), objeto = objetos.get(principal);
     if (!activo || !b || !objeto) return;
     objeto.mesh.updateMatrixWorld(true);
+    const ejes = new THREE.AxesHelper(5); ejes.position.fromArray(b.posicion); ayudas.add(ejes);
     if (modo === 'vertice') {
       const geometria = new THREE.SphereGeometry(.13, 7, 5);
       const material = new THREE.MeshBasicMaterial({ color: '#ffffff', depthTest: false, depthWrite: false });
@@ -189,7 +195,7 @@ export function crearBloquesUI({ THREE, escena, camara, canvas, contenedor, obte
     firma = nuevaFirma; liberar(grupo); objetos.clear(); ajustarPrincipal();
     for (const bloque of mapa.bloques) {
       const geometria = B.geometria(THREE, bloque);
-      const material = new THREE.MeshStandardMaterial({ color: bloque.color, flatShading: true, roughness: .86, metalness: 0, side: THREE.DoubleSide });
+      const material = new THREE.MeshStandardMaterial({ color: bloque.coloresCaras ? '#ffffff' : bloque.color, vertexColors: !!bloque.coloresCaras, flatShading: true, roughness: .86, metalness: 0, side: THREE.DoubleSide });
       const mesh = new THREE.Mesh(geometria, material);
       mesh.name = bloque.nombre; mesh.userData.bloqueId = bloque.id;
       mesh.position.fromArray(bloque.posicion); mesh.rotation.set(...bloque.rotacion); mesh.scale.fromArray(bloque.escala);
@@ -216,6 +222,7 @@ export function crearBloquesUI({ THREE, escena, camara, canvas, contenedor, obte
     cambiar(mapa => {
       const b = mapa.bloques.find(n => n.id === id); if (!b) return false;
       const antes = JSON.stringify(b); Object.assign(b, { nombre, color, posicion, rotacion, escala });
+      if (color !== original.color) delete b.coloresCaras;
       return JSON.stringify(b) !== antes;
     });
   }
@@ -231,7 +238,20 @@ export function crearBloquesUI({ THREE, escena, camara, canvas, contenedor, obte
   function alClick(e) {
     const boton = e.target.closest('button'); if (!boton || !contenedor.contains(boton)) return;
     try {
-      if (boton.dataset.bloqueCrear) {
+      if (boton.hasAttribute('data-mover-eje')) {
+        const eje = Number(boton.dataset.moverEje), delta = Number(boton.dataset.signo) * leerNumero($('[data-bloques-paso]'), 'Paso');
+        if (modo === 'cara') { avisar?.('Elige Objeto o Vértice para mover por eje.'); return; }
+        cambiar(m => {
+          if (modo === 'vertice') {
+            if (vertice === null) return false;
+            const b = m.bloques.find(n => n.id === principal); b.vertices[vertice * 3 + eje] += delta;
+          } else {
+            if (!seleccion.size) return false;
+            for (const b of m.bloques) if (seleccion.has(b.id)) b.posicion[eje] += delta;
+          }
+          return true;
+        });
+      } else if (boton.dataset.bloqueCrear) {
         const punto = estado?.()?.punto;
         if (punto && Number.isFinite(punto.x) && Number.isFinite(punto.z)) ultimoLugar = { x: punto.x, z: punto.z };
         cambiar(m => B.crear(m, boton.dataset.bloqueCrear, ultimoLugar).id, id => { seleccion.clear(); seleccion.add(id); principal = id; vertice = cara = null; });
@@ -301,5 +321,9 @@ export function crearBloquesUI({ THREE, escena, camara, canvas, contenedor, obte
   }
   contenedor.addEventListener('click', alClick); contenedor.addEventListener('change', alCambiar);
   actualizar(); contenedor.hidden = true;
-  return { actualizar, activar, pointerDown, dispose };
+  function intersectar(rayo) {
+    grupo.updateMatrixWorld(true);
+    return rayo.intersectObjects([...objetos.values()].map(o => o.mesh), false)[0] || null;
+  }
+  return { actualizar, activar, pointerDown, dispose, intersectar };
 }

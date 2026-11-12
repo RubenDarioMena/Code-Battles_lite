@@ -14,7 +14,7 @@
   const finito = n => typeof n === "number" && Number.isFinite(n);
   // El margen también mantiene planos los triángulos que llegan al campo jugable.
   const protegida = (x, z) => x >= -1 && x <= 33 && z >= -1 && z <= 19;
-  const coordenadas = i => ({ x: X0 + i % COLUMNAS * PASO, z: Z0 + Math.floor(i / COLUMNAS) * PASO });
+  const coordenadas = (i, m) => ({ x: m.origen.x + i % m.columnas * m.paso, z: m.origen.z + Math.floor(i / m.columnas) * m.paso });
   function nombreValido(nombre) {
     if (typeof nombre !== "string" || !nombre.trim() || nombre.trim().length > 80 || /[\u0000-\u001f\u007f]/.test(nombre)) {
       throw new Error("El nombre del mapa debe tener entre 1 y 80 caracteres, sin saltos de línea.");
@@ -57,7 +57,9 @@
           throw new Error("Cada triángulo debe referirse a tres vértices diferentes del bloque.");
         }
       }
+      if (bloque.coloresCaras !== undefined && (!Array.isArray(bloque.coloresCaras) || bloque.coloresCaras.length !== indices.length / 3 || Array.from(bloque.coloresCaras).some(c => typeof c !== "string" || !/^#[0-9a-f]{6}$/i.test(c)))) throw new Error("Cada cara pintada necesita un color #RRGGBB.");
       return {
+        ...(bloque.coloresCaras ? { coloresCaras: bloque.coloresCaras.slice() } : {}),
         id, nombre, color: bloque.color, vertices: vertices.slice(), indices: indices.slice(),
         posicion: vectorBloque(bloque.posicion, -256, 256, "La posición del bloque"),
         rotacion: vectorBloque(bloque.rotacion, -2 * Math.PI, 2 * Math.PI, "La rotación del bloque"),
@@ -73,7 +75,7 @@
       agua: { nivel: .35, mascara: new Array(TOTAL).fill(0) }, bloques: [],
     };
     for (let i = 0; i < TOTAL; i++) {
-      const { x, z } = coordenadas(i);
+      const { x, z } = coordenadas(i, mapa);
       // Conos suaves y repetibles; no consumen el RNG de una partida.
       const colina = (cx, cz, radio, alto) => alto * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * radio ** 2));
       const distancia = Math.max(-1 - x, x - 33, -1 - z, z - 19, 0);
@@ -89,12 +91,17 @@
     return mapa;
   }
   function validar(dato) {
-    if (!dato || typeof dato !== "object" || Array.isArray(dato) || dato.formato !== "cbl-terreno" || ![1, 2].includes(dato.version)) {
-      throw new Error("El archivo no es un terreno de Code Battle Lite versión 1 o 2.");
+    if (!dato || typeof dato !== "object" || Array.isArray(dato) || dato.formato !== "cbl-terreno" || ![1, 2, 3].includes(dato.version)) {
+      throw new Error("El archivo no es un terreno de Code Battle Lite versión 1, 2 o 3.");
     }
-    if (dato.columnas !== COLUMNAS || dato.filas !== FILAS || dato.paso !== PASO || !dato.origen || dato.origen.x !== X0 || dato.origen.z !== Z0) {
+    if (dato.version !== 3 && (dato.columnas !== 129 || dato.filas !== 97 || dato.paso !== .5 || !dato.origen || dato.origen.x !== -16 || dato.origen.z !== -18)) {
       throw new Error("La cuadrícula debe ser de 129 × 97 muestras, con paso de 0,5 m y origen (−16, −18).");
     }
+    const { columnas: COLUMNAS, filas: FILAS, paso: PASO, origen } = dato;
+    if (!Number.isInteger(COLUMNAS) || !Number.isInteger(FILAS) || COLUMNAS < 2 || FILAS < 2 || COLUMNAS > 257 || FILAS > 257 || ![.25, .5, 1].includes(PASO) || !origen || !finito(origen.x) || !finito(origen.z) || Math.abs(origen.x) > 128 || Math.abs(origen.z) > 128 || origen.x > -1 || origen.z > -1 || origen.x + (COLUMNAS - 1) * PASO < 33 || origen.z + (FILAS - 1) * PASO < 19) {
+      throw new Error("La cuadrícula debe contener el campo protegido, usar paso 0,25 / 0,5 / 1 m y hasta 257 × 257 muestras.");
+    }
+    const TOTAL = COLUMNAS * FILAS, X0 = origen.x, Z0 = origen.z;
     if (!Array.isArray(dato.alturas) || dato.alturas.length !== TOTAL || !Array.isArray(dato.pesos) || dato.pesos.length !== TOTAL * 4) {
       throw new Error("El mapa tiene una cantidad de alturas o pesos incorrecta.");
     }
@@ -113,7 +120,7 @@
     for (let i = 0; i < TOTAL; i++) {
       const h = dato.alturas[i];
       if (!finito(h) || h < MIN_ALTURA || h > MAX_ALTURA) throw new Error("Las alturas deben ser números entre −2 y 20 m.");
-      const { x, z } = coordenadas(i);
+      const { x, z } = coordenadas(i, dato);
       if (protegida(x, z) && h !== 0) throw new Error("La zona jugable y su margen deben conservar altura cero.");
       let suma = 0;
       for (let k = 0; k < 4; k++) {
@@ -124,7 +131,7 @@
       if (Math.abs(suma - 1) > 1e-5) throw new Error("Los cuatro pesos de cada muestra deben sumar 1.");
     }
     return {
-      formato: "cbl-terreno", version: 2, nombre,
+      formato: "cbl-terreno", version: dato.version === 3 ? 3 : 2, nombre,
       columnas: COLUMNAS, filas: FILAS, paso: PASO, origen: { x: X0, z: Z0 },
       alturas: dato.alturas.slice(), pesos: dato.pesos.slice(),
       agua, bloques,
@@ -132,6 +139,7 @@
   }
   function serializar(mapa) { return JSON.stringify(validar(mapa)); }
   function alturaEn(mapa, x, z) {
+    const { columnas: COLUMNAS, filas: FILAS, paso: PASO, origen: { x: X0, z: Z0 } } = mapa;
     if (!finito(x) || !finito(z)) return 0;
     const u = limitar((x - X0) / PASO, 0, COLUMNAS - 1);
     const v = limitar((z - Z0) / PASO, 0, FILAS - 1);
@@ -139,22 +147,24 @@
     const a = u - c, b = v - f, n = f * COLUMNAS + c, h = mapa.alturas;
     return h[n] * (1 - a) * (1 - b) + h[n + 1] * a * (1 - b) + h[n + COLUMNAS] * (1 - a) * b + h[n + COLUMNAS + 1] * a * b;
   }
-  function aplicar(mapa, { x, z, radio = 3, fuerza = .35, presion = 1, modo = "subir", material = 0, altura = 0 } = {}) {
-    if (![x, z, radio, fuerza, presion].every(finito) || radio <= 0 || radio > 64 || fuerza <= 0 || presion <= 0) return false;
-    if (!["subir", "bajar", "suavizar", "aplanar", "pintar", "agua", "secar"].includes(modo)) return false;
+  function aplicar(mapa, { x, z, radio = 3, fuerza = .35, presion = 1, modo = "subir", material = 0, altura = 0, dureza = 0, forma = "circulo", invertir = false } = {}) {
+    const { columnas: COLUMNAS, filas: FILAS, paso: PASO, origen: { x: X0, z: Z0 } } = mapa;
+    if (![x, z, radio, fuerza, presion, dureza].every(finito) || radio <= 0 || radio > 64 || fuerza <= 0 || presion <= 0) return false;
+    if (!["subir", "bajar", "inflar", "detalle", "suavizar", "aplanar", "pintar", "agua", "secar"].includes(modo)) return false;
     if (modo === "pintar" && (!Number.isInteger(material) || material < 0 || material > 3)) return false;
     if (modo === "aplanar" && !finito(altura)) return false;
     const amplitud = Math.min(4, fuerza) * limitar(presion, 0, 1);
     const c0 = Math.max(0, Math.ceil((x - radio - X0) / PASO)), c1 = Math.min(COLUMNAS - 1, Math.floor((x + radio - X0) / PASO));
     const f0 = Math.max(0, Math.ceil((z - radio - Z0) / PASO)), f1 = Math.min(FILAS - 1, Math.floor((z + radio - Z0) / PASO));
     // Un solo estado de lectura evita que el orden de recorrido incline el suavizado.
-    const anteriores = modo === "suavizar" ? mapa.alturas.slice() : mapa.alturas;
+    const anteriores = ["suavizar", "inflar"].includes(modo) ? mapa.alturas.slice() : mapa.alturas;
     let cambio = false;
     for (let f = f0; f <= f1; f++) for (let c = c0; c <= c1; c++) {
       const px = X0 + c * PASO, pz = Z0 + f * PASO;
-      const t = 1 - Math.hypot(px - x, pz - z) / radio;
+      const distancia = forma === "cuadrado" ? Math.max(Math.abs(px - x), Math.abs(pz - z)) : Math.hypot(px - x, pz - z);
+      const t = limitar((1 - distancia / radio) / Math.max(.001, 1 - limitar(dureza, 0, .99)), 0, 1);
       if (t <= 0) continue;
-      const mezcla = amplitud * t * t * (3 - 2 * t), i = f * COLUMNAS + c;
+      const mezcla = amplitud * (modo === "detalle" ? t ** 8 : t * t * (3 - 2 * t)), i = f * COLUMNAS + c;
       if (modo === "agua" || modo === "secar") {
         const previo = mapa.agua.mascara[i], objetivo = modo === "agua" ? 1 : 0;
         const nuevo = previo + (objetivo - previo) * Math.min(1, mezcla);
@@ -177,7 +187,11 @@
       const previo = anteriores[i];
       let nuevo;
       if (modo === "subir" || modo === "bajar") nuevo = previo + (modo === "subir" ? mezcla : -mezcla);
-      else {
+      else if (modo === "detalle" || modo === "inflar") {
+        const dx = (anteriores[f * COLUMNAS + Math.min(COLUMNAS - 1, c + 1)] - anteriores[f * COLUMNAS + Math.max(0, c - 1)]) / (2 * PASO);
+        const dz = (anteriores[Math.min(FILAS - 1, f + 1) * COLUMNAS + c] - anteriores[Math.max(0, f - 1) * COLUMNAS + c]) / (2 * PASO);
+        nuevo = previo + (invertir ? -1 : 1) * mezcla / (modo === "inflar" ? Math.hypot(1, dx, dz) : 1);
+      } else {
         let objetivo = altura;
         if (modo === "suavizar") {
           let suma = 0, muestras = 0;
@@ -194,8 +208,37 @@
     }
     return cambio;
   }
+  // Recorta o amplía en coordenadas de mundo; las zonas nuevas nacen planas y secas.
+  function redimensionar(mapa, ancho, fondo, paso = mapa.paso) {
+    if (![ancho, fondo, paso].every(finito) || ancho < 36 || fondo < 28 || ancho > 128 || fondo > 128 || ![.25, .5, 1].includes(paso) || !Number.isInteger(ancho / paso) || !Number.isInteger(fondo / paso)) throw new Error("Usa ancho 36–128 m, fondo 28–128 m y dimensiones múltiplos del paso.");
+    const columnas = ancho / paso + 1, filas = fondo / paso + 1;
+    if (columnas > 257 || filas > 257) throw new Error("Demasiadas muestras: aumenta el paso o reduce las dimensiones (máximo 257 por eje).");
+    const nuevo = { ...mapa, version: 3, columnas, filas, paso, origen: { x: 16 - ancho / 2, z: 6 - fondo / 2 }, alturas: [], pesos: [], agua: { nivel: mapa.agua.nivel, mascara: [] } };
+    for (let i = 0; i < columnas * filas; i++) {
+      const { x, z } = coordenadas(i, nuevo), u = (x - mapa.origen.x) / mapa.paso, v = (z - mapa.origen.z) / mapa.paso;
+      const dentro = u >= 0 && v >= 0 && u <= mapa.columnas - 1 && v <= mapa.filas - 1;
+      const c = Math.min(mapa.columnas - 2, Math.floor(u)), f = Math.min(mapa.filas - 2, Math.floor(v)), a = u - c, b = v - f;
+      const ids = [f * mapa.columnas + c, f * mapa.columnas + c + 1, (f + 1) * mapa.columnas + c, (f + 1) * mapa.columnas + c + 1];
+      const pesos = [(1-a)*(1-b), a*(1-b), (1-a)*b, a*b];
+      const muestra = (datos, canales = 1, canal = 0) => ids.reduce((n, id, j) => n + datos[id * canales + canal] * pesos[j], 0);
+      nuevo.alturas.push(dentro && !protegida(x, z) ? alturaEn(mapa, x, z) : 0);
+      for (let k = 0; k < 4; k++) nuevo.pesos.push(dentro ? muestra(mapa.pesos, 4, k) : k === 0 ? 1 : 0);
+      nuevo.agua.mascara.push(dentro ? muestra(mapa.agua.mascara) : 0);
+    }
+    return validar(nuevo);
+  }
+  function fijarAltura(mapa, x, y, z) {
+    if (![x, y, z].every(finito) || y < MIN_ALTURA || y > MAX_ALTURA) throw new Error("Introduce coordenadas válidas y una altura entre −2 y 20 m.");
+    const c = Math.round((x - mapa.origen.x) / mapa.paso), f = Math.round((z - mapa.origen.z) / mapa.paso);
+    if (c < 0 || c >= mapa.columnas || f < 0 || f >= mapa.filas) throw new Error("El punto está fuera del mapa.");
+    const p = coordenadas(f * mapa.columnas + c, mapa);
+    if (protegida(p.x, p.z)) throw new Error("La altura del campo jugable está protegida.");
+    const i = f * mapa.columnas + c;
+    if (mapa.alturas[i] === y) return false;
+    mapa.alturas[i] = y; return true;
+  }
   window.CMGTerreno = {
-    PALETA, AGUA, crear, validar, serializar, aplicar, alturaEn,
+    PALETA, AGUA, crear, validar, serializar, aplicar, alturaEn, redimensionar, fijarAltura,
     CLAVE_BORRADOR: "cmg-terreno:borrador-v1", CLAVE_JUEGO: "cmg-terreno:war-v1",
   };
 })();

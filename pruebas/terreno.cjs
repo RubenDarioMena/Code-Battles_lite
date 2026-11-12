@@ -65,7 +65,7 @@ prueba('JSON conserva el mapa y la validación copia sus buffers', () => {
 
 for (const [nombre, modificar] of [
   ['formato desconocido', m => { m.formato = 'otro'; }],
-  ['versión desconocida', m => { m.version = 3; }],
+  ['versión desconocida', m => { m.version = 99; }],
   ['dimensiones excesivas', m => { m.columnas = 1e8; }],
   ['número de filas diferente', m => { m.filas = 96; }],
   ['escala diferente', m => { m.paso = 1; }],

@@ -90,6 +90,7 @@ export async function probarModelado(page, base = 'http://127.0.0.1:8771') {
     verificar((await bloques()).length === 1, 'Eliminar quita solo los objetos elegidos.');
     await page.locator('#deshacer').click(); verificar(await estado() === despuesUnir, 'Eliminar se puede deshacer sin perder la geometría.');
 
+    await page.locator('#abrir-archivo').click();
     const descargaPendiente = page.waitForEvent('download'); await page.locator('#json').click();
     const descarga = await descargaPendiente, stream = await descarga.createReadStream(), partes = [];
     for await (const parte of stream) partes.push(parte);

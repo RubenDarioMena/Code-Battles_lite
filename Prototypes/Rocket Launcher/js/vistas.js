@@ -172,7 +172,7 @@
       color: 0xffffff, vertexColors: true, transparent: true, opacity: .72, depthWrite: false, side: THREE.DoubleSide,
     }) : null;
     const materialesBloques = new Map((terrenoEditor?.bloques || []).map(b => [b.id,
-      new THREE.MeshPhongMaterial({ color: b.color, flatShading: true, shininess: 8, side: THREE.DoubleSide }),
+      new THREE.MeshPhongMaterial({ color: b.coloresCaras ? 0xffffff : b.color, vertexColors: !!b.coloresCaras, flatShading: true, shininess: 8, side: THREE.DoubleSide }),
     ]));
     const MONTES = { x0: -40, x1: estado.cols + 40, z0: -30, z1: -2 };
     const PICOS = [[-30, -17, 12, 13], [-14, -13, 10, 11], [0, -19, 13, 15], [12, -12, 8, 9], [22, -20, 13, 17], [33, -13, 9, 10], [45, -18, 12, 14], [58, -14, 10, 11], [70, -20, 12, 13]];

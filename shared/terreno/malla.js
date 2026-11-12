@@ -32,7 +32,7 @@
     const geometria = new THREE.BufferGeometry(), total = mapa.columnas * mapa.filas;
     geometria.setAttribute("position", new THREE.BufferAttribute(new Float32Array(total * 3), 3));
     geometria.setAttribute("color", new THREE.BufferAttribute(new Float32Array(total * 3), 3));
-    const indices = new Uint16Array((mapa.columnas - 1) * (mapa.filas - 1) * 6);
+    const indices = new (mapa.columnas * mapa.filas > 65535 ? Uint32Array : Uint16Array)((mapa.columnas - 1) * (mapa.filas - 1) * 6);
     let n = 0;
     for (let f = 0; f < mapa.filas - 1; f++) for (let c = 0; c < mapa.columnas - 1; c++) {
       const a = f * mapa.columnas + c, b = a + 1, d = a + mapa.columnas, e = d + 1;
@@ -74,7 +74,7 @@
     const normales = new Float32Array(total * 3);
     for (let i = 0; i < total; i++) normales[i * 3 + 1] = 1;
     geometria.setAttribute("normal", new THREE.BufferAttribute(normales, 3));
-    geometria.setIndex(new THREE.BufferAttribute(new Uint16Array((mapa.columnas - 1) * (mapa.filas - 1) * 6), 1));
+    geometria.setIndex(new THREE.BufferAttribute(new (mapa.columnas * mapa.filas > 65535 ? Uint32Array : Uint16Array)((mapa.columnas - 1) * (mapa.filas - 1) * 6), 1));
     return actualizarGeometriaAgua(THREE, geometria, mapa);
   }
   Object.assign(terreno, { crearGeometria, actualizarGeometria, crearGeometriaAgua, actualizarGeometriaAgua });

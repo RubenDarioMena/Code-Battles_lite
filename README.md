@@ -28,9 +28,9 @@ Sirve la entrada y ambos juegos. Mantén como raíz la carpeta completa: los jue
 
 La aplicación sirve Acorn 8.11.3, Three.js r128 y GLTFLoader r128 desde `shared/vendor/`, con licencias y hashes fijados. Usa fuentes instaladas en el dispositivo. Los juegos funcionan desde el servidor local sin CDN ni conexión a Internet. La telemetría remota opcional necesita red para enviar datos.
 
-## Editor de terreno · fase A
+## Estudio de terreno
 
-[Abrir el editor de terreno](http://localhost:8770/herramientas/terreno/) para esculpir el paisaje de War, pintar cuatro materiales y agua, y preparar el blocking con primitivas. Usa Three.js r180 local, prefiere WebGPU y dispone de respaldo WebGL 2; el juego mantiene su renderizador actual. No requiere instalación ni compilación.
+[Abrir el editor de terreno](http://localhost:8770/herramientas/terreno/) para esculpir el paisaje de War en un visor de pantalla completa, ampliar/recortar sus bordes, pintar materiales a cualquier altura y preparar bloques con controles XYZ. Incluye inspector plegable para móvil, pinceles de inflar y detalle, y resolución de hasta 25 cm. Usa Three.js r180 local, prefiere WebGPU y dispone de respaldo WebGL 2; el juego mantiene su renderizador actual. No requiere instalación ni compilación.
 
 Incluye ratón/lápiz con presión, cámara táctil, edición de vértices, extrusión de triángulos, unión de mallas, deshacer/rehacer, borrador local, abrir/guardar JSON y exportar altura PNG de 16 bits + mezcla RGBA + máscara de agua. «Probar en War» abre una copia visual del escenario en el juego. El campo jugable conserva altura cero; las reglas y los programas se mantienen. [Uso, formato y límites](docs/EDITOR-TERRENO.md). El S Pen necesita comprobación en dispositivo físico.
 
