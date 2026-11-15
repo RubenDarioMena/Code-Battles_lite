@@ -43,8 +43,8 @@ export function crearInstrumentador(contexto, mundo, serie = 'war') {
   contexto.acorn.parse(bloque, { ecmaVersion: 2022 });
   contexto.__mundoPartida = mundo;
   return vm.runInContext(`(() => {
-    const ES_FACTORY = ${serie === 'factory'}, ES_CAMPAIGN = false;
-    const nombresVar = () => (ES_FACTORY ? __mundoPartida.maquinas : [...__mundoPartida.programables, ...__mundoPartida.sensores]).map(e => e.id.replace(/-/g, '_'));
+    const ES_FACTORY = ${serie === 'factory'}, ES_CAMPAIGN = ${serie === 'campaign'};
+    const nombresVar = () => (ES_CAMPAIGN ? __mundoPartida.unidades : ES_FACTORY ? __mundoPartida.maquinas : [...__mundoPartida.programables, ...__mundoPartida.sensores]).map(e => e.id.replace(/-/g, '_'));
     ${bloque}
     const proveedorEditor = window.CMGProveedor.crear({ serie: ${JSON.stringify(serie)},
       sensores: () => __mundoPartida.sensores.map(e => e.id.replace(/-/g, '_')) });

@@ -60,7 +60,9 @@ const inventario = m => {
   return n;
 };
 
-(async () => {
+/** Ejecuta las comprobaciones existentes y devuelve hechos de su partida de referencia.
+ * @returns {Promise<{hito: number, completado: boolean, hitosT: number[], porBanda: number, ingresado: number}>} */
+module.exports = async function comprobarReglas() {
   // ---------- Estado inicial ----------
   {
     const { m, snap } = planta();
@@ -343,4 +345,7 @@ const inventario = m => {
     console.log('OK: pedidos (coste, cola, fondos) y bahía ocupada');
   }
   console.log('Campaign · reglas: todo correcto');
-})().catch(e => { console.error(e); process.exit(1); });
+  return { hito: ref.m.hito, completado: ref.m.completado, hitosT: [...ref.m.hitosT],
+    porBanda: ref.m.arsenal.porBanda, ingresado: ref.m.ingresado };
+};
+if (require.main === module) module.exports().catch(e => { console.error(e); process.exitCode = 1; });

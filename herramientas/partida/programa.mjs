@@ -23,7 +23,7 @@ export function crearPrograma(fuente, id, recibir, maxOrdenes) {
       salidas.push(structuredClone(m));
       // Permite salir de un bucle emisor antes de vaciar la cola. La orden 4001
       // queda en ella y el anfitrión produce exactamente el diagnóstico del juego.
-      if (['lee', 'cmd', 'consola'].includes(m.type) && ++mensajes > maxOrdenes)
+      if (['lee', 'cmd', 'consola', 'modo', 'lectura'].includes(m.type) && ++mensajes > maxOrdenes)
         throw new Error('Ceder al anfitrión para comprobar MAX_ORDENES');
       if (m.type === 'lecturaFactory' && ++sensores > 500)
         throw new Error('Ceder al anfitrión para comprobar los 500 sensores');

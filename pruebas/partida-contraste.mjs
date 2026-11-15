@@ -1,12 +1,16 @@
-// War y Factory, fase 0 pasos 3a/3b. Servidor dedicado YA activo en 127.0.0.1:8771.
+// War, Factory y Campaign, fase 0 pasos 3a/3b/3c. Servidor dedicado YA activo en 127.0.0.1:8771.
 import { chromium } from 'playwright';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { diagnosticoPartida } from './partida-diagnostico.mjs';
 import { canonico, registro } from '../herramientas/partida/huella.mjs';
 import { ejecutarWar, resultadoWar } from '../herramientas/partida/anfitrion-war.mjs';
 
 import { ejecutarFactory, resultadoFactory } from '../herramientas/partida/anfitrion-factory.mjs';
 import { casosFactory, opcionesFactory, exclusionFactory } from './partida-factory-casos.mjs';
+
+import { probarCampaign } from './partida-campaign-contraste.mjs';
+import { resultadoCampaign } from '../herramientas/partida/anfitrion-campaign.mjs';
 
 const origen = 'http://127.0.0.1:8771';
 
@@ -19,23 +23,26 @@ export async function instalarGancho(page) {
     const registro = ${registro.toString()};
     const resultadoWar = ${resultadoWar.toString()};
     const resultadoFactory = ${resultadoFactory.toString()};
+    const resultadoCampaign = ${resultadoCampaign.toString()};
     const captura = window.__partidaContraste = { registros: [], resultado: null, conectado: null, mundo: null };
-    for (const serie of ['WAR', 'FACTORY']) Object.defineProperty(window, serie, { configurable: true,
+    for (const serie of ['WAR', 'FACTORY', 'CAMPAIGN']) Object.defineProperty(window, serie, { configurable: true,
       get() { return this['__' + serie + 'Contraste']; },
       set(valor) {
         const conectar = valor.conectar;
         valor.conectar = function(mundo, hooks) {
-          const terminar = hooks.terminar;
-          const conectado = conectar.call(this, mundo, { ...hooks, terminar(...args) {
+          const terminar = hooks.terminar, hito = hooks.hito;
+          const conectado = conectar.call(this, mundo, { ...hooks, hito(info) { captura.corte = info; hito?.(info); }, terminar(...args) {
             captura.resultado = serie === 'FACTORY'
               ? resultadoFactory(mundo, captura.intento, ...args) : resultadoWar(mundo, ...args);
             return terminar(...args);
           } });
           captura.conectado = conectado; captura.mundo = mundo; captura.serie = serie;
-          captura.instantanea = serie === 'FACTORY'
+          captura.instantanea = serie === 'CAMPAIGN'
+            ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: conectado.instantanea() })
+            : serie === 'FACTORY'
             ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: valor.instantanea(mundo) })
             : () => conectado.instantanea();
-          captura.registros = []; captura.resultado = null;
+          captura.registros = []; captura.resultado = null; captura.corte = null;
           return conectado;
         };
         this['__' + serie + 'Contraste'] = valor;
@@ -50,11 +57,19 @@ export async function instalarGancho(page) {
           return avanzar.call(this, acum, mundo, { ...opciones, paso(dt) {
             paso(dt);
             captura.registros.push(registro(captura.registros.length + 1, captura.instantanea()));
+            // Solo QA: bloquea pasos y mensajes posteriores al primer hito. El juego
+            // pausa en cicloCampaign, después de vaciar el acumulador del fotograma.
+            if (captura.serie === 'CAMPAIGN' && captura.corte) mundo.activo = false;
           } });
         };
         this.__nucleoContraste = valor;
       }
     });
+    captura.resultadoCampaign = () => resultadoCampaign(captura.mundo, 'detenido', 'detenido', null);
+    captura.digest = async registros => {
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(registros.join('')));
+      return [...new Uint8Array(digest)].map(x => x.toString(16).padStart(2, '0')).join('');
+    };
     captura.final = async () => {
       // errorPrograma llama a terminar directamente; esos finales se observan
       // mediante la telemetría real, sin redondear el t guardado en el mundo.
@@ -76,6 +91,7 @@ export async function instalarGancho(page) {
  * @param {import('playwright').Browser} browser
  * @param {any} caso */
 export async function probarCaso(browser, caso) {
+  if (caso.reglas === 'campaign') return probarCampaign(browser, caso, instalarGancho);
   const registros = [];
   const factory = caso.reglas === 'factory';
   const sinPantalla = (factory ? ejecutarFactory : ejecutarWar)({ ...caso, alPaso: (n, snap) => registros.push(registro(n, snap)) });
@@ -126,10 +142,9 @@ export async function probarCaso(browser, caso) {
       const registrosJuego = await page.evaluate(() => window.__partidaContraste.registros);
       let indice = registrosJuego.findIndex((r, i) => r !== registros[i]);
       if (indice < 0 && registrosJuego.length !== registros.length) indice = Math.min(registrosJuego.length, registros.length);
-      console.error('Diagnóstico:', JSON.stringify({ caso, primerPasoDistinto: indice >= 0 ? indice + 1 : null,
-        pasos: { juego: juego.pasos, sinPantalla: sinPantalla.metricas.pasos },
-        resultado: { juego: juego.resultado, sinPantalla: sinPantalla.resultado }, errores }));
-      if (indice >= 0) console.error('Juego:', registrosJuego[indice], 'Sin pantalla:', registros[indice]);
+      for (const linea of diagnosticoPartida({ juego, sinPantalla, errores,
+        primerPasoDistinto: indice >= 0 ? indice + 1 : null,
+        registroJuego: registrosJuego[indice], registroSinPantalla: registros[indice] })) console.error(linea);
     }
     return { ok, juego, sinPantalla };
   } finally { await page.close(); }
@@ -137,15 +152,17 @@ export async function probarCaso(browser, caso) {
 
 async function principal() {
   const { values } = parseArgs({ options: { reglas: { type: 'string', default: 'todas' } } });
-  if (!['war', 'factory', 'todas'].includes(values.reglas)) throw new Error('--reglas war|factory|todas');
+  if (!['war', 'factory', 'campaign', 'todas'].includes(values.reglas)) throw new Error('--reglas war|factory|campaign|todas');
   const casos = [];
-  if (values.reglas !== 'factory') for (let reto = 1; reto <= 5; reto++) for (const semilla of [1, 7])
+  if (['war', 'todas'].includes(values.reglas)) for (let reto = 1; reto <= 5; reto++) for (const semilla of [1, 7])
     casos.push({ nombre: `War ${reto}/${semilla}`, reglas: 'war', reto, semilla });
-  if (values.reglas !== 'war') for (const c of casosFactory()) {
+  if (['factory', 'todas'].includes(values.reglas)) for (const c of casosFactory()) {
     const motivo = exclusionFactory(c);
     if (motivo) console.log(`Factory ${c.id} · EXCLUIDO: ${motivo}`);
     else casos.push({ nombre: `Factory ${c.id}`, ...opcionesFactory(c) });
   }
+  if (['campaign', 'todas'].includes(values.reglas)) for (const lenguaje of ['js', 'python'])
+    casos.push({ nombre: `Campaign ${lenguaje}`, reglas: 'campaign', lenguaje });
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   let diferencias = 0;
   try {

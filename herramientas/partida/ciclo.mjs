@@ -7,23 +7,23 @@ import { crearHuella } from './huella.mjs';
 
 /** Ciclo común de carga, revisión, mensajes, Workers virtuales y paso fijo.
  * @param {any} opciones */
-export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escenario, programas, maxPasos = 10000, alPaso, capturarResultado, conectarReglas }) {
-  const factory = reglas === 'factory';
+export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escenario, programas, maxPasos = 10000, alPaso, capturarResultado, conectarReglas, sesion }) {
+  const factory = reglas === 'factory', campaign = reglas === 'campaign';
   if (factory) {
     if (!Number.isSafeInteger(intento) || intento < 1) throw new Error('--intento debe ser un entero seguro positivo.');
     if (semilla != null && semilla !== intento) throw new Error('--semilla y --intento deben coincidir en Factory.');
     semilla = intento;
   }
-  if (!Number.isInteger(reto) || reto < 1 || reto > (factory ? 7 : 5)) throw new Error(`--reto debe estar entre 1 y ${factory ? 7 : 5}.`);
-  if (!Number.isSafeInteger(semilla)) throw new Error('--semilla debe ser un entero seguro.');
+  if (!campaign && (!Number.isInteger(reto) || reto < 1 || reto > (factory ? 7 : 5))) throw new Error(`--reto debe estar entre 1 y ${factory ? 7 : 5}.`);
+  if (!campaign && !Number.isSafeInteger(semilla)) throw new Error('--semilla debe ser un entero seguro.');
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   const inicio = performance.now();
-  const { contexto: C, fuenteWorker } = cargar();
+  const { contexto: C, fuenteWorker } = sesion ?? cargar();
   const { WAR, WAR_RETOS, RUNTIME, NUCLEO } = C;
-  const def = factory ? (reto === 7 ? C.FACTORY_RETOS.normalizar(escenario) : C.FACTORY_RETOS.RETOS[reto - 1])
+  const def = campaign ? C.CAMPAIGN_NIVEL.NIVEL : factory ? (reto === 7 ? C.FACTORY_RETOS.normalizar(escenario) : C.FACTORY_RETOS.RETOS[reto - 1])
     : WAR_RETOS.normalizar(WAR_RETOS.RETOS[reto - 1]);
   if (escenario && (!factory || reto !== 7)) throw new Error('Solo Factory --reto 7 admite escenario propio.');
-  const mundo = (factory ? C.FACTORY : WAR).crear(def, semilla);
+  const mundo = sesion?.mundo ?? (factory ? C.FACTORY : WAR).crear(def, semilla);
   const lenguaje = crearInstrumentador(C, mundo, reglas);
   const huella = crearHuella();
   const mensajes = {};
@@ -37,12 +37,13 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   const terminar = (fin, motivo, texto, linea = null, id = null) => {
     if (mundo.fin) return;
     resultado = capturarResultado(mundo, fin, motivo, texto, linea, id);
-    mundo.fin = fin; mundo.activo = false;
+    if (!campaign) mundo.fin = fin;
+    mundo.activo = false;
     if (factory) { mundo.robot.tarea = null; mundo.revelado = true; }
     for (const p of ejec.progs.values()) p.worker.terminate();
   };
   let extension;
-  const combate = factory ? (extension = conectarReglas(C, mundo, ejec, terminar)).reglas : WAR.conectar(mundo, {
+  const combate = (factory || campaign) ? (extension = conectarReglas(C, mundo, ejec, terminar)).reglas : WAR.conectar(mundo, {
     registrar, terminar,
     // Ambos hooks son exclusivamente presentación; no escriben en las reglas.
     avisoSistema() {}, globo() {},
@@ -57,7 +58,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
     if (!mundo.activo || ejec.progs.get(p.id) !== p) return;
     mensajes[m.type] = (mensajes[m.type] || 0) + 1;
     if (m.type === 'traza') return;
-    if (factory && extension.mensaje(p, m, errorPrograma)) return;
+    if ((factory || campaign) && extension.mensaje(p, m, errorPrograma)) return;
     if (m.type === 'lee') {
       contarUso(p.id, m.fn);
       const sensor = mundo.porId[m.maquina];
@@ -109,17 +110,18 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
     codigos[l.id] = lenguaje.instrumentar(codigo);
   }
 
+  if (campaign) { mundo.fin = null; mundo.eventos = []; }
   mundo.activo = true;
-  const instantanea = factory ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: C.FACTORY.instantanea(mundo) })
+  const instantanea = campaign ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: combate.instantanea() }) : factory ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: C.FACTORY.instantanea(mundo) })
     : () => combate.instantanea();
   const snap = instantanea();
   for (const l of mundo.programables) {
     const p = { id: l.id, estado: 'corre', desde: 0, mensajes: 0, espera: null, despertar: 0,
-      worker: null, acabado: false, finT: null };
+      worker: null, acabado: false, finT: null, pend: new Map() };
     p.worker = crearPrograma(fuenteWorker, l.id, m => alMensaje(p, m), MAX_ORDENES);
     ejec.progs.set(l.id, p);
     p.worker.postMessage({ type: 'run', serie: def.serie, lenguaje: ejec.lenguajes[l.id], codigo: codigos[l.id],
-      propia: l.id, nombres: (factory ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id),
+      propia: l.id, nombres: (campaign ? mundo.unidades : factory ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id),
       tipos: Object.keys(WAR.TIPOS), sensores: Object.keys(WAR.SENSOR),
       conf: { fallaRafaga: WAR.LAU.fallaRafaga, cadencia: WAR.LAU.cadencia, cadenciaRafaga: WAR.LAU.cadenciaRafaga }, snap });
   }
@@ -129,22 +131,27 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   let acum = 0, tareas = 0;
   const algunoCorre = () => RUNTIME.algunoCorre(ejec);
   try {
-    while (mundo.activo && !mundo.fin) {
+    while (mundo.activo && !mundo.fin && !extension?.detenido?.()) {
       let entregado = false;
       for (const p of ejec.progs.values()) if (p.worker.entregar()) entregado = true;
       if (entregado) {
         if (++tareas > 1000000) throw new Error('La cola virtual no cede tras un millón de tareas; no hay resultado comparable.');
         continue;
       }
+      if (campaign && [...ejec.progs.values()].every(p => p.estado === 'fin') && combate.quieto()) {
+        terminar('detenido', 'quieto', null); break;
+      }
       if (algunoCorre()) { terminar('bloqueado', 'sin-cesion', 'Programa sin espera del juego ni tarea virtual.'); break; }
       if (pasos >= maxPasos) { terminar('límite', 'pasos', `Límite de ${maxPasos} pasos.`); break; }
       acum = NUCLEO.avanzar(Math.max(acum, NUCLEO.DT), mundo, {
         algunoCorre,
-        despertarProgramas: () => RUNTIME.despertar(ejec, mundo, instantanea),
+        despertarProgramas: () => (campaign ? RUNTIME.despertarCampaign : RUNTIME.despertar)(ejec, mundo, instantanea),
         paso(dt) {
           combate.paso(dt);
           const actual = instantanea();
-          huella.paso(actual); pasos++; alPaso?.(pasos, actual);
+          huella.paso(actual); pasos++;
+          if (sesion) { sesion.huella.paso(actual); sesion.pasos++; }
+          alPaso?.(sesion?.pasos ?? pasos, actual);
         },
       });
     }
@@ -152,6 +159,10 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
     if (error.code !== 'ERR_SCRIPT_EXECUTION_TIMEOUT') throw error;
     terminar('bloqueado', 'vm-timeout', 'El programa no cedió dentro del límite de VM (1000 ms).');
   } finally { for (const p of ejec.progs.values()) p.worker.terminate(); }
+  if (campaign) {
+    resultado ||= capturarResultado(mundo, 'detenido', 'detenido', null);
+    mundo.activo = false; combate.cancelarTareas(); combate.soltarLuces(); mundo.uso = {};
+  }
   const h = huella.terminar();
   return { reglas, reto, semilla, ...(factory ? { intento } : {}), resultado,
     metricas: { pasos: h.pasos, t: mundo.t, mensajes, ms: performance.now() - inicio },

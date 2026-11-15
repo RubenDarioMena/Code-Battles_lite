@@ -1,0 +1,112 @@
+[
+  {
+    "lenguaje": "js",
+    "juego": [
+      {
+        "t": 527.05,
+        "maquina": "BLT-01",
+        "linea": 1,
+        "que": "start()",
+        "resultado": "ok",
+        "clase": "ok"
+      },
+      {
+        "t": 527.05,
+        "maquina": "BOT-02",
+        "linea": 2,
+        "que": "count(LOT_4, \"missile\")",
+        "resultado": "6",
+        "clase": "sensor"
+      },
+      {
+        "t": 527.05,
+        "maquina": "CTL-01",
+        "linea": 5,
+        "que": "count(LOT_2, \"base\")",
+        "resultado": "2",
+        "clase": "sensor"
+      }
+    ],
+    "sinPantalla": [
+      {
+        "t": 527.05,
+        "maquina": "BOT-02",
+        "linea": 2,
+        "que": "count(LOT_4, \"missile\")",
+        "resultado": "6",
+        "clase": "sensor"
+      },
+      {
+        "t": 527.05,
+        "maquina": "BLT-01",
+        "linea": 1,
+        "que": "start()",
+        "resultado": "ok",
+        "clase": "ok"
+      },
+      {
+        "t": 527.05,
+        "maquina": "CTL-01",
+        "linea": 5,
+        "que": "count(LOT_2, \"base\")",
+        "resultado": "2",
+        "clase": "sensor"
+      }
+    ]
+  },
+  {
+    "lenguaje": "python",
+    "juego": [
+      {
+        "t": 527.05,
+        "maquina": "BLT-01",
+        "linea": 1,
+        "que": "start()",
+        "resultado": "ok",
+        "clase": "ok"
+      },
+      {
+        "t": 527.05,
+        "maquina": "CTL-01",
+        "linea": 4,
+        "que": "count(LOT_2, \"base\")",
+        "resultado": "2",
+        "clase": "sensor"
+      },
+      {
+        "t": 527.05,
+        "maquina": "BOT-02",
+        "linea": 2,
+        "que": "count(LOT_4, \"missile\")",
+        "resultado": "6",
+        "clase": "sensor"
+      }
+    ],
+    "sinPantalla": [
+      {
+        "t": 527.05,
+        "maquina": "BOT-02",
+        "linea": 2,
+        "que": "count(LOT_4, \"missile\")",
+        "resultado": "6",
+        "clase": "sensor"
+      },
+      {
+        "t": 527.05,
+        "maquina": "BLT-01",
+        "linea": 1,
+        "que": "start()",
+        "resultado": "ok",
+        "clase": "ok"
+      },
+      {
+        "t": 527.05,
+        "maquina": "CTL-01",
+        "linea": 4,
+        "que": "count(LOT_2, \"base\")",
+        "resultado": "2",
+        "clase": "sensor"
+      }
+    ]
+  }
+]

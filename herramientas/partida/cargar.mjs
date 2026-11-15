@@ -19,7 +19,7 @@ export function cargar() {
   const necesarios = new Set([
     '../../shared/vendor/acorn-8.11.3.js',
     // runtime.js interpola validarFactory incluso en War: necesita el módulo real.
-    'js/factory.js', 'js/factory-retos.js', 'js/war.js', 'js/war-retos.js', 'js/nucleo.js',
+    'js/campaign-nivel.js', 'js/campaign.js', 'js/factory.js', 'js/factory-retos.js', 'js/war.js', 'js/war-retos.js', 'js/nucleo.js',
     '../../shared/python/traductor.js', 'js/runtime.js', 'js/proveedor.js',
     '../../shared/editor/javascript.js', '../../shared/vendor/lezer-python-1.1.19.js',
   ]);
