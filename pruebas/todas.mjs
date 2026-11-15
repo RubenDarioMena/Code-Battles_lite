@@ -12,13 +12,15 @@ const logica = [
   'campaign-reglas', 'editor-contrato', 'editor-lenguajes', 'editor-python',
   'factory-reglas', 'fronteras', 'fronteras-autoprueba', 'i18n-catalogos', 'i18n', 'interaccion',
   'partida-campaign', 'partida-factory', 'partida-war', 'partida-referencias', 'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
+  'terreno', 'terreno-bloques', 'terreno-estudio', 'terreno-png',
   'paquetes/protocolo/pruebas/protocolo.mjs',
   'paquetes/nucleo/pruebas/nucleo.mjs',
   'paquetes/reglas-war/pruebas/reglas-war.mjs',
   'paquetes/reglas-factory/pruebas/reglas-factory.mjs',
   'paquetes/reglas-campaign/pruebas/reglas-campaign.mjs',
 ];
-const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste'];
+const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno'];
+// ejecutar-terreno ejecuta terreno-navegador, terreno-modelado y terreno-estudio (editor de terreno, desde trunk).
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.
 // campaign-juego necesita carpeta de capturas (se crea en el temporal del sistema).
 // campaign-juego sale con 1 si no completa H0–H5 o hay errores de página.
@@ -41,7 +43,7 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
-const extensiones = { 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs' };
+const extensiones = { 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
 
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {

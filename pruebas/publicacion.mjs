@@ -24,9 +24,17 @@ async function recorrer(carpeta) {
   }
 }
 await recorrer(raiz);
-for (const excluido of ['educational-animation', 'pruebas', 'docs', '.git', '.env', 'README.md']) {
+for (const excluido of ['pruebas', 'docs', '.git', '.env', 'README.md']) {
   await assert.rejects(stat(path.join(raiz, excluido)), { code: 'ENOENT' });
 }
+// Única excepción del laboratorio: los tres módulos que el juego carga directamente.
+const laboratorio = path.join(raiz, 'educational-animation');
+assert.deepEqual((await readdir(laboratorio)).sort(), ['revision']);
+assert.deepEqual((await readdir(path.join(laboratorio, 'revision'))).sort(), ['motor']);
+const motor = path.join(laboratorio, 'revision', 'motor');
+const modulos = ['flujo.js', 'python.js', 'trazador.js'];
+assert.deepEqual((await readdir(motor)).sort(), modulos);
+for (const archivo of modulos) assert.equal((await stat(path.join(motor, archivo))).isFile(), true);
 const inicio = await readFile(path.join(raiz, 'index.html'), 'utf8');
 assert.equal((inicio.match(/class="cuadro /g) || []).length, 3);
 console.log(`${paginas} páginas y ${enlaces} referencias locales verificadas; paquete sin archivos de desarrollo.`);
