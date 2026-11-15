@@ -158,6 +158,12 @@ Cada fase termina con las suites en verde, una entrada en `PROGRESO.md` y los en
 - Las reglas anotan sucesos (hoy solo existen `mundo.explosiones` y `mundo.derribados`).
 - El juego actual usa ya estos paquetes; su interfaz no cambia.
 - Hecho cuando: los paquetes pasan sus pruebas en Node sin `window`, y las referencias de la fase 0 coinciden.
+- **Cerrada el 15 de noviembre de 2026** (rama `arquitectura/fase-1`, a partir de `arquitectura/fase-0`).
+  - `protocolo`, `nucleo`, `reglas-war`, `reglas-factory` y `reglas-campaign` existen como módulos ES, con unas 15.400 comprobaciones en Node.
+  - El juego los carga a través de `js/compat-paquetes.js`, el único archivo que publica globales.
+  - Las 41 referencias de la fase 0 coinciden y el contraste con el juego real sigue en 41/41.
+  - Ajustes respecto a lo escrito arriba: `campaign.js` se partió en `estado.js`, `mundo.js` y `validacion.js` por el límite de 500 líneas. `validar` (Factory y Campaign) y `modoEnSnap` (Campaign) siguen autocontenidas porque `runtime.js` copia su texto al Worker; esa copia desaparece con el `anfitrion` de la fase 2.
+  - Los sucesos van en un registro no enumerable del núcleo, fuera de la instantánea y de la huella.
 
 ### Fase 2 · Vistas, anfitrión y fin de `juego.js`
 
@@ -223,4 +229,5 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 - **Orden de mensajes entre Workers (hallazgo de la fase 0).** En el navegador, los mensajes de distintos Workers en el mismo instante llegan en un orden que depende del reloj real. Hoy solo cambia el orden del registro de eventos de la interfaz (Campaign H5); el mundo es idéntico paso a paso. El `anfitrion` de la fase 2 debería fijar un orden (por unidad y llegada, como `herramientas/partida/programa.mjs`) para que dos órdenes en el mismo paso no dependan del reloj; la fase 5 lo resuelve del todo.
 - **Vigía de 2,5 s de reloj real.** No se puede reproducir sin pantalla; el caso `bucle-sin-await` del oráculo queda fuera de las referencias. Se resuelve con el presupuesto de instrucciones de la fase 5.
 - **Suites de navegador fuera de `npm run test:navegador`.** `navegador.mjs`, `python-juego.mjs`, `factory-*.mjs` y `editor-movil*.mjs` están escritas para el arnés de ego-browser (exportan funciones para `page`/`cdp`); la lista y el motivo están en `pruebas/todas.mjs`. Conviene darles un adaptador de Playwright como el de `ejecutar-idiomas.cjs` antes de la fase 2, que mueve el arranque y el dibujo.
+- **Puente de reglamento a juego.** Cada reglamento exporta además `legado` (las funciones de antes: `crear`, `conectar`…), porque `juego.js` todavía conecta el mundo con hooks. La fase 2 debe pasar el juego y la herramienta de partida a `crearPartida` del núcleo y quitar `legado` junto con `compat-paquetes.js`.
 - **`trunk` antes de la fase 2.** `trunk` tiene dos commits (editor de terreno, `e2d4680` y `c2f0d21`) que tocan `js/vistas.js` e `index.html`, solo en la vista. No afectan a las referencias, pero chocarán con la fase 2 al mover las vistas: conviene unirlos a esta línea antes.

@@ -1,3 +1,34 @@
+## Fase 1 cerrada: núcleo, protocolo y los tres reglamentos en paquetes · 15 de noviembre de 2026 · rama `arquitectura/fase-1`
+
+- **Qué es.** La fase 1 de [docs/PLAN-ARQUITECTURA.md](docs/PLAN-ARQUITECTURA.md), a partir de `arquitectura/fase-0`. Las reglas de las tres series viven en `paquetes/` como módulos ES que corren en Node sin `window`. El juego las usa sin cambiar su interfaz.
+- **Commits.**
+  - `82c2241` protocolo (instantánea, suceso y orden: tipos y validadores).
+  - `bb5fc75` núcleo (paso fijo, RNG con semilla, cola de órdenes, registro de sucesos, `crearPartida` con serializar y restaurar) y `js/compat-paquetes.js`, el único archivo que publica globales.
+  - `7982174` reglas-war: la orden de disparo pasa del juego al reglamento.
+  - `5560c05` reglas-factory.
+  - `95406ae` reglas-campaign: `campaign.js` partido en `estado.js`, `mundo.js` y `validacion.js` por el límite de 500 líneas.
+  - Se retiran `js/nucleo.js`, `war.js`, `war-retos.js`, `factory.js`, `factory-retos.js`, `campaign.js` y `campaign-nivel.js`.
+- **Sucesos.** Las tres series anotan disparos, explosiones, derribos, recogidas, entregas, producción, hitos, misiles y fin en un registro no enumerable del núcleo. Ninguna regla ni programa los lee, y no entran en la instantánea ni en la huella.
+- **Cuidado conservado.** `runtime.js` copia `validar` (Factory, Campaign) y `modoEnSnap` (Campaign) al texto del Worker. Siguen autocontenidas, y una prueba las evalúa desde su `toString()` en un contexto vacío.
+- **Correcciones en la revisión.**
+  - El reglamento de War declaraba la orden de disparo como `fireAt`; ahora usa `regularShoot`, el nombre real de la API del jugador. No cambió el comportamiento: `aplicarOrden` trataba igual cualquier otro verbo.
+  - Las pruebas de los paquetes ya no fijan la versión `?v=` del puente.
+- **Verificación actual.**
+  - `npm test` **22/22**: protocolo **105**, núcleo **3202**, reglas-war **4525**, reglas-factory **4625** y reglas-campaign **3010** comprobaciones. Incluye `partida-referencias` (**41 iguales**, sin regrabar) y el oráculo de Factory (0 diferencias nuevas).
+  - `npm run test:navegador` **25/25** (Chromium de Playwright, 8771), con el contraste con el juego real **41/41**.
+  - Captura de la salva final de Campaign H5 revisada. Tipos y fronteras limpios.
+- **Forma de trabajo.**
+  - La sesión que empezó la fase 1 escribió protocolo, núcleo y el borrador de reglas-war, y se cortó por el límite de uso con el paso a medias. Aquí se revisó, se corrigió `fireAt` y se cerró.
+  - Factory y Campaign los escribió Codex CLI (gpt-6.1-sol, esfuerzo alto) con encargos cerrados que tomaban el paso anterior como modelo. Claude comparó la lógica movida línea a línea y ejecutó navegador y capturas.
+- **Límites.**
+  - Los reglamentos exportan además `legado`, porque `juego.js` todavía conecta el mundo con hooks. La partida sin pantalla sigue usando `runtime.js` y `juego.js` por `vm`.
+  - No se probó en teléfono real.
+  - `trunk` sigue sin unir.
+- **Siguiente (fase 2).**
+  - Antes de empezar, unir `trunk`: su editor de terreno toca `js/vistas.js` e `index.html`.
+  - Después: vistas 2D/3D con instantáneas y sucesos, `anfitrion` fuera de `runtime.js` y del ciclo de `juego.js`, reparto de `juego.js` y `layout.js` entre `interfaz` y `app`, y fin de los globales, de `legado`, de `compat-paquetes.js` y de los `?v=`.
+  - El criterio son las cuatro pruebas de frontera del plan, más las referencias y el contraste.
+
 ## Fase 0 cerrada: herramientas, partida sin pantalla y referencias de paridad · 15 de noviembre de 2026 · rama `arquitectura/fase-0`
 
 - **Qué es.** La fase 0 de [docs/PLAN-ARQUITECTURA.md](docs/PLAN-ARQUITECTURA.md), sin cambiar el juego: `Prototypes/` y `shared/` están intactos desde `2474a6d`. Base: `ccr-bcc040cc-27c0zn` (plan y Campaign nivel 1). No se unió `trunk`.
