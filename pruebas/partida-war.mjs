@@ -61,18 +61,4 @@ assert.throws(() => extraerFuncion('function otra() {}', 'instrumentar', C.acorn
 assert.throws(() => extraerConst('const otra = () => 0;', 'fmtLugar', C.acorn), /no se encuentra/);
 assert.equal(extraerFuncion('function f() { return "}"; /* } */ }', 'f', C.acorn).texto,
   'function f() { return "}"; /* } */ }');
-// SHA-256 completos del contraste real ya aprobado en 3a (retos 1–5 × 1/7).
-const hashesReales = [
-  ['715ed6affec6531c2803bc1808cf1e1b64e52d4f68d1ae13f93dee1527e87e0f', '715ed6affec6531c2803bc1808cf1e1b64e52d4f68d1ae13f93dee1527e87e0f'],
-  ['6cb935b99109e5457d3e17c5ec43060ab1e24a0cf36aea1ef6fdb97eac46e2b5', '6cb935b99109e5457d3e17c5ec43060ab1e24a0cf36aea1ef6fdb97eac46e2b5'],
-  ['90544813b4e9d692a38a740451e380656e83e984c653e9ff448fa3f99d933391', '90544813b4e9d692a38a740451e380656e83e984c653e9ff448fa3f99d933391'],
-  ['0306cc3d3d3a85c674c6652584b0078796144c973417e7b442934f782ba23a11', 'ccbddbad76e8edfb15b4129c24d804f3eaba8d0cc74af3d0b663340aad15245f'],
-  ['4e4e216598972eda0c15cbaea667404db4a2881d8ed70a7400999dbabc2f61ed', '4e4e216598972eda0c15cbaea667404db4a2881d8ed70a7400999dbabc2f61ed'],
-];
-for (let reto = 1; reto <= 5; reto++) for (const semilla of [1, 7]) {
-  const r = ejecutarWar({ reto, semilla });
-  assert.equal(r.hash, hashesReales[reto - 1][semilla === 1 ? 0 : 1], `War ${reto}/${semilla}: referencia real 3a`);
-  assert.ok(r.resultado); assert.ok(r.metricas.pasos > 0);
-  console.log(`War ${reto}/${semilla} · ${r.hash.slice(0, 12)} · ${r.metricas.pasos} pasos · ${r.resultado.fin}/${r.resultado.motivo}`);
-}
 console.log('OK: repetición, huella, límite, MAX_ORDENES, error API, JS/Python, aislamiento, clonación, microtareas, timer virtual y extracción.');

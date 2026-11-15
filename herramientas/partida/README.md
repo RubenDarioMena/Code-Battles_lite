@@ -1,4 +1,4 @@
-# Partida sin pantalla · fase 0, pasos 3a–3c
+# Partida sin pantalla · fase 0, pasos 3a–3c y 5
 
 War, Factory y Campaign sobre las fuentes actuales: no es el nuevo núcleo de la fase 1.
 No cambia archivos del juego, programas guardados ni reglas.
@@ -132,7 +132,8 @@ el JSON y la huella conservan t sin redondear):
 | H5 completa | 6166 | 308.30 | 835.35 | `d9563a8f964340db1168d0a9564220adafdcc749dbec313791818f60db342f1b` |
 
 Hash continuo: `9a7bfd5f8676882813790279af63a49e1be083a80d88b09c2f90b517f13714ae`.
-`partida-campaign` ejecuta cada lenguaje dos veces y protege estos hashes;
+`partida-referencias` protege estos hashes y todos los resultados/tramos completos.
+`partida-campaign` ejecuta cada lenguaje dos veces;
 compara H0/H1 y la recepción de 12 misiles con la misma prueba de reglas exportada
 por `campaign-reglas.cjs`, sin copiar su mini-lockstep. Los tiempos posteriores
 de aquella prueba no son referencias del Worker: sus programas deciden otras rutas.
@@ -152,7 +153,7 @@ de aquella prueba no son referencias del Worker: sus programas deciden otras rut
 - `ciclo.mjs`: carga, revisión/traducción, arranque, mensajes comunes, entrega,
   paso fijo real con `NUCLEO.avanzar`/`RUNTIME.despertar`, huella y limpieza.
 - `anfitrion-war.mjs`: `ejecutarWar(opciones)` y `resultadoWar`; conserva el
-  contrato anterior y los diez SHA-256 completos comprobados en 3a.
+  contrato anterior; los diez SHA-256 comprobados en 3a están en las referencias.
 - `anfitrion-factory.mjs`: `ejecutarFactory(opciones)`, `resultadoFactory` y
   adaptador de encargos/lecturas. Usa `FACTORY.crear/conectar` reales; completa
   encargos con sus respuestas y evalúa al arrancar, en cada paso y en `done`.
@@ -214,7 +215,7 @@ cualquier diferencia nueva. Resultado de lógica actual: **14 iguales, 13 deltas
 aceptados, 0 diferencias, 1 excluido**; también comprueba repetición, JS/Python,
 semilla/intento, límites y bloqueo al reanudar. No son Workers de navegador.
 
-El contraste acepta `war|factory|campaign|todas`, por defecto `todas` (10 + 27 + 2 casos).
+El contraste acepta `war|factory|campaign|todas`, por defecto `todas` (10 + 27 + 2 casos originales y 2 Python nuevos).
 Instala setters de WAR/FACTORY/CAMPAIGN/NUCLEO antes del juego; conserva Workers reales,
 pulsos y reloj. Factory carga el escenario propio y los intentos previos en un
 contexto aislado. Compara hash, pasos y resultado; informa el primer registro
@@ -235,3 +236,20 @@ el contraste inicialmente falló por el intercalado descrito arriba. La comparac
 corregida pasa al reprocesar la captura completa. **Pendiente de 3c:** repetir los
 dos contrastes Campaign fuera del sandbox con el nuevo comparador. Se verifica
 sintaxis de módulos y gancho generado, sin ejecutar Chromium. No se han modificado Prototypes/, shared/ ni PROGRESO.md.
+
+## Referencias persistentes · paso 5
+
+`casos.mjs` exporta `casosReferencia()` y `parametrosCaso()`: selección única
+para grabación, comprobación y contraste, sin cambiar los 39 casos anteriores.
+Los dos programas Python nuevos se escribieron a mano, equivalentes al inicial
+de War 2/7 y a `reto-1-victoria` del oráculo (reto público 2, intento 1).
+`referencias.mjs` ejecuta un caso y descarta métricas de reloj e instantánea final;
+conserva el resultado íntegro de VM y los tramos completos de Campaign.
+
+`node herramientas/grabar-referencias.mjs` crea el JSON; si existe exige
+`--forzar` y advierte que regrabar requiere decisión del autor.
+`node pruebas/partida-referencias.mjs` compara los 41 casos; también está en
+`npm test`. Véase [el contrato de referencias](../../pruebas/referencias/README.md).
+No guarda registros por paso: el diagnóstico no puede localizar el primer paso
+distinto y lo indica con null. Factory mantiene su prueba completa del oráculo,
+y las tres suites mantienen determinismo y comprobaciones del anfitrión.

@@ -11,7 +11,7 @@ const origen = 'http://127.0.0.1:8771';
 const logica = [
   'campaign-reglas', 'editor-contrato', 'editor-lenguajes', 'editor-python',
   'factory-reglas', 'fronteras', 'fronteras-autoprueba', 'i18n-catalogos', 'i18n', 'interaccion',
-  'partida-campaign', 'partida-factory', 'partida-war', 'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
+  'partida-campaign', 'partida-factory', 'partida-war', 'partida-referencias', 'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste'];
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.
@@ -36,7 +36,7 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
-const extensiones = { 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs' };
+const extensiones = { 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs' };
 
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {

@@ -7,7 +7,7 @@ import { canonico, registro } from '../herramientas/partida/huella.mjs';
 import { ejecutarWar, resultadoWar } from '../herramientas/partida/anfitrion-war.mjs';
 
 import { ejecutarFactory, resultadoFactory } from '../herramientas/partida/anfitrion-factory.mjs';
-import { casosFactory, opcionesFactory, exclusionFactory } from './partida-factory-casos.mjs';
+import { casosReferencia } from '../herramientas/partida/casos.mjs';
 
 import { probarCampaign } from './partida-campaign-contraste.mjs';
 import { resultadoCampaign } from '../herramientas/partida/anfitrion-campaign.mjs';
@@ -153,16 +153,7 @@ export async function probarCaso(browser, caso) {
 async function principal() {
   const { values } = parseArgs({ options: { reglas: { type: 'string', default: 'todas' } } });
   if (!['war', 'factory', 'campaign', 'todas'].includes(values.reglas)) throw new Error('--reglas war|factory|campaign|todas');
-  const casos = [];
-  if (['war', 'todas'].includes(values.reglas)) for (let reto = 1; reto <= 5; reto++) for (const semilla of [1, 7])
-    casos.push({ nombre: `War ${reto}/${semilla}`, reglas: 'war', reto, semilla });
-  if (['factory', 'todas'].includes(values.reglas)) for (const c of casosFactory()) {
-    const motivo = exclusionFactory(c);
-    if (motivo) console.log(`Factory ${c.id} · EXCLUIDO: ${motivo}`);
-    else casos.push({ nombre: `Factory ${c.id}`, ...opcionesFactory(c) });
-  }
-  if (['campaign', 'todas'].includes(values.reglas)) for (const lenguaje of ['js', 'python'])
-    casos.push({ nombre: `Campaign ${lenguaje}`, reglas: 'campaign', lenguaje });
+  const casos = casosReferencia().filter(c => values.reglas === 'todas' || c.reglas === values.reglas);
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   let diferencias = 0;
   try {
