@@ -11,9 +11,9 @@ const origen = 'http://127.0.0.1:8771';
 const logica = [
   'campaign-reglas', 'editor-contrato', 'editor-lenguajes', 'editor-python',
   'factory-reglas', 'fronteras', 'fronteras-autoprueba', 'i18n-catalogos', 'i18n', 'interaccion',
-  'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
+  'partida-war', 'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
 ];
-const navegador = ['ejecutar-idiomas', 'campaign-juego'];
+const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste'];
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.
 // campaign-juego necesita carpeta de capturas (se crea en el temporal del sistema).
 // campaign-juego sale con 1 si no completa H0–H5 o hay errores de página.
@@ -36,7 +36,7 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
-const extensiones = { fronteras: 'mjs', 'fronteras-autoprueba': 'mjs' };
+const extensiones = { fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-contraste': 'mjs' };
 
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {
