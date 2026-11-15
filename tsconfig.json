@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": false,
+    // NodeNext respeta .mjs/.cjs y el tipo del paquete sin cambiar su ejecución.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["paquetes/**/*.js", "paquetes/**/*.d.ts", "herramientas/*.mjs", "herramientas/partida/**/*.mjs", "pruebas/todas.mjs"],
+  // herramientas/lezer-python es el generador histórico del lector de Python (sus dependencias no se instalan aquí).
+  "exclude": ["node_modules", "educational-animation", "herramientas/lezer-python"]
+}

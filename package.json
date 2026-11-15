@@ -1,8 +1,21 @@
 {
   "name": "code-battles-lite",
   "private": true,
-  "description": "Paquete estático; la única dependencia es para la función de telemetría de Netlify.",
+  "description": "Juego Code Battle Lite y herramientas de desarrollo, pruebas y telemetría.",
   "dependencies": {
     "@netlify/blobs": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "playwright": "1.65.1",
+    "typescript": "5.9.3"
+  },
+  "workspaces": [
+    "paquetes/*"
+  ],
+  "scripts": {
+    "test": "node pruebas/todas.mjs",
+    "test:navegador": "node pruebas/todas.mjs --navegador",
+    "tipos": "tsc --noEmit -p tsconfig.json"
   }
 }

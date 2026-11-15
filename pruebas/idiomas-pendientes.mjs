@@ -54,7 +54,7 @@ export async function probarIdiomasPendientes(page, origen = 'http://127.0.0.1:8
  eq(await page.evaluate(()=>{const e=document.querySelector('#aviso');const en=e.textContent;CMGI18n.cambiarIdioma('es');return [en,e.textContent];}),['Stop the program to edit it.','Detén el programa para editarlo.'],'aviso abierto del editor se actualiza en sitio');
  await page.evaluate(()=>CMGI18n.cambiarIdioma('en'));await page.goto(`${origen}/campaign/`);
  await page.waitForFunction(()=>!!window.CMGI18n);
- eq(await page.evaluate(()=>[document.documentElement.lang,document.querySelector('h1').textContent,document.querySelector('.volver').textContent]),['en','Coming soon.','← Back to home'],'anuncio Campaign respeta el idioma elegido');
+ eq(await page.evaluate(()=>[document.documentElement.lang,document.querySelector('h1').textContent,document.querySelector('.volver[data-i18n="inicio.accion.volver"]').textContent,document.querySelector('.volver[data-i18n="inicio.campaign.prototipo"]').textContent]),['en','Coming soon.','← Back to home','Try the level 1 prototype →'],'anuncio Campaign respeta el idioma elegido');
  await page.goto(`${origen}/Prototypes/Rocket%20Launcher/probar.html?serie=factory`);
  await page.waitForFunction(()=>document.querySelectorAll('iframe').length===2);
  eq(await page.evaluate(()=>[document.title,document.querySelector('h1').textContent,document.querySelector('#girar').textContent,document.querySelector('#pc button').textContent]),['Factory · Device preview','Device preview','⟳ Rotate','Laptop'],'probador: controles y modelos de PC traducidos');

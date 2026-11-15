@@ -32,6 +32,11 @@ const SOL = require('./campaign-soluciones.cjs');
     if (h === 5) { await p.evaluate(() => document.querySelector('#banner .btn.primario').click()); await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/camp-${forma}-salva.png` }); }
     await p.evaluate(() => { if (window.cmg.ejecutando) window.cmg.alternarEjecucion(); document.getElementById('banner').hidden = true; });
   }
-  console.log(forma, leng, 'tiempos', tiempos, 'estado', await estado(), 'checkpoints', await p.evaluate(() => window.__banco.checkpoints.map(c => c.hito)), 'errores', errs.slice(0, 5));
+  const final = await estado();
+  console.log(forma, leng, 'tiempos', tiempos, 'estado', final, 'checkpoints', await p.evaluate(() => window.__banco.checkpoints.map(c => c.hito)), 'errores', errs.slice(0, 5));
   await b.close();
-})();
+  // Para npm run test:navegador: sin H0–H5 completos o con errores de página, la suite falla.
+  const completa = tiempos.length === 6 && final.fin;
+  console.log(completa && !errs.length ? 'Campaign en el navegador: H0–H5 completos sin errores' : 'Campaign en el navegador: FALLA');
+  if (!completa || errs.length) process.exitCode = 1;
+})().catch(e => { console.error(e); process.exitCode = 1; });

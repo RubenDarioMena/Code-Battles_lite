@@ -331,9 +331,9 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
         await abrirJuego(serie, 'movil', ancho);
         await page.click('[data-vista="2d"]');
         await page.click('#b-menu-cod');
-        // «Revisar» (modo revisión) solo en War: Factory todavía no lo tiene.
-        const labelsEs = ['Programa', 'Registro', 'Órdenes', serie === 'factory' ? 'Tu reto' : 'Escenario', ...(serie === 'factory' ? [] : ['Revisar']), 'Ajustes'];
-        const labelsEn = ['Program', 'Log', 'Commands', serie === 'factory' ? 'Your challenge' : 'Scenario', ...(serie === 'factory' ? [] : ['Review']), 'Settings'];
+        // «Revisar» (modo revisión) en War y, desde 860a0f6, también en Factory.
+        const labelsEs = ['Programa', 'Registro', 'Órdenes', serie === 'factory' ? 'Tu reto' : 'Escenario', 'Revisar', 'Ajustes'];
+        const labelsEn = ['Program', 'Log', 'Commands', serie === 'factory' ? 'Your challenge' : 'Scenario', 'Review', 'Settings'];
         const refsMenu = await page.evaluate(() => {
           const menu = document.querySelector('#menu-cod');
           const botones = [...menu.querySelectorAll('[data-menu]')];
