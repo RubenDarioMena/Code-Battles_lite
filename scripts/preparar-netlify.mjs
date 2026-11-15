@@ -4,10 +4,13 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const destino = path.join(raiz, 'dist');
-const entradas = ['index.html', '404.html', 'css', 'campaign', 'shared', 'Prototypes/Tres vistas', 'Prototypes/Rocket Launcher', 'Prototypes/02_tres_vistas.html'];
+const entradas = ['index.html', '404.html', 'css', 'campaign', 'shared', 'paquetes', 'Prototypes/Tres vistas', 'Prototypes/Rocket Launcher', 'Prototypes/02_tres_vistas.html'];
 // Comprobar fuentes antes de reconstruir la carpeta generada.
 for (const entrada of entradas) await stat(path.join(raiz, entrada));
 await rm(destino, { recursive: true, force: true });
 await mkdir(destino);
-for (const entrada of entradas) await cp(path.join(raiz, entrada), path.join(destino, entrada), { recursive: true });
+for (const entrada of entradas) await cp(path.join(raiz, entrada), path.join(destino, entrada), {
+  recursive: true,
+  filter: origen => entrada !== 'paquetes' || path.basename(origen) !== 'pruebas',
+});
 console.log('Paquete de Netlify preparado en dist/ (sin dependencias ni compilación).');

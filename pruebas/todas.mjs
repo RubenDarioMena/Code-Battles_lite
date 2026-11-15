@@ -13,6 +13,7 @@ const logica = [
   'factory-reglas', 'fronteras', 'fronteras-autoprueba', 'i18n-catalogos', 'i18n', 'interaccion',
   'partida-campaign', 'partida-factory', 'partida-war', 'partida-referencias', 'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
   'paquetes/protocolo/pruebas/protocolo.mjs',
+  'paquetes/nucleo/pruebas/nucleo.mjs',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste'];
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.

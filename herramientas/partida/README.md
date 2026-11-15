@@ -151,7 +151,8 @@ de aquella prueba no son referencias del Worker: sus programas deciden otras rut
   entrega por unidad y FIFO. Timers virtuales locales por vencimiento/inserción.
   Cada evaluación y sus microtareas tienen un timeout de VM de 1000 ms.
 - `ciclo.mjs`: carga, revisión/traducción, arranque, mensajes comunes, entrega,
-  paso fijo real con `NUCLEO.avanzar`/`RUNTIME.despertar`, huella y limpieza.
+  paso fijo con `DT`/`avanzar` importados de `paquetes/nucleo` y
+  `RUNTIME.despertar`, huella y limpieza.
 - `anfitrion-war.mjs`: `ejecutarWar(opciones)` y `resultadoWar`; conserva el
   contrato anterior; los diez SHA-256 comprobados en 3a están en las referencias.
 - `anfitrion-factory.mjs`: `ejecutarFactory(opciones)`, `resultadoFactory` y

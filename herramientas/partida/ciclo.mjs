@@ -1,4 +1,5 @@
 import { performance } from 'node:perf_hooks';
+import { DT, avanzar } from '../../paquetes/nucleo/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
 import { crearPrograma } from './programa.mjs';
@@ -19,7 +20,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   const inicio = performance.now();
   const { contexto: C, fuenteWorker } = sesion ?? cargar();
-  const { WAR, WAR_RETOS, RUNTIME, NUCLEO } = C;
+  const { WAR, WAR_RETOS, RUNTIME } = C;
   const def = campaign ? C.CAMPAIGN_NIVEL.NIVEL : factory ? (reto === 7 ? C.FACTORY_RETOS.normalizar(escenario) : C.FACTORY_RETOS.RETOS[reto - 1])
     : WAR_RETOS.normalizar(WAR_RETOS.RETOS[reto - 1]);
   if (escenario && (!factory || reto !== 7)) throw new Error('Solo Factory --reto 7 admite escenario propio.');
@@ -127,7 +128,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   }
   if (factory) combate.evaluar();
   // El acumulador real de bucle(now) solo dosifica pasos. Aquí se ofrece un DT
-  // cada vez; NUCLEO y RUNTIME reales conservan el punto exacto de despertar.
+  // cada vez; el núcleo y RUNTIME reales conservan el punto exacto de despertar.
   let acum = 0, tareas = 0;
   const algunoCorre = () => RUNTIME.algunoCorre(ejec);
   try {
@@ -143,7 +144,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
       }
       if (algunoCorre()) { terminar('bloqueado', 'sin-cesion', 'Programa sin espera del juego ni tarea virtual.'); break; }
       if (pasos >= maxPasos) { terminar('límite', 'pasos', `Límite de ${maxPasos} pasos.`); break; }
-      acum = NUCLEO.avanzar(Math.max(acum, NUCLEO.DT), mundo, {
+      acum = avanzar(Math.max(acum, DT), mundo, {
         algunoCorre,
         despertarProgramas: () => (campaign ? RUNTIME.despertarCampaign : RUNTIME.despertar)(ejec, mundo, instantanea),
         paso(dt) {
