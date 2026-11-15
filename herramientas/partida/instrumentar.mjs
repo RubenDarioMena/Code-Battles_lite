@@ -30,8 +30,8 @@ export function extraerConst(texto, nombre, acorn) {
 }
 
 /** Evalúa el léxico/instrumentador y las otras funciones puras necesarias de juego.js.
- * @param {vm.Context} contexto @param {any} mundo */
-export function crearInstrumentador(contexto, mundo) {
+ * @param {vm.Context} contexto @param {any} mundo @param {string} [serie] */
+export function crearInstrumentador(contexto, mundo, serie = 'war') {
   const texto = readFileSync(archivoJuego, 'utf8');
   const fn = nombre => extraerFuncion(texto, nombre, contexto.acorn);
   const instrumento = fn('instrumentar');
@@ -43,10 +43,10 @@ export function crearInstrumentador(contexto, mundo) {
   contexto.acorn.parse(bloque, { ecmaVersion: 2022 });
   contexto.__mundoPartida = mundo;
   return vm.runInContext(`(() => {
-    const ES_FACTORY = false, ES_CAMPAIGN = false;
-    const nombresVar = () => [...__mundoPartida.programables, ...__mundoPartida.sensores].map(e => e.id.replace(/-/g, '_'));
+    const ES_FACTORY = ${serie === 'factory'}, ES_CAMPAIGN = false;
+    const nombresVar = () => (ES_FACTORY ? __mundoPartida.maquinas : [...__mundoPartida.programables, ...__mundoPartida.sensores]).map(e => e.id.replace(/-/g, '_'));
     ${bloque}
-    const proveedorEditor = window.CMGProveedor.crear({ serie: 'war',
+    const proveedorEditor = window.CMGProveedor.crear({ serie: ${JSON.stringify(serie)},
       sensores: () => __mundoPartida.sensores.map(e => e.id.replace(/-/g, '_')) });
     let opcionesPy = null, clavePy = '', nombresPython = null;
     ${fn('revisar').texto}

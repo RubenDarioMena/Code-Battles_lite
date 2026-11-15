@@ -7,7 +7,7 @@ import vm from 'node:vm';
  * setTimeout usa tiempo virtual local; no hace avanzar el mundo por su cuenta.
  * No se reproduce el vigía de 2,5 s ni el reparto de CPU/orden entre Workers del
  * navegador. MAX_ORDENES sí se aplica en el anfitrión. Un bucle síncrono sin
- * mensajes ni await no se puede interrumpir aquí (no hay límite por reloj real).
+ * mensajes ni await se interrumpe con timeout de VM; no es el vigía del juego.
  * node:vm proporciona aislamiento de globales, no es un sandbox de seguridad.
  */
 
@@ -16,7 +16,7 @@ import vm from 'node:vm';
  * @param {number} maxOrdenes */
 export function crearPrograma(fuente, id, recibir, maxOrdenes) {
   const salidas = [], entradas = [], temporizadores = new Map();
-  let vivo = true, reloj = 0, secuencia = 0, mensajes = 0;
+  let vivo = true, reloj = 0, secuencia = 0, mensajes = 0, sensores = 0;
   const contexto = vm.createContext({
     postMessage(m) {
       if (!vivo) return;
@@ -25,6 +25,8 @@ export function crearPrograma(fuente, id, recibir, maxOrdenes) {
       // queda en ella y el anfitrión produce exactamente el diagnóstico del juego.
       if (['lee', 'cmd', 'consola'].includes(m.type) && ++mensajes > maxOrdenes)
         throw new Error('Ceder al anfitrión para comprobar MAX_ORDENES');
+      if (m.type === 'lecturaFactory' && ++sensores > 500)
+        throw new Error('Ceder al anfitrión para comprobar los 500 sensores');
     },
     setTimeout(fn, ms = 0, ...args) {
       const n = ++secuencia;
@@ -34,8 +36,10 @@ export function crearPrograma(fuente, id, recibir, maxOrdenes) {
     clearTimeout(n) { temporizadores.delete(n); },
   }, { name: `programa:${id}`, microtaskMode: 'afterEvaluate' });
   const ejecutar = codigo => {
-    try { vm.runInContext(codigo, contexto, { filename: `worker:${id}` }); }
-    catch (error) { throw new Error(`La VM de ${id} no pudo ceder; no hay resultado comparable: ${error.message}`); }
+    try { vm.runInContext(codigo, contexto, { filename: `worker:${id}`, timeout: 1000 }); }
+    catch (error) {
+      if (error.code === 'ERR_SCRIPT_EXECUTION_TIMEOUT') throw error;
+      throw new Error(`La VM de ${id} no pudo ceder; no hay resultado comparable: ${error.message}`); }
   };
   ejecutar('self = globalThis;\n' + fuente);
   return {
@@ -46,7 +50,7 @@ export function crearPrograma(fuente, id, recibir, maxOrdenes) {
     entregar() {
       if (!vivo) return false;
       if (entradas.length) {
-        contexto.__entrada = entradas.shift(); mensajes = 0;
+        contexto.__entrada = entradas.shift(); mensajes = 0; sensores = 0;
         ejecutar('onmessage({ data: __entrada });');
       } else if (temporizadores.size) {
         const [n, tarea] = [...temporizadores].sort((a, b) => a[1].cuando - b[1].cuando || a[0] - b[0])[0];
