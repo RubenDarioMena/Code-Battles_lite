@@ -12,6 +12,7 @@ const logica = [
   'campaign-reglas', 'editor-contrato', 'editor-lenguajes', 'editor-python',
   'factory-reglas', 'fronteras', 'fronteras-autoprueba', 'i18n-catalogos', 'i18n', 'interaccion',
   'partida-campaign', 'partida-factory', 'partida-war', 'partida-referencias', 'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
+  'paquetes/protocolo/pruebas/protocolo.mjs',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste'];
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.
@@ -42,7 +43,9 @@ function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {
     const inicio = performance.now();
     let salida = '', agotado = false;
-    const hijo = spawn(process.execPath, [`pruebas/${nombre}.${extensiones[nombre] || 'cjs'}`, ...argumentos], {
+    const ruta = /^paquetes\/[^/]+\/pruebas\/[^/]+\.mjs$/.test(nombre)
+      ? nombre : `pruebas/${nombre}.${extensiones[nombre] || 'cjs'}`;
+    const hijo = spawn(process.execPath, [ruta, ...argumentos], {
       cwd: raiz, detached: process.platform !== 'win32',
       env: { ...process.env, CBL_QA_ORIGIN: origen },
       stdio: ['ignore', 'pipe', 'pipe'],
