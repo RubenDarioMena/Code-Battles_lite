@@ -1,3 +1,8 @@
+## Campaign · sprites 2D de robots · 15 de noviembre de 2026
+
+- Nueve PNG RGBA de 48 × 32 con un lienzo común en [`img/campaign/robots/`](Prototypes/Rocket%20Launcher/img/campaign/robots/). Incluyen cuatro poses del obrero, el montacargas armado y sus tres piezas, y la pieza naranja.
+- Se verificaron las dimensiones y la transparencia de los nueve archivos. Pendiente: integrar los sprites al plano 2D.
+
 ## Campaign · hojas de sprites de máquinas · 14 de noviembre de 2026
 
 - Tres hojas PNG RGBA de 1536 × 1024 en [`img/campaign/maquinas/`](Prototypes/Rocket%20Launcher/img/campaign/maquinas/). Cada hoja tiene dos filas de cuatro fotogramas en celdas de 384 × 512.
