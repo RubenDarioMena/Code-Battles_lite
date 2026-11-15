@@ -124,7 +124,7 @@ await anfitrion.ceder(instantanea);  // corre hasta que todos esperan; devuelve 
 
 ### Herramientas para agentes
 
-- **Partida sin pantalla:** `node herramientas/partida.mjs --reglas war --reto 2 --semilla 7 [--programas …]` imprime resultado, métricas y un hash de las instantáneas. Es la base de las pruebas de paridad y de rendimiento.
+- **Partida sin pantalla:** `node herramientas/partida.mjs --reglas war --reto 2 --semilla 7 [--programas …]` imprime resultado, métricas y un hash de las instantáneas. Es la base de las pruebas de paridad y de rendimiento. Factory usa `--intento` (su semilla es el intento) y Campaign es una secuencia de tramos sobre el mismo mundo; detalle en `herramientas/partida/README.md`.
 - **Capturas:** un guion que abre una vista con una partida grabada y guarda capturas en instantes fijos, para revisar gráficos y efectos sin jugar.
 - **Laboratorio de efectos:** la página de `docs/PLAN-VFX.md`, con cada receta aislada en 2D y en 3D.
 - **Medida de carga:** partida sintética con 100, 500 y 2.000 unidades; registra milisegundos por paso y por fotograma. Antes de optimizar se mide.
@@ -150,6 +150,7 @@ Cada fase termina con las suites en verde, una entrada en `PROGRESO.md` y los en
 - Carpeta `paquetes/` con los README de contrato y la comprobación de fronteras (al principio, vacía de infracciones porque está vacía de código).
 - `herramientas/partida.mjs` sobre el código actual, y **grabación de referencias**: resultado y hash por reto y semilla de War, Factory y la partida de referencia de Campaign. Estas referencias son el criterio de paridad de las fases 1 y 2.
 - Hecho cuando: `npm test` pasa en un clon limpio y las referencias están en el repositorio.
+- **Cerrada el 15 de noviembre de 2026** (rama `arquitectura/fase-0`). Referencias: `pruebas/referencias/partidas.json`, 41 partidas (War retos 1–5 × semillas 1 y 7; 27 casos del oráculo de Factory; Campaign H0–H5 en JS y en Python; War 2/7 y Factory reto-1 en Python). `pruebas/partida-contraste.mjs` demuestra que la partida sin pantalla da el mismo hash, pasos y resultado que el juego real con Workers: 41/41. En las fases 1 y 2, `npm test` (incluye `partida-referencias`) y `npm run test:navegador` (incluye el contraste) son el criterio de paridad.
 
 ### Fase 1 · Núcleo, reglamentos y protocolo
 
@@ -218,4 +219,8 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 - Intérprete propio o QuickJS (fase 5).
 - Si el núcleo corre en un hilo aparte desde la fase 2 o se deja para cuando la medida lo pida.
 - Qué empaquetador usan las cáscaras.
-- Qué hacer con `PROGRESO.md` (189 KB): se propone archivarlo en `docs/historial/` y empezar uno nuevo al cerrar la fase 0.
+- Qué hacer con `PROGRESO.md` (189 KB): se propone archivarlo en `docs/historial/` y empezar uno nuevo al cerrar la fase 0. **Sigue pendiente**: la fase 0 no lo archivó para no mover historia sin decisión del autor.
+- **Orden de mensajes entre Workers (hallazgo de la fase 0).** En el navegador, los mensajes de distintos Workers en el mismo instante llegan en un orden que depende del reloj real. Hoy solo cambia el orden del registro de eventos de la interfaz (Campaign H5); el mundo es idéntico paso a paso. El `anfitrion` de la fase 2 debería fijar un orden (por unidad y llegada, como `herramientas/partida/programa.mjs`) para que dos órdenes en el mismo paso no dependan del reloj; la fase 5 lo resuelve del todo.
+- **Vigía de 2,5 s de reloj real.** No se puede reproducir sin pantalla; el caso `bucle-sin-await` del oráculo queda fuera de las referencias. Se resuelve con el presupuesto de instrucciones de la fase 5.
+- **Suites de navegador fuera de `npm run test:navegador`.** `navegador.mjs`, `python-juego.mjs`, `factory-*.mjs` y `editor-movil*.mjs` están escritas para el arnés de ego-browser (exportan funciones para `page`/`cdp`); la lista y el motivo están en `pruebas/todas.mjs`. Conviene darles un adaptador de Playwright como el de `ejecutar-idiomas.cjs` antes de la fase 2, que mueve el arranque y el dibujo.
+- **`trunk` antes de la fase 2.** `trunk` tiene dos commits (editor de terreno, `e2d4680` y `c2f0d21`) que tocan `js/vistas.js` e `index.html`, solo en la vista. No afectan a las referencias, pero chocarán con la fase 2 al mover las vistas: conviene unirlos a esta línea antes.

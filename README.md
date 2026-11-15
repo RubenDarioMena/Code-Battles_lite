@@ -54,7 +54,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 
 Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
 
-En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
+En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `paquetes/` contiene los paquetes del [plan de arquitectura](docs/PLAN-ARQUITECTURA.md) (en la fase 0, solo sus contratos); `herramientas/partida.mjs` juega una partida sin pantalla sobre el código actual y `pruebas/referencias/` guarda las referencias de paridad. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
 Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semilla y recogida su secuencia de stock por intento. El código del jugador se instrumenta con Acorn y se ejecuta en Web Workers. `window.cmg` comunica editor y layout; `window.__banco` expone herramientas de depuración/pruebas. Son interfaces existentes que se mantienen durante la separación.
 
@@ -121,6 +121,13 @@ La portada y Ajustes permiten elegir español o inglés sin recargar ni modifica
 Los textos nuevos de las zonas migradas deben añadirse a los catálogos ES/EN de `shared/i18n/`, sin traducir IDs, valores de la API ni guardados. El [contrato de idiomas y el glosario](docs/IDIOMAS-INTERFAZ.md) describe cómo ampliar la migración por lotes y ejecutar sus comprobaciones. La suite de navegador puede ejecutarse con `node pruebas/ejecutar-idiomas.cjs` en un entorno con Playwright/Chromium y el servidor dedicado 8771 activo; el juego no requiere esos paquetes.
 
 ## Verificar
+
+```bash
+npm ci                      # una vez: TypeScript, Playwright y tipos de Node
+npm test                    # suites de lógica, fronteras y referencias de paridad
+npm run test:navegador      # además: idiomas, Campaign H0–H5 y contraste con el juego real (Chromium de Playwright, puerto 8771)
+npm run tipos               # tsc --noEmit sobre paquetes/ y herramientas/
+```
 
 El [oráculo histórico y sus deltas](pruebas/factory-oraculo.md) verifican las reglas migradas; las suites comunes cubren las tres vistas, importación y edición. Estado de cada etapa en [PROGRESO.md](PROGRESO.md) y el [plan](docs/PLAN-UNIFICACION.md).
 

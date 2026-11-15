@@ -1,3 +1,35 @@
+## Fase 0 cerrada: herramientas, partida sin pantalla y referencias de paridad · 15 de noviembre de 2026 · rama `arquitectura/fase-0`
+
+- **Qué es.** La fase 0 de [docs/PLAN-ARQUITECTURA.md](docs/PLAN-ARQUITECTURA.md), sin cambiar el juego: `Prototypes/` y `shared/` están intactos desde `2474a6d`. Base: `ccr-bcc040cc-27c0zn` (plan y Campaign nivel 1). No se unió `trunk`.
+- **Herramientas.** `package.json` con workspaces `paquetes/*` y devDependencies exactas (TypeScript 5.9.3, Playwright 1.65.1, @types/node 22.20.5). `tsconfig.json` con `checkJs`. `npm test`, `npm run test:navegador` y `npm run tipos` (`pruebas/todas.mjs` ejecuta listas explícitas, cada suite en su proceso).
+- **Paquetes.** 13 carpetas en `paquetes/` con `package.json` y README de contrato (de dónde sale cada uno, qué puede importar), todavía sin código. Entre paquetes solo se importa `../<otro>/index.js`. `pruebas/fronteras.mjs` (con Acorn) comprueba dependencias, entradas públicas y entorno prohibido; su autoprueba espera 48 infracciones.
+- **Partida sin pantalla.** `herramientas/partida.mjs` (`--reglas war|factory|campaign`). Carga los scripts actuales en `node:vm`, usa el texto real del Worker de `runtime.js` y extrae `instrumentar` de `juego.js` al ejecutarse, sin copias. Replica el ciclo de programas con timers virtuales. La huella es el SHA-256 de la instantánea canónica tras cada paso.
+- **Contraste con el juego real.** `pruebas/partida-contraste.mjs` (Playwright, Workers y reloj reales, gancho previo a la carga): **41/41** iguales en hash, pasos y resultado.
+- **Referencias.** `pruebas/referencias/partidas.json` (41 partidas, 2 MB): War retos 1–5 × semillas 1 y 7, 27 casos del oráculo de Factory, Campaign H0–H5 en JS y en Python, War 2/7 y Factory reto-1 en Python. Se comprueban en `npm test` (~7 s). Regrabarlas exige `--forzar` y una decisión del autor.
+- **Pruebas tocadas.**
+  - `idiomas-juego.mjs` espera «Revisar» también en Factory: lo añadió `860a0f6` a propósito y el test seguía diciendo «todavía no».
+  - `idiomas-pendientes.mjs` elige el enlace de volver por su clave: `9ca0c35` añadió el del prototipo.
+  - `campaign-juego.cjs` sale con 1 si no completa H0–H5.
+  - `campaign-soluciones.cjs` gana la versión Python de la partida de referencia.
+  - `campaign-reglas.cjs` exporta los datos de su partida, con las mismas comprobaciones.
+- **Verificación actual.**
+  - `npm test` **17/17**, también en un clon limpio con `npm ci`. Incluye interacción **124**, i18n **1438 claves**, editor Python **34**, traductor **64**, conversión **20**, fronteras, referencias **41** y oráculo de Factory (14 iguales, 13 deltas aceptados, 0 nuevas, 1 excluido).
+  - `npm run test:navegador` **20/20** (Chromium de Playwright, 8771): idiomas **261**, Campaign H0–H5 en escritorio y contraste **41/41**.
+  - `npm run tipos` limpio.
+- **Forma de trabajo.** Codex CLI (gpt-6.1-sol, esfuerzo medio o alto) escribió cada paso con un encargo cerrado, en una sesión nueva por paso. Claude revisó cada diff y ejecutó los contrastes de Chromium (el sandbox de Codex no puede lanzarlo). En el paso 3a, Codex añadió cambios en este archivo sin que se pidieran y se deshicieron.
+- **Límites.**
+  - El vigía de 2,5 s de reloj real no se reproduce sin pantalla: `bucle-sin-await` queda fuera.
+  - En el navegador, los mensajes de varios Workers en el mismo instante llegan en orden de reloj real. Hoy solo cambia el orden del registro de eventos de Campaign H5; el contraste lo ordena por unidad dentro de cada `t`.
+  - `navegador.mjs`, `python-juego.mjs`, `factory-*.mjs` y `editor-movil*.mjs` siguen siendo del arnés de ego-browser y no están en `test:navegador`.
+  - No se probó en teléfono real.
+  - No se archivó este archivo.
+- **Siguiente (fase 1).**
+  - `protocolo`, `nucleo` y los tres reglamentos en `paquetes/`, ejecutables en Node, con sucesos anotados.
+  - El juego los usa sin cambiar la interfaz.
+  - Criterio: `npm test` con `partida-referencias` y `npm run test:navegador` con el contraste, sin regrabar nada.
+  - Las herramientas de `herramientas/partida/` pasarán a importar los paquetes en vez de los scripts globales.
+  - Antes de la fase 2, unir `trunk` (editor de terreno, toca `vistas.js`). Decisiones abiertas en el plan.
+
 ## Cambio de dirección: Steam, arquitectura modular y retirada de «sin compilación» · 15 de noviembre de 2026
 
 - **Decisión del autor.** Steam primero (Electron) y Android después (Capacitor); el navegador queda como canal de QA. Se mantiene la tecnología web y JavaScript/Python reales. Los efectos de batalla son prioritarios en equipo modesto. El diseño actual de War, Factory y Campaign no es definitivo.
