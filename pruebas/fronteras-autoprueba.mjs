@@ -17,6 +17,7 @@ const esperadas = [
   ['lenguaje/entorno.js', 'entorno', 1],
   ['vfx/entorno.js', 'entorno', 1],
   ['nucleo/rutas.js', 'import-ruta', 4],
+  ['reglas-war/pruebas/rutas.mjs', 'import-ruta', 2],
   ['nucleo/rutas.js', 'import-desnudo', 3],
   ['protocolo/dependencias.js', 'import-dependencia', 4],
   ['lenguaje/desnudos.js', 'import-desnudo', 5],

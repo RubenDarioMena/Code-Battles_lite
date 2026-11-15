@@ -1,23 +1,96 @@
 # reglas-war
 
-Define el mundo, paso, órdenes y metas de war. Expone las lecturas, modos y encargos de los programas sin depender de las vistas.
+Estado: fase 1.
 
-## Puede importar
+Reglamento War sin pantalla, en módulos ES y ejecutable en Node. Conserva las
+operaciones, textos, catálogo y retos de los antiguos `js/war.js` y
+`js/war-retos.js`. Solo importa entradas públicas de `nucleo` y `protocolo`;
+véanse las [fronteras de paquetes](../README.md). Contratos en `index.d.ts`.
 
-`nucleo`, `protocolo`. Véanse las reglas de [paquetes](../README.md).
+## Entrada pública
 
-## Contrato
+`index.js` exporta por defecto el reglamento con `id: 'war'` y `version: 1`:
 
-`export default { id, version, crearMundo(escenario, rng), paso(mundo, dt), aplicarOrden(mundo, orden), instantanea(mundo), evaluar(mundo), api }`.
+- `crearMundo({ reto }, rng)` recibe un reto **ya normalizado** y un RNG creado
+  por el núcleo. Devuelve el mundo activo con `semilla: null`; la semilla de la
+  partida pertenece al núcleo. Adjunta el registro de sucesos no enumerable.
+- `paso(mundo, dt)` e `instantanea(mundo)` reutilizan una conexión por mundo
+  guardada en un `WeakMap`. No dibujan ni escriben registros de presentación.
+  La instantánea conserva `{ t, maq, auto, vib }`, con las mismas lecturas y
+  predicciones de los programas del juego.
+- `aplicarOrden(mundo, orden)` lee `unidad`, `verbo` y `args[0]` como lugar.
+  Conserva ese objeto por referencia y no valida en este camino. `stopFire` o
+  un lugar nulo dejan el lanzador parado; `burstFire` selecciona ráfaga y
+  `regularShoot` selecciona disparo regular (el mismo nombre que la API del jugador). Las órdenes se validan en el núcleo.
+- `evaluar(mundo)` devuelve `mundo.final ?? null`. Al terminar se guardan
+  `{ fin, motivo, mensaje }`, se actualiza `mundo.fin` y se desactiva el mundo.
+- `api` contiene datos planos: `ordenes` (`regularShoot`, `burstFire`, `stopFire`),
+  `tipos` y `sensores`, copiados de los catálogos existentes.
 
-## De dónde sale
+La partida se crea con `crearPartida({ reglas, escenario: { reto }, semilla })`
+de `nucleo`. Su guardado conserva escenario, semilla y órdenes; `restaurar`
+repite los pasos para recuperar mundo, sucesos y resultado.
 
-`Prototypes/Rocket Launcher/js/war.js`, `Prototypes/Rocket Launcher/js/war-retos.js`
+## Sucesos
+
+Se anotan junto a las operaciones originales, sin cambiar el orden de sus
+mutaciones ni de sus hooks. Cada suceso lleva `paso`, `tipo`, una `unidad`
+cuando procede y los siguientes `datos`. Solo usan números finitos, cadenas
+y `null`; `sin-misiles` no necesita datos.
+
+| Tipo | Unidad | Datos |
+| --- | --- | --- |
+| `aparece` | Enemigo | `tipo`, `x`, `y` al crearse, antes de avanzar |
+| `brecha` | Enemigo | `tipo`, `x`, `y` al cruzar la base |
+| `disparo` | Lanzador | `misil` (número), destino `x`, `y`, `z`, `objetivo` (id o null) |
+| `sin-misiles` | Lanzador | Sin datos; una vez al entrar en espera de suministro |
+| `atasco` | Lanzador | `falla`, `tReparar` |
+| `explosion` | Lanzador | `x`, `y`, `z`, `golpe` (0 o 1), `misil` (número o null en atasco) |
+| `golpe` | Enemigo | `hp` después del impacto |
+| `derribo` | Enemigo | `tipo`, `por` (lanzador) |
+| `reparado` | Lanzador | `por` (reparador) |
+| `fin` | Sin unidad | `fin`, `motivo` (cadena o null) |
+
+Un atasco genera también su explosión local. El registro queda fuera de
+`Object.keys`, `JSON.stringify` y las copias enumerables del mundo; se consulta
+con `partida.sucesos()`. Conserva el límite habitual del núcleo (2000 sucesos).
+
+## Compatibilidad temporal
+
+`legado` expone `crear`, `conectar`, `aplicarOrden`, `TIPOS`, `SENSOR`, `LAU`,
+`MISIL`, `REP`, `COSTE` y `cadencia`. `crear(def, semilla, rng = crearRng(semilla))`
+conserva el arranque inactivo del juego y la siembra anterior. `conectar`
+conserva los hooks `registrar`, `terminar`, `avisoSistema` y `globo`, además de
+`paso`, `evaluar`, `instantanea`, `alcance`, `enRango` y `coste` en su retorno.
+
+`retos` expone `RETOS`, `PROPIO_BASE`, `POS_LANZADORES` y `normalizar` sin cambiar
+sus textos ni su normalización. `compat-paquetes.js` publica copias planas y
+mutables como `WAR` y `WAR_RETOS` antes de `NUCLEO`. La herramienta de partidas
+importa el paquete e inyecta esas copias para los scripts que siguen en `vm`.
+
+Este puente mantiene la interfaz actual durante la extracción. La fase 2 retira
+`legado` y los globales cuando la aplicación use los paquetes directamente.
 
 ## Pruebas
 
-Vivirán en `paquetes/reglas-war/pruebas/`. Criterio: Reglas en Node y paridad con suites y referencias de fase 0; Factory conserva su oráculo.
+```sh
+node paquetes/reglas-war/pruebas/reglas-war.mjs
+node pruebas/partida-war.mjs
+node pruebas/partida-referencias.mjs
+node pruebas/fronteras.mjs
+npm run tipos
+npm test
+```
 
-## Estado
+La suite propia está registrada en `pruebas/todas.mjs`: brecha sin órdenes,
+disparos periódicos sobre objetivos automáticos, validación de todas las
+instantáneas y sucesos recogidos, determinismo, restauración por JSON al terminar
+y durante la partida con una orden pendiente, referencia del lugar, RNG,
+atasco, reparación y agotamiento de misiles. Compara también evolución y orden
+de llamadas a hooks con y sin registro. Se ejecuta sin entorno de navegador.
+Las pruebas importan `../../nucleo/index.js` y `../../protocolo/index.js`: desde
+`pruebas/` la ruta exacta a la entrada pública sube un nivel más.
 
-Vacío desde la fase 0: solo manifiesto y contrato. No se crea `index.js` todavía; las entradas públicas empiezan en la fase 1.
+Las suites de partidas y las 41 referencias de fase 0 protegen la paridad;
+estas verificaciones son de Node/VM. No sustituyen el contraste con Workers
+reales en navegador.

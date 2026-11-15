@@ -1,4 +1,5 @@
 import { performance } from 'node:perf_hooks';
+import { legado, retos } from '../../paquetes/reglas-war/index.js';
 import { DT, avanzar } from '../../paquetes/nucleo/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
@@ -20,11 +21,11 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   const inicio = performance.now();
   const { contexto: C, fuenteWorker } = sesion ?? cargar();
-  const { WAR, WAR_RETOS, RUNTIME } = C;
+  const { RUNTIME } = C;
   const def = campaign ? C.CAMPAIGN_NIVEL.NIVEL : factory ? (reto === 7 ? C.FACTORY_RETOS.normalizar(escenario) : C.FACTORY_RETOS.RETOS[reto - 1])
-    : WAR_RETOS.normalizar(WAR_RETOS.RETOS[reto - 1]);
+    : retos.normalizar(retos.RETOS[reto - 1]);
   if (escenario && (!factory || reto !== 7)) throw new Error('Solo Factory --reto 7 admite escenario propio.');
-  const mundo = sesion?.mundo ?? (factory ? C.FACTORY : WAR).crear(def, semilla);
+  const mundo = sesion?.mundo ?? (factory ? C.FACTORY : legado).crear(def, semilla);
   const lenguaje = crearInstrumentador(C, mundo, reglas);
   const huella = crearHuella();
   const mensajes = {};
@@ -44,7 +45,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
     for (const p of ejec.progs.values()) p.worker.terminate();
   };
   let extension;
-  const combate = (factory || campaign) ? (extension = conectarReglas(C, mundo, ejec, terminar)).reglas : WAR.conectar(mundo, {
+  const combate = (factory || campaign) ? (extension = conectarReglas(C, mundo, ejec, terminar)).reglas : legado.conectar(mundo, {
     registrar, terminar,
     // Ambos hooks son exclusivamente presentación; no escriben en las reglas.
     avisoSistema() {}, globo() {},
@@ -67,13 +68,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
       registrar(p.id, m.linea, m.que, fmtValor(m.valor), 'sensor');
     } else if (m.type === 'cmd') {
       contarUso(p.id, m.verbo);
-      const l = mundo.porId[p.id];
-      if (m.verbo === 'stopFire' || !m.lugar) { l.modo = 'idle'; l.lugar = null; }
-      else {
-        const modo = m.verbo === 'burstFire' ? 'burst' : 'regular';
-        if (modo === 'burst' && l.modo !== 'burst') l.falla = Math.max(l.falla, WAR.LAU.fallaRafaga);
-        l.modo = modo; l.lugar = m.lugar;
-      }
+      legado.aplicarOrden(mundo, { paso: Math.round(mundo.t / DT), origen: "programa", unidad: p.id, verbo: m.verbo, args: [m.lugar ?? null] });
       registrar(p.id, m.linea, `${m.verbo}(${m.verbo === 'stopFire' ? '' : fmtLugar(m.lugar)})`, m.res, m.res === 'ok' ? 'ok' : 'warn');
     } else if (m.type === 'consola') {
       mundo.consolas[m.nivel] = (mundo.consolas[m.nivel] || 0) + 1;
@@ -123,8 +118,8 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
     ejec.progs.set(l.id, p);
     p.worker.postMessage({ type: 'run', serie: def.serie, lenguaje: ejec.lenguajes[l.id], codigo: codigos[l.id],
       propia: l.id, nombres: (campaign ? mundo.unidades : factory ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(e => e.id),
-      tipos: Object.keys(WAR.TIPOS), sensores: Object.keys(WAR.SENSOR),
-      conf: { fallaRafaga: WAR.LAU.fallaRafaga, cadencia: WAR.LAU.cadencia, cadenciaRafaga: WAR.LAU.cadenciaRafaga }, snap });
+      tipos: Object.keys(legado.TIPOS), sensores: Object.keys(legado.SENSOR),
+      conf: { fallaRafaga: legado.LAU.fallaRafaga, cadencia: legado.LAU.cadencia, cadenciaRafaga: legado.LAU.cadenciaRafaga }, snap });
   }
   if (factory) combate.evaluar();
   // El acumulador real de bucle(now) solo dosifica pasos. Aquí se ofrece un DT

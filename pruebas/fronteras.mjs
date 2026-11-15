@@ -84,7 +84,9 @@ async function principal() {
       if (fuente.startsWith('./') || fuente.startsWith('../')) {
         const destino = posix.normalize(posix.join(posix.dirname(local), fuente));
         if (destino.startsWith(`${paquete}/`)) return;
-        const entrada = /^\.\.\/([^/]+)\/index\.js$/.exec(fuente);
+        // Ruta relativa exacta a la entrada pública, también desde subcarpetas (p. ej. pruebas/).
+        const profundidad = posix.dirname(local).split('/').length;
+        const entrada = new RegExp(`^(?:\\.\\./){${profundidad}}([^/]+)/index\\.js$`).exec(fuente);
         if (!entrada) informar(nodo, 'import-ruta', `entrada pública requerida: ${fuente}`);
         else if (!dependencias[paquete]?.includes(entrada[1])) {
           informar(nodo, 'import-dependencia', `${paquete} no puede importar ${entrada[1]}`);

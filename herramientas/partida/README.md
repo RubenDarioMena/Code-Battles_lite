@@ -142,7 +142,10 @@ de aquella prueba no son referencias del Worker: sus programas deciden otras rut
 
 - `cargar.mjs`: contexto sin DOM y captura del Worker real mediante Blob/URL
   falsos. Scripts seleccionados desde `index.html`, conservando su orden.
-  Incluye los tres reglamentos y retos, proveedor Python, traductor, Lezer y Acorn.
+  War y sus retos se importan desde `paquetes/reglas-war/index.js`; se inyectan
+  copias planas de `legado` y `retos` como `WAR`/`WAR_RETOS` antes de cargar los
+  scripts que siguen en `vm`. Factory y Campaign siguen cargándose desde sus
+  scripts reales. Incluye proveedor Python, traductor, Lezer y Acorn.
 - `instrumentar.mjs`: extrae de `juego.js` el bloque `const KW`–`instrumentar`
   y las funciones puras de revisión, Python y formato. Acorn valida los límites;
   ausencia, duplicidad o cambio estructural fallan explícitamente. La serie
@@ -152,7 +155,10 @@ de aquella prueba no son referencias del Worker: sus programas deciden otras rut
   Cada evaluación y sus microtareas tienen un timeout de VM de 1000 ms.
 - `ciclo.mjs`: carga, revisión/traducción, arranque, mensajes comunes, entrega,
   paso fijo con `DT`/`avanzar` importados de `paquetes/nucleo` y
-  `RUNTIME.despertar`, huella y limpieza.
+  `RUNTIME.despertar`, huella y limpieza. Usa `legado` y `retos` importados de
+  `paquetes/reglas-war`; las órdenes War pasan por `legado.aplicarOrden` con
+  `{ paso: Math.round(mundo.t / DT), origen: "programa", unidad, verbo,
+  args: [lugar ?? null] }`, igual que en el juego, antes del registro original.
 - `anfitrion-war.mjs`: `ejecutarWar(opciones)` y `resultadoWar`; conserva el
   contrato anterior; los diez SHA-256 comprobados en 3a están en las referencias.
 - `anfitrion-factory.mjs`: `ejecutarFactory(opciones)`, `resultadoFactory` y

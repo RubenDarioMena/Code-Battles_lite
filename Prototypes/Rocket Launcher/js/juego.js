@@ -360,13 +360,7 @@
   }
 
   function aplicarOrden(id, m) {
-    const l = mundo.porId[id];
-    if (m.verbo === "stopFire" || !m.lugar) { l.modo = "idle"; l.lugar = null; }
-    else {
-      const modo = m.verbo === "burstFire" ? "burst" : "regular";
-      if (modo === "burst" && l.modo !== "burst") l.falla = Math.max(l.falla, LAU.fallaRafaga);
-      l.modo = modo; l.lugar = m.lugar;
-    }
+    window.WAR.aplicarOrden(mundo, { paso: Math.round(mundo.t / DT), origen: "programa", unidad: id, verbo: m.verbo, args: [m.lugar ?? null] });
     const arg = m.verbo === "stopFire" ? "" : fmtLugar(m.lugar);
     registrar(id, m.linea, `${m.verbo}(${arg})`, m.res, m.res === "ok" ? "ok" : "warn");
   }

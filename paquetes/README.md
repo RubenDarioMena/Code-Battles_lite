@@ -28,7 +28,7 @@ Los contratos son orientativos: los nombres definitivos los fija la fase 2.
 ## Imports
 
 Entre paquetes solo se admite la entrada pública mediante ruta relativa exacta:
-`../nucleo/index.js`. No se admiten especificadores desnudos entre paquetes,
+`../nucleo/index.js` (desde una subcarpeta como `pruebas/`, `../../nucleo/index.js`). No se admiten especificadores desnudos entre paquetes,
 archivos internos, alias, sufijos de consulta ni rutas alternativas. Esto funciona
 en navegador y Node sin compilación ni mapa de imports entre paquetes.
 Los imports relativos internos están permitidos. `import()` exige cadena literal.

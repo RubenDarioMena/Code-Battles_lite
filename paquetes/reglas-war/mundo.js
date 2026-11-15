@@ -1,66 +1,74 @@
 /* Catálogo y reglas de combate, trasladados de juego.js. */
-(() => {
-  "use strict";
-  const LINEA_BASE = 3, T_LIMITE = 400;
-  const TIPOS = {
-    crawler: { nombre: "oruga", suelo: true, z: 0, vel: 0.8, hp: 2, frio: false, letra: "O" },
-    drone: { nombre: "dron", suelo: false, z: 2.5, vel: 2.0, hp: 1, frio: false, letra: "D" },
-    stealth: { nombre: "dron frío", suelo: false, z: 2.0, vel: 1.5, hp: 1, frio: true, letra: "F" },
-  };
-  const SENSOR = {
-    visual: { nombre: "cámara", alcance: 14, niebla: 5.5 },
-    thermal: { nombre: "térmico", alcance: 11, niebla: 7 },
-  };
-  const LAU = { cadencia: 1, cadenciaRafaga: 2.2, cargador: 8, suministro: 1, fallaBase: 0.02, fallaRafaga: 0.04, subida: 0.06, bajada: 0.1, bajadaParado: 0.2 };
-  const MISIL = { vel: 14, radio: 1.3 };
-  const REP = { vel: 4, tBase: 1.5, tPorFallo: 12 };  // reparar tarda más si el fallo llegó con failureRate alto
-  const COSTE = { misil: 10, reparacion: 40 };
-  function mulberry32(a) {
-    return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+import { crearRng, adjuntarSucesos, anotarSuceso } from '../nucleo/index.js';
+
+const LINEA_BASE = 3, T_LIMITE = 400;
+export const TIPOS = {
+  crawler: { nombre: "oruga", suelo: true, z: 0, vel: 0.8, hp: 2, frio: false, letra: "O" },
+  drone: { nombre: "dron", suelo: false, z: 2.5, vel: 2.0, hp: 1, frio: false, letra: "D" },
+  stealth: { nombre: "dron frío", suelo: false, z: 2.0, vel: 1.5, hp: 1, frio: true, letra: "F" },
+};
+export const SENSOR = {
+  visual: { nombre: "cámara", alcance: 14, niebla: 5.5 },
+  thermal: { nombre: "térmico", alcance: 11, niebla: 7 },
+};
+export const LAU = { cadencia: 1, cadenciaRafaga: 2.2, cargador: 8, suministro: 1, fallaBase: 0.02, fallaRafaga: 0.04, subida: 0.06, bajada: 0.1, bajadaParado: 0.2 };
+export const MISIL = { vel: 14, radio: 1.3 };
+export const REP = { vel: 4, tBase: 1.5, tPorFallo: 12 };  // reparar tarda más si el fallo llegó con failureRate alto
+export const COSTE = { misil: 10, reparacion: 40 };
+const r2 = (v) => Math.round(v * 100) / 100, r3 = (v) => Math.round(v * 1000) / 1000;
+const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");  // decimales en los textos para personas
+export const cadencia = (modo) => modo === "burst" ? LAU.cadenciaRafaga : modo === "regular" ? LAU.cadencia : 0;
+
+/** @param {import('./index.js').Reto} def
+ * @param {number | null} semilla
+ * @param {import('../nucleo/index.js').Rng} rng */
+export function crear(def, semilla, rng = crearRng(semilla)) {
+  /** @type {import('./index.js').Mundo['pendientes']} */
+  const pendientes = []; let orden = 0;
+  for (const o of def.oleadas) {
+    const tp = TIPOS[o.tipo];
+    const carriles = o.carriles.length ? o.carriles : [9];
+    for (let i = 0; i < o.n; i++) pendientes.push({ tipo: o.tipo, nace: o.t + i * o.cada, y: carriles[i % carriles.length] + .5, hp: o.hp || tp.hp, vel: o.vel || tp.vel, orden: orden++ });
   }
-  const r2 = (v) => Math.round(v * 100) / 100, r3 = (v) => Math.round(v * 1000) / 1000;
-  const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");  // decimales en los textos para personas
-  const cadencia = (modo) => modo === "burst" ? LAU.cadenciaRafaga : modo === "regular" ? LAU.cadencia : 0;
-
-  function crearMundo(def, semilla) {
-    const pendientes = []; let orden = 0;
-    for (const o of def.oleadas) {
-      const tp = TIPOS[o.tipo];
-      const carriles = o.carriles.length ? o.carriles : [9];
-      for (let i = 0; i < o.n; i++) pendientes.push({ tipo: o.tipo, nace: o.t + i * o.cada, y: carriles[i % carriles.length] + .5, hp: o.hp || tp.hp, vel: o.vel || tp.vel, orden: orden++ });
-    }
-    pendientes.sort((a, b) => a.nace - b.nace || a.orden - b.orden);
-    const cuenta = {};
-    for (const p of pendientes) { cuenta[p.tipo] = (cuenta[p.tipo] || 0) + 1; p.id = TIPOS[p.tipo].letra + cuenta[p.tipo]; }
-    const lanzadores = def.lanzadores.map(l => ({
-      id: l.id, clase: "lanzador", cx: l.x + .5, cy: l.y + .5, modo: "idle", lugar: null, cd: 0, misiles: def.cargador, carga: 0,
-      falla: LAU.fallaBase, riesgo: 0, umbral: 1, tReparar: 0, atascado: false, yaw: Math.PI, sinMisiles: false,
-      st: { consumidos: 0, lanzados: 0, impactos: 0, derribos: 0, atascos: 0, tRafaga: 0, fallaMax: LAU.fallaBase },
-    }));
-    const sensores = def.sensores.map(s => ({ id: s.id, clase: "vibracion", cx: s.x + .5, cy: s.y + .5, alcance: s.alcance, st: { lecturas: 0 } }));
-    const deposito = { id: "DEP-01", clase: "deposito", cx: 1.5, cy: 9.5 };
-    const reparadores = [];
-    for (let i = 0; i < def.reparadores; i++) {
-      const bx = 2.4, by = 7.4 + i * 1.1;
-      reparadores.push({ id: `REP-0${i + 1}`, clase: "reparador", cx: bx, cy: by, bx, by, estado: "base", objetivo: null, t: 0, st: { reparaciones: 0 } });
-    }
-    const maquinas = [...lanzadores, ...sensores, deposito, ...reparadores];
-    const rng = mulberry32((semilla * 2654435761) >>> 0);
-    for (const l of lanzadores) l.umbral = .75 + rng() / 2;
-    return {
-      def, semilla, rng, t: 0, activo: false, fin: null,
-      programables: lanzadores, lanzadores, sensores, deposito, reparadores, maquinas, porId: Object.fromEntries(maquinas.map(e => [e.id, e])),
-      colaReparar: [], pendientes, enemigos: [], misiles: [], explosiones: [], derribados: [], sigMisil: 1,
-      brechas: 0, derribos: 0, consumidos: 0, impactos: 0, atascos: 0, reparaciones: 0, total: pendientes.length, detalleAtascos: [],
-      eventos: [], uso: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 },
-    };
+  pendientes.sort((a, b) => a.nace - b.nace || a.orden - b.orden);
+  const cuenta = {};
+  for (const p of pendientes) { cuenta[p.tipo] = (cuenta[p.tipo] || 0) + 1; p.id = TIPOS[p.tipo].letra + cuenta[p.tipo]; }
+  const lanzadores = def.lanzadores.map(l => ({
+    id: l.id, clase: "lanzador", cx: l.x + .5, cy: l.y + .5, modo: "idle", lugar: null, cd: 0, misiles: def.cargador, carga: 0,
+    falla: LAU.fallaBase, riesgo: 0, umbral: 1, tReparar: 0, atascado: false, yaw: Math.PI, sinMisiles: false,
+    st: { consumidos: 0, lanzados: 0, impactos: 0, derribos: 0, atascos: 0, tRafaga: 0, fallaMax: LAU.fallaBase },
+  }));
+  const sensores = def.sensores.map(s => ({ id: s.id, clase: "vibracion", cx: s.x + .5, cy: s.y + .5, alcance: s.alcance, st: { lecturas: 0 } }));
+  const deposito = { id: "DEP-01", clase: "deposito", cx: 1.5, cy: 9.5 };
+  const reparadores = [];
+  for (let i = 0; i < def.reparadores; i++) {
+    const bx = 2.4, by = 7.4 + i * 1.1;
+    reparadores.push({ id: `REP-0${i + 1}`, clase: "reparador", cx: bx, cy: by, bx, by, estado: "base", objetivo: null, t: 0, st: { reparaciones: 0 } });
   }
+  const maquinas = [...lanzadores, ...sensores, deposito, ...reparadores];
+  for (const l of lanzadores) l.umbral = .75 + rng() / 2;
+  const mundo = {
+    def, semilla, rng, t: 0, activo: false, fin: null,
+    programables: lanzadores, lanzadores, sensores, deposito, reparadores, maquinas, porId: Object.fromEntries(maquinas.map(e => [e.id, e])),
+    colaReparar: [], pendientes, enemigos: [], misiles: [], explosiones: [], derribados: [], sigMisil: 1,
+    brechas: 0, derribos: 0, consumidos: 0, impactos: 0, atascos: 0, reparaciones: 0, total: pendientes.length, detalleAtascos: [],
+    eventos: [], uso: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 },
+  };
+  adjuntarSucesos(mundo);
+  return mundo;
+}
 
 
-  function conectar(mundo, hooks) {
-    const { registrar, terminar, avisoSistema, globo } = hooks;
-    const COLS = mundo.def.mapa?.cols || 32;
-    const alcance = sensor => mundo.def.niebla ? SENSOR[sensor].niebla : SENSOR[sensor].alcance;
+/** @param {import('./index.js').Mundo} mundo
+ * @param {import('./index.js').Ganchos} hooks */
+export function conectar(mundo, hooks) {
+  const { registrar, terminar: terminarOriginal, avisoSistema, globo } = hooks;
+  function terminar(fin, motivo, mensaje) {
+    anotarSuceso(mundo, "fin", null, { fin, motivo });
+    return terminarOriginal(fin, motivo, mensaje);
+  }
+  const COLS = mundo.def.mapa?.cols || 32;
+  const alcance = sensor => mundo.def.niebla ? SENSOR[sensor].niebla : SENSOR[sensor].alcance;
   function visible(l, e, sensor) {
     if (sensor === "thermal" && TIPOS[e.tipo].frio) return false;
     return Math.hypot(e.x - l.cx, e.y - l.cy) <= alcance(sensor) + 1e-9;
@@ -115,11 +123,13 @@
     while (m.pendientes.length && m.pendientes[0].nace <= m.t + 1e-9) {
       const p = m.pendientes.shift(), tp = TIPOS[p.tipo];
       m.enemigos.push({ id: p.id, tipo: p.tipo, x: COLS + .4, y: p.y, z: tp.z, vx: -p.vel, vy: 0, hp: p.hp, hpMax: p.hp, golpeT: -9 });
+      anotarSuceso(mundo, "aparece", p.id, { tipo: p.tipo, x: COLS + .4, y: p.y });
     }
     for (const e of m.enemigos) { e.x += e.vx * dt; e.y += e.vy * dt; }
     for (const e of m.enemigos) {
       if (e.x > LINEA_BASE) continue;
       e.fuera = true; m.brechas++;
+      anotarSuceso(mundo, "brecha", e.id, { tipo: e.tipo, x: e.x, y: e.y });
       registrar("—", null, `${TIPOS[e.tipo].nombre} ${e.id}`, "brecha", "bad");
       avisoSistema(`Brecha: ${TIPOS[e.tipo].nombre} ${e.id} cruzó la línea de la base.`);
     }
@@ -144,7 +154,7 @@
     if (l.lugar) l.yaw = Math.atan2(l.lugar.y - l.cy, l.lugar.x - l.cx);
     if (l.modo === "idle" || !l.lugar || l.atascado || l.cd > 1e-9) return;
     if (l.misiles < 1) {
-      if (!l.sinMisiles) { l.sinMisiles = true; registrar(l.id, null, "disparo", "sin_misiles", "warn"); globo(l.id, "sistema", "Sin misiles: espero al suministro"); }
+      if (!l.sinMisiles) { l.sinMisiles = true; anotarSuceso(mundo, "sin-misiles", l.id); registrar(l.id, null, "disparo", "sin_misiles", "warn"); globo(l.id, "sistema", "Sin misiles: espero al suministro"); }
       return;
     }
     l.sinMisiles = false;
@@ -160,12 +170,15 @@
       m.detalleAtascos.push({ t: r2(m.t), id: l.id, falla: r3(l.falla), tReparar: r2(l.tReparar) });
       m.colaReparar.push(l.id);
       m.explosiones.push({ x: l.cx, y: l.cy, z: 1, t0: m.t, atasco: true });
+      anotarSuceso(mundo, "atasco", l.id, { falla: l.falla, tReparar: l.tReparar });
+      anotarSuceso(mundo, "explosion", l.id, { x: l.cx, y: l.cy, z: 1, golpe: 0, misil: null });
       registrar(l.id, null, `fallo con failureRate ${l.falla.toFixed(2)}`, "atasco", "bad");
       globo(l.id, "sistema", m.reparadores.length ? `¡Atasco con fallo al ${Math.round(l.falla * 100)} %! Reparar: ${coma(l.tReparar)} s` : `¡Atasco! No hay robot reparador.`);
       return;
     }
     const L = l.lugar, d = Math.hypot(L.x - l.cx, L.y - l.cy);
     m.misiles.push({ id: m.sigMisil++, de: l.id, x0: l.cx, y0: l.cy, z0: 1, x1: L.x, y1: L.y, z1: L.z || 0, t0: m.t, dur: Math.max(0.12, d / MISIL.vel), objetivo: L.id || null, arco: 0.6 + d * 0.16 });
+    anotarSuceso(mundo, "disparo", l.id, { misil: m.sigMisil - 1, x: L.x, y: L.y, z: L.z || 0, objetivo: L.id || null });
     l.st.lanzados++;
   }
 
@@ -176,15 +189,18 @@
     for (const e of m.enemigos) {
       if (Math.hypot(e.x - mi.x1, e.y - mi.y1, e.z - mi.z1) > MISIL.radio) continue;
       e.hp--; e.golpeT = m.t; golpe = true;
+      anotarSuceso(mundo, "golpe", e.id, { hp: e.hp });
       if (e.hp <= 0) {
         e.muerto = true; m.derribos++;
         const l = m.porId[mi.de]; if (l) l.st.derribos++;
         m.derribados.push({ x: e.x, y: e.y, z: e.z, t0: m.t, tipo: e.tipo });
+        anotarSuceso(mundo, "derribo", e.id, { tipo: e.tipo, por: mi.de });
         registrar(mi.de, null, `${TIPOS[e.tipo].nombre} ${e.id}`, "derribado", "ok");
       }
     }
     if (golpe) { m.impactos++; const l = m.porId[mi.de]; if (l) l.st.impactos++; }
     m.explosiones.push({ x: mi.x1, y: mi.y1, z: mi.z1, t0: m.t, golpe });
+    anotarSuceso(mundo, "explosion", mi.de, { x: mi.x1, y: mi.y1, z: mi.z1, golpe: golpe ? 1 : 0, misil: mi.id });
     m.enemigos = m.enemigos.filter(e => !e.muerto);
   }
 
@@ -206,6 +222,7 @@
       if (r.t <= 1e-9) {
         const l = m.porId[r.objetivo];
         l.atascado = false; m.reparaciones++; r.st.reparaciones++;
+        anotarSuceso(mundo, "reparado", l.id, { por: r.id });
         registrar(r.id, null, `reparar ${l.id}`, "reparado", "ok");
         globo(l.id, "sistema", "Reparado");
         r.objetivo = null;
@@ -235,7 +252,18 @@
   }
 
 
-    return { paso, evaluar, instantanea, alcance, enRango, coste };
+  return { paso, evaluar, instantanea, alcance, enRango, coste };
+}
+
+/** Aplica la orden conservando la referencia del lugar, sin validar.
+ * @param {import('./index.js').Mundo} mundo
+ * @param {import('../protocolo/index.js').Orden} orden */
+export function aplicarOrden(mundo, orden) {
+  const l = mundo.porId[orden.unidad], lugar = /** @type {import('./index.js').Lugar | null} */ (orden.args[0]);
+  if (orden.verbo === "stopFire" || !lugar) { l.modo = "idle"; l.lugar = null; }
+  else {
+    const modo = orden.verbo === "burstFire" ? "burst" : "regular";
+    if (modo === "burst" && l.modo !== "burst") l.falla = Math.max(l.falla, LAU.fallaRafaga);
+    l.modo = modo; l.lugar = lugar;
   }
-  window.WAR = { crear: crearMundo, conectar, TIPOS, SENSOR, LAU, MISIL, REP, COSTE, cadencia };
-})();
+}
