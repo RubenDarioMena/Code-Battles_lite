@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="384" height="256">
+  <title>Moldeadora</title>
+  <desc>Molde partido que se abre en horizontal: mitad fija de acero y mitad móvil blanca empujada por dos cilindros. La cavidad es la planta de la base con aletas.</desc>
+  <defs><clipPath id="cf"><rect x="62" y="18.5" width="9" height="20"/></clipPath><clipPath id="cm"><rect x="47" y="18.5" width="9" height="20"/></clipPath></defs>
+  <g id="bandejas" data-entrada="11,46" data-salida="87,42">
+    <rect x="4" y="38" width="14" height="14" rx="1" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="4" y="38" width="14" height="12" rx="1" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="5.5" y="39.5" width="11" height="9" rx="0.5" fill="#6c7584"/>
+    <rect x="5.5" y="39.5" width="11" height="1.2" rx="0.5" fill="#3fc1e0"/>
+    <rect x="5.5" y="47.3" width="11" height="1.2" rx="0.5" fill="#3fc1e0"/>
+    <path d="M9.5 42 L12 44 L9.5 46" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect x="80" y="34" width="14" height="14" rx="1" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="80" y="34" width="14" height="12" rx="1" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="81.5" y="35.5" width="11" height="9" rx="0.5" fill="#6c7584"/>
+    <rect x="81.5" y="35.5" width="11" height="1.2" rx="0.5" fill="#f6b817"/>
+    <rect x="81.5" y="43.3" width="11" height="1.2" rx="0.5" fill="#f6b817"/>
+    <path d="M85.5 38 L88 40 L85.5 42" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <g id="carcasa">
+    <rect x="18" y="20" width="60" height="40" rx="2" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="18" y="20" width="60" height="38" rx="2" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <circle cx="20.5" cy="22.5" r="0.7" fill="#3a4150"/>
+    <circle cx="20.5" cy="55.5" r="0.7" fill="#3a4150"/>
+    <circle cx="75.5" cy="22.5" r="0.7" fill="#3a4150"/>
+    <circle cx="75.5" cy="55.5" r="0.7" fill="#3a4150"/>
+    <rect x="21" y="20" width="22" height="30" rx="1" fill="#55318f" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="21" y="20" width="22" height="26" rx="1" fill="#7b4cc4" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="42" y="12" width="34" height="42" rx="1.5" fill="#55318f" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="42" y="12" width="34" height="32" rx="1.5" fill="#7b4cc4" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="43.5" y="13.5" width="31" height="1" rx="0.5" fill="#9a72dc"/>
+    <rect x="45" y="16" width="28" height="25" rx="1" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <circle cx="43.7" cy="14" r="0.7" fill="#9a72dc"/>
+    <circle cx="74.3" cy="14" r="0.7" fill="#9a72dc"/>
+    <circle cx="43.7" cy="42" r="0.7" fill="#9a72dc"/>
+    <circle cx="74.3" cy="42" r="0.7" fill="#9a72dc"/>
+  </g>
+  <g id="molde-fijo" data-ancla="61.5,28.5">
+    <rect x="61.5" y="18" width="10" height="21" rx="0.6" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="62.5" y="19" width="8" height="1" rx="0.5" fill="#c3cad5"/>
+    <g clip-path="url(#cf)">
+    <path d="M64.06 27.20 L67.70 27.20 L67.70 29.80 L64.06 29.80 L63.76 30.76 L62.80 31.06 L62.80 34.70 L60.20 34.70 L60.20 31.06 L59.24 30.76 L58.94 29.80 L55.30 29.80 L55.30 27.20 L58.94 27.20 L59.24 26.24 L60.20 25.94 L60.20 22.30 L62.80 22.30 L62.80 25.94 L63.76 26.24 Z" fill="#252a36" stroke="#171b26" stroke-width="0.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g id="molde-movil" data-ancla="56.5,28.5" data-recorrido-x="0..5">
+    <rect x="41" y="21.5" width="6" height="2.5" rx="0.5" fill="#f2f4f7" stroke="#171b26" stroke-width="0.6" stroke-linejoin="round"/>
+    <rect x="41" y="33.5" width="6" height="2.5" rx="0.5" fill="#f2f4f7" stroke="#171b26" stroke-width="0.6" stroke-linejoin="round"/>
+    <rect x="46.5" y="18" width="10" height="21" rx="0.6" fill="#f2f4f7" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="47.5" y="19" width="8" height="1" rx="0.5" fill="#ffffff"/>
+    <g clip-path="url(#cm)">
+    <path d="M59.06 27.20 L62.70 27.20 L62.70 29.80 L59.06 29.80 L58.76 30.76 L57.80 31.06 L57.80 34.70 L55.20 34.70 L55.20 31.06 L54.24 30.76 L53.94 29.80 L50.30 29.80 L50.30 27.20 L53.94 27.20 L54.24 26.24 L55.20 25.94 L55.20 22.30 L57.80 22.30 L57.80 25.94 L58.76 26.24 Z" fill="#252a36" stroke="#171b26" stroke-width="0.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g id="cilindros">
+    <rect x="22" y="19.3" width="19" height="7" rx="2.5" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="24" y="20.8" width="15" height="1" rx="0.5" fill="#c3cad5"/>
+    <rect x="22" y="24.3" width="19" height="1.5" rx="0.5" fill="#6c7584"/>
+    <rect x="39" y="18.3" width="3.5" height="9" rx="1" fill="#f6b817" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="22" y="31.3" width="19" height="7" rx="2.5" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="24" y="32.8" width="15" height="1" rx="0.5" fill="#c3cad5"/>
+    <rect x="22" y="36.3" width="19" height="1.5" rx="0.5" fill="#6c7584"/>
+    <rect x="39" y="30.3" width="3.5" height="9" rx="1" fill="#f6b817" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  </g>
+  <g id="consola">
+    <rect x="66" y="49" width="8" height="8" rx="0.8" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="66" y="49" width="8" height="4" rx="0.8" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="67.2" y="50.2" width="3.6" height="2.2" rx="0.3" fill="#3fc1e0"/>
+    <circle id="piloto" cx="72.2" cy="51.3" r="1" fill="#59606e" data-encendido="#7dff6a"/>
+  </g>
+</svg>
