@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 128" width="384" height="256">
+  <title>Fundidora</title>
+  <desc>Crisol basculante elevado a la izquierda, molde intercambiable más bajo a la derecha y bandeja. Capas: bandeja, molde, base, crisol (gira sobre 76,68; contiene metal), munon.</desc>
+  <style>
+  .o{stroke:#171b26;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+  .t{stroke:#171b26;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .n{stroke:none}
+  .k{fill:#171b26}
+  .d{fill:#343944}.m{fill:#4d5461}.l{fill:#6f7786}
+  .s{fill:#aab2bf}.h{fill:#dfe4ea}.w{fill:#f6f8fa}
+  .y{fill:#f6b817}.yd{fill:#c2870a}
+  .g{fill:#1f6a2c}.gl{fill:#35a043}
+  .f{fill:#ff7a1a}.fl{fill:#ffc04d}
+  .hi{fill:#fff;opacity:.22}.sh{fill:#000;opacity:.22}
+</style>
+  <defs><pattern id="franjas" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <rect width="12" height="12" fill="#f6b817"/><rect width="6" height="12" fill="#22262f"/>
+  </pattern></defs>
+  <g id="bandeja" data-ancla="165,100">
+    <rect x="152" y="112" width="8" height="6" rx="2" class="k o"/>
+    <rect x="146" y="103" width="38" height="10" rx="2" class="d o"/>
+    <rect x="146" y="94" width="38" height="12" rx="2" class="l o"/>
+    <rect x="149" y="96.5" width="32" height="2.5" rx="1" class="hi n"/>
+  </g>
+  <g id="molde" data-ancla="124,91">
+    <rect x="106" y="112" width="8" height="6" rx="2" class="k o"/>
+    <rect x="136" y="112" width="8" height="6" rx="2" class="k o"/>
+    <rect x="100" y="100" width="48" height="14" rx="3" class="l o"/>
+    <rect x="100" y="78" width="48" height="26" rx="3" class="s o"/>
+    <rect x="103" y="80.5" width="42" height="2.5" rx="1" class="hi n"/>
+    <circle cx="106" cy="84" r="2" class="s t"/>
+    <circle cx="106" cy="98" r="2" class="s t"/>
+    <circle cx="142" cy="84" r="2" class="s t"/>
+    <circle cx="142" cy="98" r="2" class="s t"/>
+    <ellipse cx="124" cy="91" rx="13" ry="8" class="k t"/>
+    <ellipse cx="124" cy="93" rx="10" ry="5" class="d n"/>
+  </g>
+  <g id="base">
+    <rect x="22" y="108" width="10" height="8" rx="2" class="k o"/>
+    <rect x="72" y="108" width="10" height="8" rx="2" class="k o"/>
+    <rect x="14" y="79" width="76" height="33" rx="4" class="d o"/>
+    <rect x="14" y="66" width="76" height="18" rx="4" class="m o"/>
+    <rect x="17" y="68.5" width="70" height="2.5" rx="1" class="hi n"/>
+    <rect x="32" y="94" width="40" height="8" rx="3" class="y t"/>
+    <rect x="8" y="40" width="14" height="40" rx="4" class="d o"/>
+    <rect x="8" y="36" width="14" height="30" rx="4" class="m o"/>
+  </g>
+  <g id="crisol" data-pivote="76,68" data-giro="0..55">
+    <path d="M31.4 21.4 A32 32 0 0 0 31.4 66.6" fill="none" stroke="#171b26" stroke-width="9"/>
+    <path d="M31.4 21.4 A32 32 0 0 0 31.4 66.6" fill="none" stroke="#f6b817" stroke-width="5" stroke-dasharray="5 4"/>
+    <path d="M78 28 L92 36 L80 48 Z" class="m o"/>
+    <circle cx="54" cy="49" r="30" class="d o"/>
+    <circle cx="54" cy="44" r="30" class="m o"/>
+    <path d="M27 39 A28 28 0 0 1 66 19" class="n" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="54" cy="44" r="22" class="k o"/>
+    <g id="metal">
+    <path d="M33 48 A22 22 0 0 0 75 48 Q54 41 33 48 Z" class="f n"/>
+    <path d="M39 49 Q54 44 69 49" class="n" fill="none" stroke="#ffc04d" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  </g>
+  <g id="munon">
+    <circle cx="76" cy="68" r="6" class="s o"/>
+    <circle cx="76" cy="68" r="2" class="d n"/>
+  </g>
+
+</svg>

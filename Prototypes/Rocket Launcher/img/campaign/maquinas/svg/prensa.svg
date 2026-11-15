@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 128" width="384" height="256">
+  <title>Prensa</title>
+  <desc>Bastidor en H, cabezal móvil con troquel intercambiable. Capas: bastidor, pieza, cabezal (contiene troquel), viga. El cabezal baja en Y de 0 a 14.</desc>
+  <style>
+  .o{stroke:#171b26;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+  .t{stroke:#171b26;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .n{stroke:none}
+  .k{fill:#171b26}
+  .d{fill:#343944}.m{fill:#4d5461}.l{fill:#6f7786}
+  .s{fill:#aab2bf}.h{fill:#dfe4ea}.w{fill:#f6f8fa}
+  .y{fill:#f6b817}.yd{fill:#c2870a}
+  .g{fill:#1f6a2c}.gl{fill:#35a043}
+  .f{fill:#ff7a1a}.fl{fill:#ffc04d}
+  .hi{fill:#fff;opacity:.22}.sh{fill:#000;opacity:.22}
+</style>
+  <defs><pattern id="franjas" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <rect width="12" height="12" fill="#f6b817"/><rect width="6" height="12" fill="#22262f"/>
+  </pattern></defs>
+  <g id="bastidor">
+    <rect x="18" y="98" width="30" height="16" rx="5" class="d o"/>
+    <rect x="18" y="10" width="30" height="94" rx="5" class="m o"/>
+    <rect x="21" y="12.5" width="24" height="2.5" rx="1" class="hi n"/>
+    <rect x="29" y="32" width="8" height="50" rx="3" class="y t"/>
+    <circle cx="33" cy="21" r="2.4" class="s t"/>
+    <circle cx="33" cy="93" r="2.4" class="s t"/>
+    <rect x="144" y="98" width="30" height="16" rx="5" class="d o"/>
+    <rect x="144" y="10" width="30" height="94" rx="5" class="m o"/>
+    <rect x="147" y="12.5" width="24" height="2.5" rx="1" class="hi n"/>
+    <rect x="155" y="32" width="8" height="50" rx="3" class="y t"/>
+    <circle cx="159" cy="21" r="2.4" class="s t"/>
+    <circle cx="159" cy="93" r="2.4" class="s t"/>
+    <rect x="60" y="34" width="5" height="56" rx="1" class="s t"/>
+    <rect x="127" y="34" width="5" height="56" rx="1" class="s t"/>
+    <rect x="48" y="95" width="96" height="12" rx="2" class="d o"/>
+    <rect x="48" y="84" width="96" height="14" rx="2" class="d o"/>
+    <rect x="51" y="86.5" width="90" height="2.5" rx="1" class="hi n"/>
+    <rect x="51" y="86.5" width="90" height="9" rx="1" class="n" fill="url(#franjas)"/>
+    <rect x="66" y="87" width="60" height="8" rx="2" class="m o"/>
+    <rect x="66" y="80" width="60" height="10" rx="2" class="l o"/>
+    <rect x="69" y="82.5" width="54" height="2.5" rx="1" class="hi n"/>
+  </g>
+  <g id="pieza" data-ancla="96,82">
+    <rect x="74" y="73" width="44" height="9" rx="2" class="h t"/>
+    <rect x="74" y="79" width="44" height="4" rx="2" class="s t"/>
+    <rect x="77" y="75" width="38" height="2" rx="1" class="w n"/>
+  </g>
+  <g id="cabezal" data-ancla="96,40" data-recorrido-y="0..14">
+    <rect x="90" y="-10" width="12" height="58" rx="2" class="s t"/>
+    <rect x="92" y="-8" width="3" height="54" rx="1" class="hi n"/>
+    <rect x="56" y="46" width="80" height="5" rx="2" class="l o"/>
+    <rect x="56" y="40" width="80" height="9" rx="2" class="s o"/>
+    <rect x="59" y="42" width="74" height="2" rx="1" class="hi n"/>
+    <g id="troquel" data-ancla="96,51">
+    <path d="M78 51 H114 L101 66 H91 Z" class="l o"/>
+    <path d="M82 53 H110 L108 55 H84 Z" class="hi n"/>
+  </g>
+  </g>
+  <g id="viga">
+    <rect x="48" y="29" width="96" height="10" rx="2" class="d o"/>
+    <rect x="48" y="18" width="96" height="14" rx="2" class="d o"/>
+    <rect x="51" y="20.5" width="90" height="2.5" rx="1" class="hi n"/>
+    <rect x="51" y="20.5" width="90" height="9" rx="1" class="n" fill="url(#franjas)"/>
+    <rect x="82" y="24" width="28" height="9" rx="3" class="d o"/>
+    <rect x="82" y="12" width="28" height="16" rx="3" class="m o"/>
+    <rect x="85" y="14.5" width="22" height="2.5" rx="1" class="hi n"/>
+    <rect x="88" y="16" width="16" height="5" rx="2" class="y t"/>
+  </g>
+
+</svg>

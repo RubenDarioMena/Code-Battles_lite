@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 128" width="384" height="256">
+  <title>Mezcladora</title>
+  <desc>Tina circular verde con tres aspas plateadas y bandeja de salida. Capas: bandeja, tina, contenido (remolinos), aspas (giran sobre 84,60), compuerta.</desc>
+  <style>
+  .o{stroke:#171b26;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+  .t{stroke:#171b26;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .n{stroke:none}
+  .k{fill:#171b26}
+  .d{fill:#343944}.m{fill:#4d5461}.l{fill:#6f7786}
+  .s{fill:#aab2bf}.h{fill:#dfe4ea}.w{fill:#f6f8fa}
+  .y{fill:#f6b817}.yd{fill:#c2870a}
+  .g{fill:#1f6a2c}.gl{fill:#35a043}
+  .f{fill:#ff7a1a}.fl{fill:#ffc04d}
+  .hi{fill:#fff;opacity:.22}.sh{fill:#000;opacity:.22}
+</style>
+  <defs><pattern id="franjas" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <rect width="12" height="12" fill="#f6b817"/><rect width="6" height="12" fill="#22262f"/>
+  </pattern></defs>
+  <g id="bandeja" data-ancla="158,61">
+    <rect x="128" y="70" width="52" height="9" rx="2" class="l o"/>
+    <rect x="128" y="49" width="52" height="24" rx="2" class="s o"/>
+    <rect x="131" y="51.5" width="46" height="2.5" rx="1" class="hi n"/>
+    <rect x="137.4" y="52" width="2" height="18" rx="1" class="m n"/>
+    <rect x="147.8" y="52" width="2" height="18" rx="1" class="m n"/>
+    <rect x="158.2" y="52" width="2" height="18" rx="1" class="m n"/>
+    <rect x="168.6" y="52" width="2" height="18" rx="1" class="m n"/>
+  </g>
+  <g id="tina">
+    <rect x="40" y="20" width="22" height="22" rx="5" class="d o"/>
+    <rect x="40" y="16" width="22" height="22" rx="5" class="m o"/>
+    <circle cx="47" cy="23" r="2.4" class="s t"/>
+    <rect x="40" y="86" width="22" height="22" rx="5" class="d o"/>
+    <rect x="40" y="82" width="22" height="22" rx="5" class="m o"/>
+    <circle cx="47" cy="97" r="2.4" class="s t"/>
+    <rect x="106" y="20" width="22" height="22" rx="5" class="d o"/>
+    <rect x="106" y="16" width="22" height="22" rx="5" class="m o"/>
+    <circle cx="121" cy="23" r="2.4" class="s t"/>
+    <rect x="106" y="86" width="22" height="22" rx="5" class="d o"/>
+    <rect x="106" y="82" width="22" height="22" rx="5" class="m o"/>
+    <circle cx="121" cy="97" r="2.4" class="s t"/>
+    <circle cx="84" cy="69" r="45" class="d o"/>
+    <circle cx="84" cy="60" r="45" class="m o"/>
+    <path d="M43 52 A42 42 0 0 1 104 23" class="n" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="84" cy="60" r="36" class="g o"/>
+    <path d="M48 60 A36 36 0 0 1 120 60 A36 30 0 0 0 48 60 Z" class="sh n"/>
+  </g>
+  <g id="contenido" data-ancla="84,60">
+    <path d="M109.8 68.0 A27 27 0 0 1 91.2 86.0" fill="none" stroke="#35a043" stroke-width="3" stroke-linecap="round"/>
+    <path d="M69.3 73.5 A20 20 0 0 1 64.7 54.9" fill="none" stroke="#35a043" stroke-width="3" stroke-linecap="round"/>
+    <path d="M72.4 33.4 A29 29 0 0 1 100.1 35.9" fill="none" stroke="#35a043" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g id="aspas" data-ancla="84,60" data-giro="0..360">
+    <g transform="rotate(0 84 60)">
+    <rect x="79.5" y="27" width="9" height="33" rx="3" class="s o"/>
+    <rect x="81.5" y="30" width="2.5" height="26" rx="1" class="w n"/>
+    </g>
+    <g transform="rotate(120 84 60)">
+    <rect x="79.5" y="27" width="9" height="33" rx="3" class="s o"/>
+    <rect x="81.5" y="30" width="2.5" height="26" rx="1" class="w n"/>
+    </g>
+    <g transform="rotate(240 84 60)">
+    <rect x="79.5" y="27" width="9" height="33" rx="3" class="s o"/>
+    <rect x="81.5" y="30" width="2.5" height="26" rx="1" class="w n"/>
+    </g>
+    <circle cx="84" cy="60" r="8" class="s o"/>
+    <circle cx="82" cy="58" r="2.5" class="w n"/>
+  </g>
+  <g id="compuerta">
+    <rect x="124" y="46" width="10" height="30" rx="3" class="y o"/>
+    <rect x="34" y="46" width="8" height="28" rx="3" class="y o"/>
+  </g>
+
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 128" width="384" height="256">
+  <title>Montaje de base (propuesta)</title>
+  <desc>Mesa con dos cunas para ejes y dos empujadores que calan las ruedas. Sale la base completa del montacargas. Capas: mesa, pieza, empujadores.</desc>
+  <style>
+  .o{stroke:#171b26;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+  .t{stroke:#171b26;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .n{stroke:none}
+  .k{fill:#171b26}
+  .d{fill:#343944}.m{fill:#4d5461}.l{fill:#6f7786}
+  .s{fill:#aab2bf}.h{fill:#dfe4ea}.w{fill:#f6f8fa}
+  .y{fill:#f6b817}.yd{fill:#c2870a}
+  .g{fill:#1f6a2c}.gl{fill:#35a043}
+  .f{fill:#ff7a1a}.fl{fill:#ffc04d}
+  .hi{fill:#fff;opacity:.22}.sh{fill:#000;opacity:.22}
+</style>
+  <defs><pattern id="franjas" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <rect width="12" height="12" fill="#f6b817"/><rect width="6" height="12" fill="#22262f"/>
+  </pattern></defs>
+  <g id="mesa">
+    <rect x="34" y="95" width="124" height="15" rx="4" class="d o"/>
+    <rect x="34" y="22" width="124" height="78" rx="4" class="m o"/>
+    <rect x="37" y="24.5" width="118" height="2.5" rx="1" class="hi n"/>
+    <rect x="50" y="26" width="92" height="6" rx="1" class="n" fill="url(#franjas)"/>
+    <rect x="50" y="90" width="92" height="6" rx="1" class="n" fill="url(#franjas)"/>
+    <circle cx="41" cy="29" r="2.4" class="s t"/>
+    <circle cx="41" cy="93" r="2.4" class="s t"/>
+    <circle cx="151" cy="29" r="2.4" class="s t"/>
+    <circle cx="151" cy="93" r="2.4" class="s t"/>
+    <rect x="65" y="36" width="10" height="50" rx="3" class="d o"/>
+    <rect x="68" y="39" width="4" height="44" rx="2" class="k n"/>
+    <rect x="117" y="36" width="10" height="50" rx="3" class="d o"/>
+    <rect x="120" y="39" width="4" height="44" rx="2" class="k n"/>
+  </g>
+  <g id="pieza" data-ancla="96,61">
+    <rect x="68" y="30" width="4" height="62" rx="1" class="s t"/>
+    <rect x="120" y="30" width="4" height="62" rx="1" class="s t"/>
+    <rect x="60" y="44" width="72" height="34" rx="3" class="d o"/>
+    <rect x="64" y="47" width="64" height="2.5" rx="1" class="l n"/>
+    <rect x="66" y="55" width="3" height="3" rx="0" class="l n"/>
+    <rect x="66" y="70" width="3" height="3" rx="0" class="l n"/>
+    <rect x="123" y="55" width="3" height="3" rx="0" class="l n"/>
+    <rect x="123" y="70" width="3" height="3" rx="0" class="l n"/>
+    <rect x="58" y="26" width="24" height="12" rx="4" class="k o"/>
+    <rect x="62" y="28" width="16" height="2.5" rx="1" class="l n"/>
+    <rect x="58" y="84" width="24" height="12" rx="4" class="k o"/>
+    <rect x="62" y="86" width="16" height="2.5" rx="1" class="l n"/>
+    <rect x="110" y="26" width="24" height="12" rx="4" class="k o"/>
+    <rect x="114" y="28" width="16" height="2.5" rx="1" class="l n"/>
+    <rect x="110" y="84" width="24" height="12" rx="4" class="k o"/>
+    <rect x="114" y="86" width="16" height="2.5" rx="1" class="l n"/>
+  </g>
+  <g id="empujadores">
+    <g id="empujador-sup" data-recorrido-y="0..8">
+    <rect x="88" y="6" width="16" height="12" rx="3" class="s o"/>
+    <rect x="90" y="8" width="12" height="2.5" rx="1" class="w n"/>
+    <rect x="46" y="16" width="100" height="4" rx="2" class="y t"/>
+    </g>
+    <g id="empujador-inf" data-recorrido-y="0..-8">
+    <rect x="88" y="104" width="16" height="12" rx="3" class="s o"/>
+    <rect x="90" y="106" width="12" height="2.5" rx="1" class="w n"/>
+    <rect x="46" y="102" width="100" height="4" rx="2" class="y t"/>
+    </g>
+  </g>
+
+</svg>
