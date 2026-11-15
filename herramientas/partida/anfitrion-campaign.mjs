@@ -1,4 +1,5 @@
 import { performance } from 'node:perf_hooks';
+import { legado, nivel } from '../../paquetes/reglas-campaign/index.js';
 import soluciones from '../../pruebas/campaign-soluciones.cjs';
 import { cargar } from './cargar.mjs';
 import { ejecutarCiclo } from './ciclo.mjs';
@@ -35,7 +36,7 @@ export function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000,
   if (!Array.isArray(fuentes) || !fuentes.length || fuentes.some(p => !p || typeof p !== 'object' || Array.isArray(p)))
     throw new Error('--programas de Campaign requiere una lista no vacía de objetos por unidad.');
   const sesion = { ...cargar(), mundo: null, huella: crearHuella(), pasos: 0 };
-  sesion.mundo = sesion.contexto.CAMPAIGN.crear(sesion.contexto.CAMPAIGN_NIVEL.NIVEL);
+  sesion.mundo = legado.crear(nivel.NIVEL);
   const tramos = [], mensajes = {};
   for (const tramoFuentes of fuentes) {
     const programas = Object.fromEntries(Object.entries(tramoFuentes).map(([id, fuente]) =>
@@ -61,7 +62,7 @@ export function conectarCampaign(C, mundo, ejec, terminar) {
   const registrar = (id, linea, que, resultado, clase) => mundo.eventos.push({
     t: +mundo.t.toFixed(2), maquina: id, linea: linea ?? '', que, resultado, clase });
   const contar = (id, fn) => { const u = mundo.uso[id] ||= {}; u[fn] = (u[fn] || 0) + 1; };
-  const reglas = C.CAMPAIGN.conectar(mundo, {
+  const reglas = legado.conectar(mundo, {
     hito() { hito = true; },
     // entregaCampaign solo muestra consola y globo; no modifica datos de la simulación.
     terminarOrden(unidad, clave, res) {

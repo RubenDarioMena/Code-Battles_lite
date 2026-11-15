@@ -1,11 +1,7 @@
 // Campaign · reglas del nivel 1 con paso fijo real: encargos, modos, lecturas, hitos y checkpoints.
 // Los «programas» de esta prueba son funciones async sobre las mismas órdenes que usa el juego.
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-const c = vm.createContext({ window: {}, console });
-for (const f of ['campaign-nivel', 'campaign']) vm.runInContext(fs.readFileSync(`${__dirname}/../Prototypes/Rocket Launcher/js/${f}.js`, 'utf8'), c);
-const { CAMPAIGN: C, CAMPAIGN_NIVEL: N } = c.window;
+const { legado: C, nivel: N } = require('../paquetes/reglas-campaign/index.js');
 const DT = 0.05;
 const v = id => id.replace(/-/g, '_');
 // Los objetos del mundo nacen en otro contexto (vm): se comparan como datos planos.

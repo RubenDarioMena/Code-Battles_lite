@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import { legado, retos } from '../../paquetes/reglas-war/index.js';
 import { legado as factoryLegado, retos as factoryRetos } from '../../paquetes/reglas-factory/index.js';
+import { nivel } from '../../paquetes/reglas-campaign/index.js';
 import { DT, avanzar } from '../../paquetes/nucleo/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
@@ -23,7 +24,8 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   const inicio = performance.now();
   const { contexto: C, fuenteWorker } = sesion ?? cargar();
   const { RUNTIME } = C;
-  const def = campaign ? C.CAMPAIGN_NIVEL.NIVEL : factory ? (reto === 7 ? factoryRetos.normalizar(escenario) : factoryRetos.RETOS[reto - 1])
+  /** @type {any} Escenario de la serie seleccionada; Campaign conserva el mundo de la sesión. */
+  const def = campaign ? nivel.NIVEL : factory ? (reto === 7 ? factoryRetos.normalizar(escenario) : factoryRetos.RETOS[reto - 1])
     : retos.normalizar(retos.RETOS[reto - 1]);
   if (escenario && (!factory || reto !== 7)) throw new Error('Solo Factory --reto 7 admite escenario propio.');
   const mundo = sesion?.mundo ?? (factory ? factoryLegado : legado).crear(def, semilla);

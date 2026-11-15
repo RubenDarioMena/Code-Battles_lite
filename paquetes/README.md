@@ -3,7 +3,7 @@
 Un paquete es una carpeta con manifiesto, README de contrato, entrada pública
 `index.js` y pruebas propias. En la fase 0 solo había manifiesto y contrato;
 la fase 1 ya tiene entradas públicas de `protocolo`, `nucleo`, `reglas-war` y
-`reglas-factory`.
+`reglas-factory` y `reglas-campaign`.
 
 El porqué y las tres fronteras están en [Arquitectura objetivo](../docs/PLAN-ARQUITECTURA.md#arquitectura-objetivo).
 Los contratos son orientativos: los nombres definitivos los fija la fase 2.

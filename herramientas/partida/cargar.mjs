@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { legado, retos } from '../../paquetes/reglas-war/index.js';
 import { legado as factory, retos as factoryRetos } from '../../paquetes/reglas-factory/index.js';
+import { legado as campaign, nivel } from '../../paquetes/reglas-campaign/index.js';
 
 export const raiz = new URL('../../', import.meta.url);
 const entrada = new URL('Prototypes/Rocket Launcher/index.html', raiz);
@@ -16,6 +17,7 @@ export function cargar() {
     performance: { now: () => 0 },
     WAR: { ...legado }, WAR_RETOS: { ...retos },
     FACTORY: { ...factory }, FACTORY_RETOS: { ...factoryRetos },
+    CAMPAIGN: { ...campaign }, CAMPAIGN_NIVEL: { ...nivel },
     Blob: class { constructor(partes) { this.texto = partes.join(''); } },
     URL: { createObjectURL(blob) { fuenteWorker = blob.texto; return 'worker:capturado'; } },
   });
@@ -23,7 +25,6 @@ export function cargar() {
   const necesarios = new Set([
     '../../shared/vendor/acorn-8.11.3.js',
     // runtime.js interpola validarFactory incluso en War: necesita el módulo real.
-    'js/campaign-nivel.js', 'js/campaign.js',
     '../../shared/python/traductor.js', 'js/runtime.js', 'js/proveedor.js',
     '../../shared/editor/javascript.js', '../../shared/vendor/lezer-python-1.1.19.js',
   ]);

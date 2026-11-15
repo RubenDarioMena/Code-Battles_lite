@@ -129,5 +129,5 @@ const puente = scripts.indexOf('js/compat-paquetes.js');
 comprobar(puente >= 0);
 for (const lector of ['runtime', 'juego']) comprobar(scripts.indexOf(`js/${lector}.js`) > puente);
 for (const retirado of ['factory', 'factory-retos']) comprobar(!scripts.includes(`js/${retirado}.js`));
-comprobar(html.includes('js/compat-paquetes.js?v=2'));
+comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));
 console.log(`reglas-factory: ${comprobaciones} comprobaciones`);
