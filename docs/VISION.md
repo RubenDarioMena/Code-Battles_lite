@@ -2,15 +2,27 @@
 
 Code Battle Lite enseña programación mediante retos breves de defensa y automatización. El jugador programa máquinas y observa sus resultados en un mundo legible, con acceso directo a estadísticas y código.
 
+## Prioridades (15 de noviembre de 2026)
+
+- **Steam primero, Android después.** El navegador queda como canal de QA. Tecnología web, con Electron y Capacitor.
+- **Equipo modesto con efectos de batalla cuidados**, mediante niveles de calidad.
+- **Juego modular.** El editor por botones debe servir a otra aplicación o a otra mecánica.
+- **Simulación separada de los gráficos**, con representación 2D y 3D intercambiable en caliente.
+- **Diseño abierto.** El estilo, la interfaz y el combate actuales de War, Factory y Campaign no son definitivos: se contemplan el control manual de unidades y combates con muchas más unidades.
+- **Trabajo con agentes.** El autor revisa desde el teléfono; los agentes verifican solos.
+
+La arquitectura y sus fases están en [PLAN-ARQUITECTURA.md](PLAN-ARQUITECTURA.md).
+
 ## Pilares
 
-- Legibilidad y ligereza: interfaz mínima, código y datos fáciles de leer.
-- Simulación reproducible: cuadrícula, paso fijo y fallos controlados por semilla.
-- PC y móvil desde el principio; comprobar el teclado y los gestos en dispositivos reales.
+- Legibilidad: código y datos fáciles de leer, en PC y en móvil.
+- Simulación reproducible: paso fijo y fallos controlados por semilla.
+- JavaScript y Python reales como lenguaje del jugador.
 - Interfaz propia en HTML/CSS con paleta de programación y herramientas accesibles.
-- Iteraciones pequeñas sobre el prototipo que ya funciona.
 
 ## Base actual
+
+Describe el punto de partida, anterior a la reestructura.
 
 JavaScript real en Web Workers, escenarios de lanzadores y sensores, editor con selección múltiple, mapa 3D y plano, inspector de estadísticas, telemetría, Ajustes y distribución configurable. El código está concentrado en `js/juego.js`; `js/layout.js` mantiene la lógica de pantalla separada mediante `window.cmg`.
 
@@ -29,11 +41,11 @@ La recogida de materiales conserva su simulación y ofrece bloques, pseudocódig
 - Decidir cómo guardar o exportar borradores y trasladar programas entre dispositivos/orígenes.
 - Revisar rendimiento móvil antes de prometer soporte offline (las dependencias ya se sirven desde el repositorio, sin CDN).
 
-## Posibilidades posteriores
+## Lo que ya no es una posibilidad, sino el plan
 
-Separar el núcleo de simulación, adoptar TypeScript, usar una representación intermedia/VM, mejorar la transición 2D/3D y empaquetar la web para móvil son propuestas del brief original. No se incorporan como requisitos técnicos inmediatos de esta migración.
+Separar el núcleo de simulación, comprobar tipos, ejecutar los programas en un intérprete determinista, mejorar la transición 2D/3D y empaquetar para escritorio y móvil eran propuestas del brief original. Ahora son las fases de [PLAN-ARQUITECTURA.md](PLAN-ARQUITECTURA.md).
 
-Fábrica abierta, SQL, ciudades, modelos detallados y mundo abierto quedan fuera del alcance actual. La base de este proyecto es el juego de programación de defensa que ya se está probando.
+Fábrica abierta, SQL, ciudades y mundo abierto siguen fuera del alcance actual.
 
 ## Entrada y distribución
 

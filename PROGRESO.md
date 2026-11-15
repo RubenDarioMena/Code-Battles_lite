@@ -1,3 +1,11 @@
+## Cambio de dirección: Steam, arquitectura modular y retirada de «sin compilación» · 15 de noviembre de 2026
+
+- **Decisión del autor.** Steam primero (Electron) y Android después (Capacitor); el navegador queda como canal de QA. Se mantiene la tecnología web y JavaScript/Python reales. Los efectos de batalla son prioritarios en equipo modesto. El diseño actual de War, Factory y Campaign no es definitivo.
+- **Plan nuevo.** [docs/PLAN-ARQUITECTURA.md](docs/PLAN-ARQUITECTURA.md): paquetes con fronteras comprobadas (protocolo, núcleo, reglamentos, lenguaje, anfitrión, editor, vfx, vistas 2D y 3D, interfaz, app), tres fronteras (instantáneas y sucesos, órdenes, anfitrión de programas) y fases 0 a 6 con criterio de «hecho».
+- **Instrucciones.** `AGENTS.md` y `CLAUDE.md` reescritos: se retiran «sin framework ni compilación», «sin npm», «cambios pequeños» y la obligación de conservar `window.cmg`; siguen el determinismo, la compatibilidad de los programas y la paridad hasta cerrar la fase 2. `docs/VISION.md`, `README.md`, `docs/PLAN-UNIFICACION.md` (cerrado) y `docs/PLAN-VFX.md` (ahora fase 4) remiten al plan.
+- **Verificación.** Solo documentación; no cambió código, reglas ni pruebas. No se ejecutaron suites.
+- **Pendiente.** Empezar la fase 0 (herramientas y referencias de paridad). Decidir si se archiva este archivo al cerrarla.
+
 ## Campaign · nivel 1 «Primera fábrica» (H0–H5) · 12 de noviembre de 2026 · rama `campaign-nivel-1`
 
 - **Qué es.** Primer nivel de la campaña como tercera serie de la aplicación común (`?serie=campaign`), con la misma interfaz, JS y Python. Decisiones, API, hitos y límites en [docs/CAMPAIGN-NIVEL-1.md](docs/CAMPAIGN-NIVEL-1.md). War y Factory no cambian de reglas.

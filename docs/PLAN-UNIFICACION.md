@@ -1,5 +1,7 @@
 # Plan de unificación: una base común para Factory y War
 
+> **Cerrado e histórico.** Desde el 15 de noviembre de 2026 el plan vigente es [PLAN-ARQUITECTURA.md](PLAN-ARQUITECTURA.md), que retira las reglas «sin framework ni compilación» y la prioridad de navegador de este documento.
+
 Plan de trabajo para el agente que ejecute la convergencia de Factory (`Prototypes/Tres vistas/`) en la base de War (`Prototypes/Rocket Launcher/`). Revisado el 3 de noviembre de 2026 con el feedback del autor del 2 de noviembre. **Inicio autorizado por el usuario el 3 de noviembre de 2026. Etapas 0 a 5 completadas el mismo día: el plan está cerrado.** El Factory original está retirado; su comportamiento queda en el oráculo.
 
 Antes de empezar, lee `AGENTS.md`, `README.md`, `docs/VISION.md`, las entradas recientes de `PROGRESO.md` y los dos análisis de `docs/analisis/` (`Encargos y modos.html` y `factory-war-reglas-campana.html`). Los análisis son **propuestas de agentes, no decisiones del autor**: lo que manda es la sección [Decisiones del autor](#decisiones-del-autor) de este plan.

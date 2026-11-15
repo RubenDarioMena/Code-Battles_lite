@@ -1,5 +1,7 @@
 # Plan de efectos visuales (VFX)
 
+> **Nota del 15 de noviembre de 2026.** El enfoque (sucesos, recetas de datos, partículas sin estado, dos dibujantes y laboratorio) se mantiene y pasa a ser la fase 4 de [PLAN-ARQUITECTURA.md](PLAN-ARQUITECTURA.md). Cambia el contexto: el módulo será el paquete `vfx`, Three.js se actualiza desde r128, los sucesos salen del protocolo del núcleo y se admiten niveles de calidad con post-proceso.
+
 Propuesta para empezar a añadir efectos visuales a War (Rocket Launcher) y Factory (Tres vistas) dentro de la arquitectura actual: JavaScript y CSS sin compilación, Three.js r128 por CDN, plano 2D en canvas y simulación de paso fijo con semilla. Estado al 29 de octubre de 2026: **propuesta validada con un prototipo desechable; los juegos no tienen efectos nuevos**.
 
 ## Resumen para decidir

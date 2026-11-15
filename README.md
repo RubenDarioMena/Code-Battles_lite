@@ -2,6 +2,8 @@
 
 Juegos de programación para escritorio y móvil con una entrada común: **Factory** y **War**, sobre la aplicación común de Rocket Launcher, y **Campaign** (próximamente). Factory programa un robot de recogida con bloques, seudocódigo o JavaScript; War controla lanzadores con JavaScript o seudocódigo.
 
+> **Dirección desde el 15 de noviembre de 2026:** Steam primero (Electron) y Android después, con núcleo de simulación sin pantalla, vistas 2D/3D intercambiables y editor reutilizable. El plan está en [`docs/PLAN-ARQUITECTURA.md`](docs/PLAN-ARQUITECTURA.md). Este README describe el punto de partida y se irá actualizando con cada fase.
+
 ## Ejecutar
 
 Desde esta carpeta, sin instalar paquetes ni compilar:
