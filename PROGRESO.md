@@ -1,3 +1,15 @@
+## VFX · artillería: explosiones por poder, aéreas, estelas e incendio · 15 de noviembre de 2026
+
+Continúa la rama `vfx-explosiones-singularidad` (trabajo en `ccr-293f5765-o1sulj`). Todo sigue en `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify. Referencia visual del usuario: dos capturas del tráiler de *Defilade*.
+
+- **Explosiones rehechas (`explosion.py`).** Variantes `tierra`, `aerea`, `incendio` (bucle) y `bocanada` (humo de estela), más `polvo` y `fuego` de la tanda anterior. `--poder 1|2|3` cambia tamaño en el juego, ritmo y capas. Las aéreas no tienen suelo y nacen en el centro del cuadro.
+- **Onda expansiva según el poder.** Poder 1 no tiene; poder 2, un aro leve; poder 3, un aro fuerte que refracta el suelo y levanta polvo. La fuerza, el radio y la duración viajan en el JSON de cada atlas.
+- **Capas baratas (`capas.py`).** Destello, luz, chispas, quemadura, onda y sombra proyectada, como fórmulas sin estado. La sombra es el mismo cuadro del flipbook aplastado y sesgado según el sol; no hay textura de sombra.
+- **Estelas.** Bocanadas sin estado a lo largo de la trayectoria, con un atlas de 16 × 4 (cuatro semillas). La estela clara y la oscura salen de la misma textura con un tinte.
+- **Escena de prueba (`artilleria.py`, `artilleria_config.json`).** Tres lanzadores, tres drones a 2,5 m y un vehículo: dos estallidos aéreos de poder 1, impactos en tierra de poder 1, 2 y 3, un aéreo de poder 2 y restos ardiendo. Es composición 2D en numpy con la cámara del juego; Blender solo hace los flipbooks.
+- **Empaquetador.** Varias semillas por atlas, bordes suaves para que ningún cuadro se corte, cierre de bucles y vista previa con las capas y la sombra. `comun.py` lee PNG para comprobar los atlas tal como los leerá el motor.
+- **Entorno.** Blender 5.2.4 LTS oficial descargado en la sesión (no queda guardado); CPU de 4 núcleos, sin GPU. `generar_artilleria.sh` regenera todo.
+
 ## VFX · singularidad y explosiones, pruebas de concepto en Blender · 11 de noviembre de 2026
 
 Rama `vfx-explosiones-singularidad`. Todo vive en `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify. Sigue el plan de VFX con WebGPU del 10 de noviembre, que va por otro camino que `docs/PLAN-VFX.md` (ese descartaba Blender y hojas de sprites para el juego actual en r128).
