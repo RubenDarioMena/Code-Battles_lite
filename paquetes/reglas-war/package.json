@@ -1,0 +1,7 @@
+{
+  "name": "@cbl/reglas-war",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "main": "index.js"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "@cbl/app",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "main": "index.js"
+}

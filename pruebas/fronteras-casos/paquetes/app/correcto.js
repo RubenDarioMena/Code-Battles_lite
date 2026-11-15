@@ -1,0 +1,12 @@
+import '../protocolo/index.js';
+import '../nucleo/index.js';
+import '../reglas-war/index.js';
+import '../reglas-factory/index.js';
+import '../reglas-campaign/index.js';
+import '../lenguaje/index.js';
+import '../anfitrion/index.js';
+import '../editor/index.js';
+import '../vfx/index.js';
+import '../vista-2d/index.js';
+import '../vista-3d/index.js';
+import '../interfaz/index.js';

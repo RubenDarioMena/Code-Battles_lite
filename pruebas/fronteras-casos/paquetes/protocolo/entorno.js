@@ -1,0 +1,15 @@
+window;
+document;
+localStorage;
+requestAnimationFrame;
+THREE;
+setTimeout(() => {}, 0);
+setInterval(() => {}, 0);
+performance.now();
+Date.now();
+new Date();
+Math.random();
+performance['now']();
+Date['now']();
+Math['random']();
+({ window });

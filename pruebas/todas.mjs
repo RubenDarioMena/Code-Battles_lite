@@ -10,7 +10,7 @@ const raiz = fileURLToPath(new URL('../', import.meta.url));
 const origen = 'http://127.0.0.1:8771';
 const logica = [
   'campaign-reglas', 'editor-contrato', 'editor-lenguajes', 'editor-python',
-  'factory-reglas', 'i18n-catalogos', 'i18n', 'interaccion',
+  'factory-reglas', 'fronteras', 'fronteras-autoprueba', 'i18n-catalogos', 'i18n', 'interaccion',
   'python-conversion-regresiones', 'python-semantica-regresiones', 'python-traductor',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego'];
@@ -36,11 +36,13 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
+const extensiones = { fronteras: 'mjs', 'fronteras-autoprueba': 'mjs' };
+
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {
     const inicio = performance.now();
     let salida = '', agotado = false;
-    const hijo = spawn(process.execPath, [`pruebas/${nombre}.cjs`, ...argumentos], {
+    const hijo = spawn(process.execPath, [`pruebas/${nombre}.${extensiones[nombre] || 'cjs'}`, ...argumentos], {
       cwd: raiz, detached: process.platform !== 'win32',
       env: { ...process.env, CBL_QA_ORIGIN: origen },
       stdio: ['ignore', 'pipe', 'pipe'],
