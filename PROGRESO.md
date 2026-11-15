@@ -1,3 +1,9 @@
+## Campaign · hojas de sprites de máquinas · 14 de noviembre de 2026
+
+- Tres hojas PNG RGBA de 1536 × 1024 en [`img/campaign/maquinas/`](Prototypes/Rocket%20Launcher/img/campaign/maquinas/). Cada hoja tiene dos filas de cuatro fotogramas en celdas de 384 × 512.
+- Orden de arriba abajo por archivo: prensa y moldeadora, mezcladora y ensambladora, CNC y fundidora. Se comprobó un sprite por celda y transparencia en los bordes.
+- Pendiente: fijar anclajes e integrar las hojas en el plano 2D. El montaje de ejes queda por definir.
+
 ## Campaign · nivel 1 «Primera fábrica» (H0–H5) · 12 de noviembre de 2026 · rama `campaign-nivel-1`
 
 - **Qué es.** Primer nivel de la campaña como tercera serie de la aplicación común (`?serie=campaign`), con la misma interfaz, JS y Python. Decisiones, API, hitos y límites en [docs/CAMPAIGN-NIVEL-1.md](docs/CAMPAIGN-NIVEL-1.md). War y Factory no cambian de reglas.
