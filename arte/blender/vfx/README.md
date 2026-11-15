@@ -11,7 +11,8 @@ Efectos generados por código, fuera del juego. Nada de esta carpeta se carga en
 | `capas.py` | Capas baratas sin estado: destello, luz, onda expansiva, chispas, quemadura y sombra proyectada. | — |
 | `artilleria.py`, `artilleria_config.json` | Escena de prueba: cohetes con estela, impactos por poder, estallidos aéreos e incendio. | Prototipo completo |
 | `comun.py` | Lectura de EXR y PNG, tono, hojas de contactos y vídeo. | — |
-| `previas/` | Vídeos, hojas de contactos y JSON de las últimas ejecuciones. | — |
+| `generar_artilleria.sh` | Regenera todos los atlas y la escena de prueba (cerca de hora y media por CPU). | Sin ejecutar entero; sus pasos sí, uno a uno |
+| `previas/` | Vídeos, hojas de contactos y JSON de las últimas ejecuciones. Las de artillería, en `previas/artilleria/`. | — |
 
 Requiere Blender oficial (probado con 5.2.4 LTS) y `ffmpeg` para los MP4. El módulo `bpy` de PyPI y el Blender 4.0.2 de `apt` no sirven para `explosion.py`: su Mantaflow no arranca. En una sesión en la nube se instala así (unos 400 MB, no queda guardado entre sesiones):
 
@@ -104,7 +105,7 @@ blender -b --factory-startup --python arte/blender/vfx/empaquetar.py -- --entrad
 | `aerea` | Estallido en el aire (misil contra dron): bola clara, nube redonda que se queda colgada. Sin suelo. |
 | `incendio` | Llama y columna de humo en bucle de 32 cuadros, para restos ardiendo. |
 | `bocanada` | Bocanada de humo blanco de 16 cuadros para las estelas. Se empaquetan cuatro semillas, una por fila. |
-| `polvo`, `fuego` | Impacto en tierra blanda e incendio de combustible. Recetas anteriores, sin revisar en esta tanda. |
+| `polvo`, `fuego` | Impacto en tierra blanda y explosión de combustible. Recetas de la tanda anterior: se ejecutaron en poder 2, pero no se ajustaron contra la referencia. |
 
 `--poder` (1–3) cambia el tamaño en el juego, el ritmo y las capas:
 
@@ -137,10 +138,14 @@ Todo lo ajustable está en `artilleria_config.json`: cámara, cohete, las dos es
 - **Onda expansiva.** Un aro sobre el suelo (un círculo de pantalla si el estallido es aéreo) que brilla, desplaza la imagen que pisa y, si es fuerte, levanta polvo.
 - **Quemadura.** Un decal que aparece con el estallido y se queda.
 
+Los atlas PNG no están en el repositorio (38 MB en total; `tierra_p3` pesa 9,5 MB). En `previas/artilleria/` quedan el vídeo y la hoja de la escena, y de cada atlas su JSON, su hoja de contactos y su vista previa.
+
 ### Límites conocidos
 
+- **El incendio es la pieza menos lograda**: la llama sale como una bola en la base en vez de lenguas de fuego.
 - La luz va horneada: el sol de los flipbooks viene siempre de la izquierda y por delante. Girar o voltear un sprite la contradice.
 - Los flipbooks se renderizan a 53° de elevación. Con la cámara del juego muy inclinada o cenital se notará que son planos.
 - La escena es composición 2D en numpy sobre un suelo liso. No hay edificios, ni oclusión entre sprites y objetos más allá de pintar de lejos a cerca.
 - La trayectoria del cohete es una coreografía de la vista previa. El juego usará la suya.
 - Sin GPU: todo se renderizó por CPU y no hay medida de rendimiento en WebGL ni WebGPU. Los atlas van a 256 px por cuadro (384 px en `tierra` poder 3); la calidad `final` no se ha ejecutado.
+- En calidad media queda algo de grano en el humo que se deshace.

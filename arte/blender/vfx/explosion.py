@@ -124,13 +124,13 @@ VARIANTES = {
     # Incendio: llama y columna de humo que no se acaban (restos ardiendo). Bucle de 32 cuadros:
     # se simulan de más y empaquetar.py funde los últimos con los primeros.
     "incendio": dict(continuo=True, cuadros=32, fps=16, calentamiento=44, solape=10, escala=0.55,
-                     bola=0, chorros=0, oleada=0, radio_nube=0.58, bultos=(5, 1.0), aplastar=0.6,
-                     vel_nube=3.5, combustible_nube=1.0, densidad_nube=0.6, temperatura_nube=2.4,
+                     bola=0, chorros=0, oleada=0, radio_nube=0.6, bultos=(5, 1.0), aplastar=0.28,
+                     vel_nube=5.0, combustible_nube=1.0, densidad_nube=0.6, temperatura_nube=2.4,
                      flotacion_calor=3.0, flotacion_densidad=0.4, vorticidad=0.6, quemado=0.5,
-                     humo_de_llama=3.0, vorticidad_llama=1.0, disolver=130, escala_tiempo=1.3,
-                     turbulencia=2.0, tam_turbulencia=1.1, viento=(0.25, 0.08, 0.0),
+                     humo_de_llama=2.1, vorticidad_llama=1.6, disolver=130, escala_tiempo=1.3,
+                     turbulencia=3.6, tam_turbulencia=0.7, viento=(0.25, 0.08, 0.0),
                      color_humo=(0.06, 0.055, 0.05), color_polvo=(0.16, 0.15, 0.14), calor_color=(0.05, 0.8),
-                     densidad_render=14.0, fuego=4.5,
+                     densidad_render=12.0, fuego=4.2,
                      capas=dict(destello=0.0, luz=0.0, chispas=0, quemadura=0.0, onda=0.0, sombra=0.4)),
     # Bocanada de humo para las estelas de los cohetes: sin fuego, blanca (el motor la tiñe),
     # 16 cuadros. Se empaqueta con varias semillas, una por fila.
@@ -184,12 +184,13 @@ PODERES = {
                 capas=dict(destello=0.9, luz=0.25, chispas=26, quemadura=0.0, onda=0.0, sombra=0.3)),
         2: dict(capas=dict(destello=1.1, luz=0.35, chispas=40, quemadura=0.0, onda=0.35, radio_onda=3.0,
                            duracion_onda=0.28, sombra=0.35)),
-        3: dict(escala=1.5, fps=16, bola=320, radio_nube=1.15, chorros=26, escala_tiempo=1.6, disolver=110,
+        3: dict(escala=1.5, fps=16, bola=320, radio_nube=1.05, chorros=26, escala_tiempo=1.6, disolver=80,
+                vel_bola=(2.5, 8.0),
                 capas=dict(destello=1.4, luz=0.5, chispas=70, quemadura=0.0, onda=0.7, radio_onda=6.5,
                            duracion_onda=0.42, sombra=0.4)),
     },
     "bocanada": {1: {}, 2: {}, 3: {}},
-    "incendio": {1: dict(escala=0.4, radio_nube=0.45), 2: {}, 3: dict(escala=0.8, radio_nube=0.72)},
+    "incendio": {1: dict(escala=0.4, radio_nube=0.47), 2: {}, 3: dict(escala=0.8, radio_nube=0.75)},
 }
 
 

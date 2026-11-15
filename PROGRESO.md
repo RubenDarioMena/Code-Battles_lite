@@ -9,6 +9,9 @@ Continúa la rama `vfx-explosiones-singularidad` (trabajo en `ccr-293f5765-o1sul
 - **Escena de prueba (`artilleria.py`, `artilleria_config.json`).** Tres lanzadores, tres drones a 2,5 m y un vehículo: dos estallidos aéreos de poder 1, impactos en tierra de poder 1, 2 y 3, un aéreo de poder 2 y restos ardiendo. Es composición 2D en numpy con la cámara del juego; Blender solo hace los flipbooks.
 - **Empaquetador.** Varias semillas por atlas, bordes suaves para que ningún cuadro se corte, cierre de bucles y vista previa con las capas y la sombra. `comun.py` lee PNG para comprobar los atlas tal como los leerá el motor.
 - **Entorno.** Blender 5.2.4 LTS oficial descargado en la sesión (no queda guardado); CPU de 4 núcleos, sin GPU. `generar_artilleria.sh` regenera todo.
+- **Verificado:** las trece simulaciones corren en calidad media (`tierra` y `aerea` en poder 1–3, `incendio`, `fuego` y `polvo` en poder 2, y cuatro semillas de `bocanada`); cada atlas se empaquetó con su vista previa; la escena completa se compuso leyendo los PNG (360 cuadros, 12 s). Se revisaron hojas de contactos y cuadros sueltos del vídeo. `node pruebas/interaccion.cjs`: 124 comprobaciones correctas.
+- **No verificado:** el movimiento en vídeo (solo cuadros), nada en WebGL/WebGPU ni en GPU, la calidad `final`, y `generar_artilleria.sh` de una sola pasada.
+- **Pendiente:** revisión visual del usuario; el incendio (la llama sale como una bola); decidir si los atlas PNG (38 MB) entran al repositorio; portar capas y estelas a TSL tras la migración.
 
 ## VFX · singularidad y explosiones, pruebas de concepto en Blender · 11 de noviembre de 2026
 
