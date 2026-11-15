@@ -1,3 +1,4 @@
+import { legado } from '../../paquetes/reglas-factory/index.js';
 import { ejecutarCiclo } from './ciclo.mjs';
 
 /** @typedef {{ reto: number, intento?: number, semilla?: number, escenario?: any,
@@ -31,9 +32,9 @@ export function ejecutarFactory(opciones) {
 }
 
 /** Adapta encargos y lecturas de juego.js sin duplicar su ciclo común con War.
- * @param {any} C @param {any} mundo @param {any} ejec @param {Function} terminar */
+ * @param {any} C @param {any} mundo @param {any} ejec @param {import('../../paquetes/reglas-factory/index.js').Ganchos['terminar']} terminar */
 export function conectarFactory(C, mundo, ejec, terminar) {
-  const reglas = C.FACTORY.conectar(mundo, {
+  const reglas = legado.conectar(mundo, {
     terminar,
     programaAcabado: () => [...ejec.progs.values()].every(p => p.acabado),
     llamadaPendiente: () => [...ejec.progs.values()].some(p => p.encargo),
@@ -45,7 +46,7 @@ export function conectarFactory(C, mundo, ejec, terminar) {
       mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: orden.linea, orden: orden.texto, resultado });
       p.estado = p.acabado ? 'fin' : 'corre'; p.desde = 0;
       p.worker.postMessage({ type: 'despierta', id: orden.id, resultado,
-        snap: { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: C.FACTORY.instantanea(mundo) } });
+        snap: { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: legado.instantanea(mundo) } });
     },
   });
   return { reglas,

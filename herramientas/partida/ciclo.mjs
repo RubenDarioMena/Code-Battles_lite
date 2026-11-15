@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks';
 import { legado, retos } from '../../paquetes/reglas-war/index.js';
+import { legado as factoryLegado, retos as factoryRetos } from '../../paquetes/reglas-factory/index.js';
 import { DT, avanzar } from '../../paquetes/nucleo/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
@@ -22,10 +23,10 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   const inicio = performance.now();
   const { contexto: C, fuenteWorker } = sesion ?? cargar();
   const { RUNTIME } = C;
-  const def = campaign ? C.CAMPAIGN_NIVEL.NIVEL : factory ? (reto === 7 ? C.FACTORY_RETOS.normalizar(escenario) : C.FACTORY_RETOS.RETOS[reto - 1])
+  const def = campaign ? C.CAMPAIGN_NIVEL.NIVEL : factory ? (reto === 7 ? factoryRetos.normalizar(escenario) : factoryRetos.RETOS[reto - 1])
     : retos.normalizar(retos.RETOS[reto - 1]);
   if (escenario && (!factory || reto !== 7)) throw new Error('Solo Factory --reto 7 admite escenario propio.');
-  const mundo = sesion?.mundo ?? (factory ? C.FACTORY : legado).crear(def, semilla);
+  const mundo = sesion?.mundo ?? (factory ? factoryLegado : legado).crear(def, semilla);
   const lenguaje = crearInstrumentador(C, mundo, reglas);
   const huella = crearHuella();
   const mensajes = {};
@@ -108,7 +109,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
 
   if (campaign) { mundo.fin = null; mundo.eventos = []; }
   mundo.activo = true;
-  const instantanea = campaign ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: combate.instantanea() }) : factory ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: C.FACTORY.instantanea(mundo) })
+  const instantanea = campaign ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: combate.instantanea() }) : factory ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: factoryLegado.instantanea(mundo) })
     : () => combate.instantanea();
   const snap = instantanea();
   for (const l of mundo.programables) {

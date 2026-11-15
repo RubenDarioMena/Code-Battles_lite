@@ -15,6 +15,7 @@ const logica = [
   'paquetes/protocolo/pruebas/protocolo.mjs',
   'paquetes/nucleo/pruebas/nucleo.mjs',
   'paquetes/reglas-war/pruebas/reglas-war.mjs',
+  'paquetes/reglas-factory/pruebas/reglas-factory.mjs',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste'];
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.

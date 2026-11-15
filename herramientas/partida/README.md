@@ -142,10 +142,11 @@ de aquella prueba no son referencias del Worker: sus programas deciden otras rut
 
 - `cargar.mjs`: contexto sin DOM y captura del Worker real mediante Blob/URL
   falsos. Scripts seleccionados desde `index.html`, conservando su orden.
-  War y sus retos se importan desde `paquetes/reglas-war/index.js`; se inyectan
-  copias planas de `legado` y `retos` como `WAR`/`WAR_RETOS` antes de cargar los
-  scripts que siguen en `vm`. Factory y Campaign siguen cargándose desde sus
-  scripts reales. Incluye proveedor Python, traductor, Lezer y Acorn.
+  War, Factory y sus retos se importan desde las entradas públicas de
+  `paquetes/reglas-war/` y `paquetes/reglas-factory/`; se inyectan copias planas
+  de `legado` y `retos` como `WAR`/`WAR_RETOS` y `FACTORY`/`FACTORY_RETOS` antes
+  de cargar los scripts que siguen en `vm`. Campaign conserva sus scripts
+  reales. Incluye proveedor Python, traductor, Lezer y Acorn.
 - `instrumentar.mjs`: extrae de `juego.js` el bloque `const KW`–`instrumentar`
   y las funciones puras de revisión, Python y formato. Acorn valida los límites;
   ausencia, duplicidad o cambio estructural fallan explícitamente. La serie

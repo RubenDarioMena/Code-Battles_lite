@@ -1,23 +1,102 @@
 # reglas-factory
 
-Define el mundo, paso, órdenes y metas de factory. Expone las lecturas, modos y encargos de los programas sin depender de las vistas.
+Estado: fase 1. Reglamento Factory sin pantalla, en módulos ES ejecutables en
+Node. Procede de `js/factory.js` y `js/factory-retos.js` de la aplicación común.
+Conserva sus reglas, textos, materiales, retos, tiempos y stock por intento.
+Solo importa la entrada pública de `nucleo`; puede importar también `protocolo`.
+Véanse las [fronteras](../README.md). Contratos en `index.d.ts`.
 
-## Puede importar
+## Entrada pública
 
-`nucleo`, `protocolo`. Véanse las reglas de [paquetes](../README.md).
+`index.js` exporta por defecto `{ id: 'factory', version: 1, crearMundo, paso,
+aplicarOrden, instantanea, evaluar, api }`:
 
-## Contrato
+- `crearMundo({ reto, intento = 1 }, rng)` recibe un reto adaptado de `retos`
+  y devuelve el mundo activo. El intento selecciona `stockPorIntento` con la
+  misma fórmula anterior. El RNG del núcleo no se consume: Factory nunca ha
+  usado azar para el stock. Para reproducir un intento, debe ir en el escenario;
+  la semilla del núcleo por sí sola no lo selecciona.
+- `paso(mundo, dt)` usa la conexión existente guardada por mundo en un `WeakMap`.
+  Mantiene primero el avance de las máquinas, después el robot y la evaluación.
+- `aplicarOrden(mundo, orden)` delega `verbo` y `args` a `iniciarOrden`:
+  `recoger(origen, material)`, `entregar(destino)`, `esperar(segundos)`.
+  Esos son los verbos internos que ya envía el Worker; R1 es el único robot.
+  Como en el legado, la validación de argumentos corresponde al anfitrión.
+  No se cambia la política sobre encargos simultáneos de los programas.
+- `instantanea(mundo)` devuelve `{ t, maq: {}, auto: {}, vib: {}, factory }`.
+  `factory` conserva las lecturas del legado, con copia profunda y sin campos
+  `undefined`, para cumplir el protocolo de datos planos sin prestar existencias.
+- `evaluar(mundo)` devuelve `mundo.final ?? null`. Al terminar guarda
+  `{ fin, motivo, mensaje }`, desactiva el mundo, cancela la tarea y revela el stock.
+- `api` contiene datos planos: `ordenes`, `lecturas`, `materiales` y `nombres`
+  que relaciona los verbos internos con `pickUp`, `deliver`, `wait` y `count`.
 
-`export default { id, version, crearMundo(escenario, rng), paso(mundo, dt), aplicarOrden(mundo, orden), instantanea(mundo), evaluar(mundo), api }`.
+Se integra con `crearPartida({ reglas, escenario: { reto, intento }, semilla })`
+del núcleo; `restaurar` repite pasos y órdenes, reconstruyendo las clausuras de
+las tareas en curso. El adaptador por defecto no ejecuta programas ni deduce
+su final: sus hooks `programaAcabado` y `llamadaPendiente` devuelven `false`.
+El anfitrión actual conserva esa detección mediante `legado.conectar`.
 
-## De dónde sale
+## Sucesos
 
-`Prototypes/Rocket Launcher/js/factory.js`, `Prototypes/Rocket Launcher/js/factory-retos.js`
+El registro no enumerable se adjunta al crear el mundo. No cambia las colecciones
+ni los registros de presentación existentes y se consulta con `partida.sucesos()`.
+Cada suceso lleva el `paso` calculado por el núcleo y estos datos:
+
+| Tipo | Unidad | Datos |
+| --- | --- | --- |
+| `recogida` | R1 | `origen`, `mat`, al recoger con éxito |
+| `entrega` | R1 | `destino`, `mat`, al entregar con éxito |
+| `produccion` | Máquina | `producido`, `ciclos`, al terminar un ciclo |
+| `orden-terminada` | R1 | `resultado`, incluidos rechazos, vacíos y esperas |
+| `fin` | Sin unidad | `fin`, `motivo` (cadena o null) |
+
+Se anota junto a la operación y antes de llamar al hook correspondiente.
+Los sucesos no se leen para decidir reglas. Se conserva el límite del núcleo.
+
+## Compatibilidad temporal
+
+`legado` tiene exactamente las claves anteriores de `FACTORY`: `crear`,
+`conectar`, `validar`, `instantanea`, `MATERIALES`. `crear(def, intento)` conserva
+el arranque inactivo y `instantanea` conserva sus referencias y campos originales.
+`conectar` recibe `terminarOrden`, `terminar`, `programaAcabado` y
+`llamadaPendiente`; devuelve `paso`, `iniciarOrden`, `sensor`, `metaCumplida`,
+`faltantes` y `evaluar`.
+
+`validar` es autocontenida: declara su catálogo local de materiales porque
+`runtime.js` interpola `validar.toString()` en el Worker. No debe referirse a
+imports ni a funciones o constantes externas. Conserva los diagnósticos previos.
+
+`retos` tiene las mismas claves de `FACTORY_RETOS`: `RETOS`, `propio`, `normalizar`
+y `generar`. Mantiene las conversiones del modelo antiguo y los guardados.
+
+`compat-paquetes.js?v=2` publica copias planas de ambos objetos. Los dos lectores
+al cargar son `runtime.js` (interpolación de `validar`) y `juego.js` (retos,
+normalización y arranque); ambos ya están después del puente. `factory-form.js`
+lee los catálogos dentro de `crear`, llamado después; `factory-vista.js`,
+`factory-3d.js` y `vistas.js` no leen estos dos catálogos al cargar. No se necesita
+reordenar scripts. Los encargos ya se delegaban a `logistica.iniciarOrden`;
+no se trasladan órdenes desde `juego.js`. La fase 2 retira el puente.
 
 ## Pruebas
 
-Vivirán en `paquetes/reglas-factory/pruebas/`. Criterio: Reglas en Node y paridad con suites y referencias de fase 0; Factory conserva su oráculo.
+```sh
+node paquetes/reglas-factory/pruebas/reglas-factory.mjs
+node pruebas/factory-reglas.cjs
+node pruebas/partida-factory.mjs
+node pruebas/partida-referencias.mjs
+npm test
+npm run tipos
+node pruebas/fronteras.mjs
+```
 
-## Estado
+La suite propia se registra en `pruebas/todas.mjs`: validación de la función
+serializada en un contexto vacío, claves del puente, datos planos, stock por
+intento sin consumir RNG, determinismo, restauración por JSON durante un viaje
+y al terminar, independencia de instantáneas, límite de tiempo y sucesos.
+Compara estado enumerable y hooks con y sin registro; comprueba también el
+orden de scripts requerido por los lectores al cargar.
 
-Vacío desde la fase 0: solo manifiesto y contrato. No se crea `index.js` todavía; las entradas públicas empiezan en la fase 1.
+Las suites de partidas protegen el oráculo y las 41 referencias de fase 0 sin
+regrabarlas. Estas comprobaciones son de Node/VM; el contraste con Workers y
+el arranque en navegador real se verifica aparte.

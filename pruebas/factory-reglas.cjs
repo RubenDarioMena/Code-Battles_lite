@@ -1,10 +1,6 @@
 // Reglas puras: encargos completos, conservación y límites, con paso fijo real.
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-const c = vm.createContext({ window: {} });
-for (const f of ['factory-retos', 'factory']) vm.runInContext(fs.readFileSync(`Prototypes/Rocket Launcher/js/${f}.js`, 'utf8'), c);
-const { FACTORY: F, FACTORY_RETOS: D } = c.window;
+const { legado: F, retos: D } = require('../paquetes/reglas-factory/index.js');
 function escenario(reto = 0) {
   const d = JSON.parse(JSON.stringify(D.RETOS[reto]));
   d.metas = [{ id: 'FUN', mat: 'cobre', n: 100 }]; d.maxRechazos = null;

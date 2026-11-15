@@ -52,9 +52,9 @@ for (const [modulo, prefijo] of modulos) {
 }
 assert.deepEqual(Object.keys(mapas.en).sort(), Object.keys(mapas.es).sort(), 'mismas claves en español e inglés');
 // El catálogo mantiene el español original y el número de partes desbloqueables de cada pista.
-const entornoRetos = { WAR_RETOS: require('../paquetes/reglas-war/index.js').retos };
+const entornoRetos = { WAR_RETOS: require('../paquetes/reglas-war/index.js').retos,
+  FACTORY_RETOS: require('../paquetes/reglas-factory/index.js').retos };
 for (const serie of ['war', 'factory']) {
-  if (serie !== 'war') vm.runInNewContext(leer(`Prototypes/Rocket Launcher/js/${serie}-retos.js`), { window: entornoRetos });
   entornoRetos[`${serie.toUpperCase()}_RETOS`].RETOS.forEach((r, i) => {
     const partes = r.pista.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿«"])/);
     const campos = { titulo: r.titulo, objetivo: r.objetivo, leccion: r.leccion,
