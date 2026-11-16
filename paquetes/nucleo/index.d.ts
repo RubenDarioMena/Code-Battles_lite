@@ -18,6 +18,8 @@ export interface RegistroSucesos {
   vaciar(): void;
 }
 export interface MundoConSucesos { t: number; sucesos?: RegistroSucesos }
+/** Respuesta de un encargo; la instantánea se toma al terminarlo, incluso a mitad de paso. */
+export interface Respuesta { unidad: string; resultado: string; instantanea: Instantanea }
 export interface Reglamento<Mundo, Escenario, Evaluacion = DatoPlano> {
   id: string;
   version: string | number;
@@ -26,6 +28,8 @@ export interface Reglamento<Mundo, Escenario, Evaluacion = DatoPlano> {
   aplicarOrden(mundo: Mundo, orden: Orden): void;
   instantanea(mundo: Mundo): Instantanea;
   evaluar(mundo: Mundo): Evaluacion;
+  /** Devuelve y vacía la cola de respuestas del reglamento (opcional). */
+  respuestas?(mundo: Mundo): Respuesta[];
 }
 export interface DatosPartida<Escenario = DatoPlano> {
   reglas: string;
@@ -38,6 +42,7 @@ export interface DatosPartida<Escenario = DatoPlano> {
 export interface Partida<Mundo, Escenario, Evaluacion = DatoPlano> {
   mundo: Mundo & { sucesos: RegistroSucesos };
   ordenar(orden: Orden): void;
+  aplicarOrdenes(): void;
   paso(): void;
   instantanea(): Instantanea;
   sucesos(desdePaso?: number): Suceso[];

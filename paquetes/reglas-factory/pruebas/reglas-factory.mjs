@@ -84,6 +84,29 @@ for (let paso = 0; paso < 90; paso++) {
 }
 igual(recuperada.sucesos(), original.sucesos());
 
+// Respuestas por mundo, en el instante exacto de terminar y fuera del registro de actividad.
+{
+  const p = nueva(), otra = nueva();
+  ordenar(p, 'entregar', ['FUN']); p.aplicarOrdenes();
+  igual(p.pasoActual, 0, 'rechazo inmediato sin paso');
+  igual(reglamento.respuestas(otra.mundo), [], 'colas independientes');
+  const [respuesta] = reglamento.respuestas(p.mundo);
+  igual([respuesta.unidad, respuesta.resultado, respuesta.instantanea.t], ['R1', 'manos_vacias', 0]);
+  igual(reglamento.respuestas(p.mundo), [], 'respuestas vacía la cola');
+  ordenar(p, 'recoger', ['ENT-1', 'cobre']); p.aplicarOrdenes();
+  for (let i = 0; i < 29; i++) p.paso();
+  const [recogida] = reglamento.respuestas(p.mundo);
+  igual(recogida.instantanea.factory.porId['ENT-1'].stock.cobre, 2, 'foto al terminar');
+  p.mundo.porId['ENT-1'].stock.cobre = 0;
+  igual(recogida.instantanea.factory.porId['ENT-1'].stock.cobre, 2, 'foto independiente');
+  igual([p.mundo.eventos, p.mundo.verbos, p.mundo.resultados], [[], {}, {}], 'las reglas no escriben actividad');
+  p.ordenar({ paso: p.pasoActual, origen: 'sistema', unidad: 'R1', verbo: 'programa-acabado', args: [] });
+  p.aplicarOrdenes();
+  igual([p.pasoActual, p.evaluar()?.motivo], [29, 'incompleto'], 'done evalúa sin avanzar');
+  const satisfecha = reglamento.crearMundo({ reto: { ...retos.RETOS[0], metas: [] } }, () => 0);
+  igual(satisfecha.final?.fin, 'victoria', 'evalúa al crear');
+}
+
 // Una instantánea del reglamento no presta las existencias mutables del mundo.
 const copia = original.instantanea();
 copia.factory.porId['ENT-1'].stock.cobre = 99;

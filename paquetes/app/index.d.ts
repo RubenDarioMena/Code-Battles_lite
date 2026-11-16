@@ -20,7 +20,7 @@ export interface OpcionesJugar {
   vista?: Vista;
   ordenes?: Orden[];
   maxPasos?: number;
-  alPaso?: (paso: number, instantanea: Instantanea) => void;
+  alPaso?: (paso: number, instantanea: Instantanea, partida: Partida<any, any, any>) => void;
 }
 export interface ResultadoJugar {
   partida: Partida<any, any, any>;

@@ -8,12 +8,21 @@ export { retos };
 
 /** @type {WeakMap<import('./index.js').Mundo, import('./index.js').Conexion>} */
 const conexiones = new WeakMap();
+/** @type {WeakMap<import('./index.js').Mundo, { encargo: boolean, acabado: boolean, respuestas: import('../nucleo/index.js').Respuesta[] }>} */
+const encargos = new WeakMap();
 
 /** @param {import('./index.js').Mundo} mundo */
 function conexion(mundo) {
   if (!conexiones.has(mundo)) {
+    const estado = { encargo: false, acabado: false, respuestas: [] };
+    encargos.set(mundo, estado);
     conexiones.set(mundo, conectar(mundo, {
-      terminarOrden() {}, programaAcabado: () => false, llamadaPendiente: () => false,
+      terminarOrden(resultado) {
+        estado.encargo = false;
+        estado.respuestas.push({ unidad: 'R1', resultado,
+          instantanea: structuredClone({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: instantanea(mundo) }) });
+      },
+      programaAcabado: () => estado.acabado, llamadaPendiente: () => estado.encargo,
       terminar(fin, motivo, mensaje) {
         mundo.fin = fin;
         mundo.activo = false;
@@ -33,10 +42,24 @@ const reglamento = {
     // Factory siempre ha usado el intento, no una muestra del RNG.
     const mundo = crear(escenario.reto, escenario.intento ?? 1);
     mundo.activo = true;
+    conexion(mundo).evaluar();
     return mundo;
   },
   paso(mundo, dt) { conexion(mundo).paso(dt); },
-  aplicarOrden(mundo, orden) { conexion(mundo).iniciarOrden(orden.verbo, orden.args); },
+  aplicarOrden(mundo, orden) {
+    const c = conexion(mundo), estado = encargos.get(mundo);
+    if (orden.origen === 'sistema' && orden.verbo === 'programa-acabado') {
+      estado.acabado = true;
+      c.evaluar();
+    } else if (['recoger', 'entregar', 'esperar'].includes(orden.verbo)) {
+      estado.encargo = true;
+      c.iniciarOrden(orden.verbo, orden.args);
+    }
+  },
+  respuestas(mundo) {
+    conexion(mundo);
+    return encargos.get(mundo).respuestas.splice(0);
+  },
   instantanea(mundo) {
     // El legado conserva referencias y campos undefined para los Workers.
     // La entrada de reglamento devuelve datos planos independientes.

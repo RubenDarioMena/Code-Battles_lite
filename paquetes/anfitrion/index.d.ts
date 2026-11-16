@@ -42,10 +42,12 @@ export interface OpcionesAnfitrion {
 }
 export interface Anfitrion {
   cargar(unidad: string, codigo: string, opciones?: { lenguaje?: 'js' | 'python' }): Promise<void>;
-  ceder(instantanea: { t: number; [clave: string]: unknown }): Promise<Turno>;
+  ceder(instantanea: { t: number; [clave: string]: unknown }, respuestas?: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
+  responder(respuestas: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
+  registro(): { eventos: any[]; verbos: Record<string, number>; resultados: Record<string, number>; consolas: Record<string, number> };
   algunoCorre(): boolean;
   estado(unidad: string): string | null;
   proximaEspera(): number | null;
-  detener(): void;
+  detener(respuestas?: import('../nucleo/index.js').Respuesta[]): void;
 }
 export function crearAnfitrion(opciones: OpcionesAnfitrion): Anfitrion;

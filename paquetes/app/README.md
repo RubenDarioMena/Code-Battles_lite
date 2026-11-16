@@ -1,6 +1,6 @@
 # app
 
-Estado: fase 2, paso 2 (partida sin pantalla y vista nula).
+Estado: fase 2, pasos 2 y 7a (partida sin pantalla, vista nula y respuestas Factory).
 
 Compone reglamento, vistas, anfitrión e interfaz. Conecta sus entradas públicas
 y deja la plataforma a las cáscaras.
@@ -21,8 +21,17 @@ Véanse las reglas de [paquetes](../README.md).
 - `await jugarPartida({ reglas, escenario, semilla, anfitrion?, vista?, ordenes?,
   maxPasos = 10000, alPaso? })` crea la partida con `crearPartida` del núcleo y
   juega en lockstep: primero `anfitrion.ceder(instantánea inicial)` (arranca los
-  programas cargados) y después, tras cada `paso()`, `ceder(instantánea)`, cuyas
-  órdenes se aplican al principio del paso siguiente, como en el juego. Para
+  programas cargados) y después, tras cada `paso()`,
+  `ceder(instantánea, reglas.respuestas?.(mundo))`. Aplica las órdenes del turno
+  con `partida.aplicarOrdenes()` y entrega las respuestas inmediatas mediante
+  `anfitrion.responder`, repitiendo hasta vaciar la cola, un error o el final.
+  Así `manos_llenas`, `manos_vacias` y `programa-acabado` no añaden un paso.
+  Las órdenes del paso actual se aplican antes de evaluar también sin anfitrión,
+  así que para repetir una partida de `jugarPartida` se llama `aplicarOrdenes()`
+  tras `restaurar` (una orden puede terminarla sin avanzar: Factory,
+  `programa-acabado`). `alPaso(paso, instantanea, partida)` recibe la partida.
+  Al terminar entrega las respuestas restantes a `detener(respuestas)` para
+  registrar el último encargo sin ejecutar la continuación del programa. Para
   cuando `reglas.evaluar` devuelve algo, cuando el anfitrión informa un error de
   programa o al llegar a `maxPasos`. La vista recibe la instantánea inicial y la
   de cada paso con fracción 1, y cada suceso nuevo una vez (por `paso`
@@ -45,7 +54,12 @@ la vista no lo recibiría; ningún reglamento lo hace hoy.
   anfitrión), y una orden de origen `jugador` hace disparar a `LAU-01` en el
   paso indicado y se repite igual.
 
-Ambas están registradas en `pruebas/todas.mjs`. La cuarta prueba de frontera
+También `node pruebas/fronteras-factory.mjs`: 28 referencias Factory, por las
+entradas públicas: huella, pasos, resultado completo y repetición exacta 28/28
+(la huella se mide sobre la instantánea del legado, como en la fase 0; véase el
+README de `reglas-factory`).
+
+Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de frontera
 (editor montado solo) es de navegador.
 
 ## Pendiente

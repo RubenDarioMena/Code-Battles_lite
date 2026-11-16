@@ -105,14 +105,18 @@ export function crearPartida({ reglas, escenario, semilla }) {
   /** @type {import('../protocolo/index.js').Orden[]} */
   const ordenes = [];
   let pasoActual = 0;
+  const aplicarOrdenes = () => {
+    for (const orden of cola.tomar(pasoActual)) reglas.aplicarOrden(mundo, orden);
+  };
   return {
     mundo: /** @type {Mundo & { sucesos: import('./index.js').RegistroSucesos }} */ (mundo),
     ordenar(orden) {
       cola.poner(orden);
       ordenes.push(structuredClone(orden));
     },
+    aplicarOrdenes,
     paso() {
-      for (const orden of cola.tomar(pasoActual)) reglas.aplicarOrden(mundo, orden);
+      aplicarOrdenes();
       reglas.paso(mundo, DT);
       pasoActual++;
     },

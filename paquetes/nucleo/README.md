@@ -25,15 +25,22 @@ pública de `protocolo`; funciona en Node y navegador.
   estructurada del mundo. `anotarSuceso(mundo, tipo, unidad, datos)` usa
   `pasoDe(mundo.t)`, omite campos opcionales nulos y no actúa sin registro.
 - `crearPartida({ reglas, escenario, semilla })` devuelve `mundo`, `ordenar`,
-  `paso`, `instantanea`, `sucesos(desdePaso = 0)`, `evaluar`, `serializar` y el
+  `aplicarOrdenes`, `paso`, `instantanea`, `sucesos(desdePaso = 0)`, `evaluar`, `serializar` y el
   lector `pasoActual`. Cada paso aplica las órdenes vencidas antes de avanzar
   el reglamento con `DT` e incrementar el contador. Las órdenes deben recibirse
   antes de ejecutar su paso para garantizar repetición exacta.
+  `aplicarOrdenes()` vacía las órdenes pendientes del paso actual en orden de
+  inserción, sin avanzar tiempo ni RNG. `paso()` aplica las que queden y avanza;
+  llamar varias veces a `aplicarOrdenes()` no repite órdenes ya aplicadas.
 
 El reglamento aporta `{ id, version, crearMundo(escenario, rng), paso(mundo, dt),
 aplicarOrden(mundo, orden), instantanea(mundo), evaluar(mundo) }`. El escenario
 contiene datos planos; se copia antes de entregarlo al reglamento. La evolución
 debe depender únicamente del escenario, la semilla y las órdenes.
+Opcionalmente, `respuestas(mundo)` devuelve y vacía una cola de
+`{ unidad, resultado, instantanea }`: contestaciones a encargos de programas.
+La instantánea se copia al terminar el encargo, incluso a mitad de paso; la
+aplicación entrega esas respuestas al anfitrión. No son sucesos de presentación.
 
 - `copiaPlana(valor)` (fase 2): copia profunda de arreglos y objetos que
   conserva referencias compartidas y ciclos, omite las propiedades con
@@ -49,6 +56,11 @@ debe depender únicamente del escenario, la semilla y las órdenes.
 funciones ni el mundo. `restaurar(datos, reglas)` comprueba identificador y
 versión, recrea la partida y repite los pasos. El RNG recupera su posición al
 repetir; los sucesos se generan de nuevo con el límite habitual.
+La repetición conserva el criterio anterior: aplica las órdenes del paso N
+antes de avanzar N. Las órdenes pendientes del paso guardado quedan sin
+aplicar; quien las aplicó en vivo al llegar (`jugarPartida` de `app`) llama
+`aplicarOrdenes()` tras restaurar. No cambia el formato para guardar aplicaciones parciales
+de órdenes en el paso actual.
 
 ## Compatibilidad y pruebas
 

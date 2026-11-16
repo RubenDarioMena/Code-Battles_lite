@@ -1,6 +1,6 @@
 # reglas-factory
 
-Estado: fase 1. Reglamento Factory sin pantalla, en módulos ES ejecutables en
+Estado: fase 2, paso 7a (respuestas de encargos). Reglamento Factory sin pantalla, en módulos ES ejecutables en
 Node. Procede de `js/factory.js` y `js/factory-retos.js` de la aplicación común.
 Conserva sus reglas, textos, materiales, retos, tiempos y stock por intento.
 Solo importa la entrada pública de `nucleo`; puede importar también `protocolo`.
@@ -9,11 +9,12 @@ Véanse las [fronteras](../README.md). Contratos en `index.d.ts`.
 ## Entrada pública
 
 `index.js` exporta por defecto `{ id: 'factory', version: 1, crearMundo, paso,
-aplicarOrden, instantanea, evaluar, api }`:
+aplicarOrden, respuestas, instantanea, evaluar, api }`:
 
 - `crearMundo({ reto, intento = 1 }, rng)` recibe un reto adaptado de `retos`
   y devuelve el mundo activo. El intento selecciona `stockPorIntento` con la
-  misma fórmula anterior. El RNG del núcleo no se consume: Factory nunca ha
+  misma fórmula anterior. Evalúa las metas una vez al terminar de crear el mundo.
+  El RNG del núcleo no se consume: Factory nunca ha
   usado azar para el stock. Para reproducir un intento, debe ir en el escenario;
   la semilla del núcleo por sí sola no lo selecciona.
 - `paso(mundo, dt)` usa la conexión existente guardada por mundo en un `WeakMap`.
@@ -22,7 +23,16 @@ aplicarOrden, instantanea, evaluar, api }`:
   `recoger(origen, material)`, `entregar(destino)`, `esperar(segundos)`.
   Esos son los verbos internos que ya envía el Worker; R1 es el único robot.
   Como en el legado, la validación de argumentos corresponde al anfitrión.
-  No se cambia la política sobre encargos simultáneos de los programas.
+  El anfitrión detecta los encargos simultáneos. La orden de sistema
+  `programa-acabado` marca el programa como acabado y evalúa sin avanzar.
+- `respuestas(mundo)` devuelve y vacía la cola de
+  `{ unidad: 'R1', resultado, instantanea }`. Un `WeakMap` privado por mundo
+  conserva el encargo en curso, el programa acabado y la cola; los ganchos de
+  la conexión leen ese estado. La instantánea de respuesta se toma con
+  `structuredClone` en `terminarOrden`, antes de evaluar el final del paso,
+  conservando la forma del legado (incluidos campos `undefined`).
+  Los registros `eventos`, `verbos`, `resultados` y `consolas` los escribe el
+  anfitrión; las reglas no los leen ni escriben.
 - `instantanea(mundo)` devuelve `{ t, maq: {}, auto: {}, vib: {}, factory }`.
   `factory` conserva las lecturas del legado, con copia profunda y sin campos
   `undefined`, para cumplir el protocolo de datos planos sin prestar existencias.
@@ -33,9 +43,8 @@ aplicarOrden, instantanea, evaluar, api }`:
 
 Se integra con `crearPartida({ reglas, escenario: { reto, intento }, semilla })`
 del núcleo; `restaurar` repite pasos y órdenes, reconstruyendo las clausuras de
-las tareas en curso. El adaptador por defecto no ejecuta programas ni deduce
-su final: sus hooks `programaAcabado` y `llamadaPendiente` devuelven `false`.
-El anfitrión actual conserva esa detección mediante `legado.conectar`.
+las tareas en curso. El juego y la herramienta antigua conservan su detección
+mediante `legado.conectar`, sin cambios.
 
 
 ## Escena para las vistas (fase 2)
@@ -94,6 +103,7 @@ node paquetes/reglas-factory/pruebas/reglas-factory.mjs
 node pruebas/factory-reglas.cjs
 node pruebas/partida-factory.mjs
 node pruebas/partida-referencias.mjs
+node pruebas/fronteras-factory.mjs
 npm test
 npm run tipos
 node pruebas/fronteras.mjs
@@ -109,3 +119,11 @@ orden de scripts requerido por los lectores al cargar.
 Las suites de partidas protegen el oráculo y las 41 referencias de fase 0 sin
 regrabarlas. Estas comprobaciones son de Node/VM; el contraste con Workers y
 el arranque en navegador real se verifica aparte.
+
+`fronteras-factory` compara estrictamente las 28 referencias con
+`crearAnfitrion` y `jugarPartida`: huella, pasos, resultado completo y
+repetición exacta, 28/28. La huella histórica (fase 0) se calculó sobre la
+instantánea del legado, que conserva campos `undefined` (`acepta`/`entrada` de
+las bodegas, `stock` de las máquinas); la instantánea pública los quita para
+cumplir el protocolo, así que la prueba calcula la huella con
+`legado.instantanea(mundo)`, que mide el mismo estado del mundo.

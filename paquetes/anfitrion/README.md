@@ -1,6 +1,6 @@
 # anfitrion
 
-Estado: fase 2, pasos 1 (texto del Worker y despertar) y 2 (`crearAnfitrion` para War).
+Estado: fase 2, pasos 1–2 y 7a (`crearAnfitrion` para War y Factory).
 
 Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
 Hoy, un Web Worker por unidad programable; en la fase 5, un intérprete con
@@ -36,7 +36,7 @@ Quién lo usa:
 - La partida sin pantalla (`herramientas/partida/cargar.mjs` y `ciclo.mjs`), que
   importa el paquete en vez de capturar el Worker por `Blob`.
 
-## `crearAnfitrion` (paso 2, solo War)
+## `crearAnfitrion` (War y Factory)
 
 `crearAnfitrion({ reglas, crearTrabajador, contexto?, piezas?, maxOrdenes = 4000, ahora? })`:
 
@@ -49,7 +49,8 @@ Quién lo usa:
   `api.conf` en este paso).
 - `await cargar(unidad, codigo, { lenguaje })`: código ya revisado,
   instrumentado o traducido (eso sigue en el juego hasta que exista `lenguaje`).
-- `await ceder(instantanea)`: arranca los programas nuevos, despierta a los que
+- `await ceder(instantanea, respuestas = [])`: entrega primero las respuestas,
+  arranca los programas nuevos, despierta a los que
   esperan con `despertar <= t + 1e-9` y cede hasta que ninguno corre. Devuelve
   `{ ordenes, avisos, error }`: órdenes `{ paso: pasoDe(t), origen: 'programa',
   unidad, verbo, args: [lugar] }` y los mensajes del Worker como avisos.
@@ -64,8 +65,25 @@ Quién lo usa:
   sin nada que entregar devuelve `error.motivo = 'sin-cesion'`.
 - `algunoCorre()`, `estado(unidad)`, `proximaEspera()` y `detener()`.
 
-Límites: Factory y Campaign todavía no (sus encargos terminan por un gancho del
-mundo que el reglamento de la fase 1 no expone; ver «Decisiones pendientes»).
+Factory conserva sus encargos por programa: un encargo cede el turno sin
+contar como «corre», y `done` espera a su encargo antes de quedar en «fin».
+Como en el ciclo antiguo, el encargo simultáneo y el sensor 501 fallan sin
+producir órdenes ni registro; la consola que pasa del límite de 4000 se
+registra y después falla. El contador de sensores se pone a
+cero con cada encargo. War conserva su tratamiento anterior de MAX_ORDENES.
+
+- `await responder(respuestas)` entrega `{ unidad, resultado, instantanea }`,
+  despierta el encargo con esa foto y cede hasta que nadie corre; devuelve
+  `{ ordenes, avisos, error }`. No despierta esperas vencidas por tiempo.
+  Las respuestas sin encargo se ignoran.
+- `registro()` copia `{ eventos, verbos, resultados, consolas }` de Factory.
+  El registro se hace al ceder, en el mismo orden fijo que las órdenes; los
+  resultados usan el tiempo de su instantánea de respuesta.
+- `detener(respuestas = [])` acepta las respuestas terminales: las registra y
+  entrega antes de cerrar los Workers, sin ejecutar continuaciones tras el fin.
+  Evita perder el último encargo cuando su entrega cumple las metas.
+
+Límites: Campaign todavía no admite `crearAnfitrion`.
 Si dos unidades fallan en el mismo instante con Workers reales, gana la primera
 en llegar. El juego aún no usa `crearAnfitrion`: sigue con `window.RUNTIME`.
 
@@ -87,3 +105,5 @@ falsos y `crearAnfitrion` con Workers asíncronos falsos cuyos mensajes llegan e
 distinto orden (mismo resultado), MAX_ORDENES, errores y `sin-cesion`.
 `pruebas/fronteras-fase2.mjs` lo usa con la imitación real de Worker. La paridad con el juego la dan `partida-referencias` (41 partidas) y el
 contraste con Chromium.
+`pruebas/fronteras-factory.mjs` juega las 28 referencias Factory por el camino
+nuevo: huella, pasos, resultado completo y repetición exacta coinciden 28/28.

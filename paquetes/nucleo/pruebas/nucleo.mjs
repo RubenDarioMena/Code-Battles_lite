@@ -242,6 +242,30 @@ const reglas = {
   igual(restaurar(inicial.serializar(), reglas).instantanea(), inicial.instantanea());
 }
 
+// Aplicación sin avance: orden estable, vaciado y equivalencia con paso/restaurar.
+{
+  const opciones = { reglas, escenario: { base: 2 }, semilla: 7 };
+  const viva = crearPartida(opciones), diferida = crearPartida(opciones);
+  for (const entrada of [orden(0, 'multiplicar', 2), orden(0, 'sumar', 3), orden(1, 'sumar', 5)]) {
+    viva.ordenar(entrada); diferida.ordenar(entrada);
+  }
+  const azar = viva.mundo.azar;
+  viva.aplicarOrdenes();
+  igual([viva.pasoActual, viva.mundo.t, viva.mundo.azar, viva.mundo.valor], [0, 0, azar, 7]);
+  igual(viva.mundo.ordenes, [{ paso: 0, valor: 4 }, { paso: 0, valor: 7 }]);
+  viva.aplicarOrdenes();
+  igual(viva.mundo.valor, 7);
+  viva.ordenar(orden(0, 'multiplicar', 3)); diferida.ordenar(orden(0, 'multiplicar', 3));
+  viva.aplicarOrdenes();
+  igual(viva.mundo.valor, 21);
+  viva.paso(); diferida.paso();
+  igual(viva.instantanea(), diferida.instantanea());
+  igual(restaurar(viva.serializar(), reglas).instantanea(), viva.instantanea());
+  viva.paso(); diferida.paso();
+  igual(viva.instantanea(), diferida.instantanea());
+  igual(restaurar(viva.serializar(), reglas).sucesos(), viva.sucesos());
+}
+
 // copiaPlana (fase 2): profunda, sin funciones, con referencias compartidas y ciclos.
 {
   const { copiaPlana } = await import('../index.js');

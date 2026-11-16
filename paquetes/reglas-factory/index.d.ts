@@ -74,6 +74,7 @@ export interface Retos {
 }
 export interface ReglamentoFactory extends Reglamento<Mundo, Escenario, Final | null> {
   id: 'factory'; version: 1;
+  respuestas(mundo: Mundo): import('../nucleo/index.js').Respuesta[];
   /** Lo que dibujan las vistas: datos planos independientes del mundo (fase 2). */
   escena(mundo: Mundo): { t: number; porId: Record<string, any>; [clave: string]: any };
   api: { ordenes: string[]; lecturas: string[]; nombres: Record<string, string>; materiales: string[] };

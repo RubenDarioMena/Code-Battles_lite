@@ -1,6 +1,7 @@
 // Pruebas propias de app en Node: vista nula y bucle de partida con un reglamento mínimo y un anfitrión falso.
 import assert from 'node:assert/strict';
 import { crearVistaNula, jugarPartida } from '../index.js';
+import factory, { retos } from '../../reglas-factory/index.js';
 
 let comprobaciones = 0;
 const igual = (a, b, m) => { assert.deepEqual(a, b, m); comprobaciones++; };
@@ -41,5 +42,26 @@ const conError = await jugarPartida({ reglas, escenario: { inicio: 0 }, semilla:
 igual([conError.pasos, conError.error.mensaje], [0, 'mal'], 'un error de programa para la partida');
 const corta = await jugarPartida({ reglas, escenario: { inicio: -100 }, semilla: 1, maxPasos: 3 });
 igual([corta.pasos, corta.limite, corta.evaluacion], [3, true, null], 'límite de pasos');
+
+// Factory: dos rechazos inmediatos y done deben agotar el programa sin consumir pasos.
+{
+  const respuestas = [];
+  const orden = verbo => ({ paso: 0, origen: verbo === 'programa-acabado' ? 'sistema' : 'programa',
+    unidad: 'R1', verbo, args: verbo === 'entregar' ? ['FUN'] : [] });
+  const turno = verbo => ({ ordenes: [orden(verbo)], avisos: [], error: null });
+  let cesiones = 0;
+  const anfitrion = {
+    async ceder() { cesiones++; return turno('entregar'); },
+    async responder(lote) {
+      respuestas.push(...lote);
+      return turno(respuestas.length === 1 ? 'entregar' : 'programa-acabado');
+    },
+    detener() {},
+  };
+  const r = await jugarPartida({ reglas: factory, escenario: { reto: retos.RETOS[0] }, semilla: 1, anfitrion, maxPasos: 0 });
+  igual([r.pasos, r.limite, r.evaluacion.motivo, cesiones], [0, false, 'incompleto', 1], 'resuelve la cadena inmediata antes de avanzar');
+  igual(respuestas.map(r => [r.resultado, r.instantanea.t]), [['manos_vacias', 0], ['manos_vacias', 0]], 'todas las respuestas pertenecen al instante inicial');
+  igual(r.partida.serializar().ordenes.map(o => o.verbo), ['entregar', 'entregar', 'programa-acabado'], 'guarda también las órdenes del mismo paso');
+}
 
 console.log(`app: ${comprobaciones} comprobaciones`);

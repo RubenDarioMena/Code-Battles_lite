@@ -162,7 +162,61 @@ for (const invertido of [false, true]) {
   igual([r.error.unidad, r.error.motivo], ['A', 'sin-cesion'], 'sin-cesion');
 }
 let rechazo = null;
-try { crearAnfitrion({ reglas: { id: 'factory' }, crearTrabajador: () => null }); } catch (e) { rechazo = e.message; }
-ok(/todavía solo War/.test(rechazo), 'Factory y Campaign aún no pasan por crearAnfitrion');
+try { crearAnfitrion({ reglas: { id: 'campaign' }, crearTrabajador: () => null }); } catch (e) { rechazo = e.message; }
+ok(/solo War y Factory/.test(rechazo), 'Campaign aún no pasa por crearAnfitrion');
+
+// Factory: el reglamento contesta con su instantánea, sin despertar esperas por tiempo.
+const encargo = (id = 1, linea = 2) => ({ type: 'encargo', id, linea, texto: 'entregar("FUN")', verbo: 'entregar', args: ['FUN'] });
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: { id: 'factory' }, crearTrabajador: f.crear });
+  await a.cargar('R1', 'x'); await a.cargar('otra', 'x');
+  f.creados.get('R1').guion.push([encargo()]);
+  f.creados.get('otra').guion.push([{ type: 'espera', id: 4, s: 1 }]);
+  const t = a.ceder({ t: 0 }); await f.soltar(); const r = await t;
+  igual(r.ordenes, [{ paso: 0, origen: 'programa', unidad: 'R1', verbo: 'entregar', args: ['FUN'] }], 'encargo por órdenes');
+  igual([a.estado('R1'), a.algunoCorre()], ['encargo', false], 'el encargo cede el turno');
+  const snap = { t: 2, factory: { observado: 7 } };
+  f.creados.get('R1').guion.push([{ type: 'done' }]);
+  const respuesta = a.responder([{ unidad: 'R1', resultado: 'manos_vacias', instantanea: snap }]);
+  await f.soltar();
+  igual((await respuesta).ordenes, [{ paso: 40, origen: 'sistema', unidad: 'R1', verbo: 'programa-acabado', args: [] }], 'done es orden del sistema');
+  igual(f.creados.get('R1').recibidos.at(-1), { type: 'despierta', id: 1, resultado: 'manos_vacias', snap }, 'respuesta con la foto recibida');
+  igual(f.creados.get('otra').recibidos.length, 1, 'responder no despierta esperas vencidas');
+  igual(a.registro().eventos, [{ t: 2, linea: 2, orden: 'entregar("FUN")', resultado: 'manos_vacias' }], 'registro del resultado');
+  await a.responder([{ unidad: 'R1', resultado: 'ok', instantanea: snap }]);
+  igual(a.registro().resultados, { manos_vacias: 1 }, 'ignora respuestas sin encargo');
+  const copia = a.registro(); copia.eventos.length = 0; copia.resultados.manos_vacias = 99;
+  igual(a.registro().resultados.manos_vacias, 1, 'registro independiente');
+  igual(a.registro().eventos.length, 1, 'eventos independientes');
+  a.detener();
+}
+for (const tipo of ['encargo', 'sensor', 'consola']) {
+  const f = falsos(), a = crearAnfitrion({ reglas: { id: 'factory' }, crearTrabajador: f.crear, maxOrdenes: 1 });
+  await a.cargar('R1', 'x');
+  const mensajes = tipo === 'encargo' ? [encargo(), encargo(2, 9)] : tipo === 'sensor'
+    ? Array.from({ length: 501 }, () => ({ type: 'lecturaFactory', linea: 5, texto: 'cuantos()', valor: 3 }))
+    : [1, 2].map(() => ({ type: 'consola', linea: 5, nivel: 'log', texto: 'hola' }));
+  f.creados.get('R1').guion.push(mensajes);
+  const t = a.ceder({ t: 0 }); await f.soltar(); const r = await t;
+  igual(r.error.linea, tipo === 'encargo' ? 2 : 5, `${tipo}: línea del diagnóstico`);
+  // Como el ciclo (alMensaje): el encargo sin await y el sensor 501 fallan sin registrarse; la consola que
+  // pasa del límite se registra y después falla.
+  igual(r.avisos.length, tipo === 'sensor' ? 500 : tipo === 'consola' ? 2 : 1, `${tipo}: avisos entregados`);
+  if (tipo === 'encargo') {
+    igual(r.ordenes.length, 1, 'el segundo encargo no da orden');
+    ok(r.error.mensaje.startsWith('Falta await en la línea 2:'), 'diagnóstico del encargo anterior');
+  } else if (tipo === 'sensor') igual(a.registro().verbos.cuantos, 500, 'el sensor erróneo no se registra');
+  else igual(a.registro().consolas.log, 2, 'la consola que pasa del límite se registra, como en el ciclo');
+  a.detener();
+}
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: { id: 'factory' }, crearTrabajador: f.crear });
+  await a.cargar('R1', 'x'); f.creados.get('R1').guion.push([encargo(), { type: 'done' }]);
+  const t = a.ceder({ t: 0 }); await f.soltar(); await t;
+  igual(a.estado('R1'), 'encargo', 'done no cancela el encargo');
+  a.detener([{ unidad: 'R1', resultado: 'ok', instantanea: { t: 1 } }]);
+  igual(a.registro().resultados, { ok: 1 }, 'el resultado terminal se registra al cerrar');
+  igual([a.estado('R1'), f.creados.get('R1').terminado], ['fin', true], 'termina sin ejecutar continuaciones');
+}
 
 console.log(`anfitrion: ${comprobaciones} comprobaciones`);
