@@ -82,7 +82,7 @@ y `generar`. Mantiene las conversiones del modelo antiguo y los guardados.
 `compat-paquetes.js?v=2` publica copias planas de ambos objetos. Los dos lectores
 al cargar son el propio puente (interpolación de `validar` con `paquetes/anfitrion`, fase 2) y `juego.js` (retos,
 normalización y arranque); ambos ya están después del puente. `factory-form.js`
-lee los catálogos dentro de `crear`, llamado después; `factory-vista.js`,
+lee los catálogos dentro de `crear`, llamado después; `paquetes/vista-2d` (antes `factory-vista.js`),
 `factory-3d.js` y `vistas.js` no leen estos dos catálogos al cargar. No se necesita
 reordenar scripts. Los encargos ya se delegaban a `logistica.iniciarOrden`;
 no se trasladan órdenes desde `juego.js`. La fase 2 retira el puente.

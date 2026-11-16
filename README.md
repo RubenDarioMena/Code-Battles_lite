@@ -50,7 +50,8 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `paquetes/anfitrion/` (desde la raíz) | Texto del Web Worker de los programas y despertar del lockstep (antes `js/runtime.js`). El paso fijo está en `paquetes/nucleo/`. |
 | `paquetes/reglas-war/`, `paquetes/reglas-factory/`, `paquetes/reglas-campaign/` (desde la raíz) | Reglas, retos y nivel de cada serie, como módulos ES que corren en Node. |
 | `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO`, `RUNTIME` (Worker del anfitrión) y `ESCENAS` (escena de cada reglamento para las vistas) como globales mientras dure la fase 2. |
-| `js/vistas.js`, `js/factory-vista.js` | Mapa 3D/plano y dibujo de logística. |
+| `js/vistas.js` | Visor 3D de War y Factory. Las vistas leen solo la escena del reglamento (`estado.escena`). |
+| `paquetes/vista-2d/` (desde la raíz) | Planos 2D de War, Factory y Campaign y relieve de Campaign, como módulos ES (fase 2; antes `js/vistas.js`, `js/factory-vista.js`, `js/campaign-plano.js` y `js/campaign-terreno.js`). |
 | `js/factory-3d.js`, `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil y tooltips. |

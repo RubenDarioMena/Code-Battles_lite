@@ -552,7 +552,7 @@
   const rgba = (hex, a) => `rgba(${rgb(hex).join(",")},${a})`;
   const mezclaBlanco = (hex, u) => `rgb(${rgb(hex).map(v => Math.round(v + (255 - v) * u)).join(",")})`;
   let geo2 = { T: 10, ox: 0, oy: 0 };
-  const dibujar2D = ES_CAMPAIGN ? window.CAMPAIGN_PLANO.crear(estadoVista, { $c2d, ctx2, FUNCIONES, funcionDe, radioDe, rgba, mezclaBlanco }) : window.VISTAS.crearPlano(estadoVista, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 });
+  const dibujar2D = ES_CAMPAIGN ? window.VISTA_2D.crearPlanoCampaign(estadoVista, { $c2d, ctx2, FUNCIONES, funcionDe, radioDe, rgba, mezclaBlanco, mapa: window.CAMPAIGN_NIVEL.MAPA, reglas: window.CAMPAIGN }) : window.VISTA_2D.crearPlano(estadoVista, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 });
   function proyectar2D(x, y) { return { x: geo2.ox + x * geo2.T, y: geo2.oy + y * geo2.T, visible: true }; }
   function elegir2D(px, py) {
     const x = (px - geo2.ox) / geo2.T, y = (py - geo2.oy) / geo2.T;
