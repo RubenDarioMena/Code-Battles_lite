@@ -1,3 +1,33 @@
+## Fase 2 en curso: anfitrión, vista nula, pruebas de frontera y vistas sobre la escena · 16 de noviembre de 2026 · rama `arquitectura/fase-2`
+
+- **Qué es.** Primeros pasos de la fase 2 de [docs/PLAN-ARQUITECTURA.md](docs/PLAN-ARQUITECTURA.md). La fase **no está cerrada**: el juego se comporta igual, las cuatro pruebas de frontera existen y pasan, pero `juego.js` sigue entero y quedan globales, `legado`, `compat-paquetes.js` y `?v=`.
+- **Commits.**
+  - `96027f4` paso 1: `paquetes/anfitrion` con el texto del Worker (idéntico byte a byte al de `runtime.js` en `fb9a8e9`) y el despertar del lockstep. Se retira `js/runtime.js`; el puente publica `RUNTIME` y la partida sin pantalla importa el paquete.
+  - `694267e` paso 2: `crearAnfitrion` (cargar/ceder, solo War), `app` con `crearVistaNula` y `jugarPartida`, `canonico` en `protocolo` y `api.conf` en `reglas-war`. `pruebas/fronteras-fase2.mjs`: pruebas de frontera 1–3.
+  - `4385d0b` paso 3: prueba de frontera 4 (editor montado solo) en `test:navegador` con `pruebas/ejecutar-editor-demo.cjs`.
+  - `9ab9b43` paso 4: `escena(mundo)` en los tres reglamentos y `copiaPlana` en el núcleo; las vistas leen solo `estado.escena`. `pruebas/vista-caliente.cjs`: cambio 2D/3D en caliente. `herramientas/capturas-vista.mjs`: capturas deterministas y comparación píxel a píxel entre dos versiones.
+- **Pruebas de frontera.**
+  1. Partida completa con vista nula: las **10 partidas War de referencia** juegan con `reglas-war`, `crearAnfitrion` (imitación de Worker) y la vista nula sobre `crearPartida`, y dan la misma huella, pasos y final que `pruebas/referencias/partidas.json`.
+  2. Repetición exacta: War 2/7 se repite desde escenario, semilla y órdenes (`restaurar` y `jugarPartida` sin anfitrión) con la misma huella paso a paso, instantánea final, sucesos y final.
+  3. Orden de origen `jugador`: hace disparar a `LAU-01` en el paso indicado y la partida se repite igual.
+  4. Editor montado solo: `shared/editor/demo.html`, 73 comprobaciones, sin globales del juego ni errores de página.
+- **Decisiones (registradas en el plan y en los README).**
+  - Orden de mensajes entre Workers: `crearAnfitrion` entrega órdenes y avisos por unidad (orden de carga) y llegada. No cambió ninguna referencia. El juego todavía usa su ciclo propio con `window.RUNTIME`, así que en el navegador el orden sigue igual que antes.
+  - Escena e instantánea: la instantánea de los programas no tiene lo que dibujan las vistas y protege las huellas. Cada reglamento exporta `escena(mundo)` (datos planos de lo visible). Las vistas siguen extrapolando como antes.
+  - `escena` usa `copiaPlana` (omite funciones y copia getters): Factory guarda una función en `robot.tarea` y tiene `cx`/`cy` como getters no enumerables. La primera versión perdía el robot de Factory 3D; la comparación de capturas lo detectó y ahora también la prueba de Node.
+- **Verificación actual.**
+  - `npm test` **29/29**: incluye `partida-referencias` (**41 iguales**, sin regrabar), anfitrion **57**, app **10**, fronteras-fase2 **73**, núcleo **3208**, reglas-war **4787**, reglas-factory **4768**, reglas-campaign **3928**. Tipos y fronteras limpios.
+  - `npm run test:navegador` **35/35**: idiomas 261, Campaign H0–H5, contraste **41/41**, terreno, editor montado solo 73 y cambio en caliente 42.
+  - Capturas deterministas (tiempo congelado) de War, Factory y Campaign en 2D y 3D, antes y después del paso 4: idénticas píxel a píxel salvo el ruido que ya había entre dos capturas de la base (brazo animado del robot de Factory 3D y un chip de texto). A mitad de batalla, con misiles y explosiones, el mismo instante dibujado desde el mundo y desde la escena es idéntico.
+- **Forma de trabajo.** Esta sesión corrió en la nube, sin Codex CLI ni la carpeta del Mac: escribí yo el código, en `/home/user/Code-Battles_lite`, misma rama. Chromium de Playwright necesitó enlazar la compilación instalada (1243) con la que pide Playwright 1.65.1 (1255), fuera del repositorio.
+- **Límites.**
+  - `crearAnfitrion` solo admite War: en Factory y Campaign los encargos terminan por un gancho del mundo (`terminarOrden`) que el reglamento de la fase 1 no expone. Hace falta que el reglamento conteste a los encargos (por ejemplo, una lista de respuestas en el mundo que el anfitrión recoja tras cada paso) antes de quitar `legado`.
+  - Las vistas siguen en `js/` como scripts globales; `elegir` sigue en `juego.js`.
+  - El juego no usa todavía `crearAnfitrion` ni `crearPartida`.
+  - No se probó en teléfono real.
+- **Propuesta para Factory y Campaign en `crearAnfitrion`.** Que el reglamento anote las respuestas de los encargos en una cola no enumerable del mundo (`terminarOrden` → `{ id, unidad, resultado }`) y que el anfitrión la recoja tras cada paso para despertar al programa con `despierta`. El «programa acabado» de Factory (`programaAcabado`/`llamadaPendiente`, que decide `incompleto`) podría llegar como orden de origen `sistema`. Hay que comprobarlo contra las 27 referencias de Factory y las 4 de Campaign antes de quitar `legado`.
+- **Siguiente paso exacto.** Mover las vistas a `paquetes/vista-2d` y `paquetes/vista-3d` como módulos ES con `crearVista` (partir `crear3D`, 618 líneas). Dependencias que hay que inyectar desde la app en vez de leer globales: `THREE`, `CMGTerreno` (terreno de War), `FACTORY_3D`/`FACTORY_VISTA`, `CAMPAIGN_NIVEL.MAPA`, `CAMPAIGN_TERRENO` y las funciones `esRobot`/`esMaquina`/`estadoMaquina` de Campaign (una vista no puede importar reglamentos). Verificar con `herramientas/capturas-vista.mjs` (capturar la versión anterior servida desde un `git worktree` en otro puerto y comparar) y `vista-caliente`. Después: reglamentos que contestan encargos y `crearAnfitrion` para Factory/Campaign; el juego sobre `crearAnfitrion`/`crearPartida`; reparto de `juego.js` y `layout.js`; editor a `paquetes/editor`; fin de globales, `legado`, puente y `?v=`.
+
 ## trunk unido antes de la fase 2 (editor de terreno) · 15 de noviembre de 2026 · rama `arquitectura/fase-2`
 
 - **Qué es.** La rama `arquitectura/fase-2` nace de `arquitectura/fase-1` y une `trunk` (`e2d4680`, `c2f0d21`: editor de terreno WebGPU, estudio y vista previa en War con `?terreno=editor`), con autorización del autor. La fase 2 **no ha empezado**.
