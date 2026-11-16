@@ -1,6 +1,6 @@
 /* Estructura de un programa Python para editar por bloques (E4).
  * Parte del árbol de lezer (shared/vendor/lezer-python-1.1.19.js) y lo traduce a los mismos tipos de
- * nodo que shared/js/estructura.js construye para JS (sentencia, decl, si, mientras, para, funcion,
+ * nodo que paquetes/lenguaje construye para JS (sentencia, decl, si, mientras, para, funcion,
  * salto, bloque, cuerpo, llamada, metodo, miembro, binaria, unaria, lista, grupo, id, num, str, lit,
  * hueco, vacio…). Así la edición sin teclado, las asas, el arrastre y las sugerencias funcionan igual.
  * Diferencias con JS:

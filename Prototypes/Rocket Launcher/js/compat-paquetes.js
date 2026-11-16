@@ -1,3 +1,4 @@
+import * as lenguaje from '../../../paquetes/lenguaje/index.js';
 import { DT, crearPartida } from '../../../paquetes/nucleo/index.js';
 import war, * as datosWar from '../../../paquetes/reglas-war/index.js';
 import reglasFactory, * as factory from '../../../paquetes/reglas-factory/index.js';
@@ -6,6 +7,14 @@ import { crearAnfitrion } from '../../../paquetes/anfitrion/index.js';
 import { crearConductor } from '../../../paquetes/app/index.js';
 import * as vista2d from '../../../paquetes/vista-2d/index.js';
 import * as vista3d from '../../../paquetes/vista-3d/index.js';
+
+// Único puente del juego para los consumidores clásicos del lenguaje.
+window.LENGUAJE = lenguaje;
+window.CMGEditorJS = lenguaje.CMGEditorJS;
+window.ESTRUCTURA = lenguaje.ESTRUCTURA;
+window.CMGPythonJS = lenguaje.crearPython({ lezer: window.LezerPython,
+  hueco: nombre => window.CMGEditorPython.nombreDe(nombre) });
+window.CMGJSaPython = lenguaje.crearJSaPython({ acorn: window.acorn });
 
 // Se borra al terminar la fase 2.
 window.WAR = {
@@ -36,7 +45,7 @@ window.ESCENAS = { war: war.escena, factory: reglasFactory.escena, campaign: reg
 window.VISTA_2D = vista2d;
 window.VISTA_3D = vista3d;
 window.FACTORY_3D = vista3d.factory3d;
-// Antes, js/runtime.js. Este módulo va después de shared/python/traductor.js por el preludio de Python.
+// Antes, js/runtime.js. El preludio autónomo sale del paquete lenguaje.
 const piezasTrabajador = {
   validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,
   preludioPython: window.CMGPythonJS ? window.CMGPythonJS.preludio : null,

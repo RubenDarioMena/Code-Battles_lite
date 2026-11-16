@@ -1,3 +1,5 @@
+(async () => {
+const L = await import("../paquetes/lenguaje/index.js");
 // E0: módulos reales sin DOM y límites entre editor y aplicación.
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
@@ -6,7 +8,8 @@ const vm = require('node:vm');
 const raiz = path.join(__dirname, '..');
 const cargar = (contexto, archivo) => vm.runInContext(readFileSync(path.join(raiz, archivo), 'utf8'), contexto, { filename: archivo });
 const contexto = vm.createContext({ window: {} });
-for (const archivo of ['shared/editor/javascript.js', 'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
+Object.assign(contexto.window, { CMGEditorJS: L.CMGEditorJS });
+for (const archivo of ['shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
 assert.equal(contexto.window.cmg, undefined);
 assert.equal(contexto.document, undefined);
 assert.equal(contexto.localStorage, undefined);
@@ -36,7 +39,7 @@ function puerto(texto) {
   assert.equal(dos.operaciones.envolver('(', ')'), false);
   assert.equal(dos.codigo.value, 'dos');
   // La estructura se publica después del módulo y de su instancia, como en el juego.
-  cargar(contexto, 'shared/js/estructura.js');
+  contexto.window.ESTRUCTURA = L.ESTRUCTURA;
   const tres = puerto('regularShoot(pos);');
   tres.operaciones.insertarBloque('if (/* condición */) {\n  \n}', ['if (/* condición */) {\n', '\n}']);
   assert.equal(tres.codigo.value, 'if (/* condición */) {\n  regularShoot(pos);\n}');
@@ -123,3 +126,5 @@ function puerto(texto) {
   assert.equal(aplicaciones, 3);
   console.log('E0: carga sin juego/DOM, aislamiento, offsets UTF-16, estructura diferida y confirmaciones Add/Replace correctos.');
 })().catch(e => { console.error(e); process.exitCode = 1; });
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

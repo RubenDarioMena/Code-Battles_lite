@@ -35,6 +35,26 @@ const motor = path.join(laboratorio, 'revision', 'motor');
 const modulos = ['flujo.js', 'python.js', 'trazador.js'];
 assert.deepEqual((await readdir(motor)).sort(), modulos);
 for (const archivo of modulos) assert.equal((await stat(path.join(motor, archivo))).isFile(), true);
+// Los módulos no figuran como src en el HTML: comprobar también su grafo de imports.
+const modulosVisitados = new Set();
+async function verificarModulo(relativo) {
+  if (modulosVisitados.has(relativo)) return;
+  modulosVisitados.add(relativo);
+  const archivo = path.join(raiz, relativo);
+  const fuente = await readFile(archivo, 'utf8');
+  for (const [, referencia] of fuente.matchAll(/\bfrom\s+["'](\.[^"']+)["']/g)) {
+    const destino = path.normalize(path.join(path.dirname(relativo), referencia));
+    assert(!destino.startsWith('..'), `Import fuera de publicación: ${referencia}`);
+    await verificarModulo(destino);
+  }
+}
+await verificarModulo('Prototypes/Rocket Launcher/js/compat-paquetes.js');
+await verificarModulo('shared/editor/compat-lenguaje.js');
+assert(modulosVisitados.has('paquetes/lenguaje/index.js'));
+for (const retirado of ['shared/editor/javascript.js', 'shared/js/estructura.js',
+  'shared/python/traductor.js', 'shared/python/desde-js.js', 'paquetes/lenguaje/pruebas']) {
+  await assert.rejects(stat(path.join(raiz, retirado)), { code: 'ENOENT' });
+}
 const inicio = await readFile(path.join(raiz, 'index.html'), 'utf8');
 assert.equal((inicio.match(/class="cuadro /g) || []).length, 3);
-console.log(`${paginas} páginas y ${enlaces} referencias locales verificadas; paquete sin archivos de desarrollo.`);
+console.log(`${paginas} páginas y ${enlaces} referencias locales y ${modulosVisitados.size} módulos verificados; paquete sin archivos de desarrollo.`);

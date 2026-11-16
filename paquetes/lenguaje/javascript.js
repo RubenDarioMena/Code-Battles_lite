@@ -1,7 +1,3 @@
-/* Primitivas JS del editor. E0: el juego y las pruebas cargan el mismo módulo.
- * No crea interfaz ni ejecuta programas. El puerto de texto e inserción lo pone el anfitrión. */
-(() => {
-  "use strict";
   const NOMBRES_HUECO = "tipo de enemigo|tipo|sensor|lugar|material|condición|segundos|mensaje|valor";
   const HUECO = new RegExp(`^\\/\\*\\s*(${NOMBRES_HUECO})\\s*\\*\\/$`);
   const RE_ID = /[A-Za-z_$][\w$]*/y, RE_NUM = /0x[0-9a-f]+|\d*\.?\d+(?:e[+-]?\d+)?/iy;
@@ -192,5 +188,6 @@
 
     return { rangoCodigo, envolver, expresionEnvolvible, elegirLineasCompletas, insertarBloque, insertarOperador };
   }
-  window.CMGEditorJS = { NOMBRES_HUECO, HUECO, RE_HUECO, lexico, crearEdicion };
-})();
+
+export const CMGEditorJS = { NOMBRES_HUECO, HUECO, RE_HUECO, lexico, crearEdicion };
+export { NOMBRES_HUECO, HUECO, RE_HUECO, lexico };

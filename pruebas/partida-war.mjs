@@ -5,7 +5,7 @@ import { ejecutarWar } from '../herramientas/partida/anfitrion-war.mjs';
 import { canonico, crearHuella, registro } from '../herramientas/partida/huella.mjs';
 import { crearPrograma } from '../herramientas/partida/programa.mjs';
 import { cargar } from '../herramientas/partida/cargar.mjs';
-import { extraerFuncion, extraerConst } from '../herramientas/partida/instrumentar.mjs';
+import { extraerFuncion, extraerConst } from './extraer-juego.mjs';
 
 const a = await ejecutarWar({ reto: 2, semilla: 7 }), b = await ejecutarWar({ reto: 2, semilla: 7 });
 assert.equal(a.hash, b.hash);

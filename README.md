@@ -61,7 +61,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `css/layout.css` | Reparto y adaptación a pantalla/teclado. |
 | `probar.html` | Probador con marcos de dispositivos y teclado simulado. |
 
-Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
+Los módulos `shared/js/iconos.js`, `paquetes/lenguaje` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
 
 En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `paquetes/` contiene los paquetes del [plan de arquitectura](docs/PLAN-ARQUITECTURA.md) (en la fase 0, solo sus contratos); `herramientas/partida.mjs` juega una partida sin pantalla sobre el código actual y `pruebas/referencias/` guarda las referencias de paridad. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
@@ -155,7 +155,7 @@ node --check shared/editor/nucleo-ui.js
 node --check pruebas/editor-movil.mjs
 node --check pruebas/editor-movil-regresiones.mjs
 node --check shared/js/iconos.js
-node --check shared/js/estructura.js
+node --check paquetes/lenguaje/estructura.js
 node --check shared/js/edicion.js
 node --check "Prototypes/Rocket Launcher/js/seudo.js"
 node pruebas/factory-reglas.cjs
@@ -223,7 +223,7 @@ Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISIO
 
 ## Editor y lenguajes
 
-[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas. Python se edita con el adaptador de `shared/editor/` (E4), se traduce con `shared/python/traductor.js` y su preludio en el worker (E5–E6) y se convierte desde JS con `shared/python/desde-js.js` (E7).
+[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas. Python se edita con el adaptador de `shared/editor/` (E4), se traduce con `paquetes/lenguaje` y su preludio en el worker (E5–E6) y se convierte desde JS con `paquetes/lenguaje` (E7).
 
 E1 implementa la [instancia reutilizable del editor](shared/editor/CONTRATO.md) en `shared/editor/`. El juego carga esas mismas fábricas; conserva sus fachadas y claves locales. La suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas.
 

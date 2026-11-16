@@ -1,23 +1,57 @@
 # lenguaje
 
-Reúne léxico, estructura tolerante, traducción de Python, seudocódigo e instrumentación. Funciona sin DOM y conserva los programas del jugador.
+Fase 2, paso 9: léxico JavaScript, estructura tolerante, traducción Python ↔ JS,
+instrumentación por línea, vocabulario por serie y formato de valores de la API.
+Se ejecuta en Node, sin DOM, estado del juego ni dependencias globales.
+Solo importa módulos internos del propio paquete. Contrato: [index.d.ts](index.d.ts).
 
-## Puede importar
+## Entrada pública
 
-Nada. Véanse las reglas de [paquetes](../README.md).
+- `CMGEditorJS`: `lexico`, `NOMBRES_HUECO`, `HUECO`, `RE_HUECO`, `crearEdicion`.
+  La edición conserva su puerto de texto e inserción inyectado; no busca elementos.
+- `ESTRUCTURA`: `analizar`, `consultas` y las mismas consultas/operaciones del editor.
+  El análisis y las consultas se separan en `estructura-analisis.js` y `estructura.js`.
+- `crearPython({ lezer, hueco })`: devuelve `traducir`, `traducirCache`, `preludio`.
+  Recibe el objeto Lezer (`{ parser }`) y, opcionalmente, `CMGEditorPython.nombreDe`.
+  `opciones.hueco` tiene prioridad; sin ambos se conserva el reconocedor de huecos
+  anterior (incluida la excepción de nombres dunder). Cada instancia tiene su cache,
+  por texto e identidad de opciones. No se modifica la semántica ni las líneas.
+- `CMGPythonJS`: instancia sin Lezer, útil también para obtener `preludio`.
+  Traducir sin analizador devuelve el diagnóstico habitual, sin buscar globales.
+- `crearJSaPython({ acorn })` y `CMGJSaPython`: conservan `convertir(texto, opciones)`;
+  `opciones.acorn` prevalece sobre el analizador de la instancia.
+- `vocabulario(serie)`: conjuntos `KW`, `FN_PROPIAS`, `FN_MIEMBRO`, `PROPS`.
+- `instrumentar(texto, { serie, objetos, acorn })`, `vecino(fichas, i, direccion)` y
+  `revisar(texto, acorn)`: misma instrumentación y diagnósticos, sin capturar el mundo.
+- `opcionesPython(objetos, aliasProveedor, propiedades)` construye las opciones;
+  el consumidor conserva la identidad mientras no cambien los nombres de objetos.
+- `mensajePython(mensaje, nombresJSaPython)`, `fmtLugar`, `fmtValor` son funciones puras.
+  `anfitrion` y el juego comparten esta única copia del formato.
 
-## Contrato
+El traductor se divide en `python-base.js` (tablas y ámbitos), `python.js`
+(sentencias y cache), `python-expresiones.js` (expresiones, con contexto explícito)
+y `python-preludio.js` (función autónoma serializada con `toString()` por anfitrion).
+La conversión inversa vive en `desde-js.js`. Cada archivo queda por debajo de 500 líneas.
+No cambia el texto del Worker, la API del jugador ni los formatos guardados.
 
-Se define en la fase 2.
+## Puentes temporales
 
-## De dónde sale
+El juego publica `CMGEditorJS`, `ESTRUCTURA`, `CMGPythonJS`, `CMGJSaPython` y
+`LENGUAJE` desde `js/compat-paquetes.js`. Recibe Acorn y Lezer ya cargados;
+el reconocedor Python se inyecta con una función que consulta al adaptador clásico
+cuando se traduce (el adaptador se carga después del puente).
+La demo usa su propio `shared/editor/compat-lenguaje.js`, sin importar el juego.
+Ambos HTML cargan los proveedores antes del módulo y los consumidores con `defer`
+después de él. Los cuatro archivos antiguos se retiran, sin copias.
 
-`shared/python/`, `Prototypes/Rocket Launcher/js/juego.js`, `shared/js/estructura.js` (léxico e `instrumentar` de `juego.js`).
+La interfaz de seudocódigo (`shared/editor/seudo.js`) todavía pertenece al editor:
+mezcla modelo y DOM, y queda para la extracción de ese paquete; no se importa aquí.
 
 ## Pruebas
 
-Vivirán en `paquetes/lenguaje/pruebas/`. Criterio: Paridad del lenguaje y traducción de Python comparada con CPython.
-
-## Estado
-
-Vacío desde la fase 0: solo manifiesto y contrato. No se crea `index.js` todavía; las entradas públicas empiezan en la fase 1.
+`node paquetes/lenguaje/pruebas/lenguaje.mjs` comprueba inyección, aislamiento de
+cache, preludio autónomo, conversión, instrumentación por serie y diagnósticos.
+`node paquetes/lenguaje/pruebas/carga.mjs` comprueba rutas, orden de los puentes y
+la retirada de los scripts antiguos sin abrir un navegador. Ambas están en `npm test`,
+junto con las suites originales de editor/Python y las 41 referencias de partidas.
+La demo montada sola y el arranque real siguen requiriendo las suites de navegador.

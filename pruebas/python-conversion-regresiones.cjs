@@ -1,3 +1,5 @@
+(async () => {
+const L = await import("../paquetes/lenguaje/index.js");
 // Regresiones de JS → Python: nombres, aliases, parámetros por defecto y ámbito.
 const { readFileSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
@@ -5,8 +7,12 @@ const vm = require('node:vm');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const ctx = vm.createContext({ window: {} });
-for (const f of ['shared/vendor/acorn-8.11.3.js', 'shared/python/desde-js.js'])
+Object.assign(ctx.window, { CMGEditorJS: L.CMGEditorJS, ESTRUCTURA: L.ESTRUCTURA });
+for (const f of ['shared/vendor/acorn-8.11.3.js'])
   vm.runInContext(readFileSync(path.join(__dirname, '..', f), 'utf8') + (f.includes('acorn') ? ';window.acorn=acorn;' : ''), ctx, { filename: f });
+ctx.window.CMGPythonJS = L.crearPython({ lezer: ctx.window.LezerPython,
+  hueco: ctx.window.CMGEditorPython?.nombreDe });
+ctx.window.CMGJSaPython = L.crearJSaPython({ acorn: ctx.window.acorn });
 const C = ctx.window.CMGJSaPython;
 const nombres = new Map([['autoTarget', 'auto_target'], ['pickUp', 'pick_up']]);
 const conv = src => C.convertir(src, { acorn: ctx.window.acorn, nombres });
@@ -60,3 +66,5 @@ eq(conv('if (true) { let x = 1; }\nconsole.log(x);').ok, false, 'let del bloque 
 const vr = conv('for (var i = 0; i < 2; i++) {}\nconsole.log(i);');
 eq([vr.ok, vr.linea, vr.motivo.includes('valor final')], [false, 1, true], 'var usado tras un for con diagnóstico');
 console.log(`${checks} regresiones JS → Python correctas (CPython ${spawnSync('python3', ['--version'], { encoding: 'utf8' }).stdout.trim().replace(/^Python /, '')})`);
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -14,7 +14,7 @@
   const ti18n = (clave, valores) => window.CMGI18n ? window.CMGI18n.t(clave, valores) : clave;
   const htmlInterfaz = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
-  // líneas (shared/python/traductor.js) y corre en el mismo Worker.
+  // líneas (paquetes/lenguaje) y corre en el mismo Worker.
   const PYTHON = !!window.CMGAdaptadorPython && !!window.CMGPythonJS;
   let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
@@ -97,44 +97,9 @@
   };
 
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
-  const KW = new Set("await async break case catch class const continue default delete do else false finally for function if in instanceof let new null of return switch this throw true try typeof undefined var void while".split(" "));
-  const FN_PROPIAS = new Set(ES_CAMPAIGN ? ["pickUp", "deliver", "goTo", "wait", "count", "start", "stop", "light", "setRecipe", "request", "recoger", "entregar", "esperar", "cuantos", "irA", "log"] : ES_FACTORY ? ["pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos", "log"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
-  const FN_MIEMBRO = new Set(["pickUp", "deliver", "wait", "count", "recoger", "entregar", "cuantos", "esperar", "autoTarget", "regularShoot", "burstFire", "stopFire", "detect", "log", "info", "warn", "error",
-    ...(ES_CAMPAIGN ? ["goTo", "irA", "start", "stop", "light", "setRecipe", "request"] : [])]);
-  const PROPS = new Set(ES_CAMPAIGN ? ["cargo", "busy", "input", "output", "outputFull", "state", "recipe", "made", "running", "pallet", "items", "free", "pending", "machine", "missiles", "received", "power", "budget", "milestone", "used", "max"]
-    : ["failureRate", "missiles", "mode", "jammed", "fireRate", "sensors", "target", "count"]);
-  // Nombres de los huecos /* … */ que dejan las plantillas y el modo sin teclado.
+  const { KW, FN_PROPIAS, FN_MIEMBRO, PROPS } = window.LENGUAJE.vocabulario(SERIE);
   const { NOMBRES_HUECO, HUECO, RE_HUECO, lexico } = window.CMGEditorJS;
-  // Vecino significativo (salta espacios y comentarios en la misma línea).
-  function vecino(toks, i, dir) {
-    for (let j = i + dir; j >= 0 && j < toks.length; j += dir) { const k = toks[j][0]; if (k !== "esp" && k !== "com") return toks[j]; }
-    return null;
-  }
-  const esObjeto = (nombre) => nombre === "console" || nombre === "yo" || nombresVar().includes(nombre);
-
-  // Cada llamada de la API lleva su número de línea, para iluminarla y para los mensajes de error.
-  function instrumentar(src) {
-    const locales = new Set();
-    if ((ES_FACTORY || ES_CAMPAIGN) && window.acorn) {
-      try {
-        const ast = acorn.parse(src, { ecmaVersion: 2022, allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true });
-        const binding = n => { if (!n) return; if (n.type === "Identifier") locales.add(n.name); else if (n.type === "RestElement") binding(n.argument); else if (n.type === "AssignmentPattern") binding(n.left); else if (n.type === "ArrayPattern") n.elements.forEach(binding); else if (n.type === "ObjectPattern") n.properties.forEach(p => binding(p.value || p.argument)); };
-        const walk = n => { if (!n || typeof n !== "object") return; if (n.type === "VariableDeclarator") binding(n.id); if (n.type === "Property" && n.method) binding(n.key); if (/Function/.test(n.type || "")) { binding(n.id); (n.params || []).forEach(binding); } if (n.type === "CatchClause") binding(n.param); for (const v of Object.values(n)) if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === "object") walk(v); };
-        walk(ast);
-      } catch (_) { /* El worker conserva el diagnóstico de sintaxis. */ }
-    }
-    const toks = lexico(src); let linea = 1, out = "";
-    toks.forEach(([k, t], i) => {
-      if (k === "id") {
-        const prev = vecino(toks, i, -1), sig = vecino(toks, i, 1);
-        const miembro = prev && prev[1] === ".";
-        if (!miembro && !locales.has(t) && ((FN_PROPIAS.has(t) && sig && sig[1] === "(") || (esObjeto(t) && sig && sig[1] === "."))) { out += `__L(${linea}).${t}`; return; }
-      }
-      out += t;
-      for (const ch of t) if (ch === "\n") linea++;
-    });
-    return out;
-  }
+  const instrumentar = src => window.LENGUAJE.instrumentar(src, { serie: SERIE, objetos: nombresVar(), acorn: window.acorn });
   const clasificar = (toks, i) => window.CMGAdaptadorJS.clasificar(toks, i, {
     objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS],
   });
@@ -212,18 +177,7 @@
   function soloComentarios(src) { return lexico(src).every(([k]) => k === "com" || k === "esp" || k === "nl"); }
 
   // Antes de ejecutar: huecos /* … */ sin rellenar y errores de sintaxis, con su línea.
-  function revisar(src) {
-    const lineas = src.split("\n");
-    for (let i = 0; i < lineas.length; i++) {
-      const m = lineas[i].match(new RegExp(`\\/\\*\\s*(${NOMBRES_HUECO})\\s*\\*\\/`));
-      if (m && !/^\s*\/\//.test(lineas[i])) return { linea: i + 1, mensaje: `Rellena el hueco /* ${m[1]} */ antes de ejecutar. Doble clic en un valor del inspector lo pone en su lugar.` };
-    }
-    if (typeof acorn !== "undefined") {
-      try { acorn.parse(src, { ecmaVersion: 2022, allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true }); }
-      catch (e) { return { linea: e.loc ? e.loc.line : null, mensaje: `Error de sintaxis: ${e.message.replace(/\s*\(\d+:\d+\)$/, "")}.` }; }
-    }
-    return null;
-  }
+  const revisar = src => window.LENGUAJE.revisar(src, window.acorn);
 
   function ejecutar() {
     if (edicion.mixto && $codigo.value.trim()) {
@@ -310,8 +264,7 @@
     anfitrion.cargar(id, instrumentar(codigo), { lenguaje: ejec.lenguajes[id] });
   }
 
-  const fmtLugar = (l) => l ? `{x: ${r2(l.x)}, y: ${r2(l.y)}, z: ${r2(l.z || 0)}${l.id ? `, id: "${l.id}"` : ""}}` : "null";
-  const fmtValor = (v) => v == null ? "null" : typeof v === "object" ? fmtLugar(v) : String(v);
+  const { fmtLugar, fmtValor } = window.LENGUAJE;
   function registroActual() {
     const r = anfitrion ? anfitrion.registro() : { eventos: [], uso: {}, verbos: {}, resultados: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 }, lecturas: {} };
     if (ES_CAMPAIGN) r.consolas = Object.fromEntries(NIVELES.map(n => [n, consolasCampaign[n] + r.consolas[n]]));
@@ -1073,7 +1026,7 @@
   }
   function convertirAPython(js) {
     nombresPython ||= new Map(proveedorEditor.funciones().filter(f => f.nombres && f.nombres.python).map(f => [f.nombre, f.nombres.python]));
-    return window.CMGJSaPython.convertir(js, { nombres: nombresPython, objetoONulo: ["autoTarget", "detect"], huecos: { re: RE_HUECO, aPython: window.CMGEditorPython.aHueco } });
+    return window.CMGJSaPython.convertir(js, { acorn: window.acorn, nombres: nombresPython, objetoONulo: ["autoTarget", "detect"], huecos: { re: RE_HUECO, aPython: window.CMGEditorPython.aHueco } });
   }
   // Add/Replace sobre las fuentes Python: el aplicador escribe en un objeto estable por reto.
   let textosPython = null;
@@ -2082,15 +2035,13 @@
   let opcionesPy = null, clavePy = "";
   function opcionesPython() {
     const objetos = ["yo", ...nombresVar()], clave = objetos.join("|");
-    if (!opcionesPy || clavePy !== clave) { clavePy = clave; opcionesPy = { funciones: proveedorEditor.alias("python"), objetos, propiedades: [...PROPS] }; }
+    if (!opcionesPy || clavePy !== clave) { clavePy = clave; opcionesPy = window.LENGUAJE.opcionesPython(nombresVar(), proveedorEditor.alias("python"), PROPS); }
     return opcionesPy;
   }
   // Los mensajes del runtime nombran la API en JS; para una unidad en Python, con sus nombres y literales.
   function mensajePython(m) {
     nombresPython ||= new Map(proveedorEditor.funciones().filter(f => f.nombres && f.nombres.python).map(f => [f.nombre, f.nombres.python]));
-    let r = String(m);
-    for (const [js, py] of nombresPython) r = r.replace(new RegExp(`\\b${js}\\b`, "g"), py);
-    return r.replace(/\bnull\b/g, "None").replace(/\bundefined\b/g, "None").replace(/\btrue\b/g, "True").replace(/\bfalse\b/g, "False").replace(/while \(true\)/g, "while True");
+    return window.LENGUAJE.mensajePython(m, nombresPython);
   }
   const jsDePython = n => { const f = proveedorEditor.funciones().find(x => x.nombres && x.nombres.python === n); return f ? f.nombre : n; };
   // Las sugerencias del juego, con el nombre JS de la función y el resultado en Python.

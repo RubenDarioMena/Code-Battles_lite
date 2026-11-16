@@ -1,12 +1,5 @@
-/* Conversión JavaScript → Python por árbol (E7). Fuera del componente editor: la usa el juego al pasar
- * una unidad de JS a Python. Recorre el árbol de acorn y escribe Python del subconjunto del juego; si el
- * programa usa algo que no cabe, no inventa: devuelve el motivo y la línea, y el JS se conserva.
- *
- * convertir(src, { nombres: Map js→python, huecos: { re, aPython(nombre) } })
- *   → { ok, texto } | { ok: false, motivo, linea }
- * Los comentarios se conservan como «#»; las líneas de código comentadas se convierten también. */
-(() => {
-  "use strict";
+/** @param {{ acorn?: any }} [dependencias] */
+export function crearJSaPython({ acorn: analizador } = {}) {
   const UNIDAD = "    ";
   const PALABRAS_PY = new Set("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case".split(" "));
   const RESERVADAS_PY = new Set([...PALABRAS_PY, ..."print len range str int float bool abs min max round sum enumerate list sorted reversed any all repr info warn error".split(" ")]);
@@ -21,7 +14,7 @@
   const noCabe = (nodo, motivo) => { throw new NoCabe(nodo, motivo); };
 
   function convertir(src, opciones = {}) {
-    const acorn = opciones.acorn || (typeof window !== "undefined" && window.acorn) || (typeof globalThis !== "undefined" && globalThis.acorn);
+    const acorn = opciones.acorn || analizador;
     if (!acorn) return { ok: false, motivo: "Falta el analizador de JavaScript.", linea: null };
     const nombres = opciones.nombres || new Map();
     const huecos = opciones.huecos || null;
@@ -82,7 +75,7 @@
       visita(raiz);
       return visto;
     };
-    let alcanceInseguro = null;
+    /** @type {any} */ let alcanceInseguro = null;
     const revisarAlcances = n => {
       if (!n || typeof n !== "object" || alcanceInseguro) return;
       if (n.type === "ForStatement" || n.type === "ForOfStatement" || n.type === "ForInStatement") {
@@ -480,7 +473,6 @@
       return comilla === '"' ? `f"{${e}:${spec}}"` : `f'{${e}:${spec}}'`;
     }
   }
-  const api = { convertir };
-  if (typeof window !== "undefined") window.CMGJSaPython = api;
-  if (typeof module !== "undefined") module.exports = api;
-})();
+  return { convertir };
+}
+export const CMGJSaPython = crearJSaPython();

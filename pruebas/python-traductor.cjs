@@ -1,3 +1,5 @@
+(async () => {
+const L = await import("../paquetes/lenguaje/index.js");
 // E5–E7 · Python → JS y JS → Python, sin DOM: node pruebas/python-traductor.cjs
 // Las salidas esperadas son las de CPython 3.13, copiadas aquí a mano (la prueba no ejecuta CPython).
 // También: mismas líneas, precedencia, diagnósticos con su línea, nombres de la API (D1), await (D2),
@@ -7,8 +9,12 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const ctx = vm.createContext({ console, window: {} });
-for (const archivo of ['shared/vendor/acorn-8.11.3.js', 'shared/vendor/lezer-python-1.1.19.js', 'shared/editor/javascript.js', 'shared/editor/plantillas.js', 'shared/editor/python.js', 'shared/python/traductor.js', 'shared/python/desde-js.js'])
+Object.assign(ctx.window, { CMGEditorJS: L.CMGEditorJS, ESTRUCTURA: L.ESTRUCTURA });
+for (const archivo of ['shared/vendor/acorn-8.11.3.js', 'shared/vendor/lezer-python-1.1.19.js', 'shared/editor/plantillas.js', 'shared/editor/python.js'])
   vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8') + (archivo.includes('lezer') ? ';window.LezerPython = LezerPython;' : '') + (archivo.includes('acorn') ? ';window.acorn = acorn;' : ''), ctx, { filename: archivo });
+ctx.window.CMGPythonJS = L.crearPython({ lezer: ctx.window.LezerPython,
+  hueco: ctx.window.CMGEditorPython?.nombreDe });
+ctx.window.CMGJSaPython = L.crearJSaPython({ acorn: ctx.window.acorn });
 const { CMGPythonJS: T, CMGJSaPython: C, CMGEditorJS, CMGEditorPython } = ctx.window;
 const AF = Object.getPrototypeOf(async function () {}).constructor;
 let checks = 0;
@@ -184,3 +190,5 @@ const ERRORES = [
   }
   console.log(checks + ' comprobaciones del traductor Python correctas');
 })().catch(e => { console.error(e); process.exit(1); });
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

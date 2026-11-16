@@ -14,6 +14,7 @@ await mkdir(destino);
 for (const entrada of entradas) {
   const salida = path.join(destino, entrada);
   await mkdir(path.dirname(salida), { recursive: true });
+  // Incluye el grafo ES de lenguaje y shared/editor/compat-lenguaje.js (demo autónoma).
   // Las pruebas de los paquetes no se publican.
   await cp(path.join(raiz, entrada), salida, {
     recursive: true,

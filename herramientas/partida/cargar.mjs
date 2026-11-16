@@ -1,5 +1,6 @@
+import { createRequire } from 'node:module';
+import { CMGEditorJS, ESTRUCTURA, crearPython, crearJSaPython } from '../../paquetes/lenguaje/index.js';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import * as datosWar from '../../paquetes/reglas-war/index.js';
 import * as factory from '../../paquetes/reglas-factory/index.js';
@@ -33,23 +34,28 @@ export function cargar() {
       LUCES: campaign.LUCES, TARIMA_CAP: campaign.TARIMA_CAP, HITO_MAESTRO: campaign.HITO_MAESTRO
     }, CAMPAIGN_NIVEL: { ...campaign.nivel },
   });
-  vm.runInContext('window = globalThis;', contexto);
+  contexto.window = contexto;
   const necesarios = new Set([
-    '../../shared/vendor/acorn-8.11.3.js',
-    // El Worker interpola el preludio de Python del traductor real.
-    '../../shared/python/traductor.js', 'js/proveedor.js',
-    '../../shared/editor/javascript.js', '../../shared/vendor/lezer-python-1.1.19.js',
+    'js/proveedor.js', '../../shared/vendor/lezer-python-1.1.19.js',
   ]);
   const html = readFileSync(entrada, 'utf8');
   const cargados = [];
   for (const m of html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^\"]*)?"/g)) {
     if (!necesarios.has(m[1])) continue;
     const archivo = new URL(m[1], entrada);
-    vm.runInContext(readFileSync(archivo, 'utf8'), contexto, { filename: fileURLToPath(archivo) });
+    // Lezer se distribuye como script clásico; el proveedor todavía pertenece a la app.
+    // Ninguna fuente del paquete lenguaje se evalúa como texto.
+    const fuente = readFileSync(archivo, 'utf8');
+    if (m[1].includes('lezer-python')) contexto.LezerPython = new Function(fuente + ';return LezerPython;')();
+    else new Function('window', fuente)(contexto);
     cargados.push(m[1]);
     necesarios.delete(m[1]);
   }
   if (necesarios.size) throw new Error(`Faltan scripts en index.html: ${[...necesarios].join(', ')}`);
+  contexto.acorn = createRequire(import.meta.url)('../../shared/vendor/acorn-8.11.3.js');
+  Object.assign(contexto, { CMGEditorJS, ESTRUCTURA,
+    CMGPythonJS: crearPython({ lezer: contexto.LezerPython }),
+    CMGJSaPython: crearJSaPython({ acorn: contexto.acorn }) });
   // El mismo texto que el juego (js/compat-paquetes.js) entrega a sus Workers.
   const fuenteWorker = fuenteTrabajador({
     validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,

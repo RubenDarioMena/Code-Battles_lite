@@ -1,7 +1,5 @@
 /* Registro de War. Solo lee mensajes e instantáneas; no escribe en el mundo. */
-const r2 = v => Math.round(v * 100) / 100;
-const fmtLugar = (l) => l ? `{x: ${r2(l.x)}, y: ${r2(l.y)}, z: ${r2(l.z || 0)}${l.id ? `, id: "${l.id}"` : ""}}` : "null";
-const fmtValor = (v) => v == null ? "null" : typeof v === "object" ? fmtLugar(v) : String(v);
+import { fmtValor, fmtLugar } from '../lenguaje/index.js';
 
 export function crearControlWar() {
   const registro = { eventos: [], uso: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 }, lecturas: {} };
