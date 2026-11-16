@@ -1,29 +1,22 @@
-// Fase 2, paso 7b: Campaign por las entradas públicas; el ciclo antiguo solo es referencia.
+// Campaign por la composición compartida y las entradas públicas, con repetición por tramo.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import reglas, { nivel, legado, quieto } from '../paquetes/reglas-campaign/index.js';
+import reglas, { nivel, quieto } from '../paquetes/reglas-campaign/index.js';
 import { crearPartida, restaurar } from '../paquetes/nucleo/index.js';
 import { canonico } from '../paquetes/protocolo/index.js';
-import { crearAnfitrion } from '../paquetes/anfitrion/index.js';
-import { jugarPartida } from '../paquetes/app/index.js';
-import war from '../paquetes/reglas-war/index.js';
-import { cargar } from '../herramientas/partida/cargar.mjs';
-import { crearInstrumentador } from '../herramientas/partida/instrumentar.mjs';
-import { crearPrograma } from '../herramientas/partida/programa.mjs';
+import { jugar } from '../herramientas/partida/jugar.mjs';
 import { crearHuella } from '../herramientas/partida/huella.mjs';
 import { ejecutarCampaign, programasCampaign, resultadoCampaign } from '../herramientas/partida/anfitrion-campaign.mjs';
 
 const referencias = JSON.parse(readFileSync(new URL('referencias/partidas.json', import.meta.url), 'utf8')).casos
   .filter(c => c.reglas === 'campaign');
 assert.equal(referencias.length, 2);
-const foto = mundo => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: legado.instantanea(mundo) });
 const digest = snap => createHash('sha256').update(canonico(snap)).digest('hex');
-const { contexto: C, fuenteWorker } = cargar();
 let diferencias = 0, iguales = 0, repeticiones = 0;
 for (const caso of referencias) {
   const lenguaje = caso.parametros.lenguaje, esperados = [], actuales = [];
-  const anterior = ejecutarCampaign({ lenguaje, alPaso: (_paso, snap) => esperados.push(digest(snap)) });
+  const anterior = await ejecutarCampaign({ lenguaje, alPaso: (_paso, snap) => esperados.push(digest(snap)) });
   assert.equal(anterior.hash, caso.hash, `${caso.id}: la referencia antigua sigue vigente`);
   const partida = crearPartida({ reglas, escenario: { reto: nivel.NIVEL }, semilla: 1 });
   const mundo = partida.mundo, total = crearHuella(), tramos = [];
@@ -35,27 +28,13 @@ for (const caso of referencias) {
     return false;
   };
   for (const fuentes of programasCampaign(lenguaje)) {
-    const desde = mundo.hito, instrumento = crearInstrumentador(C, mundo, 'campaign');
-    const anfitrion = crearAnfitrion({ reglas,
-      crearTrabajador: (_fuente, unidad, recibir) => crearPrograma(fuenteWorker, unidad, recibir, 4000),
-      contexto: { nombres: mundo.unidades.map(e => e.id), tipos: Object.keys(war.api.tipos),
-        sensores: Object.keys(war.api.sensores), conf: war.api.conf } });
-    for (const unidad of mundo.programables) {
-      const fuente = fuentes[unidad.id] ?? { lenguaje: 'js', codigo: '' };
-      let codigo = fuente.codigo;
-      if (fuente.lenguaje === 'python') {
-        const traduccion = C.CMGPythonJS.traducirCache(codigo, instrumento.opcionesPython());
-        assert.equal(traduccion.ok, true, `${caso.id}: traducción de ${unidad.id}`);
-        codigo = traduccion.js;
-      } else assert.equal(instrumento.revisar(codigo), null);
-      await anfitrion.cargar(unidad.id, instrumento.instrumentar(codigo), { lenguaje: fuente.lenguaje });
-    }
-    const huella = crearHuella();
-    const r = await jugarPartida({ reglas, partida, escenario: { reto: nivel.NIVEL }, semilla: 1, anfitrion,
+    const desde = mundo.hito, huella = crearHuella();
+    const r = await jugar({ reglas, partida, escenario: { reto: nivel.NIVEL }, semilla: 1, programas: fuentes,
       maxPasos: 30000,
-      detener: p => p.mundo.hito !== desde || p.mundo.completado ||
+      detener: (p, anfitrion) => p.mundo.hito !== desde || p.mundo.completado ||
         (mundo.programables.every(u => anfitrion.estado(u.id) === 'fin') && quieto(p.mundo)),
-      alPaso: () => { const snap = foto(mundo); huella.paso(snap); total.paso(snap); actuales.push(digest(snap)); } });
+      alPaso: (_n, snap) => { huella.paso(snap); total.paso(snap); actuales.push(digest(snap)); } });
+    const anfitrion = r.anfitrion;
     assert.equal(r.error, null, `${caso.id}, H${desde}: error de programa`);
     assert.equal(r.limite, false, `${caso.id}, H${desde}: límite`);
     const h = huella.terminar();

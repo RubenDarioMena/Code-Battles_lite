@@ -13,10 +13,10 @@ const referencia = await comprobarReglas();
 let js;
 for (const lenguaje of ['js', 'python']) {
   const continuo = createHash('sha256'); let ultimo = 0;
-  const a = ejecutarCampaign({ lenguaje, alPaso(n, snap) {
+  const a = await ejecutarCampaign({ lenguaje, alPaso(n, snap) {
     assert.equal(n, ++ultimo); continuo.update(registro(n, snap));
   } });
-  const b = ejecutarCampaign({ lenguaje });
+  const b = await ejecutarCampaign({ lenguaje });
   assert.equal(a.hash, continuo.digest('hex'));
   assert.equal(a.hash, b.hash); assert.deepEqual(a.tramos, b.tramos);
   assert.equal(a.resultado.hito, referencia.hito); assert.equal(a.resultado.completado, referencia.completado);
@@ -29,21 +29,21 @@ for (const lenguaje of ['js', 'python']) {
   if (js) assert.equal(a.hash, js.hash); else js = a;
   console.log(`${lenguaje}: ${a.hash} · ${a.metricas.pasos} pasos · H5 completa`);
 }
-const corto = ejecutarCampaign({ maxPasos: 1 });
+const corto = await ejecutarCampaign({ maxPasos: 1 });
 assert.equal(corto.tramos.length, 1); assert.equal(corto.metricas.pasos, 1);
 assert.equal(corto.resultado.registro.resultado, 'límite');
-const quieto = ejecutarCampaign({ programas: [{}] });
+const quieto = await ejecutarCampaign({ programas: [{}] });
 assert.equal(quieto.resultado.registro.motivo, 'quieto');
-assert.throws(() => ejecutarCampaign({ programas: [] }), /lista/);
-assert.throws(() => ejecutarCampaign({ programas: [{ AJENA: '' }] }), /Unidad no programable/);
-assert.throws(() => ejecutarCampaign({ programas: [{ 'BLT-01': 'start();' }] }), /Unidad no programable/);
+await assert.rejects(() => ejecutarCampaign({ programas: [] }), /lista/);
+await assert.rejects(() => ejecutarCampaign({ programas: [{ AJENA: '' }] }), /Unidad no programable/);
+await assert.rejects(() => ejecutarCampaign({ programas: [{ 'BLT-01': 'start();' }] }), /Unidad no programable/);
 // Varios pendientes por programa: despierta/cede tras Promise.all, no solo una espera.
-const simultaneo = ejecutarCampaign({ programas: [{ 'FRK-01':
+const simultaneo = await ejecutarCampaign({ programas: [{ 'FRK-01':
   'await Promise.all([pickUp(BAY_1), wait(0.2)]); await deliver(SUP_1);' }] });
 assert.equal(simultaneo.resultado.hito, 1); assert.ok(simultaneo.metricas.mensajes.cede > 0);
-const explicitos = ejecutarCampaign({ programas: programasCampaign('js').slice(0, 1) });
+const explicitos = await ejecutarCampaign({ programas: programasCampaign('js').slice(0, 1) });
 assert.equal(explicitos.tramos[0].hash, js.tramos[0].hash);
-assert.equal(ejecutarCampaign({ lenguaje: 'python', programas: soluciones.python.slice(0, 1) }).hash, explicitos.hash);
+assert.equal((await ejecutarCampaign({ lenguaje: 'python', programas: soluciones.python.slice(0, 1) })).hash, explicitos.hash);
 console.log('Campaign sin pantalla: referencia JS/Python repetible, continuidad, cortes y límites correctos');
 
 // Evidencia mínima del contraste Chromium: mismos eventos simultáneos, otro

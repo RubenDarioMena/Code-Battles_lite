@@ -98,12 +98,13 @@ vivo puede atender al vigía entre llamadas a `avanzar`.
   paso indicado y se repite igual.
   En las 10 partidas compara además el registro combinado: sucesos `registro`
   en `alSucesos` y eventos incrementales del anfitrión en `alTurno`, sin
-  reordenarlos, contra `mundo.eventos` del ciclo antiguo sobre un mundo accesible.
+  reordenarlos, contra el adaptador real de `juego.js` extraído en VM
+  (`pruebas/juego-adaptador.mjs`), que compone la partida por separado.
   Coinciden el orden completo, el uso por programa, consolas y lecturas por sensor.
 
 También `node pruebas/fronteras-factory.mjs`: 28 referencias Factory, por las
 entradas públicas: huella, pasos, resultado completo y repetición exacta 28/28
-(la huella se mide sobre la instantánea del legado, como en la fase 0; véase el
+(la huella se mide sobre la lectura histórica `instantaneaHistorica`, como en la fase 0; véase el
 README de `reglas-factory`).
 
 `node pruebas/fronteras-campaign.mjs` comprueba las 2 referencias Campaign:

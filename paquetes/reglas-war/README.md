@@ -1,6 +1,6 @@
 # reglas-war
 
-Estado: fase 2, paso 8a (sucesos de presentación con hooks compatibles).
+Estado: fase 2, paso 8c (exportaciones con nombre; ganchos internos).
 
 Reglamento War sin pantalla, en módulos ES y ejecutable en Node. Conserva las
 operaciones, textos, catálogo y retos de los antiguos `js/war.js` y
@@ -71,23 +71,20 @@ Un atasco genera también su explosión local. El registro queda fuera de
 con `partida.sucesos()`. Conserva el límite habitual del núcleo (2000 sucesos).
 Los sucesos `registro`, `aviso` y `globo` se anotan antes de llamar al hook
 correspondiente, con sus mismos argumentos y en el mismo orden. Los hooks
-siguen ejecutándose en `legado.conectar`. No entran en instantáneas ni huellas.
+son internos al paquete, en `mundo.js`. No entran en instantáneas ni huellas.
 
-## Compatibilidad temporal
+## Exportaciones con nombre y puente
 
-`legado` expone `crear`, `conectar`, `aplicarOrden`, `TIPOS`, `SENSOR`, `LAU`,
-`MISIL`, `REP`, `COSTE` y `cadencia`. `crear(def, semilla, rng = crearRng(semilla))`
-conserva el arranque inactivo del juego y la siembra anterior. `conectar`
-conserva los hooks `registrar`, `terminar`, `avisoSistema` y `globo`, además de
-`paso`, `evaluar`, `instantanea`, `alcance`, `enRango` y `coste` en su retorno.
+La entrada exporta `crear`, `aplicarOrden`, `TIPOS`, `SENSOR`, `LAU`, `MISIL`,
+`REP`, `COSTE` y `cadencia`. `crear(def, semilla, rng = crearRng(semilla))`
+conserva el arranque inactivo y la siembra anterior. `retos` contiene `RETOS`,
+`PROPIO_BASE`, `POS_LANZADORES` y `normalizar`.
 
-`retos` expone `RETOS`, `PROPIO_BASE`, `POS_LANZADORES` y `normalizar` sin cambiar
-sus textos ni su normalización. `compat-paquetes.js` publica copias planas y
-mutables como `WAR` y `WAR_RETOS` antes de `NUCLEO`. La herramienta de partidas
-importa el paquete e inyecta esas copias para los scripts que siguen en `vm`.
-
-Este puente mantiene la interfaz actual durante la extracción. La fase 2 retira
-`legado` y los globales cuando la aplicación use los paquetes directamente.
+`conectar(mundo, hooks)` vive en `mundo.js`: lo usa el reglamento y sus pruebas
+internas, y no se exporta desde `index.js`. Los consumidores avanzan el mundo
+por `crearPartida` y órdenes. `compat-paquetes.js` construye `WAR` y `WAR_RETOS`
+con las mismas claves anteriores salvo `conectar`; el puente y los globales
+siguen pendientes de retirada en la fase 2.
 
 ## Pruebas
 

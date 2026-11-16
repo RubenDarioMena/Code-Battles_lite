@@ -13,7 +13,7 @@ try {
   if (cambio) throw new Error(`Selección de referencias distinta: ${cambio.ruta}`);
   let diferencias = 0;
   for (const [i, caso] of casos.entries()) {
-    const esperado = datos.casos[i], actual = ejecutarReferencia(caso);
+    const esperado = datos.casos[i], actual = await ejecutarReferencia(caso);
     if (!primeraDiferencia(esperado, actual)) continue;
     diferencias++;
     console.error(`${caso.id} · DIFERENCIA`);

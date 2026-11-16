@@ -1,6 +1,6 @@
 /* crearAnfitrion: carga los programas y cede el turno hasta que todos esperan.
  * Mensajes trasladados del «Ciclo de los programas» de juego.js (alMensaje).
- * El juego lo compone con crearConductor; la herramienta conserva el ciclo de referencia. */
+ * El juego y la herramienta lo componen con el mismo conductor. */
 import { pasoDe } from '../nucleo/index.js';
 import { fuenteTrabajador } from './trabajador.js';
 import { crearControlFactory } from './factory.js';

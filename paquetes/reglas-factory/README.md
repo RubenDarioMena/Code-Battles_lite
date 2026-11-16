@@ -1,6 +1,6 @@
 # reglas-factory
 
-Estado: fase 2, paso 7a (respuestas de encargos). Reglamento Factory sin pantalla, en módulos ES ejecutables en
+Estado: fase 2, paso 8c (exportaciones con nombre; herramientas por el anfitrión). Reglamento Factory sin pantalla, en módulos ES ejecutables en
 Node. Procede de `js/factory.js` y `js/factory-retos.js` de la aplicación común.
 Conserva sus reglas, textos, materiales, retos, tiempos y stock por intento.
 Solo importa la entrada pública de `nucleo`; puede importar también `protocolo`.
@@ -22,19 +22,19 @@ aplicarOrden, respuestas, instantanea, evaluar, api }`:
 - `aplicarOrden(mundo, orden)` delega `verbo` y `args` a `iniciarOrden`:
   `recoger(origen, material)`, `entregar(destino)`, `esperar(segundos)`.
   Esos son los verbos internos que ya envía el Worker; R1 es el único robot.
-  Como en el legado, la validación de argumentos corresponde al anfitrión.
+  La validación de argumentos corresponde al anfitrión.
   El anfitrión detecta los encargos simultáneos. La orden de sistema
   `programa-acabado` marca el programa como acabado y evalúa sin avanzar.
 - `respuestas(mundo)` devuelve y vacía la cola de
-  `{ unidad: 'R1', resultado, instantanea }`. Un `WeakMap` privado por mundo
+  `{ unidad: 'R1', resultado, instantanea, ref? }` (conserva `orden.ref` si existe). Un `WeakMap` privado por mundo
   conserva el encargo en curso, el programa acabado y la cola; los ganchos de
   la conexión leen ese estado. La instantánea de respuesta se toma con
   `structuredClone` en `terminarOrden`, antes de evaluar el final del paso,
-  conservando la forma del legado (incluidos campos `undefined`).
+  conservando la forma histórica (incluidos campos `undefined`).
   Los registros `eventos`, `verbos`, `resultados` y `consolas` los escribe el
   anfitrión; las reglas no los leen ni escriben.
 - `instantanea(mundo)` devuelve `{ t, maq: {}, auto: {}, vib: {}, factory }`.
-  `factory` conserva las lecturas del legado, con copia profunda y sin campos
+  `factory` conserva las lecturas históricas, con copia profunda y sin campos
   `undefined`, para cumplir el protocolo de datos planos sin prestar existencias.
 - `evaluar(mundo)` devuelve `mundo.final ?? null`. Al terminar guarda
   `{ fin, motivo, mensaje }`, desactiva el mundo, cancela la tarea y revela el stock.
@@ -43,8 +43,7 @@ aplicarOrden, respuestas, instantanea, evaluar, api }`:
 
 Se integra con `crearPartida({ reglas, escenario: { reto, intento }, semilla })`
 del núcleo; `restaurar` repite pasos y órdenes, reconstruyendo las clausuras de
-las tareas en curso. El juego y la herramienta antigua conservan su detección
-mediante `legado.conectar`, sin cambios.
+las tareas en curso. El juego y las herramientas usan el anfitrión y el conductor.
 
 
 ## Escena para las vistas (fase 2)
@@ -74,12 +73,12 @@ Los sucesos no se leen para decidir reglas. Se conserva el límite del núcleo.
 
 ## Compatibilidad temporal
 
-`legado` tiene exactamente las claves anteriores de `FACTORY`: `crear`,
-`conectar`, `validar`, `instantanea`, `MATERIALES`. `crear(def, intento)` conserva
-el arranque inactivo y `instantanea` conserva sus referencias y campos originales.
-`conectar` recibe `terminarOrden`, `terminar`, `programaAcabado` y
-`llamadaPendiente`; devuelve `paso`, `iniciarOrden`, `sensor`, `metaCumplida`,
-`faltantes` y `evaluar`.
+La entrada exporta `crear`, `validar`, `instantaneaHistorica`, `MATERIALES` y
+`retos`. La lectura histórica conserva referencias y campos `undefined` para
+las huellas de fase 0. El puente publica esa función como `FACTORY.instantanea`
+y conserva las demás claves anteriores salvo `conectar`.
+`conectar(mundo, hooks)` queda dentro de `mundo.js`, usado por el reglamento
+y las pruebas del paquete. Los consumidores externos usan órdenes y respuestas.
 
 `validar` es autocontenida: declara su catálogo local de materiales porque
 el anfitrión (`fuenteTrabajador`, antes `runtime.js`) interpola `validar.toString()` en el Worker. No debe referirse a
@@ -123,10 +122,10 @@ el arranque en navegador real se verifica aparte.
 `fronteras-factory` compara estrictamente las 28 referencias con
 `crearAnfitrion` y `jugarPartida`: huella, pasos, resultado completo y
 repetición exacta, 28/28. La huella histórica (fase 0) se calculó sobre la
-instantánea del legado, que conserva campos `undefined` (`acepta`/`entrada` de
+instantánea histórica, que conserva campos `undefined` (`acepta`/`entrada` de
 las bodegas, `stock` de las máquinas); la instantánea pública los quita para
 cumplir el protocolo, así que la prueba calcula la huella con
-`legado.instantanea(mundo)`, que mide el mismo estado del mundo.
+`instantaneaHistorica(mundo)`, que mide el mismo estado del mundo.
 
 La aplicación cancela un intento mediante la orden de origen `sistema`
 `fin-intento`: cancela la tarea del robot y revela el stock, también al detener

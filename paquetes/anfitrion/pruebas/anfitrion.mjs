@@ -1,7 +1,8 @@
 // Pruebas del anfitrión en Node: texto del Worker, ejecución en VM y despertar del lockstep.
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-import { fuenteTrabajador, algunoCorre, despertar, despertarCampaign, crearAnfitrion } from '../index.js';
+import { fuenteTrabajador, crearAnfitrion } from '../index.js';
+import { despertarCampaign } from '../despertar.js';
 
 let comprobaciones = 0;
 const igual = (a, b, m) => { assert.deepEqual(a, b, m); comprobaciones++; };
@@ -64,21 +65,8 @@ const f = trabajador(fuenteTrabajador({ validarFactory: (_s, verbo) => verbo ===
 f.enviar(run('await __L(1).recoger("A", "cobre");', { serie: 'factory', propia: 'R1', nombres: ['R1'], snap: { t: 0, maq: {}, auto: {}, vib: {}, factory: { porId: {} } } }));
 igual(f.salidas.map(m => [m.type, m.mensaje, m.linea]), [['error', 'Prohibido.', 1]], 'validación inyectada');
 
-// Despertar: el lockstep elige los programas vencidos con una sola instantánea.
-const enviados = [];
-const prog = (id, extra) => ({ id, estado: 'espera', desde: 0, mensajes: 9, espera: 1, despertar: 1, pend: new Map(),
-  worker: { postMessage: m => enviados.push([id, m]), terminate() {} }, ...extra });
-const ejec = { progs: new Map([['A', prog('A')], ['B', prog('B', { despertar: 2, espera: 7 })]]) };
 let tomas = 0;
 const foto = () => ({ n: ++tomas });
-igual(algunoCorre(ejec), false, 'nadie corre');
-igual(despertar(ejec, { t: 0.5 }, foto), false, 'nadie vencido');
-igual(despertar(ejec, { t: 1 - 1e-10 }, foto, () => 42), true, 'tolerancia 1e-9');
-igual(enviados, [['A', { type: 'despierta', id: 1, snap: { n: 1 } }]], 'despierta solo a A');
-igual([ejec.progs.get('A').estado, ejec.progs.get('A').desde, ejec.progs.get('A').mensajes], ['corre', 42, 0], 'estado y vigía');
-igual(algunoCorre(ejec), true, 'A corre');
-igual(algunoCorre(null), false, 'sin ejecución');
-igual(despertar(null, { t: 0 }, foto), false, 'sin ejecución no despierta');
 
 // Campaign: varias esperas por programa; los encargos no despiertan por tiempo.
 const envC = [];

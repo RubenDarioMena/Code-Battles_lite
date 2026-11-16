@@ -1,5 +1,4 @@
-import { legado } from '../../paquetes/reglas-factory/index.js';
-import { ejecutarCiclo } from './ciclo.mjs';
+import { jugar, prepararEscenario } from './jugar.mjs';
 
 /** @typedef {{ reto: number, intento?: number, semilla?: number, escenario?: any,
  * programas?: Record<string, import('./anfitrion-war.mjs').Fuente>, maxPasos?: number,
@@ -25,51 +24,13 @@ export function resultadoFactory(mundo, intento, fin, motivo, mensaje, linea) {
 
 /** Ejecuta Factory; retos 1–6 oficiales y 7 propio, intento equivale a semilla.
  * @param {OpcionesFactory} opciones */
-export function ejecutarFactory(opciones) {
-  return ejecutarCiclo({ ...opciones, reglas: 'factory', conectarReglas: conectarFactory,
-    capturarResultado: (m, fin, motivo, texto, linea) =>
-      resultadoFactory(m, opciones.intento ?? opciones.semilla, fin, motivo, texto, linea) });
-}
-
-/** Adapta encargos y lecturas de juego.js sin duplicar su ciclo común con War.
- * @param {any} C @param {any} mundo @param {any} ejec @param {import('../../paquetes/reglas-factory/index.js').Ganchos['terminar']} terminar */
-export function conectarFactory(C, mundo, ejec, terminar) {
-  const reglas = legado.conectar(mundo, {
-    terminar,
-    programaAcabado: () => [...ejec.progs.values()].every(p => p.acabado),
-    llamadaPendiente: () => [...ejec.progs.values()].some(p => p.encargo),
-    terminarOrden(resultado) {
-      const p = ejec.progs.get('R1'), orden = p?.encargo;
-      if (!orden) return;
-      p.encargo = null;
-      mundo.resultados[resultado] = (mundo.resultados[resultado] || 0) + 1;
-      mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: orden.linea, orden: orden.texto, resultado });
-      p.estado = p.acabado ? 'fin' : 'corre'; p.desde = 0;
-      p.worker.postMessage({ type: 'despierta', id: orden.id, resultado,
-        snap: { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: legado.instantanea(mundo) } });
-    },
-  });
-  return { reglas,
-    /** @param {any} p @param {any} m @param {Function} errorPrograma */
-    mensaje(p, m, errorPrograma) {
-      if (m.type === 'encargo') {
-        if (p.encargo) {
-          errorPrograma(p, `Falta await en la línea ${p.encargo.linea}: R1 seguía con ${p.encargo.texto} cuando llegó la orden de la línea ${m.linea}.`, p.encargo.linea);
-          return true;
-        }
-        p.encargo = m; p.estado = 'encargo'; p.sensoresSeguidos = 0;
-        mundo.verbos[m.verbo] = (mundo.verbos[m.verbo] || 0) + 1;
-        reglas.iniciarOrden(m.verbo, m.args);
-        return true;
-      }
-      if (m.type === 'lecturaFactory') {
-        mundo.verbos.cuantos = (mundo.verbos.cuantos || 0) + 1;
-        if ((p.sensoresSeguidos = (p.sensoresSeguidos || 0) + 1) > 500)
-          errorPrograma(p, 'R1 consultó el sensor 500 veces sin hacer nada más: el bucle no avanza. ¿Falta una orden dentro del «while»?', m.linea);
-        else mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: m.linea, orden: m.texto, resultado: String(m.valor), sensor: true });
-        return true;
-      }
-      return false;
-    },
-  };
+export async function ejecutarFactory(opciones) {
+  const inicio = performance.now();
+  const config = prepararEscenario({ ...opciones, reglas: 'factory' });
+  const r = await jugar({ ...opciones, ...config });
+  const intento = config.semilla, f = r.final;
+  return { reglas: 'factory', reto: opciones.reto, semilla: intento, intento,
+    resultado: resultadoFactory({ ...r.partida.mundo, ...r.registro }, intento, f.fin, f.motivo, f.mensaje, f.linea),
+    metricas: { pasos: r.pasos, t: r.partida.mundo.t, mensajes: r.mensajes, ms: performance.now() - inicio },
+    hash: r.huella.hash, instantanea: r.huella.instantanea };
 }

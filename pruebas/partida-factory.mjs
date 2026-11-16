@@ -8,7 +8,7 @@ import { casosFactory, opcionesFactory, exclusionFactory } from './partida-facto
 const cuentas = { iguales: 0, deltas: 0, diferencias: 0, excluidos: 0 };
 console.log('caso · resultado · comparación');
 for (const c of casosFactory()) {
-  const opciones = opcionesFactory(c), r = ejecutarFactory(opciones);
+  const opciones = opcionesFactory(c), r = await ejecutarFactory(opciones);
   const exclusion = exclusionFactory(c);
   if (exclusion) {
     assert.equal(r.resultado.fin, 'bloqueado');
@@ -24,22 +24,22 @@ for (const c of casosFactory()) {
   console.log(`${c.id} · ${r.resultado.fin}/${r.resultado.motivo ?? '—'} · ${estado}`);
   for (const campo of campos) console.error(`${c.id}.${campo}: actual=${canonico(r.resultado[campo])}; esperado=${canonico(c.esperado[campo])}`);
   // Repetición independiente: protege determinismo del resultado y de toda la huella.
-  const repetida = ejecutarFactory(opciones);
+  const repetida = await ejecutarFactory(opciones);
   assert.equal(r.hash, repetida.hash, `${c.id}: hash repetido`);
   assert.equal(canonico(r.resultado), canonico(repetida.resultado), `${c.id}: resultado repetido`);
 }
-const js = ejecutarFactory({ reto: 1, intento: 1, programas: { R1: 'await pickUp(ENT_1, "cobre");\nawait deliver(FUN);' } });
-const py = ejecutarFactory({ reto: 1, semilla: 1, programas: { R1: { lenguaje: 'python', codigo: 'await pick_up(ENT_1, "cobre")\nawait deliver(FUN)' } } });
+const js = await ejecutarFactory({ reto: 1, intento: 1, programas: { R1: 'await pickUp(ENT_1, "cobre");\nawait deliver(FUN);' } });
+const py = await ejecutarFactory({ reto: 1, semilla: 1, programas: { R1: { lenguaje: 'python', codigo: 'await pick_up(ENT_1, "cobre")\nawait deliver(FUN)' } } });
 assert.equal(js.hash, py.hash);
 assert.equal(canonico(js.resultado), canonico(py.resultado));
-assert.equal(ejecutarFactory({ reto: 5, intento: 7 }).hash, ejecutarFactory({ reto: 5, semilla: 7 }).hash);
-assert.throws(() => ejecutarFactory({ reto: 1, intento: 2, semilla: 1 }), /deben coincidir/);
-assert.throws(() => ejecutarFactory({ reto: 1, intento: 0 }), /positivo/);
-assert.throws(() => ejecutarFactory({ reto: 1, intento: 1, programas: { X: '' } }), /Unidad no programable/);
-const limitado = ejecutarFactory({ reto: 1, intento: 1, maxPasos: 3 });
+assert.equal((await ejecutarFactory({ reto: 5, intento: 7 })).hash, (await ejecutarFactory({ reto: 5, semilla: 7 })).hash);
+await assert.rejects(() => ejecutarFactory({ reto: 1, intento: 2, semilla: 1 }), /deben coincidir/);
+await assert.rejects(() => ejecutarFactory({ reto: 1, intento: 0 }), /positivo/);
+await assert.rejects(() => ejecutarFactory({ reto: 1, intento: 1, programas: { X: '' } }), /Unidad no programable/);
+const limitado = await ejecutarFactory({ reto: 1, intento: 1, maxPasos: 3 });
 assert.equal(limitado.metricas.pasos, 3); assert.equal(limitado.resultado.fin, 'límite');
 // La misma protección cubre bucles al arrancar y en una continuación de promesa.
-const bloqueado = ejecutarWar({ reto: 1, semilla: 1, programas: { 'LAU-01': 'await esperar(0.1); while (true) {}' } });
+const bloqueado = await ejecutarWar({ reto: 1, semilla: 1, programas: { 'LAU-01': 'await esperar(0.1); while (true) {}' } });
 assert.equal(bloqueado.resultado.fin, 'bloqueado');
 console.log(`Factory: ${cuentas.iguales} iguales, ${cuentas.deltas} deltas aceptados, ${cuentas.diferencias} DIFERENCIAS, ${cuentas.excluidos} excluidos; 28 ejecutados.`);
 assert.equal(cuentas.diferencias, 0, 'Diferencias NO aceptadas con el oráculo');

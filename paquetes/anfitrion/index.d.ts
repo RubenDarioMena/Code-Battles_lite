@@ -22,9 +22,6 @@ export interface Ejecucion { progs: Map<string, Programa>; [clave: string]: unkn
 export interface MundoReloj { t: number }
 
 export function fuenteTrabajador(piezas?: PiezasTrabajador): string;
-export function algunoCorre(ejec: Ejecucion | null | undefined): boolean;
-export function despertar(ejec: Ejecucion | null | undefined, mundo: MundoReloj, instantanea: () => unknown, ahora?: () => number): boolean;
-export function despertarCampaign(ejec: Ejecucion | null | undefined, mundo: MundoReloj, instantanea: () => unknown, ahora?: () => number): boolean;
 
 export interface Turno {
   ordenes: import('../protocolo/index.js').Orden[];

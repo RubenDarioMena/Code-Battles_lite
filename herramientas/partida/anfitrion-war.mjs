@@ -1,4 +1,4 @@
-import { ejecutarCiclo } from './ciclo.mjs';
+import { jugar, prepararEscenario } from './jugar.mjs';
 
 /** @typedef {string | { lenguaje: 'js' | 'python', codigo: string }} Fuente */
 /** @typedef {{ reto: number, semilla: number, programas?: Record<string, Fuente>, maxPasos?: number,
@@ -14,6 +14,13 @@ export function resultadoWar(mundo, fin, motivo, texto, linea, idProg) {
 
 /** Ejecuta War sobre las fuentes actuales del juego.
  * @param {OpcionesWar} opciones */
-export function ejecutarWar(opciones) {
-  return ejecutarCiclo({ ...opciones, reglas: 'war', capturarResultado: resultadoWar });
+export async function ejecutarWar(opciones) {
+  const inicio = performance.now();
+  const config = prepararEscenario({ ...opciones, reglas: 'war' });
+  const r = await jugar({ ...opciones, ...config });
+  const f = r.final;
+  return { reglas: 'war', reto: opciones.reto, semilla: opciones.semilla,
+    resultado: resultadoWar({ ...r.partida.mundo, ...r.registro }, f.fin, f.motivo, f.mensaje, f.linea, f.unidad),
+    metricas: { pasos: r.pasos, t: r.partida.mundo.t, mensajes: r.mensajes, ms: performance.now() - inicio },
+    hash: r.huella.hash, instantanea: r.huella.instantanea };
 }

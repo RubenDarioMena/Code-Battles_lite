@@ -2,13 +2,12 @@ import { copiaPlana } from '../nucleo/index.js';
 import { crear, conectar, validar, instantanea, MATERIALES } from './mundo.js';
 import { retos } from './retos.js';
 
-// Puente temporal: mismas claves que el catálogo anterior.
-export const legado = { crear, conectar, validar, instantanea, MATERIALES };
+export { crear, validar, instantanea as instantaneaHistorica, MATERIALES };
 export { retos };
 
 /** @type {WeakMap<import('./index.js').Mundo, import('./index.js').Conexion>} */
 const conexiones = new WeakMap();
-/** @type {WeakMap<import('./index.js').Mundo, { encargo: boolean, acabado: boolean, respuestas: import('../nucleo/index.js').Respuesta[] }>} */
+/** @type {WeakMap<import('./index.js').Mundo, { encargo: boolean, acabado: boolean, ref?: string, respuestas: import('../nucleo/index.js').Respuesta[] }>} */
 const encargos = new WeakMap();
 
 /** @param {import('./index.js').Mundo} mundo */
@@ -19,7 +18,7 @@ function conexion(mundo) {
     conexiones.set(mundo, conectar(mundo, {
       terminarOrden(resultado) {
         estado.encargo = false;
-        estado.respuestas.push({ unidad: 'R1', resultado,
+        estado.respuestas.push({ unidad: 'R1', resultado, ...(estado.ref == null ? {} : { ref: estado.ref }),
           instantanea: structuredClone({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: instantanea(mundo) }) });
       },
       programaAcabado: () => estado.acabado, llamadaPendiente: () => estado.encargo,
@@ -56,6 +55,7 @@ const reglamento = {
       c.evaluar();
     } else if (['recoger', 'entregar', 'esperar'].includes(orden.verbo)) {
       estado.encargo = true;
+      estado.ref = orden.ref;
       c.iniciarOrden(orden.verbo, orden.args);
     }
   },
@@ -64,7 +64,7 @@ const reglamento = {
     return encargos.get(mundo).respuestas.splice(0);
   },
   instantanea(mundo) {
-    // El legado conserva referencias y campos undefined para los Workers.
+    // La lectura histórica conserva referencias y campos undefined para los Workers.
     // La entrada de reglamento devuelve datos planos independientes.
     return { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: JSON.parse(JSON.stringify(instantanea(mundo))) };
   },

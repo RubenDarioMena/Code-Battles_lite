@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
-import reglamento, { legado as C, nivel, serializar, restaurar } from '../index.js';
+import reglamento, { nivel, serializar, restaurar } from '../index.js';
+import * as C from '../index.js';
+import { conectar } from '../mundo.js';
 import { crearPartida, restaurar as repetir, crearRng, DT } from '../../nucleo/index.js';
 import { esDatoPlano, validarInstantanea, validarSuceso } from '../../protocolo/index.js';
 
@@ -12,10 +14,7 @@ const json = v => JSON.parse(JSON.stringify(v));
 igual(typeof globalThis.window, 'undefined');
 igual(reglamento.id, 'campaign');
 igual(reglamento.version, 1);
-igual(Object.keys(C), ['VERSION', 'crear', 'conectar', 'serializar', 'indexar', 'instantanea',
-  'validar', 'modoEnSnap', 'metas', 'cuantos', 'enLotes', 'estadoMaquina', 'totalEntrada',
-  'esMaquina', 'esRobot', 'PIEZAS', 'RECETAS', 'MAQUINAS', 'ROBOT', 'BANDA', 'COSTE',
-  'PEDIDO', 'ARSENAL', 'TORRETA', 'LUCES', 'TARIMA_CAP', 'HITO_MAESTRO']);
+igual('conectar' in C, false, 'los ganchos son internos');
 igual(Object.keys(nivel), ['RETOS', 'NIVEL', 'MAPA']);
 comprobar(esDatoPlano(reglamento.api));
 
@@ -24,7 +23,7 @@ const validar = vm.runInNewContext(`(${C.validar.toString()})`, Object.create(nu
 const modo = vm.runInNewContext(`(${C.modoEnSnap.toString()})`, Object.create(null));
 for (const hito of [0, 4, 5]) {
   const m = C.crear(nivel.NIVEL); m.hito = hito; C.indexar(m);
-  const snap = C.instantanea(m);
+  const snap = C.instantaneaHistorica(m);
   for (const [propia, unidad, verbo, args] of [
     ['BOT-01', 'BOT-01', 'pickUp', ['SUP-1', 'steel']],
     ['BOT-01', 'BOT-01', 'pickUp', ['SUP-1', 'oro']],
@@ -55,7 +54,7 @@ for (const [state, recipe, verbo, args, fondos, cola, esperado] of [
   ['idle', 'motor', 'request', ['steel'], 0, 0, 'sin_fondos'],
   ['idle', 'motor', 'request', ['steel'], 300, 2, 'ocupado'],
 ]) {
-  const a = C.instantanea(C.crear(nivel.NIVEL));
+  const a = C.instantaneaHistorica(C.crear(nivel.NIVEL));
   a.u['ASM-01'].state = state; a.u['ASM-01'].recipe = recipe;
   a.presupuesto = fondos; a.u['BAY-1'].pending = cola;
   const b = json(a), id = verbo === 'request' ? 'BAY-1' : 'ASM-01';
@@ -126,7 +125,7 @@ function preparar() {
   return m;
 }
 const conRegistro = preparar(), sinRegistro = { ...preparar() }, llamadas = [[], []];
-const sims = [conRegistro, sinRegistro].map((m, i) => C.conectar(m, {
+const sims = [conRegistro, sinRegistro].map((m, i) => conectar(m, {
   registrar: (...args) => llamadas[i].push(['registrar', ...args]),
   terminarOrden: (...args) => llamadas[i].push(['encargo', ...args]),
   hito: (...args) => llamadas[i].push(['hito', ...args]),
@@ -143,7 +142,7 @@ for (const tipo of ['produccion', 'misil-banda', 'misil-arsenal', 'entrega-pedid
 for (const s of conRegistro.sucesos.desde(0)) igual(validarSuceso(s), []);
 comprobar(conRegistro.completado);
 igual(conRegistro.fin, null, 'el mundo continuo no se detiene al completar');
-comprobar(C.conectar(conRegistro).quieto());
+comprobar(conectar(conRegistro).quieto());
 comprobar(!Object.keys(conRegistro).includes('sucesos'));
 igual(Object.keys(serializar(conRegistro)), campos);
 igual(reglamento.evaluar(conRegistro), { fin: 'victoria', hito: 5, completado: true });

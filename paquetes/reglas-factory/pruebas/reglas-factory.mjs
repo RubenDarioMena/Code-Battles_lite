@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
-import reglamento, { legado, retos } from '../index.js';
+import reglamento, { retos } from '../index.js';
+import * as F from '../index.js';
+import { conectar } from '../mundo.js';
 import { crearPartida, restaurar, crearRng, DT } from '../../nucleo/index.js';
 import { esDatoPlano, validarInstantanea, validarSuceso } from '../../protocolo/index.js';
 
@@ -11,15 +13,15 @@ const comprobar = (valor, mensaje) => { assert.ok(valor, mensaje); comprobacione
 igual(typeof globalThis.window, 'undefined');
 igual(reglamento.id, 'factory');
 igual(reglamento.version, 1);
-igual(Object.keys(legado), ['crear', 'conectar', 'validar', 'instantanea', 'MATERIALES']);
+igual('conectar' in F, false, 'los ganchos son internos');
 igual(Object.keys(retos), ['RETOS', 'propio', 'normalizar', 'generar']);
 comprobar(esDatoPlano(reglamento.api));
-igual(reglamento.api.materiales, legado.MATERIALES);
+igual(reglamento.api.materiales, F.MATERIALES);
 igual(retos.RETOS.length, 6);
 
 // La función que runtime interpola debe ejecutarse sin catálogo, imports ni puente.
-const validarAislado = vm.runInNewContext(`(${legado.validar.toString()})`, Object.create(null));
-const lectura = legado.instantanea(legado.crear(retos.RETOS[0], 1));
+const validarAislado = vm.runInNewContext(`(${F.validar.toString()})`, Object.create(null));
+const lectura = F.instantaneaHistorica(F.crear(retos.RETOS[0], 1));
 for (const [verbo, args] of [
   ['recoger', ['ENT-1', 'cobre']], ['recoger', ['ENT-1', 'silicio']],
   ['recoger', ['ENT-1']], ['recoger', ['ENT-1', 'oro']],
@@ -28,7 +30,7 @@ for (const [verbo, args] of [
   ['esperar', [1]], ['esperar', [0]], ['esperar', [61]], ['esperar', ['2']],
   ['cuantos', ['NO', 'cobre']], ['cuantos', ['ENT-1', 'oro']],
   ['cuantos', ['ENT-1']], ['cuantos', [null, 'cobre']],
-]) igual(validarAislado(lectura, verbo, args), legado.validar(lectura, verbo, args), `validar aislado: ${verbo} ${args}`);
+]) igual(validarAislado(lectura, verbo, args), F.validar(lectura, verbo, args), `validar aislado: ${verbo} ${args}`);
 igual(validarAislado(lectura, 'recoger', ['ENT-1', 'cobre']), null);
 comprobar(validarAislado(lectura, 'recoger', ['ENT-1', 'oro']).includes('No existe el material'));
 
@@ -144,10 +146,10 @@ igual(agotada.mundo.activo, false);
 verificar(agotada);
 
 // Anotar sucesos no cambia estado enumerable, resultados ni orden de los hooks.
-const conRegistro = legado.crear(retos.RETOS[0], 1);
-const sinRegistro = { ...legado.crear(retos.RETOS[0], 1) };
+const conRegistro = F.crear(retos.RETOS[0], 1);
+const sinRegistro = { ...F.crear(retos.RETOS[0], 1) };
 const llamadas = [[], []];
-const conexiones = [conRegistro, sinRegistro].map((mundo, indice) => legado.conectar(mundo, {
+const conexiones = [conRegistro, sinRegistro].map((mundo, indice) => conectar(mundo, {
   terminarOrden: r => llamadas[indice].push(['orden', r]),
   terminar: (...args) => llamadas[indice].push(['fin', ...args]),
   programaAcabado: () => false, llamadaPendiente: () => false,

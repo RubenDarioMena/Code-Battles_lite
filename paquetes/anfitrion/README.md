@@ -1,6 +1,6 @@
 # anfitrion
 
-Estado: fase 2, paso 8a (`crearAnfitrion` para War, Factory y Campaign,
+Estado: fase 2, paso 8c (`crearAnfitrion` para War, Factory y Campaign,
 registro incremental y vigía).
 
 Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
@@ -22,20 +22,11 @@ reciben como argumentos.
   `() => null` y, para el modo de Campaign, `() => 'ok'`. Las funciones deben ser
   **autocontenidas**: `validar` de Factory y Campaign y `modoEnSnap` de Campaign
   lo son, y sus suites las evalúan desde su texto en un contexto vacío.
-- `algunoCorre(ejec)`, `despertar(ejec, mundo, instantanea, ahora?)` y
-  `despertarCampaign(ejec, mundo, instantanea, ahora?)`: el despertar del
-  lockstep, sin cambios. `ahora` solo marca `p.desde` para el vigía de 2,5 s de
-  reloj real del juego (`performance.now` en el navegador, `() => 0` sin
-  pantalla); no decide ningún paso. Tipos en `index.d.ts`.
-
-Quién lo usa:
-
-- El juego, mediante `js/compat-paquetes.js`, que crea la URL del Worker y
-  publica el antiguo `window.RUNTIME` (`url`, `algunoCorre`, `despertar`,
-  `despertarCampaign`). Ese módulo se carga después de `shared/python/traductor.js`
-  por el preludio de Python. `js/runtime.js` ya no existe.
-- La partida sin pantalla (`herramientas/partida/cargar.mjs` y `ciclo.mjs`), que
-  importa el paquete en vez de capturar el Worker por `Blob`.
+El juego lo compone con `crearConductor` mediante `js/compat-paquetes.js`.
+La herramienta usa `crearAnfitrion` y `jugarPartida` mediante
+`herramientas/partida/jugar.mjs`. Ambos reciben las mismas piezas del Worker.
+`despertarCampaign` es un auxiliar interno; el despertar de War/Factory forma
+parte de `crearAnfitrion`. No hay funciones públicas para el ciclo anterior.
 
 ## `crearAnfitrion` (War, Factory y Campaign)
 
@@ -128,12 +119,13 @@ continuaciones; después despierta las esperas por tiempo, como el ciclo antiguo
 
 Límites:
 Si dos unidades fallan en el mismo instante con Workers reales, gana la primera
-en llegar. El juego aún no usa `crearAnfitrion`: sigue con `window.RUNTIME`.
+en llegar. El juego y las herramientas usan `crearAnfitrion`; la VM no reproduce
+la planificación de CPU ni el vigía de reloj real de los Workers.
 
 ## De dónde sale
 
 `Prototypes/Rocket Launcher/js/runtime.js` (retirado) y la sección «Ciclo de los
-programas» de `Prototypes/Rocket Launcher/js/juego.js` (pendiente).
+programas» de `Prototypes/Rocket Launcher/js/juego.js` (migrada en el paso 8b).
 
 ## Pruebas
 
@@ -143,7 +135,7 @@ node paquetes/anfitrion/pruebas/anfitrion.mjs
 
 Registrada en `pruebas/todas.mjs`. Ejecuta el texto del Worker en `node:vm`
 (lectura, orden, espera, despertar, consola, fin, errores con línea, validación
-inyectada de Factory), comprueba `despertar`/`despertarCampaign` con programas
+inyectada de Factory), comprueba el auxiliar interno `despertarCampaign` con programas
 falsos y `crearAnfitrion` con Workers asíncronos falsos cuyos mensajes llegan en
 distinto orden (mismo resultado), MAX_ORDENES, errores y `sin-cesion`.
 `pruebas/fronteras-fase2.mjs` lo usa con la imitación real de Worker y compara

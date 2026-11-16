@@ -20,7 +20,7 @@ try {
   if (v.reglas === 'campaign' && (v.reto || v.semilla || v.intento || v.escenario)) throw new Error('Campaign usa un solo nivel continuo, sin reto, semilla, intento ni escenario.');
   if (v.lenguaje && (v.reglas !== 'campaign' || !['js', 'python'].includes(v.lenguaje))) throw new Error('--lenguaje js|python es exclusivo de Campaign.');
   const ejecutar = v.reglas === 'campaign' ? ejecutarCampaign : v.reglas === 'factory' ? ejecutarFactory : ejecutarWar;
-  const { instantanea, ...salida } = ejecutar(/** @type {any} */ ({ lenguaje: v.lenguaje, reto: Number(v.reto), semilla: v.semilla == null ? undefined : Number(v.semilla),
+  const { instantanea, ...salida } = await ejecutar(/** @type {any} */ ({ lenguaje: v.lenguaje, reto: Number(v.reto), semilla: v.semilla == null ? undefined : Number(v.semilla),
     intento: v.intento == null ? undefined : Number(v.intento),
     escenario: v.escenario ? JSON.parse(readFileSync(v.escenario, 'utf8')) : undefined,
     programas, maxPasos: v['max-pasos'] == null ? undefined : Number(v['max-pasos']) }));

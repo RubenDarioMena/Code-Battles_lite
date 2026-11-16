@@ -7,7 +7,7 @@ import { crearPrograma } from '../herramientas/partida/programa.mjs';
 import { cargar } from '../herramientas/partida/cargar.mjs';
 import { extraerFuncion, extraerConst } from '../herramientas/partida/instrumentar.mjs';
 
-const a = ejecutarWar({ reto: 2, semilla: 7 }), b = ejecutarWar({ reto: 2, semilla: 7 });
+const a = await ejecutarWar({ reto: 2, semilla: 7 }), b = await ejecutarWar({ reto: 2, semilla: 7 });
 assert.equal(a.hash, b.hash);
 assert.deepEqual(a.resultado, b.resultado);
 assert.equal(a.metricas.pasos, b.metricas.pasos);
@@ -18,25 +18,46 @@ const final = h.terminar();
 assert.deepEqual(final.instantanea, { a: 1 });
 assert.equal(final.hash, createHash('sha256').update(registro(1, { a: 1 })).digest('hex'));
 
-const limitado = ejecutarWar({ reto: 2, semilla: 7, maxPasos: 11 });
+const limitado = await ejecutarWar({ reto: 2, semilla: 7, maxPasos: 11 });
 assert.equal(limitado.metricas.pasos, 11);
 assert.equal(limitado.resultado.fin, 'límite');
-const max = ejecutarWar({ reto: 1, semilla: 7,
+const max = await ejecutarWar({ reto: 1, semilla: 7,
   programas: { 'LAU-01': 'while (true) { console.log("a"); }' } });
 assert.equal(max.resultado.fin, 'error');
 assert.equal(max.metricas.mensajes.consola, 4001);
 assert.match(max.resultado.texto, /4000 órdenes/);
 assert.equal(max.metricas.pasos, 0);
-const api = ejecutarWar({ reto: 1, semilla: 7, programas: { 'LAU-01': 'await esperar(0);' } });
+const api = await ejecutarWar({ reto: 1, semilla: 7, programas: { 'LAU-01': 'await esperar(0);' } });
 assert.equal(api.resultado.fin, 'error'); assert.equal(api.resultado.linea, 1);
 
 const js = 'while (true) {\n const pos = autoTarget("crawler", "visual");\n regularShoot(pos);\n await esperar(0.5);\n}';
 const py = 'while True:\n    pos = auto_target("crawler", "visual")\n    regular_shoot(pos)\n    await wait(0.5)';
-const j = ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-01': js } });
-const p = ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-01': { lenguaje: 'python', codigo: py } } });
+const j = await ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-01': js } });
+const p = await ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-01': { lenguaje: 'python', codigo: py } } });
 assert.equal(j.hash, p.hash); assert.deepEqual(j.resultado, p.resultado);
-assert.throws(() => ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-02': '' } }), /Unidad no programable/);
-assert.throws(() => ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-01': 'const =' } }), /sintaxis/);
+await assert.rejects(() => ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-02': '' } }), /Unidad no programable/);
+await assert.rejects(() => ejecutarWar({ reto: 2, semilla: 7, programas: { 'LAU-01': 'const =' } }), /sintaxis/);
+
+// Los bloqueos de la VM conservan el resultado público del ciclo anterior.
+const sinCesion = await ejecutarWar({ reto: 1, semilla: 7,
+  programas: { 'LAU-01': 'await new Promise(() => {});' } });
+assert.deepEqual(sinCesion.resultado, { fin: 'bloqueado', motivo: 'sin-cesion', t: 0,
+  texto: 'Programa sin espera del juego ni tarea virtual.', linea: null, idProg: null });
+assert.equal(sinCesion.metricas.pasos, 0);
+assert.equal(sinCesion.instantanea, null);
+for (const previa of ['', 'await esperar(0.1); ']) {
+  const bloqueo = await ejecutarWar({ reto: 1, semilla: 7,
+    programas: { 'LAU-01': previa + 'while (true) {}' } });
+  assert.deepEqual(bloqueo.resultado, { fin: 'bloqueado', motivo: 'vm-timeout', t: previa ? .1 : 0,
+    texto: 'El programa no cedió dentro del límite de VM (1000 ms).', linea: null, idProg: null });
+  assert.equal(bloqueo.metricas.pasos, previa ? 2 : 0);
+  if (previa) {
+    const hastaEspera = await ejecutarWar({ reto: 1, semilla: 7, maxPasos: 2,
+      programas: { 'LAU-01': 'await esperar(0.1);' } });
+    assert.equal(bloqueo.hash, hastaEspera.hash, 'el timeout conserva la huella hasta el último paso');
+    assert.deepEqual(bloqueo.instantanea, hastaEspera.instantanea);
+  }
+}
 
 // Dos Workers con globales separados; envío y recepción clonan, incluso entre
 // la primera entrega y la continuación por temporizador virtual.

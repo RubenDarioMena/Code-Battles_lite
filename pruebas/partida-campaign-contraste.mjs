@@ -8,7 +8,7 @@ import { canonico, registro } from '../herramientas/partida/huella.mjs';
  * @param {(page: import('playwright').Page) => Promise<void>} instalarGancho */
 export async function probarCampaign(browser, caso, instalarGancho) {
   const registros = [], programas = caso.programas ?? programasCampaign(caso.lenguaje);
-  const sinPantalla = ejecutarCampaign({ ...caso, programas,
+  const sinPantalla = await ejecutarCampaign({ ...caso, programas,
     alPaso: (n, snap) => registros.push(registro(n, snap)) });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errores = [];

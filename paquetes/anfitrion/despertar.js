@@ -4,21 +4,6 @@
 /** @typedef {import("./index.js").Ejecucion} Ejecucion */
 /** @typedef {import("./index.js").MundoReloj} MundoReloj */
 
-/** @param {Ejecucion | null | undefined} ejec */
-export const algunoCorre = ejec => !!ejec && [...ejec.progs.values()].some(p => p.estado === "corre");
-
-/** War y Factory: un programa espera como mucho una cosa (p.espera, p.despertar).
- * @param {Ejecucion | null | undefined} ejec @param {MundoReloj} mundo @param {() => unknown} instantanea
- * @param {() => number} [ahora] */
-export function despertar(ejec, mundo, instantanea, ahora = () => 0) {
-  if (!ejec) return false;
-  const listos = [...ejec.progs.values()].filter(p => p.estado === "espera" && p.despertar <= mundo.t + 1e-9);
-  if (!listos.length) return false;
-  const snap = instantanea();
-  for (const p of listos) { p.estado = "corre"; p.desde = ahora(); p.mensajes = 0; p.worker.postMessage({ type: "despierta", id: p.espera, snap }); }
-  return true;
-}
-
 /** Campaign: cada programa puede tener varias esperas y encargos a la vez (p.pend).
  * @param {Ejecucion | null | undefined} ejec @param {MundoReloj} mundo @param {() => unknown} instantanea
  * @param {() => number} [ahora] */

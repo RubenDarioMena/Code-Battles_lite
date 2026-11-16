@@ -14,7 +14,8 @@ try {
       + '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
   }
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: new URL('../', import.meta.url), encoding: 'utf8' }).trim();
-  const casos = casosReferencia().map(c => ejecutarReferencia(c));
+  const casos = [];
+  for (const c of casosReferencia()) casos.push(await ejecutarReferencia(c));
   const datos = { version: 1, generado: { commit, fecha: new Date().toISOString() }, casos };
   mkdirSync(new URL('../pruebas/referencias/', import.meta.url), { recursive: true });
   writeFileSync(destino, JSON.stringify(datos, null, 2) + '\n', { flag: values.forzar ? 'w' : 'wx' });

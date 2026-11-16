@@ -2,8 +2,7 @@ import { copiaPlana } from '../nucleo/index.js';
 import { crear, conectar, aplicarOrden, TIPOS, SENSOR, LAU, MISIL, REP, COSTE, cadencia } from './mundo.js';
 import { RETOS, PROPIO_BASE, POS_LANZADORES, normalizar } from './retos.js';
 
-// Puente temporal para el juego y la herramienta; se retira en la fase 2.
-export const legado = { crear, conectar, aplicarOrden, TIPOS, SENSOR, LAU, MISIL, REP, COSTE, cadencia };
+export { crear, aplicarOrden, TIPOS, SENSOR, LAU, MISIL, REP, COSTE, cadencia };
 export const retos = { RETOS, PROPIO_BASE, POS_LANZADORES, normalizar };
 
 /** @type {WeakMap<import('./index.js').Mundo, ReturnType<typeof conectar>>} */

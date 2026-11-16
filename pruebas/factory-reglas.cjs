@@ -1,12 +1,26 @@
 // Reglas puras: encargos completos, conservación y límites, con paso fijo real.
 const assert = require('node:assert/strict');
-const { legado: F, retos: D } = require('../paquetes/reglas-factory/index.js');
+const F = require('../paquetes/reglas-factory/index.js');
+const { default: reglas, retos: D } = F;
 function escenario(reto = 0) {
   const d = JSON.parse(JSON.stringify(D.RETOS[reto]));
   d.metas = [{ id: 'FUN', mat: 'cobre', n: 100 }]; d.maxRechazos = null;
-  const m = F.crear(d, 1); m.activo = true;
+  const m = reglas.crearMundo({ reto: d, intento: 1 }, () => .5);
   let resultado;
-  const sim = F.conectar(m, { terminarOrden: r => resultado = r, terminar: (fin, motivo) => { m.fin = fin; m.motivo = motivo; }, programaAcabado: () => false, llamadaPendiente: () => false });
+  let ref = 0;
+  const entregar = () => {
+    for (const r of reglas.respuestas(m)) if (r.ref === String(ref)) resultado = r.resultado;
+    const fin = reglas.evaluar(m);
+    if (fin) { m.fin = fin.fin; m.motivo = fin.motivo; }
+  };
+  const sim = {
+    iniciarOrden(verbo, args) {
+      reglas.aplicarOrden(m, { paso: Math.round(m.t / .05), origen: 'programa', unidad: 'R1', verbo, args, ref: String(++ref) });
+      entregar();
+    },
+    paso(dt) { reglas.paso(m, dt); entregar(); },
+    sensor(lugar, mat) { const e = reglas.instantanea(m).factory.porId[lugar]; return e ? (e.stock?.[mat] || 0) : null; },
+  };
   const orden = (verbo, args) => { resultado = undefined; sim.iniciarOrden(verbo, args); for (let n=0; resultado === undefined && n<2000; n++) sim.paso(.05); assert.notEqual(resultado, undefined); return resultado; };
   return { m, sim, orden };
 }

@@ -5,17 +5,14 @@
 // La cuarta (editor montado solo) es de navegador: pruebas/editor-demo.mjs.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import reglas, { retos, legado } from '../paquetes/reglas-war/index.js';
-import { crearAnfitrion } from '../paquetes/anfitrion/index.js';
-import { jugarPartida, crearConductor, crearVistaNula } from '../paquetes/app/index.js';
-import { crearPartida, restaurar, DT } from '../paquetes/nucleo/index.js';
+import reglas, { retos } from '../paquetes/reglas-war/index.js';
+import { jugarPartida, crearVistaNula } from '../paquetes/app/index.js';
+import { restaurar } from '../paquetes/nucleo/index.js';
 import { validarInstantanea, validarSuceso, canonico } from '../paquetes/protocolo/index.js';
 import { cargar } from '../herramientas/partida/cargar.mjs';
-import { crearInstrumentador } from '../herramientas/partida/instrumentar.mjs';
-import { crearPrograma } from '../herramientas/partida/programa.mjs';
 import { crearHuella } from '../herramientas/partida/huella.mjs';
-import { ejecutarCiclo } from '../herramientas/partida/ciclo.mjs';
-import { resultadoWar } from '../herramientas/partida/anfitrion-war.mjs';
+import { jugar } from '../herramientas/partida/jugar.mjs';
+import { adaptar } from './juego-adaptador.mjs';
 
 let comprobaciones = 0;
 const igual = (a, b, m) => { assert.deepEqual(a, b, m); comprobaciones++; };
@@ -34,38 +31,9 @@ function vistaVigilada() {
 /** Partida War de los retos públicos con sus programas iniciales, instrumentados como en el juego. */
 async function partidaWar(reto, semilla, { vista = vistaVigilada(), ordenes = [] } = {}) {
   const def = retos.normalizar(retos.RETOS[reto - 1]);
-  // El instrumentador real (extraído de juego.js) necesita los nombres del mundo; uno de prueba basta.
-  const muestra = reglas.crearMundo({ reto: def }, () => 0.5);
-  const lenguaje = crearInstrumentador(sesion.contexto, muestra, 'war');
-  const anfitrion = crearAnfitrion({ reglas, crearTrabajador: (fuente, unidad, recibir) => crearPrograma(sesion.fuenteWorker, unidad, recibir, 4000),
-    contexto: { nombres: [...muestra.programables, ...muestra.sensores].map(e => e.id) } });
-  for (const l of muestra.programables) {
-    const texto = (def.inicial[l.id] || []).join('\n');
-    assert.equal(lenguaje.revisar(texto), null);
-    await anfitrion.cargar(l.id, lenguaje.instrumentar(texto));
-  }
-  const huella = crearHuella(), eventos = [];
-  const partida = crearPartida({ reglas, escenario: { reto: def }, semilla });
-  for (const orden of ordenes) partida.ordenar(orden);
-  let desde = 0, pasos = 0;
-  const conductor = crearConductor({ reglas, partida, anfitrion, vista,
-    alPaso: (_p, snap) => huella.paso(snap),
-    alSucesos(lista) {
-      for (const s of lista) if (s.tipo === 'registro')
-        eventos.push({ t: +(s.paso * DT).toFixed(2), ...s.datos, linea: s.datos.linea ?? '' });
-    },
-    alTurno() {
-      const nuevos = anfitrion.registro({ desde }).eventos;
-      eventos.push(...nuevos); desde += nuevos.length;
-    },
-  });
-  try {
-    await conductor.iniciar();
-    while (!conductor.terminada && pasos < 10000) pasos += (await conductor.avanzar(Math.min(37, 10000 - pasos))).pasos;
-    ok(conductor.terminada, 'el conductor termina dentro del presupuesto');
-  } finally { conductor.cerrar(); }
-  return { partida, pasos, error: conductor.error, evaluacion: partida.evaluar(), instantanea: partida.instantanea(),
-    huella: huella.terminar(), vista, eventos, registro: anfitrion.registro() };
+  const r = await jugar({ reglas, escenario: { reto: def }, semilla, vista, ordenes, sesion });
+  ok(!r.limite, 'el conductor termina dentro del presupuesto');
+  return { ...r, vista };
 }
 
 // 1. Partida completa con vista nula: mismas huellas, pasos y final que las referencias de la fase 0.
@@ -81,15 +49,16 @@ for (const caso of referencias.filter(c => c.reglas === 'war' && !c.parametros.p
   igual(resumen.fotogramas, caso.pasos + 1, `${caso.id}: la vista nula recibe cada instantánea`);
   ok(resumen.sucesos > 0, `${caso.id}: la vista nula recibe sucesos`);
 
-  // Registro completo del ciclo antiguo, en su orden real, sin ordenar ni filtrar eventos.
-  const mundo = legado.crear(retos.normalizar(retos.RETOS[reto - 1]), semilla);
-  const antigua = ejecutarCiclo({ reglas: 'war', reto, semilla, capturarResultado: resultadoWar,
-    sesion: { ...sesion, mundo, huella: crearHuella(), pasos: 0 } });
-  igual(antigua.hash, caso.hash, `${caso.id}: el ciclo antiguo conserva su huella`);
-  igual(r.eventos, mundo.eventos, `${caso.id}: paridad exacta del registro combinado, en orden de llegada`);
-  igual(r.registro.uso, mundo.uso, `${caso.id}: uso por programa`);
-  igual(r.registro.consolas, mundo.consolas, `${caso.id}: consolas`);
-  igual(r.registro.lecturas, Object.fromEntries(mundo.sensores.map(s => [s.id, s.st.lecturas])), `${caso.id}: lecturas por sensor`);
+  // Composición independiente: el adaptador real del juego, extraído en VM.
+  const juego = adaptar({ reglas: 'war', reto, semilla });
+  juego.cargar();
+  while (!juego.resultado) await juego.avanzar(1);
+  const mundo = juego.partida.mundo, registro = juego.registro;
+  igual(juego.terminarHuella().hash, caso.hash, `${caso.id}: el juego conserva su huella`);
+  igual(r.eventos, structuredClone(juego.eventos), `${caso.id}: paridad exacta del registro combinado, en orden de llegada`);
+  igual(r.registro.uso, registro.uso, `${caso.id}: uso por programa`);
+  igual(r.registro.consolas, registro.consolas, `${caso.id}: consolas`);
+  igual(r.registro.lecturas, registro.lecturas, `${caso.id}: lecturas por sensor`);
   igual(r.partida.mundo.uso, {}, `${caso.id}: el anfitrión no escribe uso en el mundo`);
   igual(r.partida.mundo.sensores.map(s => s.st.lecturas), mundo.sensores.map(() => 0), `${caso.id}: no escribe lecturas en el mundo`);
 }

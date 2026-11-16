@@ -1,19 +1,50 @@
 // Campaign · reglas del nivel 1 con paso fijo real: encargos, modos, lecturas, hitos y checkpoints.
 // Los «programas» de esta prueba son funciones async sobre las mismas órdenes que usa el juego.
 const assert = require('node:assert/strict');
-const { legado: C, nivel: N } = require('../paquetes/reglas-campaign/index.js');
+const C = require('../paquetes/reglas-campaign/index.js');
+const { default: reglas, nivel: N } = C;
 const DT = 0.05;
 const v = id => id.replace(/-/g, '_');
 // Los objetos del mundo nacen en otro contexto (vm): se comparan como datos planos.
 const igual = (a, b, msg) => assert.deepEqual(JSON.parse(JSON.stringify(a)), b, msg);
 
+// Interfaz de los casos existentes sobre el contrato público del reglamento.
+function adaptarReglamento(m, hooks = {}) {
+  const entregar = () => {
+    for (const r of reglas.respuestas(m)) if (!r.modo) hooks.terminarOrden?.(r.unidad, Number(r.ref), r.resultado);
+  };
+  const ordenar = (unidad, verbo, args, ref) => {
+    reglas.aplicarOrden(m, { paso: Math.round(m.t / DT), origen: 'programa', unidad, verbo, args, ref: String(ref) });
+  };
+  const finTramo = () => reglas.aplicarOrden(m, {
+    paso: Math.round(m.t / DT), origen: 'sistema', unidad: 'campaign', verbo: 'fin-tramo', args: [],
+  });
+  return {
+    iniciarOrden(unidad, e) { ordenar(unidad, e.verbo, e.args, e.id); entregar(); },
+    aplicarModo(unidad, verbo, args) {
+      ordenar(unidad, verbo, args, 'modo');
+      const respuestas = reglas.respuestas(m);
+      const modo = respuestas.find(r => r.modo);
+      for (const r of respuestas) if (!r.modo) hooks.terminarOrden?.(r.unidad, Number(r.ref), r.resultado);
+      return modo.resultado;
+    },
+    paso(dt) {
+      const antes = m.hito, completado = m.completado;
+      reglas.paso(m, dt); entregar();
+      if (m.hito !== antes || m.completado !== completado) hooks.hito?.({ hecho: antes, siguiente: m.completado ? null : m.hito, completado: m.completado });
+    },
+    cancelarTareas: finTramo, soltarLuces: finTramo, // la orden reúne ambas operaciones
+    cuantos: (id, pieza) => C.cuantos(m, id, pieza), metas: () => C.metas(m),
+  };
+}
+
 // Mundo con un pequeño lockstep: el reloj avanza cuando todos los programas esperan.
 function planta(guardado) {
-  const m = C.crear(N.NIVEL, guardado); m.activo = true;
+  const m = reglas.crearMundo({ reto: N.NIVEL, guardado }, () => .5);
   const pend = new Map(), esperas = [], hitos = [];
   let seq = 0;
-  const sim = C.conectar(m, { terminarOrden: (id, n, res) => { const p = pend.get(n); pend.delete(n); if (p) p(res); }, hito: h => hitos.push(h) });
-  const snap = () => C.instantanea(m);
+  const sim = adaptarReglamento(m, { terminarOrden: (id, n, res) => { const p = pend.get(n); pend.delete(n); if (p) p(res); }, hito: h => hitos.push(h) });
+  const snap = () => C.instantaneaHistorica(m);
   const api = propia => {
     const comprobar = (unidad, verbo, args) => { const e = C.validar(snap(), propia, unidad, verbo, args); if (e) throw new Error(e); };
     const encargo = (unidad, verbo, args) => { args = args.map(a => a && a.id ? a.id : a); comprobar(unidad, verbo, args); return new Promise(ok => { const n = ++seq; pend.set(n, ok); sim.iniciarOrden(unidad, { id: n, verbo, args }); }); };
@@ -159,7 +190,7 @@ module.exports = async function comprobarReglas() {
     assert.equal(q.proceso, null, 'con la salida llena no empieza otro ciclo');
     assert.equal(C.estadoMaquina(q), 'blocked');
     assert.ok(q.st.tBloqueo > 0);
-    assert.equal(C.instantanea(m).u['PRS-01'].outputFull, true);
+    assert.equal(C.instantaneaHistorica(m).u['PRS-01'].outputFull, true);
     assert.equal(inventario(m).steel + inventario(m).nose, 12);
     console.log(`OK: buffer de salida de 3 y bloqueo sin pérdidas (5.ª entrega: ${lleno})`);
   }
@@ -291,7 +322,7 @@ module.exports = async function comprobarReglas() {
     m.hito = 4; C.indexar(m);
     const asm = m.porId['ASM-01'], bot = m.porId['BOT-01'];
     let ultimo = null;
-    const sim2 = C.conectar(m, { terminarOrden: (id, n, res) => { ultimo = res; } });
+    const sim2 = adaptarReglamento(m, { terminarOrden: (id, n, res) => { ultimo = res; } });
     const orden = (verbo, lugar, pieza) => { ultimo = null; sim2.iniciarOrden('BOT-01', { id: 1, verbo, args: [lugar, pieza] }); for (let i = 0; ultimo === null && i < 4000; i++) sim2.paso(DT); return ultimo; };
     const dar = pieza => { bot.carga = pieza; return orden('deliver', 'ASM-01'); };
     asm.marcha = false;                                 // parada: solo se llenan sus ranuras
@@ -308,7 +339,7 @@ module.exports = async function comprobarReglas() {
     for (let i = 0; i < 400; i++) sim2.paso(DT);
     assert.equal(asm.salida.length, 2, 'salida de 2'); assert.equal(C.estadoMaquina(asm), 'blocked');
     assert.equal(sim2.aplicarModo('ASM-01', 'setRecipe', ['missile']), 'ok');
-    assert.equal(C.estadoMaquina(asm), 'changeover'); assert.equal(C.instantanea(m).u['ASM-01'].recipe, 'missile');
+    assert.equal(C.estadoMaquina(asm), 'changeover'); assert.equal(C.instantaneaHistorica(m).u['ASM-01'].recipe, 'missile');
     for (let i = 0; i < 6 / DT + 2; i++) sim2.paso(DT);
     assert.equal(asm.receta, 'missile');
     assert.equal(orden('pickUp', 'ASM-01', 'charge'), 'ok', 'lo que quedó en la entrada se puede retirar');
@@ -335,7 +366,7 @@ module.exports = async function comprobarReglas() {
     assert.equal(C.cuantos(m, 'BAY-1', 'polymer'), 12); assert.equal(m.bahia.pedidos.length, 1);
     m.presupuesto = 10;
     assert.equal(sim.aplicarModo('BAY-1', 'request', ['steel']), 'sin_fondos');
-    const s = C.instantanea(m); s.presupuesto = 300;
+    const s = C.instantaneaHistorica(m); s.presupuesto = 300;
     assert.equal(C.modoEnSnap(s, 'BAY-1', 'request', ['steel']), 'ok'); assert.equal(s.presupuesto, 260); assert.equal(s.u['BAY-1'].pending, 2);
     assert.equal(C.modoEnSnap(s, 'BAY-1', 'request', ['steel']), 'ocupado');
     console.log('OK: pedidos (coste, cola, fondos) y bahía ocupada');

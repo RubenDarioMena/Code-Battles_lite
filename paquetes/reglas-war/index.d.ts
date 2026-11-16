@@ -79,15 +79,15 @@ export interface ReglamentoWar extends Reglamento<Mundo, Escenario, Final | null
     conf: { fallaRafaga: number; cadencia: number; cadenciaRafaga: number };
   };
 }
-export const legado: {
-  crear(def: Reto, semilla: number | null, rng?: Rng): Mundo;
-  conectar(mundo: Mundo, hooks: Ganchos): Conexion;
-  aplicarOrden(mundo: Mundo, orden: Orden): void;
-  TIPOS: ReglamentoWar['api']['tipos']; SENSOR: ReglamentoWar['api']['sensores'];
-  LAU: { cadencia: number; cadenciaRafaga: number; cargador: number; suministro: number; fallaBase: number; fallaRafaga: number; subida: number; bajada: number; bajadaParado: number };
-  MISIL: { vel: number; radio: number }; REP: { vel: number; tBase: number; tPorFallo: number };
-  COSTE: { misil: number; reparacion: number }; cadencia(modo: string): number;
-};
+export function crear(def: Reto, semilla: number | null, rng?: Rng): Mundo;
+export function aplicarOrden(mundo: Mundo, orden: Orden): void;
+export const TIPOS: ReglamentoWar['api']['tipos'];
+export const SENSOR: ReglamentoWar['api']['sensores'];
+export const LAU: { cadencia: number; cadenciaRafaga: number; cargador: number; suministro: number; fallaBase: number; fallaRafaga: number; subida: number; bajada: number; bajadaParado: number };
+export const MISIL: { vel: number; radio: number };
+export const REP: { vel: number; tBase: number; tPorFallo: number };
+export const COSTE: { misil: number; reparacion: number };
+export function cadencia(modo: string): number;
 export const retos: {
   RETOS: Partial<Reto>[]; PROPIO_BASE: Partial<Reto>;
   POS_LANZADORES: { [cantidad: number]: Reto['lanzadores'] };

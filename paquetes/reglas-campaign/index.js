@@ -6,14 +6,12 @@ import { copiaPlana } from '../nucleo/index.js';
 import { validar, modoEnSnap } from './validacion.js';
 import { nivel } from './nivel.js';
 
-// Puente temporal: mismas claves y orden que CAMPAIGN y CAMPAIGN_NIVEL.
-export const legado = {
-  VERSION, crear, conectar, serializar, indexar, instantanea, validar, modoEnSnap, metas, cuantos, enLotes, estadoMaquina, totalEntrada,
-  esMaquina, esRobot, PIEZAS, RECETAS, MAQUINAS, ROBOT, BANDA, COSTE, PEDIDO, ARSENAL, TORRETA, LUCES, TARIMA_CAP, HITO_MAESTRO,
-};
-export { nivel, serializar };
+export { VERSION, crear, serializar, indexar, instantanea as instantaneaHistorica, validar, modoEnSnap,
+  metas, cuantos, enLotes, estadoMaquina, totalEntrada, esMaquina, esRobot, PIEZAS, RECETAS, MAQUINAS,
+  ROBOT, BANDA, COSTE, PEDIDO, ARSENAL, TORRETA, LUCES, TARIMA_CAP, HITO_MAESTRO };
+export { nivel };
 
-/** Restaura un checkpoint con la misma validación y arranque inactivo del legado.
+/** Restaura un checkpoint con la misma validación y arranque inactivo originales.
  * @param {import('./index.js').Guardado} guardado
  * @param {import('./index.js').Nivel} [reto] */
 export function restaurar(guardado, reto = nivel.NIVEL) { return crear(reto, guardado); }

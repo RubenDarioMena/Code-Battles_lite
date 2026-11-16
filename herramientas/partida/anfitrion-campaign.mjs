@@ -1,8 +1,8 @@
-import { performance } from 'node:perf_hooks';
-import { legado, nivel } from '../../paquetes/reglas-campaign/index.js';
 import soluciones from '../../pruebas/campaign-soluciones.cjs';
+import { crearPartida } from '../../paquetes/nucleo/index.js';
 import { cargar } from './cargar.mjs';
-import { ejecutarCiclo } from './ciclo.mjs';
+import { jugar } from './jugar.mjs';
+import reglas, { nivel, quieto } from '../../paquetes/reglas-campaign/index.js';
 import { crearHuella } from './huella.mjs';
 
 /** Datos deterministas de terminarCampaign; excluye fecha, presentación y fuentes.
@@ -26,82 +26,42 @@ export function programasCampaign(lenguaje = 'js') {
     .map(([id, codigo]) => [id, { lenguaje, codigo }])));
 }
 
-/** Secuencia de tramos sobre el mismo mundo. maxPasos se aplica a cada tramo.
- * Las unidades omitidas quedan vacías. El corte precede a entregar mensajes del paso del hito.
+/** Secuencia de tramos sobre la misma partida; el corte precede a sus continuaciones.
  * @param {{lenguaje?: 'js'|'python', programas?: Record<string, import('./anfitrion-war.mjs').Fuente>[],
  * maxPasos?: number, alPaso?: (paso: number, instantanea: any) => void}} [opciones] */
-export function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000, alPaso } = {}) {
+export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000, alPaso } = {}) {
   if (!['js', 'python'].includes(lenguaje)) throw new Error('--lenguaje debe ser js|python.');
   const inicio = performance.now(), fuentes = programas ?? programasCampaign(lenguaje);
   if (!Array.isArray(fuentes) || !fuentes.length || fuentes.some(p => !p || typeof p !== 'object' || Array.isArray(p)))
     throw new Error('--programas de Campaign requiere una lista no vacía de objetos por unidad.');
-  const sesion = { ...cargar(), mundo: null, huella: crearHuella(), pasos: 0 };
-  sesion.mundo = legado.crear(nivel.NIVEL);
-  const tramos = [], mensajes = {};
+  const escenario = { reto: nivel.NIVEL }, partida = crearPartida({ reglas, escenario, semilla: 1 });
+  const mundo = partida.mundo, sesion = cargar(), total = crearHuella(), tramos = [], mensajes = {};
+  const consolas = { log: 0, info: 0, warn: 0, error: 0 };
+  let pasos = 0;
   for (const tramoFuentes of fuentes) {
     const programas = Object.fromEntries(Object.entries(tramoFuentes).map(([id, fuente]) =>
       [id, typeof fuente === 'string' ? { lenguaje, codigo: fuente } : fuente]));
-    const desde = sesion.mundo.hito;
-    const tramo = ejecutarCiclo({ reglas: 'campaign', programas, maxPasos, alPaso, sesion,
-      capturarResultado: resultadoCampaign, conectarReglas: conectarCampaign });
-    for (const [tipo, n] of Object.entries(tramo.metricas.mensajes)) mensajes[tipo] = (mensajes[tipo] || 0) + n;
-    tramos.push({ desde, hito: tramo.resultado.hito, completado: tramo.resultado.completado,
-      pasos: tramo.metricas.pasos, t: tramo.metricas.t, hash: tramo.hash, resultado: tramo.resultado });
-    if (sesion.mundo.completado || sesion.mundo.hito === desde) break;
+    const desde = mundo.hito;
+    const r = await jugar({ reglas, partida, escenario, programas, maxPasos, sesion,
+      detener: (p, anfitrion) => p.mundo.hito !== desde || p.mundo.completado ||
+        (mundo.programables.every(u => anfitrion.estado(u.id) === 'fin') && quieto(mundo)),
+      alPaso: (_n, snap) => { total.paso(snap); alPaso?.(++pasos, snap); } });
+    for (const k of Object.keys(consolas)) consolas[k] += r.registro.consolas[k];
+    const motivo = mundo.hito !== desde || mundo.completado ? 'detenido' : 'quieto';
+    const f = r.final ?? { fin: 'detenido', motivo, mensaje: null };
+    // Campaign conserva el motivo de corte incluso cuando evaluar devuelve victoria.
+    const final = r.error || r.limite ? f : { fin: 'detenido', motivo, mensaje: null };
+    const resultado = resultadoCampaign({ ...mundo, ...r.registro, consolas }, final.fin, final.motivo,
+      final.mensaje, final.linea, final.unidad);
+    for (const [tipo, n] of Object.entries(r.mensajes)) mensajes[tipo] = (mensajes[tipo] || 0) + n;
+    tramos.push({ desde, hito: resultado.hito, completado: resultado.completado,
+      pasos: r.pasos, t: mundo.t, hash: r.huella.hash, resultado });
+    partida.ordenar({ paso: partida.pasoActual, origen: 'sistema', unidad: 'campaign', verbo: 'fin-tramo', args: [] });
+    partida.aplicarOrdenes();
+    if (mundo.completado || mundo.hito === desde) break;
   }
-  const h = sesion.huella.terminar();
+  const h = total.terminar();
   return { reglas: 'campaign', resultado: tramos.at(-1).resultado, tramos,
-    metricas: { pasos: h.pasos, t: sesion.mundo.t, mensajes, ms: performance.now() - inicio },
+    metricas: { pasos: h.pasos, t: mundo.t, mensajes, ms: performance.now() - inicio },
     hash: h.hash, instantanea: h.instantanea };
-}
-
-/** Encargos, modos, lecturas y cesiones de mensajeCampaign/finEncargoCampaign.
- * @param {any} C @param {any} mundo @param {any} ejec @param {Function} terminar */
-export function conectarCampaign(C, mundo, ejec, terminar) {
-  let hito = false;
-  const registrar = (id, linea, que, resultado, clase) => mundo.eventos.push({
-    t: +mundo.t.toFixed(2), maquina: id, linea: linea ?? '', que, resultado, clase });
-  const contar = (id, fn) => { const u = mundo.uso[id] ||= {}; u[fn] = (u[fn] || 0) + 1; };
-  const reglas = legado.conectar(mundo, {
-    hito() { hito = true; },
-    // entregaCampaign solo muestra consola y globo; no modifica datos de la simulación.
-    terminarOrden(unidad, clave, res) {
-      const corte = String(clave).lastIndexOf('#'), p = ejec.progs.get(String(clave).slice(0, corte));
-      const id = +String(clave).slice(corte + 1), orden = p?.pend.get(id);
-      if (!orden) return;
-      p.pend.delete(id); registrar(unidad, orden.linea, orden.texto, res, res === 'ok' ? 'ok' : 'warn');
-      if (p.acabado) return;
-      p.estado = 'corre'; p.desde = 0; p.mensajes = 0;
-      p.worker.postMessage({ type: 'despierta', id, resultado: res,
-        snap: { t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: reglas.instantanea() } });
-    },
-  });
-  return { reglas, detenido: () => hito,
-    /** @param {any} p @param {any} m @param {Function} errorPrograma */
-    mensaje(p, m, errorPrograma) {
-      if (m.type === 'consola') {
-        mundo.consolas[m.nivel] = (mundo.consolas[m.nivel] || 0) + 1;
-        registrar(p.id, m.linea, ejec.lenguajes[p.id] === 'python' ? (m.nivel === 'log' ? 'print' : m.nivel) : `console.${m.nivel}`,
-          m.texto, m.nivel === 'error' ? 'bad' : m.nivel === 'warn' ? 'warn' : 'sensor');
-      } else if (m.type === 'encargo') {
-        p.pend.set(m.id, { tipo: 'encargo', unidad: m.unidad, linea: m.linea, texto: m.texto });
-        p.estado = 'espera'; contar(p.id, m.verbo);
-        reglas.iniciarOrden(m.unidad, { id: `${p.id}#${m.id}`, verbo: m.verbo, args: m.args });
-      } else if (m.type === 'modo') {
-        contar(p.id, m.verbo);
-        const res = reglas.aplicarModo(m.unidad, m.verbo, m.args);
-        registrar(p.id, m.linea, m.texto, res, res === 'ok' ? 'ok' : 'warn');
-      } else if (m.type === 'lectura') {
-        contar(p.id, 'count'); registrar(p.id, m.linea, m.texto, String(m.valor), 'sensor');
-      } else if (m.type === 'espera') {
-        contar(p.id, 'wait'); p.pend.set(m.id, { tipo: 'espera', despertar: mundo.t + m.s }); p.estado = 'espera';
-      } else if (m.type === 'cede') {
-        if (p.estado === 'corre' && p.pend.size) p.estado = 'espera';
-      } else if (m.type === 'done') { p.acabado = true; p.estado = 'fin'; p.finT = mundo.t; }
-      else if (m.type === 'error') errorPrograma(p, m.mensaje, m.linea);
-      if (['modo', 'lectura', 'consola'].includes(m.type) && ++p.mensajes > 4000)
-        errorPrograma(p, `El programa de ${p.id} dio 4000 órdenes y lecturas sin esperar. ¿Falta await wait(...) dentro del bucle?`, m.linea);
-      return true;
-    },
-  };
 }

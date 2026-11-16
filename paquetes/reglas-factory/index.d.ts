@@ -79,11 +79,10 @@ export interface ReglamentoFactory extends Reglamento<Mundo, Escenario, Final | 
   escena(mundo: Mundo): { t: number; porId: Record<string, any>; [clave: string]: any };
   api: { ordenes: string[]; lecturas: string[]; nombres: Record<string, string>; materiales: string[] };
 }
-export const legado: {
-  crear(def: Reto, intento: number): Mundo; conectar(mundo: Mundo, hooks: Ganchos): Conexion;
-  validar(mundo: Pick<Mundo, 'entidades' | 'porId'> | LecturaFactory, verbo: string, args: DatoPlano[]): string | null;
-  instantanea(mundo: Mundo): LecturaFactory; MATERIALES: string[];
-};
+export function crear(def: Reto, intento: number): Mundo;
+export function validar(mundo: Pick<Mundo, 'entidades' | 'porId'> | LecturaFactory, verbo: string, args: DatoPlano[]): string | null;
+export function instantaneaHistorica(mundo: Mundo): LecturaFactory;
+export const MATERIALES: string[];
 export const retos: Retos;
 declare const reglamento: ReglamentoFactory;
 export default reglamento;

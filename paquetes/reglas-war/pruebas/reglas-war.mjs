@@ -1,7 +1,9 @@
 import comprobarNodo from 'node:assert/strict';
 import { crearPartida, restaurar, crearRng, DT } from '../../nucleo/index.js';
 import { validarInstantanea, validarSuceso, esDatoPlano } from '../../protocolo/index.js';
-import reglamento, { legado, retos } from '../index.js';
+import reglamento, { retos } from '../index.js';
+import * as W from '../index.js';
+import { conectar } from '../mundo.js';
 
 let comprobaciones = 0;
 function igual(actual, esperado, mensaje) {
@@ -56,10 +58,10 @@ igual(reglamento.id, 'war');
 igual(reglamento.version, 1);
 comprobar(esDatoPlano(reglamento.api), 'API de datos planos');
 igual(reglamento.api.ordenes, ['regularShoot', 'burstFire', 'stopFire']);
-igual(reglamento.api.tipos, legado.TIPOS);
-igual(reglamento.api.sensores, legado.SENSOR);
-igual(reglamento.api.conf, { fallaRafaga: legado.LAU.fallaRafaga, cadencia: legado.LAU.cadencia, cadenciaRafaga: legado.LAU.cadenciaRafaga });
-igual(Object.keys(legado), ['crear', 'conectar', 'aplicarOrden', 'TIPOS', 'SENSOR', 'LAU', 'MISIL', 'REP', 'COSTE', 'cadencia']);
+igual(reglamento.api.tipos, W.TIPOS);
+igual(reglamento.api.sensores, W.SENSOR);
+igual(reglamento.api.conf, { fallaRafaga: W.LAU.fallaRafaga, cadencia: W.LAU.cadencia, cadenciaRafaga: W.LAU.cadenciaRafaga });
+igual('conectar' in W, false, 'los ganchos son internos');
 igual(Object.keys(retos), ['RETOS', 'PROPIO_BASE', 'POS_LANZADORES', 'normalizar']);
 
 for (const conOrdenes of [false, true]) {
@@ -73,7 +75,7 @@ for (const conOrdenes of [false, true]) {
     for (const tipo of ['aparece', 'brecha', 'registro', 'aviso', 'fin'])
       comprobar(primera.sucesos.some(suceso => suceso.tipo === tipo), `hay ${tipo}`);
     const brecha = primera.sucesos.find(s => s.tipo === 'brecha');
-    const nombre = `${legado.TIPOS[brecha.datos.tipo].nombre} ${brecha.unidad}`;
+    const nombre = `${W.TIPOS[brecha.datos.tipo].nombre} ${brecha.unidad}`;
     igual(primera.sucesos.find(s => s.tipo === 'registro').datos,
       { maquina: '—', linea: null, que: nombre, resultado: 'brecha', clase: 'bad' }, 'registro con los datos exactos del hook');
     igual(primera.sucesos.find(s => s.tipo === 'aviso').datos,
@@ -106,33 +108,33 @@ igual(verificarSucesos(recuperada), verificarSucesos(original));
 igual(recuperada.evaluar(), original.evaluar());
 
 // La orden cambia el mismo lanzador y conserva la referencia del lugar.
-const mundo = legado.crear(escenario.reto, 7), lugar = { x: 12, y: 9, z: 0 };
+const mundo = W.crear(escenario.reto, 7), lugar = { x: 12, y: 9, z: 0 };
 const orden = verbo => ({ paso: 0, origen: 'sistema', unidad: 'LAU-01', verbo, args: [lugar] });
-legado.aplicarOrden(mundo, orden('burstFire'));
+W.aplicarOrden(mundo, orden('burstFire'));
 comprobarNodo.equal(mundo.lanzadores[0].lugar, lugar); comprobaciones++;
 igual(mundo.lanzadores[0].modo, 'burst');
-igual(mundo.lanzadores[0].falla, legado.LAU.fallaRafaga);
-legado.aplicarOrden(mundo, orden('regularShoot'));
+igual(mundo.lanzadores[0].falla, W.LAU.fallaRafaga);
+W.aplicarOrden(mundo, orden('regularShoot'));
 igual(mundo.lanzadores[0].modo, 'regular');
-legado.aplicarOrden(mundo, orden('stopFire'));
+W.aplicarOrden(mundo, orden('stopFire'));
 igual(mundo.lanzadores[0].lugar, null);
-legado.aplicarOrden(mundo, { ...orden('regularShoot'), args: [null] });
+W.aplicarOrden(mundo, { ...orden('regularShoot'), args: [null] });
 igual(mundo.lanzadores[0].modo, 'idle');
 const rngEsperado = crearRng(7);
 igual(mundo.lanzadores[0].umbral, .75 + rngEsperado() / 2, 'mismo umbral inicial');
-igual(mundo.rng(), rngEsperado(), 'el RNG del legado ya consumió el umbral inicial');
+igual(mundo.rng(), rngEsperado(), 'el RNG del modelo anterior ya consumió el umbral inicial');
 
 // Atasco, reparación y agotamiento: mismos hooks, sin interferencia del registro.
 const retoLargo = retos.normalizar({ ...retos.PROPIO_BASE, oleadas: [
   { tipo: 'crawler', n: 1, t: 300, cada: 1, carriles: [9] },
 ], metas: { brechasMax: 0 } });
-const conRegistro = legado.crear(retoLargo, 7), sinRegistro = { ...legado.crear(retoLargo, 7) };
+const conRegistro = W.crear(retoLargo, 7), sinRegistro = { ...W.crear(retoLargo, 7) };
 const llamadas = [[], []];
 const conexiones = [conRegistro, sinRegistro].map((mundo, indice) => {
   mundo.activo = true;
   mundo.lanzadores[0].riesgo = 2;
-  legado.aplicarOrden(mundo, orden('regularShoot'));
-  return legado.conectar(mundo, Object.fromEntries(['registrar', 'terminar', 'avisoSistema', 'globo']
+  W.aplicarOrden(mundo, orden('regularShoot'));
+  return conectar(mundo, Object.fromEntries(['registrar', 'terminar', 'avisoSistema', 'globo']
     .map(nombre => [nombre, (...args) => llamadas[indice].push([nombre, ...args])])));
 });
 for (let paso = 0; paso < 200; paso++) {

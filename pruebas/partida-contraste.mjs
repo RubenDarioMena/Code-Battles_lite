@@ -50,10 +50,10 @@ export async function instalarGancho(page) {
             : serie === 'campaign' ? resultadoCampaign(mundo, ...args) : resultadoWar(mundo, ...args);
         };
         captura.resultadoCampaign = () => resultadoCampaign({ ...B.mundo, ...B.registro }, 'detenido', 'detenido', null);
-        // Las huellas históricas Factory/Campaign incluyen los undefined del legado.
+        // Las huellas históricas Factory/Campaign incluyen los undefined históricos.
         import('/paquetes/reglas-' + serie + '/index.js').then(mod => {
           captura.instantanea = serie === 'war' ? () => mod.default.instantanea(B.mundo)
-            : () => ({ t: B.mundo.t, maq: {}, auto: {}, vib: {}, [serie]: mod.legado.instantanea(B.mundo) });
+            : () => ({ t: B.mundo.t, maq: {}, auto: {}, vib: {}, [serie]: mod.instantaneaHistorica(B.mundo) });
           captura.listo = true;
         });
       }
@@ -78,7 +78,7 @@ export async function probarCaso(browser, caso) {
   if (caso.reglas === 'campaign') return probarCampaign(browser, caso, instalarGancho);
   const registros = [];
   const factory = caso.reglas === 'factory';
-  const sinPantalla = (factory ? ejecutarFactory : ejecutarWar)({ ...caso, alPaso: (n, snap) => registros.push(registro(n, snap)) });
+  const sinPantalla = await (factory ? ejecutarFactory : ejecutarWar)({ ...caso, alPaso: (n, snap) => registros.push(registro(n, snap)) });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errores = [];
   page.on('pageerror', error => errores.push(error.message));

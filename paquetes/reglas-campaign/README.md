@@ -1,6 +1,6 @@
 # reglas-campaign
 
-Estado: fase 1. Campaign continua sin pantalla, en módulos ES ejecutables en
+Estado: fase 2, paso 8c. Campaign continua sin pantalla, en módulos ES ejecutables en
 Node. Conserva la lógica de `js/campaign.js`, el nivel de `js/campaign-nivel.js`,
 la API de los programas y el formato de los checkpoints. Solo importa la entrada
 pública de `nucleo`; puede importar `protocolo`. [Fronteras](../README.md).
@@ -50,7 +50,7 @@ aplicarOrden, respuestas, instantanea, evaluar, api }`:
 - `respuestas(mundo)` devuelve y vacía una cola por mundo en `WeakMap`:
   `{ unidad, ref, resultado, instantanea }` al terminar un encargo, con la foto
   tomada en ese momento, y `{ unidad, ref, resultado, modo: true }` por modo.
-  El anfitrión ignora respuestas sin referencia reconocida. No modifica `legado.conectar`.
+  El anfitrión ignora respuestas sin referencia reconocida.
 - `quieto(mundo)` se exporta fuera del contrato para decidir el final de un tramo.
 - `instantanea(mundo)` devuelve `{ t, maq: {}, auto: {}, vib: {}, campaign }`,
   una copia profunda de las lecturas existentes sin referencias a catálogos.
@@ -62,8 +62,8 @@ aplicarOrden, respuestas, instantanea, evaluar, api }`:
   anfitrión; no son órdenes que muten el mundo.
 
 La conexión del adaptador no ejecuta programas ni decide sus cortes. La herramienta
-actual conserva el mundo entre tramos H0–H5 mediante `legado.conectar`, con los
-mismos callbacks y límites de antes.
+conserva una partida entre tramos H0–H5 mediante `jugarPartida`, con `detener`,
+`quieto` y la orden de sistema `fin-tramo`.
 
 ## Guardado y restauración
 
@@ -112,11 +112,14 @@ antes de sus hooks, conservando orden y resultados. `paso` se calcula desde `t`.
 
 ## Puente temporal
 
-`legado` tiene exactamente las mismas claves de `CAMPAIGN`: catálogos,
-`VERSION`, `crear`, `conectar`, `serializar`, `indexar`, `instantanea`, `validar`,
+Los catálogos, `VERSION`, `crear`, `serializar`, `indexar`, `validar`,
 `modoEnSnap`, `metas`, `cuantos`, `enLotes`, `estadoMaquina`, `totalEntrada`,
-`esMaquina` y `esRobot`. `nivel` conserva `RETOS`, `NIVEL` y `MAPA`.
-`compat-paquetes.js?v=3` publica copias planas de ambos objetos.
+`esMaquina`, `esRobot` y `instantaneaHistorica` son exportaciones con nombre.
+La lectura histórica conserva los campos originales para las huellas de fase 0.
+`nivel` conserva `RETOS`, `NIVEL` y `MAPA`. El puente construye `CAMPAIGN` con
+las mismas claves anteriores salvo `conectar`, y publica la lectura histórica
+como `CAMPAIGN.instantanea`. `conectar(mundo, hooks)` queda dentro del paquete
+en `mundo.js`; solo el reglamento y sus pruebas internas lo importan.
 
 Los lectores al cargar son el propio puente (serializa las dos funciones con `paquetes/anfitrion`, fase 2) y
 `juego.js` (catálogo, lectura del guardado y arranque). Ambos ya van después

@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
-import { legado, retos } from '../../paquetes/reglas-war/index.js';
-import { legado as factory, retos as factoryRetos } from '../../paquetes/reglas-factory/index.js';
-import { legado as campaign, nivel } from '../../paquetes/reglas-campaign/index.js';
+import * as datosWar from '../../paquetes/reglas-war/index.js';
+import * as factory from '../../paquetes/reglas-factory/index.js';
+import * as campaign from '../../paquetes/reglas-campaign/index.js';
 import { fuenteTrabajador } from '../../paquetes/anfitrion/index.js';
 
 export const raiz = new URL('../../', import.meta.url);
@@ -13,9 +13,25 @@ export const archivoJuego = new URL('js/juego.js', entrada);
 /** Carga las dependencias reales sin DOM, en el orden declarado por index.html. */
 export function cargar() {
   const contexto = vm.createContext({
-    WAR: { ...legado }, WAR_RETOS: { ...retos },
-    FACTORY: { ...factory }, FACTORY_RETOS: { ...factoryRetos },
-    CAMPAIGN: { ...campaign }, CAMPAIGN_NIVEL: { ...nivel },
+    WAR: {
+      crear: datosWar.crear, aplicarOrden: datosWar.aplicarOrden, TIPOS: datosWar.TIPOS,
+      SENSOR: datosWar.SENSOR, LAU: datosWar.LAU, MISIL: datosWar.MISIL, REP: datosWar.REP,
+      COSTE: datosWar.COSTE, cadencia: datosWar.cadencia
+    }, WAR_RETOS: { ...datosWar.retos },
+    FACTORY: {
+      crear: factory.crear, validar: factory.validar, instantanea: factory.instantaneaHistorica,
+      MATERIALES: factory.MATERIALES
+    }, FACTORY_RETOS: { ...factory.retos },
+    CAMPAIGN: {
+      VERSION: campaign.VERSION, crear: campaign.crear, serializar: campaign.serializar,
+      indexar: campaign.indexar, instantanea: campaign.instantaneaHistorica, validar: campaign.validar,
+      modoEnSnap: campaign.modoEnSnap, metas: campaign.metas, cuantos: campaign.cuantos,
+      enLotes: campaign.enLotes, estadoMaquina: campaign.estadoMaquina, totalEntrada: campaign.totalEntrada,
+      esMaquina: campaign.esMaquina, esRobot: campaign.esRobot, PIEZAS: campaign.PIEZAS,
+      RECETAS: campaign.RECETAS, MAQUINAS: campaign.MAQUINAS, ROBOT: campaign.ROBOT, BANDA: campaign.BANDA,
+      COSTE: campaign.COSTE, PEDIDO: campaign.PEDIDO, ARSENAL: campaign.ARSENAL, TORRETA: campaign.TORRETA,
+      LUCES: campaign.LUCES, TARIMA_CAP: campaign.TARIMA_CAP, HITO_MAESTRO: campaign.HITO_MAESTRO
+    }, CAMPAIGN_NIVEL: { ...campaign.nivel },
   });
   vm.runInContext('window = globalThis;', contexto);
   const necesarios = new Set([
