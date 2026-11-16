@@ -22,13 +22,14 @@ const logica = [
   'paquetes/app/pruebas/app.mjs',
   'fronteras-fase2',
 ];
-const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno'];
+const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo'];
+// ejecutar-editor-demo: prueba de frontera 4 de la fase 2 (editor montado solo), adaptador de editor-demo.mjs.
 // ejecutar-terreno ejecuta terreno-navegador, terreno-modelado y terreno-estudio (editor de terreno, desde trunk).
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.
 // campaign-juego necesita carpeta de capturas (se crea en el temporal del sistema).
 // campaign-juego sale con 1 si no completa H0–H5 o hay errores de página.
 // Fuera como ejecutables independientes (solo exportan funciones para page/cdp):
-// navegador, editor-demo, editor-movil, editor-movil-regresiones, entrada,
+// navegador, editor-movil, editor-movil-regresiones, entrada,
 // factory-3d, factory-api, factory-comun, factory-editor-comun, factory-vistas-comunes,
 // python-juego, python-ejecucion y todos los idiomas*.mjs.
 // factory-oraculo además necesita un checkout histórico b76411b.
