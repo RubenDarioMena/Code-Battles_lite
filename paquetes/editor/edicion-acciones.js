@@ -1,5 +1,6 @@
 
 /* Interfaz extraída; juego y demo crean instancias de este mismo módulo. */
+import { dependencias } from './dependencias.js';
 // edicion: acciones. Estado compartido solo por esta instancia.
 /** @param {any} ctx */
 export function preparar(ctx) {
@@ -285,7 +286,7 @@ export function preparar(ctx) {
     if (a === b) { const p = Math.max(la, a + texto.length - (lb - la)); return ctx.reemplazar(la, lb, texto, p, p); }
     ctx.reemplazar(la, lb, texto, la, la + texto.length);
   };
-  ctx.guardarCopia = function(t) { ctx.portapapeles = t; try { sessionStorage.setItem("cmg-portapapeles", t); } catch { /* solo en memoria */ } };
+  ctx.guardarCopia = function(t) { ctx.portapapeles = t; try { dependencias.sesion.escribir("cmg-portapapeles", t); } catch { /* solo en memoria */ } };
   ctx.aSistema = function(t) {
     if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).catch(() => {}); return; }
     if (document.activeElement === ctx.$codigo && ctx.$codigo.value.slice(ctx.$codigo.selectionStart, ctx.$codigo.selectionEnd) === t) { try { document.execCommand("copy"); } catch { /* queda la copia interna */ } return; }
@@ -408,6 +409,6 @@ export function preparar(ctx) {
   // ---------- Portapapeles ----------
   // En la IP de la red local (sin contexto seguro) el navegador no deja leer el portapapeles del sistema:
   // pegar usa entonces lo último copiado aquí.
-  (ctx.portapapeles = (() => { try { return sessionStorage.getItem("cmg-portapapeles") || ""; } catch { return ""; } })());
+  (ctx.portapapeles = (() => { try { return dependencias.sesion.leer("cmg-portapapeles") || ""; } catch { return ""; } })());
   };
 }

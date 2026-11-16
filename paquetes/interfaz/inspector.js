@@ -174,12 +174,12 @@ export function instalarInspector(ctx) {
     sensor: () => ctx.mundo && ctx.mundo.sensores[0] ? ctx.varDe(ctx.mundo.sensores[0].id) : null,
   }));
   const preferenciasEditor = prefijo => ({
-    leer(k, d) { try { const v = localStorage.getItem(prefijo + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-    escribir(k, v) { try { localStorage.setItem(prefijo + k, JSON.stringify(v)); } catch { /* sesión */ } },
+    leer(k, d) { try { const v = ctx.plataforma.almacen.leer(prefijo + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    escribir(k, v) { try { ctx.plataforma.almacen.escribir(prefijo + k, JSON.stringify(v)); } catch { /* sesión */ } },
   });
   const preferenciasVistas = preferenciasEditor(`cmg-juego-${ctx.PREFIJO}`);
   if (ctx.ES_FACTORY) for (const [k, viejo] of [["modo", "modo"], ["idioma-seudo", "idioma"]]) {
-    if (preferenciasVistas.leer(k, null) == null) try { const v = JSON.parse(localStorage.getItem(`cmg-banco02:${viejo}`)); if (v != null) preferenciasVistas.escribir(k, v); } catch { /* importación de solo lectura */ }
+    if (preferenciasVistas.leer(k, null) == null) try { const v = JSON.parse(ctx.plataforma.almacen.leer(`cmg-banco02:${viejo}`)); if (v != null) preferenciasVistas.escribir(k, v); } catch { /* importación de solo lectura */ }
   }
   const editorPrograma = ctx.CMGEditor.crear({
     raiz: ctx.$("v-programa"), app: ctx.$("app"), ambito: document, elemento: ctx.$, adoptar: true, atajosGlobales: true,

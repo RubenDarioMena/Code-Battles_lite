@@ -49,6 +49,7 @@ async function verificarModulo(relativo) {
   }
 }
 await verificarModulo('Prototypes/Rocket Launcher/js/juego.js');
+assert(modulosVisitados.has('cascaras/web/plataforma.js'), 'plataforma web incluida en el grafo publicado');
 const htmlJuego = await readFile(path.join(raiz, 'Prototypes/Rocket Launcher/index.html'), 'utf8');
 assert(!htmlJuego.includes('?v='), 'el juego publicado conserva las rutas sin versiones manuales');
 assert(modulosVisitados.has('Prototypes/Rocket Launcher/js/servicios.js'), 'servicios incluidos en el grafo publicado');

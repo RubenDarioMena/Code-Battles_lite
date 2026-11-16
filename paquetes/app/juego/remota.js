@@ -1,5 +1,6 @@
-/** @param {any} cmg */
-export function instalarRemota(cmg) {
+/** @param {any} ctx */
+export function instalarRemota(ctx) {
+  const cmg = ctx.cmg;
   const dom = /** @type {any} */ (document);
 // Telemetría remota mínima (prueba con compañeros): entradas, retos abiertos e intentos con su código.
 // Solo envía desde el sitio publicado; en local, githack o con el ajuste desactivado no sale nada.
@@ -8,8 +9,8 @@ export function instalarRemota(cmg) {
   const DESTINO = "/api/t";
   const CLAVE = "cmg-banco03:remota";
   const MAX_CODIGO = 12000;
-  const leer = (k, d) => { try { const v = localStorage.getItem(`${CLAVE}:${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
-  const escribir = (k, v) => { try { localStorage.setItem(`${CLAVE}:${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
+  const leer = (k, d) => { try { const v = ctx.plataforma.almacen.leer(`${CLAVE}:${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const escribir = (k, v) => { try { ctx.plataforma.almacen.escribir(`${CLAVE}:${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
   const al = () => (crypto.randomUUID ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join(""));
 
   const host = location.hostname;
@@ -47,7 +48,7 @@ export function instalarRemota(cmg) {
   });
   window.addEventListener("cmg:reto", /** @param {any} ev */ (ev) => enviar("reto", { reto: ev.detail?.reto, titulo: ev.detail?.titulo }));
 
-  const reto = (() => { try { return (JSON.parse(localStorage.getItem("cmg-banco03:reto")) | 0) + 1; } catch { return null; } })();
+  const reto = (() => { try { return (JSON.parse(ctx.plataforma.almacen.leer("cmg-banco03:reto")) | 0) + 1; } catch { return null; } })();
   enviar("entrada", {
     reto, pantalla: `${innerWidth}x${innerHeight}`, tactil: matchMedia("(pointer: coarse)").matches,
     idioma: navigator.language || null, desde: dom.referrer ? new URL(dom.referrer).hostname : null,

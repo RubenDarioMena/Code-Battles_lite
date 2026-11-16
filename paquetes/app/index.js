@@ -1,4 +1,5 @@
 /* app: compone reglamento, anfitrión, vistas e interfaz. Fase 2: partida sin pantalla y vista nula. */
+export { crearPlataformaMemoria } from './plataforma.js';
 export { crearVistaNula } from './vista-nula.js';
 export { jugarPartida } from './partida.js';
 export { crearConductor } from './conductor.js';

@@ -1,9 +1,32 @@
 # app
 
-Estado: fase 2, paso 11c (entrada mínima del juego y composición como instaladores ES).
+Estado: fase 2, paso 14 (plataforma de guardado inyectada).
 
 Compone reglamento, vistas, anfitrión e interfaz. Conecta sus entradas públicas
 y deja la plataforma a las cáscaras.
+
+## Plataforma y guardado
+
+`Plataforma = { almacen: Almacen, sesion: Almacen }` se declara en `index.d.ts`.
+Cada `Almacen` ofrece `leer(clave): string | null`,
+`escribir(clave, texto): void` y `borrar(clave): void`, con claves y valores en
+texto tal cual. El adaptador absorbe errores de almacenamiento: lectura fallida
+→ `null`, escritura y borrado fallidos → sin efecto. Quien llama conserva sus
+conversiones JSON y migraciones; no se añade ningún prefijo en la plataforma.
+
+La interfaz es síncrona a propósito: escritorio cargará los datos al arrancar y
+persistirá en disco por detrás. `crearPlataformaMemoria()` crea dos almacenes
+independientes y aislados por llamada, sin DOM ni persistencia. Es el valor por
+defecto de `arrancarJuego({ plataforma?, servicios? })` y permite pruebas y
+partidas sin pantalla; las partidas de `jugarPartida` no necesitan guardado.
+
+La entrada del juego inyecta la plataforma web. App e interfaz la consultan por
+`ctx.plataforma`; el editor recibe `configurar({ sesion: plataforma.sesion })`.
+Las claves, valores y el orden de las migraciones siguen intactos. El inventario
+por archivo y la limitación de i18n están en
+[`cascaras/web/README.md`](../../cascaras/web/README.md).
+Pruebas: `node pruebas/plataforma.mjs`, `node pruebas/juego-arranque.mjs` y
+`npm test`; no requieren navegador.
 
 ## Puede importar
 
@@ -142,10 +165,10 @@ La entrada pública exporta `instalarCicloProgramas(ctx)`,
 - El bucle devuelve `bucle(now)`. La composición lo inicia mediante
   `requestAnimationFrame`; conserva el cálculo de tiempo, dibujo y refrescos.
 
-`arrancarJuego(opciones = {})` instala la aplicación una vez sobre el DOM y
-las dependencias clásicas de navegador ya cargadas; las opciones quedan reservadas, sin
-cambiar la selección actual por URL/localStorage. Importar `app` sigue sin
-acceder al navegador. `juego.js` solo importa esta función y la llama.
+`arrancarJuego({ plataforma?, servicios? } = {})` instala la aplicación una vez
+sobre el DOM y las dependencias clásicas ya cargadas, conservando la selección
+actual por URL/guardado. Importar `app` sigue sin acceder al navegador.
+`juego.js` importa esta función, los servicios y la plataforma web y la llama.
 
 `juego/estado.js` crea `ctx`, las constantes y tablas visuales, guardado,
 lenguaje y las variables compartidas con accesores. Los demás instaladores

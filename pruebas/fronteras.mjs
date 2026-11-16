@@ -64,14 +64,20 @@ async function principal() {
   const contexto = vm.createContext({});
   vm.runInContext(await readFile(resolve(raizPropia, 'shared/vendor/acorn-8.11.3.js'), 'utf8'), contexto);
   const acorn = contexto.acorn;
-  const rutas = await archivos(carpeta);
+  const web = resolve(raiz, 'cascaras/web');
+  const rutasWeb = await archivos(web).catch(error => {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  });
+  const rutas = [...await archivos(carpeta), ...rutasWeb];
   let infracciones = 0;
   for (const ruta of rutas) {
-    const local = relative(carpeta, ruta).split(sep).join('/');
+    const esWeb = ruta.startsWith(web + sep);
+    const local = relative(esWeb ? raiz : carpeta, ruta).split(sep).join('/');
     const [paquete, ...resto] = local.split('/');
     const prueba = resto[0] === 'pruebas';
     const puro = puros.has(paquete) && !prueba;
-    const nombre = `paquetes/${local}`;
+    const nombre = esWeb ? local : `paquetes/${local}`;
     const informar = (nodo, regla, detalle) => {
       console.error(`${nombre}:${nodo.loc.start.line} · ${regla} · ${detalle}`);
       infracciones++;
@@ -83,6 +89,13 @@ async function principal() {
       }
       if (fuente.startsWith('./') || fuente.startsWith('../')) {
         const destino = posix.normalize(posix.join(posix.dirname(local), fuente));
+        if (esWeb) {
+          if (destino.startsWith('cascaras/web/')) return;
+          const profundidad = posix.dirname(local).split('/').length;
+          if (fuente !== '../'.repeat(profundidad) + 'paquetes/app/index.js')
+            informar(nodo, 'import-ruta', `web solo puede importar la entrada pública de app: ${fuente}`);
+          return;
+        }
         if (destino.startsWith(`${paquete}/`)) return;
         // Ruta relativa exacta a la entrada pública, también desde subcarpetas (p. ej. pruebas/).
         const profundidad = posix.dirname(local).split('/').length;

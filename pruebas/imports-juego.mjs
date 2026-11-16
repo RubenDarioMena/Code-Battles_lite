@@ -83,13 +83,16 @@ for (const script of scripts.slice(0, principal))
   assert(!/\basync\b/.test(script.atributos), `${script.src}: dependencia clásica ordenada`);
 const fuenteJuego = await readFile(juego, 'utf8');
 const arbolJuego = acorn.parse(fuenteJuego, { ecmaVersion: 2022, sourceType: 'module' });
-assert.equal(arbolJuego.body.length, 3, 'la entrada solo importa app/servicios y arranca');
+assert.equal(arbolJuego.body.length, 4, 'la entrada solo importa app/plataforma/servicios y arranca');
 assert.equal(arbolJuego.body.at(-1).expression.callee.name, 'arrancarJuego');
-assert.equal(arbolJuego.body.at(-1).expression.arguments[0].properties[0].key.name, 'servicios');
+assert.deepEqual(arbolJuego.body.at(-1).expression.arguments[0].properties.map(p => p.key.name), ['plataforma', 'servicios']);
+assert.equal(arbolJuego.body.at(-1).expression.arguments[0].properties[0].value.callee.name, 'crearPlataformaWeb');
 const estado = acorn.parse(await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8'),
   { ecmaVersion: 2022, sourceType: 'module' });
 const clavesContexto = new Set();
 visitar(estado, nodo => {
+  if (nodo.type === 'VariableDeclarator' && nodo.id.name === 'ctx')
+    for (const p of nodo.init.properties) clavesContexto.add(p.key.name);
   if (nodo.type === 'CallExpression' && nodo.callee.type === 'MemberExpression'
     && nodo.callee.object.name === 'Object' && nodo.callee.property.name === 'getOwnPropertyDescriptors')
     for (const p of nodo.arguments[0].properties) clavesContexto.add(p.key.name);

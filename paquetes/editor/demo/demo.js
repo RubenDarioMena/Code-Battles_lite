@@ -5,7 +5,11 @@ import { CMGEditorJS, ESTRUCTURA, crearPython, crearJSaPython } from '../../leng
 
 const globales = /** @type {any} */ (window);
 const lezer = globales.LezerPython, acorn = globales.acorn;
-configurar({ lezer, acorn });
+configurar({ lezer, acorn, sesion: {
+  leer(clave) { try { return sessionStorage.getItem(clave); } catch { return null; } },
+  escribir(clave, texto) { try { sessionStorage.setItem(clave, texto); } catch { /* solo en memoria */ } },
+  borrar(clave) { try { sessionStorage.removeItem(clave); } catch { /* solo en memoria */ } },
+} });
 Object.assign(window, { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes, CMGEditorJS, ESTRUCTURA });
 globales.CMGPythonJS = crearPython({ lezer, hueco: CMGEditorPython.nombreDe });
 globales.CMGJSaPython = crearJSaPython({ acorn });

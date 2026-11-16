@@ -24,6 +24,7 @@ const logica = [
   'paquetes/editor/pruebas/editor.mjs',
   'paquetes/editor/pruebas/carga.mjs',
   'paquetes/app/pruebas/app.mjs',
+  'pruebas/plataforma.mjs',
   'paquetes/interfaz/pruebas/interfaz.mjs',
   'globales-juego', 'imports-juego', 'juego-identificadores', 'juego-arranque', 'vistas-contrato',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',

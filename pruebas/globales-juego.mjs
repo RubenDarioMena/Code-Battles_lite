@@ -5,10 +5,11 @@ import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import vm from 'node:vm';
+import ts from 'typescript';
 const acorn = createRequire(import.meta.url)('../shared/vendor/acorn-8.11.3.js');
 const raiz = new URL('../', import.meta.url);
 const navegador = new Set(['devicePixelRatio', 'visualViewport', 'addEventListener',
-  'isSecureContext', 'dispatchEvent', 'document', 'localStorage']);
+  'isSecureContext', 'dispatchEvent', 'document']);
 const publicaciones = new Set(['cmg', '__banco', '__juegoListo']);
 const parsear = fuente => acorn.parse(fuente, { ecmaVersion: 2022, sourceType: 'module', locations: true });
 function visitar(nodo, hacer, padre = null) {
@@ -49,11 +50,44 @@ function infracciones(fuente) {
   return errores;
 }
 for (const fuente of ['window.CMGI18n.t();', 'window["THREE"];', 'window[nombre];',
+  'window.localStorage;', 'globalThis.sessionStorage;', 'const w = window; w.localStorage;',
   'window.cmg.editor;', 'window.__juegoListo ||= true;',
   'const globales = window; globales.acorn;', 'const { CMGTerreno } = window;',
   'Object.assign(window, { CMGEditor });']) assert(infracciones(fuente).length, fuente);
 assert.deepEqual(infracciones('window.cmg = {}; window.__banco = {}; window.__juegoListo = true; window.visualViewport; window.addEventListener("x", f);'), []);
+// Sin lib DOM: el checker distingue un identificador libre de uno declarado en su ámbito.
+function almacenesLibres(fuentes) {
+  const opciones = { allowJs: true, noLib: true, noResolve: true, target: ts.ScriptTarget.ES2022 };
+  const host = ts.createCompilerHost(opciones);
+  host.getSourceFile = nombre => fuentes.has(nombre)
+    ? ts.createSourceFile(nombre, fuentes.get(nombre), opciones.target, true, ts.ScriptKind.JS) : undefined;
+  const programa = ts.createProgram([...fuentes.keys()], opciones, host);
+  const checker = programa.getTypeChecker(), errores = [];
+  for (const fuente of programa.getSourceFiles()) {
+    function visitar(nodo) {
+      if (ts.isIdentifier(nodo) && ['localStorage', 'sessionStorage'].includes(nodo.text)) {
+        const padre = nodo.parent;
+        const propiedad = (ts.isPropertyAccessExpression(padre) && padre.name === nodo)
+          || ((ts.isPropertyAssignment(padre) || ts.isMethodDeclaration(padre)
+            || ts.isGetAccessor(padre) || ts.isSetAccessor(padre) || ts.isBindingElement(padre))
+            && (padre.name === nodo || padre.propertyName === nodo));
+        const simbolo = ts.isShorthandPropertyAssignment(padre)
+          ? checker.getShorthandAssignmentValueSymbol(padre) : checker.getSymbolAtLocation(nodo);
+        if (!propiedad && !simbolo) errores.push(`${fuente.fileName}: identificador libre ${nodo.text}`);
+      }
+      ts.forEachChild(nodo, visitar);
+    }
+    visitar(fuente);
+  }
+  return errores;
+}
+for (const fuente of ['localStorage.getItem("x");', 'sessionStorage.setItem("x", "y");',
+  'const x = { localStorage };', 'function f() { return sessionStorage; }'])
+  assert(almacenesLibres(new Map([['/libre.js', fuente]])).length, fuente);
+assert.deepEqual(almacenesLibres(new Map([['/declarado.js',
+  'export {}; const o = { localStorage: 1 }; function f(sessionStorage) { return sessionStorage; }']])), []);
 let cantidad = 0;
+const fuentesPaquetes = new Map();
 async function recorrer(dir) {
   for (const e of await readdir(dir, { withFileTypes: true })) {
     // pruebas/ y demo/ son anfitriones (como las cáscaras): pueden leer globales para inyectarlos.
@@ -62,12 +96,14 @@ async function recorrer(dir) {
     if (e.isDirectory()) await recorrer(url);
     else if (e.name.endsWith('.js')) {
       const fuente = await readFile(url, 'utf8'); cantidad++;
+      fuentesPaquetes.set(fileURLToPath(url), fuente);
       assert.deepEqual(infracciones(fuente), [], fileURLToPath(url));
       assert(!fuente.includes('?v='), `${fileURLToPath(url)}: sin versiones manuales`);
     }
   }
 }
 await recorrer(new URL('paquetes/', raiz));
+assert.deepEqual(almacenesLibres(fuentesPaquetes), [], 'almacenamiento de navegador fuera de paquetes');
 const html = await readFile(new URL('Prototypes/Rocket Launcher/index.html', raiz), 'utf8');
 assert(!html.includes('?v='), 'HTML del juego sin versiones manuales');
 const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)];
@@ -176,4 +212,4 @@ assert.equal(ventanaDemo.demoEditores[0].documento().id, 'borrador.js');
 for (const nombre of ['CMGEditor', 'CMGAdaptadorJS', 'CMGAdaptadorPython', 'CMGLenguajes',
   'CMGEditorJS', 'ESTRUCTURA', 'CMGPythonJS', 'CMGJSaPython']) assert(ventanaDemo[nombre], nombre);
 assert.equal(ventanaDemo.cmg, undefined, 'demo sin fachada del juego');
-console.log(`Globales: ${cantidad} archivos de paquetes sin lecturas externas; HTML sin ?v=; captura única, orden diferido, concurrencia, reintento y montaje de demo verificados en Node; 8 infracciones inyectadas rechazadas.`);
+console.log(`Globales: ${cantidad} archivos de paquetes sin lecturas externas ni almacenamiento libre; HTML sin ?v=; captura única, orden diferido, concurrencia, reintento y demo verificados en Node; 15 infracciones inyectadas rechazadas.`);

@@ -147,7 +147,7 @@ export function instalarProgramasJuego(ctx) {
     if (vista && ctx.edicion.lenguaje === "python" && cambiarLenguaje("js")) ctx.editorPrograma.fachada.seudo?.aplicarModo(vista.dataset.modoCodigo);
   });
   const CLAVE_CONFIRMAR_REPLACE = "cmg-juego-confirmar-replace";
-  let confirmarReplace = (() => { try { return localStorage.getItem(CLAVE_CONFIRMAR_REPLACE) !== "false"; } catch { return true; } })();
+  let confirmarReplace = (() => { try { return ctx.plataforma.almacen.leer(CLAVE_CONFIRMAR_REPLACE) !== "false"; } catch { return true; } })();
   let idsReplaceAbierto = null;
   function actualizarTextoReplace() {
     const texto = ctx.$("replace-texto");
@@ -155,7 +155,7 @@ export function instalarProgramasJuego(ctx) {
   }
   function preferirConfirmacionReplace(valor) {
     confirmarReplace = !!valor;
-    try { localStorage.setItem(CLAVE_CONFIRMAR_REPLACE, JSON.stringify(confirmarReplace)); } catch { /* preferencia de sesión */ }
+    try { ctx.plataforma.almacen.escribir(CLAVE_CONFIRMAR_REPLACE, JSON.stringify(confirmarReplace)); } catch { /* preferencia de sesión */ }
   }
   function confirmarReemplazo(ids) {
     if (!confirmarReplace) return Promise.resolve(true);

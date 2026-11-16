@@ -5,6 +5,16 @@ import type { Anfitrion, Turno } from '../anfitrion/index.js';
 import type { Vista } from '../protocolo/index.js';
 export type { Vista } from '../protocolo/index.js';
 
+/** Texto sin codificación ni prefijos añadidos. Los fallos de almacenamiento no se propagan. */
+export interface Almacen {
+  leer(clave: string): string | null;
+  escribir(clave: string, texto: string): void;
+  borrar(clave: string): void;
+}
+/** Interfaz síncrona: escritorio precargará el guardado y persistirá por detrás. */
+export interface Plataforma { almacen: Almacen; sesion: Almacen }
+export function crearPlataformaMemoria(): Plataforma;
+
 export interface VistaNula extends Vista {
   resumen(): { fotogramas: number; sucesos: number; t: number | null };
 }
@@ -55,8 +65,10 @@ export function instalarCicloProgramas(ctx: any): ReturnType<typeof import('./ju
 export function instalarCierreIntentos(ctx: any): ReturnType<typeof import('./juego/cierre-intentos.js').instalarCierreIntentos>;
 export function instalarBucleJuego(ctx: any): ReturnType<typeof import('./juego/bucle.js').instalarBucleJuego>;
 
-/** Marcado y proveedores clásicos de la página; reservado para opciones de composición. */
+/** Plataforma y proveedores clásicos de la página para la composición. */
 export interface OpcionesArranqueJuego {
+  /** Sin plataforma se usan almacenes aislados en memoria. */
+  plataforma?: Plataforma;
   servicios?: {
     CMGI18n?: any; CMGPresentacion?: any; CMGTerreno?: any;
     CMGTrazador?: any; CMGFlujo?: any; CMGPythonRevision?: any;

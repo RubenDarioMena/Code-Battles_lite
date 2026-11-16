@@ -193,7 +193,7 @@ export function instalarInfoReto(ctx) {
     let g = ctx.guardado.leer(`prog-${ctx.claveReto()}`, null);
     if (ctx.ES_FACTORY && g == null) {
       // Importación única y de solo lectura; nunca escribimos en cmg-banco02.
-      try { const viejo = JSON.parse(localStorage.getItem(`cmg-banco02:prog-${ctx.retoIdx}`)); if (viejo) g = { R1: (viejo.fuente !== "texto" || (viejo.comentado != null && viejo.texto === viejo.comentado)) && viejo.modelo ? ctx.factory.retos.generar(viejo.modelo).codigo : viejo.texto }; } catch { /* dato antiguo inválido */ }
+      try { const viejo = JSON.parse(ctx.plataforma.almacen.leer(`cmg-banco02:prog-${ctx.retoIdx}`)); if (viejo) g = { R1: (viejo.fuente !== "texto" || (viejo.comentado != null && viejo.texto === viejo.comentado)) && viejo.modelo ? ctx.factory.retos.generar(viejo.modelo).codigo : viejo.texto }; } catch { /* dato antiguo inválido */ }
       g ||= { R1: textoInicial(ctx.def, "R1") };
       ctx.guardado.escribir(`prog-${ctx.claveReto()}`, g);
     }

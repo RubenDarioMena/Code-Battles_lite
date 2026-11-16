@@ -7,7 +7,8 @@ import ts from 'typescript';
 
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const entrada = raiz + 'Prototypes/Rocket Launcher/js/juego.js';
-const archivos = [entrada, raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js',
+const archivos = [entrada, raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js', raiz + 'paquetes/app/plataforma.js', raiz + 'cascaras/web/plataforma.js',
+  raiz + 'paquetes/editor/dependencias.js', raiz + 'paquetes/editor/edicion-acciones.js',
   ...['paquetes/app/juego/', 'paquetes/interfaz/', 'paquetes/vista-2d/', 'paquetes/vista-3d/'].flatMap(dir =>
     readdirSync(raiz + dir).filter(f => f.endsWith('.js')).map(f => raiz + dir + f))];
 const opciones = { allowJs: true, checkJs: true, noEmit: true, strict: false,
@@ -15,10 +16,10 @@ const opciones = { allowJs: true, checkJs: true, noEmit: true, strict: false,
   moduleResolution: ts.ModuleResolutionKind.NodeNext, types: ['node'] };
 const codigos = new Set([2304, 2552, 18004, 2339, 2448, 2454]);
 const globalesConocidos = new Set(`Array Blob Boolean Infinity CustomEvent Date Error Event Float32Array JSON Map Math
-  MutationObserver Node Number Object Promise Proxy ResizeObserver Set String URL URLSearchParams
+  MutationObserver Node Number Object Promise Proxy RegExp ResizeObserver Set String URL URLSearchParams
   Uint8Array Worker addEventListener cancelAnimationFrame clearTimeout console crypto document fetch
-  getComputedStyle history innerHeight innerWidth localStorage location matchMedia navigator parseFloat
-  parseInt performance requestAnimationFrame setTimeout visualViewport window`.split(/\s+/));
+  getComputedStyle history innerHeight innerWidth location matchMedia navigator parseFloat
+  parseInt performance requestAnimationFrame sessionStorage setTimeout visualViewport window`.split(/\s+/));
 const globalesUsados = new Set();
 function revisar(mutacion = '', auditar = false) {
   const host = ts.createCompilerHost(opciones), leer = host.readFile;

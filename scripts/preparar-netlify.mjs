@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const destino = path.join(raiz, 'dist');
-const entradas = ['index.html', '404.html', 'css', 'campaign', 'shared', 'paquetes', 'herramientas/terreno', 'Prototypes/Tres vistas', 'Prototypes/Rocket Launcher', 'Prototypes/02_tres_vistas.html'];
+const entradas = ['index.html', '404.html', 'css', 'campaign', 'shared', 'paquetes', 'cascaras/web', 'herramientas/terreno', 'Prototypes/Tres vistas', 'Prototypes/Rocket Launcher', 'Prototypes/02_tres_vistas.html'];
 // El juego reutiliza estos módulos autónomos; no se distribuye el resto del laboratorio.
 for (const archivo of ['trazador.js', 'flujo.js', 'python.js']) entradas.push(`educational-animation/revision/motor/${archivo}`);
 // Comprobar fuentes antes de reconstruir la carpeta generada.

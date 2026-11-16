@@ -8,13 +8,14 @@ import { crearAnfitrion } from '../../anfitrion/index.js';
 import * as lenguaje from '../../lenguaje/index.js';
 import { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGEditorPython } from '../../editor/index.js';
 
+import { crearPlataformaMemoria } from '../plataforma.js';
 import { crearConductor } from '../conductor.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
  * @param {any} opciones */
 export function crearEstadoJuego(opciones = {}) {
   /** @type {any} */
-  const ctx = {};
+  const ctx = { plataforma: opciones.plataforma || crearPlataformaMemoria() };
   const servicios = opciones.servicios || {};
   let banco = null, cmg = null;
   const pulsos = crearPulsos({ trazador: servicios.CMGTrazador, flujo: servicios.CMGFlujo, python: servicios.CMGPythonRevision, acorn: servicios.acorn });
@@ -115,8 +116,8 @@ export function crearEstadoJuego(opciones = {}) {
 
   // ---------- Almacenamiento local (comodidad del jugador) ----------
   const guardado = {
-    leer(k, def) { try { const v = localStorage.getItem(`${CLAVE}:${k}`); return v == null ? def : JSON.parse(v); } catch { return def; } },
-    escribir(k, v) { try { localStorage.setItem(`${CLAVE}:${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } },
+    leer(k, def) { try { const v = ctx.plataforma.almacen.leer(`${CLAVE}:${k}`); return v == null ? def : JSON.parse(v); } catch { return def; } },
+    escribir(k, v) { try { ctx.plataforma.almacen.escribir(`${CLAVE}:${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } },
   };
 
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
@@ -153,11 +154,11 @@ export function crearEstadoJuego(opciones = {}) {
     const q = new URLSearchParams(location.search).get("reto");
     if (q === "propio") return IDX_PROPIO;
     if (q != null && /^\d+$/.test(q)) return Number(q);
-    let viejo = 0; try { viejo = JSON.parse(localStorage.getItem("cmg-banco02:reto")) || 0; } catch (_) { /* Sin selección antigua. */ }
+    let viejo = 0; try { viejo = JSON.parse(ctx.plataforma.almacen.leer("cmg-banco02:reto")) || 0; } catch (_) { /* Sin selección antigua. */ }
     return guardado.leer("factory-reto", viejo);
   };
   let retoIdx = Math.min(IDX_PROPIO, Math.max(0, (ES_CAMPAIGN ? 0 : ES_FACTORY ? retoFactoryInicial() : guardado.leer("reto", 0)) | 0));
-  let propio = ES_CAMPAIGN ? null : ES_FACTORY ? factory.retos.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(localStorage.getItem("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
+  let propio = ES_CAMPAIGN ? null : ES_FACTORY ? factory.retos.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(ctx.plataforma.almacen.leer("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
   let hechos = guardado.leer("hechos", []);
   let records = guardado.leer("records", {});
   // D6: una tabla de récords por reto; el lenguaje del intento es solo una etiqueta (War la guarda aparte para no cambiar «records»).

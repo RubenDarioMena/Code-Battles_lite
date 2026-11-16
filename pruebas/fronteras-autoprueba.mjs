@@ -27,6 +27,9 @@ const esperadas = [
   ['app/sintaxis.js', 'sintaxis', 1],
 ].flatMap(([archivo, regla, cantidad]) => Array.from({ length: Number(cantidad) },
   () => `paquetes/${archivo} · ${regla}`)).sort();
+esperadas.push('paquetes/app/cascara.js · import-ruta',
+  ...Array(3).fill('cascaras/web/rutas.js · import-ruta'));
+esperadas.sort();
 
 // Solo el temporal contiene sintaxis inválida y node_modules: todos los archivos
 // fuente del árbol guardado admiten node --check, y Git no omite casos necesarios.
@@ -34,6 +37,15 @@ const raiz = await mkdtemp(join(tmpdir(), 'cbl-fronteras-'));
 let resultado;
 try {
   await cp(casos, raiz, { recursive: true });
+  await mkdir(join(raiz, 'cascaras/web'), { recursive: true });
+  await writeFile(join(raiz, 'cascaras/web/rutas.js'), `
+    import '../../paquetes/app/index.js';
+    import './plataforma.js';
+    import '../../paquetes/app/juego/estado.js';
+    import '../../paquetes/editor/index.js';
+    import '../../paquetes/app/index.js?v=1';
+  `);
+  await writeFile(join(raiz, 'paquetes/app/cascara.js'), "import '../../cascaras/web/plataforma.js';\n");
   await writeFile(join(raiz, 'paquetes/app/sintaxis.js'), 'export const = ;\n');
   await mkdir(join(raiz, 'paquetes/app/node_modules'), { recursive: true });
   await writeFile(join(raiz, 'paquetes/app/node_modules/ignorado.js'), 'esto no es JavaScript;\n');
@@ -46,7 +58,7 @@ assert.equal(resultado.signal, null, 'La comprobación debe terminar normalmente
 assert.equal(resultado.status, 1, 'El árbol incorrecto debe salir con 1');
 assert.equal(resultado.stdout, '', 'No debe anunciar éxito');
 const detectadas = resultado.stderr.trim().split(/\r?\n/).map(linea => {
-  const partes = /^(paquetes\/[^:]+):([1-9]\d*) · ([^·]+) · (.+)$/.exec(linea);
+  const partes = /^((?:paquetes|cascaras)\/[^:]+):([1-9]\d*) · ([^·]+) · (.+)$/.exec(linea);
   assert.ok(partes, `Diagnóstico sin archivo, línea, regla o detalle: ${linea}`);
   return `${partes[1]} · ${partes[3]}`;
 }).sort();

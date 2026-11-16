@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { crearPlataformaMemoria } from '../paquetes/app/index.js';
 
 if (!vm.SourceTextModule) {
   const hijo = spawnSync(process.execPath, ['--experimental-vm-modules', '--disable-warning=ExperimentalWarning',
@@ -48,7 +49,8 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
     querySelectorAll: () => [], addEventListener: noop, documentElement: new Elemento('html'),
     fonts: { ready: Promise.resolve() }, body: new Elemento('body'),
   };
-  const datos = new Map([[`cmg-banco03:${serie === 'war' ? '' : serie + '-'}vista`, JSON.stringify(vista)]]);
+  const plataforma = crearPlataformaMemoria();
+  plataforma.almacen.escribir(`cmg-banco03:${serie === 'war' ? '' : serie + '-'}vista`, JSON.stringify(vista));
   const url = new URL(`http://qa.invalid/?serie=${serie}&forma=${forma}&marco=1&poc=1${propio ? '&reto=propio' : ''}`);
   let fotogramas = 0, medidas = 0, editor = null, estadoVistas = null;
   const vistaFalsa = () => {
@@ -59,7 +61,6 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
   const ventana = new Elemento();
   const ctx = vm.createContext({ console, document: documento, location: url, URL, URLSearchParams,
     performance: { now: () => 0 }, innerWidth: 1000, innerHeight: 700, Event: class { constructor(type) { this.type = type; } }, navigator: {},
-    localStorage: { getItem: k => datos.get(k) ?? null, setItem: (k, v) => datos.set(k, v) },
     history: { replaceState: noop }, addEventListener: ventana.addEventListener.bind(ventana),
     dispatchEvent: ventana.dispatchEvent.bind(ventana),
     matchMedia: () => ({ matches: false, addEventListener: noop }),
@@ -100,6 +101,8 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
       cache.set(url.href, m);
     } else {
       let valores = await import(url.href);
+      if (url.pathname.endsWith('/cascaras/web/plataforma.js'))
+        valores = { crearPlataformaWeb: () => plataforma };
       if (/\/vista-[23]d\/index.js$/.test(url.pathname)) {
         valores = Object.fromEntries(Object.keys(valores).map(n => [n,
           n === 'crearVista' ? (_contenedor, opciones) => {

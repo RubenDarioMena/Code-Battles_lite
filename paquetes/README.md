@@ -44,7 +44,7 @@ la carpeta `pruebas/` de cada paquete.
 
 En `protocolo`, `nucleo`, `reglas-*`, `lenguaje` y `vfx` no se permiten APIs de
 navegador ni Three.js. Deben funcionar en Node sin simulación del navegador.
-La comprobación detecta identificadores `window`, `document`, `localStorage`,
+La comprobación detecta APIs de navegador: `window`, `document`, almacenamiento web,
 `requestAnimationFrame`, `THREE`, `setTimeout`, `setInterval`, y accesos a
 `performance.now`, `Date.now`, `new Date` y `Math.random`.
 Se prohíben ambos temporizadores también en núcleo y reglas para mantener

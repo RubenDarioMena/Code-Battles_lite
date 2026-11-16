@@ -46,7 +46,14 @@ export interface Editor {
   readonly codigo: HTMLTextAreaElement; readonly fachada: any;
   pantallaCompleta(activa?: boolean): boolean; forma(): string | null;
 }
+/** Contrato estructural de texto; no importa app ni conoce la plataforma. */
+export interface AlmacenSesion {
+  leer(clave: string): string | null;
+  escribir(clave: string, texto: string): void;
+  borrar(clave: string): void;
+}
 export interface ServiciosEditor {
+  sesion?: AlmacenSesion;
   lezer?: import('../lenguaje/index.js').AnalizadorPython;
   acorn?: import('../lenguaje/index.js').AnalizadorJS;
   i18n?: { t(clave: string, parametros?: any): string };

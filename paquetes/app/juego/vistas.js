@@ -26,7 +26,7 @@ export function instalarVistasJuego(ctx) {
       try {
         const api = servicios.CMGTerreno;
         if (!api || !api.crearGeometria) throw new Error("No se cargaron los recursos del editor de terreno.");
-        const guardado = localStorage.getItem(api.CLAVE_JUEGO);
+        const guardado = ctx.plataforma.almacen.leer(api.CLAVE_JUEGO);
         if (!guardado) throw new Error("No hay un terreno guardado para probar.");
         terrenoEditor = api.validar(JSON.parse(guardado));
       } catch (error) {

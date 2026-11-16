@@ -74,7 +74,7 @@ los bloques completos y su secuencia; repartir esas responsabilidades queda para
 
 ## Distribución y auxiliares (paso 11c)
 
-`instalarLayout(cmg)` recibe la fachada viva del editor/juego. `layout.js`
+`instalarLayout(ctx)` recibe `ctx.cmg`, `ctx.servicios` y `ctx.plataforma`. `layout.js`
 conserva reparto, Ajustes, teclado y barras; `layout-panel.js` instala panel
 inferior y pantalla completa; `layout-menu.js` instala menú móvil y ficha.
 Sus accesores privados comparten estado sin copiarlo. No leen `window.cmg`
@@ -92,7 +92,9 @@ no navegador). QA pendiente del autor: divisor, Ajustes, teclado/ProtoMouse,
 pantalla completa, consola y ficha móvil, formulario Factory y Campaign.
 
 
-En el paso 13, `instalarLayout(cmg, servicios)` recibe i18n desde la entrada.
+Desde el paso 14, `instalarLayout(ctx)` recibe i18n desde `ctx.servicios` y usa
+`ctx.plataforma.almacen` para las preferencias, igual que inspector e información
+del reto. Conserva las claves, conversiones JSON y migraciones anteriores.
 El formulario Factory usa `hooks.i18n` y `CAMPAIGN_UI.crear` usa `ctx.i18n`;
 ninguno consulta las bibliotecas clásicas en `window`. Las pruebas estáticas
 `pruebas/globales-juego.mjs`, `imports-juego.mjs` y `juego-identificadores.mjs`

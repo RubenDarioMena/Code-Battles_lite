@@ -12,7 +12,7 @@ No publica globales. La app importa y configura el editor en
 
 ```js
 import { configurar, CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython } from './paquetes/editor/index.js';
-configurar({ lezer, acorn, i18n, presentacion });
+configurar({ lezer, acorn, i18n, presentacion, sesion });
 const editor = CMGEditor.crear({
   raiz, documento,
   adaptadores: { js: CMGAdaptadorJS, python: CMGAdaptadorPython },
@@ -27,8 +27,13 @@ usarlos, sin buscarlos en `window`. `vistas: true` habilita las vistas heredadas
 Seudo/Bloques del juego; por defecto no se ofrecen, como en la demo original.
 Las instancias mantienen documentos, historial y preferencias independientes.
 El anfitrión sigue aportando `preferencias` y `preferenciasVistas`: no se cambian
-claves, valores ni formatos de localStorage. El portapapeles conserva su clave
-`cmg-portapapeles` de sessionStorage.
+claves, valores ni formatos del guardado. El portapapeles conserva su clave
+`cmg-portapapeles` y su texto sin JSON mediante `configurar({ sesion })`.
+Este servicio síncrono ofrece `leer(clave): string | null`,
+`escribir(clave, texto): void` y `borrar(clave): void`; absorbe los errores de
+almacenamiento. Por defecto hay un almacén en memoria compartido por la página,
+sin consultar el navegador. La app inyecta su sesión de plataforma y la demo
+aporta su propio adaptador para conservar el portapapeles entre recargas.
 
 Se exportan las mismas fábricas y datos: `CMGEditor`, `CMGAdaptadorJS`,
 `CMGAdaptadorPython`, `CMGEditorPython`, `CMGPlantillasJS`, `CMGCatalogo`,

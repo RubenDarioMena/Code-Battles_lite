@@ -1,3 +1,4 @@
+import { crearPlataformaMemoria } from '../plataforma.js';
 import { factory3d } from '../../vista-3d/index.js';
 import { configurar, ICONOS } from '../../editor/index.js';
 import { registrarIconosFactory, instalarLayout } from '../../interfaz/index.js';
@@ -25,14 +26,15 @@ import { instalarConsola, instalarInfoReto, instalarMaquinas, instalarInspector,
  * @param {import('../index.js').OpcionesArranqueJuego} [opciones] */
 export function arrancarJuego(opciones = {}) {
   const servicios = opciones.servicios || {};
-  configurar({ acorn: servicios.acorn, vistas: true, i18n: servicios.CMGI18n, lezer: servicios.LezerPython,
+  const plataforma = opciones.plataforma || crearPlataformaMemoria();
+  configurar({ sesion: plataforma.sesion, acorn: servicios.acorn, vistas: true, i18n: servicios.CMGI18n, lezer: servicios.LezerPython,
     presentacion: {
       html: texto => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(texto) : texto,
       texto: texto => servicios.CMGPresentacion ? servicios.CMGPresentacion.texto(texto) : texto,
       rotular: (nodo, texto) => { if (servicios.CMGPresentacion) servicios.CMGPresentacion.rotular(nodo, texto); else nodo.textContent = texto; },
     } });
   registrarIconosFactory(ICONOS);
-  const ctx = crearEstadoJuego(opciones);
+  const ctx = crearEstadoJuego({ ...opciones, plataforma });
   const conectar = instalar => Object.defineProperties(ctx,
     Object.getOwnPropertyDescriptors(instalar(ctx)));
   conectar(instalarCicloProgramas);
@@ -59,8 +61,8 @@ export function arrancarJuego(opciones = {}) {
   conectar(instalarProveedorJuego);
   conectar(instalarArranqueJuego);
   ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg, servicios);
-  instalarLayout(ctx.cmg, servicios);
-  ctx.cmg.remota = instalarRemota(ctx.cmg);
+  instalarLayout(ctx);
+  ctx.cmg.remota = instalarRemota(ctx);
   // Diagnóstico accesible sin publicar los antiguos globales.
   ctx.cmg.pulsos = ctx.CMGPulsos;
   ctx.cmg.estructura = ctx.lenguaje.ESTRUCTURA;

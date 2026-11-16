@@ -1,9 +1,10 @@
 import { CMGTips } from '../editor/index.js';
 import { instalarPanelPantalla } from './layout-panel.js';
 import { instalarMenuFicha } from './layout-menu.js';
-/** Distribución sobre el marcado existente; recibe la fachada viva del juego.
- * @param {any} cmg @param {any} servicios */
-export function instalarLayout(cmg, servicios) {
+/** Distribución sobre el marcado existente; recibe el contexto de composición.
+ * @param {any} ctx */
+export function instalarLayout(ctx) {
+  const { cmg, servicios } = ctx;
   const dom = /** @type {any} */ (document);
   /** @type {any} */
   const l = {};
@@ -15,8 +16,8 @@ export function instalarLayout(cmg, servicios) {
   const params = new URLSearchParams(location.search);
   const forzada = ["movil", "escritorio"].includes(params.get("forma")) ? params.get("forma") : null;
   const enMarco = params.get("marco") === "1";
-  const leer = (k, d) => { try { const v = localStorage.getItem(`cmg-juego-${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
-  const escribir = (k, v) => { try { localStorage.setItem(`cmg-juego-${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento: no pasa nada */ } };
+  const leer = (k, d) => { try { const v = ctx.plataforma.almacen.leer(`cmg-juego-${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const escribir = (k, v) => { try { ctx.plataforma.almacen.escribir(`cmg-juego-${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento: no pasa nada */ } };
 
   if (enMarco) $("b-probar").hidden = true;
 
