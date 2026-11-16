@@ -52,7 +52,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 
 Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
 
-En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
+En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `laboratorio/batalla/` es la maqueta de mecánicas de batalla; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
 Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semilla y recogida su secuencia de stock por intento. El código del jugador se instrumenta con Acorn y se ejecuta en Web Workers. `window.cmg` comunica editor y layout; `window.__banco` expone herramientas de depuración/pruebas. Son interfaces existentes que se mantienen durante la separación.
 
@@ -78,6 +78,15 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - La ficha móvil permite recorrer las estadísticas manteniendo visible únicamente el cierre.
 - Cada unidad se programa en JavaScript o en **Python** (desplegable de lenguaje o Ajustes). Python se traduce a JS con las mismas líneas y corre en el mismo worker; al elegirlo, el JavaScript se convierte si cabe y se conserva. [Reglas de Python](docs/REGLAMENTO.md#python). El idioma alternativo de la interfaz sigue deshabilitado; el seudocódigo ES/EN ya está disponible.
 - La traducción conserva `let`/`const`/`var`, las reasignaciones y el nombre y alcance del contador de un `for`. Bloques independientes, comparaciones con coerción (`==`/`!=`) y llamadas calculadas no representables se conservan en JavaScript con aviso.
+
+## Laboratorio de batalla
+
+Maqueta aparte para probar mecánicas antes de decidirlas: [abrir](http://localhost:8770/laboratorio/batalla/) (también desde el pie de la portada; `?prueba=1` a `?prueba=5`). No forma parte de War ni cambia sus reglas.
+
+- Mapa de 48 × 27 con un muro y dos puertas. Vehículos con torreta que salen y vuelven a recargar, ruedas kamikaze que el programa lleva en zigzag, tiradores, cañones de asedio y rodadores.
+- Órdenes por clic: `terrain.onClick(...)` y `enemies.onClick(...)` corren dentro del programa de cada unidad cuando el jugador toca el campo. También `onDamage`, `track(id)`, radar, reprogramar una unidad sin parar la batalla y repetir la batalla con los mismos clics.
+- Usa el editor de `shared/editor/` y conserva el paso fijo, la semilla y el Worker por unidad. Solo JavaScript y plano 2D.
+- [Propuesta, reglas, resultados medidos y preguntas abiertas](docs/PROPUESTA-MECANICAS-BATALLA.md).
 
 ## Factory
 
@@ -126,6 +135,7 @@ node --check shared/js/estructura.js
 node --check shared/js/edicion.js
 node --check "Prototypes/Rocket Launcher/js/seudo.js"
 node pruebas/factory-reglas.cjs
+node pruebas/lab-batalla.cjs
 node --check "Prototypes/Rocket Launcher/js/runtime.js"
 node --check "Prototypes/Rocket Launcher/js/factory.js"
 node --check pruebas/navegador.mjs
@@ -158,6 +168,7 @@ const { probarEntrada } = await import("file:///Users/rubenmena/Documents/Dev/Co
 const { probarPythonJuego } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/python-juego.mjs");
 const { probarPythonEjecucion } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/python-ejecucion.mjs");
 const { probarEditorMovil } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/editor-movil.mjs");
+const { probarLabBatalla } = await import("file:///Users/rubenmena/Documents/Dev/Code-battle-lite/pruebas/lab-batalla.mjs");
 await probar(task.page("p1")); // War / Rocket Launcher
 await probarFactoryComun(task.page("p1"));
 await probarFactoryVistas(task.page("p1"));
@@ -166,6 +177,7 @@ await probarFactory3D(task.page("p1"));
 await probarPythonJuego(task.page("p1"));
 await probarPythonEjecucion(task.page("p1")); // E5: equivalencia JS/Python
 await probarEditorMovil(task.page("p1")); // teléfono: barra mínima, ProtoMouse, selección, variantes, ⓘ y Ajustes
+await probarLabBatalla(task.page("p1")); // laboratorio de batalla: clics reales, reprogramar, repetir y teléfono
 await probarEntrada(task.page("p1")); // generar dist/ primero
 await task.finish({ keep: [] });
 JS
