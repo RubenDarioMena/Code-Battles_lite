@@ -38,14 +38,14 @@ No cambia el texto del Worker, la API del jugador ni los formatos guardados.
 
 El juego publica `CMGEditorJS`, `ESTRUCTURA`, `CMGPythonJS`, `CMGJSaPython` y
 `LENGUAJE` desde `js/compat-paquetes.js`. Recibe Acorn y Lezer ya cargados;
-el reconocedor Python se inyecta con una función que consulta al adaptador clásico
-cuando se traduce (el adaptador se carga después del puente).
-La demo usa su propio `shared/editor/compat-lenguaje.js`, sin importar el juego.
+el reconocedor Python se inyecta desde el adaptador de `paquetes/editor`,
+que el puente publica para los consumidores clásicos.
+La demo usa su propio `paquetes/editor/demo/compat-paquetes.js`, sin importar el juego.
 Ambos HTML cargan los proveedores antes del módulo y los consumidores con `defer`
 después de él. Los cuatro archivos antiguos se retiran, sin copias.
 
-La interfaz de seudocódigo (`shared/editor/seudo.js`) todavía pertenece al editor:
-mezcla modelo y DOM, y queda para la extracción de ese paquete; no se importa aquí.
+La interfaz de seudocódigo (`paquetes/editor/seudo.js`) pertenece al paquete editor:
+su modelo y su DOM están repartidos en módulos de ese paquete; no se importa aquí.
 
 ## Pruebas
 

@@ -1,6 +1,4 @@
 /* Recursos de una instancia: no modifica prototipos ni registra estado global. */
-(() => {
-  "use strict";
   function crear(raiz, ambito = raiz, globales = false) {
     const abortar = new AbortController(), tareas = new Set(), cuadros = new Set(), portales = new Set(), observers = new Set();
     let destruida = false;
@@ -38,5 +36,6 @@
     };
     return api;
   }
-  window.CMGEditorVida = { crear };
-})();
+  const CMGEditorVida = { crear };
+
+export { CMGEditorVida };

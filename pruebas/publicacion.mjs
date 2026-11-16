@@ -49,10 +49,12 @@ async function verificarModulo(relativo) {
   }
 }
 await verificarModulo('Prototypes/Rocket Launcher/js/compat-paquetes.js');
-await verificarModulo('shared/editor/compat-lenguaje.js');
+await verificarModulo('paquetes/editor/demo/compat-paquetes.js');
 assert(modulosVisitados.has('paquetes/lenguaje/index.js'));
+assert(modulosVisitados.has('paquetes/editor/index.js'));
 for (const retirado of ['shared/editor/javascript.js', 'shared/js/estructura.js',
-  'shared/python/traductor.js', 'shared/python/desde-js.js', 'paquetes/lenguaje/pruebas']) {
+  'shared/python/traductor.js', 'shared/python/desde-js.js', 'paquetes/lenguaje/pruebas', 'paquetes/editor/pruebas', 'shared/editor',
+  'shared/js/iconos.js', 'shared/js/edicion.js', 'shared/css/edicion.css']) {
   await assert.rejects(stat(path.join(raiz, retirado)), { code: 'ENOENT' });
 }
 const inicio = await readFile(path.join(raiz, 'index.html'), 'utf8');

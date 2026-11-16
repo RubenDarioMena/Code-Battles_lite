@@ -7,8 +7,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Root = [IO.Path]::GetFullPath($Root)
-$Required = @('index.html','css/inicio.css','shared/js/iconos.js','shared/js/estructura.js',
-              'shared/js/edicion.js','Prototypes/Rocket Launcher/index.html')
+$Required = @('index.html','css/inicio.css','paquetes/editor/iconos.js','paquetes/lenguaje/estructura.js',
+              'paquetes/editor/edicion.js','Prototypes/Rocket Launcher/index.html')
 $Missing = @($Required | Where-Object { -not [IO.File]::Exists((Join-Path $Root $_)) })
 if ($Missing.Count -gt 0) {
   Write-Host "Server root: $Root" -ForegroundColor Yellow

@@ -25,7 +25,7 @@ Base: `Code-Battles_lite`, `trunk` en `a50fde2` (Factory en 3D con T1). Sustituy
 ## Capas e interfaces
 
 ```text
-┌──────────────── Editor (shared/editor/) ────────────────┐
+┌──────────────── Editor (paquetes/editor/) ────────────────┐
 │ texto · selección · resaltado · fichas · arrastre       │
 │ historial · paletas · barra de símbolos · sin teclado   │
 └───────┬───────────────────────┬─────────────────────────┘
@@ -126,9 +126,9 @@ traducir({ lenguaje, texto }) → { ok, js, diagnosticos: [{ linea, columna, men
 
 | Etapa | Resultado | Cambio visible | Compuerta |
 |---|---|---|---|
-| **E0 Contrato y red** | `shared/editor/CONTRATO.md` desde las API reales; `interaccion.cjs` carga módulos en vez de cortar `juego.js` | No | Cifras de referencia registradas: 123 lógica, 90 War, editor 18, vistas 31, paridad 28/28, API 7 |
+| **E0 Contrato y red** | `paquetes/editor/README.md` desde las API reales; `interaccion.cjs` carga módulos en vez de cortar `juego.js` | No | Cifras de referencia registradas: 123 lógica, 90 War, editor 18, vistas 31, paridad 28/28, API 7 |
 | **E1 Extracción** | `CMGEditor.crear`; adaptador JS (`lexico`, `estructura.js`, `ATAJOS`, `TECLAS`, huecos); proveedor del juego; preferencias inyectadas; `destruir()`; fachada `window.cmg`/`cmg.edicion`/`cmg.seudo` | No | Mismas cifras que E0, capturas iguales, versiones `?v=` actualizadas |
-| **E2 Demo** | `shared/editor/demo.html`, dos instancias y proveedor declarativo | Página nueva | Aislamiento de documento, historial, preferencias y atajos; destruir y crear sin oyentes duplicados; sin globals del juego |
+| **E2 Demo** | `paquetes/editor/demo/demo.html`, dos instancias y proveedor declarativo | Página nueva | Aislamiento de documento, historial, preferencias y atajos; destruir y crear sin oyentes duplicados; sin globals del juego |
 | **E2.1 Paridad** | Forma, barras, tooltips, letra y ajustes comunes con el juego; pantalla completa de cada instancia | Demo | War y Factory idénticos píxel a píxel; demo en PC, tableta y teléfono (vertical y horizontal) |
 | **E3 Lenguaje del documento** | Catálogo de lenguajes del editor (`CMGLenguajes`); `<select>` de lenguaje en las instancias autónomas; cambio de adaptador en vivo (`abrir` con otro lenguaje, `alCambiarLenguaje`); vistas opcionales. Revisado: sin Seudo ni Bloques en el selector y sin cambios en el juego | Demo | Cambio de lenguaje sin oyentes ni menús duplicados; historial por documento; respuestas tardías o negativas del anfitrión; el juego idéntico |
 | **E4a Python en el componente** | lezer fijado y empaquetado localmente; adaptador Python (léxico, árbol con los nodos del editor, huecos `__tipo__`, sangría significativa con niveles y `pass` en bloques vacíos, plantillas, operadores, teclas, comentarios con `#`); `edicion.js` toma del adaptador sangría, huecos y sugerencias; Python en la demo | Demo | Las operaciones de edición conservan el significado (pruebas antes/después con la forma del árbol); juego idéntico |

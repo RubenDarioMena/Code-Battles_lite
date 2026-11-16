@@ -1,4 +1,4 @@
-// Prueba de frontera 4 de la fase 2: el editor montado solo, fuera del juego (shared/editor/demo.html).
+// Prueba de frontera 4 de la fase 2: el editor montado solo, fuera del juego (paquetes/editor/demo/demo.html).
 // Adaptador de Playwright para editor-demo.mjs. Con el servidor dedicado 8771 activo:
 // node pruebas/ejecutar-editor-demo.cjs
 const { existsSync } = require('node:fs');

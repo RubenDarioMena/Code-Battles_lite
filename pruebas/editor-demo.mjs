@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   let checks = 0;
   const eq = (a,b,m) => { assert.deepEqual(a,b,m); checks++; console.log('OK demo '+checks+': '+m); };
-  await page.goto(origen + '/shared/editor/demo.html');
+  await page.goto(origen + '/paquetes/editor/demo/demo.html');
   await page.waitForFunction(() => window.demoEditores?.length === 2);
   eq(await page.evaluate(() => [typeof window.cmg, typeof window.__banco, typeof window.APP, typeof window.WAR]), ['undefined','undefined','undefined','undefined'], 'sin globals del juego');
   eq(await page.evaluate(() => new Set([...document.querySelectorAll('[id]')].map(n=>n.id)).size === document.querySelectorAll('[id]').length), true, 'IDs únicos');
@@ -166,7 +166,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   // E2.1 · paridad con el editor del juego y pantalla completa.
   const vista = page.viewportSize() || { width: 1280, height: 720 };
   await page.setViewportSize({ width: 1400, height: 900 });
-  await page.goto(origen + '/shared/editor/demo.html');
+  await page.goto(origen + '/paquetes/editor/demo/demo.html');
   await page.waitForFunction(() => window.demoEditores?.length === 2);
   const raiz = n => `#demo-${n === 0 ? 'uno' : 'dos'}`;
   const visible = sel => page.evaluate(s => { const e = document.querySelector(s); return !!e && e.getBoundingClientRect().width > 0 && getComputedStyle(e).display !== 'none'; }, sel);

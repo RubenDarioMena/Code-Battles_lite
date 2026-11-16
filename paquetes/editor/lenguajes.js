@@ -5,8 +5,6 @@
  * el juego lo traduce a JS para su Worker; otra aplicación puede usar su propio motor.
  * Este catálogo solo da nombres y datos de presentación de los lenguajes de este proyecto;
  * un anfitrión puede traer adaptadores propios sin tocarlo (se usa adaptador.nombre). */
-(() => {
-  "use strict";
   const python = Object.freeze({ awaitExplicito: true, asyncDef: true, awaitSuperior: true });
   const catalogo = Object.freeze({
     js: Object.freeze({ id: "js", nombre: "JavaScript", corto: "JS", extension: ".js", comentario: "//" }),
@@ -32,5 +30,6 @@
     const texto = inicio + argumentos.join(", ") + ")" + (lenguaje === "python" ? "" : ";");
     return { texto, sel: [inicio.length, inicio.length + (argumentos[0]?.length || 0)] };
   }
-  window.CMGLenguajes = { python, catalogo, describir, disponibles, llamada };
-})();
+  const CMGLenguajes = { python, catalogo, describir, disponibles, llamada };
+
+export { CMGLenguajes };

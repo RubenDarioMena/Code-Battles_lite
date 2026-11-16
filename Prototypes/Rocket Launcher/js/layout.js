@@ -723,7 +723,7 @@
 
   // ---------- Tooltips rápidos ----------
   // Los iconos no llevan nombre: aparece al pasar el cursor (o al tocarlos en el teléfono).
-  // El módulo es compartido con el editor autónomo (shared/editor/tips.js).
+  // El módulo es compartido con el editor autónomo (paquetes/editor/tips.js).
   window.CMGTips.crear({ tip: $("tip") });
 
   function pintarTextosDisposicion() {

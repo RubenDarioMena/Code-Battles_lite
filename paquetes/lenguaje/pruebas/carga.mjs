@@ -9,7 +9,7 @@ for (const ruta of retirados) await assert.rejects(stat(new URL(ruta, raiz)), { 
 let rutas = 0;
 for (const [pagina, puente] of [
   ['Prototypes/Rocket Launcher/index.html', 'js/compat-paquetes.js'],
-  ['shared/editor/demo.html', 'compat-lenguaje.js'],
+  ['paquetes/editor/demo/demo.html', 'compat-paquetes.js'],
 ]) {
   const url = new URL(pagina, raiz), html = await readFile(url, 'utf8');
   const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)]
@@ -32,10 +32,12 @@ for (const [pagina, puente] of [
   }
   const fuente = await readFile(new URL(puente, url), 'utf8');
   for (const nombre of ['CMGEditorJS', 'ESTRUCTURA', 'CMGPythonJS', 'CMGJSaPython']) {
-    assert(fuente.includes(`window.${nombre} =`), `${nombre} publicado en ${puente}`);
+    assert(fuente.includes(`window.${nombre} =`) || fuente.includes(`globales.${nombre} =`)
+      || new RegExp(`Object\\.assign\\(window, \\{[^}]*\\b${nombre}\\b`).test(fuente), `${nombre} publicado en ${puente}`);
   }
-  assert(fuente.includes('hueco: nombre => window.CMGEditorPython.nombreDe(nombre)'));
-  if (pagina.startsWith('shared/')) assert(!/paquetes\/(?:app|reglas-|anfitrion)/.test(fuente));
+  assert(fuente.includes('hueco: nombre => window.CMGEditorPython.nombreDe(nombre)')
+    || fuente.includes('hueco: CMGEditorPython.nombreDe'));
+  if (pagina.startsWith('paquetes/editor/demo/')) assert(!/paquetes\/(?:app|reglas-|anfitrion)/.test(fuente));
   else assert(fuente.includes('window.LENGUAJE = lenguaje;'));
 }
 // El grafo del paquete solo importa archivos propios: Acorn y Lezer son parámetros.

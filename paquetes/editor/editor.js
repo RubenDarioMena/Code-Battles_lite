@@ -1,6 +1,13 @@
+import { dependencias } from './dependencias.js';
+import { CMGLenguajes } from './lenguajes.js';
+import { CMGAdaptadorJS } from './adaptador-js.js';
+import { CMGEditorVida } from './vida.js';
+import { CMGEdicion } from './edicion.js';
+import { CMGSeudo } from './seudo.js';
+import { CMGEditorUI } from './nucleo-ui.js';
+import { CMGTips } from './tips.js';
+import { ICONOS } from './iconos.js';
 /* Instancia reutilizable. El anfitrión aporta documentos y datos, nunca ejecución. */
-(() => {
-  "use strict";
   let secuencia = 0;
   const ICONO_PANTALLA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>';
   const plantilla = `
@@ -50,10 +57,11 @@
     return w < 760 || (w < 1000 && h > w) || (tactil && Math.min(w, h) < 500) || ancho < 340 ? "movil" : "escritorio";
   };
 
+  /** @param {any} opciones */
   function crear(opciones) {
     const { raiz, proveedor = {}, alCambiar = () => {}, alAviso } = opciones;
     if (!raiz || raiz.dataset.cmgEditor) throw Error("La raíz del editor debe estar libre.");
-    const adaptadores = opciones.adaptadores || { js: window.CMGAdaptadorJS };
+    const adaptadores = opciones.adaptadores || { js: CMGAdaptadorJS };
     let adaptador = adaptadores[opciones.documento?.lenguaje || "js"];
     if (!adaptador) throw Error("Lenguaje del documento no disponible.");
     const uid = "cmg-editor-" + ++secuencia, nodos = new Map(), propios = [], reemplazos = [];
@@ -78,7 +86,7 @@
       raiz.dataset.autonomo = "true";
       const fragmento = temporal.content;
       for (const n of fragmento.querySelectorAll("[id]")) {
-        const id = n.id; n.dataset.editor = id; n.id = uid + "-" + id; nodos.set(id, n);
+        const id = n.id; /** @type {HTMLElement} */ (n).dataset.editor = id; n.id = uid + "-" + id; nodos.set(id, n);
       }
       propios.push(...fragmento.childNodes); raiz.append(fragmento);
     }
@@ -86,7 +94,7 @@
     // El anfitrión lleva data-forma, data-modo y data-sin-teclado; las reglas compartidas de CSS lo buscan por esta clase.
     const anfitrion = $("app"), anfitrionNuevo = !anfitrion.classList.contains("cmg-anfitrion");
     anfitrion.classList.add("cmg-anfitrion");
-    const vida = window.CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
+    const vida = CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
     const memoria = new Map();
     const preferencias = opciones.preferencias || {
       leer: (k, d) => memoria.has(k) ? memoria.get(k) : d,
@@ -111,37 +119,39 @@
     // Vistas derivadas del árbol (Seudo y, en Factory, Bloques). Las pide el juego; una instancia autónoma
     // solo las tiene con opciones.vistas. Hoy el árbol solo entra y sale como JS.
     const vistas = new Set(opciones.vistas || (opciones.adoptar ? ["pseudo"] : []));
-    const iconos = opciones.iconos || window.ICONOS || {};
+    const iconos = opciones.iconos || ICONOS || {};
     const historiales = new Map();
     // El interior (texto, paleta, edición y vistas) depende del adaptador. Cambiar de lenguaje lo rehace
     // con sus propios recursos; el marcado, el documento y los historiales se conservan.
-    let ui = null, interior = null, vistasPedidas = !opciones.aplazarVistas;
+    /** @type {any} */
+    let ui = null;
+    let interior = null, vistasPedidas = !opciones.aplazarVistas;
     function montarInterior() {
-      const vidaInterior = window.CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
+      const vidaInterior = CMGEditorVida.crear(raiz, ambito, !!opciones.atajosGlobales);
       Object.assign(cmg, {
         lexico: adaptador.lexico, clasificar: (f, i) => adaptador.clasificar(f, i, proveedor.vocabulario?.(adaptador.id) || {}), reHueco: adaptador.hueco.re,
       });
       delete cmg.edicion; delete cmg.seudo;
-      ui = window.CMGEditorUI.crear({ opciones: { ...opciones, proveedor }, cmg, $, ambito, vida: vidaInterior, adaptador, marcasActuales });
+      ui = CMGEditorUI.crear({ opciones: { ...opciones, proveedor }, cmg, $, ambito, vida: vidaInterior, adaptador, marcasActuales });
       Object.assign(cmg, ui);
       vidaInterior.escuchar(codigo, "scroll", ui.pintarBanda);
       const dependencias = { cmg, $, ambito, preferencias, vida: vidaInterior, adaptador, iconos, historiales };
-      window.CMGEdicion.crear(dependencias);
+      CMGEdicion.crear(dependencias);
       interior = { vida: vidaInterior, dependencias };
       if (vistasPedidas) iniciarVistas();
       const $modos = $("modos-codigo");
       if ($modos) $modos.hidden = !vistas.size || !vistasPosibles();
       const $sel = $("lenguaje");
       if ($sel) $sel.value = adaptador.id;
-      codigo.setAttribute("aria-label", "Código " + window.CMGLenguajes.describir(adaptador.id, adaptador).nombre);
+      codigo.setAttribute("aria-label", "Código " + CMGLenguajes.describir(adaptador.id, adaptador).nombre);
       raiz.dataset.lenguaje = adaptador.id;
     }
     // Las vistas escriben JS: sobre otro lenguaje no se crean hasta que exista «árbol → ese lenguaje».
-    const vistasPosibles = () => adaptador.id === "js" && !!window.CMGSeudo;
+    const vistasPosibles = () => adaptador.id === "js" && !!dependencias.vistas;
     function iniciarVistas() {
       vistasPedidas = true;
       if (!cmg.seudo && !vida.destruida && vistas.size && vistasPosibles())
-        window.CMGSeudo.crear({ ...interior.dependencias, preferencias: opciones.preferenciasVistas || preferencias });
+        CMGSeudo.crear({ ...interior.dependencias, preferencias: opciones.preferenciasVistas || preferencias });
       return cmg.seudo;
     }
     function desmontarInterior() {
@@ -172,7 +182,7 @@
     // Lo que en el juego aporta su propia interfaz (layout.js y juego.js): forma, letra, ajustes,
     // tooltips y pantalla completa. Solo para instancias autónomas.
     function montarAutonomo() {
-      const soltarTips = window.CMGTips ? window.CMGTips.adquirir() : () => {};
+      const soltarTips = CMGTips ? CMGTips.adquirir() : () => {};
       // Forma: la fija el anfitrión (opciones.forma) o se deduce del ancho del propio editor.
       const aplicarForma = () => {
         const f = opciones.forma || formaPorAncho(raiz.getBoundingClientRect().width);
@@ -202,7 +212,7 @@
       const $lenguaje = $("lenguaje");
       const ofrecidos = () => {
         const pedidos = opciones.lenguajes || Object.keys(adaptadores);
-        return window.CMGLenguajes.disponibles(adaptadores, pedidos.includes(adaptador.id) ? pedidos : [adaptador.id, ...pedidos]);
+        return CMGLenguajes.disponibles(adaptadores, pedidos.includes(adaptador.id) ? pedidos : [adaptador.id, ...pedidos]);
       };
       let pidiendo = false;
       const pintarLenguajes = () => {
@@ -310,7 +320,7 @@
         } else codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } }));
         ui.medirEditor();
       },
-      lenguajes: () => window.CMGLenguajes.disponibles(adaptadores, opciones.lenguajes),
+      lenguajes: () => CMGLenguajes.disponibles(adaptadores, opciones.lenguajes),
       insertar(...args) { return !vida.destruida && !opciones.soloLectura?.() && ui.insertar(...args); },
       marcas(revision, lista) {
         if (vida.destruida || revision !== doc.revision) return false;
@@ -344,5 +354,6 @@
     ui.medirEditor();
     return editor;
   }
-  window.CMGEditor = { crear };
-})();
+  const CMGEditor = { crear };
+
+export { CMGEditor };

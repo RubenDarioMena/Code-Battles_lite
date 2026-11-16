@@ -1,4 +1,5 @@
 (async () => {
+const Editor = await import("../paquetes/editor/index.js");
 const L = await import("../paquetes/lenguaje/index.js");
 // E0: módulos reales sin DOM y límites entre editor y aplicación.
 const assert = require('node:assert/strict');
@@ -8,8 +9,9 @@ const vm = require('node:vm');
 const raiz = path.join(__dirname, '..');
 const cargar = (contexto, archivo) => vm.runInContext(readFileSync(path.join(raiz, archivo), 'utf8'), contexto, { filename: archivo });
 const contexto = vm.createContext({ window: {} });
+Object.assign(contexto.window, Editor);
 Object.assign(contexto.window, { CMGEditorJS: L.CMGEditorJS });
-for (const archivo of ['shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
+for (const archivo of ['Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
 assert.equal(contexto.window.cmg, undefined);
 assert.equal(contexto.document, undefined);
 assert.equal(contexto.localStorage, undefined);
@@ -62,7 +64,6 @@ function puerto(texto) {
 
   // Paridad de series: War y Factory comparten la sección común (bucles, if, operadores, variable,
   // Esperar y consola) en JS y en Python; solo cambian las órdenes de la serie y la pausa del bucle.
-  cargar(contexto, 'shared/editor/python.js');
   const forma = atajos => JSON.parse(JSON.stringify(atajos.map(a => a === '|' ? '|' : [a.ico, a.t, (a.variantes || []).map(v => v.ico)])));
   const PROPIAS = { war: ['apuntar', 'disparo', 'rafaga', 'detener', 'sensor'], factory: ['recoger', 'entregar', 'sensor'] };
   const comun = (serie, atajos) => forma(atajos.filter(a => a === '|' || !PROPIAS[serie].includes(a.ico)));

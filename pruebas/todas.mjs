@@ -21,6 +21,8 @@ const logica = [
   'paquetes/anfitrion/pruebas/anfitrion.mjs',
   'paquetes/lenguaje/pruebas/lenguaje.mjs',
   'paquetes/lenguaje/pruebas/carga.mjs',
+  'paquetes/editor/pruebas/editor.mjs',
+  'paquetes/editor/pruebas/carga.mjs',
   'paquetes/app/pruebas/app.mjs',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',
   'paquetes/vista-3d/pruebas/vista-3d.mjs',

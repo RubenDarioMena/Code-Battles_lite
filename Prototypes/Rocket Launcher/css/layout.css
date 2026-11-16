@@ -118,7 +118,7 @@
 
 /* Código en teléfono: pestañas y paleta compactas; la consola queda plegada a una línea. */
 .app[data-forma="movil"] .tab { padding: 5px 9px; font-size: 10.5px; min-height: 30px; }
-/* Paleta compacta y ladrillos solo con icono en el teléfono: shared/css/edicion.css. */
+/* Paleta compacta y ladrillos solo con icono en el teléfono: paquetes/editor/estilos/edicion.css. */
 .app[data-forma="movil"] .mini { min-height: 30px; min-width: 32px; padding: 2px 6px; }
 .app[data-forma="movil"] #v-programa > .area-programa { min-height: 5rem; }
 /* Panel inferior: en el teléfono empieza cerrado; solo queda su barra y el código gana ese espacio. */
@@ -173,7 +173,7 @@
   box-shadow: 0 0 5px var(--bad-soft); background: var(--surface);
 }
 
-/* Barra de edición, paleta y sus tamaños del teléfono: shared/css/edicion.css (.cmg-anfitrion es la .app).
+/* Barra de edición, paleta y sus tamaños del teléfono: paquetes/editor/estilos/edicion.css (.cmg-anfitrion es la .app).
    El interruptor del teclado: en el teléfono vive en la barra; en PC, junto a la letra. */
 .app[data-forma="movil"] .herramientas .b-teclado { display: none; }
 .app.teclado[data-forma="movil"] .barra-edicion { flex: none; }

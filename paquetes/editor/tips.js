@@ -3,13 +3,14 @@
  * Son de la página, no de una instancia: crear() escucha el documento y adquirir()/soltar()
  * comparten un único tooltip entre los editores autónomos. La paleta y su menú de variantes
  * se buscan en el editor del elemento, así varios editores en una página no se confunden. */
-(() => {
-  "use strict";
+  /** @param {{ tip?: any }} [opciones] */
   function crear({ tip } = {}) {
     const propio = !tip;
     if (propio) { tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; tip.setAttribute("role", "tooltip"); document.body.append(tip); }
     const abortar = new AbortController(), opt = { signal: abortar.signal };
-    let tipDe = null, tipT = 0, tipFuera = 0;
+    let tipDe = null;
+    /** @type {any} */ let tipT = 0;
+    /** @type {any} */ let tipFuera = 0;
     const vigiladas = new WeakSet(), vigias = [];
     const ambitoDe = el => el.closest(".cmg-editor") || document;
     function mostrarTip(el) {
@@ -44,14 +45,14 @@
     }
     document.addEventListener("pointerover", (ev) => {
       if (ev.pointerType === "touch") return;
-      const el = ev.target.closest("[data-tip]");
+      const el = /** @type {Element} */ (ev.target).closest("[data-tip]");
       if (el === tipDe) return;
       clearTimeout(tipT);
       if (!el) { ocultarTip(); return; }
       tipT = setTimeout(() => mostrarTip(el), tip.hidden ? 70 : 0);
     }, opt);
     document.addEventListener("pointerdown", (ev) => {
-      const el = ev.target.closest && ev.target.closest("[data-tip]");
+      const el = /** @type {Element} */ (ev.target).closest && /** @type {Element} */ (ev.target).closest("[data-tip]");
       if (ev.pointerType !== "touch") { if (!el) ocultarTip(); return; }
       if (!el) { ocultarTip(); return; }
       mostrarTip(el);
@@ -78,5 +79,6 @@
     let suelto = false;
     return () => { if (suelto) return; suelto = true; if (--usos === 0) { compartido.destruir(); compartido = null; } };
   }
-  window.CMGTips = { crear, adquirir, get activo() { return compartido; } };
-})();
+  const CMGTips = { crear, adquirir, get activo() { return compartido; } };
+
+export { CMGTips };

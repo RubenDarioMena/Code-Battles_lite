@@ -1,3 +1,6 @@
+import { CMGEditorPython } from './python.js';
+import { ESTRUCTURA } from '../lenguaje/index.js';
+import { dependencias } from './dependencias.js';
 /* Estructura de un programa Python para editar por bloques (E4).
  * Parte del árbol de lezer (shared/vendor/lezer-python-1.1.19.js) y lo traduce a los mismos tipos de
  * nodo que paquetes/lenguaje construye para JS (sentencia, decl, si, mientras, para, funcion,
@@ -9,9 +12,7 @@
  *  - «x = valor» con un nombre es «decl»;
  *  - los huecos son identificadores __nombre__ (D4).
  * No usa el DOM ni ejecuta nada. */
-(() => {
-  "use strict";
-  const PY = () => window.CMGEditorPython;
+  const PY = () => CMGEditorPython;
   const OPERADORES = ["**=", "//=", ">>=", "<<=", "->", ":=", "==", "!=", "<=", ">=", "**", "//", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "@="];
   const COMPLETOS = new Set(OPERADORES);
   const PREFIJOS = new Set(OPERADORES.flatMap(o => [...o].map((_, i) => o.slice(0, i + 1))));
@@ -53,9 +54,11 @@
     // Índices de fichas que caen en [desde, hasta).
     const desdeFicha = pos => { let lo = 0, hi = sig.length; while (lo < hi) { const m = (lo + hi) >> 1; if (sig[m].a < pos) lo = m + 1; else hi = m; } return lo; };
     const hastaFicha = pos => { let lo = 0, hi = sig.length; while (lo < hi) { const m = (lo + hi) >> 1; if (sig[m].b <= pos) lo = m + 1; else hi = m; } return lo - 1; };
+    /** @returns {[number, number] | null} */
     const rango = n => { const ia = desdeFicha(n.from), ib = hastaFicha(n.to); return ia <= ib ? [ia, ib] : null; };
 
     const nodos = [], duenos = new Map(), hojas = new Map();
+    /** @param {any} k @param {any} ia @param {any} ib @param {any} [h] @param {any} [extra] */
     const nodo = (k, ia, ib, h = [], extra) => {
       const n = { k, a: sig[ia].a, b: sig[ib].b, ia, ib, h: h.filter(Boolean), padre: null, ...extra };
       for (const c of n.h) c.padre = n;
@@ -119,6 +122,7 @@
       }
     }
     // if / elif / else y while / else: la condición y el cuerpo; cada elif o else es una rama.
+    /** @param {any} c @param {any} hs @param {[number, number]} r @param {any} k */
     function condicional(c, hs, r, k) {
       const grupos = [];
       for (const x of hs) {
@@ -237,7 +241,7 @@
       }
     }
 
-    const arbol = window.LezerPython.parser.parse(src);
+    const arbol = dependencias.lezer.parser.parse(src);
     const tope = sig.length ? sentencias(hijos(arbol.topNode)) : [];
     const raiz = { k: "programa", a: 0, b: src.length, ia: 0, ib: sig.length - 1, h: tope, padre: null };
     for (const n of tope) n.padre = raiz;
@@ -249,7 +253,7 @@
 
   // Las consultas comunes (atomo, ampliar, unidadLinea, fronteraValida, contexto, destino, enLista…)
   // son las de JS con las palabras de Python.
-  const C = () => window.ESTRUCTURA.consultas({
+  const C = () => ESTRUCTURA.consultas({
     claves: CLAVES, logicos: new Set(["and", "or"]), compara: new Set(["==", "!=", "<", ">", "<=", ">=", "is", "is not", "in", "not in"]),
     huecoNombre: t => PY().nombreDe(t),
   });
@@ -291,8 +295,9 @@
     atomo: (...x) => q().atomo(...x), ampliar: (...x) => q().ampliar(...x), unidadLinea: (...x) => q().unidadLinea(...x),
     fronteraValida: (...x) => q().fronteraValida(...x), contexto: (...x) => q().contexto(...x), destino: (...x) => q().destino(...x),
     enLista: (...x) => q().enLista(...x),
-    lineaDe: (...x) => window.ESTRUCTURA.lineaDe(...x), inicioLinea: (...x) => window.ESTRUCTURA.inicioLinea(...x),
-    finLinea: (...x) => window.ESTRUCTURA.finLinea(...x), fichaEn: (...x) => window.ESTRUCTURA.fichaEn(...x),
+    lineaDe: (...x) => ESTRUCTURA.lineaDe(...x), inicioLinea: (...x) => ESTRUCTURA.inicioLinea(...x),
+    finLinea: (...x) => ESTRUCTURA.finLinea(...x), fichaEn: (...x) => ESTRUCTURA.fichaEn(...x),
   };
-  window.ESTRUCTURA_PYTHON = { analizar, desenvolver, ...comunes };
-})();
+  const ESTRUCTURA_PYTHON = { analizar, desenvolver, ...comunes };
+
+export { ESTRUCTURA_PYTHON };

@@ -1,11 +1,10 @@
+import { CMGCatalogo } from './plantillas.js';
 /* Primitivas Python del editor (E4): léxico, huecos, sangría significativa, plantillas y teclas.
  * No crea interfaz ni ejecuta programas: el árbol sale de estructura-python.js (lezer) y la
  * ejecución, en E5, del traductor del juego. El puerto de texto e inserción lo pone el anfitrión.
  *
  * En Python la sangría es el programa. Toda operación que mueve o crea líneas pregunta aquí por
  * los niveles válidos (niveles) y deja un «pass» donde un bloque se quedaría vacío (rellenar). */
-(() => {
-  "use strict";
   const UNIDAD = "    ";
   // Huecos: identificadores válidos __nombre__ (D4). Los nombres con dos guiones de Python
   // (__name__, __init__…) no son huecos.
@@ -189,7 +188,7 @@
   // la envolvente pone la cabecera sobre las líneas elegidas, que bajan un nivel.
   // Los atajos de la paleta común salen del catálogo único (CMGCatalogo, en plantillas.js, que se carga antes), con su texto en Python.
   function plantillas({ pausa = "" } = {}) {
-    return { atajos: window.CMGCatalogo.atajos("python", { pausa }), textoAtajo: window.CMGCatalogo.textoAtajo };
+    return { atajos: CMGCatalogo.atajos("python", { pausa }), textoAtajo: CMGCatalogo.textoAtajo };
   }
   const TECLAS = [
     { t: "⇥", ins: UNIDAD, cls: "nav", n: "Sangría" }, { t: "←", mover: -1, cls: "nav" }, { t: "→", mover: 1, cls: "nav" }, "|",
@@ -372,8 +371,9 @@
     return { rangoCodigo, envolver, expresionEnvolvible, elegirLineasCompletas, insertarBloque, insertarOperador };
   }
 
-  window.CMGEditorPython = {
+  const CMGEditorPython = {
     UNIDAD, HUECO, RE_HUECO, lexico, clasificar, KW, aHueco, nombreDe,
     lineas, abre, alPartirLinea, niveles, rellenar, crearComentario, plantillas, TECLAS, EDICION, crearEdicion,
   };
-})();
+
+export { CMGEditorPython };

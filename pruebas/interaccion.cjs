@@ -1,4 +1,5 @@
 (async () => {
+const Editor = await import("../paquetes/editor/index.js");
 const L = await import("../paquetes/lenguaje/index.js");
 // Pruebas de lógica sin DOM ni dependencias: node pruebas/interaccion.cjs
 const { readFileSync } = require('node:fs');
@@ -6,9 +7,10 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const ctx = vm.createContext({ console, Set, Map, Object, Promise, window: {} });
+Object.assign(ctx.window, Editor);
 Object.assign(ctx.window, { CMGEditorJS: L.CMGEditorJS, ESTRUCTURA: L.ESTRUCTURA });
 for (const archivo of [
-  'shared/editor/plantillas.js', 'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js',
+  'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js',
 ]) vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8'), ctx, { filename: archivo });
 vm.runInContext(`
 var lexico = window.CMGEditorJS.lexico;

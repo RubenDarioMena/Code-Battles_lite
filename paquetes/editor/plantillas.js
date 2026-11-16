@@ -11,9 +11,8 @@
  * Vive en este archivo (no en uno aparte) a propósito: todas las páginas ya cargan plantillas.js antes
  * que python.js, así que una caché que mezcle versiones de index.html no deja la paleta sin catálogo
  * (eso cortaba el arranque del juego: pantalla negra y paleta vacía). */
-(() => {
-  "use strict";
   const U = "    "; // sangría de Python
+  /** @type {any[]} */
   const CATALOGO = [
     { ico: "comentar", t: "Comentar", i18n: "paleta.comentar", comentar: true, js: { cod: "// …  (Ctrl+/)" }, python: { cod: "# …  (Ctrl+/)" } },
     "|",
@@ -119,14 +118,12 @@
     return lista;
   }
   const textoAtajo = a => typeof a.b === "function" ? a.b() : a.b;
-  window.CMGCatalogo = { atajos, textoAtajo, lenguajes: Object.keys(PAUSA), entradas: CATALOGO };
-})();
+  const CMGCatalogo = { atajos, textoAtajo, lenguajes: Object.keys(PAUSA), entradas: CATALOGO };
 
 /* Atajos JavaScript de la paleta común, desde el catálogo. Cada llamada crea una lista independiente. */
-(() => {
-  "use strict";
   function crear({ pausa = "" } = {}) {
-    return { atajos: window.CMGCatalogo.atajos("js", { pausa }), textoAtajo: window.CMGCatalogo.textoAtajo };
+    return { atajos: CMGCatalogo.atajos("js", { pausa }), textoAtajo: CMGCatalogo.textoAtajo };
   }
-  window.CMGPlantillasJS = { crear };
-})();
+  const CMGPlantillasJS = { crear };
+
+export { CMGCatalogo, CMGPlantillasJS };

@@ -1,4 +1,5 @@
 (async () => {
+const Editor = await import("../paquetes/editor/index.js");
 const L = await import("../paquetes/lenguaje/index.js");
 // E4 · Python en el editor, sin DOM: node pruebas/editor-python.cjs
 // Léxico, árbol (lezer → nodos del editor), niveles de sangría, «pass» en bloques vacíos,
@@ -9,9 +10,11 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const ctx = vm.createContext({ console, window: {} });
+Object.assign(ctx.window, Editor);
 Object.assign(ctx.window, { CMGEditorJS: L.CMGEditorJS, ESTRUCTURA: L.ESTRUCTURA });
-for (const archivo of ['shared/vendor/lezer-python-1.1.19.js', 'shared/editor/lenguajes.js', 'shared/editor/plantillas.js', 'shared/editor/python.js', 'shared/editor/estructura-python.js', 'shared/editor/adaptador-python.js'])
+for (const archivo of ['shared/vendor/lezer-python-1.1.19.js'])
   vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8') + (archivo.includes('lezer') ? ';window.LezerPython = LezerPython;' : ''), ctx, { filename: archivo });
+Editor.configurar({ lezer: ctx.window.LezerPython });
 const { CMGEditorPython: P, ESTRUCTURA_PYTHON: E, CMGAdaptadorPython: A, LezerPython } = ctx.window;
 let checks = 0;
 const eq = (a, b, m) => { assert.deepEqual(JSON.parse(JSON.stringify(a)), b, m); checks++; };

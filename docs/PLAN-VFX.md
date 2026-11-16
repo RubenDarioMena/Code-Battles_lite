@@ -22,7 +22,7 @@ Propuesta para empezar a añadir efectos visuales a War (Rocket Launcher) y Fact
 
 ## Por qué encaja con la arquitectura
 
-- Un módulo `shared/js/vfx.js` sin dependencias, como `shared/js/iconos.js`. La carpeta `shared/` ya está en la lista permitida del paquete de Netlify. No hay npm, compilación ni librerías nuevas.
+- Un módulo `shared/js/vfx.js` sin dependencias, como `paquetes/editor/iconos.js`. La carpeta `shared/` ya está en la lista permitida del paquete de Netlify. No hay npm, compilación ni librerías nuevas.
 - Repite decisiones que ya están tomadas. Hay brillo por calcos aditivos y texturas pintadas en un canvas (`textura()` en `juego.js`), sin luces simuladas ni post-proceso. Los colores salen de los tokens de `base.css` (`--explosion`, `--misil`, `--enemigo`, `--rol-*`, `--ok`, `--bad`), así que las paletas A/B/C y futuros temas se aplican solas.
 - **Determinismo.** Los efectos nunca llaman a `mundo.rng()` ni escriben en el estado de la simulación. Su azar es un hash propio. El tiempo visual sale del tiempo de simulación más la interpolación `off` que ya calcula `bucle()`. Los efectos se detienen con la pausa y se aceleran con 2×–8×. Además, son compatibles con la grabación de vídeo por tiempo de simulación que recomienda `INFORME-STYKANIMATE.md`.
 - **Interacción intacta.** Las nubes de puntos no cuentan al elegir con el puntero (`raycast` vacío, como los calcos), no escriben profundidad y se dibujan sobre los calcos. Etiquetas, globos y avisos siguen en la capa HTML, por encima.

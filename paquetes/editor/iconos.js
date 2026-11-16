@@ -3,8 +3,6 @@
  * En reposo, todo el icono es grabado (una sola tinta oscura sobre la placa).
  * Al pasar el cursor, cada parte toma su color: t1/s1 → c1, t2/s2 → c2, t3/s3 → c3.
  * Clases: t = relleno, s = trazo. Rejilla de 32 × 32. */
-(() => {
-  "use strict";
   const svg = (cuerpo) => `<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">${cuerpo}</svg>`;
   const flechasCiclo = `
     <path class="s1" stroke-width="2.6" stroke-linecap="round" d="M6.2 13.5A10.2 10.2 0 0 1 22.6 7.6"/>
@@ -16,7 +14,7 @@
     <path class="t2" d="M11.7 15.5l-3.9 4.4v4.6l3.9-2.4zM20.3 15.5l3.9 4.4v4.6l-3.9-2.4z"/>
     <path class="t3" d="M13.2 22.4h5.6L16 30z"/>`;
 
-  window.ICONOS = {
+  const ICONOS = {
     comentar: { c1: "#6FA0FF", c2: "#E3ECFF", svg: svg(`
       <path class="s1" stroke-width="2.4" stroke-linejoin="round" d="M5.5 5h21a2.5 2.5 0 0 1 2.5 2.5v12.5a2.5 2.5 0 0 1-2.5 2.5H14l-6.5 5v-5H5.5A2.5 2.5 0 0 1 3 20V7.5A2.5 2.5 0 0 1 5.5 5z"/>
       <path class="t2" d="M10.6 18.8l4.2-10.6h2.8l-4.2 10.6zM16.4 18.8l4.2-10.6h2.8l-4.2 10.6z"/>`) },
@@ -251,4 +249,5 @@
       <path class="s1" stroke-width="2.2" stroke-linejoin="round" d="M11.2 2.6h9.6l8.6 8.6v9.6l-8.6 8.6h-9.6l-8.6-8.6v-9.6z"/>
       <path class="s2" stroke-width="2.6" stroke-linecap="round" d="M11.6 11.6l8.8 8.8M20.4 11.6l-8.8 8.8"/>`) },
   };
-})();
+
+export { ICONOS };

@@ -7,8 +7,9 @@ Este proyecto es autónomo. Antes de hacer cambios lee, en este orden: [`docs/PL
 - **Steam primero, Android después.** El navegador es el canal de QA, no el producto. Tecnología web, con Electron para Steam y Capacitor para Android.
 - **El plan vigente es `docs/PLAN-ARQUITECTURA.md`**: núcleo de simulación sin pantalla, reglamentos por serie, vistas 2D y 3D intercambiables, editor reutilizable y anfitrión de programas. Sigue sus fases y sus criterios de «hecho». `docs/PLAN-UNIFICACION.md` está cerrado y es historia.
 - **El punto de partida del código** es la aplicación común de `Prototypes/Rocket Launcher/` (War, Factory con `?serie=factory` y Campaign con `?serie=campaign`) y `shared/`. El Factory original (`Prototypes/Tres vistas/`) está retirado; su comportamiento queda en `pruebas/factory-oraculo.json` y su código en el historial (`b76411b`).
+- **Editor reutilizable.** Vive en `paquetes/editor/` (contrato en `README.md`, demo en `demo/demo.html`). Solo importa `lenguaje`; los servicios externos se inyectan con `configurar`. Los puentes de juego y demo conservan los consumidores clásicos.
 - **El diseño no es definitivo.** El estilo gráfico, la interfaz y el combate de War, Factory y Campaign pueden cambiar mucho (control manual de unidades, muchas más unidades). No construyas suponiendo que se quedan como están, y no los rediseñes sin que se pida.
-- **JavaScript y Python reales** siguen siendo el lenguaje del jugador ([plan](docs/PLAN-EDITOR-LENGUAJES.md)). Python se traduce a JS con las mismas líneas (`shared/python/traductor.js`). Si cambias su semántica, compárala con CPython y añádela a `pruebas/python-traductor.cjs`. No se añaden otros lenguajes.
+- **JavaScript y Python reales** siguen siendo el lenguaje del jugador ([plan](docs/PLAN-EDITOR-LENGUAJES.md)). Python se traduce a JS con las mismas líneas (`paquetes/lenguaje/python.js`). Si cambias su semántica, compárala con CPython y añádela a `pruebas/python-traductor.cjs`. No se añaden otros lenguajes.
 
 ## Reglas
 

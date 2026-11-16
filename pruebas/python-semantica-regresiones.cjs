@@ -1,4 +1,5 @@
 (async () => {
+const Editor = await import("../paquetes/editor/index.js");
 const L = await import("../paquetes/lenguaje/index.js");
 // Regresiones de semántica Python que el traductor debe conservar.
 // Salidas contrastadas con CPython 3.12.14 y await superior al estilo del REPL de asyncio.
@@ -8,12 +9,14 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 
 const ctx = vm.createContext({ console, window: {} });
+Object.assign(ctx.window, Editor);
 Object.assign(ctx.window, { CMGEditorJS: L.CMGEditorJS, ESTRUCTURA: L.ESTRUCTURA });
-for (const archivo of ['shared/vendor/acorn-8.11.3.js', 'shared/vendor/lezer-python-1.1.19.js', 'shared/editor/plantillas.js', 'shared/editor/python.js']) {
+for (const archivo of ['shared/vendor/acorn-8.11.3.js', 'shared/vendor/lezer-python-1.1.19.js']) {
   vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8') +
     (archivo.includes('lezer') ? ';window.LezerPython = LezerPython;' : '') +
     (archivo.includes('acorn') ? ';window.acorn = acorn;' : ''), ctx, { filename: archivo });
 }
+Editor.configurar({ lezer: ctx.window.LezerPython });
 ctx.window.CMGPythonJS = L.crearPython({ lezer: ctx.window.LezerPython,
   hueco: ctx.window.CMGEditorPython?.nombreDe });
 ctx.window.CMGJSaPython = L.crearJSaPython({ acorn: ctx.window.acorn });

@@ -1,0 +1,14 @@
+export { configurar } from './dependencias.js';
+export { CMGEditor } from './editor.js';
+export { CMGLenguajes } from './lenguajes.js';
+export { CMGCatalogo, CMGPlantillasJS } from './plantillas.js';
+export { CMGAdaptadorJS } from './adaptador-js.js';
+export { CMGAdaptadorPython } from './adaptador-python.js';
+export { CMGEditorPython } from './python.js';
+export { ESTRUCTURA_PYTHON } from './estructura-python.js';
+export { CMGEditorVida } from './vida.js';
+export { CMGEditorUI } from './nucleo-ui.js';
+export { CMGEdicion } from './edicion.js';
+export { CMGSeudo } from './seudo.js';
+export { CMGTips } from './tips.js';
+export { ICONOS } from './iconos.js';

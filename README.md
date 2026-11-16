@@ -49,19 +49,19 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `js/paleta.js`, `js/programas.js` | Catálogo de atajos y aplicación de borradores Add/Replace, cargados también por las pruebas. |
 | `paquetes/anfitrion/` (desde la raíz) | Texto del Web Worker de los programas y despertar del lockstep (antes `js/runtime.js`). El paso fijo está en `paquetes/nucleo/`. |
 | `paquetes/reglas-war/`, `paquetes/reglas-factory/`, `paquetes/reglas-campaign/` (desde la raíz) | Reglas, retos y nivel de cada serie, como módulos ES que corren en Node. |
-| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO`, `RUNTIME` (Worker del anfitrión), `ESCENAS` (escena de cada reglamento para las vistas), `VISTA_2D`, `VISTA_3D` y `FACTORY_3D` como globales mientras dure la fase 2. |
+| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO`, `RUNTIME` (Worker del anfitrión), `ESCENAS` (escena de cada reglamento para las vistas), `VISTA_2D`, `VISTA_3D` y `FACTORY_3D`, además de las fábricas e iconos del editor que usa la aplicación, como globales mientras dure la fase 2. |
 | `paquetes/vista-3d/` (desde la raíz) | Visores 3D de War, Factory y Campaign como módulos ES. Leen solo la escena del reglamento (`estado.escena`); cámara, gestos y terreno en módulos propios. |
 | `paquetes/vista-2d/` (desde la raíz) | Planos 2D de War, Factory y Campaign y relieve de Campaign, como módulos ES (fase 2; antes `js/vistas.js`, `js/factory-vista.js`, `js/campaign-plano.js` y `js/campaign-terreno.js`). |
 | `paquetes/vista-3d/factory.js` (desde la raíz), `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil y tooltips. |
-| `shared/editor/` (desde la raíz) | Instancia reutilizable, adaptador JS, paletas, símbolos, fichas, historial y vistas Seudo/Bloques. |
+| `paquetes/editor/` (desde la raíz) | Instancia reutilizable, adaptador JS, paletas, símbolos, fichas, historial y vistas Seudo/Bloques. |
 | `css/base.css` | Colores, tipografía y apariencia común. |
 | `css/componentes.css` | Estilos de componentes. |
 | `css/layout.css` | Reparto y adaptación a pantalla/teclado. |
 | `probar.html` | Probador con marcos de dispositivos y teclado simulado. |
 
-Los módulos `shared/js/iconos.js`, `paquetes/lenguaje` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
+Los paquetes `editor` y `lenguaje` sirven a las tres series. El editor se importa por `paquetes/editor/index.js`; sus estilos están en `paquetes/editor/estilos/`. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
 
 En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `paquetes/` contiene los paquetes del [plan de arquitectura](docs/PLAN-ARQUITECTURA.md) (en la fase 0, solo sus contratos); `herramientas/partida.mjs` juega una partida sin pantalla sobre el código actual y `pruebas/referencias/` guarda las referencias de paridad. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
@@ -150,13 +150,12 @@ node pruebas/python-semantica-regresiones.cjs
 node pruebas/python-conversion-regresiones.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
 node --check "Prototypes/Rocket Launcher/js/layout.js"
-node --check shared/editor/edicion.js
-node --check shared/editor/nucleo-ui.js
+node --check paquetes/editor/edicion.js
+node --check paquetes/editor/nucleo-ui.js
 node --check pruebas/editor-movil.mjs
 node --check pruebas/editor-movil-regresiones.mjs
-node --check shared/js/iconos.js
+node --check paquetes/editor/iconos.js
 node --check paquetes/lenguaje/estructura.js
-node --check shared/js/edicion.js
 node --check "Prototypes/Rocket Launcher/js/seudo.js"
 node pruebas/factory-reglas.cjs
 node paquetes/anfitrion/pruebas/anfitrion.mjs
@@ -223,13 +222,13 @@ Consulta [PROGRESO.md](PROGRESO.md) para la sesión y la migración, [docs/VISIO
 
 ## Editor y lenguajes
 
-[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas. Python se edita con el adaptador de `shared/editor/` (E4), se traduce con `paquetes/lenguaje` y su preludio en el worker (E5–E6) y se convierte desde JS con `paquetes/lenguaje` (E7).
+[Plan por etapas](docs/PLAN-EDITOR-LENGUAJES.md) y [contrato inicial D1/D2](docs/EDITOR-D1-D2.md). El proveedor declara nombres Python y esperas. Python se edita con el adaptador de `paquetes/editor/` (E4), se traduce con `paquetes/lenguaje` y su preludio en el worker (E5–E6) y se convierte desde JS con `paquetes/lenguaje` (E7).
 
-E1 implementa la [instancia reutilizable del editor](shared/editor/CONTRATO.md) en `shared/editor/`. El juego carga esas mismas fábricas; conserva sus fachadas y claves locales. La suite de lógica carga módulos completos. La [referencia de suites](shared/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas.
+El paso 10 de la fase 2 mueve la [instancia reutilizable del editor](paquetes/editor/README.md) a `paquetes/editor/` como módulos ES; i18n, presentación, Acorn y Lezer se inyectan mediante `configurar`. El juego carga esas mismas fábricas; conserva sus fachadas y claves locales. La suite de lógica carga módulos completos. La [referencia de suites](paquetes/editor/REFERENCIA-E0.json) distingue resultados actuales de cifras históricas.
 
 
 ### Demo del editor
 
-[Dos editores independientes](shared/editor/demo.html), también accesibles desde el enlace al pie de la portada. Prueba documentos, historial, fichas, símbolos, solo lectura y recrear. Juego y demo cargan el mismo código de `shared/editor/`: una corrección se aplica a ambos. El proveedor de la demo es declarativo y no inicia simulación ni ejecución. Sus documentos y preferencias duran la sesión.
+[Dos editores independientes](paquetes/editor/demo/demo.html), también accesibles desde el enlace al pie de la portada. Prueba documentos, historial, fichas, símbolos, solo lectura y recrear. Juego y demo cargan el mismo código de `paquetes/editor/`: una corrección se aplica a ambos. El proveedor de la demo es declarativo y no inicia simulación ni ejecución. Sus documentos y preferencias duran la sesión.
 
 La prueba `pruebas/editor-demo.mjs` se importa con un puerto de navegador como las demás suites. La validación se hizo con Chromium de escritorio y móvil emulado; los límites de la suite War quedan registrados en el [reporte](docs/qa/editor-e1-e2-2026-11-04/REPORTE.md).

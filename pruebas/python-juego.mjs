@@ -106,12 +106,14 @@ export async function probarPythonJuego(page, origen = 'http://127.0.0.1:8771') 
 
   // Caché con versiones mezcladas: unas plantillas rotas no cortan el arranque (antes: pantalla negra
   // y paleta vacía); si falta un archivo esencial, la página lo dice en vez de quedarse en negro.
-  const rotas = r => r.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.CMGPlantillasJS = { crear() { throw Error("sin catálogo"); } };' });
-  await page.route(/shared\/editor\/plantillas\.js/, rotas);
+  // Desde el paso 10 las plantillas son un módulo de paquetes/editor: se sirve el real con un crear() que falla.
+  const rotas = async r => { const res = await r.fetch(); await r.fulfill({ response: res, contentType: 'application/javascript',
+    body: (await res.text()).replace(/function crear\(\{ pausa = "" \} = \{\}\) \{/, '$& throw Error("sin catálogo");') }); };
+  await page.route(/paquetes\/editor\/plantillas\.js/, rotas);
   await page.goto(url('?serie=factory')); await page.waitForFunction(() => !!window.__banco && !!window.cmg?.editor);
   eq(await page.evaluate(() => [document.getElementById('titulo').textContent, document.getElementById('t-escenario').textContent, document.body.textContent.includes('La paleta no se pudo cargar')]),
     ['Primer viaje', 'Tu reto', true], 'sin plantillas, Factory arranca y avisa de recargar');
-  await page.unroute(/shared\/editor\/plantillas\.js/, rotas);
+  await page.unroute(/paquetes\/editor\/plantillas\.js/, rotas);
   const falta = r => r.fulfill({ status: 404, body: '' });
   await page.route(/js\/juego\.js/, falta);
   await page.goto(url('?serie=factory')); await page.waitForSelector('[role=alert]');

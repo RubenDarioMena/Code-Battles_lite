@@ -1,6 +1,6 @@
+import { ICONOS } from './iconos.js';
+import { dependencias } from './dependencias.js';
 /* UI de texto, medición, paleta y símbolos compartida por todas las instancias. */
-(() => {
-  "use strict";
   function crear({ opciones, cmg, $, ambito, vida, adaptador, marcasActuales }) {
     const $editor = $("editor"), $codigo = cmg.codigo, $gutter = $("gutter"), $banda = $("banda"), $espejo = $("espejo"), $resaltado = $("resaltado"), $bloques = $("bloques");
     const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
@@ -122,7 +122,7 @@
   }
 
     const alternarComentario = adaptador.comentario.crear({ codigo: $codigo, insertar, sinTeclado });
-  const localizarAviso = html => window.CMGPresentacion ? CMGPresentacion.html(html) : html;
+  const localizarAviso = html => dependencias.presentacion ? dependencias.presentacion.html(html) : html;
   function avisoEditor(html) {
     opciones.alAviso?.(html);
     const $a = $("aviso");
@@ -136,7 +136,7 @@
   const NOMBRES_SIMBOLO = { "Sangría": "paleta.simbolo.sangria", "Ocultar teclado": "paleta.simbolo.ocultar_teclado" };
   function textoUI(clave, respaldo, parametros = {}) {
     if (clave) {
-      const i18n = window.CMGI18n, traducido = i18n && typeof i18n.t === "function" ? i18n.t(clave, parametros) : null;
+      const i18n = dependencias.i18n, traducido = i18n && typeof i18n.t === "function" ? i18n.t(clave, parametros) : null;
       if (typeof traducido === "string" && traducido !== clave) return traducido;
     }
     return String(respaldo ?? clave ?? "").replace(/\{([^{}]+)\}/g, (m, nombre) => Object.hasOwn(parametros, nombre) ? String(parametros[nombre]) : m);
@@ -148,7 +148,7 @@
   const codAtajo = (a) => a.cod || (a.operador ? a.operador.trim() : a.sufijo ? a.sufijo.trim() : a.enLinea ? a.enLinea.trim() : textoAtajo(a).split("\n")[0] + (textoAtajo(a).includes("\n") ? " …" : ""));
   const estiloIcono = (ico) => `--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}`;
   function pintarPaleta() {
-    const I = opciones.iconos || window.ICONOS || {};
+    const I = opciones.iconos || ICONOS || {};
     cerrarVariantes();
     // Los botones del teléfono (edición, pares y signos) llevan solo-movil: el CSS del anfitrión decide si se ven y,
     // en el teléfono, los pone delante con su separador.
@@ -191,9 +191,11 @@
   const $variantes = document.createElement("div");
   $variantes.className = "variantes"; $variantes.hidden = true; $variantes.setAttribute("role", "menu");
   vida.portal($variantes);
-  let pulsado = null, variantesDe = -1, suprimirClic = false;
+  /** @type {any} */
+  let pulsado = null;
+  let variantesDe = -1, suprimirClic = false;
   function abrirVariantes(b, porPulsacion) {
-    const i = +b.dataset.i, a = ATAJOS[i], I = opciones.iconos || window.ICONOS || {};
+    const i = +/** @type {HTMLElement} */ (b).dataset.i, a = ATAJOS[i], I = opciones.iconos || ICONOS || {};
     if (variantesDe === i && !$variantes.hidden) return;
     variantesDe = i;
     $variantes.innerHTML = [a, ...a.variantes].map((v, j) => {
@@ -226,7 +228,7 @@
     suprimirClic = false;  // una pulsación nueva no hereda el clic suprimido de una variante
     const b = ev.target.closest(".atajo"); if (!b) return;
     ev.preventDefault();
-    const a = ATAJOS[+b.dataset.i];
+    const a = ATAJOS[+/** @type {HTMLElement} */ (b).dataset.i];
     if (!a.variantes || ev.button > 0) return;
     pulsado = { b, id: ev.pointerId, x: ev.clientX, y: ev.clientY, abierto: false };
     pulsado.t = vida.setTimeout(() => { if (pulsado) { pulsado.abierto = true; abrirVariantes(b, true); } }, 450);
@@ -268,7 +270,7 @@
     const b = ev.target.closest(".atajo"); if (!b) return;
     if (suprimirClic) { suprimirClic = false; return; }
     cerrarVariantes();
-    usarAtajo(ATAJOS[+b.dataset.i]);
+    usarAtajo(ATAJOS[+/** @type {HTMLElement} */ (b).dataset.i]);
   });
 
 
@@ -280,7 +282,7 @@
     vida.escuchar(simbolos, "pointerdown", ev => { if (ev.target.closest("button")) ev.preventDefault(); });
     vida.escuchar(simbolos, "click", ev => {
       const b = ev.target.closest("button[data-i]"); if (!b) return;
-      const k = TECLAS[+b.dataset.i];
+      const k = TECLAS[+/** @type {HTMLElement} */ (b).dataset.i];
       if (k.ocultar) return $codigo.blur();
       if (k.comentar) return alternarComentario();
       if (k.mover) { const p = Math.max(0, Math.min($codigo.value.length, $codigo.selectionStart + k.mover)); return $codigo.setSelectionRange(p,p); }
@@ -290,18 +292,18 @@
     });
     function pintarEtiquetas() {
       for (const b of $("paleta").querySelectorAll(".atajo")) {
-        const a = ATAJOS[+b.dataset.i]; if (!a || a === "|") continue;
+        const a = ATAJOS[+/** @type {HTMLElement} */ (b).dataset.i]; if (!a || a === "|") continue;
         b.setAttribute("aria-label", ariaAtajo(a));
-        b.dataset.tip = etiquetaAtajo(a);
+        /** @type {HTMLElement} */ (b).dataset.tip = etiquetaAtajo(a);
       }
       if (!$variantes.hidden && variantesDe >= 0) {
         const a = ATAJOS[variantesDe];
         if (a && a.variantes) for (const b of $variantes.querySelectorAll(".variante")) {
-          const j = +b.dataset.v, v = j ? a.variantes[j - 1] : a;
+          const j = +/** @type {HTMLElement} */ (b).dataset.v, v = j ? a.variantes[j - 1] : a;
           if (!v) continue;
           const etiqueta = etiquetaAtajo(v);
           b.setAttribute("aria-label", etiqueta);
-          b.dataset.tip = etiqueta;
+          /** @type {HTMLElement} */ (b).dataset.tip = etiqueta;
           const span = b.querySelector("span");
           if (span) {
             if (span.firstChild) span.firstChild.nodeValue = etiqueta;
@@ -310,14 +312,15 @@
         }
       }
       for (const b of simbolos.querySelectorAll("[data-i18n-descripcion]")) {
-        const k = TECLAS[+b.dataset.i], nombre = textoUI(b.dataset.i18nDescripcion, k?.n || k?.t);
+        const k = TECLAS[+/** @type {HTMLElement} */ (b).dataset.i], nombre = textoUI(/** @type {HTMLElement} */ (b).dataset.i18nDescripcion, k?.n || k?.t);
         b.setAttribute("aria-label", nombre);
-        b.dataset.tip = nombre;
+        /** @type {HTMLElement} */ (b).dataset.tip = nombre;
       }
     }
     vida.escuchar(window, "cmg:idioma", pintarEtiquetas);
     return { insertar, envolver, alternarComentario, medirEditor, pintarResaltado, pintarBanda, seleccionarHueco, aviso: avisoEditor,
       atajos(datos) { ATAJOS = datos; pintarPaleta(); } };
   }
-  window.CMGEditorUI = { crear };
-})();
+  const CMGEditorUI = { crear };
+
+export { CMGEditorUI };

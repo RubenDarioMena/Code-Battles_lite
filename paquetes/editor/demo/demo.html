@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Editor · Code Battle Lite</title>
-  <link rel="stylesheet" href="tema.css?v=1"><link rel="stylesheet" href="editor.css?v=1">
-  <link rel="stylesheet" href="../css/edicion.css?v=7"><link rel="stylesheet" href="autonomo.css?v=3">
+  <link rel="stylesheet" href="../estilos/tema.css?v=2"><link rel="stylesheet" href="../estilos/editor.css?v=2">
+  <link rel="stylesheet" href="../estilos/edicion.css?v=8"><link rel="stylesheet" href="../estilos/autonomo.css?v=4">
   <link rel="stylesheet" href="demo.css?v=2">
 </head>
 <body>
-  <header><a href="../../index.html">← Code Battle Lite</a><span>Laboratorio</span></header>
+  <header><a href="../../../index.html">← Code Battle Lite</a><span>Laboratorio</span></header>
   <main>
     <p class="ceja">Editor de código</p><h1>Dos espacios.<br>Una misma herramienta.</h1>
     <p class="intro">Prueba el teclado, las fichas, los atajos y el historial. Cada editor conserva sus propios documentos y preferencias durante esta sesión. El botón de las cuatro esquinas pone un editor a pantalla completa; Esc o el mismo botón lo devuelven.</p>
@@ -28,15 +28,9 @@
     </div>
     <p class="nota">Los cambios se mantienen mientras esta página esté abierta. El editor del juego y estos dos espacios usan los mismos módulos. El selector cambia entre JavaScript y Python; cada lenguaje tiene su propio documento. Aquí solo se edita: ejecutar Python llegará en una fase posterior.</p>
   </main>
-  <script src="../vendor/acorn-8.11.3.js"></script><script src="../js/iconos.js?v=6"></script>
-  <script src="../vendor/lezer-python-1.1.19.js"></script>
-  <script type="module" src="compat-lenguaje.js?v=1"></script>
-  <script defer src="lenguajes.js?v=2"></script><script defer src="plantillas.js?v=6"></script>
-  <script defer src="adaptador-js.js?v=2"></script>
-  <script defer src="python.js?v=3"></script>
-  <script defer src="estructura-python.js?v=3"></script><script defer src="adaptador-python.js?v=5"></script><script defer src="vida.js?v=1"></script><script defer src="tips.js?v=1"></script>
-  <script defer src="edicion.js?v=8"></script>
-  <script defer src="nucleo-ui.js?v=6"></script><script defer src="editor.js?v=4"></script>
+  <script src="../../../shared/vendor/acorn-8.11.3.js"></script>
+  <script src="../../../shared/vendor/lezer-python-1.1.19.js"></script>
+  <script type="module" src="compat-paquetes.js?v=2"></script>
   <script defer src="demo.js?v=4"></script>
 </body>
 </html>

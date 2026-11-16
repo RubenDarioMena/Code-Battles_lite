@@ -20,7 +20,7 @@ import { analizar, CLAVES, LOGICOS, COMPARA, DE_LINEA, CONTENEDORES, HOJAS } fro
 
   // Las consultas que dependen de las palabras del lenguaje (palabras clave, operadores lógicos y de
   // comparación, nombre de un hueco) se crean por lenguaje; JS usa los conjuntos de este archivo.
-  // Python (shared/editor/estructura-python.js) construye un árbol con los mismos tipos de nodo.
+  // Python (paquetes/editor/estructura-python.js) construye un árbol con los mismos tipos de nodo.
   function consultas({ claves = CLAVES, logicos = LOGICOS, compara = COMPARA, huecoNombre = t => t.slice(2, -2).trim() } = {}) {
     // Lo que elige un toque: un valor entero (texto con sus comillas, comentario, número o nombre)
     // o la construcción a la que pertenece una palabra clave, un operador o un delimitador.

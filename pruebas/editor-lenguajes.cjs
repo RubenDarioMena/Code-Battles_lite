@@ -1,3 +1,5 @@
+(async () => {
+const Editor = await import("../paquetes/editor/index.js");
 // Contrato D1/D2 e integridad de dependencias locales, sin paquetes instalados.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -7,7 +9,8 @@ const { createHash } = require('node:crypto');
 const raiz = path.join(__dirname, '..');
 const leer = p => fs.readFileSync(path.join(raiz, p), 'utf8');
 const ctx = vm.createContext({ window: {} });
-for (const p of ['Prototypes/Rocket Launcher/js/proveedor.js', 'shared/editor/lenguajes.js']) vm.runInContext(leer(p), ctx);
+Object.assign(ctx.window, Editor);
+for (const p of ['Prototypes/Rocket Launcher/js/proveedor.js']) vm.runInContext(leer(p), ctx);
 const { CMGProveedor, CMGLenguajes } = ctx.window;
 const factory = CMGProveedor.crear({ serie: 'factory' });
 const fsRobot = factory.funciones().filter(f => f.grupo === 'Robot');
@@ -67,3 +70,5 @@ const adaptadoresE3 = { js: { id: 'js' }, otro: { id: 'otro', nombre: 'Otro' } }
 assert.equal(CMGLenguajes.disponibles(adaptadoresE3).map(l => l.nombre).join(), 'JavaScript,Otro');
 assert.equal(CMGLenguajes.disponibles(adaptadoresE3, ['python', 'otro', 'otro']).map(l => l.id).join(), 'otro');
 console.log('D1/D2 y E3: catálogo de lenguajes, nombres, alias por lenguaje/serie, aislamiento, llamadas y await; dependencias locales íntegras.');
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

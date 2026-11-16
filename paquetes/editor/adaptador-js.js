@@ -1,7 +1,8 @@
+import { CMGLenguajes } from './lenguajes.js';
+import { CMGPlantillasJS } from './plantillas.js';
+import { CMGEditorJS, ESTRUCTURA } from '../lenguaje/index.js';
 /* Adaptador JS: sintaxis, clasificación y edición; sin nombres del juego. */
-(() => {
-  "use strict";
-  const { lexico, HUECO, RE_HUECO } = window.CMGEditorJS;
+  const { lexico, HUECO, RE_HUECO } = CMGEditorJS;
   const KW = new Set("await async break case catch class const continue default delete do else false finally for function if in instanceof let new null of return switch this throw true try typeof undefined var void while".split(" "));
   function vecino(toks, i, dir) {
     for (let j = i + dir; j >= 0 && j < toks.length; j += dir) if (toks[j][0] !== "esp" && toks[j][0] !== "com") return toks[j];
@@ -58,14 +59,15 @@
   }
     return alternarComentario;
   }
-  const estructura = { ...window.ESTRUCTURA, analizar: (src, fichas = lexico(src)) => window.ESTRUCTURA.analizar(src, fichas) };
-  window.CMGAdaptadorJS = {
+  const estructura = { ...ESTRUCTURA, analizar: (src, fichas = lexico(src)) => ESTRUCTURA.analizar(src, fichas) };
+  const CMGAdaptadorJS = {
     id: "js", nombre: "JavaScript", lexico, clasificar, estructura,
     hueco: { re: RE_HUECO, crear: n => "/* " + n + " */", nombreDe: t => t.match(HUECO)?.[1] || null },
     comentario: { linea: "//", crear: crearComentario }, sangria: { unidad: "  ", significativa: false },
     // Perezoso y protegido: sin plantillas (caché mezclada) el adaptador sigue existiendo, con la paleta vacía.
-    get plantillas() { try { return window.CMGPlantillasJS.crear().atajos; } catch (e) { console.error("Plantillas JS no disponibles:", e); return []; } },
-    teclas: TECLAS, crearEdicion: window.CMGEditorJS.crearEdicion,
-    llamada: fn => window.CMGLenguajes.llamada(fn, "js"),
+    get plantillas() { try { return CMGPlantillasJS.crear().atajos; } catch (e) { console.error("Plantillas JS no disponibles:", e); return []; } },
+    teclas: TECLAS, crearEdicion: CMGEditorJS.crearEdicion,
+    llamada: fn => CMGLenguajes.llamada(fn, "js"),
   };
-})();
+
+export { CMGAdaptadorJS };

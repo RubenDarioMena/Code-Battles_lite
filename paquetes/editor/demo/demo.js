@@ -1,6 +1,7 @@
 /* Dos anfitriones pequeños y declarativos, sin runtime ni globals del juego. */
 (() => {
   "use strict";
+  const { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes } = /** @type {any} */ (window);
   // Cada lenguaje tiene sus propias funciones: el proveedor recibe el lenguaje del documento.
   const funcionesDe = {
     js: ["log", "info", "warn", "error"].map(nombre => ({ grupo: "Mensajes", objeto: "console", nombre, firma: ["mensaje"] })),
@@ -27,7 +28,7 @@
   const instancias = [];
   for (const [i, tarjeta] of [...document.querySelectorAll("[data-demo]")].entries()) {
     const preferencias = new Map(), documentos = new Map();
-    const estado = tarjeta.querySelector(".estado"), revision = tarjeta.querySelector(".revision"), selector = tarjeta.querySelector("[data-documento]"), lectura = tarjeta.querySelector("[data-lectura]");
+    const estado = tarjeta.querySelector(".estado"), revision = tarjeta.querySelector(".revision"), selector = /** @type {HTMLSelectElement} */ (tarjeta.querySelector("[data-documento]")), lectura = /** @type {HTMLInputElement} */ (tarjeta.querySelector("[data-lectura]"));
     const raiz = tarjeta.querySelector(".demo-raiz");
     let lenguaje = i === 1 ? "python" : "js";
     const clave = (espacio, l) => espacio + extension[l];
@@ -56,5 +57,5 @@
       estado.textContent = "Editor recreado con el mismo documento y preferencias.";
     });
   }
-  window.demoEditores = instancias;
+  /** @type {any} */ (window).demoEditores = instancias;
 })();

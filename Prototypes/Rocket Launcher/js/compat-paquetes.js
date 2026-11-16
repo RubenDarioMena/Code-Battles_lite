@@ -1,3 +1,5 @@
+import { configurar, CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGEditorPython,
+  CMGPlantillasJS, CMGTips, ICONOS } from '../../../paquetes/editor/index.js';
 import * as lenguaje from '../../../paquetes/lenguaje/index.js';
 import { DT, crearPartida } from '../../../paquetes/nucleo/index.js';
 import war, * as datosWar from '../../../paquetes/reglas-war/index.js';
@@ -7,6 +9,16 @@ import { crearAnfitrion } from '../../../paquetes/anfitrion/index.js';
 import { crearConductor } from '../../../paquetes/app/index.js';
 import * as vista2d from '../../../paquetes/vista-2d/index.js';
 import * as vista3d from '../../../paquetes/vista-3d/index.js';
+
+// Los servicios se inyectan al paquete; presentación se carga después, de forma diferida.
+configurar({ acorn: window.acorn, vistas: true, i18n: window.CMGI18n, lezer: window.LezerPython,
+  presentacion: {
+    html: texto => window.CMGPresentacion ? window.CMGPresentacion.html(texto) : texto,
+    texto: texto => window.CMGPresentacion ? window.CMGPresentacion.texto(texto) : texto,
+    rotular: (nodo, texto) => { if (window.CMGPresentacion) window.CMGPresentacion.rotular(nodo, texto); else nodo.textContent = texto; },
+  } });
+Object.assign(window, { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGEditorPython,
+  CMGPlantillasJS, CMGTips, ICONOS });
 
 // Único puente del juego para los consumidores clásicos del lenguaje.
 window.LENGUAJE = lenguaje;

@@ -132,7 +132,7 @@ await anfitrion.ceder(instantanea);  // corre hasta que todos esperan; devuelve 
 ## Estado de partida
 
 - `js/war.js`, `js/factory.js` y `js/campaign.js` ya no usan DOM. Son el germen de los reglamentos.
-- `shared/editor/` ya tiene contrato (`CONTRATO.md`) e instancia autónoma (`demo.html`).
+- `paquetes/editor/` tiene contrato (`README.md`), entrada pública ES e instancia autónoma (`demo/demo.html`), trasladados en el paso 10 de la fase 2.
 - `js/juego.js` mezcla ciclo de programas, las dos vistas, inspector, pestañas, guardado y pegamento del editor.
 - Las vistas (`vistas.js`, `factory-vista.js`, `campaign-3d.js`, `campaign-plano.js`) leen `mundo` directamente.
 - `index.html` carga 63 scripts globales en orden, con `?v=` manual.
@@ -169,14 +169,14 @@ Cada fase termina con las suites en verde, una entrada en `PROGRESO.md` y los en
 
 - `vista-2d` y `vista-3d` dibujan solo con instantáneas y sucesos. Cambio 2D/3D en caliente, sin reiniciar la partida.
 - `anfitrion` extraído de `runtime.js` y de «Ciclo de los programas», todavía con Workers.
-- `juego.js` y `layout.js` se reparten entre `interfaz` y `app`. `editor` sale de `shared/editor/`. Desaparecen los globales y los `?v=`.
+- `juego.js` y `layout.js` se reparten entre `interfaz` y `app`. `editor` sale de `shared/editor/` a `paquetes/editor/` (paso 10 implementado; QA de navegador pendiente). Desaparecen los globales y los `?v=`.
 - **Pruebas de las fronteras**, que son el criterio de la fase:
   1. una partida completa con vista nula;
   2. repetición exacta de una partida a partir de escenario, semilla y órdenes;
   3. una orden de origen `jugador` en un escenario de prueba (control manual mínimo);
   4. el editor montado solo, fuera del juego.
 - Hecho cuando: las cuatro pruebas pasan, las suites de navegador pasan y la comprobación de fronteras no tiene excepciones.
-- **En curso** (rama `arquitectura/fase-2`; detalle en `PROGRESO.md`). Hechos: `anfitrion` con el Worker y el despertar (sin `runtime.js`); `crearAnfitrion` para las tres series con orden fijo de mensajes (los reglamentos de Factory y Campaign contestan los encargos con `respuestas(mundo)`; la orden lleva `ref` opcional; orden de sistema `programa-acabado` en Factory y `fin-tramo` en Campaign; `partida.aplicarOrdenes()`); `app` con vista nula, `jugarPartida` y `crearConductor`; el juego juega con `crearPartida`, `crearAnfitrion` (Workers reales) y el conductor, sin `window.RUNTIME` ni `NUCLEO`; las cuatro pruebas de frontera pasan (1–3 en `pruebas/fronteras-fase2.mjs`, solo War; 4 con la demo del editor); las vistas leen solo `escena(mundo)` y el cambio 2D/3D en caliente tiene prueba; las vistas son módulos de `vista-2d` y `vista-3d`. Pendiente: la forma `crearVista` de las vistas, reparto de `juego.js` y `layout.js`, `editor` fuera de `shared/editor/`, y fin de globales, `legado`, `compat-paquetes.js` y `?v=`.
+- **En curso** (rama `arquitectura/fase-2`; detalle en `PROGRESO.md`). Hechos: `anfitrion` con el Worker y el despertar (sin `runtime.js`); `crearAnfitrion` para las tres series con orden fijo de mensajes (los reglamentos de Factory y Campaign contestan los encargos con `respuestas(mundo)`; la orden lleva `ref` opcional; orden de sistema `programa-acabado` en Factory y `fin-tramo` en Campaign; `partida.aplicarOrdenes()`); `app` con vista nula, `jugarPartida` y `crearConductor`; el juego juega con `crearPartida`, `crearAnfitrion` (Workers reales) y el conductor, sin `window.RUNTIME` ni `NUCLEO`; las cuatro pruebas de frontera pasan (1–3 en `pruebas/fronteras-fase2.mjs`, solo War; 4 con la demo del editor); las vistas leen solo `escena(mundo)` y el cambio 2D/3D en caliente tiene prueba; las vistas son módulos de `vista-2d` y `vista-3d`; `editor` y sus estilos están en `paquetes/editor`, con servicios inyectados y demo autónoma (paso 10, QA de navegador pendiente). Pendiente: la forma `crearVista` de las vistas, reparto de `juego.js` y `layout.js`, y fin de globales, `compat-paquetes.js` y `?v=`.
 
 ### Fase 3 · Cáscara de escritorio y Steam
 
