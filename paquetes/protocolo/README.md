@@ -21,9 +21,11 @@ están en `index.d.ts`; no requiere compilación.
 
 ## Mensajes
 
-Una orden contiene exactamente `{ paso, origen, unidad, verbo, args }`:
+Una orden contiene `{ paso, origen, unidad, verbo, args }` y admite `ref` opcional:
 `paso` es entero ≥ 0; `origen` pertenece a `ORIGENES`; `unidad` y `verbo`
 son cadenas no vacías; `args` es un arreglo de datos planos.
+`ref`, si está, es una cadena no vacía: referencia del emisor que el reglamento
+devuelve en la respuesta.
 
 Un suceso contiene `paso` (entero ≥ 0) y `tipo` (cadena no vacía).
 Admite únicamente dos campos opcionales: `unidad` (cadena no vacía) y

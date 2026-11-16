@@ -94,12 +94,13 @@ export function validarOrden(o) {
   if (!esObjetoPlano(o)) return ['orden: debe ser objeto plano'];
   const accesores = revisarAccesores(o, 'orden');
   if (accesores.length) return accesores;
-  revisarClaves(o, ['paso', 'origen', 'unidad', 'verbo', 'args'],
+  revisarClaves(o, ['paso', 'origen', 'unidad', 'verbo', 'args', 'ref'],
     ['paso', 'origen', 'unidad', 'verbo', 'args'], 'orden', errores);
   revisarPaso(o.paso, 'orden.paso', errores);
   if (!ORIGENES.includes(/** @type {Origen} */ (o.origen))) errores.push('orden.origen: origen no permitido');
   revisarCadena(o.unidad, 'orden.unidad', errores);
   revisarCadena(o.verbo, 'orden.verbo', errores);
+  if (Object.hasOwn(o, 'ref')) revisarCadena(o.ref, 'orden.ref', errores);
   if (!Array.isArray(o.args)) errores.push('orden.args: debe ser arreglo');
   else revisarDato(o.args, 'orden.args', new Set(), errores);
   return errores;

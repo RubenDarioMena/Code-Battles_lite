@@ -64,4 +64,24 @@ igual([corta.pasos, corta.limite, corta.evaluacion], [3, true, null], 'límite d
   igual(r.partida.serializar().ordenes.map(o => o.verbo), ['entregar', 'entregar', 'programa-acabado'], 'guarda también las órdenes del mismo paso');
 }
 
+// Tramos: misma partida y respuestas antes de esperas; el corte precede a ambas.
+{
+  const cola = [], llamadas = [];
+  const reglasTramo = { ...reglas, evaluar: () => null,
+    paso(m, dt) { m.t += dt; m.n++; cola.push({ unidad: 'x', resultado: 'ok', instantanea: { t: m.t } }); },
+    respuestas() { return cola.splice(0); } };
+  const anfitrion = {
+    async ceder(snap) { llamadas.push(['ceder', snap.t]); return { ordenes: [], avisos: [], error: null }; },
+    async responder(rs) { llamadas.push(['responder', rs[0].instantanea.t]); return { ordenes: [], avisos: [], error: null }; },
+    detener(rs) { llamadas.push(['detener', rs.length]); },
+  };
+  const primero = await jugarPartida({ reglas: reglasTramo, escenario: { inicio: 0 }, semilla: 1,
+    anfitrion, detener: p => p.mundo.n === 2 });
+  igual(llamadas, [['ceder', 0], ['responder', 0.05], ['ceder', 0.05], ['detener', 1]], 'corte antes de mensajes y respuestas antes de esperas');
+  const segundo = await jugarPartida({ reglas: reglasTramo, partida: primero.partida,
+    anfitrion, detener: p => p.mundo.n === 3 });
+  igual(segundo.partida, primero.partida, 'continúa la misma partida');
+  igual([segundo.pasos, segundo.partida.pasoActual, segundo.instantanea.n], [1, 3, 3], 'pasos locales y reloj acumulado');
+}
+
 console.log(`app: ${comprobaciones} comprobaciones`);

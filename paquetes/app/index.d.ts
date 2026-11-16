@@ -14,8 +14,11 @@ export interface VistaNula extends Vista {
 }
 export interface OpcionesJugar {
   reglas: Reglamento<any, any, any>;
-  escenario: any;
-  semilla: number;
+  /** Necesarios al crear; se omiten si se continúa una partida. */
+  escenario?: any;
+  semilla?: number;
+  partida?: Partida<any, any, any>;
+  detener?: (partida: Partida<any, any, any>) => boolean;
   anfitrion?: Anfitrion | null;
   vista?: Vista;
   ordenes?: Orden[];

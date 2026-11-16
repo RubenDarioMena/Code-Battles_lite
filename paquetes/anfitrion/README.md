@@ -1,6 +1,6 @@
 # anfitrion
 
-Estado: fase 2, pasos 1–2 y 7a (`crearAnfitrion` para War y Factory).
+Estado: fase 2, pasos 1–2, 7a y 7b (`crearAnfitrion` para War, Factory y Campaign).
 
 Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
 Hoy, un Web Worker por unidad programable; en la fase 5, un intérprete con
@@ -36,7 +36,7 @@ Quién lo usa:
 - La partida sin pantalla (`herramientas/partida/cargar.mjs` y `ciclo.mjs`), que
   importa el paquete en vez de capturar el Worker por `Blob`.
 
-## `crearAnfitrion` (War y Factory)
+## `crearAnfitrion` (War, Factory y Campaign)
 
 `crearAnfitrion({ reglas, crearTrabajador, contexto?, piezas?, maxOrdenes = 4000, ahora? })`:
 
@@ -83,7 +83,27 @@ cero con cada encargo. War conserva su tratamiento anterior de MAX_ORDENES.
   entrega antes de cerrar los Workers, sin ejecutar continuaciones tras el fin.
   Evita perder el último encargo cuando su entrega cumple las metas.
 
-Límites: Campaign todavía no admite `crearAnfitrion`.
+Campaign conserva varias esperas y encargos por programa (`p.pend`) y usa
+`despertarCampaign`. Un `cede` deja esperando al programa si tiene pendientes;
+`done` lo termina y los encargos que finalicen después se registran sin despertarlo.
+Los modos, lecturas y consolas cuentan para el límite (diagnóstico con `await wait(...)`).
+`registro()` devuelve `{ eventos, uso, consolas }`, con uso por programa y función,
+sin escribir esos campos en el mundo. Los eventos siguen el orden del lote del turno.
+Los modos reservan su evento al registrar el mensaje y completan resultado/clase
+al recibir la respuesta: así conservan su posición respecto de la consola.
+Las órdenes de encargo llevan `ref: programa#id`; las de modo llevan una referencia
+propia `programa#modo:n` porque el Worker no asigna id a los modos. La respuesta
+de encargo identifica al programa por `ref` y registra el robot como `maquina`.
+Las respuestas sin referencia reconocida se ignoran. El Worker no cambia.
+
+La prueba `pruebas/fronteras-campaign.mjs` contrasta ambos lenguajes, todos los
+tramos, la secuencia paso a paso y la repetición desde las órdenes serializadas.
+Coinciden las 2 referencias completas y las 12 repeticiones, tanto con orden
+por unidad como en la medición temporal por llegada. Se conserva el orden por
+unidad. La aplicación entrega primero las respuestas de encargos y cede sus
+continuaciones; después despierta las esperas por tiempo, como el ciclo antiguo.
+
+Límites:
 Si dos unidades fallan en el mismo instante con Workers reales, gana la primera
 en llegar. El juego aún no usa `crearAnfitrion`: sigue con `window.RUNTIME`.
 

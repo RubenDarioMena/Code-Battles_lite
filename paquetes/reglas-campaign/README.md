@@ -34,7 +34,7 @@ fotograma (`estado.escena`); las vistas ya no leen el mundo.
 ## Entrada pública
 
 `index.js` exporta por defecto `{ id: 'campaign', version: 1, crearMundo, paso,
-aplicarOrden, instantanea, evaluar, api }`:
+aplicarOrden, respuestas, instantanea, evaluar, api }`:
 
 - `crearMundo({ reto, guardado? }, rng)` crea o carga un mundo y lo activa.
   `reto` es el nivel; `guardado` es opcional y usa el formato histórico.
@@ -43,9 +43,15 @@ aplicarOrden, instantanea, evaluar, api }`:
   el orden original: robots, energía, máquinas, banda, bahía, arsenal, salva y metas.
 - `aplicarOrden(mundo, orden)` delega `pickUp`, `deliver` y `goTo` a
   `iniciarOrden(unidad, { id, verbo, args })`; los demás verbos van a
-  `aplicarModo`. El id del adaptador es `origen:paso:unidad` para su hook sin
-  anfitrión. No altera la identidad de encargos del anfitrión existente.
+  `aplicarModo`. El id del encargo es `orden.ref` si existe y, en otro caso,
+  `origen:paso:unidad`. La orden de sistema `fin-tramo` cancela tareas y suelta
+  las luces sin tocar `activo`, `eventos`, `uso` ni `consolas`.
   La validación y la autorización por programa siguen a cargo del anfitrión.
+- `respuestas(mundo)` devuelve y vacía una cola por mundo en `WeakMap`:
+  `{ unidad, ref, resultado, instantanea }` al terminar un encargo, con la foto
+  tomada en ese momento, y `{ unidad, ref, resultado, modo: true }` por modo.
+  El anfitrión ignora respuestas sin referencia reconocida. No modifica `legado.conectar`.
+- `quieto(mundo)` se exporta fuera del contrato para decidir el final de un tramo.
 - `instantanea(mundo)` devuelve `{ t, maq: {}, auto: {}, vib: {}, campaign }`,
   una copia profunda de las lecturas existentes sin referencias a catálogos.
 - `evaluar(mundo)` devuelve `null` hasta completar el nivel y después
@@ -125,6 +131,7 @@ antiguos del HTML y la herramienta importa esta entrada pública.
 node paquetes/reglas-campaign/pruebas/reglas-campaign.mjs
 node pruebas/campaign-reglas.cjs
 node pruebas/partida-campaign.mjs
+node pruebas/fronteras-campaign.mjs
 node pruebas/partida-referencias.mjs
 npm test
 npm run tipos

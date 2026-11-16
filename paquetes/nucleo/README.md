@@ -40,7 +40,9 @@ debe depender únicamente del escenario, la semilla y las órdenes.
 Opcionalmente, `respuestas(mundo)` devuelve y vacía una cola de
 `{ unidad, resultado, instantanea }`: contestaciones a encargos de programas.
 La instantánea se copia al terminar el encargo, incluso a mitad de paso; la
-aplicación entrega esas respuestas al anfitrión. No son sucesos de presentación.
+aplicación entrega esas respuestas al anfitrión. No son sucesos de presentación. Campaign añade `ref` para correlacionar la
+respuesta con el emisor y devuelve los modos como `{ unidad, ref, resultado, modo: true }`,
+sin instantánea (no despiertan programas).
 
 - `copiaPlana(valor)` (fase 2): copia profunda de arreglos y objetos que
   conserva referencias compartidas y ciclos, omite las propiedades con

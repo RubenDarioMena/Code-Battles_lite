@@ -162,8 +162,8 @@ for (const invertido of [false, true]) {
   igual([r.error.unidad, r.error.motivo], ['A', 'sin-cesion'], 'sin-cesion');
 }
 let rechazo = null;
-try { crearAnfitrion({ reglas: { id: 'campaign' }, crearTrabajador: () => null }); } catch (e) { rechazo = e.message; }
-ok(/solo War y Factory/.test(rechazo), 'Campaign aún no pasa por crearAnfitrion');
+try { crearAnfitrion({ reglas: { id: 'desconocido' }, crearTrabajador: () => null }); } catch (e) { rechazo = e.message; }
+ok(/solo War, Factory y Campaign/.test(rechazo), 'rechaza un reglamento desconocido');
 
 // Factory: el reglamento contesta con su instantánea, sin despertar esperas por tiempo.
 const encargo = (id = 1, linea = 2) => ({ type: 'encargo', id, linea, texto: 'entregar("FUN")', verbo: 'entregar', args: ['FUN'] });
@@ -217,6 +217,50 @@ for (const tipo of ['encargo', 'sensor', 'consola']) {
   a.detener([{ unidad: 'R1', resultado: 'ok', instantanea: { t: 1 } }]);
   igual(a.registro().resultados, { ok: 1 }, 'el resultado terminal se registra al cerrar');
   igual([a.estado('R1'), f.creados.get('R1').terminado], ['fin', true], 'termina sin ejecutar continuaciones');
+}
+
+// Campaign: correlación por emisor, modos antes de consola y varias esperas/encargos.
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: { id: 'campaign' }, crearTrabajador: f.crear });
+  await a.cargar('CTL-01', 'x');
+  const w = f.creados.get('CTL-01');
+  w.guion.push([{ type: 'modo', unidad: 'PRS-01', verbo: 'start', args: [], linea: 1, texto: 'start()' },
+    { type: 'consola', nivel: 'log', texto: 'hola', linea: 2 },
+    { ...encargo(), unidad: 'BOT-01', verbo: 'deliver' },
+    { ...encargo(2, 3), unidad: 'BOT-02', verbo: 'deliver' },
+    { type: 'espera', id: 3, s: 1 }, { type: 'espera', id: 4, s: 2 }]);
+  const t = a.ceder({ t: 0 }); await f.soltar(); const r = await t;
+  igual(r.ordenes.map(o => [o.unidad, o.ref]),
+    [['PRS-01', 'CTL-01#modo:1'], ['BOT-01', 'CTL-01#1'], ['BOT-02', 'CTL-01#2']], 'ref identifica al emisor y no al robot');
+  igual(a.proximaEspera(), 1, 'varias esperas por programa');
+  await a.responder([{ unidad: 'PRS-01', ref: r.ordenes[0].ref, resultado: 'apagada', modo: true }]);
+  igual(a.registro().eventos.map(e => [e.que, e.resultado, e.clase]),
+    [['start()', 'apagada', 'warn'], ['console.log', 'hola', 'sensor']], 'modo conserva su posición antes de la consola');
+  await a.responder([{ unidad: 'BOT-01', resultado: 'ok', instantanea: { t: 0 } }]);
+  igual(a.registro().eventos.length, 2, 'ignora respuestas sin ref');
+  w.guion.push([{ type: 'cede' }]);
+  const t2 = a.responder([{ unidad: 'BOT-02', ref: 'CTL-01#2', resultado: 'ok', instantanea: { t: 0.5 } }]);
+  await f.soltar(); await t2;
+  igual([a.estado('CTL-01'), a.registro().eventos.at(-1).maquina], ['espera', 'BOT-02'], 'cede conserva pendientes y registra el robot');
+  w.guion.push([{ type: 'cede' }]);
+  const t3 = a.ceder({ t: 1 }); await f.soltar(); await t3;
+  igual(w.recibidos.at(-1).id, 3, 'despierta la primera espera');
+  igual(a.proximaEspera(), 2, 'conserva la segunda espera');
+  w.guion.push([{ type: 'done' }]);
+  const t4 = a.ceder({ t: 2 }); await f.soltar(); await t4;
+  const enviados = w.recibidos.length;
+  a.detener([{ unidad: 'BOT-01', ref: 'CTL-01#1', resultado: 'ok', instantanea: { t: 3 } }]);
+  igual([a.estado('CTL-01'), w.recibidos.length], ['fin', enviados], 'done registra el encargo tardío sin despertar');
+  igual(a.registro().uso['CTL-01'], { start: 1, deliver: 2, wait: 2 }, 'uso por programa y función');
+}
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: { id: 'campaign' }, crearTrabajador: f.crear, maxOrdenes: 1 });
+  await a.cargar('A', 'x');
+  f.creados.get('A').guion.push([1, 2].map(() => ({ type: 'consola', nivel: 'log', texto: 'hola', linea: 5 })));
+  const t = a.ceder({ t: 0 }); await f.soltar(); const r = await t;
+  igual(a.registro().consolas.log, 2, 'Campaign registra la consola que supera el límite');
+  ok(r.error.mensaje.includes('await wait(...)'), 'Campaign conserva el diagnóstico');
+  a.detener();
 }
 
 console.log(`anfitrion: ${comprobaciones} comprobaciones`);

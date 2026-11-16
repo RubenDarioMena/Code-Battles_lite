@@ -94,9 +94,11 @@ export const legado: {
 export const nivel: { RETOS: Nivel[]; NIVEL: Nivel; MAPA: Nivel['mapa'] };
 export function serializar(mundo: Mundo | Guardado): Guardado;
 export function restaurar(guardado: Guardado, reto?: Nivel): Mundo;
+export function quieto(mundo: Mundo): boolean;
 export type Final = { fin: 'victoria'; hito: number; completado: true };
 export interface ReglamentoCampaign extends Reglamento<Mundo, Escenario, Final | null> {
   id: 'campaign'; version: number; instantanea(mundo: Mundo): Instantanea;
+  respuestas(mundo: Mundo): import('../nucleo/index.js').Respuesta[];
   /** Lo que dibujan las vistas: datos planos independientes del mundo (fase 2). */
   escena(mundo: Mundo): { t: number; porId: Record<string, any>; [clave: string]: any };
   api: { encargos: string[]; modos: string[]; lecturas: string[]; espera: string;

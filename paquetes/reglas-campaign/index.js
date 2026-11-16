@@ -20,11 +20,26 @@ export function restaurar(guardado, reto = nivel.NIVEL) { return crear(reto, gua
 
 /** @type {WeakMap<import('./index.js').Mundo, import('./index.js').Conexion>} */
 const conexiones = new WeakMap();
+/** @type {WeakMap<import('./index.js').Mundo, import('../nucleo/index.js').Respuesta[]>} */
+const pendientes = new WeakMap();
 /** @param {import('./index.js').Mundo} mundo */
 function conexion(mundo) {
-  if (!conexiones.has(mundo)) conexiones.set(mundo, conectar(mundo));
+  if (!conexiones.has(mundo)) {
+    const respuestas = [];
+    pendientes.set(mundo, respuestas);
+    conexiones.set(mundo, conectar(mundo, {
+      terminarOrden(unidad, ref, resultado) {
+        respuestas.push({ unidad, ref: String(ref), resultado,
+          instantanea: structuredClone({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: instantanea(mundo) }) });
+      },
+    }));
+  }
   return conexiones.get(mundo);
 }
+
+/** Fuera del contrato común: permite decidir el final de un tramo sin modificar el mundo.
+ * @param {import('./index.js').Mundo} mundo */
+export function quieto(mundo) { return conexion(mundo).quieto(); }
 
 /** @type {import('./index.js').ReglamentoCampaign} */
 const reglamento = {
@@ -37,10 +52,17 @@ const reglamento = {
   paso(mundo, dt) { conexion(mundo).paso(dt); },
   aplicarOrden(mundo, orden) {
     const c = conexion(mundo);
+    if (orden.origen === 'sistema' && orden.verbo === 'fin-tramo') {
+      c.cancelarTareas(); c.soltarLuces(); return;
+    }
     if (['pickUp', 'deliver', 'goTo'].includes(orden.verbo))
-      c.iniciarOrden(orden.unidad, { id: `${orden.origen}:${orden.paso}:${orden.unidad}`, verbo: orden.verbo, args: orden.args });
-    else c.aplicarModo(orden.unidad, orden.verbo, orden.args);
+      c.iniciarOrden(orden.unidad, { id: orden.ref ?? `${orden.origen}:${orden.paso}:${orden.unidad}`, verbo: orden.verbo, args: orden.args });
+    else {
+      const resultado = c.aplicarModo(orden.unidad, orden.verbo, orden.args);
+      pendientes.get(mundo).push({ unidad: orden.unidad, ref: orden.ref, resultado, modo: true });
+    }
   },
+  respuestas(mundo) { conexion(mundo); return pendientes.get(mundo).splice(0); },
   instantanea(mundo) {
     return { t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: JSON.parse(JSON.stringify(instantanea(mundo))) };
   },

@@ -188,4 +188,29 @@ comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));
   igual(JSON.stringify(reglamento.instantanea(m)), antes, 'cambiar la escena no toca el mundo');
 }
 
+// Respuestas del adaptador público: foto al terminar, modos correlacionados y cierre por orden.
+{
+  const p = crearPartida({ reglas: reglamento, escenario: { reto: nivel.NIVEL }, semilla: 1 });
+  const m = p.mundo, inicial = json({ activo: m.activo, eventos: m.eventos, uso: m.uso, consolas: m.consolas });
+  const ordenar = (unidad, verbo, args, ref) => p.ordenar({ paso: p.pasoActual, origen: 'programa', unidad, verbo, args, ref });
+  ordenar('FRK-01', 'deliver', ['SUP-1'], 'CTL-01#1');
+  p.aplicarOrdenes();
+  const [r] = reglamento.respuestas(m);
+  igual([r.unidad, r.ref, r.resultado, r.instantanea.t], ['FRK-01', 'CTL-01#1', 'manos_vacias', 0]);
+  igual(reglamento.respuestas(m), [], 'vacía la cola');
+  ordenar('FRK-01', 'goTo', ['SUP-1'], 'CTL-01#2');
+  p.aplicarOrdenes();
+  igual(m.porId['FRK-01'].tarea.id, 'CTL-01#2');
+  ordenar('FRK-01', 'light', ['red'], 'CTL-01#modo:1');
+  p.aplicarOrdenes();
+  igual(reglamento.respuestas(m), [{ unidad: 'FRK-01', ref: 'CTL-01#modo:1', resultado: 'ok', modo: true }]);
+  p.ordenar({ paso: p.pasoActual, origen: 'sistema', unidad: 'campaign', verbo: 'fin-tramo', args: [] });
+  p.aplicarOrdenes();
+  igual(m.robots.every(r => r.tarea === null), true, 'fin-tramo cancela tareas');
+  igual(m.estaciones.every(q => q.luz === null), true, 'fin-tramo suelta luces');
+  igual(json({ activo: m.activo, eventos: m.eventos, uso: m.uso, consolas: m.consolas }), inicial, 'registro fuera del mundo');
+  r.instantanea.t = 99;
+  igual(m.t, 0, 'la respuesta es independiente del mundo');
+}
+
 console.log(`reglas-campaign: ${comprobaciones} comprobaciones`);

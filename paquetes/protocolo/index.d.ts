@@ -7,6 +7,8 @@ export interface Orden {
   unidad: string;
   verbo: string;
   args: DatoPlano[];
+  /** Referencia del emisor; el reglamento la devuelve en la respuesta. */
+  ref?: string;
 }
 
 export interface Suceso {

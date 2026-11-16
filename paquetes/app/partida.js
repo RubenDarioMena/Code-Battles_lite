@@ -6,8 +6,8 @@ import { crearVistaNula } from './vista-nula.js';
  * Lockstep: tras cada paso el anfitrión despierta a los programas vencidos y cede hasta que todos
  * esperan; aplica sus órdenes sin avanzar y entrega las respuestas inmediatas.
  * @param {import('./index.js').OpcionesJugar} opciones */
-export async function jugarPartida({ reglas, escenario, semilla, anfitrion, vista = crearVistaNula(), ordenes = [], maxPasos = 10000, alPaso }) {
-  const partida = crearPartida({ reglas, escenario, semilla });
+export async function jugarPartida({ reglas, escenario, semilla, partida: existente, detener, anfitrion, vista = crearVistaNula(), ordenes = [], maxPasos = 10000, alPaso }) {
+  const partida = existente ?? crearPartida({ reglas, escenario, semilla });
   for (const orden of ordenes) partida.ordenar(orden);
   let anterior = partida.instantanea(), ultimoSuceso = -1, error = null, pasos = 0, limite = false;
   const entregarSucesos = () => {
@@ -33,7 +33,7 @@ export async function jugarPartida({ reglas, escenario, semilla, anfitrion, vist
   for (;;) {
     // Las órdenes del paso actual se aplican al llegar, antes de evaluar (también sin anfitrión).
     partida.aplicarOrdenes();
-    if (error || partida.evaluar()) break;
+    if (error || partida.evaluar() || detener?.(partida)) break;
     if (pasos >= maxPasos) { limite = true; break; }
     partida.paso(); pasos++;
     const actual = partida.instantanea();
@@ -41,8 +41,15 @@ export async function jugarPartida({ reglas, escenario, semilla, anfitrion, vist
     vista.dibujar(anterior, actual, 1);
     alPaso?.(pasos, actual, partida);
     anterior = actual;
-    if (partida.evaluar()) break;
-    if (anfitrion) await aplicar(await anfitrion.ceder(actual, reglas.respuestas?.(partida.mundo) ?? []));
+    if (partida.evaluar() || detener?.(partida)) break;
+    if (anfitrion) {
+      // Como los hooks del ciclo: primero las continuaciones de encargos terminados durante el paso;
+      // solo después se despiertan las esperas por tiempo. No mezcla ambos lotes de mensajes.
+      const respuestas = reglas.respuestas?.(partida.mundo) ?? [];
+      if (respuestas.length) await aplicar(await anfitrion.responder(respuestas));
+      if (error || partida.evaluar() || detener?.(partida)) break;
+      await aplicar(await anfitrion.ceder(partida.instantanea()));
+    }
   }
   anfitrion?.detener(reglas.respuestas?.(partida.mundo) ?? []);
   return { partida, pasos, error, limite, evaluacion: partida.evaluar(), instantanea: partida.instantanea() };

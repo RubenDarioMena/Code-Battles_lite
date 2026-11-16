@@ -19,7 +19,8 @@ export interface RegistroSucesos {
 }
 export interface MundoConSucesos { t: number; sucesos?: RegistroSucesos }
 /** Respuesta de un encargo; la instantánea se toma al terminarlo, incluso a mitad de paso. */
-export interface Respuesta { unidad: string; resultado: string; instantanea: Instantanea }
+export type Respuesta = { unidad: string; resultado: string; ref?: string } &
+  ({ modo: true; instantanea?: never } | { modo?: false; instantanea: Instantanea });
 export interface Reglamento<Mundo, Escenario, Evaluacion = DatoPlano> {
   id: string;
   version: string | number;

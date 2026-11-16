@@ -58,6 +58,9 @@ for (const [validar, mensaje] of [[validarOrden, orden], [validarSuceso, suceso]
 }
 
 for (const origen of ORIGENES) comprobar(validarOrden({ ...orden, origen }), []);
+comprobar(validarOrden({ ...orden, ref: 'programa#1' }), []);
+comprobar(validarOrden(JSON.parse(JSON.stringify({ ...orden, ref: 'programa#1' }))), []);
+for (const ref of ['', undefined, null, 1, {}, []]) invalido(validarOrden, { ...orden, ref }, 'orden.ref');
 comprobar(validarOrden(ejecutarEnOtroReino(`(${JSON.stringify(orden)})`)), []);
 comprobar(validarSuceso({ paso: 0, tipo: 'inicio' }), []);
 comprobar(validarSuceso({ paso: 0, tipo: 'inicio', datos: Object.create(null) }), []);
