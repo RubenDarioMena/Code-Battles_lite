@@ -1,11 +1,13 @@
-/* Visor 3D de la aplicación: código trasladado de juego.js. Estado de lectura explícito.
- * El plano 2D de War y Factory pasó a paquetes/vista-2d (fase 2). */
-(() => {
-  "use strict";
-  function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual }) {
-    if (typeof THREE === "undefined" || (ES_FACTORY && !window.FACTORY_3D)) return null;
-    // Factory usa el mismo visor con su propio contenido (factory-3d.js) y un mapa más pequeño.
-    const ZOOM = ES_FACTORY ? [2.5, 30] : [8, 70];
+/* Visor 3D común de War y Factory, antes en js/vistas.js. Solo lee estado.escena. */
+import { factory3d } from './factory.js';
+import { crearCamara3D } from './camara.js';
+import { crearTerreno3D } from './terreno.js';
+
+/** @param {import('./index.js').EstadoVista} estado @param {import('./index.js').DependenciasWar} deps
+ * @returns {import('./index.js').Vista3D | null} */
+export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null }) {
+    if (typeof THREE === "undefined") return null;
+    // Factory usa el mismo visor con su propio contenido (factory.js) y un mapa más pequeño.
     let factory = null, ahoraPrevio = null;
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
@@ -14,10 +16,6 @@
     // Bruma del horizonte: solo toca lo que queda más allá del campo, para que el terreno se pierda a lo lejos.
     const horizonte = new THREE.Fog(0xffffff, 60, 140);
     const camara = new THREE.PerspectiveCamera(38, 1.6, 0.1, 500);
-    // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
-    // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.
-    const camaras = {};
-    let camActual = null, cam = null, cam0 = null, anchoCampo = 1, altoCampo = 1;
     const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.85);
     const sol = new THREE.DirectionalLight(0xffffff, 0.55); sol.position.set(-12, 30, 18);
     escena.add(hemi, sol);
@@ -146,106 +144,7 @@
     }
     function limpiar(grupo) { while (grupo.children.length) { const c = grupo.children.pop(); c.traverse(o => { if (o.geometry && !Object.values(G).includes(o.geometry)) o.geometry.dispose(); }); } }
 
-    // ---------- Terreno de alrededor ----------
-    // El campo de 32 × 18 sigue siendo el único sitio jugable; alrededor, el suelo y su cuadrícula continúan
-    // hasta perderse en la bruma del horizonte, y detrás (al norte) hay una cordillera escalonada.
-    // Las montañas son columnas de casillas de 1 m con alturas de 0,5 en 0,5 m: la misma cuadrícula que el
-    // campo, baratas de pintar (una sola malla instanciada) y fáciles de usar para colisiones en retos futuros.
-    const TERRENO = { x0: -48, x1: estado.cols + 48, z0: -40, z1: estado.rows + 34 };
-    // La vista previa usa solo datos visuales. El suelo de la simulación sigue siendo plano.
-    let terrenoEditor = null;
-    if (!ES_FACTORY && new URLSearchParams(location.search).get("terreno") === "editor") {
-      try {
-        const api = window.CMGTerreno;
-        if (!api || !api.crearGeometria) throw new Error("No se cargaron los recursos del editor de terreno.");
-        const guardado = localStorage.getItem(api.CLAVE_JUEGO);
-        if (!guardado) throw new Error("No hay un terreno guardado para probar.");
-        terrenoEditor = api.validar(JSON.parse(guardado));
-      } catch (error) {
-        console.warn("Terreno del editor: se conserva el paisaje predeterminado.", error.message);
-      }
-    }
-    // El desplazamiento de profundidad evita interferencias con la cuadrícula sobre la malla plana.
-    const matTerrenoEditor = terrenoEditor ? new THREE.MeshLambertMaterial({
-      color: 0xffffff, vertexColors: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
-    }) : null;
-    const matAguaEditor = terrenoEditor ? new THREE.MeshLambertMaterial({
-      color: 0xffffff, vertexColors: true, transparent: true, opacity: .72, depthWrite: false, side: THREE.DoubleSide,
-    }) : null;
-    const materialesBloques = new Map((terrenoEditor?.bloques || []).map(b => [b.id,
-      new THREE.MeshPhongMaterial({ color: b.coloresCaras ? 0xffffff : b.color, vertexColors: !!b.coloresCaras, flatShading: true, shininess: 8, side: THREE.DoubleSide }),
-    ]));
-    const MONTES = { x0: -40, x1: estado.cols + 40, z0: -30, z1: -2 };
-    const PICOS = [[-30, -17, 12, 13], [-14, -13, 10, 11], [0, -19, 13, 15], [12, -12, 8, 9], [22, -20, 13, 17], [33, -13, 9, 10], [45, -18, 12, 14], [58, -14, 10, 11], [70, -20, 12, 13]];
-    // Ruido suave y fijo por casilla (sin Math.random): el paisaje es siempre el mismo.
-    const hash = (i, j) => { const n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); };
-    function ruido(x, z, paso) {
-      const i = Math.floor(x / paso), j = Math.floor(z / paso), u = x / paso - i, v = z / paso - j;
-      const su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
-      const a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1);
-      return a + (b - a) * su + (c - a) * sv + (a - b - c + d) * su * sv;
-    }
-    function alturaMonte(i, j) {
-      const x = i + .5, z = j + .5, lejos = -z - 2;  // casillas detrás del borde norte del campo
-      // Laderas: suben desde el borde del campo; picos: conos suaves repartidos a lo largo.
-      let h = Math.min(1, lejos / 9) * (2 + 5 * ruido(x, z, 7));
-      for (const [cx, cz, r, a] of PICOS) {
-        const t = 1 - Math.hypot(x - cx, (z - cz) * 1.3) / r;
-        if (t > 0) h = Math.max(h, a * t * t * (3 - 2 * t) * Math.min(1, lejos / 5));
-      }
-      h += (ruido(x, z, 3) - .5) * 1.6;
-      return Math.max(0, Math.round(h));  // terrazas de 1 m
-    }
-    const celdasMonte = [];
-    for (let i = MONTES.x0; i < MONTES.x1; i++) for (let j = MONTES.z0; j < MONTES.z1; j++) {
-      const h = alturaMonte(i, j); if (h >= 1) celdasMonte.push([i, j, h]);
-    }
-    let montes = null;
-    const matMonte = new THREE.MeshLambertMaterial({ color: 0xffffff });  // el color va en cada columna
-    function pintarMontes() {
-      if (!montes) return;
-      const bajo = new THREE.Color(leerVar("building") || "#26313A"), alto = new THREE.Color(leerVar("edge") || "#5C6B75");
-      const nieve = new THREE.Color(leerVar("ink") || "#DCE3E6"), c = new THREE.Color();
-      celdasMonte.forEach(([i, j, h], n) => {
-        c.copy(bajo).lerp(alto, Math.min(1, h / 12) * .85);
-        if (h >= 12) c.lerp(nieve, .5);
-        c.multiplyScalar(h % 2 ? .8 : .88);  // terrazas alternas: se leen las curvas de nivel
-        montes.setColorAt(n, c);
-      });
-      if (montes.instanceColor) montes.instanceColor.needsUpdate = true;
-    }
-    function construirTerreno(conMontes = true) {
-      const { x0, x1, z0, z1 } = TERRENO;
-      const afuera = mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), M.afuera);
-      afuera.rotation.x = -Math.PI / 2; afuera.position.set((x0 + x1) / 2, terrenoEditor ? -2.02 : -.02, (z0 + z1) / 2); afuera.raycast = () => {};
-      if (terrenoEditor) {
-        const terreno = mesh(window.CMGTerreno.crearGeometria(THREE, terrenoEditor), matTerrenoEditor);
-        terreno.name = "Terreno del editor";
-        terreno.raycast = () => {};
-        fijo.add(afuera, terreno);
-        const agua = mesh(window.CMGTerreno.crearGeometriaAgua(THREE, terrenoEditor), matAguaEditor);
-        agua.name = "Agua del editor"; agua.visible = agua.geometry.drawRange.count > 0;
-        agua.renderOrder = 1; agua.raycast = () => {}; fijo.add(agua);
-        for (const b of terrenoEditor.bloques) {
-          const bloque = mesh(window.CMGTerreno.BLOQUES.geometria(THREE, b), materialesBloques.get(b.id));
-          bloque.name = `Bloque del editor: ${b.nombre}`;
-          bloque.position.fromArray(b.posicion); bloque.rotation.set(...b.rotacion); bloque.scale.fromArray(b.escala);
-          bloque.raycast = () => {}; fijo.add(bloque);
-        }
-        return;
-      }
-      const p = [];
-      for (let i = x0; i <= x1; i++) p.push([i, -.01, z0], [i, -.01, z1]);
-      for (let j = z0; j <= z1; j++) p.push([x0, -.01, j], [x1, -.01, j]);
-      const red = lineas(p, L.gridFuera); red.raycast = () => {};
-      if (!conMontes) { fijo.add(afuera, red); return; }
-      montes = new THREE.InstancedMesh(G.caja(1, 1, 1), matMonte, celdasMonte.length);
-      const m = new THREE.Matrix4();
-      celdasMonte.forEach(([i, j, h], n) => { m.makeScale(1, h, 1); m.setPosition(i + .5, h / 2 - .02, j + .5); montes.setMatrixAt(n, m); });
-      montes.raycast = () => {};
-      pintarMontes();
-      fijo.add(afuera, red, montes);
-    }
+    const { construirTerreno, pintarMontes } = crearTerreno3D({ estado, terreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar });
 
     function construir() {
       limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
@@ -260,8 +159,8 @@
       fijo.add(lineas(p1, L.grid), lineas(p2, L.grid2));
       if (ES_FACTORY) {
         escena.fog = horizonte;
-        factory = window.FACTORY_3D.construir({ estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
-        window.FACTORY_3D.ultimo = factory;
+        factory = factory3d.construir({ estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
+        factory3d.ultimo = factory;
         aplicarColores(); anillosDe(estado.seleccion);
         return;
       }
@@ -389,7 +288,7 @@
     function actualizar(off, ahora) {
       if (factory) {
         const dt = ahoraPrevio == null ? 0 : Math.min(.1, Math.max(0, (ahora - ahoraPrevio) / 1000)); ahoraPrevio = ahora;
-        window.FACTORY_3D.actualizar(factory, { estado, camara, altoPx: () => altoCampo }, dt);
+        factory3d.actualizar(factory, { estado, camara, altoPx }, dt);
         if (anillos && anillos.userData.sigueMaquina) { const u = estado.escena.porId[anillos.userData.sigueMaquina]; if (u) anillos.position.set(u.cx, 0, u.cy); }
         return;
       }
@@ -474,153 +373,7 @@
       }
     }
 
-    function colocarCamara(c = cam) {
-      const cp = Math.cos(c.pitch);
-      camara.position.set(c.x + c.dist * cp * Math.sin(c.yaw), c.dist * Math.sin(c.pitch), c.z + c.dist * cp * Math.cos(c.yaw));
-      camara.lookAt(c.x, 0, c.z);
-      camara.updateMatrixWorld();
-    }
-    // Campo girado 90°: la base queda abajo y los enemigos llegan desde arriba. Se usa en pantalla completa
-    // con la pantalla en vertical (se puede desactivar en Ajustes); al girar a horizontal vuelve la normal.
-    const app = $("app");
-    function claveCamara() {
-      if (innerHeight <= innerWidth) return "horizontal";
-      const girar = app.dataset.pantallaCompleta === "true" && app.dataset.girarCampo !== "false" && altoCampo > anchoCampo;
-      return girar ? "girada" : "vertical";
-    }
-    // Distancia mínima para que las cuatro esquinas del campo quepan en pantalla (con margen para el HUD).
-    function encuadrar(c, mx, my) {
-      const esquinas = [[0, 0], [estado.cols, 0], [0, estado.rows], [estado.cols, estado.rows]].map(([x, z]) => new THREE.Vector3(x, 0, z));
-      let lo = 6, hi = 160;
-      for (let k = 0; k < 24; k++) {
-        c.dist = (lo + hi) / 2; colocarCamara(c);
-        const cabe = esquinas.every(e => { const q = e.clone().project(camara); return Math.abs(q.x) <= mx && Math.abs(q.y) <= my && q.z < 1; });
-        if (cabe) hi = c.dist; else lo = c.dist;
-      }
-      c.dist = hi;
-      return c;
-    }
-    function camaraInicial(k) {
-      // En pantallas estrechas la cámara se aleja para que quepan las 32 columnas.
-      // Algo inclinada y mirando un poco más al norte: deja ver la cordillera detrás del campo.
-      if (ES_FACTORY) return encuadrar({ yaw: k === "girada" ? -Math.PI / 2 : 0, pitch: .9, dist: 12, x: estado.cols / 2, z: estado.rows / 2 }, .92, .82);
-      if (k !== "girada") return { yaw: 0, pitch: .93, dist: camara.aspect < 1.5 ? 33 * 1.5 / camara.aspect : 33, x: estado.cols / 2, z: estado.rows / 2 - .8 };
-      return encuadrar({ yaw: -Math.PI / 2, pitch: .98, dist: 30, x: estado.cols / 2 - .6, z: estado.rows / 2 }, .98, .8);
-    }
-    function elegirCamara() {
-      const k = claveCamara();
-      const c = camaras[k] || (camaras[k] = { k, cam: null, movida: false });
-      c.cam0 = camaraInicial(k);
-      if (!c.cam) c.cam = { ...c.cam0 };
-      else if (!c.movida) Object.assign(c.cam, c.cam0);
-      camActual = c; cam = c.cam; cam0 = c.cam0;
-    }
-    const moverCamara = () => { if (camActual) camActual.movida = true; };
-    function tamano(w, h) {
-      anchoCampo = w; altoCampo = h;
-      renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
-      elegirCamara();
-    }
-    // Activar o salir de pantalla completa, o cambiar el ajuste, cambia de cámara sin cambiar de tamaño.
-    new MutationObserver(() => { if (cam) elegirCamara(); }).observe(app, { attributes: true, attributeFilter: ["data-pantalla-completa", "data-girar-campo"] });
-    function render() {
-      if (!cam) elegirCamara();
-      colocarCamara();
-      if (escena.fog === horizonte) { horizonte.near = cam.dist + (ES_FACTORY ? 8 : 24); horizonte.far = cam.dist + (ES_FACTORY ? 40 : 110); }
-      else if (escena.fog) { escena.fog.near = cam.dist * .55; escena.fog.far = cam.dist * 1.75; }
-      renderer.render(escena, camara);
-    }
-    const v = new THREE.Vector3();
-    function proyectar(x, alto, y, w, h) {
-      v.set(x, alto, y).project(camara);
-      return { x: (v.x + 1) / 2 * w, y: (1 - v.y) / 2 * h, visible: v.z < 1 && v.z > -1 };
-    }
-    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-    function elegir(px, py, w, h) {
-      ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
-      ray.setFromCamera(ndc, camara);
-      const hits = ray.intersectObjects([...fijo.children, ...movil.children], true);
-      for (const hit of hits) { let o = hit.object; while (o && !o.userData.id) o = o.parent; if (o) return o.userData.id; }
-      return null;
-    }
-    function suelo(px, py, w, h) {
-      ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
-      ray.setFromCamera(ndc, camara);
-      const punto = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
-      return punto ? { x: punto.x, y: punto.z, z: 0 } : null;
-    }
-    function centrar(x, y) {
-      // Acerca la cámara a la unidad un poco hacia el lado desde el que mira.
-      cam.x = x + Math.sin(cam.yaw); cam.z = y + Math.cos(cam.yaw); cam.dist = Math.min(cam.dist, ES_FACTORY ? 5 : 22); moverCamara();
-    }
-    function recentrar() { Object.assign(cam, cam0); camActual.movida = false; }
 
-    // Cámara: rueda presionada = orbitar · botón derecho o dos dedos = desplazar.
-    // El botón izquierdo y la selección táctil se manejan juntos en el campo.
-    const canvas = $("c3d"), punteros = new Map();
-    let gesto = null;
-    canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
-    canvas.addEventListener("pointerdown", (ev) => {
-      if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return;
-      canvas.setPointerCapture(ev.pointerId);
-      punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
-      gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false };
-    });
-    canvas.addEventListener("pointermove", (ev) => {
-      const p = punteros.get(ev.pointerId); if (!p || !gesto) return;
-      const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
-      p.x = ev.clientX; p.y = ev.clientY;
-      gesto.movido += Math.abs(dx) + Math.abs(dy);
-      if (dx || dy) moverCamara();
-      if (punteros.size >= 2) {
-        const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-        if (gesto.dist0) cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * gesto.dist0 / d));
-        gesto.dist0 = d;
-        desplazar(dx / 2, dy / 2);
-        // Girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral pequeño evita
-        // girar sin querer al pellizcar para acercar.
-        if (gesto.ang0 != null) {
-          const da = Math.atan2(Math.sin(ang - gesto.ang0), Math.cos(ang - gesto.ang0));
-          gesto.giro += da;
-          if (gesto.girando || Math.abs(gesto.giro) > .12) {
-            const r = canvas.getBoundingClientRect();
-            girar(gesto.girando ? da : gesto.giro, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, r.width, r.height);
-            gesto.girando = true;
-          }
-        }
-        gesto.ang0 = ang;
-      } else if (gesto.tactil && estado.arrastreCampo && estado.arrastreCampo.cajaTactil) return;
-      else if (gesto.desplazar || gesto.tactil) desplazar(dx, dy);
-      else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(.28, cam.pitch + dy * .005)); }
-    });
-    const soltar = (ev) => {
-      punteros.delete(ev.pointerId);
-      if (gesto && punteros.size === 0) {
-        gesto = null;
-      } else if (gesto) { gesto.dist0 = null; gesto.ang0 = null; }
-    };
-    canvas.addEventListener("pointerup", soltar);
-    canvas.addEventListener("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
-    const limitar = () => { cam.x = Math.min(estado.cols + 4, Math.max(-4, cam.x)); cam.z = Math.min(estado.rows + 4, Math.max(-6, cam.z)); };
-    function desplazar(dx, dy) {
-      const k = cam.dist * .0022;
-      const sx = Math.cos(cam.yaw), sz = -Math.sin(cam.yaw);
-      cam.x -= (dx * sx + dy * Math.sin(cam.yaw)) * k;
-      cam.z -= (dx * sz + dy * Math.cos(cam.yaw)) * k;
-      limitar();
-    }
-    // El giro mantiene fijo el punto del suelo que queda entre los dedos.
-    function girar(da, px, py, w, h) {
-      colocarCamara();
-      const antes = suelo(px, py, w, h);
-      cam.yaw = Math.atan2(Math.sin(cam.yaw + da), Math.cos(cam.yaw + da));
-      colocarCamara();
-      const despues = suelo(px, py, w, h);
-      if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
-    }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato, camara: () => ({ clave: camActual && camActual.k, ...cam, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }) };
-  }
-
-  window.VISTAS = { crear3D };
-})();
+      const { altoPx, ...controles } = crearCamara3D({ estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil, get factory() { return factory; } });
+    return { construir, actualizar, ...controles, anillosDe, aplicarColores, retrato };
+}

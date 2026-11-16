@@ -49,10 +49,10 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `js/paleta.js`, `js/programas.js` | Catálogo de atajos y aplicación de borradores Add/Replace, cargados también por las pruebas. |
 | `paquetes/anfitrion/` (desde la raíz) | Texto del Web Worker de los programas y despertar del lockstep (antes `js/runtime.js`). El paso fijo está en `paquetes/nucleo/`. |
 | `paquetes/reglas-war/`, `paquetes/reglas-factory/`, `paquetes/reglas-campaign/` (desde la raíz) | Reglas, retos y nivel de cada serie, como módulos ES que corren en Node. |
-| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO`, `RUNTIME` (Worker del anfitrión) y `ESCENAS` (escena de cada reglamento para las vistas) como globales mientras dure la fase 2. |
-| `js/vistas.js` | Visor 3D de War y Factory. Las vistas leen solo la escena del reglamento (`estado.escena`). |
+| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO`, `RUNTIME` (Worker del anfitrión), `ESCENAS` (escena de cada reglamento para las vistas), `VISTA_2D`, `VISTA_3D` y `FACTORY_3D` como globales mientras dure la fase 2. |
+| `paquetes/vista-3d/` (desde la raíz) | Visores 3D de War, Factory y Campaign como módulos ES. Leen solo la escena del reglamento (`estado.escena`); cámara, gestos y terreno en módulos propios. |
 | `paquetes/vista-2d/` (desde la raíz) | Planos 2D de War, Factory y Campaign y relieve de Campaign, como módulos ES (fase 2; antes `js/vistas.js`, `js/factory-vista.js`, `js/campaign-plano.js` y `js/campaign-terreno.js`). |
-| `js/factory-3d.js`, `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
+| `paquetes/vista-3d/factory.js` (desde la raíz), `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil y tooltips. |
 | `shared/editor/` (desde la raíz) | Instancia reutilizable, adaptador JS, paletas, símbolos, fichas, historial y vistas Seudo/Bloques. |

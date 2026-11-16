@@ -1,18 +1,18 @@
 /* Campaign · vista 3D: diorama low-poly del mapa (fábrica, muralla y campo de batalla) y sus unidades.
- * Mismo contrato que el visor común (vistas.js): construir, actualizar, render, proyectar, elegir, suelo…
+ * Mismo contrato que el visor común (war.js): construir, actualizar, render, proyectar, elegir, suelo…
  * Dos pieles: paisaje y batalla (sin texturas de escenario, con la cuadrícula de War). Solo dibujo: nunca cambia el mundo. */
-(() => {
-  "use strict";
   const PASO = 2, FALDA = -7, MURO = { alto: 3.4, ancho: 1.5 };
   const PIEZA = { steel: 0x9fb2c0, polymer: 0xe6d79a, nose: 0xe2704c, base: 0x5fa06a, charge: 0xb884e0, motor: 0xe0a04e, missile: 0xeef2f4 };
   const LUZ = { green: 0x4be38a, amber: 0xffc247, red: 0xff5a4f, off: 0x2a343c };
 
-  function crear(estado, { $, FUNCIONES, funcionDe, leerVar, radioDe }) {
-    if (typeof THREE === "undefined" || !window.CAMPAIGN_TERRENO) return null;
+/** @param {import('./index.js').EstadoVista} estado @param {import('./index.js').DependenciasCampaign} deps
+ * @returns {import('./index.js').VistaCampaign3D | null} */
+export function crearCampaign3D(estado, { $, FUNCIONES, funcionDe, leerVar, radioDe, mapa, crearTerreno, reglas }) {
+    if (typeof THREE === "undefined" || !crearTerreno) return null;
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    const mapa = window.CAMPAIGN_NIVEL.MAPA, T = window.CAMPAIGN_TERRENO.crear(mapa), C = window.CAMPAIGN;
+    const T = crearTerreno(mapa), C = reglas;
     const escena = new THREE.Scene(), camara = new THREE.PerspectiveCamera(38, 1.6, 0.5, 900);
     const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.82), sol = new THREE.DirectionalLight(0xffffff, 0.62);
     sol.position.set(-60, 120, 50); escena.add(hemi, sol);
@@ -236,6 +236,7 @@
       limpiar(fijo); limpiar(movil); objetos.clear(); tarimas.clear(); misiles.clear(); efectos.clear(); aros.clear(); camion = null;
       const m = estado.escena; if (!m) return;
       for (const e of m.maquinas) {
+        /** @type {any} */
         let o;
         if (C.esMaquina(e)) o = maquinaObj(e);
         else if (C.esRobot(e)) o = robotObj(e);
@@ -476,5 +477,3 @@
     return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato: () => null, batalla, verCampo,
       camara: () => ({ clave: camActual && camActual.k, ...cam, piel }), terreno: T };
   }
-  window.CAMPAIGN_3D = { crear };
-})();

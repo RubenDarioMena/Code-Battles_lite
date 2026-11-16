@@ -55,7 +55,7 @@ assert.equal(acorn.version, '8.11.3');
 assert.equal(require('../shared/vendor/three-r128.min.js').REVISION, '128');
 acorn.parse('async function viaje() { await pickUp(ENT_1, "cobre"); } await viaje();', { ecmaVersion: 2022, allowAwaitOutsideFunction: true });
 assert.throws(() => acorn.parse('function viaje() { await pickUp(); }', { ecmaVersion: 2022 }));
-for (const archivo of ['Prototypes/Rocket Launcher/index.html', 'Prototypes/Rocket Launcher/probar.html', 'Prototypes/Rocket Launcher/js/factory-3d.js']) {
+for (const archivo of ['Prototypes/Rocket Launcher/index.html', 'Prototypes/Rocket Launcher/probar.html', 'paquetes/vista-3d/factory.js']) {
   assert(!/https?:\/\/(?:cdn\.|cdnjs\.|fonts\.)/.test(leer(archivo)), archivo);
 }
 // E3: catálogo de lenguajes del editor. Solo nombres y presentación; ejecutar no es asunto del editor.

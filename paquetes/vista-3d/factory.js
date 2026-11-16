@@ -1,8 +1,6 @@
 /* Escenario 3D de logística: edificios con primitivas y el transporte T1 (modelos/t1.glb) como R1.
- * La cámara, la selección y las etiquetas son las de la vista 3D común (vistas.js); aquí solo el contenido.
- * Solo dibujo: lee el mundo y nunca lo cambia. */
-(() => {
-  "use strict";
+ * La cámara, la selección y las etiquetas son las de la vista 3D común (war.js); aquí solo el contenido.
+ * Solo dibujo: lee la escena y nunca lo cambia. */
   const MODELO = "modelos/t1.glb?v=1";
   // Cargador glTF de la misma versión que three.min.js (r128). Solo lo descarga Factory, al abrir el 3D.
   const CARGADOR = "../../shared/vendor/GLTFLoader-r128.js";
@@ -206,6 +204,5 @@
     }
   }
 
-  window.FACTORY_3D = { construir, actualizar, cargar, ik };
-})();
+export const factory3d = { construir, actualizar, cargar, ik, ultimo: null };
 

@@ -539,7 +539,24 @@
     get col() { return col; }, get geo2() { return geo2; }, set geo2(g) { geo2 = g; },
     get def() { return def; }, get vista() { return vista; },
   };
-  const V3 = ES_CAMPAIGN ? (window.CAMPAIGN_3D ? window.CAMPAIGN_3D.crear(estadoVista, { $, FUNCIONES, funcionDe, leerVar, radioDe }) : null) : window.VISTAS.crear3D(estadoVista, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual });
+  function leerTerrenoEditor() {
+    let terrenoEditor = null;
+    if (!ES_FACTORY && !ES_CAMPAIGN && typeof THREE !== "undefined" && new URLSearchParams(location.search).get("terreno") === "editor") {
+      try {
+        const api = window.CMGTerreno;
+        if (!api || !api.crearGeometria) throw new Error("No se cargaron los recursos del editor de terreno.");
+        const guardado = localStorage.getItem(api.CLAVE_JUEGO);
+        if (!guardado) throw new Error("No hay un terreno guardado para probar.");
+        terrenoEditor = api.validar(JSON.parse(guardado));
+      } catch (error) {
+        console.warn("Terreno del editor: se conserva el paisaje predeterminado.", error.message);
+      }
+    }
+    return terrenoEditor;
+  }
+  const V3 = ES_CAMPAIGN
+    ? window.VISTA_3D.crearCampaign3D(estadoVista, { $, FUNCIONES, funcionDe, leerVar, radioDe, mapa: window.CAMPAIGN_NIVEL.MAPA, crearTerreno: window.VISTA_2D.crearTerreno, reglas: window.CAMPAIGN })
+    : window.VISTA_3D.crear3D(estadoVista, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno: window.CMGTerreno, terrenoEditor: leerTerrenoEditor() });
 
   // ---------- Vista de plano (2D) ----------
   const $c2d = $("c2d"), ctx2 = $c2d.getContext("2d");

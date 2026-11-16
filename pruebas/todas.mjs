@@ -21,6 +21,7 @@ const logica = [
   'paquetes/anfitrion/pruebas/anfitrion.mjs',
   'paquetes/app/pruebas/app.mjs',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',
+  'paquetes/vista-3d/pruebas/vista-3d.mjs',
   'fronteras-fase2',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente'];

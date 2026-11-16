@@ -22,8 +22,8 @@ Módulos ES con el código de antes, sin cambios de dibujo:
   desplazamiento propios (antes `js/campaign-plano.js`). `deps` añade `mapa`
   (`CAMPAIGN_NIVEL.MAPA`) y `reglas` (las funciones de Campaign).
 - `crearTerreno(mapa)`: relieve determinista de Campaign (antes
-  `js/campaign-terreno.js`). La vista 3D de Campaign también lo usa; mientras
-  siga en `js/`, el puente lo publica como `CAMPAIGN_TERRENO`.
+  `js/campaign-terreno.js`). La app lo inyecta también a `crearCampaign3D` de
+  vista-3d mediante `deps.crearTerreno`, sin imports entre las dos vistas.
 
 `estado` es el objeto de lectura que da `juego.js`: `escena` (una copia por
 fotograma), selección, colores, `cols`/`rows` y `geo2`, donde el plano publica

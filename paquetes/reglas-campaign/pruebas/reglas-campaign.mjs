@@ -153,9 +153,9 @@ const scripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^\"]*)?"/g
 const puente = scripts.indexOf('js/compat-paquetes.js'); comprobar(puente >= 0);
 // js/runtime.js ya no existe: el puente construye el Worker con paquetes/anfitrion (fase 2).
 comprobar(!scripts.includes('js/runtime.js'));
-// campaign-plano y campaign-terreno pasaron a paquetes/vista-2d (fase 2): los carga el puente.
-for (const nombre of ['campaign-plano', 'campaign-terreno']) comprobar(!scripts.includes(`js/${nombre}.js`));
-for (const nombre of ['juego', 'campaign-ui', 'campaign-3d'])
+// Las vistas y el relieve pasaron a vista-2d/vista-3d (fase 2): los carga el puente.
+for (const nombre of ['campaign-plano', 'campaign-terreno', 'campaign-3d']) comprobar(!scripts.includes(`js/${nombre}.js`));
+for (const nombre of ['juego', 'campaign-ui'])
   comprobar(scripts.indexOf(`js/${nombre}.js`) > puente);
 for (const nombre of ['campaign', 'campaign-nivel']) comprobar(!scripts.includes(`js/${nombre}.js`));
 comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));

@@ -1,0 +1,83 @@
+// Three r128 se carga desde shared/vendor en la página, hasta la fase 4.
+// El proveedor histórico no incluye tipos; esta declaración no carga el motor.
+declare global { const THREE: any; }
+
+export interface EstadoVista {
+  readonly escena: Readonly<Record<string, any>> | null;
+  readonly seleccion: string | null;
+  readonly seleccionadas: ReadonlySet<string>;
+  readonly arrastreCampo: any;
+  readonly cols: number;
+  readonly rows: number;
+}
+export interface DependenciasComunes {
+  $(id: string): any;
+  FUNCIONES: Record<string, any>;
+  funcionDe(unidad: any): { principal: string; secundaria?: string };
+  leerVar(clave: string): string;
+  radioDe(unidad: any): number;
+}
+export interface TerrenoEditorAPI {
+  crearGeometria(three: any, datos: any): any;
+  crearGeometriaAgua(three: any, datos: any): any;
+  BLOQUES: { geometria(three: any, bloque: any): any };
+}
+export interface DependenciasWar extends DependenciasComunes {
+  ES_FACTORY: boolean;
+  ARCO: number[];
+  FR: number;
+  HALO: Record<string, number[][]>;
+  INTENSIDAD: Record<string, number>;
+  LINEA_BASE: number;
+  LUCES: Record<string, number[][]>;
+  MISIL: { radio: number; [clave: string]: any };
+  TIPOS: Record<string, any>;
+  alcance(tipo: string): number;
+  direccionDe(unidad: any, ahora: number): number;
+  visual: { halo: string; intensidad: string; brillo: string; [clave: string]: any };
+  terreno?: TerrenoEditorAPI;
+  /** Datos ya validados por la app; null conserva el paisaje predeterminado. */
+  terrenoEditor?: any;
+}
+export interface DependenciasCampaign extends DependenciasComunes {
+  mapa: any;
+  crearTerreno?: (mapa: any) => any;
+  reglas: {
+    esRobot(unidad: any): boolean;
+    esMaquina(unidad: any): boolean;
+    estadoMaquina(unidad: any): string;
+    TARIMA_CAP: number;
+    RECETAS: Record<string, any>;
+    BANDA: { vel: number };
+  };
+}
+export interface Vista3D {
+  construir(): void;
+  actualizar(off: number, ahora: number): void;
+  render(): void;
+  tamano(w: number, h: number): void;
+  proyectar(x: number, alto: number, y: number, w: number, h: number): { x: number; y: number; visible: boolean };
+  elegir(px: number, py: number, w: number, h: number): string | null;
+  suelo(px: number, py: number, w: number, h: number): { x: number; y: number; z: number } | null;
+  centrar(x: number, y: number): void;
+  recentrar(): void;
+  anillosDe(id?: string | null): void;
+  aplicarColores(): void;
+  girar(da: number, px: number, py: number, w: number, h: number): void;
+  retrato(tipo?: string, w?: number, h?: number): string | null;
+  camara(): Record<string, any>;
+}
+export interface VistaCampaign3D extends Vista3D {
+  batalla(valor: boolean): void;
+  verCampo(): void;
+  terreno: any;
+}
+export function crear3D(estado: EstadoVista, deps: DependenciasWar): Vista3D | null;
+export function crearCampaign3D(estado: EstadoVista, deps: DependenciasCampaign): VistaCampaign3D | null;
+export const factory3d: {
+  construir(ctx: any): any;
+  actualizar(contenido: any, ctx: any, dtReal: number): void;
+  cargar(): Promise<any>;
+  ik(h: number, v: number): { a1: number; a2: number; a3: number };
+  ultimo: any | null;
+};

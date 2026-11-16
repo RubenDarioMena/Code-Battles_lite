@@ -1,46 +1,48 @@
 # vista-3d
 
-Dibuja el mundo en 3D a partir de instantáneas y sucesos. Interpola sin leer ni escribir el mundo.
+Estado: fase 2, paso 6. Módulos ES con el dibujo, cámara y gestos anteriores.
+Solo leen `estado.escena` (datos planos del reglamento) y la selección; no
+escriben en la escena. Mantienen la extrapolación `off` en segundos.
 
-## Puede importar
+## Contrato vigente
 
-`protocolo`, `vfx`. Véanse las reglas de [paquetes](../README.md).
+La entrada pública `index.js` exporta:
 
-## Contrato
+- `crear3D(estado, deps)`: visor común de War y Factory. `war.js` compone
+  materiales, unidades y efectos; `camara.js` guarda las posturas, selección,
+  proyección y gestos; `terreno.js` construye el paisaje y el terreno del editor.
+- `crearCampaign3D(estado, deps)`: diorama y unidades de Campaign.
+- `factory3d`: objeto mutable `{ construir, actualizar, cargar, ik, ultimo }`
+  con el contenido de Factory y el gancho de inspección del último escenario.
 
-`crearVista(contenedor, { tema, calidad })`; `dibujar(anterior, actual, fraccion)`, `alSuceso(suceso)`, `elegir(x, y)` devuelve id o null, `redimensionar()` y `destruir()`.
+Los creadores devuelven `null` sin `THREE` o si falla WebGL. Campaign también
+lo hace si falta `deps.crearTerreno`. Las vistas ofrecen `construir`,
+`actualizar(off, ahora)`, `render`, `tamano`, `proyectar`, `elegir`, `suelo`,
+`centrar`, `recentrar`, `anillosDe`, `aplicarColores`, `girar`, `retrato` y
+`camara`; Campaign añade `batalla`, `verCampo` y `terreno`. Tipos en `index.d.ts`.
 
-## De dónde sale
+La app inyecta `$`, colores (`leerVar`), funciones visuales y catálogos.
+War recibe `terreno` (API de CMGTerreno) y `terrenoEditor` (datos ya validados
+o null): la URL y el guardado se leen en `juego.js`. Campaign recibe `mapa`,
+`crearTerreno` de vista-2d y `reglas` (funciones y catálogos de Campaign).
+No importa otros paquetes; puede importar `protocolo` y `vfx`.
 
-`Prototypes/Rocket Launcher/js/vistas.js`, `Prototypes/Rocket Launcher/js/factory-3d.js`, `Prototypes/Rocket Launcher/js/campaign-3d.js`
+`THREE` sigue siendo global (r128 local) hasta la fase 4. DOM, canvas, tamaño
+de pantalla y reloj de animación siguen dentro de las vistas. Las rutas de
+modelo T1 y cargador glTF conservan su resolución relativa a la página.
+El puente publica `VISTA_3D` y `FACTORY_3D` (el mismo objeto `factory3d`).
+
+## Origen y pendientes
+
+Traslado de `Prototypes/Rocket Launcher/js/vistas.js`, `js/factory-3d.js` y
+`js/campaign-3d.js`, retirados. Pendiente el contrato final `crearVista`,
+`dibujar(anterior, actual, fraccion)`, `redimensionar` y `destruir` del plan;
+los efectos por sucesos quedan para `vfx` (fase 4).
 
 ## Pruebas
 
-Vivirán en `paquetes/vista-3d/pruebas/`. Criterio: Dibujo desde datos, selección y cambio 2D/3D sin reiniciar; revisión de capturas.
-
-## Estado
-
-Fase 2, paso 4: **las vistas ya dibujan solo con la escena del reglamento**.
-El código sigue en `Prototypes/Rocket Launcher/js/` (`vistas.js`,
-`factory-3d.js`, `campaign-3d.js`) como scripts globales; todavía no
-es un módulo de este paquete.
-
-- Las vistas leen `estado.escena` (antes `estado.mundo`): `escena(mundo)` de
-  cada reglamento, datos planos copiados una vez por fotograma por `juego.js`
-  (se invalida al empezar el fotograma y al crear un mundo). No pueden escribir
-  en el mundo.
-- Se mantiene la extrapolación de antes: dibujan la escena actual adelantada
-  `off` segundos (`off = fracción × DT`). El contrato `dibujar(anterior, actual,
-  fraccion)` del plan se adoptará con esa semántica al mover el código aquí.
-- Las explosiones y misiles llegan en la escena (estado visible). Usar los
-  sucesos para efectos queda para el paquete `vfx` (fase 4).
-- Cambio 2D/3D en caliente: `aplicarVista` alterna las dos vistas sin tocar la
-  partida; `pruebas/vista-caliente.cjs` lo comprueba en las tres series.
-- Verificación del paso: capturas deterministas (tiempo congelado) idénticas
-  píxel a píxel antes y después en War, Factory y Campaign, y el mismo instante
-  a mitad de batalla (misiles y explosiones) dibujado desde el mundo y desde la
-  escena, idéntico. Las únicas diferencias son ruido que ya existía entre dos
-  capturas de la base (brazo animado del robot de Factory 3D y un chip de texto).
-
-Pendiente: mover el código a este paquete como módulo ES con `crearVista`,
-`elegir(x, y)` (hoy `elegir2D` y `V3.elegir` en `juego.js`) y `destruir()`.
+`node paquetes/vista-3d/pruebas/vista-3d.mjs` (en `npm test`): exportaciones,
+IK, respaldo sin Three/WebGL, War con Three r128 real y renderizador falso,
+escena congelada en profundidad, cámara y geometrías inyectadas del editor.
+No prueba rasterizado. Para navegador: `pruebas/factory-3d.mjs`,
+`pruebas/vista-caliente.cjs` y comparaciones con `herramientas/capturas-vista.mjs`.

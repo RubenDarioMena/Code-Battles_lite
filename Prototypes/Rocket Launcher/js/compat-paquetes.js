@@ -4,6 +4,7 @@ import reglasFactory, { legado as factory, retos as factoryRetos } from '../../.
 import reglasCampaign, { legado as campaign, nivel } from '../../../paquetes/reglas-campaign/index.js';
 import { fuenteTrabajador, algunoCorre, despertar, despertarCampaign } from '../../../paquetes/anfitrion/index.js';
 import * as vista2d from '../../../paquetes/vista-2d/index.js';
+import * as vista3d from '../../../paquetes/vista-3d/index.js';
 
 // Se borra al terminar la fase 2.
 window.WAR = { ...legado };
@@ -15,9 +16,10 @@ window.CAMPAIGN_NIVEL = { ...nivel };
 window.NUCLEO = { DT, avanzar };
 // Lo que dibujan las vistas (fase 2): escena(mundo) de cada reglamento.
 window.ESCENAS = { war: war.escena, factory: reglasFactory.escena, campaign: reglasCampaign.escena };
-// Vistas 2D (antes vistas.js, factory-vista.js, campaign-plano.js) y el relieve de Campaign, que también usa campaign-3d.js.
+// Vistas 2D y 3D: la app inyecta el relieve de Campaign de una vista en la otra.
 window.VISTA_2D = vista2d;
-window.CAMPAIGN_TERRENO = { crear: vista2d.crearTerreno };
+window.VISTA_3D = vista3d;
+window.FACTORY_3D = vista3d.factory3d;
 // Antes, js/runtime.js. Este módulo va después de shared/python/traductor.js por el preludio de Python.
 const fuente = fuenteTrabajador({
   validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,

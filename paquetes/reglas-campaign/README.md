@@ -114,8 +114,8 @@ antes de sus hooks, conservando orden y resultados. `paso` se calcula desde `t`.
 
 Los lectores al cargar son el propio puente (serializa las dos funciones con `paquetes/anfitrion`, fase 2) y
 `juego.js` (catálogo, lectura del guardado y arranque). Ambos ya van después
-del puente en el documento. `campaign-ui.js`, `campaign-3d.js` y
-`paquetes/vista-2d` (antes `campaign-plano.js`) leen los catálogos al llamar a `crear`; el relieve (antes `campaign-terreno.js`, hoy en `paquetes/vista-2d`)
+del puente en el documento. `campaign-ui.js` lee los catálogos al llamar a `crear`;
+`paquetes/vista-3d` y `paquetes/vista-2d` los reciben de la app al crear las vistas; el relieve (antes `campaign-terreno.js`, hoy en `paquetes/vista-2d`)
 no lee ninguno. No se necesita reordenar scripts. Se retiran los dos scripts
 antiguos del HTML y la herramienta importa esta entrada pública.
 
