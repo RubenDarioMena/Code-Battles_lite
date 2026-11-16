@@ -16,7 +16,7 @@ for (const pagina of ['index.html', 'Prototypes/Rocket Launcher/index.html', 'pa
   }
   const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)]
     .map(([, atributos, src]) => ({ atributos, src: src.split('?')[0] }));
-  const puente = scripts.findIndex(s => s.src.endsWith(pagina.startsWith('Prototypes/') ? 'juego.js' : 'compat-paquetes.js'));
+  const puente = scripts.findIndex(s => s.src.endsWith(pagina.startsWith('Prototypes/') ? 'juego.js' : 'demo.js'));
   assert(puente >= 0 && /type="module"/.test(scripts[puente].atributos));
   for (const consumidor of scripts.slice(puente + 1)) {
     assert(/\bdefer\b|type="module"/.test(consumidor.atributos), consumidor.src);

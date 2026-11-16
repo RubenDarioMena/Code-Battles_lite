@@ -2,14 +2,14 @@ import { CMGTips } from '../editor/index.js';
 import { instalarPanelPantalla } from './layout-panel.js';
 import { instalarMenuFicha } from './layout-menu.js';
 /** Distribución sobre el marcado existente; recibe la fachada viva del juego.
- * @param {any} cmg */
-export function instalarLayout(cmg) {
+ * @param {any} cmg @param {any} servicios */
+export function instalarLayout(cmg, servicios) {
   const dom = /** @type {any} */ (document);
   /** @type {any} */
   const l = {};
 
   const $ = (id) => dom.getElementById(id);
-  const t = (clave, parametros) => window.CMGI18n.t(clave, parametros);
+  const t = (clave, parametros) => servicios.CMGI18n.t(clave, parametros);
   const app = $("app"), divisor = $("divisor"), zonaCodigo = $("zona-codigo");
   const svg = (cuerpo) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${cuerpo}</svg>`;
   const params = new URLSearchParams(location.search);

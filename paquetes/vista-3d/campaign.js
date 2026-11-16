@@ -8,7 +8,7 @@ import { escucharEn, liberarEscena } from './recursos.js';
 
 /** @param {import('./index.js').EstadoVista} estado @param {import('./index.js').DependenciasCampaign} deps
  * @returns {import('./index.js').VistaCampaign3D | null} */
-export function crearCampaign3D(estado, { $, FUNCIONES, funcionDe, leerVar, radioDe, mapa, crearTerreno, reglas }) {
+export function crearCampaign3D(estado, { THREE, $, FUNCIONES, funcionDe, leerVar, radioDe, mapa, crearTerreno, reglas }) {
     if (typeof THREE === "undefined" || !crearTerreno) return null;
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }

@@ -7,7 +7,7 @@ import ts from 'typescript';
 
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const entrada = raiz + 'Prototypes/Rocket Launcher/js/juego.js';
-const archivos = [entrada, raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js',
+const archivos = [entrada, raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js',
   ...['paquetes/app/juego/', 'paquetes/interfaz/', 'paquetes/vista-2d/', 'paquetes/vista-3d/'].flatMap(dir =>
     readdirSync(raiz + dir).filter(f => f.endsWith('.js')).map(f => raiz + dir + f))];
 const opciones = { allowJs: true, checkJs: true, noEmit: true, strict: false,

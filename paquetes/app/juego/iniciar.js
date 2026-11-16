@@ -24,11 +24,12 @@ import { instalarConsola, instalarInfoReto, instalarMaquinas, instalarInspector,
  * Los accesores conservan las variables de cada sección; nunca se copian sus valores.
  * @param {import('../index.js').OpcionesArranqueJuego} [opciones] */
 export function arrancarJuego(opciones = {}) {
-  configurar({ acorn: window.acorn, vistas: true, i18n: window.CMGI18n, lezer: window.LezerPython,
+  const servicios = opciones.servicios || {};
+  configurar({ acorn: servicios.acorn, vistas: true, i18n: servicios.CMGI18n, lezer: servicios.LezerPython,
     presentacion: {
-      html: texto => window.CMGPresentacion ? window.CMGPresentacion.html(texto) : texto,
-      texto: texto => window.CMGPresentacion ? window.CMGPresentacion.texto(texto) : texto,
-      rotular: (nodo, texto) => { if (window.CMGPresentacion) window.CMGPresentacion.rotular(nodo, texto); else nodo.textContent = texto; },
+      html: texto => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(texto) : texto,
+      texto: texto => servicios.CMGPresentacion ? servicios.CMGPresentacion.texto(texto) : texto,
+      rotular: (nodo, texto) => { if (servicios.CMGPresentacion) servicios.CMGPresentacion.rotular(nodo, texto); else nodo.textContent = texto; },
     } });
   registrarIconosFactory(ICONOS);
   const ctx = crearEstadoJuego(opciones);
@@ -57,8 +58,8 @@ export function arrancarJuego(opciones = {}) {
   conectar(instalarBucleJuego);
   conectar(instalarProveedorJuego);
   conectar(instalarArranqueJuego);
-  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg);
-  instalarLayout(ctx.cmg);
+  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg, servicios);
+  instalarLayout(ctx.cmg, servicios);
   ctx.cmg.remota = instalarRemota(ctx.cmg);
   // Diagnóstico accesible sin publicar los antiguos globales.
   ctx.cmg.pulsos = ctx.CMGPulsos;

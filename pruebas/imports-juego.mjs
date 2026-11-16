@@ -17,6 +17,12 @@ function visitar(nodo, hacer) {
   }
 }
 
+function parsearExports(fuente) {
+  const arbol = acorn.parse(fuente, { ecmaVersion: 2022, sourceType: 'module' });
+  return arbol.body.filter(n => n.type === 'ExportNamedDeclaration')
+    .flatMap(n => n.declaration?.declarations?.map(d => [d.id.name, true]) || []);
+}
+
 async function recorrer(url) {
   if (vistos.has(url.href)) return;
   vistos.add(url.href);
@@ -45,7 +51,11 @@ async function recorrer(url) {
       || !nodo.source?.value.startsWith('.')) continue;
     const destino = new URL(nodo.source.value, url);
     assert((await stat(destino)).isFile(), `${url.pathname}: ${nodo.source.value}`);
-    const modulo = await import(destino.href);
+    // La entrada de servicios lee el navegador al evaluarse: resolver sus exports por AST.
+    // Los paquetes siguen importándose realmente en Node (sin window).
+    const esEntrada = destino.pathname.endsWith('/js/servicios.js');
+    const modulo = esEntrada ? Object.fromEntries(parsearExports(await readFile(destino, 'utf8')))
+      : await import(destino.href);
     for (const spec of nodo.specifiers || []) {
       const nombre = spec.type === 'ImportDefaultSpecifier' ? 'default'
         : spec.type === 'ImportSpecifier' ? spec.imported.name : spec.local?.name;
@@ -73,8 +83,9 @@ for (const script of scripts.slice(0, principal))
   assert(!/\basync\b/.test(script.atributos), `${script.src}: dependencia clásica ordenada`);
 const fuenteJuego = await readFile(juego, 'utf8');
 const arbolJuego = acorn.parse(fuenteJuego, { ecmaVersion: 2022, sourceType: 'module' });
-assert.equal(arbolJuego.body.length, 2, 'la entrada solo importa y arranca');
-assert.equal(arbolJuego.body[1].expression.callee.name, 'arrancarJuego');
+assert.equal(arbolJuego.body.length, 3, 'la entrada solo importa app/servicios y arranca');
+assert.equal(arbolJuego.body.at(-1).expression.callee.name, 'arrancarJuego');
+assert.equal(arbolJuego.body.at(-1).expression.arguments[0].properties[0].key.name, 'servicios');
 const estado = acorn.parse(await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8'),
   { ecmaVersion: 2022, sourceType: 'module' });
 const clavesContexto = new Set();

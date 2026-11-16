@@ -1,7 +1,19 @@
+// Entrada de la demo (anfitrión, como una cáscara): solo aquí se leen/publican sus proveedores clásicos de QA.
+import { configurar, CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes,
+  CMGEditorPython } from '../index.js';
+import { CMGEditorJS, ESTRUCTURA, crearPython, crearJSaPython } from '../../lenguaje/index.js';
+
+const globales = /** @type {any} */ (window);
+const lezer = globales.LezerPython, acorn = globales.acorn;
+configurar({ lezer, acorn });
+Object.assign(window, { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes, CMGEditorJS, ESTRUCTURA });
+globales.CMGPythonJS = crearPython({ lezer, hueco: CMGEditorPython.nombreDe });
+globales.CMGJSaPython = crearJSaPython({ acorn });
+globales.demoEditores = montarDemo({ CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes });
+
 /* Dos anfitriones pequeños y declarativos, sin runtime ni globals del juego. */
-(() => {
-  "use strict";
-  const { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes } = /** @type {any} */ (window);
+/** @param {any} servicios */
+function montarDemo({ CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGLenguajes }) {
   // Cada lenguaje tiene sus propias funciones: el proveedor recibe el lenguaje del documento.
   const funcionesDe = {
     js: ["log", "info", "warn", "error"].map(nombre => ({ grupo: "Mensajes", objeto: "console", nombre, firma: ["mensaje"] })),
@@ -57,5 +69,5 @@
       estado.textContent = "Editor recreado con el mismo documento y preferencias.";
     });
   }
-  /** @type {any} */ (window).demoEditores = instancias;
-})();
+  return instancias;
+}

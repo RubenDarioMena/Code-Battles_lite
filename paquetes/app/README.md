@@ -194,8 +194,9 @@ clásicos de `educational-animation/revision/motor/`, sin modificarlos.
 
 La composición configura los servicios del editor y registra los iconos antes
 de instalarlo. Después instala revisión, layout y telemetría remota, y publica
-`__juegoListo` al terminar todo. `compat-paquetes.js` del juego y el archivo
-vacío `seudo.js` se retiran; la demo conserva su puente independiente.
+`__juegoListo` al terminar todo. El puente clásico del juego y el archivo
+vacío `seudo.js` están retirados; la demo tiene su entrada independiente en
+`paquetes/editor/demo/demo.js`.
 
 Los únicos globales propios de diagnóstico son `cmg`, `__banco` y
 `__juegoListo`. `cmg.revisionJuego` expone abrir/cerrar/abierta/vista;
@@ -204,3 +205,28 @@ antiguos ganchos separados. Las suites de revisión y Factory 3D usan esas
 mismas instancias. Se conservan API del jugador y formatos de almacenamiento.
 No se añaden dependencias. Los proveedores clásicos restantes son i18n,
 presentación, terreno, vendors y motor de revisión.
+
+
+## Servicios clásicos inyectados (fase 2, paso 13)
+
+`arrancarJuego({ servicios })` recibe i18n, presentación, terreno, Three,
+Acorn, Lezer y el motor de pulsos. Solo la entrada
+`Prototypes/Rocket Launcher/js/servicios.js` lee esas bibliotecas de `window`.
+`cargarRevision()` conserva la carga diferida y ordenada del resto del motor;
+devuelve catálogo y visor al terminar, sin lecturas globales en la app.
+Layout recibe los servicios por opciones; el formulario Factory y Campaign
+reciben i18n. Las vistas reciben Three por `crearVista` y sus ayudantes por parámetros.
+No cambia el orden de los scripts clásicos ni se modifican sus bibliotecas.
+
+El HTML y los recursos que carga el juego ya no llevan versiones `?v=`.
+Para evitar mezclas de caché en QA, usar el enlace raw.githack **fijado al hash
+completo del commit**, por ejemplo
+`https://raw.githack.com/RubenDarioMena/Code-Battles_lite/<hash-completo>/Prototypes/Rocket%20Launcher/index.html`.
+El enlace de rama puede conservar caché. En las cáscaras de escritorio y Android
+los recursos se renuevan con el empaquetado de cada publicación.
+
+`pruebas/globales-juego.mjs` verifica la frontera de servicios y la ausencia de
+versiones manuales; `juego-identificadores` y `juego-arranque` verifican nombres
+y lecturas prematuras. Las regresiones de revisión del juego y de depuración
+están registradas en `npm run test:navegador`, con el origen dedicado del ejecutor
+(`CBL_QA_ORIGIN`); la primera solo crea su servidor cuando ese origen no se proporciona.

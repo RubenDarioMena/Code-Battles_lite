@@ -14,8 +14,13 @@ export async function tanda(p,desde,hasta){
   await p.cdp('Emulation.setDeviceMetricsOverride',{width:movil?393:1366,height:movil?852:900,deviceScaleFactor:1,mobile:movil});
   await p.goto('http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma='+(movil?'movil':'escritorio'));
   await p.waitForFunction(()=>!!window.cmg?.edicion);
-  const build=await p.evaluate(()=>[...document.scripts].map(s=>s.src));
-  if(!build.some(s=>s.endsWith('/juego.js?v=14')) || !build.some(s=>s.endsWith('/edicion.js?v=16')))throw new Error('Build anterior: no iniciar intento.');
+  // Rechaza la carga clásica obsoleta y exige la composición ES con su editor conectado.
+  const build=await p.evaluate(()=>({
+   entrada:[...document.scripts].some(s=>s.type==='module' && new URL(s.src,location.href).pathname.endsWith('/js/juego.js') && !new URL(s.src,location.href).search),
+   clasicos:[...document.scripts].some(s=>/\/(?:edicion|compat-paquetes)\.js(?:\?|$)/.test(s.src)),
+   conectado:!!(window.__juegoListo && window.cmg?.editor?.fachada?.edicion === window.cmg?.edicion && window.cmg?.revisionJuego && window.cmg?.pulsos),
+  }));
+  if(!build.entrada || build.clasicos || !build.conectado)throw new Error('Build anterior o incompleta: no iniciar intento.');
   if(await p.evaluate(()=>document.querySelector('#b-barras').getAttribute('aria-expanded')==='false'))await p.click('#b-barras');
   await p.click('loc=role:tab[name="PROGRAMA"]');
   await p.selectOption('#sel-lenguaje', 'js');

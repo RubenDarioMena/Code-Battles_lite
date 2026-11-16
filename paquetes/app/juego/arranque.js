@@ -87,7 +87,7 @@ export function instalarArranqueJuego(ctx) {
     enlace.setAttribute("aria-current", enlace.dataset.serie === (ctx.SERIE) ? "page" : "false");
   }
   const formularioFactory = ctx.ES_FACTORY ? FACTORY_FORM.crear({
-    factory: ctx.factory,
+    factory: ctx.factory, i18n: ctx.CMGI18n,
     retoActual: () => ctx.def, propioSel: () => ctx.retoIdx === ctx.IDX_PROPIO,
     guardar: d => ctx.guardarPropio(d, true), abrirPestana: ctx.abrirPestana,
     copiarPrograma: () => ctx.guardado.escribir("prog-factory-propio", { ...ctx.programas }),

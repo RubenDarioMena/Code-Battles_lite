@@ -6,7 +6,7 @@ import { crearTerreno3D } from './terreno.js';
 
 /** @param {import('./index.js').EstadoVista} estado @param {import('./index.js').DependenciasWar} deps
  * @returns {import('./index.js').Vista3D | null} */
-export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null }) {
+export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null }) {
     if (typeof THREE === "undefined") return null;
     // Factory usa el mismo visor con su propio contenido (factory.js) y un mapa más pequeño.
     let factory = null, ahoraPrevio = null;
@@ -145,7 +145,7 @@ export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTE
     }
     function limpiar(grupo) { while (grupo.children.length) { const c = grupo.children.pop(); c.traverse(o => { if (o.geometry && !Object.values(G).includes(o.geometry)) o.geometry.dispose(); }); } }
 
-    const { construirTerreno, pintarMontes } = crearTerreno3D({ estado, terreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar });
+    const { construirTerreno, pintarMontes } = crearTerreno3D({ THREE, estado, terreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar });
 
     function construir() {
       limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
@@ -160,7 +160,7 @@ export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTE
       fijo.add(lineas(p1, L.grid), lineas(p2, L.grid2));
       if (ES_FACTORY) {
         escena.fog = horizonte;
-        factory = factory3d.construir({ estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
+        factory = factory3d.construir({ THREE, estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
         factory3d.ultimo = factory;
         aplicarColores(); anillosDe(estado.seleccion);
         return;
@@ -289,7 +289,7 @@ export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTE
     function actualizar(off, ahora) {
       if (factory) {
         const dt = ahoraPrevio == null ? 0 : Math.min(.1, Math.max(0, (ahora - ahoraPrevio) / 1000)); ahoraPrevio = ahora;
-        factory3d.actualizar(factory, { estado, camara, altoPx }, dt);
+        factory3d.actualizar(factory, { THREE, estado, camara, altoPx }, dt);
         if (anillos && anillos.userData.sigueMaquina) { const u = estado.escena.porId[anillos.userData.sigueMaquina]; if (u) anillos.position.set(u.cx, 0, u.cy); }
         return;
       }
@@ -375,7 +375,7 @@ export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTE
     }
 
 
-      const { altoPx, ...controles } = crearCamara3D({ estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil, get factory() { return factory; } });
+      const { altoPx, ...controles } = crearCamara3D({ THREE, estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil, get factory() { return factory; } });
     return { construir, actualizar, ...controles,
       destruir() { controles.destruir(); liberarEscena(escena, renderer, [...Object.values(G), ...Object.values(M), ...Object.values(D), ...Object.values(tex)]); }, anillosDe, aplicarColores, retrato };
 }

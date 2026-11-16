@@ -90,3 +90,10 @@ Pruebas: `npm test`, `npm run tipos`, `pruebas/imports-juego.mjs`,
 `pruebas/juego-identificadores.mjs` y `pruebas/juego-arranque.mjs` (emulación,
 no navegador). QA pendiente del autor: divisor, Ajustes, teclado/ProtoMouse,
 pantalla completa, consola y ficha móvil, formulario Factory y Campaign.
+
+
+En el paso 13, `instalarLayout(cmg, servicios)` recibe i18n desde la entrada.
+El formulario Factory usa `hooks.i18n` y `CAMPAIGN_UI.crear` usa `ctx.i18n`;
+ninguno consulta las bibliotecas clásicas en `window`. Las pruebas estáticas
+`pruebas/globales-juego.mjs`, `imports-juego.mjs` y `juego-identificadores.mjs`
+protegen la inyección, y `juego-arranque.mjs` comprueba su conexión emulada.

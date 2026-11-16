@@ -25,12 +25,14 @@ const logica = [
   'paquetes/editor/pruebas/carga.mjs',
   'paquetes/app/pruebas/app.mjs',
   'paquetes/interfaz/pruebas/interfaz.mjs',
-  'imports-juego', 'juego-identificadores', 'juego-arranque', 'vistas-contrato',
+  'globales-juego', 'imports-juego', 'juego-identificadores', 'juego-arranque', 'vistas-contrato',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',
   'paquetes/vista-3d/pruebas/vista-3d.mjs',
   'fronteras-fase2', 'fronteras-factory', 'fronteras-campaign', 'juego-conductor',
 ];
-const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente'];
+const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente',
+  'educational-animation/revision/pruebas/juego.mjs', 'ejecutar-depuracion'];
+// juego.mjs y ejecutar-depuracion: regresiones del modo revisión, con el servidor compartido.
 // vista-caliente: cambio 2D/3D en caliente sin reiniciar la partida (fase 2).
 // ejecutar-editor-demo: prueba de frontera 4 de la fase 2 (editor montado solo), adaptador de editor-demo.mjs.
 // ejecutar-terreno ejecuta terreno-navegador, terreno-modelado y terreno-estudio (editor de terreno, desde trunk).
@@ -56,13 +58,13 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
-const extensiones = { 'vistas-contrato': 'mjs', 'juego-identificadores': 'mjs', 'juego-arranque': 'mjs', 'imports-juego': 'mjs', 'juego-conductor': 'mjs', 'fronteras-campaign': 'mjs', 'fronteras-factory': 'mjs', 'fronteras-fase2': 'mjs', 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
+const extensiones = { 'globales-juego': 'mjs', 'vistas-contrato': 'mjs', 'juego-identificadores': 'mjs', 'juego-arranque': 'mjs', 'imports-juego': 'mjs', 'juego-conductor': 'mjs', 'fronteras-campaign': 'mjs', 'fronteras-factory': 'mjs', 'fronteras-fase2': 'mjs', 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
 
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {
     const inicio = performance.now();
     let salida = '', agotado = false;
-    const ruta = /^paquetes\/[^/]+\/pruebas\/[^/]+\.mjs$/.test(nombre)
+    const ruta = nombre.endsWith('.mjs')
       ? nombre : `pruebas/${nombre}.${extensiones[nombre] || 'cjs'}`;
     const hijo = spawn(process.execPath, [ruta, ...argumentos], {
       cwd: raiz, detached: process.platform !== 'win32',

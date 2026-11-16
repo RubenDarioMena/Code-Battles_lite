@@ -56,7 +56,14 @@ export function instalarCierreIntentos(ctx: any): ReturnType<typeof import('./ju
 export function instalarBucleJuego(ctx: any): ReturnType<typeof import('./juego/bucle.js').instalarBucleJuego>;
 
 /** Marcado y proveedores clásicos de la página; reservado para opciones de composición. */
-export interface OpcionesArranqueJuego {}
+export interface OpcionesArranqueJuego {
+  servicios?: {
+    CMGI18n?: any; CMGPresentacion?: any; CMGTerreno?: any;
+    CMGTrazador?: any; CMGFlujo?: any; CMGPythonRevision?: any;
+    THREE?: any; acorn?: any; LezerPython?: any;
+    cargarRevision?: () => Promise<{ catalogo: any; revision: any; trazador: any; python: any }>;
+  };
+}
 /** Instala la aplicación en el DOM existente y publica __banco, cmg y __juegoListo. */
 export function arrancarJuego(opciones?: OpcionesArranqueJuego): void;
 export { CMGProveedor } from './juego/datos-proveedor.js';

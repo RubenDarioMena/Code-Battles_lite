@@ -8,7 +8,7 @@ La entrada pública es `paquetes/editor/index.js`; sus tipos están en `index.d.
 Solo importa `../lenguaje/index.js`. Importarlo en Node no consulta el DOM,
 servicios globales ni almacenamiento; montar una instancia requiere un navegador.
 No publica globales. La app importa y configura el editor en
-`paquetes/app/juego/iniciar.js`; la demo mantiene su `compat-paquetes.js` independiente.
+`paquetes/app/juego/iniciar.js`; la demo recibe los suyos de `demo/demo.js`. El montaje y los ganchos de QA viven en esa entrada de la demo.
 
 ```js
 import { configurar, CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython } from './paquetes/editor/index.js';
@@ -62,7 +62,7 @@ La extensión de integración `adoptar`, `elemento`, `ambito` y `app` conserva I
 
 `destruir()` es idempotente: aborta oyentes, cancela timers/RAF y microtareas pendientes, desconecta observers y retira nodos auxiliares. Las lecturas asíncronas del portapapeles comprueban si la instancia sigue viva. Cada instancia tiene su documento, selección, historial, portapapeles, menús y preferencias propios. No hay ejecución, traductor ni Worker dentro de la instancia.
 
-Para mantener ambos anfitriones: corregir el módulo de `paquetes/editor/` correspondiente, ejecutar las suites del juego y de la demo y aumentar el `?v=` del puente en ambas entradas si cambia el grafo ES publicado. Una versión nueva del editor no se copia al juego: ambos cargan el mismo archivo.
+Para mantener ambos anfitriones: corregir el módulo de `paquetes/editor/` correspondiente y ejecutar las suites del juego y de la demo. Para QA del juego se usa el enlace raw.githack fijado al commit; las cáscaras renuevan sus recursos con el empaquetado. Una versión nueva del editor no se copia al juego: ambos cargan el mismo archivo.
 
 ## Límites de responsabilidad
 
@@ -298,3 +298,10 @@ Las sugerencias reciben el nombre JS de la función. War y Factory arman la pale
 - `pruebas/editor-contrato.cjs` vigila que JS y Python compartan los botones salvo los propios de cada uno, y la paridad War/Factory.
 
 **Fachada.** Al cambiar de lenguaje el interior se rehace. El juego llama siempre a la fachada vigente, y `window.cmg.edicion` y `window.cmg.seudo` son getters.
+
+
+La demo mantiene los mismos ganchos de QA, publicados por su entrada externa
+`demo/demo.js`. `montarDemo(servicios)` recibe los adaptadores y
+devuelve las instancias; su código vive junto a la entrada, fuera del paquete.
+`pruebas/globales-juego.mjs` recorre todo el paquete sin excepciones para demo.
+La comprobación de identificadores incluye ambas entradas.

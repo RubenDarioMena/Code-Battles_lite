@@ -6,7 +6,7 @@ import { crearTerreno } from './campaign-terreno.js';
 const PIEZA = { steel: "#9fb2c0", polymer: "#e6d79a", nose: "#e2704c", base: "#5fa06a", charge: "#b884e0", motor: "#e0a04e", missile: "#eef2f4" };
 const LUZ = { green: "#4be38a", amber: "#ffc247", red: "#ff5a4f" };
 // mapa y reglas (esRobot, esMaquina, estadoMaquina) los da la app: una vista no importa reglamentos.
-export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, rgba, mapa, reglas: C }) {
+export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, rgba, mapa, reglas: C, leerBatalla = () => false }) {
   const T = crearTerreno(mapa);
   const ESC = 2;  // píxeles por metro de la imagen del relieve
   let fondo = null, fondoBatalla = null, claveFondo = "";
@@ -63,7 +63,7 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
     const col = estado.col, clave = `${col.suelo}|${col.edge}|${col.ink}`;
     if (!fondo) fondo = pintarFondo(false);
     if (!fondoBatalla || clave !== claveFondo) { fondoBatalla = pintarFondo(true); claveFondo = clave; }
-    const batalla = !!(/** @type {any} */ (window).__banco && document.getElementById("b-piel") && document.getElementById("b-piel").getAttribute("aria-pressed") === "true");
+    const batalla = !!leerBatalla();
     const S = vista.T, ox = w / 2 - vista.cx * S, oy = h / 2 - vista.cy * S;
     estado.geo2 = { T: S, ox, oy };
     const X = x => ox + x * S, Y = y => oy + y * S;

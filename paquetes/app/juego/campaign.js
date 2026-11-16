@@ -12,6 +12,7 @@ export function instalarCampaignJuego(ctx) {
   let pielBatalla = ctx.ES_CAMPAIGN && !!ctx.guardado.leer("campaign-piel", false), ponerPiel = /** @type {(si: boolean) => void} */ (() => {});
   let tVivo = 0;
   const uiC = ctx.ES_CAMPAIGN ? CAMPAIGN_UI.crear({
+    i18n: ctx.CMGI18n,
     campaign: { ...ctx.campaign, instantanea: ctx.campaign.instantaneaHistorica },
     esc: ctx.esc, coma: ctx.coma, varDe: ctx.varDe, t: ctx.ti18n,
     tk: (...a) => ctx.tk(...a), fila: (...a) => ctx.fila(...a), nota: (...a) => ctx.nota(...a), grupo: (...a) => ctx.grupo(...a), tkValor: (...a) => ctx.tkValor(...a),

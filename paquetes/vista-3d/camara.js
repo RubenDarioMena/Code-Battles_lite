@@ -1,7 +1,7 @@
 import { escucharEn } from './recursos.js';
 /* Posturas, proyección, selección y gestos del visor común, antes en js/vistas.js. */
 export function crearCamara3D(ctx) {
-    const { estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil } = ctx;
+    const { THREE, estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil } = ctx;
     const ZOOM = ES_FACTORY ? [2.5, 30] : [8, 70];
     // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
     // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.

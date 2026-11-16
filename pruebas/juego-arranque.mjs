@@ -81,7 +81,7 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
   async function modulo(url) {
     if (cache.has(url.href)) return cache.get(url.href);
     let m;
-    if (/\/paquetes\/(?:app|interfaz)\//.test(url.pathname) || url.href === entrada.href) {
+    if (/\/paquetes\/(?:app|interfaz)\//.test(url.pathname) || url.pathname.includes('/Rocket%20Launcher/js/')) {
       let fuente = await readFile(url, 'utf8');
       if (mutacion && url.pathname.endsWith('/estado.js'))
         fuente = fuente.replace('const CMGPythonJS =', mutacion + '\nconst CMGPythonJS =');

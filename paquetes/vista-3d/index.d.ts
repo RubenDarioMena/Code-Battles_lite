@@ -1,7 +1,3 @@
-// Three r128 se carga desde shared/vendor en la página, hasta la fase 4.
-// El proveedor histórico no incluye tipos; esta declaración no carga el motor.
-declare global { const THREE: any; }
-
 export interface EstadoVista {
   readonly escena: Readonly<Record<string, any>> | null;
   readonly seleccion: string | null;
@@ -11,6 +7,8 @@ export interface EstadoVista {
   readonly rows: number;
 }
 export interface DependenciasComunes {
+  /** Three r128 inyectado por la entrada; undefined permite la caída al plano. */
+  THREE?: any;
   $(id: string): any;
   FUNCIONES: Record<string, any>;
   funcionDe(unidad: any): { principal: string; secundaria?: string };

@@ -5,11 +5,11 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-export async function probarDepuracion(page) {
+export async function probarDepuracion(page, origen = process.env.CBL_QA_ORIGIN || 'http://127.0.0.1:8771') {
   let n = 0;
   const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
   const ok = (c, m) => { assert.ok(c, m); n++; };
-  const url = 'http://127.0.0.1:8771/educational-animation/revision/';
+  const url = origen + '/educational-animation/revision/';
   const abrir = async (ej, modo = '') => {
     await page.goto(`${url}?ej=${ej}${modo}`);
     await page.waitForFunction(() => window.__revision && document.querySelector('.rv-depurar'));
@@ -140,7 +140,7 @@ export async function probarDepuracion(page) {
     const js = serie === 'factory' ? 'await pickUp("ENT-1", "cobre");\nawait deliver("FUN");' : 'const pos = autoTarget("drone", "visual");\nregularShoot(pos);';
     const py = serie === 'factory' ? 'pick_up("ENT-1", "cobre")\ndeliver("FUN")\n' : 'pos = auto_target("drone", "visual")\nregular_shoot(pos)\n';
     await page.cdp('Emulation.setDeviceMetricsOverride', { width: ancho, height: 844, deviceScaleFactor: 1, mobile: ancho < 900 });
-    await page.goto(`http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?serie=${serie}&forma=${forma}`);
+    await page.goto(`${origen}/Prototypes/Rocket%20Launcher/?serie=${serie}&forma=${forma}`);
     await page.waitForFunction(() => window.__juegoListo && window.__banco);
     await page.evaluate(({ id, js }) => {
       CMGI18n.cambiarIdioma('es');

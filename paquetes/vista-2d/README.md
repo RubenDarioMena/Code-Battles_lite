@@ -62,3 +62,8 @@ vista-3d sin imports entre vistas. Campaign aún consulta el botón de piel y
   Factory y relieve determinista de Campaign.
 - `pruebas/vista-caliente.cjs`: cambio 2D/3D en navegador.
 - `herramientas/capturas-vista.mjs`: comparación visual; requiere navegador.
+
+En el paso 13, el plano Campaign recibe `leerBatalla()` por opciones (por defecto
+`false`), en lugar de consultar `window.__banco` y el botón de piel. La app
+conserva la misma condición de UI. `pruebas/globales-juego.mjs` protege esta
+frontera además de las pruebas del plano y del contrato de vistas.

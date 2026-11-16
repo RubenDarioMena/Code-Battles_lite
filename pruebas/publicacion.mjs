@@ -49,11 +49,14 @@ async function verificarModulo(relativo) {
   }
 }
 await verificarModulo('Prototypes/Rocket Launcher/js/juego.js');
-await verificarModulo('paquetes/editor/demo/compat-paquetes.js');
+const htmlJuego = await readFile(path.join(raiz, 'Prototypes/Rocket Launcher/index.html'), 'utf8');
+assert(!htmlJuego.includes('?v='), 'el juego publicado conserva las rutas sin versiones manuales');
+assert(modulosVisitados.has('Prototypes/Rocket Launcher/js/servicios.js'), 'servicios incluidos en el grafo publicado');
+await verificarModulo('paquetes/editor/demo/demo.js');
 assert(modulosVisitados.has('paquetes/lenguaje/index.js'));
 assert(modulosVisitados.has('paquetes/editor/index.js'));
 for (const retirado of [
-  ...['compat-paquetes', 'layout', 'campaign-ui', 'factory-form', 'factory-iconos', 'proveedor', 'paleta', 'programas', 'pulsos', 'remota', 'revision-juego', 'seudo'].map(n => `Prototypes/Rocket Launcher/js/${n}.js`),'shared/editor/javascript.js', 'shared/js/estructura.js',
+  ...['compat-paquetes', 'layout', 'campaign-ui', 'factory-form', 'factory-iconos', 'proveedor', 'paleta', 'programas', 'pulsos', 'remota', 'revision-juego', 'seudo'].map(n => `Prototypes/Rocket Launcher/js/${n}.js`),'paquetes/editor/demo/compat-paquetes.js', 'shared/editor/javascript.js', 'shared/js/estructura.js',
   'shared/python/traductor.js', 'shared/python/desde-js.js', 'paquetes/lenguaje/pruebas', 'paquetes/editor/pruebas', 'shared/editor',
   'shared/js/iconos.js', 'shared/js/edicion.js', 'shared/css/edicion.css']) {
   await assert.rejects(stat(path.join(raiz, retirado)), { code: 'ENOENT' });

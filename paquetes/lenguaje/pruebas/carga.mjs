@@ -9,7 +9,7 @@ for (const ruta of retirados) await assert.rejects(stat(new URL(ruta, raiz)), { 
 let rutas = 0;
 for (const [pagina, puente] of [
   ['Prototypes/Rocket Launcher/index.html', 'js/juego.js'],
-  ['paquetes/editor/demo/demo.html', 'compat-paquetes.js'],
+  ['paquetes/editor/demo/demo.html', 'demo.js'],
 ]) {
   const url = new URL(pagina, raiz), html = await readFile(url, 'utf8');
   const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)]
@@ -45,8 +45,8 @@ for (const [pagina, puente] of [
     assert(!scripts.some(s => s.ruta === 'js/compat-paquetes.js'));
     const juego = await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8');
     assert(juego.includes("import * as lenguaje from '../../lenguaje/index.js'"));
-    assert(juego.includes('lenguaje.crearPython({ lezer: window.LezerPython, hueco: CMGEditorPython.nombreDe })'));
-    assert(juego.includes('lenguaje.crearJSaPython({ acorn: window.acorn })'));
+    assert(juego.includes('lenguaje.crearPython({ lezer: servicios.LezerPython, hueco: CMGEditorPython.nombreDe })'));
+    assert(juego.includes('lenguaje.crearJSaPython({ acorn: servicios.acorn })'));
     for (const retirado of ['LENGUAJE', 'CMGEditorJS', 'CMGPythonJS', 'CMGJSaPython'])
       assert(!fuente.includes(`window.${retirado} =`), `${retirado}: el juego importa el paquete`);
   }

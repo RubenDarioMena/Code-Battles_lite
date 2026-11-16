@@ -1,5 +1,5 @@
 /* Paisaje de War y marco de Factory, antes en js/vistas.js. */
-export function crearTerreno3D({ estado, terreno: apiTerreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar }) {
+export function crearTerreno3D({ THREE, estado, terreno: apiTerreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar }) {
     // ---------- Terreno de alrededor ----------
     // El campo de 32 × 18 sigue siendo el único sitio jugable; alrededor, el suelo y su cuadrícula continúan
     // hasta perderse en la bruma del horizonte, y detrás (al norte) hay una cordillera escalonada.

@@ -41,7 +41,7 @@ const eventos = new Map();
 const canvas = { getContext: () => ctx2, addEventListener: (k, f) => eventos.set(k, f), removeEventListener: (k, f) => { if (eventos.get(k) === f) eventos.delete(k); }, setPointerCapture() {} };
 const app = { dataset: {} };
 Object.assign(globalThis, {
-  THREE, window: { devicePixelRatio: 1 },
+  window: { devicePixelRatio: 1 },
   document: { createElement: () => ({ getContext: () => ctx2 }) },
   MutationObserver: class { observe() {} disconnect() {} }, innerWidth: 1280, innerHeight: 720,
 });
@@ -62,6 +62,7 @@ const escena = congelar({
 const antes = JSON.stringify(escena);
 const estado = { escena, seleccion: 'LAU-01', seleccionadas: new Set(['LAU-01', 'D1']), cols: 32, rows: 18, arrastreCampo: null };
 const deps = {
+  THREE,
   $: id => id === 'app' ? app : canvas, ES_FACTORY: false,
   FUNCIONES: { ofensiva: 'O', rastreo: 'R', utilitaria: 'U', fabrica: 'F' },
   funcionDe: () => ({ principal: 'ofensiva', secundaria: 'rastreo' }), leerVar: () => '#336699',

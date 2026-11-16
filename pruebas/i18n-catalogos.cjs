@@ -94,5 +94,5 @@ for (const archivo of fuentesJuego) {
     if (!clave.endsWith('.')) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
   }
 }
-for (const [modulo] of modulos.filter(([m]) => m !== 'inicio')) comprobar(htmlJuego.includes(`shared/i18n/${modulo}.js?v=`), `el juego carga el catálogo ${modulo}`);
+for (const [modulo] of modulos.filter(([m]) => m !== 'inicio')) comprobar(new RegExp(`<script\\b[^>]*\\bsrc="\\.\\./\\.\\./shared/i18n/${modulo}\\.js"`).test(htmlJuego), `el juego carga el catálogo ${modulo}`);
 console.log(`${Object.keys(mapas.es).length} claves ES/EN: paridad, variables, duplicados y referencias correctos (${checks} comprobaciones).`);

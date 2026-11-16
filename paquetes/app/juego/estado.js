@@ -15,10 +15,11 @@ import { crearConductor } from '../conductor.js';
 export function crearEstadoJuego(opciones = {}) {
   /** @type {any} */
   const ctx = {};
+  const servicios = opciones.servicios || {};
   let banco = null, cmg = null;
-  const pulsos = crearPulsos({ trazador: window.CMGTrazador, flujo: window.CMGFlujo, python: window.CMGPythonRevision, acorn: window.acorn });
-  const CMGPythonJS = lenguaje.crearPython({ lezer: window.LezerPython, hueco: CMGEditorPython.nombreDe });
-  const CMGJSaPython = lenguaje.crearJSaPython({ acorn: window.acorn });
+  const pulsos = crearPulsos({ trazador: servicios.CMGTrazador, flujo: servicios.CMGFlujo, python: servicios.CMGPythonRevision, acorn: servicios.acorn });
+  const CMGPythonJS = lenguaje.crearPython({ lezer: servicios.LezerPython, hueco: CMGEditorPython.nombreDe });
+  const CMGJSaPython = lenguaje.crearJSaPython({ acorn: servicios.acorn });
   const piezasTrabajador = { validarFactory: factory.validar, validarCampaign: campaign.validar,
     modoCampaign: campaign.modoEnSnap, preludioPython: CMGPythonJS.preludio };
 
@@ -26,15 +27,15 @@ export function crearEstadoJuego(opciones = {}) {
    * Simulación determinista, runtime del jugador en Web Workers, vista 3D/plano, inspector y editor.
    * Inspector en tres estados con signos vitales, pulsación larga en el campo y paleta de iconos.
    * El reparto de pantalla, el teclado del teléfono y los tooltips viven en layout.js. */
-  const localizarHTML = html => window.CMGPresentacion ? window.CMGPresentacion.html(html) : html;
+  const localizarHTML = html => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(html) : html;
 
   // ---------- Constantes del mundo ----------
   const SERIE = (() => { const q = new URLSearchParams(location.search).get("serie"); return q === "factory" || q === "campaign" ? q : "war"; })();
   const ES_FACTORY = SERIE === "factory", ES_CAMPAIGN = SERIE === "campaign";
   // Prefijo de las claves guardadas de cada serie (War conserva las suyas, sin prefijo).
   const PREFIJO = ES_CAMPAIGN ? "campaign-" : ES_FACTORY ? "factory-" : "";
-  const ti18n = (clave, valores) => window.CMGI18n ? window.CMGI18n.t(clave, valores) : clave;
-  const htmlInterfaz = html => window.CMGPresentacion ? window.CMGPresentacion.html(html) : html;
+  const ti18n = (clave, valores) => servicios.CMGI18n ? servicios.CMGI18n.t(clave, valores) : clave;
+  const htmlInterfaz = html => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(html) : html;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
   // líneas (paquetes/lenguaje) y corre en el mismo Worker.
   const PYTHON = !!CMGAdaptadorPython && !!CMGPythonJS;
@@ -121,7 +122,7 @@ export function crearEstadoJuego(opciones = {}) {
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
   const { KW, FN_PROPIAS, FN_MIEMBRO, PROPS } = lenguaje.vocabulario(SERIE);
   const { NOMBRES_HUECO, HUECO, RE_HUECO, lexico } = lenguaje.CMGEditorJS;
-  const instrumentar = src => lenguaje.instrumentar(src, { serie: SERIE, objetos: nombresVar(), acorn: window.acorn });
+  const instrumentar = src => lenguaje.instrumentar(src, { serie: SERIE, objetos: nombresVar(), acorn: servicios.acorn });
   const clasificar = (toks, i) => CMGAdaptadorJS.clasificar(toks, i, {
     objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS],
   });
@@ -359,15 +360,16 @@ export function crearEstadoJuego(opciones = {}) {
     get URL() { return URL; },
     get Blob() { return Blob; },
     get Worker() { return Worker; },
-    get CMGI18n() { return window.CMGI18n; },
+    get servicios() { return servicios; },
+    get CMGI18n() { return servicios.CMGI18n; },
     get CMGPaleta() { return CMGPaleta; },
-    get CMGPresentacion() { return window.CMGPresentacion; },
+    get CMGPresentacion() { return servicios.CMGPresentacion; },
     get CMGPulsos() { return pulsos; },
     get __banco() { return banco; }, set __banco(v) { banco = v; },
     // window.cmg se crea en el arranque; el editor lo lee ya durante iniciarVistas (Factory).
     get cmg() { return cmg; }, set cmg(v) { cmg = v; },
-    get acorn() { return window.acorn; },
-    get THREE() { return window.THREE; }
+    get acorn() { return servicios.acorn; },
+    get THREE() { return servicios.THREE; }
   }));
   return ctx;
 }

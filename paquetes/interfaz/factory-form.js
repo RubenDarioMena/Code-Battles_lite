@@ -22,7 +22,7 @@
       "formulario.json.copiado": "Copiado", "formulario.json.error": "No es un JSON válido"
     };
     function textoFormulario(clave, parametros = {}) {
-      const i18n = window.CMGI18n, traducido = i18n && typeof i18n.t === "function" ? i18n.t(clave, parametros) : null;
+      const i18n = hooks.i18n, traducido = i18n && typeof i18n.t === "function" ? i18n.t(clave, parametros) : null;
       const base = typeof traducido === "string" && traducido !== clave ? traducido : TEXTOS_ES[clave] || clave;
       return base.replace(/\{([^{}]+)\}/g, (m, nombre) => Object.hasOwn(parametros, nombre) ? String(parametros[nombre]) : m);
     }

@@ -158,7 +158,7 @@ Cada fase es una entrega pequeña, con pruebas y una revisión visual del usuari
 
 ## Verificación en cada fase
 
-- `node pruebas/interaccion.cjs`, `node pruebas/vfx.cjs` y `node --check` de los scripts tocados. Subir `?v=N` en el `index.html` correspondiente.
+- `node pruebas/interaccion.cjs`, `node pruebas/vfx.cjs` y `node --check` de los scripts tocados. En el juego, comprobar con el enlace raw.githack fijado al commit; las cáscaras renuevan los recursos al empaquetar.
 - Suites de navegador en el puerto 8771: comprueban que elegir unidades, el doble toque y el cuadro siguen funcionando con las nubes de puntos.
 - Hojas de contactos y capturas de PC y móvil emulado, a 1× y 8×, revisadas por Claude antes de entregar.
 - Coste: contador de partículas y milisegundos de CPU en el laboratorio. Los fotogramas por segundo reales se miden solo en Android/iPhone.

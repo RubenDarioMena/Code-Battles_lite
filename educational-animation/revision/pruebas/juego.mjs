@@ -21,11 +21,12 @@ const { chromium } = require('playwright');
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const EJ = join(RAIZ, 'educational-animation/revision/ejemplos/reto-5');
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.glb': 'model/gltf-binary', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
-const servidor = createServer(async (q, r) => {
+const origen = process.env.CBL_QA_ORIGIN || 'http://127.0.0.1:8771';
+const servidor = process.env.CBL_QA_ORIGIN ? null : createServer(async (q, r) => {
   try { let f = join(RAIZ, decodeURIComponent(new URL(q.url, 'http://x').pathname)); if ((await stat(f)).isDirectory()) f = join(f, 'index.html'); r.writeHead(200, { 'content-type': TIPOS[extname(f)] || 'application/octet-stream' }); r.end(await readFile(f)); }
   catch { r.writeHead(404); r.end(); }
 });
-await new Promise((ok, mal) => servidor.once('error', mal).listen(8771, '127.0.0.1', ok));
+if (servidor) await new Promise((ok, mal) => servidor.once('error', mal).listen(8771, '127.0.0.1', ok));
 const programas = { 'LAU-01': await readFile(join(EJ, 'LAU-01.js'), 'utf8'), 'LAU-02': await readFile(join(EJ, 'LAU-02.js'), 'utf8') };
 const ctx = { window: {} }; vm.runInNewContext(await readFile(join(EJ, 'grabacion.js'), 'utf8'), ctx);
 const grabada = ctx.window.GRABACIONES_REVISION['reto-5'];
@@ -42,7 +43,7 @@ try {
     const errores = [];
     page.on('pageerror', e => errores.push(e.message));
     page.on('console', m => { if (m.type() === 'error' && !/WebGL|three/i.test(m.text())) errores.push(m.text()); });
-    await page.goto(`http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=${forma}`);
+    await page.goto(`${origen}/Prototypes/Rocket%20Launcher/?forma=${forma}`);
     await page.waitForFunction(() => window.__juegoListo && window.__banco);
     await page.evaluate(() => document.querySelector('[data-vista="2d"]')?.click());
     // La montaña en lugar del mapa, en toda la app.
@@ -157,7 +158,7 @@ try {
     const page = await contexto.newPage();
     const errores = [];
     page.on('pageerror', e => errores.push(e.message));
-    await page.goto(`http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?serie=factory&forma=${forma}`);
+    await page.goto(`${origen}/Prototypes/Rocket%20Launcher/?serie=factory&forma=${forma}`);
     await page.waitForFunction(() => window.__juegoListo && window.__banco);
     if (nombre === 'Factory PC') ok(await page.locator('#b-revisar').isVisible(), `${nombre}: con los binoculares`);
     else {
@@ -191,5 +192,5 @@ try {
   console.log(`juego: ${n} comprobaciones`);
 } finally {
   await navegador.close();
-  servidor.close();
+  servidor?.close();
 }

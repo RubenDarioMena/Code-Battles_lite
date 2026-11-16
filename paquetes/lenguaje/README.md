@@ -39,7 +39,7 @@ No cambia el texto del Worker, la API del jugador ni los formatos guardados.
 El juego importa el paquete en `paquetes/app/juego/estado.js`, recibe Acorn y
 Lezer clásicos e inyecta el reconocedor Python del adaptador de `editor`.
 `cmg.estructura` es el gancho de QA; no hay globales separados de lenguaje.
-La demo usa su propio `paquetes/editor/demo/compat-paquetes.js`, sin importar el juego.
+La demo recibe los proveedores desde `paquetes/editor/demo/demo.js`, que importa las entradas públicas de editor y lenguaje, sin importar el juego. Solo esa entrada de la demo lee y publica sus globales de QA.
 Ambos HTML cargan los proveedores antes de la entrada ES; la demo conserva
 sus consumidores clásicos con `defer` después de su puente. Los cuatro archivos antiguos se retiran, sin copias.
 

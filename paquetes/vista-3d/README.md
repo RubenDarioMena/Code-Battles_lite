@@ -67,3 +67,12 @@ las rutas del T1 y su cargador glTF conservan la resolución anterior.
   proyección/elección desde el contenedor y destrucción. No prueba rasterizado.
 - `pruebas/vista-caliente.cjs`, `pruebas/factory-3d.mjs` y
   `herramientas/capturas-vista.mjs`: QA de navegador.
+
+
+### Three inyectado (paso 13)
+
+`crearVista`, `crear3D` y `crearCampaign3D` reciben `THREE` en sus opciones.
+Si falta, devuelven `null` para conservar la caída al plano. Cámara, terreno y
+Factory reciben la misma instancia por parámetros; `factory3d.cargar(THREE)`
+conserva la carga diferida de GLTFLoader y del modelo. El paquete no lee Three
+ni la fachada `cmg` de la página. Prueba: `node paquetes/vista-3d/pruebas/vista-3d.mjs`.

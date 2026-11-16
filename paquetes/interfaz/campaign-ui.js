@@ -259,7 +259,7 @@
       }).join("");
     }
     function historial(lista) {
-      const m = M(), fecha = c => new Date(c.cuando).toLocaleString(window.CMGI18n && window.CMGI18n.idioma === "en" ? "en" : "es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      const m = M(), fecha = c => new Date(c.cuando).toLocaleString(ctx.i18n && ctx.i18n.idioma === "en" ? "en" : "es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
       const filas = [...lista].reverse().map(c => `<li class="cp" data-cp="${c.id}">
           <div class="cp-txt"><b>${esc(t("campaign.historial.fila", { hito: hitoDe(c.hito).clave, titulo: tituloHito(c.hito) }))}</b>${c.hito === m.hito && !m.completado ? ` <span class="cp-actual">${esc(t("campaign.historial.actual"))}</span>` : ""}
             <small>${esc(t("campaign.historial.detalle", { t: coma(c.t), presupuesto: c.mundo.presupuesto, cuando: fecha(c) }))}</small></div>
