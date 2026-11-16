@@ -151,7 +151,9 @@ igual(reglamento.evaluar(conRegistro), { fin: 'victoria', hito: 5, completado: t
 const html = readFileSync(new URL('../../../Prototypes/Rocket Launcher/index.html', import.meta.url), 'utf8');
 const scripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^\"]*)?"/g)].map(m => m[1]);
 const puente = scripts.indexOf('js/compat-paquetes.js'); comprobar(puente >= 0);
-for (const nombre of ['runtime', 'juego', 'campaign-ui', 'campaign-3d', 'campaign-plano', 'campaign-terreno'])
+// js/runtime.js ya no existe: el puente construye el Worker con paquetes/anfitrion (fase 2).
+comprobar(!scripts.includes('js/runtime.js'));
+for (const nombre of ['juego', 'campaign-ui', 'campaign-3d', 'campaign-plano', 'campaign-terreno'])
   comprobar(scripts.indexOf(`js/${nombre}.js`) > puente);
 for (const nombre of ['campaign', 'campaign-nivel']) comprobar(!scripts.includes(`js/${nombre}.js`));
 comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));

@@ -18,6 +18,7 @@ const logica = [
   'paquetes/reglas-war/pruebas/reglas-war.mjs',
   'paquetes/reglas-factory/pruebas/reglas-factory.mjs',
   'paquetes/reglas-campaign/pruebas/reglas-campaign.mjs',
+  'paquetes/anfitrion/pruebas/anfitrion.mjs',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno'];
 // ejecutar-terreno ejecuta terreno-navegador, terreno-modelado y terreno-estudio (editor de terreno, desde trunk).

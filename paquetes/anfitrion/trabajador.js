@@ -1,20 +1,30 @@
-/* Runtime común: Web Worker por máquina, instantáneas y esperas/encargos. */
-(() => {
-  "use strict";
-  const WORKER_SRC = `
+/* Texto del Web Worker de los programas del jugador, trasladado de js/runtime.js sin cambios.
+ * Las funciones de validación de cada reglamento se copian por su texto: deben ser autocontenidas. */
+
+/** @param {Function | string | null | undefined} fn @param {string} defecto */
+const texto = (fn, defecto) => fn ? (typeof fn === "string" ? fn : fn.toString()) : defecto;
+
+/** Devuelve el código del Worker.
+ * @param {import("./index.js").PiezasTrabajador} [piezas] */
+export function fuenteTrabajador(piezas = {}) {
+  const validarFactory = texto(piezas.validarFactory, "() => null");
+  const preludioPython = texto(piezas.preludioPython, "() => null");
+  const validarCampaign = texto(piezas.validarCampaign, "() => null");
+  const modoCampaign = texto(piezas.modoCampaign, "() => 'ok'");
+  return `
 const AF = Object.getPrototypeOf(async function () {}).constructor;
 let SNAP = null, PROPIA = null, NOMBRES = [], TIPOS = [], SENSORES = [], CONF = {}, OFF = null, seq = 0, espera = null;
 let ES_ROBOT = false;
 const MATERIALES = ["cobre", "silicio"];
-const validarFactory = ${window.FACTORY.validar.toString()};
+const validarFactory = ${validarFactory};
 // Auxiliares de Python (E5): el traductor genera JS que llama a __py con las mismas líneas del programa.
-const __py = (${window.CMGPythonJS ? window.CMGPythonJS.preludio.toString() : "() => null"})();
+const __py = (${preludioPython})();
 let LENGUAJE = "js";
 // Campaign: muchas unidades con encargos, modos y lecturas. La validación y el resultado de los modos
 // son las mismas funciones puras del mundo (campaign.js), para que el programa y la planta coincidan.
 let ES_CAMPAIGN = false, acabado = false;
-const validarCampaign = ${window.CAMPAIGN ? window.CAMPAIGN.validar.toString() : "() => null"};
-const modoCampaign = ${window.CAMPAIGN ? window.CAMPAIGN.modoEnSnap.toString() : "() => 'ok'"};
+const validarCampaign = ${validarCampaign};
+const modoCampaign = ${modoCampaign};
 const pend = new Map();  // encargos y esperas que el programa tiene en marcha: id → { resolve, linea, texto, unidad }
 const ORDENES_C = { pickUp: "encargo", deliver: "encargo", goTo: "encargo", start: "modo", stop: "modo", light: "modo", setRecipe: "modo", request: "modo" };
 const DE_C = { robot: ["pickUp", "deliver", "goTo"], carretilla: ["pickUp", "deliver", "goTo"], maquina: ["start", "stop", "light", "setRecipe"], banda: ["start", "stop"], bahia: ["request"] };
@@ -263,29 +273,4 @@ onmessage = async (ev) => {
   }
 };
 `;
-  const WORKER_URL = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
-
-
-  const algunoCorre = ejec => !!ejec && [...ejec.progs.values()].some(p => p.estado === "corre");
-  function despertar(ejec, mundo, instantanea) {
-    if (!ejec) return false;
-    const listos = [...ejec.progs.values()].filter(p => p.estado === "espera" && p.despertar <= mundo.t + 1e-9);
-    if (!listos.length) return false;
-    const snap = instantanea();
-    for (const p of listos) { p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0; p.worker.postMessage({ type: "despierta", id: p.espera, snap }); }
-    return true;
-  }
-  // Campaign: cada programa puede tener varias esperas y encargos a la vez (p.pend).
-  function despertarCampaign(ejec, mundo, instantanea) {
-    if (!ejec) return false;
-    let snap = null, alguno = false;
-    for (const p of ejec.progs.values()) for (const [id, e] of p.pend) {
-      if (e.tipo !== "espera" || e.despertar > mundo.t + 1e-9) continue;
-      p.pend.delete(id); snap ||= instantanea();
-      p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0; alguno = true;
-      p.worker.postMessage({ type: "despierta", id, snap });
-    }
-    return alguno;
-  }
-  window.RUNTIME = { url: WORKER_URL, algunoCorre, despertar, despertarCampaign };
-})();
+}

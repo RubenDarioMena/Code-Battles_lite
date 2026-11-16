@@ -140,8 +140,9 @@ de aquella prueba no son referencias del Worker: sus programas deciden otras rut
 
 ## Contrato de los módulos
 
-- `cargar.mjs`: contexto sin DOM y captura del Worker real mediante Blob/URL
-  falsos. Scripts seleccionados desde `index.html`, conservando su orden.
+- `cargar.mjs`: contexto sin DOM y texto del Worker real con `fuenteTrabajador`
+  de `paquetes/anfitrion` (el mismo que usa el juego; fase 2, antes se capturaba
+  `runtime.js` con Blob/URL falsos). Scripts seleccionados desde `index.html`, conservando su orden.
   Las tres series se importan desde las entradas públicas de `paquetes/reglas-*`.
   Se inyectan copias planas de sus puentes como `WAR`/`WAR_RETOS`,
   `FACTORY`/`FACTORY_RETOS` y `CAMPAIGN`/`CAMPAIGN_NIVEL` antes de cargar los

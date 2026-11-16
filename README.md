@@ -47,9 +47,9 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `index.html` | Mapa, editor, inspector, Ajustes y diálogos. |
 | `js/juego.js` | Aplicación, selección, editor, guardado e integración de las familias. |
 | `js/paleta.js`, `js/programas.js` | Catálogo de atajos y aplicación de borradores Add/Replace, cargados también por las pruebas. |
-| `js/runtime.js` | Lockstep, Web Workers, esperas y encargos. El paso fijo está en `paquetes/nucleo/`. |
+| `paquetes/anfitrion/` (desde la raíz) | Texto del Web Worker de los programas y despertar del lockstep (antes `js/runtime.js`). El paso fijo está en `paquetes/nucleo/`. |
 | `paquetes/reglas-war/`, `paquetes/reglas-factory/`, `paquetes/reglas-campaign/` (desde la raíz) | Reglas, retos y nivel de cada serie, como módulos ES que corren en Node. |
-| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos y `NUCLEO` como globales mientras dure la fase 2. |
+| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO` y `RUNTIME` (Worker del anfitrión) como globales mientras dure la fase 2. |
 | `js/vistas.js`, `js/factory-vista.js` | Mapa 3D/plano y dibujo de logística. |
 | `js/factory-3d.js`, `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
@@ -158,7 +158,7 @@ node --check shared/js/estructura.js
 node --check shared/js/edicion.js
 node --check "Prototypes/Rocket Launcher/js/seudo.js"
 node pruebas/factory-reglas.cjs
-node --check "Prototypes/Rocket Launcher/js/runtime.js"
+node paquetes/anfitrion/pruebas/anfitrion.mjs
 node --check paquetes/reglas-factory/mundo.js
 node --check pruebas/navegador.mjs
 node --check pruebas/factory-comun.mjs

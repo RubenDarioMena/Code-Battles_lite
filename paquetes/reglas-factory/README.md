@@ -64,14 +64,14 @@ el arranque inactivo y `instantanea` conserva sus referencias y campos originale
 `faltantes` y `evaluar`.
 
 `validar` es autocontenida: declara su catálogo local de materiales porque
-`runtime.js` interpola `validar.toString()` en el Worker. No debe referirse a
+el anfitrión (`fuenteTrabajador`, antes `runtime.js`) interpola `validar.toString()` en el Worker. No debe referirse a
 imports ni a funciones o constantes externas. Conserva los diagnósticos previos.
 
 `retos` tiene las mismas claves de `FACTORY_RETOS`: `RETOS`, `propio`, `normalizar`
 y `generar`. Mantiene las conversiones del modelo antiguo y los guardados.
 
 `compat-paquetes.js?v=2` publica copias planas de ambos objetos. Los dos lectores
-al cargar son `runtime.js` (interpolación de `validar`) y `juego.js` (retos,
+al cargar son el propio puente (interpolación de `validar` con `paquetes/anfitrion`, fase 2) y `juego.js` (retos,
 normalización y arranque); ambos ya están después del puente. `factory-form.js`
 lee los catálogos dentro de `crear`, llamado después; `factory-vista.js`,
 `factory-3d.js` y `vistas.js` no leen estos dos catálogos al cargar. No se necesita

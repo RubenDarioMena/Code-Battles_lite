@@ -127,7 +127,9 @@ const html = readFileSync(new URL('../../../Prototypes/Rocket Launcher/index.htm
 const scripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^\"]*)?"/g)].map(m => m[1]);
 const puente = scripts.indexOf('js/compat-paquetes.js');
 comprobar(puente >= 0);
-for (const lector of ['runtime', 'juego']) comprobar(scripts.indexOf(`js/${lector}.js`) > puente);
+// js/runtime.js ya no existe: el puente construye el Worker con paquetes/anfitrion (fase 2).
+for (const lector of ['juego']) comprobar(scripts.indexOf(`js/${lector}.js`) > puente);
+comprobar(!scripts.includes('js/runtime.js'));
 for (const retirado of ['factory', 'factory-retos']) comprobar(!scripts.includes(`js/${retirado}.js`));
 comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));
 console.log(`reglas-factory: ${comprobaciones} comprobaciones`);

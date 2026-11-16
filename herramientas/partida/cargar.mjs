@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import { legado, retos } from '../../paquetes/reglas-war/index.js';
 import { legado as factory, retos as factoryRetos } from '../../paquetes/reglas-factory/index.js';
 import { legado as campaign, nivel } from '../../paquetes/reglas-campaign/index.js';
+import { fuenteTrabajador } from '../../paquetes/anfitrion/index.js';
 
 export const raiz = new URL('../../', import.meta.url);
 const entrada = new URL('Prototypes/Rocket Launcher/index.html', raiz);
@@ -11,21 +12,16 @@ export const archivoJuego = new URL('js/juego.js', entrada);
 
 /** Carga las dependencias reales sin DOM, en el orden declarado por index.html. */
 export function cargar() {
-  let fuenteWorker = '';
   const contexto = vm.createContext({
-    // RUNTIME.despertar solo guarda este valor para el vigía: no decide el paso.
-    performance: { now: () => 0 },
     WAR: { ...legado }, WAR_RETOS: { ...retos },
     FACTORY: { ...factory }, FACTORY_RETOS: { ...factoryRetos },
     CAMPAIGN: { ...campaign }, CAMPAIGN_NIVEL: { ...nivel },
-    Blob: class { constructor(partes) { this.texto = partes.join(''); } },
-    URL: { createObjectURL(blob) { fuenteWorker = blob.texto; return 'worker:capturado'; } },
   });
   vm.runInContext('window = globalThis;', contexto);
   const necesarios = new Set([
     '../../shared/vendor/acorn-8.11.3.js',
-    // runtime.js interpola validarFactory incluso en War: necesita el módulo real.
-    '../../shared/python/traductor.js', 'js/runtime.js', 'js/proveedor.js',
+    // El Worker interpola el preludio de Python del traductor real.
+    '../../shared/python/traductor.js', 'js/proveedor.js',
     '../../shared/editor/javascript.js', '../../shared/vendor/lezer-python-1.1.19.js',
   ]);
   const html = readFileSync(entrada, 'utf8');
@@ -38,6 +34,10 @@ export function cargar() {
     necesarios.delete(m[1]);
   }
   if (necesarios.size) throw new Error(`Faltan scripts en index.html: ${[...necesarios].join(', ')}`);
-  if (!fuenteWorker || !contexto.RUNTIME) throw new Error('runtime.js no creó el Worker esperado.');
+  // El mismo texto que el juego (js/compat-paquetes.js) entrega a sus Workers.
+  const fuenteWorker = fuenteTrabajador({
+    validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,
+    preludioPython: contexto.CMGPythonJS.preludio,
+  });
   return { contexto, fuenteWorker, cargados };
 }

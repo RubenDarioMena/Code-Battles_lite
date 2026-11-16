@@ -3,6 +3,7 @@ import { legado, retos } from '../../paquetes/reglas-war/index.js';
 import { legado as factoryLegado, retos as factoryRetos } from '../../paquetes/reglas-factory/index.js';
 import { nivel } from '../../paquetes/reglas-campaign/index.js';
 import { DT, avanzar } from '../../paquetes/nucleo/index.js';
+import { algunoCorre as corre, despertar, despertarCampaign } from '../../paquetes/anfitrion/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
 import { crearPrograma } from './programa.mjs';
@@ -23,7 +24,6 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   const inicio = performance.now();
   const { contexto: C, fuenteWorker } = sesion ?? cargar();
-  const { RUNTIME } = C;
   /** @type {any} Escenario de la serie seleccionada; Campaign conserva el mundo de la sesión. */
   const def = campaign ? nivel.NIVEL : factory ? (reto === 7 ? factoryRetos.normalizar(escenario) : factoryRetos.RETOS[reto - 1])
     : retos.normalizar(retos.RETOS[reto - 1]);
@@ -126,9 +126,9 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
   }
   if (factory) combate.evaluar();
   // El acumulador real de bucle(now) solo dosifica pasos. Aquí se ofrece un DT
-  // cada vez; el núcleo y RUNTIME reales conservan el punto exacto de despertar.
+  // cada vez; el núcleo y el anfitrión reales conservan el punto exacto de despertar.
   let acum = 0, tareas = 0;
-  const algunoCorre = () => RUNTIME.algunoCorre(ejec);
+  const algunoCorre = () => corre(ejec);
   try {
     while (mundo.activo && !mundo.fin && !extension?.detenido?.()) {
       let entregado = false;
@@ -144,7 +144,7 @@ export function ejecutarCiclo({ reglas, reto, semilla, intento = semilla, escena
       if (pasos >= maxPasos) { terminar('límite', 'pasos', `Límite de ${maxPasos} pasos.`); break; }
       acum = avanzar(Math.max(acum, DT), mundo, {
         algunoCorre,
-        despertarProgramas: () => (campaign ? RUNTIME.despertarCampaign : RUNTIME.despertar)(ejec, mundo, instantanea),
+        despertarProgramas: () => (campaign ? despertarCampaign : despertar)(ejec, mundo, instantanea),
         paso(dt) {
           combate.paso(dt);
           const actual = instantanea();

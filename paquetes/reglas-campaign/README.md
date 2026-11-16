@@ -11,7 +11,7 @@ Los contratos de datos y operaciones están en `index.d.ts`.
 - `estado.js`: catálogos, creación e indexación, serialización de checkpoints,
   lecturas y metas. No avanza el reloj.
 - `validacion.js`: `validar` y `modoEnSnap`, sin imports. Cada función es
-  autocontenida porque `runtime.js` copia su `toString()` al texto del Worker.
+  autocontenida porque el anfitrión (`fuenteTrabajador`, antes `runtime.js`) copia su `toString()` al texto del Worker.
   El modo modifica únicamente la instantánea del programa, como antes.
 - `mundo.js`: conexión, encargos, modos sobre el mundo, paso fijo y avance de
   hitos. Usa las operaciones de estado y anota sucesos.
@@ -102,7 +102,7 @@ antes de sus hooks, conservando orden y resultados. `paso` se calcula desde `t`.
 `esMaquina` y `esRobot`. `nivel` conserva `RETOS`, `NIVEL` y `MAPA`.
 `compat-paquetes.js?v=3` publica copias planas de ambos objetos.
 
-Los lectores al cargar son `runtime.js` (serializa las dos funciones) y
+Los lectores al cargar son el propio puente (serializa las dos funciones con `paquetes/anfitrion`, fase 2) y
 `juego.js` (catálogo, lectura del guardado y arranque). Ambos ya van después
 del puente en el documento. `campaign-ui.js`, `campaign-3d.js` y
 `campaign-plano.js` leen los catálogos al llamar a `crear`; `campaign-terreno.js`
