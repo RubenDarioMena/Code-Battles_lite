@@ -26,7 +26,7 @@ const DISPARO = 'while (true) {\n  const o = autoTarget("drone", "visual") || au
       for (const vista of ['2d', '3d', '2d', '3d']) {
         await page.click(`[data-vista="${vista}"]`);
         await page.waitForTimeout(350);
-        const estado = await page.evaluate(() => ({ t: __banco.mundo.t, mismo: __banco.mundo === window.__mundoInicial, c3d: !document.getElementById('c3d').hidden, c2d: !document.getElementById('c2d').hidden, fin: __banco.mundo.fin }));
+        const estado = await page.evaluate(() => ({ t: __banco.mundo.t, mismo: __banco.mundo === window.__mundoInicial, c3d: !document.getElementById('c3d').hidden, c2d: !document.getElementById('c2d').hidden, fin: __banco.fin }));
         ok(estado.mismo, `${serie} → ${vista}: el mismo mundo, sin reiniciar`);
         ok(estado.c3d === (vista === '3d') && estado.c2d === (vista === '2d'), `${serie} → ${vista}: se ve la vista elegida`);
         ok(estado.t >= t, `${serie} → ${vista}: el tiempo sigue (${t} → ${estado.t})`);

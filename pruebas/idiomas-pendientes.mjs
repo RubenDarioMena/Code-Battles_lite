@@ -30,7 +30,7 @@ export async function probarIdiomasPendientes(page, origen = 'http://127.0.0.1:8
   document.querySelector('#b-info-reto').click();
   __banco.elegirReto(0);__banco.programas['LAU-01']='console.log("Base intacta");\nregularShoot(null);';__banco.abrirPrograma('LAU-01');__banco.turbo(100);__banco.ejecutar();
  });
- await page.waitForFunction(()=>!!__banco.mundo.fin,{},{timeout:30000});
+ await page.waitForFunction(()=>!!__banco.fin,{},{timeout:30000});
  eq(await page.evaluate(()=>[document.querySelector('#banner h2').textContent,document.querySelector('#banner .acciones button').textContent]),['Not yet','Edit program'],'fallo real de War presenta título y acción en inglés');
  eq(await page.evaluate(()=>document.querySelector('#consola').textContent.includes('Base intacta')),true,'console.log del jugador conserva su texto español');
  eq(await page.evaluate(()=>{
@@ -40,8 +40,8 @@ export async function probarIdiomasPendientes(page, origen = 'http://127.0.0.1:8
  }),['Aún no',true,true,true,true,true],'aviso abierto conserva botones, foco, mundo, telemetría y pista al cambiar idioma');
  await abrir('factory');
  await page.evaluate(()=>{CMGI18n.cambiarIdioma('en');__banco.elegirReto(0);cmg.seudo.aplicarModo('js');__banco.programas.R1='for(let i=0;i<3;i++){await pickUp(ENT_1,"cobre");await deliver(FUN);}';__banco.abrirPrograma('R1');__banco.turbo(100);__banco.ejecutar();});
- await page.waitForFunction(()=>!!__banco.mundo.fin,{},{timeout:30000});
- eq(await page.evaluate(()=>[__banco.mundo.fin,document.querySelector('#banner h2').textContent,document.querySelector('#banner').textContent.includes('Everything delivered.'),document.querySelector('#banner .acciones button').textContent]),['victoria','Challenge completed',true,'Again'],'victoria real de Factory traduce resultado y acciones');
+ await page.waitForFunction(()=>!!__banco.fin,{},{timeout:30000});
+ eq(await page.evaluate(()=>[__banco.fin,document.querySelector('#banner h2').textContent,document.querySelector('#banner').textContent.includes('Everything delivered.'),document.querySelector('#banner .acciones button').textContent]),['victoria','Challenge completed',true,'Again'],'victoria real de Factory traduce resultado y acciones');
  eq(await page.evaluate(()=>{const b=document.querySelector('#banner .acciones button');CMGI18n.cambiarIdioma('es');return [document.querySelector('#banner h2').textContent,b.textContent];}),['Reto cumplido','Otra vez'],'victoria abierta vuelve al español sin reconstruir acciones');
  await page.evaluate(()=>{CMGI18n.cambiarIdioma('en');document.querySelector('#b-ajustes').click();document.querySelector('#ajustes-orden-barra').click();});
  eq(await page.evaluate(()=>[document.querySelector('#orden-titulo').textContent,document.querySelector('.orden-vacio').textContent]),['Editing bar','New group'],'diálogo de orden: título y grupo nuevo traducidos');

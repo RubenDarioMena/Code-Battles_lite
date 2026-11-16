@@ -27,6 +27,9 @@ export interface OpcionesConductor {
 export interface Conductor {
   iniciar(): Promise<void>;
   avanzar(maxPasos: number): Promise<{ pasos: number; terminada: boolean }>;
+  reanudar(): void;
+  /** Promesa del turno que sigue esperando a los programas, o null. */
+  turnoPendiente(): Promise<void> | null;
   readonly error: Turno['error'];
   readonly terminada: boolean;
   cerrar(): void;

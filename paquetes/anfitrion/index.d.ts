@@ -49,6 +49,8 @@ export interface Anfitrion {
     uso?: Record<string, Record<string, number>>; consolas: Record<string, number>; lecturas?: Record<string, number> };
   vigilar(ahora: number, ms: number, mensaje: (unidad: string) => string): string | null;
   algunoCorre(): boolean;
+  /** Fallo anotado (también uno llegado después de cerrar su turno) o null. */
+  fallo(): { unidad: string; mensaje: string; linea: number | null; motivo?: string } | null;
   estado(unidad: string): string | null;
   proximaEspera(): number | null;
   detener(respuestas?: import('../nucleo/index.js').Respuesta[]): void;

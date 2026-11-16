@@ -34,6 +34,23 @@ comprobar(validarAislado(lectura, 'recoger', ['ENT-1', 'oro']).includes('No exis
 
 const escenario = { reto: retos.RETOS[0], intento: 1 };
 const nueva = () => crearPartida({ reglas: reglamento, escenario, semilla: 7 });
+// Parar o fallar revela el stock y cancela el viaje por el mismo canal de órdenes.
+{
+  const p = nueva();
+  p.ordenar({ paso: 0, origen: 'programa', unidad: 'R1', verbo: 'recoger', args: ['ENT-1', 'cobre'] });
+  p.aplicarOrdenes();
+  comprobar(p.mundo.robot.tarea, 'hay un encargo en marcha');
+  const antes = p.instantanea();
+  p.ordenar({ paso: 0, origen: 'sistema', unidad: 'factory', verbo: 'fin-intento', args: [] });
+  p.aplicarOrdenes();
+  igual(p.mundo.robot.tarea, null, 'fin-intento cancela la tarea');
+  igual(p.mundo.revelado, true, 'fin-intento revela el stock');
+  igual(p.instantanea(), antes, 'parar no cambia existencias ni posición');
+  igual(p.evaluar(), null, 'parar no inventa un resultado');
+  const repetida = restaurar(JSON.parse(JSON.stringify(p.serializar())), reglamento);
+  repetida.aplicarOrdenes();
+  igual([repetida.mundo.robot.tarea, repetida.mundo.revelado], [null, true], 'fin-intento se repite');
+}
 function verificar(partida) {
   const snap = partida.instantanea();
   igual(validarInstantanea(snap), []);

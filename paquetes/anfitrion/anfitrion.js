@@ -1,6 +1,6 @@
 /* crearAnfitrion: carga los programas y cede el turno hasta que todos esperan.
  * Mensajes trasladados del «Ciclo de los programas» de juego.js (alMensaje).
- * El juego y herramientas/partida conservan su ciclo antiguo. */
+ * El juego lo compone con crearConductor; la herramienta conserva el ciclo de referencia. */
 import { pasoDe } from '../nucleo/index.js';
 import { fuenteTrabajador } from './trabajador.js';
 import { crearControlFactory } from './factory.js';
@@ -96,7 +96,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
       if (factory) factory.registrar(progs.get(unidad), m, paso, t, ordenes);
       else if (campaign) campaign.registrar(progs.get(unidad), m, paso, t, ordenes);
       else war.registrar(progs.get(unidad), m, paso, t, ordenes);
-      avisos.push({ unidad, ...m });
+      avisos.push({ ...m, unidad });
     }
     return { ordenes, avisos, error };
   }
@@ -141,6 +141,8 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
       return null;
     },
     algunoCorre: corre,
+    // Fallo ya anotado aunque su turno haya terminado (con Workers reales, un mensaje que llega tras cerrar el turno).
+    fallo() { return error; },
     estado(unidad) { return progs.get(unidad)?.estado ?? null; },
     proximaEspera() {
       let min = Infinity;

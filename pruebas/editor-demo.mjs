@@ -5,7 +5,7 @@ export async function probarEditorDemo(page, origen = 'http://127.0.0.1:8771') {
   const eq = (a,b,m) => { assert.deepEqual(a,b,m); checks++; console.log('OK demo '+checks+': '+m); };
   await page.goto(origen + '/shared/editor/demo.html');
   await page.waitForFunction(() => window.demoEditores?.length === 2);
-  eq(await page.evaluate(() => [typeof window.cmg, typeof window.__banco, typeof window.RUNTIME, typeof window.WAR]), ['undefined','undefined','undefined','undefined'], 'sin globals del juego');
+  eq(await page.evaluate(() => [typeof window.cmg, typeof window.__banco, typeof window.APP, typeof window.WAR]), ['undefined','undefined','undefined','undefined'], 'sin globals del juego');
   eq(await page.evaluate(() => new Set([...document.querySelectorAll('[id]')].map(n=>n.id)).size === document.querySelectorAll('[id]').length), true, 'IDs únicos');
   const segundo = await page.evaluate(() => demoEditores[1].documento().texto);
   await page.fill('#demo-uno textarea', 'console.log("primero");');

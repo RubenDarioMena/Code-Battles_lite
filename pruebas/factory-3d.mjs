@@ -33,8 +33,8 @@ export async function probarFactory3D(page) {
     await page.waitForFunction(() => window.__banco.mundo.robot.carga === 'cobre', undefined, { timeout: 15000 });
     await page.waitForTimeout(100);
     eq(await page.evaluate(() => FACTORY_3D.ultimo.robot.niveles.every(l => l.carga.visible)), true, 'la caja aparece al recoger');
-    await page.waitForFunction(() => !!window.__banco.mundo.fin, undefined, { timeout: 30000 });
-    eq(await page.evaluate(() => [__banco.mundo.fin, Math.abs(__banco.mundo.t - 8.7) < 1e-9, FACTORY_3D.ultimo.robot.niveles.some(l => l.carga.visible)]), ['victoria', true, false], 'mismo resultado en 3D y caja entregada');
+    await page.waitForFunction(() => !!window.__banco.fin, undefined, { timeout: 30000 });
+    eq(await page.evaluate(() => [__banco.fin, Math.abs(__banco.mundo.t - 8.7) < 1e-9, FACTORY_3D.ultimo.robot.niveles.some(l => l.carga.visible)]), ['victoria', true, false], 'mismo resultado en 3D y caja entregada');
     await page.click('[data-vista="2d"]');
     eq(await page.evaluate(() => [JSON.parse(localStorage.getItem('cmg-banco03:factory-vista')), localStorage.getItem('cmg-banco03:vista') === JSON.stringify('2d')]), ['2d', false], 'Factory recuerda su vista sin tocar la de War');
     return checks;

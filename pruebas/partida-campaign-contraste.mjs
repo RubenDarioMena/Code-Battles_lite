@@ -16,9 +16,9 @@ export async function probarCampaign(browser, caso, instalarGancho) {
   try {
     await instalarGancho(page);
     await page.goto('http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?serie=campaign&forma=escritorio');
-    await page.waitForFunction(() => window.__juegoListo);
+    await page.waitForFunction(() => window.__juegoListo && window.__partidaContraste.listo);
     await page.evaluate(() => localStorage.clear());
-    await page.reload(); await page.waitForFunction(() => window.__juegoListo);
+    await page.reload(); await page.waitForFunction(() => window.__juegoListo && window.__partidaContraste.listo);
     await page.evaluate(() => window.__banco.turbo(30));
     const tramos = [];
     for (const fuentes of programas) {
@@ -43,6 +43,7 @@ export async function probarCampaign(browser, caso, instalarGancho) {
       }, null, { timeout: 240000 });
       const tramo = await page.evaluate(async inicio => {
         const B = window.__banco, C = window.__partidaContraste;
+        if (window.cmg.ejecutando) window.cmg.alternarEjecucion();
         const resultado = C.resultadoCampaign();
         const filas = C.registros.slice(inicio.pasos);
         // Cada hash de tramo renumera desde 1; el hash continuo nunca reinicia.
@@ -50,7 +51,6 @@ export async function probarCampaign(browser, caso, instalarGancho) {
         const victoria = B.telemetria.findLast(x => x.motivo === 'hito');
         if (C.corte && (!victoria || victoria.tiempoJuego !== resultado.registro.tiempoJuego))
           throw new Error('El banner/checkpoint se registró fuera del paso de corte.');
-        if (window.cmg.ejecutando) window.cmg.alternarEjecucion();
         const fin = B.telemetria.at(-1);
         // Comprueba el registro REAL al detener, sin fecha, fuentes ni intento.
         for (const k of Object.keys(resultado.registro)) {

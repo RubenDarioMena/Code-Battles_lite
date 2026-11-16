@@ -22,7 +22,7 @@ const logica = [
   'paquetes/app/pruebas/app.mjs',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',
   'paquetes/vista-3d/pruebas/vista-3d.mjs',
-  'fronteras-fase2', 'fronteras-factory', 'fronteras-campaign',
+  'fronteras-fase2', 'fronteras-factory', 'fronteras-campaign', 'juego-conductor',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente'];
 // vista-caliente: cambio 2D/3D en caliente sin reiniciar la partida (fase 2).
@@ -50,7 +50,7 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
-const extensiones = { 'fronteras-campaign': 'mjs', 'fronteras-factory': 'mjs', 'fronteras-fase2': 'mjs', 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
+const extensiones = { 'juego-conductor': 'mjs', 'fronteras-campaign': 'mjs', 'fronteras-factory': 'mjs', 'fronteras-fase2': 'mjs', 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
 
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {

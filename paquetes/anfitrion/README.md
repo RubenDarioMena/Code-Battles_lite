@@ -154,3 +154,7 @@ La paridad con el juego la dan `partida-referencias` (41 partidas) y el
 contraste con Chromium.
 `pruebas/fronteras-factory.mjs` juega las 28 referencias Factory por el camino
 nuevo: huella, pasos, resultado completo y repetición exacta coinciden 28/28.
+
+En `Turno.avisos`, `unidad` identifica siempre al programa emisor (también
+cuando el maestro Campaign actúa sobre otra máquina). El destino de la acción
+sigue en `Turno.ordenes`. El juego usa el emisor para las líneas del editor.

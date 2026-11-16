@@ -14,7 +14,7 @@ const SOL = require('./campaign-soluciones.cjs');
   await p.evaluate(() => { localStorage.clear(); }); await p.reload(); await p.waitForFunction(() => window.__juegoListo);
   const poner = (id, texto) => p.evaluate(([id, texto]) => { const B = window.__banco; B.abrirPrograma(id); const c = document.getElementById('codigo'); c.value = texto; c.dispatchEvent(new Event('input', { bubbles: true })); }, [id, texto]);
   const hito = () => p.evaluate(() => window.__banco.mundo.hito);
-  const estado = () => p.evaluate(() => { const m = window.__banco.mundo; return { hito: m.hito, t: +m.t.toFixed(1), fin: m.completado, banner: document.getElementById('banner').hidden ? null : document.getElementById('banner').innerText.slice(0, 160), activo: m.activo, ejec: window.cmg.ejecutando }; });
+  const estado = () => p.evaluate(() => { const m = window.__banco.mundo; return { hito: m.hito, t: +m.t.toFixed(1), fin: m.completado, banner: document.getElementById('banner').hidden ? null : document.getElementById('banner').innerText.slice(0, 160), activo: window.cmg.ejecutando, ejec: window.cmg.ejecutando }; });
   await p.evaluate(() => window.__banco.turbo(12));
   const tiempos = [];
   for (let h = 0; h < 6; h++) {

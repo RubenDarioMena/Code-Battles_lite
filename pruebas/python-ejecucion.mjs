@@ -19,9 +19,9 @@ export async function probarPythonEjecucion(page, origen = 'http://127.0.0.1:877
     else { b.programas[id] = texto; if (b.fuentes[id]) b.fuentes[id].enUso = false; }
     b.abrirPrograma(id); b.turbo(20); b.ejecutar();
     const t0 = Date.now();
-    while (b.mundo.activo && !b.mundo.fin && Date.now() - t0 < 30000) await new Promise(r => setTimeout(r, 40));
+    while (window.cmg.ejecutando && Date.now() - t0 < 30000) await new Promise(r => setTimeout(r, 40));
     const m = b.mundo, ultimo = b.telemetria.at(-1);
-    return { fin: m.fin, t: m.t, eventos: m.eventos.map(e => ({ ...e })), derribos: m.derribos ?? null, consumidos: m.consumidos ?? null,
+    return { fin: b.fin, t: m.t, eventos: b.eventos.map(e => ({ ...e })), derribos: m.derribos ?? null, consumidos: m.consumidos ?? null,
       banner: document.querySelector('#banner').hidden ? null : document.querySelector('#banner h2').textContent, texto: document.querySelector('#banner').textContent,
       lenguajes: ultimo && ultimo.lenguajes, codigo: ultimo && ultimo.codigos && ultimo.codigos[id] };
   }, [reto, id, lenguaje, texto]);
@@ -58,7 +58,7 @@ export async function probarPythonEjecucion(page, origen = 'http://127.0.0.1:877
   const conPrint = await correr(0, 'LAU-01', 'python', 'print("hola", 1, None, [True])\nwarn(f"{2 + 3} m")\nregular_shoot(5)\n');
   eq([conPrint.banner, conPrint.texto.includes('regular_shoot necesita un lugar con x e y, como el que devuelve auto_target(). Recibió 5.')], ['Error en la línea 3 de LAU-01', true], 'un error de la API llega con la línea de Python y los nombres de Python');
   eq(await page.evaluate(() => [...document.querySelectorAll('#consola .c')].map(c => c.textContent).filter(t => /hola|5 m/.test(t))), ['LAU-01 L1hola 1 None [True]', 'LAU-01 L2warn 5 m'], 'print y warn van a la consola con su línea y al estilo de Python (D3)');
-  eq(await page.evaluate(() => window.__banco.mundo.eventos.filter(e => e.que === 'print' || e.que === 'warn').map(e => [e.que, e.linea])), [['print', 1], ['warn', 2]], 'el registro nombra print y warn');
+  eq(await page.evaluate(() => window.__banco.eventos.filter(e => e.que === 'print' || e.que === 'warn').map(e => [e.que, e.linea])), [['print', 1], ['warn', 2]], 'el registro nombra print y warn');
   const hueco = await correr(0, 'LAU-01', 'python', 'pos = auto_target("crawler", "visual")\nregular_shoot(__lugar__)\n');
   eq([hueco.banner, hueco.texto.includes('Rellena el hueco __lugar__'), await page.evaluate(() => window.cmg.marcas.err)], ['Línea 2 de LAU-01', true, 2], 'un hueco sin rellenar se avisa antes de ejecutar, con su línea marcada');
   const sangria = await correr(0, 'LAU-01', 'python', 'while True:\nawait wait(1)\n');

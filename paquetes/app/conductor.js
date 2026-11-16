@@ -92,22 +92,30 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
       partida.aplicarOrdenes();
       if (!await completarTurnos()) return { pasos: dados, terminada };
       while (!comprobarFin() && dados < maxPasos && !anfitrion?.algunoCorre?.()) {
+        // Con Workers reales un mensaje puede llegar tras cerrar su turno (dos encargos seguidos sin await):
+        // el fallo ya anotado por el anfitrión corta antes de dar otro paso, como el ciclo antiguo.
+        if (anfitrion?.fallo?.()) { error = anfitrion.fallo(); terminada = true; break; }
         partida.paso(); dados++; pasos++;
         const actual = partida.instantanea();
         entregarSucesos();
         vista.dibujar(anterior, actual, 1);
         alPaso?.(pasos, actual, partida);
         anterior = actual;
+        if (anfitrion) { fase = 'respuestas'; cederDespues = true; }
         if (comprobarFin()) break;
         if (anfitrion) {
-          fase = 'respuestas'; cederDespues = true;
           if (!await completarTurnos()) break;
         }
       }
       return { pasos: dados, terminada };
     },
+    reanudar() {
+      if (!cerrado && !error) terminada = false;
+    },
     get error() { return error; },
     get terminada() { return terminada; },
+    // La aplicación en vivo reanuda en cuanto llega el turno, sin esperar al siguiente fotograma (como el ciclo antiguo).
+    turnoPendiente() { return pendiente && !pendiente.listo ? pendiente.promesa : null; },
     cerrar() {
       if (cerrado) return;
       cerrado = true; terminada = true;

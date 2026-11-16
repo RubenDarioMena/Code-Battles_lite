@@ -369,7 +369,7 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
     console.error('Estado de la comprobación fallida:', await page.evaluate(() => ({
       url: location.href, lenguaje: window.cmg?.editor.documento().lenguaje,
       texto: window.cmg?.codigo.value, ejecutando: window.cmg?.ejecutando,
-      tiempo: window.__banco?.mundo.t, fin: window.__banco?.mundo.fin,
+      tiempo: window.__banco?.mundo.t, fin: window.__banco?.fin,
       consola: document.querySelector('#consola')?.textContent,
       banner: document.querySelector('#banner')?.textContent,
     })).catch(() => null));

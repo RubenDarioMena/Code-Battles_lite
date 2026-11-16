@@ -127,3 +127,7 @@ instantánea del legado, que conserva campos `undefined` (`acepta`/`entrada` de
 las bodegas, `stock` de las máquinas); la instantánea pública los quita para
 cumplir el protocolo, así que la prueba calcula la huella con
 `legado.instantanea(mundo)`, que mide el mismo estado del mundo.
+
+La aplicación cancela un intento mediante la orden de origen `sistema`
+`fin-intento`: cancela la tarea del robot y revela el stock, también al detener
+o fallar un programa. No evalúa metas ni cambia el resultado del reglamento.

@@ -28,11 +28,11 @@ export async function probarFactoryComun(page, { origen = 'http://127.0.0.1:8771
         b.turbo(20); // Escala visual ya ofrecida por War para QA; DT y reglas intactos.
         b.ejecutar();
       }, c);
-      await page.waitForFunction(() => !!window.__banco.mundo.fin, undefined, { timeout: 30000 });
+      await page.waitForFunction(() => !!window.__banco.fin, undefined, { timeout: 30000 });
       const actual = await page.evaluate(() => {
         const b = window.__banco, m = b.mundo, t = b.telemetria.at(-1);
         return {
-          fin: m.fin, motivo: t.motivo, mensaje: t.mensaje, linea: t.linea,
+          fin: b.fin, motivo: t.motivo, mensaje: t.mensaje, linea: t.linea,
           t: m.t, intento: t.intento, derrames: m.derrames, vacios: m.vacios, stockOculto: m.stockOculto,
           metas: b.def.metas.map(meta => {
             const e = m.porId[meta.id];
@@ -40,7 +40,7 @@ export async function probarFactoryComun(page, { origen = 'http://127.0.0.1:8771
             return { ...meta, valor, cumplida: meta.tipo === 'vaciar' ? valor === 0 && m.robot.carga !== meta.mat : valor >= meta.n };
           }),
           robot: { x: m.robot.x, y: m.robot.y, carga: m.robot.carga, viajes: m.robot.viajes },
-          resultados: m.resultados, eventos: m.eventos,
+          resultados: b.registro.resultados, eventos: b.registro.eventos,
         };
       });
       const rechazos = await page.evaluate(() => __banco.mundo.rechazos);

@@ -19,8 +19,8 @@ export async function probarFactoryVistas(page) {
       const c=fixture.casos.find(c=>c.id===`reto-${i}-victoria`), esperado=deltas.casos[c.id]?.cambios.t??c.resultado.t;
       for(const modo of ['bloques','pseudo','js']) {
         await page.evaluate(({i,codigo,modo})=>{const b=__banco;b.elegirReto(i);b.programas.R1=codigo;b.abrirPrograma('R1');cmg.seudo.aplicarModo(modo);b.turbo(20);b.ejecutar();},{i,codigo:c.codigo,modo});
-        await page.waitForFunction(()=>!!__banco.mundo.fin,undefined,{timeout:15000});
-        const actual=await page.evaluate(()=>({fin:__banco.mundo.fin,t:__banco.mundo.t,modo:document.querySelector('#app').dataset.modo}));
+        await page.waitForFunction(()=>!!__banco.fin,undefined,{timeout:15000});
+        const actual=await page.evaluate(()=>({fin:__banco.fin,t:__banco.mundo.t,modo:document.querySelector('#app').dataset.modo}));
         // Hasta vaciar cambia stock por intento: el mismo programa se prueba con su cantidad vigente.
         const t=i===4?2.9*(await page.evaluate(()=>__banco.mundo.stockOculto)):esperado;
         eq([actual.fin,Math.abs(actual.t-t)<1e-9,actual.modo],['victoria',true,modo],`reto ${i+1}: ${modo}, tiempo y metas`);
@@ -36,8 +36,8 @@ export async function probarFactoryVistas(page) {
       },{modelo,fuente});
       await page.goto(url);await page.waitForFunction(()=>!!window.cmg?.seudo);
       eq(await page.evaluate(()=>cmg.codigo.value.includes('for (let i = 0; i < 3; i++)')&&!cmg.codigo.value.startsWith('//')),true,`importa ${fuente} con modelo activo`);
-      await page.evaluate(()=>{__banco.turbo(20);__banco.ejecutar();});await page.waitForFunction(()=>!!__banco.mundo.fin);
-      eq(await page.evaluate(()=>[__banco.mundo.fin,Math.round(__banco.mundo.t*10)]),['victoria',87],`importado ${fuente}: resultado`);
+      await page.evaluate(()=>{__banco.turbo(20);__banco.ejecutar();});await page.waitForFunction(()=>!!__banco.fin);
+      eq(await page.evaluate(()=>[__banco.fin,Math.round(__banco.mundo.t*10)]),['victoria',87],`importado ${fuente}: resultado`);
     }
     await page.goto(origen);
     await page.evaluate(()=>{localStorage.setItem('cmg-banco02:prog-0',JSON.stringify({fuente:'texto',texto:'await yo.esperar(2);'}));});

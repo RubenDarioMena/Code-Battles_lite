@@ -15,8 +15,8 @@ export async function probarFactoryAPI(page) {
   try {
     for(const [nombre,codigo] of casos){
       await page.evaluate(code=>{const b=window.__banco;b.elegirReto(0);b.programas.R1=code;b.abrirPrograma('R1');b.turbo(20);b.ejecutar();},codigo);
-      await page.waitForFunction(()=>!!window.__banco.mundo.fin,undefined,{timeout:15000});
-      const r=await page.evaluate(()=>({fin:__banco.mundo.fin,t:__banco.mundo.t,ultimo:__banco.telemetria.at(-1)}));
+      await page.waitForFunction(()=>!!window.__banco.fin,undefined,{timeout:15000});
+      const r=await page.evaluate(()=>({fin:__banco.fin,t:__banco.mundo.t,ultimo:__banco.telemetria.at(-1)}));
       assert.equal(r.fin,'victoria',nombre+JSON.stringify(r.ultimo));assert(Math.abs(r.t-8.7)<1e-9,nombre);
       console.log('OK API: '+nombre);
     }

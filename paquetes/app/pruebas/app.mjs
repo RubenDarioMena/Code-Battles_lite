@@ -188,4 +188,48 @@ const reglasAsync = { ...reglas, id: 'war', aplicarOrden(m, o) { m.n += o.args[0
   igual([r.pasos, r.limite, r.instantanea.n, r.partida.serializar().ordenes.length], [1, true, 3, 1], 'resuelve el turno del límite antes de cerrar');
 }
 
+// La pausa de un hito conserva la respuesta del paso y la entrega antes de ceder al seguir.
+{
+  let parar = false;
+  const cola = [], llamadas = [];
+  const reglasPausa = { ...reglas, evaluar: () => null,
+    paso(m, dt) { m.t += dt; m.n++; cola.push({ unidad: 'x', resultado: 'ok', instantanea: { t: m.t } }); },
+    respuestas() { return cola.splice(0); } };
+  const anfitrion = {
+    async ceder(s) { llamadas.push(['ceder', s.t]); return { ordenes: [], avisos: [], error: null }; },
+    async responder(rs) { llamadas.push(['respuesta', rs[0].instantanea.t]); return { ordenes: [], avisos: [], error: null }; },
+    detener() {},
+  };
+  const partida = crearPartida({ reglas: reglasPausa, escenario: { inicio: 0 }, semilla: 1 });
+  const c = crearConductor({ reglas: reglasPausa, partida, anfitrion, detener: () => parar,
+    alPaso: () => { parar = true; } });
+  igual(await c.avanzar(5), { pasos: 1, terminada: true }, 'corta en el paso del hito');
+  igual(llamadas, [['ceder', 0]], 'la respuesta sigue pendiente durante el banner');
+  c.reanudar();
+  igual(await c.avanzar(0), { pasos: 0, terminada: true }, 'no continúa si la condición sigue puesta');
+  parar = false; c.reanudar();
+  igual(await c.avanzar(0), { pasos: 0, terminada: false }, 'reanuda sin dar pasos');
+  igual(llamadas, [['ceder', 0], ['respuesta', .05], ['ceder', .05]], 'responde antes de despertar y arrancar programas nuevos');
+  c.cerrar(); c.reanudar();
+  igual(await c.avanzar(1), { pasos: 0, terminada: true }, 'un conductor cerrado no se reabre');
+}
+
+// Workers reales: un fallo anotado después de cerrar el turno (dos encargos seguidos sin await)
+// corta antes del siguiente paso, aunque el turno ya entregado se aplique.
+{
+  let fallo = null;
+  const reglasFallo = { ...reglas, evaluar: () => null, paso(m, dt) { m.t += dt; m.n++; } };
+  const anfitrion = {
+    async ceder() { return { ordenes: [], avisos: [], error: null }; },
+    async responder() { return { ordenes: [], avisos: [], error: null }; },
+    fallo: () => fallo, detener() {},
+  };
+  const partida = crearPartida({ reglas: reglasFallo, escenario: { inicio: 0 }, semilla: 1 });
+  const c = crearConductor({ reglas: reglasFallo, partida, anfitrion });
+  await c.iniciar();
+  fallo = { unidad: 'R1', mensaje: 'Falta await', linea: 2 };
+  igual(await c.avanzar(3), { pasos: 0, terminada: true }, 'no da pasos con un fallo anotado tras el turno');
+  igual(c.error, fallo, 'el error del conductor es el del anfitrión');
+}
+
 console.log(`app: ${comprobaciones} comprobaciones`);

@@ -232,6 +232,7 @@ for (const tipo of ['encargo', 'sensor', 'consola']) {
   const t = a.ceder({ t: 0 }); await f.soltar(); const r = await t;
   igual(r.ordenes.map(o => [o.unidad, o.ref]),
     [['PRS-01', 'CTL-01#modo:1'], ['BOT-01', 'CTL-01#1'], ['BOT-02', 'CTL-01#2']], 'ref identifica al emisor y no al robot');
+  igual([r.avisos[0].unidad, r.avisos.at(-1).unidad], ['CTL-01', 'CTL-01'], 'los avisos señalan el programa para marcar su línea, las órdenes señalan el destino');
   igual(a.proximaEspera(), 1, 'varias esperas por programa');
   await a.responder([{ unidad: 'PRS-01', ref: r.ordenes[0].ref, resultado: 'apagada', modo: true }]);
   igual(a.registro().eventos.map(e => [e.que, e.resultado, e.clase]),

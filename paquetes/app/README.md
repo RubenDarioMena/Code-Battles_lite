@@ -68,6 +68,10 @@ usa `jugarPartida`, dividido para poder dosificarlo desde el juego:
   a la vista. Conserva los del mismo paso añadidos después de una entrega previa.
   `alTurno({ ordenes, avisos, error })` se llama después de aplicar las órdenes
   de cada turno, incluidos los de `responder`, antes de solicitar el siguiente.
+- `reanudar()` permite seguir tras un corte de `detener` cuando la condición ya
+  se retiró. Conserva las respuestas del último paso y las entrega antes de las
+  esperas y los programas nuevos cargados durante la pausa. No reabre un
+  conductor cerrado ni borra errores.
 - Los getters `error` y `terminada` reflejan el corte; agotar el presupuesto de
   una llamada no termina el conductor. `cerrar()` lo termina y llama una sola
   vez a `anfitrion.detener` con las respuestas restantes. No destruye la vista.
@@ -105,10 +109,16 @@ README de `reglas-factory`).
 `node pruebas/fronteras-campaign.mjs` comprueba las 2 referencias Campaign:
 huellas y resultados de H0–H5, secuencia paso a paso y 12 repeticiones exactas.
 
+`node pruebas/juego-conductor.mjs` extrae el adaptador de `juego.js` y lo ejecuta
+sin DOM en VM, con el texto real del Worker y un canal emulado. Compara las
+41 huellas, pasos y resultados con las referencias, los seis cortes Campaign
+y la reanudación con las unidades nuevas. No verifica Workers ni dibujo reales;
+eso lo comprueban las suites de navegador sobre `__banco`.
+
 Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de frontera
 (editor montado solo) es de navegador.
 
 ## Pendiente
 
-El juego todavía no usa este paquete: `juego.js` y `layout.js` deben repartirse
+El juego usa el conductor con Workers reales. `juego.js` y `layout.js` deben repartirse
 entre `interfaz` y `app`, y las vistas pasar a instantáneas y sucesos.

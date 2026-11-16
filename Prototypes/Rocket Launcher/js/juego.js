@@ -18,9 +18,8 @@
   const PYTHON = !!window.CMGAdaptadorPython && !!window.CMGPythonJS;
   let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
-  const DT = window.NUCLEO.DT;                 // paso fijo de simulación (tiempo de juego)
+  const DT = window.APP.DT;                 // paso fijo de simulación (tiempo de juego)
   const VIGIA_MS = 2500;           // bucle sin await
-  const MAX_ORDENES = 4000;        // mensajes seguidos sin esperar
   const T_LIMITE = 400;            // tiempo de juego máximo de un intento
   const CLAVE = "cmg-banco03";
   const { TIPOS, SENSOR, LAU, MISIL, REP, COSTE } = window.WAR;
@@ -97,12 +96,6 @@
     escribir(k, v) { try { localStorage.setItem(`${CLAVE}:${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento */ } },
   };
 
-  // ---------- Runtime del jugador (un Web Worker por lanzador) ----------
-  // Las lecturas (autoTarget, propiedades, VIB_01.detect) salen de una instantánea del mundo que llega
-  // cada vez que el programa despierta; las órdenes se mandan sin esperar respuesta. El tiempo de juego
-  // solo avanza mientras todos los programas están en `await esperar(...)`.
-  const WORKER_URL = window.RUNTIME.url;
-
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
   const KW = new Set("await async break case catch class const continue default delete do else false finally for function if in instanceof let new null of return switch this throw true try typeof undefined var void while".split(" "));
   const FN_PROPIAS = new Set(ES_CAMPAIGN ? ["pickUp", "deliver", "goTo", "wait", "count", "start", "stop", "light", "setRecipe", "request", "recoger", "entregar", "esperar", "cuantos", "irA", "log"] : ES_FACTORY ? ["pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos", "log"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log"]);
@@ -150,17 +143,14 @@
   const r2 = v => Math.round(v * 100) / 100, r3 = v => Math.round(v * 1000) / 1000;
   const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");
   const cadencia = window.WAR.cadencia;
-  const alcance = sensor => combate.alcance(sensor);
-  const enRango = sensor => combate.enRango(sensor);
-  const coste = () => combate.coste();
-  const crearMundo = (def, semilla) => def.serie === "campaign" ? window.CAMPAIGN.crear(def, estadoCampaign) : def.serie === "factory" ? window.FACTORY.crear(def, semilla) : window.WAR.crear(def, semilla);
-  const instantanea = () => ES_CAMPAIGN ? { t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: campana.instantanea() } : ES_FACTORY ? { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: window.FACTORY.instantanea(mundo) } : combate.instantanea();
-  const paso = dt => (campana || logistica || combate).paso(dt);
-  const evaluar = () => (campana || logistica || combate).evaluar();
-  function registrar(maquina, linea, que, resultado, clase) {
-    mundo.eventos.push({ t: +mundo.t.toFixed(2), maquina, linea: linea ?? "", que, resultado, clase });
-    eventosSucios = true;
-  }
+  const reglas = window.APP.reglas[SERIE];
+  const alcance = sensor => def.niebla ? SENSOR[sensor].niebla : SENSOR[sensor].alcance;
+  const enRango = s => mundo.enemigos.filter(e => TIPOS[e.tipo].suelo && Math.hypot(e.x - s.cx, e.y - s.cy) <= s.alcance + 1e-9);
+  const coste = () => mundo.consumidos * COSTE.misil + mundo.reparaciones * COSTE.reparacion;
+  const metaCumplida = meta => {
+    const e = mundo.porId[meta.id];
+    return meta.tipo === "vaciar" ? (e.stock[meta.mat] || 0) === 0 && mundo.robot.carga !== meta.mat : ((e.recibido && e.recibido[meta.mat]) || 0) >= meta.n;
+  };
 
   // ---------- Estado ----------
   const $ = (id) => document.getElementById(id);
@@ -186,9 +176,14 @@
   let recordsLenguaje = guardado.leer("records-lenguaje", {});
   const etiquetaLenguaje = l => l && l !== "js" ? ` <span class="etq-lenguaje">${l === "python" ? "Python" : "JS + Python"}</span>` : "";
   let telemetria = guardado.leer(`${PREFIJO}telemetria`, []);
-  let logistica = null, combate = null, campana = null;
+  let partida = null, anfitrion = null, conductor = null, enVuelo = null, finActual = null;
+  let eventos = [], desdeRegistro = 0, unidadVigia = null;
+  const registrosPendientes = new Map();
+  let consolasCampaign = { log: 0, info: 0, warn: 0, error: 0 };
   // Campaign: estado con el que se monta el mundo (el guardado en vivo o un checkpoint) e hito recién cumplido.
   let estadoCampaign = null, hitoPendiente = null;
+  // El hito detiene al conductor en su paso hasta «Seguir» (o hasta parar); hitoPendiente solo espera al banner.
+  let hitoDetiene = false;
   let ruteo = { ...RUTEO_DEF, ...guardado.leer("ruteo", {}) };
   let vista = guardado.leer(`${PREFIJO}vista`, "3d");
   let colores = guardado.leer("colores", true);
@@ -213,7 +208,7 @@
   const claveReto = () => PREFIJO + (retoIdx === IDX_PROPIO ? "propio" : String(retoIdx));
 
   // ---------- Ciclo de los programas (lockstep) ----------
-  const algunoCorre = () => window.RUNTIME.algunoCorre(ejec);
+  const algunoCorre = () => !!ejec && anfitrion.algunoCorre();
   function soloComentarios(src) { return lexico(src).every(([k]) => k === "com" || k === "esp" || k === "nl"); }
 
   // Antes de ejecutar: huecos /* … */ sin rellenar y errores de sintaxis, con su línea.
@@ -272,108 +267,130 @@
     }
     intento++;
     if (!semillaFija) semilla = intento;
-    // Campaign: el mundo sigue en vivo; ejecutar solo arranca los programas.
-    if (ES_CAMPAIGN) { mundo.fin = null; mundo.eventos = []; eventosSucios = true; hitoPendiente = null; }
+    // Campaign conserva la partida; cada ejecución tiene su propio anfitrión.
+    if (ES_CAMPAIGN) { eventos = []; eventosSucios = true; hitoPendiente = null; hitoDetiene = false; }
     else nuevoMundo(intento);
-    mundo.activo = true;
+    finActual = null; desdeRegistro = 0; unidadVigia = null; acum = 0; registrosPendientes.clear();
+    if (ES_CAMPAIGN && anfitrion) { const c = anfitrion.registro().consolas; for (const n of NIVELES) consolasCampaign[n] += c[n]; }
+    anfitrion = window.APP.crearAnfitrion({ reglas, piezas: window.APP.piezasTrabajador,
+      crearTrabajador, ahora: () => performance.now(),
+      contexto: { nombres: nombradas().map(e => e.id), tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
+        conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga } } });
     limpiarConsola(); ocultarBanner(); cerrarAvisos();
     lineaCorre = {}; lineaErr = null; marcasSucias = true;
-    const snap = instantanea();
     ejec = { progs: new Map(), inicio: new Date().toISOString(), codigos: {}, lenguajes };
-    for (const l of mundo.programables) arrancarPrograma(l.id, codigos[l.id] || "", fuentesTexto[l.id], snap);
+    for (const l of mundo.programables) arrancarPrograma(l.id, codigos[l.id] || "", fuentesTexto[l.id]);
+    // La planta sigue tras H5 (salva y suministro); su evaluación es un hito, no el fin del mundo vivo.
+    let entregaInicial = true;
+    conductor = window.APP.crearConductor({ reglas,
+      partida: ES_CAMPAIGN ? Object.create(partida, { evaluar: { value: () => null } }) : partida, anfitrion,
+      detener: () => hitoDetiene,
+      alTurno, alSucesos: lista => {
+        // Al cambiar de anfitrión, los sucesos anteriores de la planta ya se mostraron.
+        if (!ES_CAMPAIGN || !entregaInicial) alSucesos(lista);
+        entregaInicial = false;
+      },
+      alPaso: () => { window.__banco.alPaso?.(mundo); } });
     pausa = false;
     pintarControles(); pintarProgs(); pintarEdicion();
-    if (ES_FACTORY) evaluar();
+    avanzar();
   }
 
-  // Un Worker por unidad programable. Campaign también lo usa para las unidades que se encienden a mitad de ejecución.
-  function arrancarPrograma(id, codigo, fuente, snap = instantanea()) {
-    const w = new Worker(WORKER_URL);
-    const p = { id, worker: w, estado: "corre", desde: performance.now(), mensajes: 0, espera: null, despertar: 0, pend: new Map() };
-    w.onmessage = (ev) => alMensaje(p, ev.data);
-    w.onerror = (ev) => { ev.preventDefault(); errorPrograma(p, ev.message || "Error en el programa.", null); };
-    ejec.progs.set(id, p);
+  const urlsTrabajador = new Map();
+  function crearTrabajador(fuente, unidad, recibir) {
+    if (!urlsTrabajador.has(fuente)) urlsTrabajador.set(fuente, URL.createObjectURL(new Blob([fuente], { type: "text/javascript" })));
+    const w = new Worker(urlsTrabajador.get(fuente));
+    w.onmessage = ev => recibir(ev.data);
+    return w;
+  }
+  function arrancarPrograma(id, codigo, fuente) {
+    ejec.progs.set(id, { id, finT: null });
     ejec.codigos[id] = fuente ?? codigo;
-    w.postMessage({ type: "run", serie: def.serie, lenguaje: ejec.lenguajes[id], codigo: instrumentar(codigo), propia: id, nombres: nombradas().map(e => e.id), tipos: Object.keys(TIPOS), sensores: Object.keys(SENSOR),
-      conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga }, snap });
+    // cargar crea el Worker inmediatamente; el conductor lo arranca al ceder.
+    anfitrion.cargar(id, instrumentar(codigo), { lenguaje: ejec.lenguajes[id] });
   }
 
   const fmtLugar = (l) => l ? `{x: ${r2(l.x)}, y: ${r2(l.y)}, z: ${r2(l.z || 0)}${l.id ? `, id: "${l.id}"` : ""}}` : "null";
   const fmtValor = (v) => v == null ? "null" : typeof v === "object" ? fmtLugar(v) : String(v);
-  function contarUso(id, fn) { const u = mundo.uso[id] || (mundo.uso[id] = {}); u[fn] = (u[fn] || 0) + 1; }
-
-  function alMensaje(p, m) {
-    if (!ejec || ejec.progs.get(p.id) !== p || !mundo.activo) return;
-    if (ES_CAMPAIGN) return mensajeCampaign(p, m);
-    if (m.type === "traza") { if (window.CMGPulsos) window.CMGPulsos.traza(p.id, m.ev); return; }
-    if (window.CMGPulsos && !ES_FACTORY && (m.type === "lee" || m.type === "cmd" || m.type === "consola")) window.CMGPulsos.linea(p.id, m.linea, m.type, m.type === "lee" ? m.valor : m.type === "cmd" ? m.res : null);
-    if (ES_FACTORY && m.type === "encargo") {
-      if (p.encargo) return errorPrograma(p, `Falta await en la línea ${p.encargo.linea}: R1 seguía con ${p.encargo.texto} cuando llegó la orden de la línea ${m.linea}.`, p.encargo.linea);
-      p.encargo = m; p.estado = "encargo"; p.sensoresSeguidos = 0;
-      mundo.verbos[m.verbo] = (mundo.verbos[m.verbo] || 0) + 1;
-      lineaCorre[p.id] = m.linea; marcasSucias = true;
-      logistica.iniciarOrden(m.verbo, m.args);
-      return;
-    }
-    if (ES_FACTORY && m.type === "lecturaFactory") {
-      mundo.verbos.cuantos = (mundo.verbos.cuantos || 0) + 1;
-      if ((p.sensoresSeguidos = (p.sensoresSeguidos || 0) + 1) > 500)
-        return errorPrograma(p, "R1 consultó el sensor 500 veces sin hacer nada más: el bucle no avanza. ¿Falta una orden dentro del «while»?", m.linea);
-      mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: m.linea, orden: m.texto, resultado: String(m.valor), sensor: true });
-      lineaCorre[p.id] = m.linea; marcasSucias = eventosSucios = true;
-      return;
-    }
-    if (m.type === "lee") {
-      contarUso(p.id, m.fn);
-      const s = mundo.porId[m.maquina]; if (s && s.st && s.st.lecturas != null) s.st.lecturas++;
-      registrar(p.id, m.linea, m.que, fmtValor(m.valor), "sensor");
-    } else if (m.type === "cmd") {
-      contarUso(p.id, m.verbo);
-      aplicarOrden(p.id, m);
-    } else if (m.type === "consola") {
-      mostrarConsola(p.id, m.linea, m.nivel, m.texto);
-    } else if (m.type === "espera") {
-      contarUso(p.id, "esperar");
-      p.estado = "espera"; p.espera = m.id; p.despertar = mundo.t + m.s;
-      lineaCorre[p.id] = m.linea; marcasSucias = true;
-    } else if (m.type === "done") {
-      p.acabado = true; p.estado = p.encargo ? "encargo" : "fin"; p.finT = mundo.t; lineaCorre[p.id] = null; marcasSucias = true; pintarProgs();
-    } else if (m.type === "error") {
-      return errorPrograma(p, m.mensaje, m.linea);
-    }
-    if (ES_FACTORY && m.type === "done") { evaluar(); return; }
-    if ((m.type === "lee" || m.type === "cmd" || m.type === "consola") && ++p.mensajes > MAX_ORDENES)
-      return errorPrograma(p, `El programa de ${p.id} dio ${MAX_ORDENES} órdenes y lecturas sin esperar. ¿Falta await esperar(...) dentro del bucle?`, m.linea);
-    if ((m.type === "espera" || m.type === "done") && !algunoCorre()) avanzar();
+  function registroActual() {
+    const r = anfitrion ? anfitrion.registro() : { eventos: [], uso: {}, verbos: {}, resultados: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 }, lecturas: {} };
+    if (ES_CAMPAIGN) r.consolas = Object.fromEntries(NIVELES.map(n => [n, consolasCampaign[n] + r.consolas[n]]));
+    return r;
   }
-
-  function terminarEncargo(resultado) {
-    const p = ejec && ejec.progs.get("R1"), orden = p && p.encargo;
-    if (!orden) return;
-    p.encargo = null;
-    mundo.resultados[resultado] = (mundo.resultados[resultado] || 0) + 1;
-    mundo.eventos.push({ t: +mundo.t.toFixed(2), linea: orden.linea, orden: orden.texto, resultado });
-    eventosSucios = true;
-    consola(resultado === "ok" ? "log" : "warn", p.id, orden.linea, `${esc(orden.texto)} → <b>${esc(resultado)}</b>`);
-    p.estado = p.acabado ? "fin" : "corre"; p.desde = performance.now();
-    p.worker.postMessage({ type: "despierta", id: orden.id, resultado, snap: instantanea() });
+  function recogerRegistro() {
+    if (!anfitrion) return;
+    const desde = registrosPendientes.size ? Math.min(...registrosPendientes.keys()) : desdeRegistro;
+    const nuevos = anfitrion.registro({ desde }).eventos;
+    for (const [i, e] of nuevos.entries()) {
+      const indice = desde + i, pendiente = registrosPendientes.get(indice);
+      if (indice < desdeRegistro) {
+        if (!pendiente || e.resultado == null) continue;
+        Object.assign(pendiente, e); registrosPendientes.delete(indice);
+      } else {
+        eventos.push(e);
+        if (e.resultado == null) registrosPendientes.set(indice, e);
+      }
+      eventosSucios = true;
+      if (ES_FACTORY && e.orden && !e.sensor) consola(e.resultado === "ok" ? "log" : "warn", "R1", e.linea, `${esc(e.orden)} → <b>${esc(e.resultado)}</b>`);
+      if (ES_CAMPAIGN && e.clase === "warn" && e.que.endsWith(")")) {
+        consola("warn", e.maquina, e.linea, esc(ti18n("campaign.aviso.resultado", { orden: e.que, resultado: e.resultado })));
+        globo(e.maquina, "warn", e.resultado);
+      }
+    }
+    desdeRegistro = desde + nuevos.length;
   }
-
-  function aplicarOrden(id, m) {
-    window.WAR.aplicarOrden(mundo, { paso: Math.round(mundo.t / DT), origen: "programa", unidad: id, verbo: m.verbo, args: [m.lugar ?? null] });
-    const arg = m.verbo === "stopFire" ? "" : fmtLugar(m.lugar);
-    registrar(id, m.linea, `${m.verbo}(${arg})`, m.res, m.res === "ok" ? "ok" : "warn");
+  function alTurno(turno) {
+    for (const m of turno.avisos) {
+      const id = m.unidad;
+      if (m.type === "traza") { window.CMGPulsos?.traza(id, m.ev); continue; }
+      if (!ES_FACTORY && !ES_CAMPAIGN && ["lee", "cmd", "consola"].includes(m.type)) window.CMGPulsos?.linea(id, m.linea, m.type, m.type === "lee" ? m.valor : m.type === "cmd" ? m.res : null);
+      if (m.type === "consola") mostrarConsola(id, m.linea, m.nivel, m.texto);
+      if (["espera", "encargo", "modo", "lecturaFactory", "done"].includes(m.type)) {
+        lineaCorre[id] = m.type === "done" ? null : m.linea; marcasSucias = true;
+      }
+      if (m.type === "done") { ejec.progs.get(id).finT = mundo.t; pintarProgs(); }
+    }
   }
-
-  const despertarProgramas = () => ES_CAMPAIGN ? window.RUNTIME.despertarCampaign(ejec, mundo, instantanea) : window.RUNTIME.despertar(ejec, mundo, instantanea);
-
+  function alSucesos(lista) {
+    recogerRegistro();
+    for (const s of lista) {
+      const d = s.datos;
+      if (s.tipo === "registro") { eventos.push({ t: +(s.paso * DT).toFixed(2), ...d, linea: d.linea ?? "" }); eventosSucios = true; }
+      else if (s.tipo === "aviso") avisoSistema(d.texto);
+      else if (s.tipo === "globo") globo(s.unidad, d.nivel, d.texto);
+      else if (s.tipo === "entrega-pedido") entregaCampaign(mundo.porId[s.unidad], d);
+      else if (s.tipo === "hito") { hitoPendiente = d; hitoDetiene = true; }
+    }
+  }
   let acum = 0;
   function avanzar() {
-    acum = window.NUCLEO.avanzar(acum, mundo, { algunoCorre, despertarProgramas, paso });
+    if (!ejec || enVuelo || pausa) return;
+    const actual = conductor, sesion = ejec;
+    const llamada = actual.avanzar(Math.max(0, Math.floor(acum / DT + 1e-9)));
+    enVuelo = llamada;
+    llamada.then(({ pasos }) => {
+      if (ejec !== sesion) return;
+      acum = Math.max(0, acum - pasos * DT);
+      recogerRegistro();
+      if (actual.error) {
+        const e = actual.error;
+        errorPrograma({ id: e.unidad }, e.mensaje, unidadVigia === e.unidad ? lineaCorre[e.unidad] ?? null : e.linea);
+      } else if (!ES_CAMPAIGN) {
+        const fin = partida.evaluar();
+        if (fin) terminar(fin.fin, fin.motivo, fin.mensaje);
+      }
+      // Como el ciclo antiguo al recibir «espera»: se sigue en cuanto los programas ceden, no en el siguiente fotograma.
+      const turno = ejec === sesion && actual.turnoPendiente();
+      if (turno) turno.then(() => { if (ejec === sesion && !pausa) avanzar(); });
+    }).catch(error => {
+      if (ejec === sesion) errorPrograma({ id: progSel }, error.message, null);
+    }).finally(() => { if (enVuelo === llamada) enVuelo = null; });
   }
 
   function errorPrograma(p, mensaje, linea) {
     if (!ejec) return;
+    if (ES_CAMPAIGN && mensaje === `El programa de ${p.id} dio 4000 órdenes y lecturas sin esperar. ¿Falta await wait(...) dentro del bucle?`)
+      mensaje = ti18n("campaign.ordenes_sin_esperar", { unidad: p.id, n: 4000 });
     if (ejec.lenguajes && ejec.lenguajes[p.id] === "python") mensaje = mensajePython(mensaje);
     lineaErr = { id: p.id, linea }; marcasSucias = true;
     consola("error", p.id, linea, htmlInterfaz(escapeMsg(mensaje)));
@@ -382,23 +399,28 @@
   const escapeMsg = (s) => esc(s);
 
   function cerrarProgramas() {
-    if (ejec) for (const p of ejec.progs.values()) p.worker.terminate();
-    ejec = null;
-    pausa = false;
-    if (mundo) { mundo.activo = false; if (ES_FACTORY) mundo.robot.tarea = null; }
-    if (ES_CAMPAIGN && campana) { campana.cancelarTareas(); campana.soltarLuces(); }
+    if (ejec) {
+      conductor?.cerrar();
+      recogerRegistro();
+      if (ES_CAMPAIGN || ES_FACTORY) {
+        partida.ordenar({ paso: partida.pasoActual, origen: "sistema", unidad: SERIE, verbo: ES_CAMPAIGN ? "fin-tramo" : "fin-intento", args: [] });
+        partida.aplicarOrdenes();
+      }
+    }
+    ejec = null; enVuelo = null; pausa = false; hitoDetiene = false;
   }
 
   function terminar(resultado, motivo, texto, linea, idProg) {
     if (ES_CAMPAIGN) return terminarCampaign(resultado, motivo, texto, linea, idProg);
-    if (!mundo || mundo.fin) return;
+    if (!mundo || !ejec) return;
     const m = mundo;
     const codigos = ejec ? ejec.codigos : { ...programas };
     const inicio = ejec ? ejec.inicio : new Date().toISOString();
-    const acabados = ejec ? [...ejec.progs.values()].filter(p => p.estado === "fin") : [];
+    const acabados = ejec ? [...ejec.progs.values()].filter(p => anfitrion.estado(p.id) === "fin") : [];
     const lenguajes = ejec ? { ...ejec.lenguajes } : Object.fromEntries(Object.keys(codigos).map(id => [id, lenguajeDe(id)]));
-    m.fin = resultado;
+    finActual = resultado;
     cerrarProgramas();
+    window.__banco.alTerminar?.(resultado, motivo, texto, linea, idProg);
     if (resultado !== "error") { lineaCorre = {}; marcasSucias = true; }
     const lineas = Object.entries(codigos).reduce((a, [id, c]) => a + c.split("\n").filter(l => l.trim() && !(lenguajes[id] === "python" ? /^\s*#/ : /^\s*(\/\/|\/\*|\*)/).test(l)).length, 0);
     const lenguajeIntento = [...new Set(Object.values(lenguajes))].sort().join("+") || "js";
@@ -410,7 +432,7 @@
       resultado, motivo, mensaje: texto, linea: linea ?? null, programa: idProg ?? null,
       tiempoJuego: r2(m.t), brechas: m.brechas, derribos: m.derribos, enemigos: m.total, misiles: m.consumidos, impactos: m.impactos,
       precision: m.consumidos ? r3(m.impactos / m.consumidos) : null, atascos: m.atascos, reparaciones: m.reparaciones,
-      coste: coste(), costePorDerribo: cpd == null ? null : r2(cpd), lanzadores: lanz, detalleAtascos: m.detalleAtascos, uso: m.uso, consolas: m.consolas,
+      coste: coste(), costePorDerribo: cpd == null ? null : r2(cpd), lanzadores: lanz, detalleAtascos: m.detalleAtascos, uso: registroActual().uso, consolas: registroActual().consolas,
       inserciones: { ...insercion }, lineas, codigos, lenguajes, escenario: retoIdx === IDX_PROPIO ? def : undefined,
     });
     insercion = { dobleClic: 0, arrastre: 0, atajo: 0 };
@@ -448,7 +470,6 @@
   }
 
   function terminarFactory(resultado, motivo, texto, linea, idProg, codigos, inicio, lenguajes = {}, lenguajeIntento = "js") {
-    mundo.revelado = true;
     const t = { sandbox: "factory", reto: retoIdx + 1, clave: claveReto(), titulo: def.titulo, intento, inicio,
       resultado, motivo, mensaje: texto, linea: linea ?? null, programa: idProg ?? null, tiempoJuego: r2(mundo.t),
       rechazos: mundo.rechazos, derrames: mundo.derrames, viajesVacios: mundo.vacios, stockOculto: mundo.stockOculto, codigos, lenguajes };
@@ -471,10 +492,7 @@
 
   function vigia(now) {
     if (!ejec) return;
-    for (const p of ejec.progs.values()) {
-      if (p.estado === "corre" && now - p.desde > VIGIA_MS)
-        return errorPrograma(p, (ES_CAMPAIGN ? ti18n("campaign.vigia", { unidad: p.id }) : ES_FACTORY ? "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.…." : `El programa de ${p.id} giró ${VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`), lineaCorre[p.id] ?? null);
-    }
+    unidadVigia ||= anfitrion.vigilar(now, VIGIA_MS, id => ES_CAMPAIGN ? ti18n("campaign.vigia", { unidad: id }) : ES_FACTORY ? "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.…." : `El programa de ${id} giró ${VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`);
   }
 
   // ---------- Consola, globos y avisos a pantalla ----------
@@ -496,9 +514,7 @@
   }
   function globo(id, nivel, texto) { globos.set(id, { nivel, texto: String(texto).slice(0, 140), hasta: performance.now() + (nivel === "sistema" ? 2200 : 3000) }); }
   function mostrarConsola(id, linea, nivel, texto) {
-    mundo.consolas[nivel] = (mundo.consolas[nivel] || 0) + 1;
     consola(nivel, id, linea, `${nivel === "log" ? "" : `<b>${nivel}</b> `}${esc(texto)}`);
-    registrar(id, linea, ejec && ejec.lenguajes && ejec.lenguajes[id] === "python" ? (nivel === "log" ? "print" : nivel) : `console.${nivel}`, texto, nivel === "error" ? "bad" : nivel === "warn" ? "warn" : "sensor");
     if (ruteo[nivel] === "globo") globo(id, nivel, texto);
     else if (ruteo[nivel] === "pantalla") aviso(nivel, id, linea, texto);
   }
@@ -534,7 +550,7 @@
   let escenaFoto = null;
   const invalidarEscena = () => { escenaFoto = null; };
   const estadoVista = {
-    get escena() { return mundo ? (escenaFoto ||= escenaDe(mundo)) : null; }, get seleccionadas() { return seleccionadas; }, get seleccion() { return seleccion; },
+    get escena() { return mundo ? (escenaFoto ||= { ...escenaDe(mundo), ...(ES_CAMPAIGN ? { activo: !!ejec } : {}) }) : null; }, get seleccionadas() { return seleccionadas; }, get seleccion() { return seleccion; },
     get arrastreCampo() { return arrastreCampo; }, get cols() { return COLS; }, get rows() { return ROWS; },
     get col() { return col; }, get geo2() { return geo2; }, set geo2(g) { geo2 = g; },
     get def() { return def; }, get vista() { return vista; },
@@ -832,15 +848,15 @@
     if (ES_CAMPAIGN) return uiC.metas();
     if (ES_FACTORY) return def.metas.map((meta, i) => {
       const e = mundo.porId[meta.id], valor = meta.tipo === "vaciar" ? e.stock[meta.mat] || 0 : e.recibido[meta.mat] || 0;
-      return { k: `factory-${i}`, nombre: `${esc(meta.id)} ← ${esc(meta.mat)}`, meta: meta.tipo === "vaciar" ? ti18n("retos.meta.vaciar") : ti18n("retos.meta.minimo", { n: meta.n }), valor: meta.tipo === "vaciar" ? valor : `${valor}/${meta.n}`, estado: logistica.metaCumplida(meta) ? "ok" : mundo.fin ? "rota" : "pendiente" };
+      return { k: `factory-${i}`, nombre: `${esc(meta.id)} ← ${esc(meta.mat)}`, meta: meta.tipo === "vaciar" ? ti18n("retos.meta.vaciar") : ti18n("retos.meta.minimo", { n: meta.n }), valor: meta.tipo === "vaciar" ? valor : `${valor}/${meta.n}`, estado: metaCumplida(meta) ? "ok" : finActual ? "rota" : "pendiente" };
     });
-    const m = mundo, me = def.metas, acabado = m.fin === "victoria" || m.fin === "fallo";
+    const m = mundo, me = def.metas, acabado = finActual === "victoria" || finActual === "fallo";
     const decide = (rota, ok) => rota ? "rota" : ok ? "ok" : acabado ? "rota" : "pendiente";
     const filas = [{ k: "brechas", nombre: ti18n("retos.meta.brechas"), meta: ti18n("retos.meta.maximo", { n: me.brechasMax }), valor: m.brechas, estado: decide(m.brechas > me.brechasMax, acabado && m.brechas <= me.brechasMax) }];
     if (me.derribosMin != null) filas.push({ k: "derribos", nombre: ti18n("retos.meta.derribos"), meta: ti18n("retos.meta.minimo", { n: me.derribosMin }), valor: `${m.derribos}/${m.total}`, estado: decide(false, m.derribos >= me.derribosMin) });
     else filas.push({ k: "derribos", nombre: ti18n("retos.meta.derribados"), meta: ti18n("retos.meta.contar"), valor: `${m.derribos}/${m.total}`, estado: "info" });
     if (me.atascosMax != null) filas.push({ k: "atascos", nombre: ti18n("retos.meta.atascos"), meta: ti18n("retos.meta.maximo", { n: me.atascosMax }), valor: m.atascos, estado: decide(m.atascos > me.atascosMax, acabado && m.atascos <= me.atascosMax) });
-    if (me.tiempoMax != null) filas.push({ k: "tiempo", nombre: ti18n("retos.meta.tiempo"), meta: ti18n("retos.meta.hasta", { n: me.tiempoMax }), valor: `${coma(m.t)} s`, estado: decide(m.t > me.tiempoMax + 1e-9, m.fin === "victoria") });
+    if (me.tiempoMax != null) filas.push({ k: "tiempo", nombre: ti18n("retos.meta.tiempo"), meta: ti18n("retos.meta.hasta", { n: me.tiempoMax }), valor: `${coma(m.t)} s`, estado: decide(m.t > me.tiempoMax + 1e-9, finActual === "victoria") });
     return filas;
   }
   // Pista escalonada: la pista del reto en partes (frases). La primera se puede pedir siempre;
@@ -871,8 +887,8 @@
     objetivo: () => `<section class="objetivo" data-i18n-aria-label="juego.info_reto.objetivo" aria-label="${esc(ti18n("juego.info_reto.objetivo"))}"><p id="info-reto-txt">${hojaReto("objetivo", def.objetivo)}</p><div class="leccion" id="info-reto-leccion">${hojaReto("leccion", def.leccion)}</div></section>`,
     metas: () => {
       const m = mundo, filas = estadoMetas();
-      const est = ti18n(`retos.estado.${m.fin === "victoria" ? "victoria" : m.fin === "fallo" || m.fin === "error" ? "fallo" : m.activo ? "activo" : m.fin ? "detenido" : "inicial"}`);
-      return `<p class="info-nota">${esc(est)}${m.fin || m.activo ? "" : ti18n("retos.estado.nota")}</p><ul class="metas-lista">${filas.map(f =>
+      const est = ti18n(`retos.estado.${finActual === "victoria" ? "victoria" : finActual === "fallo" || finActual === "error" ? "fallo" : ejec ? "activo" : finActual ? "detenido" : "inicial"}`);
+      return `<p class="info-nota">${esc(est)}${finActual || ejec ? "" : ti18n("retos.estado.nota")}</p><ul class="metas-lista">${filas.map(f =>
         `<li class="meta-fila ${f.estado}" data-meta="${f.k}">${marca(f.estado)}<span class="m-nombre">${f.nombre} <small>${esc(f.meta)}</small></span><b class="m-valor">${f.valor}</b></li>`).join("")}</ul>`;
     },
     enemigos: () => {
@@ -1066,14 +1082,10 @@
 
   function nuevoMundo(nIntento = intento + 1) {
     COLS = def.mapa?.cols || 32; ROWS = def.mapa?.rows || 18;
-    mundo = crearMundo(def, ES_FACTORY ? nIntento : semilla);
-    if (ES_CAMPAIGN) campana = window.CAMPAIGN.conectar(mundo, { terminarOrden: finEncargoCampaign, hito: info => { hitoPendiente = info; }, entrega: entregaCampaign });
-    else if (ES_FACTORY) logistica = window.FACTORY.conectar(mundo, {
-      terminarOrden: terminarEncargo, terminar,
-      programaAcabado: () => !!ejec && [...ejec.progs.values()].every(p => p.acabado),
-      llamadaPendiente: () => !!ejec && [...ejec.progs.values()].some(p => p.encargo),
-    });
-    else combate = window.WAR.conectar(mundo, { registrar, terminar, avisoSistema, globo });
+    partida = window.APP.crearPartida({ reglas, escenario: { reto: def, ...(ES_FACTORY ? { intento: nIntento } : ES_CAMPAIGN ? { guardado: estadoCampaign } : {}) }, semilla: ES_FACTORY ? nIntento : semilla });
+    mundo = partida.mundo;
+    anfitrion = null; conductor = null; finActual = null; eventos = []; desdeRegistro = 0; registrosPendientes.clear(); eventosSucios = true;
+    consolasCampaign = { log: 0, info: 0, warn: 0, error: 0 };
     invalidarEscena();
     if (V3) V3.construir();
     for (const o of etiquetas.values()) { o.etq.remove(); o.g.remove(); }
@@ -1134,7 +1146,7 @@
       return;
     }
     const m = mundo, me = def.metas;
-    const clave = [window.CMGI18n?.idioma, m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, m.fin, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
+    const clave = [window.CMGI18n?.idioma, m.brechas, m.derribos, m.atascos, m.consumidos, m.reparaciones, finActual, me.tiempoMax != null && m.t > me.tiempoMax].join("|");
     if (clave === metasClave) return;
     metasClave = clave;
     if (refrescarInfo) vivoInfoReto();
@@ -1215,7 +1227,7 @@
   });
   $("semilla-fija").addEventListener("change", (ev) => {
     semillaFija = ev.target.checked; guardado.escribir("semillaFija", semillaFija);
-    if (semillaFija && !ejec && mundo.fin == null) semilla = intento + 1;
+    if (semillaFija && !ejec && finActual == null) semilla = intento + 1;
     pintarControles();
   });
 
@@ -1440,7 +1452,7 @@
       const s = e.st;
       return [["lanzados", s.lanzados], ["impactos", s.impactos], ["precisión", s.lanzados ? `${Math.round(s.impactos / s.lanzados * 100)} %` : "—"], ["derribos", s.derribos], ["atascos", s.atascos], ["en ráfaga", `${s.tRafaga.toFixed(1)} s`], ["fallo máx", `${Math.round(s.fallaMax * 100)} %`], ["₵ gastado", s.consumidos * COSTE.misil]];
     }
-    if (e.clase === "vibracion") return [["lecturas", e.st.lecturas]];
+    if (e.clase === "vibracion") return [["lecturas", registroActual().lecturas?.[e.id] ?? 0]];
     if (e.clase === "reparador") return [["reparaciones", e.st.reparaciones], ["₵ gastado", e.st.reparaciones * COSTE.reparacion]];
     if (e.clase === "deposito") return [["misiles entregados", mundo.consumidos]];
     return null;
@@ -1785,7 +1797,7 @@
     const varios = programablesDe(def).length > 1;
     $("progs").innerHTML = programablesDe(def).map(l => {
       const p = ejec && ejec.progs.get(l.id);
-      const est = lineaErr && lineaErr.id === l.id ? "error" : p ? (p.estado === "corre" ? "corre" : p.estado === "espera" ? "espera" : "") : "";
+      const est = lineaErr && lineaErr.id === l.id ? "error" : p ? (["nuevo", "corre"].includes(anfitrion.estado(l.id)) ? "corre" : anfitrion.estado(l.id) === "espera" ? "espera" : "") : "";
       return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${edicion.ids.includes(l.id)}"><span class="punto ${est}"></span><span class="prog-pre"></span>${l.id}</button>`;
     }).join("");
     $("b-copiar-prog").hidden = !varios || edicion.ids.length > 1 || (ES_CAMPAIGN && !gemelos(progSel).length);
@@ -2217,7 +2229,7 @@
   // ---------- Registro y telemetría ----------
   function pintarEventosYa() {
     eventosSucios = false;
-    $("eventos").innerHTML = mundo.eventos.slice(-250).map(e => ES_FACTORY ? { ...e, maquina: "R1", que: e.orden, clase: e.sensor ? "sensor" : e.resultado === "ok" ? "ok" : "warn" } : e).map(e =>
+    $("eventos").innerHTML = eventos.slice(-250).map(e => ES_FACTORY && e.orden ? { ...e, maquina: "R1", que: e.orden, clase: e.sensor ? "sensor" : e.resultado === "ok" ? "ok" : "warn" } : e).map(e =>
       `<tr><td>${e.t.toFixed(2)}</td><td>${esc(e.maquina)}</td><td>${e.linea}</td><td>${esc(e.que)}</td><td class="${e.clase}">${esc(e.resultado)}</td></tr>`).join("")
       || `<tr data-eventos-vacios><td colspan="5" style="color:var(--muted)"></td></tr>`;
     actualizarEtiquetaEventosVacios();
@@ -2527,53 +2539,6 @@
     else volverA(historialC.find(c => String(c.id) === b.dataset.cpVolver), !!b.dataset.cpProgramas);
   }
 
-  // Mensajes de los programas. Un programa puede tener varios encargos y esperas a la vez (p.pend).
-  function mensajeCampaign(p, m) {
-    if (m.type === "encargo") {
-      const clave = `${p.id}#${m.id}`;
-      p.pend.set(m.id, { tipo: "encargo", unidad: m.unidad, linea: m.linea, texto: m.texto });
-      p.estado = "espera"; lineaCorre[p.id] = m.linea; marcasSucias = true;
-      contarUso(p.id, m.verbo);
-      campana.iniciarOrden(m.unidad, { id: clave, verbo: m.verbo, args: m.args });
-    } else if (m.type === "modo") {
-      contarUso(p.id, m.verbo);
-      const res = campana.aplicarModo(m.unidad, m.verbo, m.args);
-      registrar(p.id, m.linea, m.texto, res, res === "ok" ? "ok" : "warn");
-      if (res !== "ok") consola("warn", p.id, m.linea, esc(ti18n("campaign.aviso.resultado", { orden: m.texto, resultado: res })));
-      lineaCorre[p.id] = m.linea; marcasSucias = true;
-    } else if (m.type === "lectura") {
-      contarUso(p.id, "count");
-      registrar(p.id, m.linea, m.texto, String(m.valor), "sensor");
-    } else if (m.type === "consola") {
-      mostrarConsola(p.id, m.linea, m.nivel, m.texto);
-    } else if (m.type === "espera") {
-      contarUso(p.id, "wait");
-      p.pend.set(m.id, { tipo: "espera", despertar: mundo.t + m.s });
-      p.estado = "espera"; lineaCorre[p.id] = m.linea; marcasSucias = true;
-    } else if (m.type === "cede") {
-      if (p.estado === "corre" && p.pend.size) p.estado = "espera";
-    } else if (m.type === "done") {
-      p.acabado = true; p.estado = "fin"; p.finT = mundo.t; lineaCorre[p.id] = null; marcasSucias = true; pintarProgs();
-    } else if (m.type === "error") {
-      return errorPrograma(p, m.mensaje, m.linea);
-    }
-    if ((m.type === "modo" || m.type === "lectura" || m.type === "consola") && ++p.mensajes > MAX_ORDENES)
-      return errorPrograma(p, ti18n("campaign.ordenes_sin_esperar", { unidad: p.id, n: MAX_ORDENES }), m.linea);
-    if (!algunoCorre()) avanzar();
-  }
-  // Un robot terminó su encargo: se anota y se despierta al programa que lo esperaba.
-  function finEncargoCampaign(unidad, clave, res) {
-    if (!ejec) return;
-    const corte = String(clave).lastIndexOf("#"), p = ejec.progs.get(String(clave).slice(0, corte)), id = +String(clave).slice(corte + 1);
-    const orden = p && p.pend.get(id);
-    if (!orden) return;
-    p.pend.delete(id);
-    registrar(unidad, orden.linea, orden.texto, res, res === "ok" ? "ok" : "warn");
-    if (res !== "ok") { consola("warn", unidad, orden.linea, esc(ti18n("campaign.aviso.resultado", { orden: orden.texto, resultado: res }))); globo(unidad, "warn", res); }
-    if (p.acabado) return;
-    p.estado = "corre"; p.desde = performance.now(); p.mensajes = 0;
-    p.worker.postMessage({ type: "despierta", id, resultado: res, snap: instantanea() });
-  }
   function entregaCampaign(bahia, pedido) {
     consola("sistema", bahia.id, null, esc(ti18n("campaign.aviso.entrega", { n: pedido.n, pieza: pedido.pieza })));
     globo(bahia.id, "info", `${pedido.n} × ${pedido.pieza}`);
@@ -2581,12 +2546,13 @@
   function terminarCampaign(resultado, motivo, texto, linea, idProg) {
     if (!mundo || !ejec) return;
     const codigos = ejec.codigos, inicio = ejec.inicio, lenguajes = { ...ejec.lenguajes };
+    finActual = resultado;
     cerrarProgramas();
+    window.__banco.alTerminar?.(resultado, motivo, texto, linea, idProg);
     if (resultado !== "error") { lineaCorre = {}; marcasSucias = true; }
     telemetria.push({ sandbox: "campaign", reto: 1, clave: claveReto(), titulo: def.titulo, hito: hitoActual().clave, intento, inicio, resultado, motivo, mensaje: texto ?? null, linea: linea ?? null, programa: idProg ?? null,
-      tiempoJuego: r2(mundo.t), presupuesto: mundo.presupuesto, producidos: { ...mundo.producidos }, uso: mundo.uso, consolas: mundo.consolas, codigos, lenguajes });
+      tiempoJuego: r2(mundo.t), presupuesto: mundo.presupuesto, producidos: { ...mundo.producidos }, uso: registroActual().uso, consolas: registroActual().consolas, codigos, lenguajes });
     if (telemetria.length > 200) telemetria.splice(0, telemetria.length - 200);
-    mundo.uso = {};
     guardado.escribir(`${PREFIJO}telemetria`, telemetria);
     guardarVivo();
     if (resultado === "error") {
@@ -2613,8 +2579,9 @@
     }
     pintarProgs();
   }
-  function seguirCampaign() { ocultarBanner(); pausa = false; arrancarNuevos(); pintarControles(); }
+  function seguirCampaign() { ocultarBanner(); hitoDetiene = false; pausa = false; arrancarNuevos(); conductor?.reanudar(); pintarControles(); }
   function alCumplirHito(h) {
+    window.__banco.alHito?.(h);
     const corriendo = !!ejec;
     pausa = corriendo;
     // Hay unidades nuevas o recién encendidas: se rehace el escenario 3D y se repinta la interfaz.
@@ -2643,10 +2610,10 @@
   }
   // Cada fotograma: hitos recién cumplidos, guardado en vivo y parada cuando ya no queda nada en marcha.
   function cicloCampaign(now) {
-    if (hitoPendiente) { const h = hitoPendiente; hitoPendiente = null; alCumplirHito(h); }
-    if (!ejec || !mundo.activo || pausa) return;
+    if (hitoPendiente && !enVuelo) { const h = hitoPendiente; hitoPendiente = null; alCumplirHito(h); }
+    if (!ejec || pausa || enVuelo) return;
     if (now - tVivo > 5000) { tVivo = now; guardarVivo(); }
-    if ([...ejec.progs.values()].every(p => p.estado === "fin") && campana.quieto()) terminar("detenido", "quieto", null);
+    if ([...ejec.progs.values()].every(p => anfitrion.estado(p.id) === "fin") && window.APP.quietoCampaign(mundo)) terminar("detenido", "quieto", null);
   }
 
   // ---------- Bucle de juego ----------
@@ -2655,11 +2622,10 @@
     const real = Math.min(0.25, (now - ultimo) / 1000);
     ultimo = now;
     invalidarEscena();
-    if (mundo.activo && !mundo.fin && !pausa) { if (!algunoCorre()) acum += real * velocidad * turbo; avanzar(); }
-    else if (!mundo.activo) acum = 0;
     if (ES_CAMPAIGN) cicloCampaign(now);
-    vigia(now);
-    const off = mundo.activo && !pausa && !algunoCorre() ? Math.min(acum, DT) : 0;
+    if (ejec && !pausa) { vigia(now); if (!algunoCorre()) acum += real * velocidad * turbo; avanzar(); }
+    else if (!ejec) acum = 0;
+    const off = ejec && !pausa && !algunoCorre() ? Math.min(acum, DT) : 0;
     if (vista === "3d" && V3) { V3.actualizar(off, now); V3.render(); } else dibujar2D(off, now);
     pintarCapa(off, now);
     caducarAvisos(now);
@@ -2683,10 +2649,11 @@
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { leerColores(); });
   new MutationObserver(() => leerColores()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   window.__banco = {
+    get partida() { return partida; }, get registro() { return registroActual(); }, get eventos() { return eventos; }, get fin() { return finActual; },
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, get fuentes() { return fuentes; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
     // Campaign: la planta, sus checkpoints y la piel del mapa.
-    get campana() { return campana; }, get checkpoints() { return historialC; }, volverA: (i, conProgramas) => volverA(historialC[i], !!conProgramas), seguir: () => seguirCampaign(), nivelDeNuevo: () => nivelDeNuevo(),
+    get campana() { return { instantanea: () => window.CAMPAIGN.instantanea(mundo), quieto: () => window.APP.quietoCampaign(mundo) }; }, get checkpoints() { return historialC; }, volverA: (i, conProgramas) => volverA(historialC[i], !!conProgramas), seguir: () => seguirCampaign(), nivelDeNuevo: () => nivelDeNuevo(),
   }; // para depurar y probar desde la consola
   window.cmg = { editor: editorPrograma, get edicion() { return editorPrograma.fachada.edicion; }, get seudo() { return editorPrograma.fachada.seudo; }, serie: SERIE, insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).

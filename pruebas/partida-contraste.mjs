@@ -24,61 +24,45 @@ export async function instalarGancho(page) {
     const resultadoWar = ${resultadoWar.toString()};
     const resultadoFactory = ${resultadoFactory.toString()};
     const resultadoCampaign = ${resultadoCampaign.toString()};
-    const captura = window.__partidaContraste = { registros: [], resultado: null, conectado: null, mundo: null };
-    for (const serie of ['WAR', 'FACTORY', 'CAMPAIGN']) Object.defineProperty(window, serie, { configurable: true,
-      get() { return this['__' + serie + 'Contraste']; },
-      set(valor) {
-        const conectar = valor.conectar;
-        valor.conectar = function(mundo, hooks) {
-          const terminar = hooks.terminar, hito = hooks.hito;
-          const conectado = conectar.call(this, mundo, { ...hooks, hito(info) { captura.corte = info; hito?.(info); }, terminar(...args) {
-            captura.resultado = serie === 'FACTORY'
-              ? resultadoFactory(mundo, captura.intento, ...args) : resultadoWar(mundo, ...args);
-            return terminar(...args);
-          } });
-          captura.conectado = conectado; captura.mundo = mundo; captura.serie = serie;
-          captura.instantanea = serie === 'CAMPAIGN'
-            ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: conectado.instantanea() })
-            : serie === 'FACTORY'
-            ? () => ({ t: mundo.t, maq: {}, auto: {}, vib: {}, factory: valor.instantanea(mundo) })
-            : () => conectado.instantanea();
-          captura.registros = []; captura.resultado = null; captura.corte = null;
-          return conectado;
+    const captura = window.__partidaContraste = { registros: [], resultado: null, corte: null, listo: false };
+    Object.defineProperty(window, '__banco', { configurable: true,
+      get() { return this.__bancoContraste; },
+      set(B) {
+        this.__bancoContraste = B;
+        const serie = new URLSearchParams(location.search).get('serie') || 'war';
+        let observada = null;
+        const actualizar = () => {
+          if (observada === B.partida) return;
+          observada = B.partida;
+          if (serie !== 'campaign') captura.registros = [];
+          captura.resultado = null; captura.corte = null;
         };
-        this['__' + serie + 'Contraste'] = valor;
+        B.alPaso = mundo => {
+          actualizar();
+          captura.registros.push(registro(captura.registros.length + 1, captura.instantanea()));
+        };
+        B.alHito = info => { captura.corte = info; };
+        B.alTerminar = (...args) => {
+          actualizar();
+          const mundo = { ...B.mundo, ...B.registro };
+          captura.resultado = serie === 'factory'
+            ? resultadoFactory(mundo, captura.intento, ...args)
+            : serie === 'campaign' ? resultadoCampaign(mundo, ...args) : resultadoWar(mundo, ...args);
+        };
+        captura.resultadoCampaign = () => resultadoCampaign({ ...B.mundo, ...B.registro }, 'detenido', 'detenido', null);
+        // Las huellas históricas Factory/Campaign incluyen los undefined del legado.
+        import('/paquetes/reglas-' + serie + '/index.js').then(mod => {
+          captura.instantanea = serie === 'war' ? () => mod.default.instantanea(B.mundo)
+            : () => ({ t: B.mundo.t, maq: {}, auto: {}, vib: {}, [serie]: mod.legado.instantanea(B.mundo) });
+          captura.listo = true;
+        });
       }
     });
-    Object.defineProperty(window, 'NUCLEO', { configurable: true,
-      get() { return this.__nucleoContraste; },
-      set(valor) {
-        const avanzar = valor.avanzar;
-        valor.avanzar = function(acum, mundo, opciones) {
-          const paso = opciones.paso;
-          return avanzar.call(this, acum, mundo, { ...opciones, paso(dt) {
-            paso(dt);
-            captura.registros.push(registro(captura.registros.length + 1, captura.instantanea()));
-            // Solo QA: bloquea pasos y mensajes posteriores al primer hito. El juego
-            // pausa en cicloCampaign, después de vaciar el acumulador del fotograma.
-            if (captura.serie === 'CAMPAIGN' && captura.corte) mundo.activo = false;
-          } });
-        };
-        this.__nucleoContraste = valor;
-      }
-    });
-    captura.resultadoCampaign = () => resultadoCampaign(captura.mundo, 'detenido', 'detenido', null);
     captura.digest = async registros => {
       const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(registros.join('')));
       return [...new Uint8Array(digest)].map(x => x.toString(16).padStart(2, '0')).join('');
     };
     captura.final = async () => {
-      // errorPrograma llama a terminar directamente; esos finales se observan
-      // mediante la telemetría real, sin redondear el t guardado en el mundo.
-      if (!captura.resultado) {
-        const ultimo = window.__banco.telemetria.at(-1);
-        if (ultimo) captura.resultado = captura.serie === 'FACTORY'
-          ? resultadoFactory(captura.mundo, ultimo.intento, ultimo.resultado, ultimo.motivo, ultimo.mensaje, ultimo.linea)
-          : resultadoWar(captura.mundo, ultimo.resultado, ultimo.motivo, ultimo.mensaje, ultimo.linea, ultimo.programa);
-      }
       const bytes = new TextEncoder().encode(captura.registros.join(''));
       const digest = await crypto.subtle.digest('SHA-256', bytes);
       return { hash: [...new Uint8Array(digest)].map(x => x.toString(16).padStart(2, '0')).join(''),
@@ -112,7 +96,7 @@ export async function probarCaso(browser, caso) {
       }, { ...caso, intento: caso.intento ?? caso.semilla });
     }
     await page.goto(`${origen}/Prototypes/Rocket%20Launcher/?forma=escritorio${factory ? '&serie=factory' : ''}`);
-    await page.waitForFunction(() => window.__juegoListo);
+    await page.waitForFunction(() => window.__juegoListo && window.__partidaContraste.listo);
     await page.evaluate(({ reglas, reto, semilla, intento, programas }) => {
       const B = window.__banco;
       B.elegirReto(reto - 1);
@@ -134,7 +118,7 @@ export async function probarCaso(browser, caso) {
       B.abrirPrograma(B.mundo.programables[0].id);
       B.ejecutar();
     }, caso);
-    await page.waitForFunction(() => !!window.__banco.mundo.fin, null, { timeout: 60000 });
+    await page.waitForFunction(() => !!window.__partidaContraste.resultado, null, { timeout: 60000 });
     const juego = await page.evaluate(() => window.__partidaContraste.final());
     const ok = juego.hash === sinPantalla.hash && juego.pasos === sinPantalla.metricas.pasos
       && canonico(juego.resultado) === canonico(sinPantalla.resultado) && errores.length === 0;

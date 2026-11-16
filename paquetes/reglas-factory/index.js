@@ -48,7 +48,10 @@ const reglamento = {
   paso(mundo, dt) { conexion(mundo).paso(dt); },
   aplicarOrden(mundo, orden) {
     const c = conexion(mundo), estado = encargos.get(mundo);
-    if (orden.origen === 'sistema' && orden.verbo === 'programa-acabado') {
+    if (orden.origen === 'sistema' && orden.verbo === 'fin-intento') {
+      mundo.robot.tarea = null;
+      mundo.revelado = true;
+    } else if (orden.origen === 'sistema' && orden.verbo === 'programa-acabado') {
       estado.acabado = true;
       c.evaluar();
     } else if (['recoger', 'entregar', 'esperar'].includes(orden.verbo)) {
