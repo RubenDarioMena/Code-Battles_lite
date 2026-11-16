@@ -52,6 +52,7 @@ export interface DependenciasCampaign extends DependenciasComunes {
   };
 }
 export interface Vista3D {
+  destruir(): void;
   construir(): void;
   actualizar(off: number, ahora: number): void;
   render(): void;
@@ -81,3 +82,23 @@ export const factory3d: {
   ik(h: number, v: number): { a1: number; a2: number; a3: number };
   ultimo: any | null;
 };
+
+export type { Vista } from '../protocolo/index.js';
+import type { Vista } from '../protocolo/index.js';
+export type OpcionesVista3D = (DependenciasWar | DependenciasCampaign) & {
+  serie: 'war' | 'factory' | 'campaign';
+  dt: number;
+  estado?: EstadoVista;
+  cols?: number;
+  rows?: number;
+  canvas?: HTMLCanvasElement;
+  tema?: Record<string, string>;
+  calidad?: string;
+};
+export interface VistaCreada3D extends Omit<Vista3D, 'elegir' | 'proyectar' | 'suelo'>, Vista {
+  suelo(x: number, y: number): { x: number; y: number; z: number } | null;
+  batalla?(valor: boolean): void;
+  verCampo?(): void;
+  terreno?: any;
+}
+export function crearVista(contenedor: HTMLElement, opciones: OpcionesVista3D): VistaCreada3D | null;

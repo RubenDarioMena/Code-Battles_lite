@@ -5,12 +5,12 @@ export function instalarEtiquetas(ctx) {
   // ---------- Etiquetas y globos sobre el campo ----------
   const $capa = ctx.$("capa"), etiquetas = new Map();
   function pintarCapa(off, ahora) {
-    const W = $capa.clientWidth, H = $capa.clientHeight;
+    const vista = ctx.vistaActual();
     const vivos = new Set(), puestas = [];
-    const cercaC = ctx.ES_CAMPAIGN && (ctx.vista === "3d" && ctx.V3 ? ctx.V3.camara().dist < 55 : ctx.geo2.T > 9);
+    const cercaC = ctx.ES_CAMPAIGN && (ctx.vista === "3d" && ctx.V3 ? ctx.V3.camara().dist < 55 : vista.proyectar(1, 0, 0).x - vista.proyectar(0, 0, 0).x > 9);
     for (const e of ctx.mundo.maquinas) {
       const alto = ctx.ES_CAMPAIGN ? ctx.uiC.altoEtiqueta(e) : e.clase === "lanzador" ? 1.45 : e.clase === "vibracion" ? 1.7 : e.clase === "deposito" ? 1.1 : .9;
-      const p = ctx.vista === "3d" && ctx.V3 ? ctx.V3.proyectar(e.cx, alto, e.cy, W, H) : ctx.proyectar2D(e.cx, e.cy - ctx.radioDe(e));
+      const p = vista.proyectar(e.cx, alto, e.cy, ctx.radioDe(e));
       vivos.add(e.id);
       let o = etiquetas.get(e.id);
       if (!o) {

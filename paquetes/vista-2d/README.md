@@ -1,53 +1,64 @@
 # vista-2d
 
-Estado: fase 2, paso 5. Dibuja el mundo en 2D a partir de la **escena** de cada
-reglamento (`escena(mundo)`, datos planos). No lee ni escribe el mundo.
+Fase 2, paso 12. Dibuja War, Factory y Campaign desde `escena(mundo)`:
+datos planos, sin leer ni escribir el mundo. Solo puede importar `protocolo`
+y `vfx`; mapa, reglas auxiliares y catálogos llegan desde la composición.
 
-## Puede importar
+## Contrato
 
-`protocolo`, `vfx`. Véanse las reglas de [paquetes](../README.md). No importa
-reglamentos: lo que necesita de ellos (mapa de Campaign y sus funciones
-`esRobot`, `esMaquina`, `estadoMaquina`) lo inyecta la app.
+```js
+const vista = crearVista(canvas, { serie, dt, estado, ...dependencias });
+vista.dibujar(null, escena, fraccion, ahora);
+vista.alSuceso(suceso);
+vista.elegir(x, y);                   // id o null; píxeles CSS locales
+vista.proyectar(x, alto, y);          // { x, y, visible }, píxeles CSS locales
+vista.redimensionar();
+vista.destruir();
+```
 
-## Contrato vigente
+`serie` es `war`, `factory` o `campaign`; `dt` es el paso fijo en segundos.
+`fraccion` está entre 0 y 1: se extrapola la escena actual con
+`off = fraccion * dt`, como antes. `anterior` puede ser `null` y no se usa.
+El cuarto argumento opcional `ahora` es la marca del fotograma en milisegundos:
+se pasa al plano conservando su dibujo actual (War sigue leyendo su propio
+reloj para los halos; Campaign no usa ese argumento).
 
-Módulos ES con el código de antes, sin cambios de dibujo:
+`estado` aporta selección, arrastre, dimensiones en unidades del mundo
+(`cols`, `rows`) y colores (`col`). Su getter opcional `escena` permite elegir
+sobre la escena vigente entre fotogramas, incluso antes del primer dibujo.
+Durante `dibujar` siempre se usa el argumento `escena`. Sin `estado`, se pueden
+dar `cols`, `rows` y `tema` en opciones; la selección queda vacía.
+`calidad` queda reservada para la fase 4, sin efecto actual.
 
-- `crearPlano(estado, deps)` → `dibujar2D(off)`: plano de War y marco común de
-  Factory (antes en `js/vistas.js`). Factory delega en `dibujarFactory`.
-- `dibujarFactory(ctx, escena, colores, seleccion, geo)`: logística de Factory
-  (antes `js/factory-vista.js`). Los dos iconos de la paleta que registraba ese
-  archivo están en `paquetes/interfaz/factory-iconos.js`; la app los registra antes del editor.
-- `crearPlanoCampaign(estado, deps)` → `dibujar()`: plano de Campaign con zoom y
-  desplazamiento propios (antes `js/campaign-plano.js`). `deps` añade `mapa`
-  (`CAMPAIGN_NIVEL.MAPA`) y `reglas` (las funciones de Campaign).
-- `crearTerreno(mapa)`: relieve determinista de Campaign (antes
-  `js/campaign-terreno.js`). La app lo inyecta también a `crearCampaign3D` de
-  vista-3d mediante `deps.crearTerreno`, sin imports entre las dos vistas.
+Las dependencias conservan los nombres de los planos anteriores: `FUNCIONES`,
+`TIPOS`, `MISIL`, `SENSOR`, `LAU`, `LINEA_BASE`, `FR`, `HALO`, `INTENSIDAD`,
+`ARCO`, `LUCES`, `visual`, `funcionDe`, `radioDe`, `direccionDe`, `alcance`,
+`rgba`, `mezclaBlanco` y `r2`. Campaign recibe `mapa` y `reglas` (`esRobot`,
+`esMaquina`, `estadoMaquina`, etc.). Tipos en `index.d.ts`.
 
-`estado` es el objeto de lectura que da `juego.js`: `escena` (una copia por
-fotograma), selección, colores, `cols`/`rows` y `geo2`, donde el plano publica
-su geometría para elegir y etiquetar. Se mantiene la extrapolación de antes:
-la escena actual adelantada `off` segundos.
+La geometría del plano es privada. `elegir` recorre `maquinas` y `enemigos`,
+obtiene las máquinas de Factory de `robot` + `entidades` en su orden original,
+prefiere `cx/cy` a `x/y` y conserva el umbral estricto de .9 unidades.
+`proyectar` ignora `alto`; su cuarto argumento opcional `radioPlano` desplaza
+la etiqueta hacia arriba en unidades del mundo. `suelo(x, y)` invierte la
+proyección para introducir coordenadas desde el campo. La interfaz obtiene
+la escala con la diferencia entre dos proyecciones, sin acceder a la geometría.
 
-La composición `paquetes/app/juego/vistas.js` importa la entrada pública, sin global `VISTA_2D`.
+El lienzo se ajusta en el siguiente dibujo; `redimensionar` no adelanta ese
+dibujo. `destruir` retira los gestos de Campaign y libera su fondo; es
+idempotente. `alSuceso` no hace nada todavía: los efectos vienen en la escena;
+su consumo por `vfx` corresponde a la fase 4.
 
-## Decisiones y límites
-
-- El plano de Campaign mira el botón de piel de batalla en el DOM y
-  `window.__banco`, como antes; debe pasar a un dato de `estado`.
-- `window.devicePixelRatio` y `performance.now()` (halos) se leen dentro de la
-  vista: es lo que se espera de una vista, no de las reglas.
-- Pendiente para cerrar el contrato del plan: `crearVista(contenedor,
-  { tema, calidad })` con `dibujar(anterior, actual, fraccion)` (fracción × DT =
-  `off`), `elegir(x, y)` (hoy `elegir2D` en `juego.js`), `redimensionar()` y
-  `destruir()`.
+Se conservan `crearPlano`, `dibujarFactory`, `crearPlanoCampaign` y
+`crearTerreno(mapa)` como entradas compatibles. La app inyecta el relieve a
+vista-3d sin imports entre vistas. Campaign aún consulta el botón de piel y
+`window.__banco`, igual que antes.
 
 ## Pruebas
 
-- `node paquetes/vista-2d/pruebas/vista-2d.mjs` (en `npm test`): War y Factory
-  dibujan con un lienzo falso a partir de escenas **congeladas en profundidad**
-  (una escritura fallaría); relieve de Campaign determinista.
-- `herramientas/capturas-vista.mjs`: capturas deterministas antes y después
-  del traslado, idénticas píxel a píxel en War, Factory y Campaign 2D.
-- `pruebas/vista-caliente.cjs` (navegador): cambio 2D/3D en caliente.
+- `node pruebas/vistas-contrato.mjs`: fachada, dibujo con fracciones 0/1 idéntico
+  al plano anterior, selección y destrucción con canvas falso; entra en `npm test`.
+- `node paquetes/vista-2d/pruebas/vista-2d.mjs`: escenas congeladas de War y
+  Factory y relieve determinista de Campaign.
+- `pruebas/vista-caliente.cjs`: cambio 2D/3D en navegador.
+- `herramientas/capturas-vista.mjs`: comparación visual; requiere navegador.

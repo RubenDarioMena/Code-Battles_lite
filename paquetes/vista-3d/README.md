@@ -1,49 +1,69 @@
 # vista-3d
 
-Estado: fase 2, paso 6. Módulos ES con el dibujo, cámara y gestos anteriores.
-Solo leen `estado.escena` (datos planos del reglamento) y la selección; no
-escriben en la escena. Mantienen la extrapolación `off` en segundos.
+Fase 2, paso 12. Vistas de War, Factory y Campaign desde la escena visible
+del reglamento, sin leer ni escribir el mundo. Puede importar `protocolo`
+y `vfx`; las dependencias de juego llegan en opciones.
 
-## Contrato vigente
+## Contrato
 
-La entrada pública `index.js` exporta:
+```js
+const vista = crearVista(campo, { serie, dt, estado, canvas, ...dependencias });
+// null si falta THREE/WebGL (o crearTerreno en Campaign): usar la vista 2D.
+vista.dibujar(null, escena, fraccion, ahora);
+vista.alSuceso(suceso);
+vista.elegir(x, y);                 // id o null; píxeles CSS locales al campo
+vista.proyectar(x, alto, y);        // { x, y, visible }, píxeles CSS locales
+vista.redimensionar();
+vista.destruir();
+```
 
-- `crear3D(estado, deps)`: visor común de War y Factory. `war.js` compone
-  materiales, unidades y efectos; `camara.js` guarda las posturas, selección,
-  proyección y gestos; `terreno.js` construye el paisaje y el terreno del editor.
-- `crearCampaign3D(estado, deps)`: diorama y unidades de Campaign.
-- `factory3d`: objeto mutable `{ construir, actualizar, cargar, ik, ultimo }`
-  con el contenido de Factory y el gancho de inspección del último escenario.
+`serie` es `war`, `factory` o `campaign`; `dt` es el paso fijo en segundos.
+`dibujar` extrapola la escena actual: `actualizar(fraccion * dt, ahora)` y
+luego `render()`, en ese orden. `fraccion` está entre 0 y 1; `anterior` puede
+ser `null` y no se usa. El cuarto argumento opcional `ahora` es la marca del
+fotograma en milisegundos; si se omite, se toma `performance.now()`.
+Los relojes internos de animación de los motores anteriores se conservan.
 
-Los creadores devuelven `null` sin `THREE` o si falla WebGL. Campaign también
-lo hace si falta `deps.crearTerreno`. Las vistas ofrecen `construir`,
-`actualizar(off, ahora)`, `render`, `tamano`, `proyectar`, `elegir`, `suelo`,
-`centrar`, `recentrar`, `anillosDe`, `aplicarColores`, `girar`, `retrato` y
-`camara`; Campaign añade `batalla`, `verCampo` y `terreno`. Tipos en `index.d.ts`.
+`estado` aporta selección, arrastre y dimensiones del mapa. Su getter
+`escena` abastece los métodos extra (`construir`, `anillosDe`, etc.) entre
+fotogramas y antes del primer dibujo. Durante `dibujar` siempre se usa la
+escena recibida por argumento. Sin `estado`, se usan `cols` y `rows` de las
+opciones y la última escena dibujada. `tema`/`calidad` se reservan para el
+contrato del plan; los colores actuales se siguen obteniendo de `leerVar`.
 
-La app inyecta `$`, colores (`leerVar`), funciones visuales y catálogos.
-War recibe `terreno` (API de CMGTerreno) y `terrenoEditor` (datos ya validados
-o null): la URL y el guardado se leen en `juego.js`. Campaign recibe `mapa`,
-`crearTerreno` de vista-2d y `reglas` (funciones y catálogos de Campaign).
-No importa otros paquetes; puede importar `protocolo` y `vfx`.
+El contenedor es el campo completo: `elegir`, `proyectar`, `suelo` y
+`redimensionar` obtienen ancho/alto de su `getBoundingClientRect()`, el mismo
+rectángulo usado anteriormente por la app. `canvas` es opcional; si falta,
+se busca el primer canvas del contenedor. `proyectar` admite e ignora el
+cuarto argumento `radioPlano` del contrato común (desplazamiento solo 2D).
 
-`THREE` sigue siendo global (r128 local) hasta la fase 4. DOM, canvas, tamaño
-de pantalla y reloj de animación siguen dentro de las vistas. Las rutas de
-modelo T1 y cargador glTF conservan su resolución relativa a la página.
-La composición importa la entrada pública. `cmg.factory3d` conserva para QA el mismo
-objeto `factory3d`; el puente y los globales `VISTA_3D`/`FACTORY_3D` se retiraron.
+Se conservan los métodos extra existentes: `construir`, `actualizar`,
+`render`, `tamano`, `suelo`, `centrar`, `recentrar`, `anillosDe`,
+`aplicarColores`, `girar`, `retrato` y `camara`. Campaign añade `batalla`,
+`verCampo` y `terreno`. `suelo` de la fachada ya no necesita ancho/alto;
+`tamano` y `girar` mantienen sus argumentos anteriores. `destruir` es
+idempotente: retira gestos/observadores y libera recursos de dibujo.
+`alSuceso` no hace nada todavía: los efectos actuales vienen en la escena;
+el consumo por `vfx` queda para la fase 4. Tipos comunes de `Vista` en
+`protocolo`, reexportados por este paquete y usados también por app y vista-2d.
 
-## Origen y pendientes
+Las dependencias conservan los nombres anteriores: `$`, `FUNCIONES`,
+`funcionDe`, `leerVar`, `radioDe` y los catálogos y funciones visuales de War.
+War recibe `terreno` (API de CMGTerreno) y `terrenoEditor` (datos validados o
+null); URL y guardado los lee la app. Campaign recibe `mapa`, `crearTerreno`
+y `reglas`. Detalle en `index.d.ts`. La app conserva `V3` para sus extras y
+usa `vistaActual()` para dibujo, elección y proyección.
 
-Traslado de `Prototypes/Rocket Launcher/js/vistas.js`, `js/factory-3d.js` y
-`js/campaign-3d.js`, retirados. Pendiente el contrato final `crearVista`,
-`dibujar(anterior, actual, fraccion)`, `redimensionar` y `destruir` del plan;
-los efectos por sucesos quedan para `vfx` (fase 4).
+Se conservan las entradas `crear3D(estado, deps)`,
+`crearCampaign3D(estado, deps)` y `factory3d` (incluido su gancho mutable
+`ultimo` para QA). Three r128 sigue siendo global y local al repositorio;
+las rutas del T1 y su cargador glTF conservan la resolución anterior.
 
 ## Pruebas
 
-`node paquetes/vista-3d/pruebas/vista-3d.mjs` (en `npm test`): exportaciones,
-IK, respaldo sin Three/WebGL, War con Three r128 real y renderizador falso,
-escena congelada en profundidad, cámara y geometrías inyectadas del editor.
-No prueba rasterizado. Para navegador: `pruebas/factory-3d.mjs`,
-`pruebas/vista-caliente.cjs` y comparaciones con `herramientas/capturas-vista.mjs`.
+- `node pruebas/vistas-contrato.mjs`: exportaciones y respaldo sin Three.
+- `node paquetes/vista-3d/pruebas/vista-3d.mjs`: Three real, GPU/DOM simulados,
+  escenas congeladas, fachada, extrapolación y marca de fotograma,
+  proyección/elección desde el contenedor y destrucción. No prueba rasterizado.
+- `pruebas/vista-caliente.cjs`, `pruebas/factory-3d.mjs` y
+  `herramientas/capturas-vista.mjs`: QA de navegador.

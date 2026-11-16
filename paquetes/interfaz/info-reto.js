@@ -405,7 +405,7 @@ export function instalarInfoReto(ctx) {
   }
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll("[data-vista]")).forEach(b => b.addEventListener("click", () => aplicarVista(b.dataset.vista)));
   ctx.$("b-centrar").addEventListener("click", () => ctx.V3 && ctx.V3.recentrar());
-  function tamanoCampo() { const r = ctx.$("campo").getBoundingClientRect(); if (ctx.V3 && r.width && r.height) ctx.V3.tamano(r.width, r.height); }
+  function tamanoCampo() { if (ctx.V3) ctx.V3.redimensionar(); }
   new ResizeObserver(tamanoCampo).observe(ctx.$("campo"));
 
   return {

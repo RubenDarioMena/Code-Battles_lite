@@ -1,3 +1,4 @@
+import { escucharEn } from './recursos.js';
 /* Posturas, proyección, selección y gestos del visor común, antes en js/vistas.js. */
 export function crearCamara3D(ctx) {
     const { estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil } = ctx;
@@ -54,7 +55,8 @@ export function crearCamara3D(ctx) {
       elegirCamara();
     }
     // Activar o salir de pantalla completa, o cambiar el ajuste, cambia de cámara sin cambiar de tamaño.
-    new MutationObserver(() => { if (cam) elegirCamara(); }).observe(app, { attributes: true, attributeFilter: ["data-pantalla-completa", "data-girar-campo"] });
+    const observador = new MutationObserver(() => { if (cam) elegirCamara(); });
+    observador.observe(app, { attributes: true, attributeFilter: ["data-pantalla-completa", "data-girar-campo"] });
     function render() {
       if (!cam) elegirCamara();
       colocarCamara();
@@ -91,14 +93,15 @@ export function crearCamara3D(ctx) {
     // El botón izquierdo y la selección táctil se manejan juntos en el campo.
     const canvas = $("c3d"), punteros = new Map();
     let gesto = null;
-    canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
-    canvas.addEventListener("pointerdown", (ev) => {
+    const oyentes = escucharEn(canvas), escuchar = oyentes.escuchar;
+    escuchar("contextmenu", (ev) => ev.preventDefault());
+    escuchar("pointerdown", (ev) => {
       if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return;
       canvas.setPointerCapture(ev.pointerId);
       punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
       gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false };
     });
-    canvas.addEventListener("pointermove", (ev) => {
+    escuchar("pointermove", (ev) => {
       const p = punteros.get(ev.pointerId); if (!p || !gesto) return;
       const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
       p.x = ev.clientX; p.y = ev.clientY;
@@ -131,9 +134,9 @@ export function crearCamara3D(ctx) {
         gesto = null;
       } else if (gesto) { gesto.dist0 = null; gesto.ang0 = null; }
     };
-    canvas.addEventListener("pointerup", soltar);
-    canvas.addEventListener("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
+    escuchar("pointerup", soltar);
+    escuchar("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
+    escuchar("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
     const limitar = () => { cam.x = Math.min(estado.cols + 4, Math.max(-4, cam.x)); cam.z = Math.min(estado.rows + 4, Math.max(-6, cam.z)); };
     function desplazar(dx, dy) {
       const k = cam.dist * .0022;
@@ -151,7 +154,7 @@ export function crearCamara3D(ctx) {
       const despues = suelo(px, py, w, h);
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
-    return { render, tamano, proyectar, elegir, suelo, centrar, recentrar, girar,
+    return { destruir() { oyentes.destruir(); observador.disconnect(); punteros.clear(); }, render, tamano, proyectar, elegir, suelo, centrar, recentrar, girar,
       altoPx: () => altoCampo,
       camara: () => { const factory = ctx.factory; return ({ clave: camActual && camActual.k, ...cam, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }); },
     };

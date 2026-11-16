@@ -11,7 +11,7 @@ export function instalarBucleJuego(ctx) {
     if (ctx.ejec && !ctx.pausa) { ctx.vigia(now); if (!ctx.algunoCorre()) ctx.acum += real * ctx.velocidad * ctx.turbo; ctx.avanzar(); }
     else if (!ctx.ejec) ctx.acum = 0;
     const off = ctx.ejec && !ctx.pausa && !ctx.algunoCorre() ? Math.min(ctx.acum, ctx.DT) : 0;
-    if (ctx.vista === "3d" && ctx.V3) { ctx.V3.actualizar(off, now); ctx.V3.render(); } else ctx.dibujar2D(off, now);
+    ctx.vistaActual().dibujar(null, ctx.estadoVista.escena, off / ctx.DT, now);
     ctx.pintarCapa(off, now);
     ctx.caducarAvisos(now);
     ctx.pintarHud();

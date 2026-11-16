@@ -13,7 +13,10 @@ están en `index.d.ts`; no requiere compilación.
 - `validarOrden(o)`, `validarSuceso(s)`, `validarInstantanea(i)`: devuelven
   cadenas de error en español con la ruta del campo. Un arreglo vacío indica
   validez. No modifican los mensajes.
-- Tipos: `Origen`, `DatoPlano`, `Orden`, `Suceso`, `Instantanea`.
+- Tipos: `Origen`, `DatoPlano`, `Orden`, `Suceso`, `Instantanea`, `Vista`.
+  `Vista` (fase 2, paso 12) es el contrato común de dibujo, sucesos, elección,
+  proyección, tamaño y destrucción; admite escenas visibles además de instantáneas.
+  Es solo un tipo, sin dependencia de DOM ni cambio de los mensajes.
 - `canonico(valor)` (fase 2): JSON canónico con claves ordenadas, arreglos en
   orden y números sin redondear. Base de las huellas de partida (antes en
   `herramientas/partida/huella.mjs`, que ahora la reexporta). Es autocontenida:

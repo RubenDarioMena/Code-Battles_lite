@@ -54,7 +54,7 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
   const vistaFalsa = () => {
     if (sin3d) return null;
     return { construir: noop, anillosDe: noop, aplicarColores: noop, tamano: noop,
-      batalla: noop, actualizar: noop, render: noop, camara: () => ({ dist: 60 }) };
+      batalla: noop, actualizar: noop, render: noop, dibujar: noop, redimensionar: noop, camara: () => ({ dist: 60 }) };
   };
   const ventana = new Elemento();
   const ctx = vm.createContext({ console, document: documento, location: url, URL, URLSearchParams,
@@ -102,7 +102,10 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
       let valores = await import(url.href);
       if (/\/vista-[23]d\/index.js$/.test(url.pathname)) {
         valores = Object.fromEntries(Object.keys(valores).map(n => [n,
-          n.startsWith('crearPlano') ? (estado) => { estadoVistas = estado; return noop; } : vistaFalsa]));
+          n === 'crearVista' ? (_contenedor, opciones) => {
+            estadoVistas = opciones.estado;
+            return url.pathname.includes('/vista-2d/') ? { dibujar: noop } : vistaFalsa();
+          } : n.startsWith('crearPlano') ? (estado) => { estadoVistas = estado; return noop; } : vistaFalsa]));
       } else if (url.pathname.endsWith('/editor/index.js')) {
         valores = { ...valores, CMGTips: { crear: noop }, CMGEditor: { ...valores.CMGEditor, crear() {
           const fachada = Object.fromEntries(['insertar', 'envolver', 'alternarComentario', 'medirEditor',

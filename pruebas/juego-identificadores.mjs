@@ -7,14 +7,14 @@ import ts from 'typescript';
 
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const entrada = raiz + 'Prototypes/Rocket Launcher/js/juego.js';
-const archivos = [entrada, raiz + 'paquetes/app/juego/entorno.d.ts',
-  ...['paquetes/app/juego/', 'paquetes/interfaz/'].flatMap(dir =>
+const archivos = [entrada, raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js',
+  ...['paquetes/app/juego/', 'paquetes/interfaz/', 'paquetes/vista-2d/', 'paquetes/vista-3d/'].flatMap(dir =>
     readdirSync(raiz + dir).filter(f => f.endsWith('.js')).map(f => raiz + dir + f))];
 const opciones = { allowJs: true, checkJs: true, noEmit: true, strict: false,
   target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext,
   moduleResolution: ts.ModuleResolutionKind.NodeNext, types: ['node'] };
 const codigos = new Set([2304, 2552, 18004, 2339, 2448, 2454]);
-const globalesConocidos = new Set(`Array Blob Boolean CustomEvent Date Error Event JSON Map Math
+const globalesConocidos = new Set(`Array Blob Boolean Infinity CustomEvent Date Error Event Float32Array JSON Map Math
   MutationObserver Node Number Object Promise Proxy ResizeObserver Set String URL URLSearchParams
   Uint8Array Worker addEventListener cancelAnimationFrame clearTimeout console crypto document fetch
   getComputedStyle history innerHeight innerWidth localStorage location matchMedia navigator parseFloat

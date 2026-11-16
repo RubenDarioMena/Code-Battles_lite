@@ -2,13 +2,9 @@ import type { Instantanea, Orden, Suceso } from '../protocolo/index.js';
 import type { Reglamento, Partida } from '../nucleo/index.js';
 import type { Anfitrion, Turno } from '../anfitrion/index.js';
 
-export interface Vista {
-  dibujar(anterior: Instantanea, actual: Instantanea, fraccion: number): void;
-  alSuceso(suceso: Suceso): void;
-  elegir(x: number, y: number): string | null;
-  redimensionar(): void;
-  destruir(): void;
-}
+import type { Vista } from '../protocolo/index.js';
+export type { Vista } from '../protocolo/index.js';
+
 export interface VistaNula extends Vista {
   resumen(): { fotogramas: number; sucesos: number; t: number | null };
 }

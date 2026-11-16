@@ -2,7 +2,7 @@
 import { dibujarFactory } from './factory.js';
 
 export function crearPlano(estado, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 }) {
-function dibujar2D(off) {
+function dibujar2D(off, _ahora = undefined) {
   const dpr = window.devicePixelRatio || 1, W = $c2d.clientWidth, H = $c2d.clientHeight;
   if (!W || !H) return;
   if ($c2d.width !== Math.round(W * dpr) || $c2d.height !== Math.round(H * dpr)) { $c2d.width = Math.round(W * dpr); $c2d.height = Math.round(H * dpr); }

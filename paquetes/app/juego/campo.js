@@ -13,18 +13,16 @@ export function instalarCampoJuego(ctx) {
   const unidadPorId = (id) => ctx.mundo.porId[id] || ctx.mundo.enemigos.find(e => e.id === id);
   function puntoPantalla(e) {
     const r = $campo.getBoundingClientRect();
-    const p = ctx.vista === "3d" && ctx.V3
-      ? ctx.V3.proyectar(e.cx ?? e.x, e.z || 0, e.cy ?? e.y, r.width, r.height)
-      : ctx.proyectar2D(e.cx ?? e.x, e.cy ?? e.y);
+    const p = ctx.vistaActual().proyectar(e.cx ?? e.x, e.z || 0, e.cy ?? e.y);
     return { x: p.x + r.left, y: p.y + r.top, visible: p.visible && p.x >= 0 && p.x <= r.width && p.y >= 0 && p.y <= r.height };
   }
   function unidadEn(cx, cy) {
     const r = $campo.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
-    return ctx.vista === "3d" && ctx.V3 ? ctx.V3.elegir(x, y, r.width, r.height) : ctx.elegir2D(x, y);
+    return ctx.vistaActual().elegir(x, y);
   }
   function coordenadasEn(cx, cy) {
     const r = $campo.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
-    const p = ctx.vista === "3d" && ctx.V3 ? ctx.V3.suelo(x, y, r.width, r.height) : { x: (x - ctx.geo2.ox) / ctx.geo2.T, y: (y - ctx.geo2.oy) / ctx.geo2.T, z: 0 };
+    const p = ctx.vistaActual().suelo(x, y);
     return p && p.x >= 0 && p.x <= ctx.COLS && p.y >= 0 && p.y <= ctx.ROWS ? { x: ctx.r2(p.x), y: ctx.r2(p.y), z: 0 } : null;
   }
   document.addEventListener("focusin", (ev) => {

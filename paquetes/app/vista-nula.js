@@ -11,6 +11,7 @@ export function crearVistaNula() {
     },
     alSuceso() { sucesos++; },
     elegir() { return null; },
+    proyectar() { return { x: 0, y: 0, visible: false }; },
     redimensionar() {},
     destruir() { viva = false; },
     resumen() { return { fotogramas, sucesos, t: ultima ? ultima.t : null }; },

@@ -1,3 +1,4 @@
+import { escucharEn, liberarEscena } from './recursos.js';
 /* Campaign · vista 3D: diorama low-poly del mapa (fábrica, muralla y campo de batalla) y sus unidades.
  * Mismo contrato que el visor común (war.js): construir, actualizar, render, proyectar, elegir, suelo…
  * Dos pieles: paisaje y batalla (sin texturas de escenario, con la cuadrícula de War). Solo dibujo: nunca cambia el mundo. */
@@ -435,14 +436,15 @@ export function crearCampaign3D(estado, { $, FUNCIONES, funcionDe, leerVar, radi
     function verCampo() { Object.assign(cam, { yaw: 0, pitch: .95, dist: camara.aspect < 1.25 ? 150 : 105, x: 138, z: 58 }); moverCamara(); }
     const canvas = $("c3d"), punteros = new Map();
     let gesto = null;
-    canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
-    canvas.addEventListener("pointerdown", (ev) => {
+    const oyentes = escucharEn(canvas), escuchar = oyentes.escuchar;
+    escuchar("contextmenu", (ev) => ev.preventDefault());
+    escuchar("pointerdown", (ev) => {
       if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return;
       canvas.setPointerCapture(ev.pointerId);
       punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
       gesto = { desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false };
     });
-    canvas.addEventListener("pointermove", (ev) => {
+    escuchar("pointermove", (ev) => {
       const p = punteros.get(ev.pointerId); if (!p || !gesto) return;
       const dx = ev.clientX - p.x, dy = ev.clientY - p.y; p.x = ev.clientX; p.y = ev.clientY;
       if (dx || dy) moverCamara();
@@ -460,9 +462,9 @@ export function crearCampaign3D(estado, { $, FUNCIONES, funcionDe, leerVar, radi
       else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(.3, cam.pitch + dy * .005)); }
     });
     const soltar = (ev) => { punteros.delete(ev.pointerId); if (gesto && punteros.size === 0) gesto = null; else if (gesto) { gesto.dist0 = null; gesto.ang0 = null; } };
-    canvas.addEventListener("pointerup", soltar);
-    canvas.addEventListener("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    canvas.addEventListener("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
+    escuchar("pointerup", soltar);
+    escuchar("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
+    escuchar("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
     const limitar = () => { cam.x = Math.min(T.cols + 6, Math.max(-6, cam.x)); cam.z = Math.min(T.rows + 6, Math.max(-6, cam.z)); };
     function desplazar(dx, dy) {
       const k = cam.dist * .0022, sx = Math.cos(cam.yaw), sz = -Math.sin(cam.yaw);
@@ -474,6 +476,6 @@ export function crearCampaign3D(estado, { $, FUNCIONES, funcionDe, leerVar, radi
       colocarCamara(); const despues = suelo(px, py, w, h);
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato: () => null, batalla, verCampo,
+    return { destruir() { oyentes.destruir(); punteros.clear(); liberarEscena(escena, renderer, Object.values(M)); }, construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato: () => null, batalla, verCampo,
       camara: () => ({ clave: camActual && camActual.k, ...cam, piel }), terreno: T };
   }

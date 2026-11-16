@@ -1,3 +1,4 @@
+import { liberarEscena } from './recursos.js';
 /* Visor 3D común de War y Factory, antes en js/vistas.js. Solo lee estado.escena. */
 import { factory3d } from './factory.js';
 import { crearCamara3D } from './camara.js';
@@ -375,5 +376,6 @@ export function crear3D(estado, { $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTE
 
 
       const { altoPx, ...controles } = crearCamara3D({ estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil, get factory() { return factory; } });
-    return { construir, actualizar, ...controles, anillosDe, aplicarColores, retrato };
+    return { construir, actualizar, ...controles,
+      destruir() { controles.destruir(); liberarEscena(escena, renderer, [...Object.values(G), ...Object.values(M), ...Object.values(D), ...Object.values(tex)]); }, anillosDe, aplicarColores, retrato };
 }

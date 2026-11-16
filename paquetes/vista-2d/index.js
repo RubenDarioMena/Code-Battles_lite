@@ -3,3 +3,4 @@ export { crearPlano } from './war.js';
 export { dibujarFactory } from './factory.js';
 export { crearPlanoCampaign } from './campaign.js';
 export { crearTerreno } from './campaign-terreno.js';
+export { crearVista } from './vista.js';

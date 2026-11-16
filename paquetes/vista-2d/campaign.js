@@ -30,25 +30,30 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
   const limitar = () => { const min = Math.min(w / T.cols, h / T.rows) * .9; vista.T = Math.min(60, Math.max(min, vista.T)); vista.cx = Math.min(T.cols, Math.max(0, vista.cx)); vista.cy = Math.min(T.rows, Math.max(0, vista.cy)); };
   // Gestos: rueda o pellizco acercan; botón derecho, central o un dedo desplazan. El izquierdo selecciona (campo común).
   const punteros = new Map(); let dist0 = null;
-  $c2d.addEventListener("contextmenu", ev => ev.preventDefault());
-  $c2d.addEventListener("wheel", ev => {
+  const oyentes = [];
+  function escuchar(tipo, fn, opciones = undefined) {
+    $c2d.addEventListener(tipo, fn, opciones);
+    oyentes.push(() => $c2d.removeEventListener(tipo, fn, opciones));
+  }
+  escuchar("contextmenu", ev => ev.preventDefault());
+  escuchar("wheel", ev => {
     if (!vista) return; ev.preventDefault();
     const r = $c2d.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top, antes = aMundo(mx, my);
     vista.T *= Math.exp(-ev.deltaY * .0012); limitar();
     const des = aMundo(mx, my); vista.cx += antes.x - des.x; vista.cy += antes.y - des.y; limitar();
   }, { passive: false });
-  $c2d.addEventListener("pointerdown", ev => { if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return; $c2d.setPointerCapture(ev.pointerId); punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY }); });
-  $c2d.addEventListener("pointermove", ev => {
+  escuchar("pointerdown", ev => { if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return; $c2d.setPointerCapture(ev.pointerId); punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY }); });
+  escuchar("pointermove", ev => {
     const p = punteros.get(ev.pointerId); if (!p || !vista) return;
     const dx = ev.clientX - p.x, dy = ev.clientY - p.y; p.x = ev.clientX; p.y = ev.clientY;
     if (punteros.size >= 2) { const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y); if (dist0) vista.T *= d / dist0; dist0 = d; }
     else if (ev.pointerType === "touch" && estado.arrastreCampo && estado.arrastreCampo.cajaTactil) return;
     vista.cx -= dx / vista.T / (punteros.size >= 2 ? 2 : 1); vista.cy -= dy / vista.T / (punteros.size >= 2 ? 2 : 1); limitar();
   });
-  for (const k of ["pointerup", "pointercancel"]) $c2d.addEventListener(k, ev => { punteros.delete(ev.pointerId); dist0 = null; });
+  for (const k of ["pointerup", "pointercancel"]) escuchar(k, ev => { punteros.delete(ev.pointerId); dist0 = null; });
   const aMundo = (px, py) => ({ x: vista.cx + (px - w / 2) / vista.T, y: vista.cy + (py - h / 2) / vista.T });
 
-  function dibujar() {
+  function dibujar(_off = 0, _ahora = undefined) {
     const m = estado.escena; if (!m) return;
     const r = $c2d.getBoundingClientRect(); if (!r.width || !r.height) return;
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -125,5 +130,6 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
     for (const id of estado.seleccionadas) { const e = m.porId[id]; if (!e || !e.presente) continue; g.strokeStyle = col.sel; g.lineWidth = 2; g.beginPath(); g.arc(X(e.cx), Y(e.cy), radioDe(e) * S, 0, 7); g.stroke(); }
   }
   dibujar.recentrar = () => { vista = null; };
+  dibujar.destruir = () => { oyentes.forEach(quitar => quitar()); punteros.clear(); fondo = fondoBatalla = null; };
   return dibujar;
 }

@@ -29,3 +29,15 @@ export function validarOrden(o: unknown): string[];
 export function validarSuceso(s: unknown): string[];
 export function validarInstantanea(i: unknown): string[];
 export function canonico(valor: unknown): string;
+
+/** Contrato de dibujo: admite instantáneas o escenas visibles del reglamento. */
+export interface Vista {
+  /** Extrapola actual fraccion × dt; anterior puede ser null. ahora es la marca opcional del fotograma en ms. */
+  dibujar(anterior: Readonly<Record<string, any>> | null, actual: Readonly<Record<string, any>>, fraccion: number, ahora?: number): void;
+  alSuceso(suceso: Suceso): void;
+  elegir(x: number, y: number): string | null;
+  /** radioPlano desplaza solo la etiqueta 2D hacia arriba, en unidades del mundo. */
+  proyectar(x: number, alto: number, y: number, radioPlano?: number): { x: number; y: number; visible: boolean };
+  redimensionar(): void;
+  destruir(): void;
+}

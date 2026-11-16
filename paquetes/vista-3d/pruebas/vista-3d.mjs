@@ -9,7 +9,7 @@ const ok = (v, m) => { assert.ok(v, m); comprobaciones++; };
 const igual = (a, b, m) => { assert.deepEqual(a, b, m); comprobaciones++; };
 const congelar = o => { if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); Object.values(o).forEach(congelar); } return o; };
 const { crear3D, crearCampaign3D, factory3d } = vistas;
-igual(Object.keys(vistas).sort(), ['crear3D', 'crearCampaign3D', 'factory3d'].sort(), 'entrada pública');
+igual(Object.keys(vistas).sort(), ['crearVista', 'crear3D', 'crearCampaign3D', 'factory3d'].sort(), 'entrada pública');
 for (const f of [crear3D, crearCampaign3D, ...['construir', 'actualizar', 'cargar', 'ik'].map(k => factory3d[k])]) ok(typeof f === 'function', 'exporta funciones');
 igual(factory3d.ultimo, null, 'gancho mutable de Factory inicialmente vacío');
 factory3d.ultimo = { prueba: true };
@@ -30,19 +30,20 @@ const THREE = contexto.THREE;
 igual(THREE.REVISION, '128', 'usa el Three local del juego');
 let escenaDibujada = null;
 class Renderizador {
+  dispose() { this.destruido = true; }
   setPixelRatio() {}
   setSize() {}
-  render(escena) { escenaDibujada = escena; }
+  render(escena) { escena.updateMatrixWorld(); escenaDibujada = escena; }
 }
 THREE.WebGLRenderer = Renderizador;
 const ctx2 = { createRadialGradient: () => ({ addColorStop() {} }), fillRect() {}, beginPath() {}, moveTo() {}, arc() {}, closePath() {}, fill() {} };
 const eventos = new Map();
-const canvas = { getContext: () => ctx2, addEventListener: (k, f) => eventos.set(k, f), setPointerCapture() {} };
+const canvas = { getContext: () => ctx2, addEventListener: (k, f) => eventos.set(k, f), removeEventListener: (k, f) => { if (eventos.get(k) === f) eventos.delete(k); }, setPointerCapture() {} };
 const app = { dataset: {} };
 Object.assign(globalThis, {
   THREE, window: { devicePixelRatio: 1 },
   document: { createElement: () => ({ getContext: () => ctx2 }) },
-  MutationObserver: class { observe() {} }, innerWidth: 1280, innerHeight: 720,
+  MutationObserver: class { observe() {} disconnect() {} }, innerWidth: 1280, innerHeight: 720,
 });
 igual(crearCampaign3D({}, {}), null, 'Campaign devuelve null si no se inyecta crearTerreno');
 
@@ -103,6 +104,29 @@ editor.construir(); editor.actualizar(0, 0); editor.render();
 igual(llamadas, ['suelo', 'agua', 'bloque'], 'usa las tres geometrías inyectadas');
 ok(escenaDibujada.getObjectByName('Terreno del editor'), 'añade el terreno del editor');
 igual(JSON.stringify(escena), antes, 'el paisaje del editor tampoco escribe en la escena');
+
+// Fachada crearVista: el mismo motor, tamaño del campo y extrapolación, sin WebGL.
+let rectangulos = 0;
+const contenedor = { getBoundingClientRect() { rectangulos++; return { width: 1280, height: 720 }; } };
+const comun = vistas.crearVista(contenedor, { ...deps, estado, canvas, serie: 'war', dt: .05 });
+comun.construir(); comun.redimensionar();
+const reparando = congelar({ ...escena, reparadores: [{ ...reparador, estado: 'reparar' }] });
+for (const fraccion of [0, 1]) {
+  comun.dibujar(null, reparando, fraccion, 160);
+  let drone, reparador;
+  escenaDibujada.traverse(o => { if (o.userData.id === 'D1') drone = o; if (o.userData.id === 'REP-01') reparador = o; });
+  igual(drone.position.x, 14 - 2 * fraccion * .05, 'render ve actualizar(off) antes de dibujar');
+  igual(reparador.rotation.y, 1, 'el cuarto argumento ahora llega sin alterarse al motor');
+}
+igual(comun.proyectar(4, 0, 5), vista.proyectar(4, 0, 5, 1280, 720), 'proyección mide el mismo rectángulo del campo');
+const punto = comun.proyectar(deposito.cx, 0, deposito.cy);
+igual(comun.elegir(punto.x, punto.y), deposito.id, 'elección 3D sin ancho/alto externos');
+const suelo = comun.suelo(punto.x, punto.y);
+ok(Math.abs(suelo.x - deposito.cx) < 1e-6 && Math.abs(suelo.y - deposito.cy) < 1e-6, 'coordenadas del suelo desde el contenedor');
+ok(rectangulos >= 4, 'tamaño, proyección y selección miden el contenedor');
+comun.alSuceso({ paso: 0, tipo: 'disparo' });
+comun.destruir(); comun.destruir();
+igual(eventos.size, 0, 'destruir retira los gestos de la fachada');
 
 THREE.WebGLRenderer = class { constructor() { throw new Error('sin WebGL'); } };
 igual(crear3D(estado, deps), null, 'War conserva el respaldo si falla WebGL');
