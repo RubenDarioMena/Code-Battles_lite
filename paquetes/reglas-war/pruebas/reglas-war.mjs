@@ -70,8 +70,14 @@ for (const conOrdenes of [false, true]) {
   if (!conOrdenes) {
     igual(primera.partida.evaluar().fin, 'fallo');
     igual(primera.partida.evaluar().motivo, 'brecha');
-    for (const tipo of ['aparece', 'brecha', 'fin'])
+    for (const tipo of ['aparece', 'brecha', 'registro', 'aviso', 'fin'])
       comprobar(primera.sucesos.some(suceso => suceso.tipo === tipo), `hay ${tipo}`);
+    const brecha = primera.sucesos.find(s => s.tipo === 'brecha');
+    const nombre = `${legado.TIPOS[brecha.datos.tipo].nombre} ${brecha.unidad}`;
+    igual(primera.sucesos.find(s => s.tipo === 'registro').datos,
+      { maquina: '—', linea: null, que: nombre, resultado: 'brecha', clase: 'bad' }, 'registro con los datos exactos del hook');
+    igual(primera.sucesos.find(s => s.tipo === 'aviso').datos,
+      { texto: `Brecha: ${nombre} cruzó la línea de la base.` }, 'aviso con el texto exacto del hook');
   } else {
     for (const tipo of ['disparo', 'explosion', 'golpe', 'derribo'])
       comprobar(primera.sucesos.some(suceso => suceso.tipo === tipo), `hay ${tipo}`);
@@ -141,6 +147,10 @@ conRegistro.def.suministro = 0;
 conexiones[0].paso(1);
 comprobar(conRegistro.sucesos.desde(0).some(suceso => suceso.tipo === 'sin-misiles'), 'hay sin-misiles');
 verificarSucesos({ mundo: conRegistro, sucesos: () => conRegistro.sucesos.desde(0) });
+igual(conRegistro.sucesos.desde(0).filter(s => ['registro', 'aviso', 'globo'].includes(s.tipo)).map(s =>
+  s.tipo === 'registro' ? ['registrar', s.datos.maquina, s.datos.linea, s.datos.que, s.datos.resultado, s.datos.clase]
+    : s.tipo === 'globo' ? ['globo', s.unidad, s.datos.nivel, s.datos.texto] : ['avisoSistema', s.datos.texto]),
+llamadas[0].filter(([nombre]) => nombre !== 'terminar'), 'sucesos de presentación conservan los datos y el orden de todos los hooks');
 
 
 // Escena (fase 2): lo que dibujan las vistas. Datos planos, mismos valores que el mundo e independiente de él.

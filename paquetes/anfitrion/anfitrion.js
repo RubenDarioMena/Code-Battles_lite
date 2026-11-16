@@ -5,6 +5,7 @@ import { pasoDe } from '../nucleo/index.js';
 import { fuenteTrabajador } from './trabajador.js';
 import { crearControlFactory } from './factory.js';
 import { crearControlCampaign } from './campaign.js';
+import { crearControlWar } from './war.js';
 import { despertarCampaign } from './despertar.js';
 
 const MAX_ORDENES = 4000;
@@ -19,6 +20,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
   const api = reglas.api || {};
   const factory = reglas.id === 'factory' ? crearControlFactory() : null;
   const campaign = reglas.id === 'campaign' ? crearControlCampaign() : null;
+  const war = reglas.id === 'war' ? crearControlWar() : null;
   const ctx = {
     nombres: contexto.nombres ?? [],
     tipos: contexto.tipos ?? Object.keys(api.tipos || {}),
@@ -69,6 +71,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
     entregarRespuestas(respuestas);
     const t = instantanea.t, paso = pasoDe(t);
     tActual = t;
+    war?.observar(instantanea);
     if (despertar) for (const p of progs.values()) {
       p.t = t;
       if (p.estado === 'nuevo') {
@@ -92,7 +95,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
     for (const { unidad, mensaje: m } of lote) {
       if (factory) factory.registrar(progs.get(unidad), m, paso, t, ordenes);
       else if (campaign) campaign.registrar(progs.get(unidad), m, paso, t, ordenes);
-      else if (m.type === 'cmd') ordenes.push({ paso, origen: 'programa', unidad, verbo: m.verbo, args: [m.lugar ?? null] });
+      else war.registrar(progs.get(unidad), m, paso, t, ordenes);
       avisos.push({ unidad, ...m });
     }
     return { ordenes, avisos, error };
@@ -100,7 +103,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
 
   async function esperarTurno() {
     for (;;) {
-      if (error || !corre()) return;
+      if (!vivo || error || !corre()) return;
       let entregado = false;
       for (const p of progs.values()) if (p.worker.entregar?.()) entregado = true;
       if (entregado) continue;
@@ -127,7 +130,16 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
     },
     ceder(instantanea, respuestas = []) { return turno(instantanea, respuestas, true); },
     responder(respuestas) { return turno(respuestas.at(-1)?.instantanea ?? { t: tActual }, respuestas, false); },
-    registro() { return campaign?.registro() ?? factory?.registro() ?? { eventos: [], verbos: {}, resultados: {}, consolas: { log: 0, info: 0, warn: 0, error: 0 } }; },
+    registro({ desde = 0 } = {}) { return (campaign ?? factory ?? war).registro(desde); },
+    vigilar(ahora, ms, mensaje) {
+      if (!vivo || error) return null;
+      for (const p of progs.values()) if (p.estado === 'corre' && ahora - p.desde >= ms) {
+        fallar(p, mensaje(p.id), null);
+        alCambiar?.();
+        return p.id;
+      }
+      return null;
+    },
     algunoCorre: corre,
     estado(unidad) { return progs.get(unidad)?.estado ?? null; },
     proximaEspera() {

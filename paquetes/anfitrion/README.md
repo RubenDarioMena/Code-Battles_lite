@@ -1,6 +1,7 @@
 # anfitrion
 
-Estado: fase 2, pasos 1–2, 7a y 7b (`crearAnfitrion` para War, Factory y Campaign).
+Estado: fase 2, paso 8a (`crearAnfitrion` para War, Factory y Campaign,
+registro incremental y vigía).
 
 Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
 Hoy, un Web Worker por unidad programable; en la fase 5, un intérprete con
@@ -64,6 +65,28 @@ Quién lo usa:
   (`error` u `onerror`) para la cesión y se devuelve en `error`. Una imitación
   sin nada que entregar devuelve `error.motivo = 'sin-cesion'`.
 - `algunoCorre()`, `estado(unidad)`, `proximaEspera()` y `detener()`.
+- `vigilar(ahora, ms, mensaje)` examina los programas en estado `corre`. Si
+  alguno lleva `ms` o más desde `p.desde` (marcado con el reloj `ahora` inyectado
+  al crear el anfitrión), falla con `mensaje(unidad)`, despierta el turno pendiente
+  como `onerror` y devuelve esa unidad. En otro caso devuelve `null`. No consulta
+  un reloj propio, no vigila esperas ni sustituye un error anterior. La aplicación
+  decide el umbral y el texto del diagnóstico. Detener también libera al turno pendiente.
+
+War guarda fuera del mundo `{ eventos, uso, consolas, lecturas }`. Registra las
+lecturas (`fmtValor`, clase `sensor`), órdenes (`verbo(lugar)` o `stopFire()`,
+resultado y clase `ok`/`warn`) y consola con los formatos exactos del juego:
+`console.nivel` en JS y `print`/nivel en Python. El uso cuenta `fn`, `verbo` y
+`esperar` por programa. `lecturas` cuenta por sensor de vibración identificado
+en `instantanea.vib`, incluidos los sensores sin uso con valor cero; las lecturas
+de lanzadores no incrementan ese contador. No escribe `sensor.st.lecturas`,
+`mundo.uso`, `mundo.consolas` ni `mundo.eventos`.
+
+Para las tres series, `registro({ desde = 0 } = {})` devuelve una copia profunda
+de los eventos a partir de ese índice absoluto y todos los contadores acumulados.
+Sin argumento conserva la lista completa. El consumidor incrementa su cursor
+por la cantidad de eventos recibidos. En Campaign, los modos conservan su índice
+y se completan al recibir la respuesta: hay que leer tras resolverla para obtener
+el resultado final de ese evento; el cursor no vuelve a entregar eventos previos.
 
 Factory conserva sus encargos por programa: un encargo cede el turno sin
 contar como «corre», y `done` espera a su encargo antes de quedar en «fin».
@@ -123,7 +146,11 @@ Registrada en `pruebas/todas.mjs`. Ejecuta el texto del Worker en `node:vm`
 inyectada de Factory), comprueba `despertar`/`despertarCampaign` con programas
 falsos y `crearAnfitrion` con Workers asíncronos falsos cuyos mensajes llegan en
 distinto orden (mismo resultado), MAX_ORDENES, errores y `sin-cesion`.
-`pruebas/fronteras-fase2.mjs` lo usa con la imitación real de Worker. La paridad con el juego la dan `partida-referencias` (41 partidas) y el
+`pruebas/fronteras-fase2.mjs` lo usa con la imitación real de Worker y compara
+el registro combinado de War con el ciclo antiguo (10/10, orden y contadores).
+La suite propia cubre formatos JS/Python, cursor/copia en las tres series,
+umbral del vigía, reloj inyectado, reinicio al despertar y liberación del turno.
+La paridad con el juego la dan `partida-referencias` (41 partidas) y el
 contraste con Chromium.
 `pruebas/fronteras-factory.mjs` juega las 28 referencias Factory por el camino
 nuevo: huella, pasos, resultado completo y repetición exacta coinciden 28/28.

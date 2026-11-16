@@ -45,6 +45,6 @@ export function crearControlFactory() {
       p.estado = p.acabado ? 'fin' : 'corre'; p.desde = ahora();
       p.worker.postMessage({ type: 'despierta', id: orden.id, resultado, snap: instantanea });
     },
-    registro() { return structuredClone(registro); },
+    registro(desde = 0) { return structuredClone({ ...registro, eventos: registro.eventos.slice(desde) }); },
   };
 }

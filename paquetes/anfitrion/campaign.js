@@ -55,6 +55,6 @@ export function crearControlCampaign() {
       p.t = r.instantanea.t; p.estado = 'corre'; p.desde = ahora(); p.mensajes = 0;
       p.worker.postMessage({ type: 'despierta', id, resultado: r.resultado, snap: r.instantanea });
     },
-    registro() { return structuredClone(registro); },
+    registro(desde = 0) { return structuredClone({ ...registro, eventos: registro.eventos.slice(desde) }); },
   };
 }

@@ -44,8 +44,10 @@ export interface Anfitrion {
   cargar(unidad: string, codigo: string, opciones?: { lenguaje?: 'js' | 'python' }): Promise<void>;
   ceder(instantanea: { t: number; [clave: string]: unknown }, respuestas?: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
   responder(respuestas: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
-  registro(): { eventos: any[]; verbos?: Record<string, number>; resultados?: Record<string, number>;
-    uso?: Record<string, Record<string, number>>; consolas: Record<string, number> };
+  /** Índice absoluto de eventos; los contadores siempre son acumulados. Devuelve una copia. */
+  registro(opciones?: { desde?: number }): { eventos: any[]; verbos?: Record<string, number>; resultados?: Record<string, number>;
+    uso?: Record<string, Record<string, number>>; consolas: Record<string, number>; lecturas?: Record<string, number> };
+  vigilar(ahora: number, ms: number, mensaje: (unidad: string) => string): string | null;
   algunoCorre(): boolean;
   estado(unidad: string): string | null;
   proximaEspera(): number | null;

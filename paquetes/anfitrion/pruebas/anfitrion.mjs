@@ -263,4 +263,83 @@ for (const tipo of ['encargo', 'sensor', 'consola']) {
   a.detener();
 }
 
+// War: formatos del juego, contadores por programa y sensores de la instantánea.
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear });
+  await a.cargar('A', 'x'); await a.cargar('B', 'x', { lenguaje: 'python' });
+  f.creados.get('A').guion.push([
+    { type: 'lee', linea: 1, maquina: 'A', fn: 'autoTarget', que: 'autoTarget()', valor: { x: 1.234, y: -2.345, id: 'D1' } },
+    { type: 'lee', linea: 2, maquina: 'VIB-01', fn: 'detect', que: 'VIB_01.detect()', valor: null },
+    { type: 'lee', linea: 3, maquina: 'VIB-01', fn: 'detect', que: 'VIB_01.detect()', valor: 7 },
+    { ...cmd('regularShoot', 1.236), res: 'sin_objetivo' },
+    { type: 'cmd', verbo: 'stopFire', res: 'ok' },
+    { type: 'consola', nivel: 'info', texto: 'hola' },
+    { type: 'espera', s: 1, id: 1 },
+  ]);
+  f.creados.get('B').guion.push([...['log', 'info', 'warn', 'error'].map(nivel => ({ type: 'consola', nivel, texto: nivel })), { type: 'done' }]);
+  const t = a.ceder({ t: 0.125, vib: { 'VIB-01': {}, 'VIB-02': {} } }); await f.soltar(); await t;
+  const r = a.registro();
+  igual(r.eventos.slice(0, 3).map(e => [e.resultado, e.clase]),
+    [['{x: 1.23, y: -2.35, z: 0, id: "D1"}', 'sensor'], ['null', 'sensor'], ['7', 'sensor']], 'fmtValor exacto');
+  igual(r.eventos.slice(3, 6).map(e => [e.que, e.resultado, e.clase, e.linea]),
+    [['regularShoot({x: 1.24, y: 1, z: 0})', 'sin_objetivo', 'warn', 1], ['stopFire()', 'ok', 'ok', ''],
+      ['console.info', 'hola', 'sensor', '']], 'órdenes y consola JS');
+  igual(r.eventos.slice(6).map(e => [e.que, e.clase]),
+    [['print', 'sensor'], ['info', 'sensor'], ['warn', 'warn'], ['error', 'bad']], 'consola Python');
+  ok(r.eventos.every(e => e.t === 0.13), 'tiempo redondeado como el juego');
+  igual(r.uso, { A: { autoTarget: 1, detect: 2, regularShoot: 1, stopFire: 1, esperar: 1 } }, 'uso por programa');
+  igual(r.lecturas, { 'VIB-01': 2, 'VIB-02': 0 }, 'solo cuentan lecturas de sensores, incluidos los no usados');
+  igual(r.consolas, { log: 1, info: 2, warn: 1, error: 1 }, 'consolas de ambos lenguajes');
+  igual(a.registro({ desde: 3 }), { ...r, eventos: r.eventos.slice(3) }, 'registro incremental con todos los contadores');
+  igual(a.registro({ desde: r.eventos.length }).eventos, [], 'cursor al final');
+  const copia = a.registro({ desde: 3 }); copia.eventos[0].que = 'otro'; copia.uso.A.detect = 99; copia.lecturas['VIB-01'] = 99;
+  igual(a.registro(), r, 'el registro incremental es una copia profunda');
+  a.detener();
+}
+
+// Registro incremental también en Factory y Campaign, con contadores acumulados.
+for (const id of ['factory', 'campaign']) {
+  const f = falsos(), a = crearAnfitrion({ reglas: { id }, crearTrabajador: f.crear });
+  await a.cargar('A', 'x');
+  f.creados.get('A').guion.push(['log', 'warn'].map(nivel => ({ type: 'consola', nivel, texto: nivel } )).concat({ type: 'done' }));
+  const t = a.ceder({ t: 0 }); await f.soltar(); await t;
+  const r = a.registro(), copia = a.registro({ desde: 1 });
+  igual(copia, { ...r, eventos: r.eventos.slice(1) }, `${id}: cursor y contadores`);
+  copia.eventos[0].resultado = 'otro'; copia.consolas.warn = 99;
+  igual(a.registro(), r, `${id}: copia incremental independiente`);
+  a.detener();
+}
+
+// Vigía: usa el reloj inyectado, incluye el umbral y despierta al turno pendiente.
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear, ahora: () => 100 });
+  await a.cargar('A', 'x'); await a.cargar('B', 'x');
+  const texto = id => `vigía de ${id}`;
+  igual(a.vigilar(999, 50, texto), null, 'un programa nuevo no corre');
+  const t = a.ceder({ t: 0 });
+  igual(a.vigilar(149, 50, texto), null, 'antes del umbral');
+  igual(a.vigilar(150, 50, texto), 'A', 'falla al llegar al umbral');
+  igual((await t).error, { unidad: 'A', mensaje: 'vigía de A', linea: null }, 'despierta el turno aunque B siga corriendo');
+  igual(a.vigilar(200, 50, texto), null, 'no sustituye el primer error');
+  a.detener();
+}
+{
+  let reloj = 10;
+  const f = falsos(), a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear, ahora: () => reloj });
+  await a.cargar('A', 'x'); f.creados.get('A').guion.push([{ type: 'espera', s: 0.5, id: 1 }]);
+  const t = a.ceder({ t: 0 }); await f.soltar(); await t;
+  reloj = 20000;
+  igual(a.vigilar(reloj, 50, () => 'mal'), null, 'no vigila programas que esperan');
+  const siguiente = a.ceder({ t: 0.5 });
+  igual(a.vigilar(20049, 50, () => 'mal'), null, 'despertar reinicia desde con el reloj inyectado');
+  igual(a.vigilar(20050, 50, () => 'mal'), 'A', 'vigila desde el último despertar');
+  await siguiente; a.detener();
+}
+{
+  const f = falsos(), a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear });
+  await a.cargar('A', 'x'); const t = a.ceder({ t: 0 });
+  a.detener(); await t;
+  igual(a.vigilar(99999, 1, () => 'mal'), null, 'cerrar libera un turno pendiente y desactiva el vigía');
+}
+
 console.log(`anfitrion: ${comprobaciones} comprobaciones`);

@@ -1,6 +1,6 @@
 # reglas-war
 
-Estado: fase 1.
+Estado: fase 2, paso 8a (sucesos de presentación con hooks compatibles).
 
 Reglamento War sin pantalla, en módulos ES y ejecutable en Node. Conserva las
 operaciones, textos, catálogo y retos de los antiguos `js/war.js` y
@@ -15,7 +15,8 @@ véanse las [fronteras de paquetes](../README.md). Contratos en `index.d.ts`.
   por el núcleo. Devuelve el mundo activo con `semilla: null`; la semilla de la
   partida pertenece al núcleo. Adjunta el registro de sucesos no enumerable.
 - `paso(mundo, dt)` e `instantanea(mundo)` reutilizan una conexión por mundo
-  guardada en un `WeakMap`. No dibujan ni escriben registros de presentación.
+  guardada en un `WeakMap`. No dibujan ni escriben `mundo.eventos`; anotan
+  los sucesos de presentación en el registro no enumerable del núcleo.
   La instantánea conserva `{ t, maq, auto, vib }`, con las mismas lecturas y
   predicciones de los programas del juego.
 - `aplicarOrden(mundo, orden)` lee `unidad`, `verbo` y `args[0]` como lugar.
@@ -61,10 +62,16 @@ y `null`; `sin-misiles` no necesita datos.
 | `derribo` | Enemigo | `tipo`, `por` (lanzador) |
 | `reparado` | Lanzador | `por` (reparador) |
 | `fin` | Sin unidad | `fin`, `motivo` (cadena o null) |
+| `registro` | Máquina del registro | `maquina`, `linea` (número o null), `que`, `resultado`, `clase` |
+| `aviso` | Sin unidad | `texto` |
+| `globo` | Máquina del globo | `nivel`, `texto` |
 
 Un atasco genera también su explosión local. El registro queda fuera de
 `Object.keys`, `JSON.stringify` y las copias enumerables del mundo; se consulta
 con `partida.sucesos()`. Conserva el límite habitual del núcleo (2000 sucesos).
+Los sucesos `registro`, `aviso` y `globo` se anotan antes de llamar al hook
+correspondiente, con sus mismos argumentos y en el mismo orden. Los hooks
+siguen ejecutándose en `legado.conectar`. No entran en instantáneas ni huellas.
 
 ## Compatibilidad temporal
 

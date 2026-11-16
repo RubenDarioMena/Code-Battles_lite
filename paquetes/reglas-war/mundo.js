@@ -62,7 +62,20 @@ export function crear(def, semilla, rng = crearRng(semilla)) {
 /** @param {import('./index.js').Mundo} mundo
  * @param {import('./index.js').Ganchos} hooks */
 export function conectar(mundo, hooks) {
-  const { registrar, terminar: terminarOriginal, avisoSistema, globo } = hooks;
+  const { terminar: terminarOriginal } = hooks;
+  /** @type {import('./index.js').Ganchos['registrar']} */
+  const registrar = (maquina, linea, que, resultado, clase) => {
+    anotarSuceso(mundo, 'registro', maquina, { maquina, linea, que, resultado, clase });
+    hooks.registrar(maquina, linea, que, resultado, clase);
+  };
+  const avisoSistema = texto => {
+    anotarSuceso(mundo, 'aviso', null, { texto });
+    hooks.avisoSistema(texto);
+  };
+  const globo = (id, nivel, texto) => {
+    anotarSuceso(mundo, 'globo', id, { nivel, texto });
+    hooks.globo(id, nivel, texto);
+  };
   function terminar(fin, motivo, mensaje) {
     anotarSuceso(mundo, "fin", null, { fin, motivo });
     return terminarOriginal(fin, motivo, mensaje);
