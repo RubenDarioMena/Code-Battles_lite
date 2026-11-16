@@ -53,3 +53,8 @@ export interface ResultadoJugar {
 export function crearVistaNula(): VistaNula;
 export function crearConductor(opciones: OpcionesConductor): Conductor;
 export function jugarPartida(opciones: OpcionesJugar): Promise<ResultadoJugar>;
+
+/** Instaladores de la composición en vivo; no acceden al navegador al importar. */
+export function instalarCicloProgramas(ctx: any): ReturnType<typeof import('./juego/ciclo-programas.js').instalarCicloProgramas>;
+export function instalarCierreIntentos(ctx: any): ReturnType<typeof import('./juego/cierre-intentos.js').instalarCierreIntentos>;
+export function instalarBucleJuego(ctx: any): ReturnType<typeof import('./juego/bucle.js').instalarBucleJuego>;

@@ -24,6 +24,8 @@ const logica = [
   'paquetes/editor/pruebas/editor.mjs',
   'paquetes/editor/pruebas/carga.mjs',
   'paquetes/app/pruebas/app.mjs',
+  'paquetes/interfaz/pruebas/interfaz.mjs',
+  'imports-juego',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',
   'paquetes/vista-3d/pruebas/vista-3d.mjs',
   'fronteras-fase2', 'fronteras-factory', 'fronteras-campaign', 'juego-conductor',
@@ -54,7 +56,7 @@ function matar(hijo, senal) {
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
-const extensiones = { 'juego-conductor': 'mjs', 'fronteras-campaign': 'mjs', 'fronteras-factory': 'mjs', 'fronteras-fase2': 'mjs', 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
+const extensiones = { 'imports-juego': 'mjs', 'juego-conductor': 'mjs', 'fronteras-campaign': 'mjs', 'fronteras-factory': 'mjs', 'fronteras-fase2': 'mjs', 'partida-referencias': 'mjs', 'partida-campaign': 'mjs', fronteras: 'mjs', 'fronteras-autoprueba': 'mjs', 'partida-war': 'mjs', 'partida-factory': 'mjs', 'partida-contraste': 'mjs', 'terreno-png': 'mjs' };
 
 function ejecutar(nombre, argumentos, limite) {
   return new Promise(resolve => {

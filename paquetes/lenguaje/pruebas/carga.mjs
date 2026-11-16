@@ -31,14 +31,22 @@ for (const [pagina, puente] of [
     assert(!/\basync\b/.test(script.atributos), `Consumidor async: ${script.ruta}`);
   }
   const fuente = await readFile(new URL(puente, url), 'utf8');
-  for (const nombre of ['CMGEditorJS', 'ESTRUCTURA', 'CMGPythonJS', 'CMGJSaPython']) {
+  for (const nombre of pagina.startsWith('paquetes/editor/demo/')
+    ? ['CMGEditorJS', 'ESTRUCTURA', 'CMGPythonJS', 'CMGJSaPython'] : ['ESTRUCTURA']) {
     assert(fuente.includes(`window.${nombre} =`) || fuente.includes(`globales.${nombre} =`)
       || new RegExp(`Object\\.assign\\(window, \\{[^}]*\\b${nombre}\\b`).test(fuente), `${nombre} publicado en ${puente}`);
   }
-  assert(fuente.includes('hueco: nombre => window.CMGEditorPython.nombreDe(nombre)')
-    || fuente.includes('hueco: CMGEditorPython.nombreDe'));
-  if (pagina.startsWith('paquetes/editor/demo/')) assert(!/paquetes\/(?:app|reglas-|anfitrion)/.test(fuente));
-  else assert(fuente.includes('window.LENGUAJE = lenguaje;'));
+  if (pagina.startsWith('paquetes/editor/demo/')) {
+    assert(fuente.includes('hueco: CMGEditorPython.nombreDe'));
+    assert(!/paquetes\/(?:app|reglas-|anfitrion)/.test(fuente));
+  } else {
+    const juego = await readFile(new URL('js/juego.js', url), 'utf8');
+    assert(juego.includes("import * as lenguaje from '../../../paquetes/lenguaje/index.js'"));
+    assert(juego.includes('lenguaje.crearPython({ lezer: window.LezerPython, hueco: CMGEditorPython.nombreDe })'));
+    assert(juego.includes('lenguaje.crearJSaPython({ acorn: window.acorn })'));
+    for (const retirado of ['LENGUAJE', 'CMGEditorJS', 'CMGPythonJS', 'CMGJSaPython'])
+      assert(!fuente.includes(`window.${retirado} =`), `${retirado}: el juego importa el paquete`);
+  }
 }
 // El grafo del paquete solo importa archivos propios: Acorn y Lezer son parámetros.
 for (const archivo of await readdir(new URL('../', import.meta.url))) {

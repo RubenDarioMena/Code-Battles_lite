@@ -1,6 +1,6 @@
 # app
 
-Estado: fase 2, paso 8a (conductor común listo para integrar el juego).
+Estado: fase 2, paso 11a (primeras secciones del juego como instaladores ES).
 
 Compone reglamento, vistas, anfitrión e interfaz. Conecta sus entradas públicas
 y deja la plataforma a las cáscaras.
@@ -98,7 +98,7 @@ vivo puede atender al vigía entre llamadas a `avanzar`.
   paso indicado y se repite igual.
   En las 10 partidas compara además el registro combinado: sucesos `registro`
   en `alSucesos` y eventos incrementales del anfitrión en `alTurno`, sin
-  reordenarlos, contra el adaptador real de `juego.js` extraído en VM
+  reordenarlos, contra el ciclo real importado de `app/juego` con contexto en VM
   (`pruebas/juego-adaptador.mjs`), que compone la partida por separado.
   Coinciden el orden completo, el uso por programa, consolas y lecturas por sensor.
 
@@ -110,8 +110,8 @@ README de `reglas-factory`).
 `node pruebas/fronteras-campaign.mjs` comprueba las 2 referencias Campaign:
 huellas y resultados de H0–H5, secuencia paso a paso y 12 repeticiones exactas.
 
-`node pruebas/juego-conductor.mjs` extrae el adaptador de `juego.js` y lo ejecuta
-sin DOM en VM, con el texto real del Worker y un canal emulado. Compara las
+`node pruebas/juego-conductor.mjs` importa `instalarCicloProgramas` y lo ejecuta
+con un `ctx` falso sin DOM, con el texto real del Worker y un canal emulado. Compara las
 41 huellas, pasos y resultados con las referencias, los seis cortes Campaign
 y la reanudación con las unidades nuevas. No verifica Workers ni dibujo reales;
 eso lo comprueban las suites de navegador sobre `__banco`.
@@ -121,5 +121,35 @@ Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de fron
 
 ## Pendiente
 
-El juego usa el conductor con Workers reales. `juego.js` y `layout.js` deben repartirse
-entre `interfaz` y `app`, y las vistas pasar a instantáneas y sucesos.
+El juego usa el conductor con Workers reales. Falta continuar el reparto de
+`juego.js` y trasladar `layout.js` a `interfaz`, adoptar el contrato completo
+de las vistas y retirar los globales de compatibilidad que aún tienen consumidores.
+
+
+## Instaladores del juego en vivo (paso 11a)
+
+La entrada pública exporta `instalarCicloProgramas(ctx)`,
+`instalarCierreIntentos(ctx)` e `instalarBucleJuego(ctx)`, implementados en
+`juego/`. Importarlos no accede al DOM ni arranca fotogramas o Workers.
+
+- El ciclo devuelve `ejecutar`, `arrancarPrograma`, `avanzar`, `cerrarProgramas`,
+  `registroActual`, `vigia` y los auxiliares de revisión/formato. Recibe las
+  fábricas de partida, anfitrión y conductor; el reglamento, el instrumentador,
+  las fuentes Python y los callbacks de presentación por `ctx`. El entorno
+  de Workers (`Worker`, `URL`, `Blob`, `performance`) también se inyecta.
+- El cierre devuelve `terminar` y `detener`. Conserva la telemetría, récords,
+  banners y guardado de los intentos; Campaign delega en su composición actual.
+  Separarlo del ciclo permite probar este con una presentación falsa.
+- El bucle devuelve `bucle(now)`. La composición lo inicia mediante
+  `requestAnimationFrame`; conserva el cálculo de tiempo, dibujo y refrescos.
+
+`ctx` usa accesores sobre las variables locales de `juego.js`; el acumulador y
+el resto del estado compartido siguen allí. Las secciones leen el valor vigente
+al reanudar promesas o cambiar de partida. Los servicios de otras secciones se
+resuelven al llamarlos, manteniendo el orden de instalación original.
+
+El adaptador de pruebas importa el ciclo real. Solo extrae todavía `nuevoMundo`
+de `interfaz/info-reto.js` y tres funciones de Campaign que siguen en `juego.js`;
+no duplica su implementación. Las 41 referencias y la comprobación de
+reanudación conservan sus aserciones. La prueba de carga de `interfaz` verifica
+también el grafo local del juego y los instaladores de app.

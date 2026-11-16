@@ -2,3 +2,6 @@
 export { crearVistaNula } from './vista-nula.js';
 export { jugarPartida } from './partida.js';
 export { crearConductor } from './conductor.js';
+export { instalarCicloProgramas } from './juego/ciclo-programas.js';
+export { instalarBucleJuego } from './juego/bucle.js';
+export { instalarCierreIntentos } from './juego/cierre-intentos.js';

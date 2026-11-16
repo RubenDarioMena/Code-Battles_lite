@@ -1,6 +1,6 @@
 // Contrato de catálogos: sin claves duplicadas, traducciones ausentes ni variables perdidas.
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
+const { readFileSync, readdirSync } = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const acorn = require('../shared/vendor/acorn-8.11.3.js');
@@ -85,11 +85,12 @@ for (const [archivo, html] of [['index.html', htmlInicio], ['juego', htmlJuego]]
   for (const [, clave] of html.matchAll(/\bdata-i18n(?:-[a-z-]+)?="([^"]+)"/g)) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
 }
 // Las claves dinámicas con nombre literal también deben existir en ambos idiomas.
-for (const archivo of ['layout', 'juego']) {
-  for (const [, clave] of leer(`Prototypes/Rocket Launcher/js/${archivo}.js`).matchAll(/["']((?:ajustes|disposicion|partida|escenario|retos)\.[\w.]+)["']/g)) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
-}
-for (const archivo of ['Prototypes/Rocket Launcher/js/juego.js', 'Prototypes/Rocket Launcher/js/factory-form.js']) {
-  for (const [, clave] of leer(archivo).matchAll(/["']((?:inspector|formulario)\.[\w.]+)["']/g)) {
+const fuentesJuego = ['Prototypes/Rocket Launcher/js/layout.js',
+  'Prototypes/Rocket Launcher/js/juego.js', 'Prototypes/Rocket Launcher/js/factory-form.js',
+  ...readdirSync(path.join(raiz, 'paquetes/interfaz')).filter(f => f.endsWith('.js')).map(f => `paquetes/interfaz/${f}`),
+  ...readdirSync(path.join(raiz, 'paquetes/app/juego')).filter(f => f.endsWith('.js')).map(f => `paquetes/app/juego/${f}`)];
+for (const archivo of fuentesJuego) {
+  for (const [, clave] of leer(archivo).matchAll(/["']((?:ajustes|disposicion|partida|escenario|retos|inspector|formulario)\.[\w.]+)["']/g)) {
     if (!clave.endsWith('.')) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
   }
 }

@@ -9,7 +9,7 @@ const referencias = JSON.parse(readFileSync(new URL('referencias/partidas.json',
 let iguales = 0;
 for (const caso of casosReferencia()) {
   const juego = adaptar(caso), referencia = referencias.find(r => r.id === caso.id);
-  // La huella la recibe directamente el alPaso extraído del adaptador.
+  // La huella la recibe directamente el alPaso del ciclo importado.
   if (caso.reglas !== 'campaign') {
     juego.cargar(caso.programas);
     for (let n = 0; !juego.resultado && n < 10001; n++) await juego.avanzar(1);
