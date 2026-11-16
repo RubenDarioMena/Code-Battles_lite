@@ -8,7 +8,7 @@ const retirados = ['shared/editor/javascript.js', 'shared/js/estructura.js',
 for (const ruta of retirados) await assert.rejects(stat(new URL(ruta, raiz)), { code: 'ENOENT' });
 let rutas = 0;
 for (const [pagina, puente] of [
-  ['Prototypes/Rocket Launcher/index.html', 'js/compat-paquetes.js'],
+  ['Prototypes/Rocket Launcher/index.html', 'js/juego.js'],
   ['paquetes/editor/demo/demo.html', 'compat-paquetes.js'],
 ]) {
   const url = new URL(pagina, raiz), html = await readFile(url, 'utf8');
@@ -32,7 +32,7 @@ for (const [pagina, puente] of [
   }
   const fuente = await readFile(new URL(puente, url), 'utf8');
   for (const nombre of pagina.startsWith('paquetes/editor/demo/')
-    ? ['CMGEditorJS', 'ESTRUCTURA', 'CMGPythonJS', 'CMGJSaPython'] : ['ESTRUCTURA']) {
+    ? ['CMGEditorJS', 'ESTRUCTURA', 'CMGPythonJS', 'CMGJSaPython'] : []) {
     assert(fuente.includes(`window.${nombre} =`) || fuente.includes(`globales.${nombre} =`)
       || new RegExp(`Object\\.assign\\(window, \\{[^}]*\\b${nombre}\\b`).test(fuente), `${nombre} publicado en ${puente}`);
   }
@@ -40,6 +40,9 @@ for (const [pagina, puente] of [
     assert(fuente.includes('hueco: CMGEditorPython.nombreDe'));
     assert(!/paquetes\/(?:app|reglas-|anfitrion)/.test(fuente));
   } else {
+    const composicion = await readFile(new URL('paquetes/app/juego/iniciar.js', raiz), 'utf8');
+    assert(composicion.includes('ctx.cmg.estructura = ctx.lenguaje.ESTRUCTURA'));
+    assert(!scripts.some(s => s.ruta === 'js/compat-paquetes.js'));
     const juego = await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8');
     assert(juego.includes("import * as lenguaje from '../../lenguaje/index.js'"));
     assert(juego.includes('lenguaje.crearPython({ lezer: window.LezerPython, hueco: CMGEditorPython.nombreDe })'));

@@ -1,6 +1,4 @@
 /* Datos del juego para editores y traductores. No depende del DOM ni del runtime. */
-(() => {
-  "use strict";
   const robot = [
     { nombre: "pickUp", nombres: { python: "pick_up" }, alias: ["recoger"], orden: "recoger", firma: ["lugar", "material"], await: true },
     { nombre: "deliver", alias: ["entregar"], orden: "entregar", firma: ["lugar"], await: true },
@@ -26,6 +24,7 @@
     { nombre: "request", firma: ["materia"], nota: "pide una tarima" },
   ];
   function crear({ serie, sensores = () => [], objetos = () => [], propiedades = () => [] }) {
+    /** @returns {any[]} */
     function funciones() {
       const propias = serie === "campaign" ? planta.map(f => ({ grupo: "Planta", ...f })) : serie === "factory"
         ? robot.map(f => ({ grupo: "Robot", ...f }))
@@ -34,7 +33,7 @@
           ...sensores().map(objeto => ({ grupo: "Red de sensores", objeto, nombre: "detect", firma: ["tipo de enemigo"], nota: "posición actual" }))];
       return [...propias, ...[["log", "registro"], ["info", "información"], ["warn", "aviso"], ["error", "error"]]
         .map(([nombre, nota]) => ({ grupo: "Consola", objeto: "console", nombre, firma: ["mensaje"], nota }))]
-        .map(f => ({ ...f, firma: [...f.firma], nombres: { ...f.nombres }, alias: [...(f.alias || [])] }));
+        .map(/** @param {any} f */ f => ({ ...f, firma: [...f.firma], nombres: { ...f.nombres }, alias: [...(f.alias || [])] }));
     }
     function nombres(f, lenguaje) {
       return [...new Set([f.nombre, ...(f.alias || []), ...(lenguaje === "python" && f.nombres.python ? [f.nombres.python] : [])])];
@@ -54,5 +53,4 @@
       },
     };
   }
-  window.CMGProveedor = { crear };
-})();
+export const CMGProveedor = { crear };

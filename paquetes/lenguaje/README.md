@@ -36,13 +36,12 @@ No cambia el texto del Worker, la API del jugador ni los formatos guardados.
 
 ## Puentes temporales
 
-El juego publica `CMGEditorJS`, `ESTRUCTURA`, `CMGPythonJS`, `CMGJSaPython` y
-`LENGUAJE` desde `js/compat-paquetes.js`. Recibe Acorn y Lezer ya cargados;
-el reconocedor Python se inyecta desde el adaptador de `paquetes/editor`,
-que el puente publica para los consumidores clásicos.
+El juego importa el paquete en `paquetes/app/juego/estado.js`, recibe Acorn y
+Lezer clásicos e inyecta el reconocedor Python del adaptador de `editor`.
+`cmg.estructura` es el gancho de QA; no hay globales separados de lenguaje.
 La demo usa su propio `paquetes/editor/demo/compat-paquetes.js`, sin importar el juego.
-Ambos HTML cargan los proveedores antes del módulo y los consumidores con `defer`
-después de él. Los cuatro archivos antiguos se retiran, sin copias.
+Ambos HTML cargan los proveedores antes de la entrada ES; la demo conserva
+sus consumidores clásicos con `defer` después de su puente. Los cuatro archivos antiguos se retiran, sin copias.
 
 La interfaz de seudocódigo (`paquetes/editor/seudo.js`) pertenece al paquete editor:
 su modelo y su DOM están repartidos en módulos de ese paquete; no se importa aquí.

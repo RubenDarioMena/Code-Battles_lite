@@ -1,3 +1,4 @@
+import { CMGProgramas } from './aplicar-programas.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
  * @param {any} ctx */
@@ -173,7 +174,7 @@ export function instalarProgramasJuego(ctx) {
       dialogo.showModal();
     });
   }
-  const aplicarMulti = window.CMGProgramas.crearAplicador({
+  const aplicarMulti = CMGProgramas.crearAplicador({
     estado: () => ({ ejec: ctx.ejec, edicion: ctx.edicion, programas: ctx.edicion.lenguaje === "python" ? ctx.textosPython : ctx.programas, texto: ctx.$codigo.value }),
     confirmarReemplazo,
     alAplicar(ids) {

@@ -27,7 +27,9 @@ async function recorrer(url) {
     assert(fuente.split('\n').length <= 501, `${url.pathname}: máximo 500 líneas`);
     visitar(arbol, nodo => {
       if (nodo.type === 'MemberExpression' && nodo.object.type === 'Identifier'
-        && nodo.object.name === 'ctx' && !nodo.computed)
+        && nodo.object.name === 'ctx' && !nodo.computed
+        && arbol.body.some(n => n.type === 'ExportNamedDeclaration' && n.declaration?.type === 'FunctionDeclaration'
+          && /^(instalar|crearEstadoJuego)/.test(n.declaration.id.name)))
         usosContexto.push({ nombre: nodo.property.name, archivo: url.pathname });
     });
     for (const nodo of arbol.body) {
@@ -60,18 +62,15 @@ const html = await readFile(new URL('Prototypes/Rocket Launcher/index.html', rai
 const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)]
   .map(([, atributos, src]) => ({ atributos, src: src.split('?')[0] }));
 const indice = nombre => scripts.findIndex(s => s.src === `js/${nombre}.js`);
-const puente = indice('compat-paquetes'), principal = indice('juego');
-assert(puente >= 0 && principal > puente);
+const principal = indice('juego');
+assert(principal >= 0);
 assert(/type="module"/.test(scripts[principal].atributos));
 assert(!/\basync\b/.test(scripts[principal].atributos));
-for (const nombre of ['campaign-ui', 'factory-form', 'proveedor', 'programas', 'paleta', 'pulsos']) {
-  assert(indice(nombre) > puente && indice(nombre) < principal, `${nombre}: dependencia anterior al módulo`);
-  assert(/\bdefer\b/.test(scripts[indice(nombre)].atributos));
-}
-for (const nombre of ['layout', 'remota', 'revision-juego']) {
-  assert(indice(nombre) > principal, `${nombre}: cmg se publica antes del consumidor`);
-  assert(/\bdefer\b/.test(scripts[indice(nombre)].atributos));
-}
+for (const nombre of ['compat-paquetes', 'campaign-ui', 'factory-form', 'factory-iconos',
+  'proveedor', 'programas', 'paleta', 'pulsos', 'layout', 'remota', 'revision-juego', 'seudo'])
+  assert.equal(indice(nombre), -1, `${nombre}: retirado del HTML`);
+for (const script of scripts.slice(0, principal))
+  assert(!/\basync\b/.test(script.atributos), `${script.src}: dependencia clásica ordenada`);
 const fuenteJuego = await readFile(juego, 'utf8');
 const arbolJuego = acorn.parse(fuenteJuego, { ecmaVersion: 2022, sourceType: 'module' });
 assert.equal(arbolJuego.body.length, 2, 'la entrada solo importa y arranca');
@@ -87,13 +86,15 @@ visitar(estado, nodo => {
 for (const claves of instaladores.values()) for (const clave of claves) clavesContexto.add(clave);
 for (const { nombre, archivo } of usosContexto)
   assert(clavesContexto.has(nombre), `${archivo}: ctx.${nombre} tiene un accesor o servicio instalado`);
-const inicio = acorn.parse(await readFile(new URL('paquetes/app/juego/iniciar.js', raiz), 'utf8'),
+const fuenteInicio = await readFile(new URL('paquetes/app/juego/iniciar.js', raiz), 'utf8');
+assert(fuenteInicio.includes('window.__juegoListo = true;'));
+const inicio = acorn.parse(fuenteInicio,
   { ecmaVersion: 2022, sourceType: 'module' });
 visitar(inicio, nodo => {
   if (nodo.type === 'CallExpression' && nodo.callee.name === 'conectar')
     assert(instaladores.has(nodo.arguments[0].name), `${nodo.arguments[0].name}: devuelve los servicios que conecta`);
 });
 const arranque = await readFile(new URL('paquetes/app/juego/arranque.js', raiz), 'utf8');
-for (const nombre of ['__banco', 'cmg', '__juegoListo'])
+for (const nombre of ['__banco', 'cmg'])
   assert(arranque.includes(`window.${nombre} =`), `${nombre}: publicación explícita`);
-console.log(`carga del juego: ${vistos.size} módulos y ${enlaces} imports/reexports locales con archivos y nombres existentes; orden module/defer conservado.`);
+console.log(`carga del juego: ${vistos.size} módulos y ${enlaces} imports/reexports locales con archivos y nombres existentes; dependencias clásicas anteriores a la composición ES.`);

@@ -167,13 +167,13 @@ comprobar(!Object.keys(conRegistro).includes('sucesos'));
 // Integración estática del arranque; el navegador real lo ejecuta el revisor.
 const html = readFileSync(new URL('../../../Prototypes/Rocket Launcher/index.html', import.meta.url), 'utf8');
 const scripts = [...html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^\"]*)?"/g)].map(m => m[1]);
-const puente = scripts.indexOf('js/compat-paquetes.js');
-comprobar(puente >= 0);
-// js/runtime.js ya no existe: el puente construye el Worker con paquetes/anfitrion (fase 2).
-for (const lector of ['juego']) comprobar(scripts.indexOf(`js/${lector}.js`) > puente);
-comprobar(!scripts.includes('js/runtime.js'));
-for (const retirado of ['factory', 'factory-retos']) comprobar(!scripts.includes(`js/${retirado}.js`));
-comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));
+const principal = scripts.indexOf('js/juego.js'); comprobar(principal >= 0);
+// La composición ES importa reglamentos, vistas y anfitrión, sin puente clásico.
+comprobar(!scripts.includes('js/compat-paquetes.js'));
+comprobar(/type="module"[^>]*src="js\/juego\.js/.test(html));
+for (const retirado of ['runtime', 'factory', 'factory-retos', 'campaign', 'campaign-nivel',
+  'campaign-ui', 'campaign-plano', 'campaign-terreno', 'campaign-3d'])
+  comprobar(!scripts.includes(`js/${retirado}.js`));
 
 // Escena (fase 2): lo que dibujan las vistas. Datos planos, mismos valores que el mundo e independiente de él.
 {

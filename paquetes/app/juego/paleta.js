@@ -1,3 +1,4 @@
+import { CMGPlantillasJS, CMGEditorPython } from '../../editor/index.js';
 /* Paleta del juego: una sola composición para todas las series y lenguajes.
  *
  *   [comentar] | [sección común del lenguaje + Esperar] | [órdenes de la serie] | [consola]
@@ -6,8 +7,6 @@
  * (CMGPlantillasJS o CMGEditorPython.plantillas), así War, Factory y el IDE no se separan.
  * Cada serie solo declara aquí su pausa y sus órdenes, escritas una vez en JS; en Python
  * pasan por aPython (nombres D1, huecos D4). pruebas/editor-contrato.cjs comprueba la paridad. */
-(() => {
-  "use strict";
   const SERIES = {
     war: {
       // Disparar no espera: el bucle trae su pausa para no girar sin control.
@@ -44,15 +43,14 @@
     return atajos;
   }
   function crear({ serie = "war", sensor = () => null } = {}) {
-    const s = serieDe(serie), paleta = window.CMGPlantillasJS.crear({ pausa: s.pausa.js });
+    const s = serieDe(serie), paleta = CMGPlantillasJS.crear({ pausa: s.pausa.js });
     componer(paleta.atajos, { esperar: s.esperar, propias: s.propias(sensor), consola: "aviso" });
     return paleta;
   }
   function crearPython({ serie = "war", sensor = () => null, aPython }) {
-    const s = serieDe(serie), paleta = window.CMGEditorPython.plantillas({ pausa: s.pausa.python });
+    const s = serieDe(serie), paleta = CMGEditorPython.plantillas({ pausa: s.pausa.python });
     const py = a => ({ ...a, b: typeof a.b === "function" ? () => aPython(a.b()) : aPython(a.b) });
     componer(paleta.atajos, { esperar: aPython(s.esperar), propias: s.propias(sensor).map(py), consola: "registro" });
     return paleta;
   }
-  window.CMGPaleta = { crear, crearPython, series: Object.keys(SERIES) };
-})();
+export const CMGPaleta = { crear, crearPython, series: Object.keys(SERIES) };

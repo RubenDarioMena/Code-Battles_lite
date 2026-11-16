@@ -1,3 +1,4 @@
+import { FACTORY_FORM } from '../../interfaz/index.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
  * @param {any} ctx */
@@ -6,14 +7,14 @@ export function instalarArranqueJuego(ctx) {
   ctx.leerColores();
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { ctx.leerColores(); });
   new MutationObserver(() => ctx.leerColores()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  window.__banco = {
+  ctx.__banco = window.__banco = {
     get partida() { return ctx.partida; }, get registro() { return ctx.registroActual(); }, get eventos() { return ctx.eventos; }, get fin() { return ctx.finActual; },
     get mundo() { return ctx.mundo; }, get def() { return ctx.def; }, get programas() { return ctx.programas; }, get fuentes() { return ctx.fuentes; }, RETOS: ctx.RETOS, instrumentar: ctx.instrumentar, lexico: ctx.lexico, normalizar: ctx.normalizar,
     turbo(n) { ctx.turbo = n; }, fijarSemilla(n) { ctx.semillaFija = true; ctx.semilla = n; }, usarEscenario(d) { ctx.guardarPropio(ctx.ES_FACTORY ? ctx.factory.retos.normalizar(d) : ctx.normalizar(d), true); }, elegirReto: ctx.elegirReto, ejecutar: ctx.ejecutar, abrirPrograma: ctx.abrirPrograma, seleccionar: ctx.seleccionar, get seleccionadas() { return [...ctx.seleccionadas]; }, get telemetria() { return ctx.telemetria; },
     // Campaign: la planta, sus checkpoints y la piel del mapa.
     get campana() { return { instantanea: () => ctx.campaign.instantaneaHistorica(ctx.mundo), quieto: () => ctx.campaign.quieto(ctx.mundo) }; }, get checkpoints() { return ctx.historialC; }, volverA: (i, conProgramas) => ctx.volverA(ctx.historialC[i], !!conProgramas), seguir: () => ctx.seguirCampaign(), nivelDeNuevo: () => ctx.nivelDeNuevo(),
   }; // para depurar y probar desde la consola
-  window.cmg = { editor: ctx.editorPrograma, get edicion() { return ctx.editorPrograma.fachada.edicion; }, get seudo() { return ctx.editorPrograma.fachada.seudo; }, serie: ctx.SERIE, insertar: ctx.insertar, envolver: ctx.envolver, alternarComentario: ctx.alternarComentario, medirEditor: ctx.medirEditor, get codigo() { return ctx.$codigo; }, get ejecutando() { return !!ctx.ejec; }, get confirmarReplace() { return ctx.confirmarReplace; }, set confirmarReplace(v) { ctx.preferirConfirmacionReplace(v); },
+  const cmg = ctx.cmg = window.cmg = { editor: ctx.editorPrograma, get edicion() { return ctx.editorPrograma.fachada.edicion; }, get seudo() { return ctx.editorPrograma.fachada.seudo; }, serie: ctx.SERIE, insertar: ctx.insertar, envolver: ctx.envolver, alternarComentario: ctx.alternarComentario, medirEditor: ctx.medirEditor, get codigo() { return ctx.$codigo; }, get ejecutando() { return !!ctx.ejec; }, get confirmarReplace() { return ctx.confirmarReplace; }, set confirmarReplace(v) { ctx.preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
     lexico: ctx.lexico, clasificar: ctx.clasificar, sugerencias: ctx.sugerencias, firma: (f) => ctx.FIRMAS[f] || null, reHueco: ctx.RE_HUECO, aviso: ctx.avisoEditor, alDesplazar: ctx.pintarBanda, alternarEjecucion: () => ctx.ejec ? ctx.detener() : ctx.ejecutar(),
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
@@ -34,7 +35,7 @@ export function instalarArranqueJuego(ctx) {
       otras: ctx.programablesDe(ctx.def).map(l => l.id).filter(id => !ctx.edicion.ids.includes(id)).map(ctx.varDe),
     }),
     inicial: () => ctx.edicion.mixto ? null : { texto: ctx.textoInicial(ctx.def, ctx.progSel), codigo: (ctx.def.inicial[ctx.progSel] || []).join("\n") + ((ctx.def.inicial[ctx.progSel] || []).length ? "\n" : "") },
-    // Modo revisión (js/revision-juego.js): el código que hay ahora en el editor, sin ejecutarlo.
+    // Modo revisión (paquetes/app/juego/revision-juego.js): el código que hay ahora en el editor, sin ejecutarlo.
     revision: {
       get serie() { return ctx.SERIE; },
       get reto() { return ctx.retoIdx === ctx.IDX_PROPIO ? null : { numero: ctx.retoIdx + 1, titulo: ctx.def.titulo }; },
@@ -44,7 +45,7 @@ export function instalarArranqueJuego(ctx) {
     },
     get marcas() { return { corre: (!ctx.edicion.mixto && ctx.lineaCorre[ctx.progSel]) || null, err: !ctx.edicion.mixto && ctx.lineaErr && ctx.lineaErr.id === ctx.progSel ? ctx.lineaErr.linea : null }; } };
   // Pulsos: solo del programa (o programas con el mismo texto) que está en el editor.
-  if (window.CMGPulsos) window.CMGPulsos.conectar({ visibles: () => ctx.edicion.mixto ? [] : ctx.edicion.ids });
+  if (ctx.CMGPulsos) ctx.CMGPulsos.conectar({ visibles: () => ctx.edicion.mixto ? [] : ctx.edicion.ids });
   function actualizarEtiquetasSerie() {
     const sufijo = ctx.SERIE;
     ctx.$("c2d").setAttribute("aria-label", ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.canvas.2d" : `partida.canvas.${sufijo}.2d`));
@@ -85,7 +86,8 @@ export function instalarArranqueJuego(ctx) {
     enlace.href = url.pathname + url.search + url.hash;
     enlace.setAttribute("aria-current", enlace.dataset.serie === (ctx.SERIE) ? "page" : "false");
   }
-  const formularioFactory = ctx.ES_FACTORY ? window.FACTORY_FORM.crear({
+  const formularioFactory = ctx.ES_FACTORY ? FACTORY_FORM.crear({
+    factory: ctx.factory,
     retoActual: () => ctx.def, propioSel: () => ctx.retoIdx === ctx.IDX_PROPIO,
     guardar: d => ctx.guardarPropio(d, true), abrirPestana: ctx.abrirPestana,
     copiarPrograma: () => ctx.guardado.escribir("prog-factory-propio", { ...ctx.programas }),
@@ -130,7 +132,6 @@ export function instalarArranqueJuego(ctx) {
   document.fonts && document.fonts.ready.then(() => { ctx.medirEditor(); });
   ctx.editorPrograma.iniciarVistas();
   requestAnimationFrame(ctx.bucle);
-  window.__juegoListo = true;
 
   return {
     get actualizarEtiquetasSerie() { return actualizarEtiquetasSerie; },

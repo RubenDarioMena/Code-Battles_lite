@@ -11,7 +11,7 @@ const cargar = (contexto, archivo) => vm.runInContext(readFileSync(path.join(rai
 const contexto = vm.createContext({ window: {} });
 Object.assign(contexto.window, Editor);
 Object.assign(contexto.window, { CMGEditorJS: L.CMGEditorJS });
-for (const archivo of ['Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js']) cargar(contexto, archivo);
+Object.assign(contexto.window, await import('../paquetes/app/index.js'));
 assert.equal(contexto.window.cmg, undefined);
 assert.equal(contexto.document, undefined);
 assert.equal(contexto.localStorage, undefined);

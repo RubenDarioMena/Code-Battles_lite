@@ -87,13 +87,11 @@ imports ni a funciones o constantes externas. Conserva los diagnósticos previos
 `retos` tiene las mismas claves de `FACTORY_RETOS`: `RETOS`, `propio`, `normalizar`
 y `generar`. Mantiene las conversiones del modelo antiguo y los guardados.
 
-`compat-paquetes.js?v=2` publica copias planas de ambos objetos. Los dos lectores
-al cargar son el propio puente (interpolación de `validar` con `paquetes/anfitrion`, fase 2) y `juego.js` (retos,
-normalización y arranque); ambos ya están después del puente. `factory-form.js`
-lee los catálogos dentro de `crear`, llamado después; `paquetes/vista-2d` (antes `factory-vista.js`),
-`paquetes/vista-3d` no lee estos dos catálogos al cargar. No se necesita
-reordenar scripts. Los encargos ya se delegaban a `logistica.iniciarOrden`;
-no se trasladan órdenes desde `juego.js`. La fase 2 retira el puente.
+La composición `paquetes/app/juego/estado.js` importa el reglamento y sus retos.
+`interfaz/factory-form.js` recibe los catálogos al crear el formulario; las
+vistas reciben la escena y sus servicios. No se publican `FACTORY` ni
+`FACTORY_RETOS`: el puente se retiró en el paso 11c. El anfitrión recibe
+`validar` por parámetro y sigue serializando la misma función autocontenida.
 
 ## Pruebas
 

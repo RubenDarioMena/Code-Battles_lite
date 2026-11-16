@@ -59,28 +59,28 @@ try {
       eq(await page.locator('#menu-cod [data-menu="revisar"] svg circle').count(), 2, 'teléfono: con los binoculares');
       await page.click('#menu-cod [data-menu="revisar"]');
     }
-    await page.waitForFunction(() => window.__revisionJuego && window.__revisionJuego.vista, null, { timeout: 30000 });
-    const e = await page.evaluate(() => window.__revisionJuego.vista.estado);
+    await page.waitForFunction(() => window.cmg.revisionJuego && window.cmg.revisionJuego.vista, null, { timeout: 30000 });
+    const e = await page.evaluate(() => window.cmg.revisionJuego.vista.estado);
     eq([e.modo, e.prog, e.total, e.paso], ['lectura', 'LAU-01', 9, 0], `${nombre}: abre el recorrido de lectura del código actual, sin haberlo ejecutado`);
     eq(e.disposicion, nombre === 'PC' ? 'lado' : 'apilado', `${nombre}: ${nombre === 'PC' ? 'código | diagrama' : 'apilado'}`);
     ok((await page.locator('#revision-juego .rv-narra-txt').innerText()).includes('Repite las filas 2 a 8 sin parar'), `${nombre}: con la frase de la fila 1`);
     eq(await page.locator('#revision-juego .rv-titulo').innerText(), 'Reto 5 · ' + await page.evaluate(() => window.__banco.def.titulo), `${nombre}: con el título del reto`);
     eq(await page.locator('#revision-juego .rv-junto').count(), 0, `${nombre}: sin «junto»`);
-    eq(await page.evaluate(() => window.__banco.mundo.activo), false, `${nombre}: no se ejecutó nada`);
+    eq(await page.evaluate(() => window.cmg.ejecutando), false, `${nombre}: no se ejecutó nada`);
     await page.click('#revision-juego [data-accion="mapa"]');
-    eq(await page.evaluate(() => [window.CMGRevisionJuego.abierta, document.getElementById('app').hasAttribute('data-revision')]), [false, false], `${nombre}: la montaña cierra la revisión`);
+    eq(await page.evaluate(() => [window.cmg.revisionJuego.abierta, document.getElementById('app').hasAttribute('data-revision')]), [false, false], `${nombre}: la montaña cierra la revisión`);
     // Un error de sintaxis: aviso con la línea, sin abrir nada.
-    await page.evaluate(() => { window.__banco.programas['LAU-02'] = 'while (true) {\n  regularShoot(\n}'; window.CMGRevisionJuego.abrir(); });
+    await page.evaluate(() => { window.__banco.programas['LAU-02'] = 'while (true) {\n  regularShoot(\n}'; window.cmg.revisionJuego.abrir(); });
     await page.waitForFunction(() => { const a = document.querySelector('.rj-aviso:not([hidden])'); return a && a.textContent.length; });
     ok((await page.locator('.rj-aviso').innerText()).startsWith('LAU-02 no se puede leer (línea 3)'), `${nombre}: un error de sintaxis se avisa con su línea`);
-    eq(await page.evaluate(() => window.CMGRevisionJuego.abierta), false, `${nombre}: y no se abre`);
+    eq(await page.evaluate(() => window.cmg.revisionJuego.abierta), false, `${nombre}: y no se abre`);
     await page.evaluate((c) => { window.__banco.programas['LAU-02'] = c; }, programas['LAU-02']);
     // Python: los binoculares también lo leen (lezer), con el mismo recorrido.
-    await page.evaluate(() => { window.__banco.fuentes['LAU-02'] = { lenguaje: 'python', enUso: true, texto: 'while True:\n    pos = auto_target("drone", "visual")\n    if LAU_01.jammed:\n        regular_shoot(pos)\n    wait(0.25)\n' }; window.CMGRevisionJuego.abrir(); });
-    await page.waitForFunction(() => window.__revisionJuego && window.__revisionJuego.vista, null, { timeout: 30000 });
-    await page.evaluate(() => window.__revisionJuego.vista.cambiarPrograma('LAU-02'));
-    eq(await page.evaluate(() => [window.__revisionJuego.vista.estado.prog, window.__revisionJuego.vista.estado.total, window.__revisionJuego.vista.datos['LAU-02'].P.lenguaje]), ['LAU-02', 6, 'python'], `${nombre}: un programa en Python se lee en la revisión`);
-    await page.evaluate(() => window.__revisionJuego.vista.ir(1));
+    await page.evaluate(() => { window.__banco.fuentes['LAU-02'] = { lenguaje: 'python', enUso: true, texto: 'while True:\n    pos = auto_target("drone", "visual")\n    if LAU_01.jammed:\n        regular_shoot(pos)\n    wait(0.25)\n' }; window.cmg.revisionJuego.abrir(); });
+    await page.waitForFunction(() => window.cmg.revisionJuego && window.cmg.revisionJuego.vista, null, { timeout: 30000 });
+    await page.evaluate(() => window.cmg.revisionJuego.vista.cambiarPrograma('LAU-02'));
+    eq(await page.evaluate(() => [window.cmg.revisionJuego.vista.estado.prog, window.cmg.revisionJuego.vista.estado.total, window.cmg.revisionJuego.vista.datos['LAU-02'].P.lenguaje]), ['LAU-02', 6, 'python'], `${nombre}: un programa en Python se lee en la revisión`);
+    await page.evaluate(() => window.cmg.revisionJuego.vista.ir(1));
     eq(await page.locator('#revision-juego .rv-narra-txt').innerText(), '2Sensor cámara: busca el dron más avanzado y calcula dónde estará. Lo guarda en pos (None si no ve ninguno).', `${nombre}: Python: auto_target, con None`);
     ok(!(await page.evaluate(() => [...document.querySelectorAll('.rj-aviso:not([hidden])')].map(x => x.textContent).join(' '))).includes('JavaScript'), `${nombre}: sin aviso de «solo JavaScript»`);
     await page.click('#revision-juego [data-accion="mapa"]');
@@ -89,7 +89,7 @@ try {
     // ---------- Pulsos ----------
     if (nombre === 'teléfono') await page.evaluate(() => document.getElementById('app').dispatchEvent(new CustomEvent('cmg:pantalla', { detail: 'codigo' })));
     const pulsos = await page.evaluate(() => {
-      const P = window.CMGPulsos, src = window.cmg.codigo.value;
+      const P = window.cmg.pulsos, src = window.cmg.codigo.value;
       P.reiniciar(); P.preparar('LAU-01', src);
       const pr = P.programas.get('LAU-01'), N = [...pr.nodos.entries()];
       const de = (txt, clase) => N.filter(([, x]) => x.clase === clase && src.slice(x.a, x.b).startsWith(txt)).map(([id]) => id);
@@ -140,7 +140,7 @@ try {
       const inicio = performance.now();
       while (!b.mundo.fin && performance.now() - inicio < 120000) await new Promise(r => setTimeout(r, 40));
       obs.disconnect(); b.turbo(1);
-      return { fin: b.mundo.fin, t: Math.round(b.mundo.t * 100) / 100, derribos: b.mundo.derribos, colores: vistos.size, instrumentado: window.CMGPulsos.programas.size };
+      return { fin: b.mundo.fin, t: Math.round(b.mundo.t * 100) / 100, derribos: b.mundo.derribos, colores: vistos.size, instrumentado: window.cmg.pulsos.programas.size };
     });
     eq(partida.instrumentado, 2, `${nombre}: los dos programas van instrumentados`);
     eq([partida.fin, partida.derribos, partida.t], [grabada.partida.resultado, grabada.partida.derribos, grabada.partida.t], `${nombre}: la misma partida que la grabada (${partida.fin}, ${partida.derribos} derribos, ${partida.t} s)`);
@@ -167,13 +167,13 @@ try {
       await page.click('#b-menu-cod');
     }
     const leer = async () => {
-      await page.evaluate(() => window.CMGRevisionJuego.abrir());
-      await page.waitForFunction(() => window.__revisionJuego && window.__revisionJuego.vista, null, { timeout: 30000 });
+      await page.evaluate(() => window.cmg.revisionJuego.abrir());
+      await page.waitForFunction(() => window.cmg.revisionJuego && window.cmg.revisionJuego.vista, null, { timeout: 30000 });
       const filas = await page.evaluate(() => [...document.querySelectorAll('#revision-juego .rv-nodo .rv-et')].map(x => x.textContent));
-      await page.evaluate(() => window.__revisionJuego.vista.ir(2));
+      await page.evaluate(() => window.cmg.revisionJuego.vista.ir(2));
       const frase = await page.locator('#revision-juego .rv-narra-txt').innerText();
-      const e = await page.evaluate(() => window.__revisionJuego.vista.estado);
-      await page.evaluate(() => window.CMGRevisionJuego.cerrar());
+      const e = await page.evaluate(() => window.cmg.revisionJuego.vista.estado);
+      await page.evaluate(() => window.cmg.revisionJuego.cerrar());
       return { filas, frase, e };
     };
     const FILAS = ['¿cuánto "cobre" hay en "ENT-1" es mayor que 0?', 'Recoge "cobre" en "ENT-1"', 'Guarda en r: el resultado de entregar en "FUN"', '¿r vale "lleno"?', 'Espera 2 s'];
@@ -184,7 +184,7 @@ try {
     eq(js.frase, '3Calcula el resultado de entregar en "FUN" y lo guarda en r.', `${nombre}: la frase de deliver`);
     await page.evaluate(() => { window.__banco.fuentes['R1'] = { lenguaje: 'python', enUso: true, texto: 'while count("ENT-1", "cobre") > 0:\n    pick_up("ENT-1", "cobre")\n    r = deliver("FUN")\n    if r == "lleno":\n        wait(2)\n' }; });
     eq((await leer()).filas, FILAS, `${nombre}: en Python, las mismas filas`);
-    eq(await page.evaluate(() => window.__banco.mundo.activo), false, `${nombre}: no se ejecutó nada`);
+    eq(await page.evaluate(() => window.cmg.ejecutando), false, `${nombre}: no se ejecutó nada`);
     eq(errores, [], `${nombre}: sin errores en la página`);
     await contexto.close();
   }

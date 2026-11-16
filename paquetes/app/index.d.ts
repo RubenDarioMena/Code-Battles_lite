@@ -63,3 +63,6 @@ export function instalarBucleJuego(ctx: any): ReturnType<typeof import('./juego/
 export interface OpcionesArranqueJuego {}
 /** Instala la aplicación en el DOM existente y publica __banco, cmg y __juegoListo. */
 export function arrancarJuego(opciones?: OpcionesArranqueJuego): void;
+export { CMGProveedor } from './juego/datos-proveedor.js';
+export { CMGPaleta } from './juego/paleta.js';
+export { CMGProgramas } from './juego/aplicar-programas.js';

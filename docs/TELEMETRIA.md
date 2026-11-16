@@ -18,7 +18,7 @@ El servidor añade la hora de llegada y el país (Netlify). No se guardan IP ni 
 
 ## Piezas
 
-- Cliente: `Prototypes/Rocket Launcher/js/remota.js`. Escucha los eventos `cmg:intento` y `cmg:reto` que emite `juego.js` y los envía con `sendBeacon` a `/api/t`. Nunca bloquea ni rompe la partida.
+- Cliente: `paquetes/app/juego/remota.js`. Escucha los eventos `cmg:intento` y `cmg:reto` que emite `juego.js` y los envía con `sendBeacon` a `/api/t`. Nunca bloquea ni rompe la partida.
 - Servidor: `netlify/functions/t.mjs`, que guarda cada evento en Netlify Blobs (almacén `telemetria`, clave `AAAA-MM-DD/hora-azar`). Su dependencia está en `package.json` (`@netlify/blobs`); Netlify la instala en cada build.
 - Prueba: `npm install && node pruebas/telemetria.mjs`, con un almacén en memoria.
 

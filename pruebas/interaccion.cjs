@@ -9,9 +9,7 @@ const path = require('node:path');
 const ctx = vm.createContext({ console, Set, Map, Object, Promise, window: {} });
 Object.assign(ctx.window, Editor);
 Object.assign(ctx.window, { CMGEditorJS: L.CMGEditorJS, ESTRUCTURA: L.ESTRUCTURA });
-for (const archivo of [
-  'Prototypes/Rocket Launcher/js/paleta.js', 'Prototypes/Rocket Launcher/js/programas.js',
-]) vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8'), ctx, { filename: archivo });
+Object.assign(ctx.window, await import('../paquetes/app/index.js'));
 vm.runInContext(`
 var lexico = window.CMGEditorJS.lexico;
 const RE_HUECO = window.CMGEditorJS.RE_HUECO;

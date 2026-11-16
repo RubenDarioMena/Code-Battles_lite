@@ -1,6 +1,4 @@
 /* Aplicación del borrador a varias unidades. Es integración del juego, fuera del editor. */
-(() => {
-  "use strict";
   function crearAplicador({ estado, confirmarReemplazo, alAplicar }) {
     let aplicando = false;
     return async function aplicarMulti(reemplazar) {
@@ -20,5 +18,4 @@
       } finally { aplicando = false; }
     };
   }
-  window.CMGProgramas = { crearAplicador };
-})();
+export const CMGProgramas = { crearAplicador };

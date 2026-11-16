@@ -1,10 +1,11 @@
+import { CMGProveedor } from '../../paquetes/app/index.js';
 import { instrumentar, revisar, opcionesPython, mensajePython, vocabulario, fmtLugar, fmtValor } from '../../paquetes/lenguaje/index.js';
 
 /** @param {any} contexto @param {any} mundo @param {string} [serie] */
 export function crearInstrumentador(contexto, mundo, serie = 'war') {
   const nombres = () => (serie === 'campaign' ? mundo.unidades : serie === 'factory' ? mundo.maquinas
     : [...mundo.programables, ...mundo.sensores]).map(e => e.id.replace(/-/g, '_'));
-  const proveedor = contexto.CMGProveedor.crear({ serie,
+  const proveedor = CMGProveedor.crear({ serie,
     sensores: () => mundo.sensores.map(e => e.id.replace(/-/g, '_')) });
   const { PROPS } = vocabulario(serie);
   let clave, opciones;

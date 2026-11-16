@@ -116,17 +116,12 @@ Los catálogos, `VERSION`, `crear`, `serializar`, `indexar`, `validar`,
 `modoEnSnap`, `metas`, `cuantos`, `enLotes`, `estadoMaquina`, `totalEntrada`,
 `esMaquina`, `esRobot` y `instantaneaHistorica` son exportaciones con nombre.
 La lectura histórica conserva los campos originales para las huellas de fase 0.
-`nivel` conserva `RETOS`, `NIVEL` y `MAPA`. El puente construye `CAMPAIGN` con
-las mismas claves anteriores salvo `conectar`, y publica la lectura histórica
-como `CAMPAIGN.instantanea`. `conectar(mundo, hooks)` queda dentro del paquete
-en `mundo.js`; solo el reglamento y sus pruebas internas lo importan.
-
-Los lectores al cargar son el propio puente (serializa las dos funciones con `paquetes/anfitrion`, fase 2) y
-`juego.js` (catálogo, lectura del guardado y arranque). Ambos ya van después
-del puente en el documento. `campaign-ui.js` lee los catálogos al llamar a `crear`;
-`paquetes/vista-3d` y `paquetes/vista-2d` los reciben de la app al crear las vistas; el relieve (antes `campaign-terreno.js`, hoy en `paquetes/vista-2d`)
-no lee ninguno. No se necesita reordenar scripts. Se retiran los dos scripts
-antiguos del HTML y la herramienta importa esta entrada pública.
+`nivel` conserva `RETOS`, `NIVEL` y `MAPA`. La composición importa el reglamento
+y esos datos por la entrada pública en `paquetes/app/juego/estado.js`.
+`interfaz/campaign-ui.js` recibe los catálogos y la instantánea histórica al
+llamar a `crear`; las vistas reciben sus datos por parámetros. No se publican
+`CAMPAIGN` ni `CAMPAIGN_NIVEL`: el puente se retiró en el paso 11c. El anfitrión
+recibe las funciones autocontenidas y las serializa como antes.
 
 ## Pruebas
 
@@ -142,7 +137,7 @@ node pruebas/fronteras.mjs
 ```
 
 La suite propia, registrada en `pruebas/todas.mjs`, verifica ambas funciones por
-`toString()` en contextos vacíos, claves del puente, datos planos, determinismo,
+`toString()` en contextos vacíos, arranque ES sin puente, datos planos, determinismo,
 repetición con encargo en curso, checkpoints exactos, guardados incompatibles,
 RNG no consumido y sucesos de logística, producción, hitos y salva. Compara
 estado enumerable y orden de hooks con y sin registro. Las 41 referencias de

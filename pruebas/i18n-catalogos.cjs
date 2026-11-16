@@ -85,8 +85,8 @@ for (const [archivo, html] of [['index.html', htmlInicio], ['juego', htmlJuego]]
   for (const [, clave] of html.matchAll(/\bdata-i18n(?:-[a-z-]+)?="([^"]+)"/g)) comprobar(Object.hasOwn(mapas.es, clave), `${archivo}: clave sin catálogo: ${clave}`);
 }
 // Las claves dinámicas con nombre literal también deben existir en ambos idiomas.
-const fuentesJuego = ['Prototypes/Rocket Launcher/js/layout.js',
-  'Prototypes/Rocket Launcher/js/juego.js', 'Prototypes/Rocket Launcher/js/factory-form.js',
+const fuentesJuego = ['paquetes/interfaz/layout-panel.js', 'paquetes/interfaz/layout-menu.js', 'paquetes/interfaz/layout.js',
+  'Prototypes/Rocket Launcher/js/juego.js', 'paquetes/interfaz/factory-form.js',
   ...readdirSync(path.join(raiz, 'paquetes/interfaz')).filter(f => f.endsWith('.js')).map(f => `paquetes/interfaz/${f}`),
   ...readdirSync(path.join(raiz, 'paquetes/app/juego')).filter(f => f.endsWith('.js')).map(f => `paquetes/app/juego/${f}`)];
 for (const archivo of fuentesJuego) {

@@ -7,8 +7,8 @@ Base de E0: `trunk` en `dfa5f33`. E1 implementa `CMGEditor.crear` y traslada las
 La entrada pública es `paquetes/editor/index.js`; sus tipos están en `index.d.ts`.
 Solo importa `../lenguaje/index.js`. Importarlo en Node no consulta el DOM,
 servicios globales ni almacenamiento; montar una instancia requiere un navegador.
-No publica globales. El juego y la demo los publican en sus respectivos
-`compat-paquetes.js` para sus consumidores clásicos.
+No publica globales. La app importa y configura el editor en
+`paquetes/app/juego/iniciar.js`; la demo mantiene su `compat-paquetes.js` independiente.
 
 ```js
 import { configurar, CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython } from './paquetes/editor/index.js';
@@ -78,11 +78,11 @@ Los nombres Python y la espera explícita se describen en [D1/D2](../../docs/EDI
 | `shared/js/estructura.js` | Analizador tolerante y consultas estructurales; recibe texto y fichas. Publica `window.ESTRUCTURA`. |
 | `paquetes/editor/edicion.js` | Fichas, asas, arrastre, selección, historial y barra. Depende de `cmg`, `ESTRUCTURA`, IDs globales, eventos de document/window, viewport y preferencias. |
 | `Prototypes/Rocket Launcher/js/juego.js` | Crea la fachada `cmg`, inserta en el textarea, mide/resalta el texto, sincroniza programas, propone valores y gestiona estado y marcas. |
-| `Prototypes/Rocket Launcher/js/paleta.js` | Catálogo de atajos de War y variantes, con sensor resuelto por callback. Cada creación devuelve una lista nueva. La sustitución por atajos Factory sigue en `juego.js`. |
-| `Prototypes/Rocket Launcher/js/programas.js` | Aplica borradores Add/Replace a unidades del juego. Recibe estado, confirmación y notificación de aplicación. No pertenece al componente reutilizable. |
-| `Prototypes/Rocket Launcher/js/layout.js` | Barra `TECLAS`, inserción de símbolos, distribución, teclado, preferencias y tooltips. |
-| `Prototypes/Rocket Launcher/js/seudo.js` | Seudo/Bloques: árbol y vuelta a JS, DOM, preferencias e importación del banco antiguo. Habla con `cmg`. |
-| `Prototypes/Rocket Launcher/js/proveedor.js` | Descriptores de funciones, vocabulario y alias D1. Las sugerencias todavía se obtienen mediante `cmg.sugerencias`. |
+| `paquetes/app/juego/paleta.js` | Catálogo de atajos de War y variantes, con sensor resuelto por callback. Cada creación devuelve una lista nueva. La sustitución por atajos Factory sigue en `juego.js`. |
+| `paquetes/app/juego/aplicar-programas.js` | Aplica borradores Add/Replace a unidades del juego. Recibe estado, confirmación y notificación de aplicación. No pertenece al componente reutilizable. |
+| `paquetes/interfaz/layout.js` | Barra `TECLAS`, inserción de símbolos, distribución, teclado, preferencias y tooltips. |
+| `paquetes/editor/seudo.js` | Seudo/Bloques: árbol y vuelta a JS, DOM, preferencias e importación del banco antiguo. Habla con `cmg`. |
+| `paquetes/app/juego/datos-proveedor.js` | Descriptores de funciones, vocabulario y alias D1. Las sugerencias todavía se obtienen mediante `cmg.sugerencias`. |
 
 ## Coordenadas y resultados
 

@@ -82,9 +82,9 @@ conserva el arranque inactivo y la siembra anterior. `retos` contiene `RETOS`,
 
 `conectar(mundo, hooks)` vive en `mundo.js`: lo usa el reglamento y sus pruebas
 internas, y no se exporta desde `index.js`. Los consumidores avanzan el mundo
-por `crearPartida` y órdenes. `compat-paquetes.js` construye `WAR` y `WAR_RETOS`
-con las mismas claves anteriores salvo `conectar`; el puente y los globales
-siguen pendientes de retirada en la fase 2.
+por `crearPartida` y órdenes. La app importa la entrada pública en
+`paquetes/app/juego/estado.js`, sin `WAR` ni `WAR_RETOS` globales. El puente
+se retiró en el paso 11c.
 
 ## Pruebas
 

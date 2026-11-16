@@ -45,16 +45,16 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | Archivo | Responsabilidad |
 | --- | --- |
 | `index.html` | Mapa, editor, inspector, Ajustes y diálogos. |
-| `js/juego.js` | Aplicación, selección, editor, guardado e integración de las familias. |
-| `js/paleta.js`, `js/programas.js` | Catálogo de atajos y aplicación de borradores Add/Replace, cargados también por las pruebas. |
+| `js/juego.js` | Entrada ES de tres líneas: importa `arrancarJuego()` de `paquetes/app` y la llama. |
+| `paquetes/app/juego/paleta.js`, `aplicar-programas.js` (desde la raíz) | Catálogo de atajos y aplicación de borradores Add/Replace, cargados también por las pruebas. |
 | `paquetes/anfitrion/` (desde la raíz) | Texto del Web Worker de los programas y despertar del lockstep (antes `js/runtime.js`). El paso fijo está en `paquetes/nucleo/`. |
 | `paquetes/reglas-war/`, `paquetes/reglas-factory/`, `paquetes/reglas-campaign/` (desde la raíz) | Reglas, retos y nivel de cada serie, como módulos ES que corren en Node. |
-| `js/compat-paquetes.js` | Único puente: publica `WAR`, `FACTORY`, `CAMPAIGN`, sus retos, `NUCLEO`, `RUNTIME` (Worker del anfitrión), `ESCENAS` (escena de cada reglamento para las vistas), `VISTA_2D`, `VISTA_3D` y `FACTORY_3D`, además de las fábricas e iconos del editor que usa la aplicación, como globales mientras dure la fase 2. |
+| `paquetes/app/juego/` (desde la raíz) | Composición, proveedor de funciones, programas, pulsos, revisión y telemetría remota como módulos ES. El puente clásico del juego se retiró en el paso 11c. |
 | `paquetes/vista-3d/` (desde la raíz) | Visores 3D de War, Factory y Campaign como módulos ES. Leen solo la escena del reglamento (`estado.escena`); cámara, gestos y terreno en módulos propios. |
 | `paquetes/vista-2d/` (desde la raíz) | Planos 2D de War, Factory y Campaign y relieve de Campaign, como módulos ES (fase 2; antes `js/vistas.js`, `js/factory-vista.js`, `js/campaign-plano.js` y `js/campaign-terreno.js`). |
 | `paquetes/vista-3d/factory.js` (desde la raíz), `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
-| `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
-| `js/layout.js` | Distribución, divisor, preferencias, teclado móvil y tooltips. |
+| `paquetes/interfaz/factory-form.js` (desde la raíz) | Formulario de enunciado, metas y mapa de «Tu reto». |
+| `paquetes/interfaz/layout.js`, `layout-panel.js`, `layout-menu.js` (desde la raíz) | Distribución, divisor, preferencias, teclado móvil y tooltips. |
 | `paquetes/editor/` (desde la raíz) | Instancia reutilizable, adaptador JS, paletas, símbolos, fichas, historial y vistas Seudo/Bloques. |
 | `css/base.css` | Colores, tipografía y apariencia común. |
 | `css/componentes.css` | Estilos de componentes. |
@@ -65,7 +65,7 @@ Los paquetes `editor` y `lenguaje` sirven a las tres series. El editor se import
 
 En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `paquetes/` contiene los paquetes del [plan de arquitectura](docs/PLAN-ARQUITECTURA.md) (en la fase 0, solo sus contratos); `herramientas/partida.mjs` juega una partida sin pantalla sobre el código actual y `pruebas/referencias/` guarda las referencias de paridad. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 
-Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semilla y recogida su secuencia de stock por intento. El código del jugador se instrumenta con Acorn y se ejecuta en Web Workers. `window.cmg` comunica editor y layout; `window.__banco` expone herramientas de depuración/pruebas. Son interfaces existentes que se mantienen durante la separación.
+Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semilla y recogida su secuencia de stock por intento. El código del jugador se instrumenta con Acorn y se ejecuta en Web Workers. La app conecta editor y layout por parámetros. `window.cmg` y `window.__banco` se conservan para depuración/pruebas; `cmg.revisionJuego`, `cmg.pulsos`, `cmg.remota`, `cmg.estructura` y `cmg.factory3d` sustituyen los antiguos globales de diagnóstico.
 
 ## Comportamiento actual de Rocket Launcher
 
@@ -149,14 +149,17 @@ node pruebas/python-traductor.cjs
 node pruebas/python-semantica-regresiones.cjs
 node pruebas/python-conversion-regresiones.cjs
 node --check "Prototypes/Rocket Launcher/js/juego.js"
-node --check "Prototypes/Rocket Launcher/js/layout.js"
+node --check paquetes/interfaz/layout.js
+node --check paquetes/interfaz/layout-panel.js
+node --check paquetes/interfaz/layout-menu.js
 node --check paquetes/editor/edicion.js
 node --check paquetes/editor/nucleo-ui.js
 node --check pruebas/editor-movil.mjs
 node --check pruebas/editor-movil-regresiones.mjs
 node --check paquetes/editor/iconos.js
 node --check paquetes/lenguaje/estructura.js
-node --check "Prototypes/Rocket Launcher/js/seudo.js"
+node pruebas/juego-identificadores.mjs
+node pruebas/imports-juego.mjs
 node pruebas/factory-reglas.cjs
 node paquetes/anfitrion/pruebas/anfitrion.mjs
 node --check paquetes/reglas-factory/mundo.js

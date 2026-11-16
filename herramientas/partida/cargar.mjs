@@ -36,14 +36,14 @@ export function cargar() {
   });
   contexto.window = contexto;
   const necesarios = new Set([
-    'js/proveedor.js', '../../shared/vendor/lezer-python-1.1.19.js',
+    '../../shared/vendor/lezer-python-1.1.19.js',
   ]);
   const html = readFileSync(entrada, 'utf8');
   const cargados = [];
   for (const m of html.matchAll(/<script\b[^>]*\bsrc="([^"?]+)(?:\?[^\"]*)?"/g)) {
     if (!necesarios.has(m[1])) continue;
     const archivo = new URL(m[1], entrada);
-    // Lezer se distribuye como script clásico; el proveedor todavía pertenece a la app.
+    // Lezer se distribuye como script clásico; los proveedores del juego son módulos ES.
     // Ninguna fuente del paquete lenguaje se evalúa como texto.
     const fuente = readFileSync(archivo, 'utf8');
     if (m[1].includes('lezer-python')) contexto.LezerPython = new Function(fuente + ';return LezerPython;')();
@@ -56,7 +56,7 @@ export function cargar() {
   Object.assign(contexto, { CMGEditorJS, ESTRUCTURA,
     CMGPythonJS: crearPython({ lezer: contexto.LezerPython }),
     CMGJSaPython: crearJSaPython({ acorn: contexto.acorn }) });
-  // El mismo texto que el juego (js/compat-paquetes.js) entrega a sus Workers.
+  // El mismo texto que el juego (paquetes/anfitrion) entrega a sus Workers.
   const fuenteWorker = fuenteTrabajador({
     validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,
     preludioPython: contexto.CMGPythonJS.preludio,

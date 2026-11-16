@@ -35,7 +35,7 @@ export function instalarCicloProgramas(ctx) {
         codigos[l.id] = texto;
         err = ctx.ES_FACTORY ? null : revisar(texto);
       }
-      // Pulsos en el editor (js/pulsos.js): JS con los ganchos del trazador; Python, por línea.
+      // Pulsos en el editor (paquetes/app/juego/pulsos.js): JS con los ganchos del trazador; Python, por línea.
       if (!err && !ctx.ES_FACTORY && !ctx.ES_CAMPAIGN && ctx.CMGPulsos) {
         if (lenguaje === "python") ctx.CMGPulsos.python(l.id, texto);
         else codigos[l.id] = ctx.CMGPulsos.preparar(l.id, texto);

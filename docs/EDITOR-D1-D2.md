@@ -4,7 +4,7 @@ Esta entrega implementa las decisiones D1 y D2 del plan, distintas de las etapas
 
 ## D1: nombres suministrados por el juego
 
-`js/proveedor.js` declara cada función una vez. `cmg.proveedor.funciones()` y la fachada existente `cmg.funciones()` devuelven los mismos datos. Cada descriptor contiene `nombre`, `nombres.python` cuando difiere, `firma`, `await` y los alias españoles existentes.
+`paquetes/app/juego/datos-proveedor.js` declara cada función una vez. `cmg.proveedor.funciones()` y la fachada existente `cmg.funciones()` devuelven los mismos datos. Cada descriptor contiene `nombre`, `nombres.python` cuando difiere, `firma`, `await` y los alias españoles existentes.
 
 Factory enseña `pick_up`, `deliver`, `wait`, `count`; War enseña `auto_target`, `regular_shoot`, `burst_fire`, `stop_fire`, `wait` y `detect`. Python aceptará también los nombres originales y los alias españoles que ya existen en cada serie. Por ejemplo, `pick_up`, `pickUp` y `recoger` resuelven a la orden `recoger`. JavaScript conserva su vocabulario actual y no recibe `pick_up`.
 

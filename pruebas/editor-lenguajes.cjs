@@ -10,7 +10,7 @@ const raiz = path.join(__dirname, '..');
 const leer = p => fs.readFileSync(path.join(raiz, p), 'utf8');
 const ctx = vm.createContext({ window: {} });
 Object.assign(ctx.window, Editor);
-for (const p of ['Prototypes/Rocket Launcher/js/proveedor.js']) vm.runInContext(leer(p), ctx);
+Object.assign(ctx.window, await import('../paquetes/app/index.js'));
 const { CMGProveedor, CMGLenguajes } = ctx.window;
 const factory = CMGProveedor.crear({ serie: 'factory' });
 const fsRobot = factory.funciones().filter(f => f.grupo === 'Robot');

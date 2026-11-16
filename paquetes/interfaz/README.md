@@ -1,12 +1,12 @@
 # interfaz
 
 HUD, inspector, consola, fichas de reto, pestañas y pantalla del editor.
-Fase 2, pasos 11a y 11b: secciones extraídas de `juego.js`.
+Fase 2, pasos 11a–11c: secciones de `juego.js`, distribución y presentación de las series.
 
 ## Puede importar
 
 Solo `protocolo` y `editor`, por sus entradas públicas. Los instaladores actuales
-no tienen imports: los datos de los reglamentos y los servicios de lenguaje,
+solo importan el editor o archivos propios: los datos de los reglamentos y los servicios de lenguaje,
 i18n y presentación se reciben por `ctx`.
 
 ## Contrato
@@ -46,13 +46,13 @@ conecta sus descriptores a `ctx`, sin evaluar los getters ni copiar valores. Los
 El orden de instalación está en `app/juego/iniciar.js`. Conserva la secuencia
 de los bloques del juego: ciclo/cierre → consola → vistas/campo y sus etiquetas
 → retos → máquinas → inspector/editor → pestañas → programas/editor → registro
-→ ayuda → escenario/Campaign → bucle → proveedor → arranque. Los accesores permiten
+→ ayuda → escenario/Campaign → bucle → proveedor → arranque → revisión/layout/remota. Los accesores permiten
 referencias diferidas a secciones posteriores; estas no se invocan al importar.
 
 ## Pruebas
 
 - `node paquetes/interfaz/pruebas/interfaz.mjs`: entrada pública en Node sin DOM,
-  doce instaladores de interfaz.
+  instaladores de interfaz y fábricas de Campaign/Factory.
 - `node pruebas/imports-juego.mjs`: recorre imports/reexports locales
   desde el juego, comprueba archivos y nombres exportados, contexto e instalación,
   y orden de scripts module/defer y publicaciones explícitas del juego.
@@ -69,6 +69,24 @@ referencias diferidas a secciones posteriores; estas no se invocan al importar.
 
 La sección de información del reto todavía contiene composición y guardado,
 y el inspector monta el editor, como en el archivo original. Se han conservado
-los bloques completos y su secuencia; repartir esas responsabilidades y trasladar
-`layout.js` queda para los siguientes pasos. El ciclo y el bucle están en
+los bloques completos y su secuencia; repartir esas responsabilidades queda para los siguientes pasos. El ciclo y el bucle están en
 `app/juego`, siempre accesibles por la entrada pública de `app`.
+
+## Distribución y auxiliares (paso 11c)
+
+`instalarLayout(cmg)` recibe la fachada viva del editor/juego. `layout.js`
+conserva reparto, Ajustes, teclado y barras; `layout-panel.js` instala panel
+inferior y pantalla completa; `layout-menu.js` instala menú móvil y ficha.
+Sus accesores privados comparten estado sin copiarlo. No leen `window.cmg`
+ni `window.__banco`; se conservan eventos, preferencias y marcado.
+
+`CAMPAIGN_UI.crear(ctx)` recibe `campaign` (incluida la instantánea histórica)
+y los callbacks de presentación. `FACTORY_FORM.crear(hooks)` recibe `factory`
+y sus hooks de guardado. `registrarIconosFactory(iconos)` registra recoger y
+entregar en el catálogo recibido, antes de montar el editor. Importarlos no
+requiere DOM. i18n sigue siendo clásico en este paso.
+
+Pruebas: `npm test`, `npm run tipos`, `pruebas/imports-juego.mjs`,
+`pruebas/juego-identificadores.mjs` y `pruebas/juego-arranque.mjs` (emulación,
+no navegador). QA pendiente del autor: divisor, Ajustes, teclado/ProtoMouse,
+pantalla completa, consola y ficha móvil, formulario Factory y Campaign.

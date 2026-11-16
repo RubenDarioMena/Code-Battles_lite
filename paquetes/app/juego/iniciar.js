@@ -1,3 +1,8 @@
+import { factory3d } from '../../vista-3d/index.js';
+import { configurar, ICONOS } from '../../editor/index.js';
+import { registrarIconosFactory, instalarLayout } from '../../interfaz/index.js';
+import { instalarRemota } from './remota.js';
+import { instalarRevisionJuego } from './revision-juego.js';
 import { crearEstadoJuego } from './estado.js';
 import { instalarCicloProgramas } from './ciclo-programas.js';
 import { instalarCierreIntentos } from './cierre-intentos.js';
@@ -19,6 +24,13 @@ import { instalarConsola, instalarInfoReto, instalarMaquinas, instalarInspector,
  * Los accesores conservan las variables de cada sección; nunca se copian sus valores.
  * @param {import('../index.js').OpcionesArranqueJuego} [opciones] */
 export function arrancarJuego(opciones = {}) {
+  configurar({ acorn: window.acorn, vistas: true, i18n: window.CMGI18n, lezer: window.LezerPython,
+    presentacion: {
+      html: texto => window.CMGPresentacion ? window.CMGPresentacion.html(texto) : texto,
+      texto: texto => window.CMGPresentacion ? window.CMGPresentacion.texto(texto) : texto,
+      rotular: (nodo, texto) => { if (window.CMGPresentacion) window.CMGPresentacion.rotular(nodo, texto); else nodo.textContent = texto; },
+    } });
+  registrarIconosFactory(ICONOS);
   const ctx = crearEstadoJuego(opciones);
   const conectar = instalar => Object.defineProperties(ctx,
     Object.getOwnPropertyDescriptors(instalar(ctx)));
@@ -45,4 +57,12 @@ export function arrancarJuego(opciones = {}) {
   conectar(instalarBucleJuego);
   conectar(instalarProveedorJuego);
   conectar(instalarArranqueJuego);
+  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg);
+  instalarLayout(ctx.cmg);
+  ctx.cmg.remota = instalarRemota(ctx.cmg);
+  // Diagnóstico accesible sin publicar los antiguos globales.
+  ctx.cmg.pulsos = ctx.CMGPulsos;
+  ctx.cmg.estructura = ctx.lenguaje.ESTRUCTURA;
+  ctx.cmg.factory3d = factory3d;
+  window.__juegoListo = true;
 }

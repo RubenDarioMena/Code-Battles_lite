@@ -30,7 +30,8 @@ No importa otros paquetes; puede importar `protocolo` y `vfx`.
 `THREE` sigue siendo global (r128 local) hasta la fase 4. DOM, canvas, tamaño
 de pantalla y reloj de animación siguen dentro de las vistas. Las rutas de
 modelo T1 y cargador glTF conservan su resolución relativa a la página.
-El puente publica `VISTA_3D` y `FACTORY_3D` (el mismo objeto `factory3d`).
+La composición importa la entrada pública. `cmg.factory3d` conserva para QA el mismo
+objeto `factory3d`; el puente y los globales `VISTA_3D`/`FACTORY_3D` se retiraron.
 
 ## Origen y pendientes
 

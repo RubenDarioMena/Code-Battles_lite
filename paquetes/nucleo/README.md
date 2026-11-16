@@ -66,8 +66,8 @@ de órdenes en el paso actual.
 
 ## Compatibilidad y pruebas
 
-`Prototypes/Rocket Launcher/js/compat-paquetes.js` publica temporalmente
-`DT` y `avanzar` en el juego. La herramienta de partidas importa el paquete.
+El juego (`paquetes/app/juego/estado.js`) y la herramienta de partidas importan
+el paquete por su entrada pública. El puente del juego se retiró en el paso 11c.
 
 ```sh
 node paquetes/nucleo/pruebas/nucleo.mjs

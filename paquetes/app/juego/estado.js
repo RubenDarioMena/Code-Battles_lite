@@ -1,3 +1,5 @@
+import { CMGPaleta } from './paleta.js';
+import { crearPulsos } from './pulsos.js';
 import { DT, crearPartida } from '../../nucleo/index.js';
 import war, * as datosWar from '../../reglas-war/index.js';
 import reglasFactory, * as factory from '../../reglas-factory/index.js';
@@ -13,6 +15,8 @@ import { crearConductor } from '../conductor.js';
 export function crearEstadoJuego(opciones = {}) {
   /** @type {any} */
   const ctx = {};
+  let banco = null, cmg = null;
+  const pulsos = crearPulsos({ trazador: window.CMGTrazador, flujo: window.CMGFlujo, python: window.CMGPythonRevision, acorn: window.acorn });
   const CMGPythonJS = lenguaje.crearPython({ lezer: window.LezerPython, hueco: CMGEditorPython.nombreDe });
   const CMGJSaPython = lenguaje.crearJSaPython({ acorn: window.acorn });
   const piezasTrabajador = { validarFactory: factory.validar, validarCampaign: campaign.validar,
@@ -356,12 +360,13 @@ export function crearEstadoJuego(opciones = {}) {
     get Blob() { return Blob; },
     get Worker() { return Worker; },
     get CMGI18n() { return window.CMGI18n; },
-    get CMGPaleta() { return window.CMGPaleta; },
+    get CMGPaleta() { return CMGPaleta; },
     get CMGPresentacion() { return window.CMGPresentacion; },
-    get CMGPulsos() { return window.CMGPulsos; },
-    get __banco() { return window.__banco; },
+    get CMGPulsos() { return pulsos; },
+    get __banco() { return banco; }, set __banco(v) { banco = v; },
+    // window.cmg se crea en el arranque; el editor lo lee ya durante iniciarVistas (Factory).
+    get cmg() { return cmg; }, set cmg(v) { cmg = v; },
     get acorn() { return window.acorn; },
-    get cmg() { return window.cmg; },
     get THREE() { return window.THREE; }
   }));
   return ctx;

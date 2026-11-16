@@ -1,8 +1,9 @@
+import { CMGProveedor } from './datos-proveedor.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
  * @param {any} ctx */
 export function instalarProveedorJuego(ctx) {
-  const proveedorEditor = window.CMGProveedor.crear({
+  const proveedorEditor = CMGProveedor.crear({
     serie: ctx.SERIE,
     sensores: () => ctx.mundo ? ctx.mundo.sensores.map(s => ctx.varDe(s.id)) : [],
     objetos: () => ["yo", ...(ctx.mundo ? (ctx.ES_CAMPAIGN ? ctx.mundo.unidades : ctx.ES_FACTORY ? ctx.mundo.entidades : ctx.mundo.maquinas).map(e => ctx.varDe(e.id)) : [])],

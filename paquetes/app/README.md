@@ -1,6 +1,6 @@
 # app
 
-Estado: fase 2, paso 11b (entrada mínima del juego y composición como instaladores ES).
+Estado: fase 2, paso 11c (entrada mínima del juego y composición como instaladores ES).
 
 Compone reglamento, vistas, anfitrión e interfaz. Conecta sus entradas públicas
 y deja la plataforma a las cáscaras.
@@ -121,11 +121,11 @@ Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de fron
 
 ## Pendiente
 
-El juego usa el conductor con Workers reales. Falta trasladar `layout.js` a `interfaz`, adoptar el contrato completo
+El juego usa el conductor con Workers reales. Falta adoptar el contrato completo
 de las vistas y retirar los globales de compatibilidad que aún tienen consumidores.
 
 
-## Juego en vivo (pasos 11a y 11b)
+## Juego en vivo (pasos 11a–11c)
 
 La entrada pública exporta `instalarCicloProgramas(ctx)`,
 `instalarCierreIntentos(ctx)` e `instalarBucleJuego(ctx)`, implementados en
@@ -143,7 +143,7 @@ La entrada pública exporta `instalarCicloProgramas(ctx)`,
   `requestAnimationFrame`; conserva el cálculo de tiempo, dibujo y refrescos.
 
 `arrancarJuego(opciones = {})` instala la aplicación una vez sobre el DOM y
-los proveedores clásicos ya cargados; las opciones quedan reservadas, sin
+las dependencias clásicas de navegador ya cargadas; las opciones quedan reservadas, sin
 cambiar la selección actual por URL/localStorage. Importar `app` sigue sin
 acceder al navegador. `juego.js` solo importa esta función y la llama.
 
@@ -162,11 +162,11 @@ El orden de instalación explícito está en `juego/iniciar.js`.
 | `escenario.js` | Formulario, copia/importación y guardado del escenario propio. |
 | `campaign.js` | Planta viva, hitos, checkpoints, historial y cierre de tramos. |
 | `proveedor.js` | Datos del juego inyectados al editor y los traductores. |
-| `arranque.js` | Publicación de `window.__banco`, `window.cmg`, `window.__juegoListo`, formulario Factory, primer reto y textos dinámicos. |
+| `arranque.js` | Publicación de `window.__banco`, `window.cmg`, formulario Factory, primer reto y textos dinámicos. |
 
 Se conservan el aviso de fallo de carga de `index.html`, los IDs, las claves de
-guardado, los proveedores `window.FACTORY_FORM` y `window.CAMPAIGN_UI`, y los
-consumidores clásicos de `cmg`. `juego/entorno.d.ts` declara estos globales para
+guardado. Los proveedores Factory/Campaign se importan por la entrada pública
+de `interfaz`; layout recibe `cmg` por parámetro. `juego/entorno.d.ts` declara estos globales para
 `checkJs`; no crea globales en ejecución. No hay dependencias nuevas.
 
 El adaptador de pruebas importa el ciclo real. Solo extrae `nuevoMundo`
@@ -177,9 +177,30 @@ reanudación de Campaign.
 `pruebas/imports-juego.mjs` comprueba archivos, exports y servicios del contexto
 por el grafo real. `pruebas/juego-identificadores.mjs` comprueba todos los módulos
 del juego/interfaz y la entrada con resolución de ámbitos y detección de TDZ
-directa (incluye dos mutaciones de autoprueba). `pruebas/juego-arranque.mjs`
+directa (incluye tres mutaciones de autoprueba y una lista explícita de globales del navegador). `pruebas/juego-arranque.mjs`
 ejecuta además los inicializadores y sus llamadas indirectas en Node, con
 DOM/editor/GPU emulados y un contexto que rechaza servicios leídos antes de
 conectarse: tres series, 2D/3D, escenario propio, `?poc=1` y respaldo sin GPU.
 Ambas entran en `npm test`. Esta emulación no verifica aspecto, gestos ni GPU;
 las suites y capturas de navegador siguen siendo necesarias para la paridad.
+
+## Auxiliares ES (paso 11c)
+
+`juego/datos-proveedor.js`, `paleta.js` y `aplicar-programas.js` exportan
+`CMGProveedor`, `CMGPaleta` y `CMGProgramas` por la entrada pública de `app`,
+también para las herramientas/pruebas Node. `crearPulsos(motor)` recibe
+trazador, flujo, lector Python y Acorn; los tres primeros siguen siendo scripts
+clásicos de `educational-animation/revision/motor/`, sin modificarlos.
+
+La composición configura los servicios del editor y registra los iconos antes
+de instalarlo. Después instala revisión, layout y telemetría remota, y publica
+`__juegoListo` al terminar todo. `compat-paquetes.js` del juego y el archivo
+vacío `seudo.js` se retiran; la demo conserva su puente independiente.
+
+Los únicos globales propios de diagnóstico son `cmg`, `__banco` y
+`__juegoListo`. `cmg.revisionJuego` expone abrir/cerrar/abierta/vista;
+`cmg.pulsos`, `cmg.remota`, `cmg.estructura` y `cmg.factory3d` sustituyen los
+antiguos ganchos separados. Las suites de revisión y Factory 3D usan esas
+mismas instancias. Se conservan API del jugador y formatos de almacenamiento.
+No se añaden dependencias. Los proveedores clásicos restantes son i18n,
+presentación, terreno, vendors y motor de revisión.

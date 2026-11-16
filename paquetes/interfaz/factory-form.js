@@ -1,9 +1,8 @@
 /* Formulario de Factory trasladado del original; guarda mediante la aplicación común. */
-(() => {
-  "use strict";
   function crear(hooks) {
-    const $ = id => document.getElementById(id), retoActual = hooks.retoActual, abrirPestana = hooks.abrirPestana;
-    const RETOS = window.FACTORY_RETOS.RETOS, normalizarReto = window.FACTORY_RETOS.normalizar, MATERIALES = window.FACTORY.MATERIALES;
+  const dom = /** @type {any} */ (document);
+    const $ = id => dom.getElementById(id), retoActual = hooks.retoActual, abrirPestana = hooks.abrirPestana;
+    const RETOS = hooks.factory.retos.RETOS, normalizarReto = hooks.factory.retos.normalizar, MATERIALES = hooks.factory.MATERIALES;
     const escapar = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
     const TEXTOS_ES = {
       "formulario.bloque.repetir": "repetir", "formulario.bloque.mientras": "mientras", "formulario.bloque.si": "si / si no",
@@ -87,7 +86,7 @@
       for (const el of raiz.querySelectorAll("[data-formulario-i18n]")) {
         const clave = el.dataset.formularioI18n, texto = textoFormulario(clave);
         if (el.childNodes.length === 1 && el.firstChild.nodeType === Node.TEXT_NODE) el.firstChild.nodeValue = texto;
-        else if (!el.childNodes.length) el.append(document.createTextNode(texto));
+        else if (!el.childNodes.length) el.append(dom.createTextNode(texto));
       }
       for (const el of raiz.querySelectorAll("[data-formulario-aria-label]"))
         el.setAttribute("aria-label", textoFormulario(el.dataset.formularioAriaLabel));
@@ -101,7 +100,7 @@
     if (boton) {
       const texto = textoFormulario(jsonCopiado ? "formulario.json.copiado" : "formulario.json.copiar");
       if (boton.firstChild) boton.firstChild.nodeValue = texto;
-      else boton.append(document.createTextNode(texto));
+      else boton.append(dom.createTextNode(texto));
     }
   }
   window.addEventListener("cmg:idioma", aplicarTextosFormulario);
@@ -109,11 +108,11 @@
     const d = borrador, v = (id) => $(id).value;
     d.titulo = v("rf-titulo").trim() || "Tu reto"; d.objetivo = v("rf-objetivo").trim(); d.pista = v("rf-pista").trim();
     for (const [k] of LIM) d[k] = v(`rf-${k}`) === "" ? null : Number(v(`rf-${k}`));
-    d.metas = [...document.querySelectorAll("#esc-form [data-meta]")].map(f => {
+    d.metas = [...dom.querySelectorAll("#esc-form [data-meta]")].map(f => {
       const g = (k) => f.querySelector(`[data-k="${k}"]`).value;
       return g("tipo") === "vaciar" ? { tipo: "vaciar", id: g("id"), mat: g("mat") } : { id: g("id"), mat: g("mat"), n: Number(g("n")) || 1 };
     });
-    document.querySelectorAll("#esc-form [data-ent]").forEach(f => {
+    dom.querySelectorAll("#esc-form [data-ent]").forEach(f => {
       const e = d.entidades[+f.dataset.ent], g = (k) => f.querySelector(`[data-k="${k}"]`);
       const viejo = e.id, nuevo = g("id").value.trim().toUpperCase() || viejo;
       e.id = nuevo;
@@ -123,11 +122,11 @@
         e.oculto = g("oculto").checked || undefined;
       } else { e.acepta = g("acepta").value; e.cap = Number(g("cap").value); e.tProceso = Number(g("tProceso").value); }
     });
-    d.ladrillos = [...document.querySelectorAll("#esc-form [data-ladrillo-f]")].filter(x => x.checked).map(x => x.dataset.ladrilloF);
+    d.ladrillos = [...dom.querySelectorAll("#esc-form [data-ladrillo-f]")].filter(x => x.checked).map(x => x.dataset.ladrilloF);
     return normalizarReto(d);
   }
   const guardarPropio = hooks.guardar;
-  $("v-escenario").addEventListener("click", (ev) => {
+  $("v-escenario").addEventListener("click", /** @param {any} ev */ (ev) => {
     const t = ev.target.closest?.("button") || ev.target, id = t.id;
     if (t.dataset.quitarMeta != null) { const d = leerFormReto(); d.metas.splice(+t.dataset.quitarMeta, 1); pintarFormReto(d); return; }
     if (id === "rf-mas-meta") { const d = leerFormReto(); d.metas.push({ id: d.entidades.find(e => e.tipo === "maquina")?.id || d.entidades[0].id, mat: "cobre", n: 2 }); pintarFormReto(d); return; }
@@ -154,12 +153,11 @@
       catch (e) { $("rf-json-msg").innerHTML = `<span data-formulario-i18n="formulario.json.error">${escapar(textoFormulario("formulario.json.error"))}</span>: <span>${escapar(e.message)}</span>`; }
     }
   });
-  $("v-escenario").addEventListener("change", (ev) => {
+  $("v-escenario").addEventListener("change", /** @param {any} ev */ (ev) => {
     // «Vaciar» no lleva cantidad.
     if (ev.target.dataset.k === "tipo") { const n = ev.target.closest("[data-meta]").querySelector('[data-k="n"]'); n.disabled = ev.target.value === "vaciar"; }
   });
 
     return { pintar: pintarFormReto };
   }
-  window.FACTORY_FORM = { crear };
-})();
+export const FACTORY_FORM = { crear };

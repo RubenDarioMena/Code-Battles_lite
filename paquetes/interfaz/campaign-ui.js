@@ -1,10 +1,8 @@
 /* Campaign · presentación de la serie: inspector, ayuda, sugerencias, hitos e historial.
  * Solo lee el mundo; nunca lo cambia. Los textos salen de shared/i18n/campaign.js. */
-(() => {
-  "use strict";
   function crear(ctx) {
     const { esc, tk, fila, nota, grupo, tkValor, varDe, t, coma, vital, celdas } = ctx;
-    const C = window.CAMPAIGN, { PIEZAS, RECETAS, MAQUINAS, TARIMA_CAP, COSTE, ROBOT, PEDIDO, ARSENAL, TORRETA, HITO_MAESTRO } = C;
+    const C = ctx.campaign, { PIEZAS, RECETAS, MAQUINAS, TARIMA_CAP, COSTE, ROBOT, PEDIDO, ARSENAL, TORRETA, HITO_MAESTRO } = C;
     const M = () => ctx.mundo, D = () => ctx.def;
     const pieza = p => t(`campaign.pieza.${p}`);
     const hitoDe = n => D().hitos[n];
@@ -292,5 +290,4 @@
     }
     return { clase, estado, etiqueta, siempre, altoEtiqueta, metricas, vitales, ficha, pie, vivo, sugerencias, pistas, metas, hudExtra, chipsHitos, historial, ayuda, tituloHito, pieza };
   }
-  window.CAMPAIGN_UI = { crear };
-})();
+export const CAMPAIGN_UI = { crear };

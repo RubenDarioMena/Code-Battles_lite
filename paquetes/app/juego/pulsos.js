@@ -1,3 +1,7 @@
+/** Motor clásico del proyecto de revisión, inyectado al arrancar.
+ * @param {any} motor */
+export function crearPulsos(motor) {
+  const dom = /** @type {any} */ (document);
 /* Pulsos en el editor durante la partida (War).
  *
  * Mientras el programa corre, lo que hace en el campo se ve en su código: cada fragmento que se activa da una
@@ -21,9 +25,7 @@
  *   CMGPulsos.linea(id, linea, clase, valor)   Python: lee | cmd | consola
  *   CMGPulsos.conectar({ visibles })           ids cuyo código está ahora en el editor
  *   CMGPulsos.reiniciar()          al empezar otra ejecución */
-(() => {
-  "use strict";
-  const T = window.CMGTrazador, FL = window.CMGFlujo, PY = window.CMGPythonRevision;
+  const { trazador: T, flujo: FL, python: PY, acorn } = motor;
   const LECTURAS = new Set(["autoTarget", "detect"]);
   const ORDENES = new Set(["regularShoot", "burstFire", "stopFire"]);
   const CONSOLA = new Set(["log", "info", "warn", "error"]);
@@ -157,7 +159,7 @@
     const k = `${id}:L${l}`, ahora = performance.now();
     if (ahora - (ultimo.get(k) || -1e9) < ESPERA) return;
     ultimo.set(k, ahora);
-    const cod = document.getElementById("codigo");
+    const cod = dom.getElementById("codigo");
     if (!cod) return;
     // Con árbol: las llamadas de esa clase en esa línea, con el color de su fila.
     const llamadas = (pr.lineas && pr.lineas.get(l) || []).filter(x => x.tipo === clase);
@@ -175,14 +177,14 @@
   // métricas que el textarea) o, sin teclado, de las fichas de la vista de bloques.
   let capa = null;
   function laCapa(area) {
-    if (!capa || capa.parentElement !== area) { capa = document.createElement("div"); capa.className = "capa-pulsos"; capa.setAttribute("aria-hidden", "true"); area.append(capa); }
+    if (!capa || capa.parentElement !== area) { capa = dom.createElement("div"); capa.className = "capa-pulsos"; capa.setAttribute("aria-hidden", "true"); area.append(capa); }
     return capa;
   }
   function limpiarCapa() { if (capa) capa.replaceChildren(); }
   const reducido = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function cajas(fuente, a, b) {
-    const area = document.getElementById("area"), cod = document.getElementById("codigo"), editor = document.getElementById("editor");
+    const area = dom.getElementById("area"), cod = dom.getElementById("codigo"), editor = dom.getElementById("editor");
     if (!area || !cod || cod.value !== fuente) return null;
     const ra = area.getBoundingClientRect();
     if (!ra.width || !ra.height) return null;
@@ -191,20 +193,20 @@
     if (finLinea >= 0 && b > finLinea) b = finLinea;
     let rects = [], dx = 0, dy = 0;
     if (editor && editor.classList.contains("sin-teclado")) {
-      const texto = document.getElementById("bloques-texto");
+      const texto = dom.getElementById("bloques-texto");
       if (!texto) return null;
       const piezas = [...texto.querySelectorAll("span[data-a]")].filter(s => { const x = +s.dataset.a; return x < b && x + s.textContent.length > a; });
       if (!piezas.length) return null;
-      const r = document.createRange(), p0 = piezas[0], p1 = piezas.at(-1);
+      const r = dom.createRange(), p0 = piezas[0], p1 = piezas.at(-1);
       r.setStart(p0.firstChild, Math.max(0, a - +p0.dataset.a)); r.setEnd(p1.firstChild, Math.min(p1.textContent.length, b - +p1.dataset.a));
       rects = [...r.getClientRects()];
     } else {
-      const espejo = document.getElementById("espejo");
+      const espejo = dom.getElementById("espejo");
       if (!espejo) return null;
       const antes = fuente.slice(0, a), l = antes.split("\n").length - 1, col = a - (antes.lastIndexOf("\n") + 1);
       const div = espejo.children[l], nodo = div && div.firstChild;
       if (!nodo || nodo.nodeType !== 3) return null;
-      const r = document.createRange();
+      const r = dom.createRange();
       r.setStart(nodo, Math.min(col, nodo.length)); r.setEnd(nodo, Math.min(col + (b - a), nodo.length));
       rects = [...r.getClientRects()];
       dx = -cod.scrollLeft; dy = -cod.scrollTop;
@@ -213,12 +215,12 @@
       .filter(x => x.y + x.h > 0 && x.y < ra.height && x.x < ra.width).map(x => ({ ...x, area }));
   }
   function pulsar(fuente, a, b, color, clave) {
-    if (document.hidden || b <= a) return;
+    if (dom.hidden || b <= a) return;
     const lista = cajas(fuente, a, b);
     if (!lista || !lista.length) return;
     const c = laCapa(lista[0].area);
     for (const r of lista) {
-      const p = document.createElement("div");
+      const p = dom.createElement("div");
       p.className = "pulso"; p.dataset.n = clave;
       p.style.cssText = `left:${(r.x - 2).toFixed(1)}px;top:${(r.y - 1).toFixed(1)}px;width:${(r.w + 4).toFixed(1)}px;height:${(r.h + 2).toFixed(1)}px;--c:${color}`;
       c.append(p);
@@ -228,9 +230,9 @@
     while (c.childElementCount > 40) c.firstElementChild.remove();
   }
 
-  window.CMGPulsos = {
+  return {
     preparar, python, traza, linea, reiniciar,
     conectar(o) { if (o && typeof o.visibles === "function") visibles = o.visibles; },
     get programas() { return programas; },
   };
-})();
+}

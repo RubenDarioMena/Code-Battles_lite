@@ -16,7 +16,7 @@ for (const pagina of ['index.html', 'Prototypes/Rocket Launcher/index.html', 'pa
   }
   const scripts = [...html.matchAll(/<script\b([^>]*\bsrc="([^"]+)"[^>]*)>/g)]
     .map(([, atributos, src]) => ({ atributos, src: src.split('?')[0] }));
-  const puente = scripts.findIndex(s => s.src.endsWith('compat-paquetes.js'));
+  const puente = scripts.findIndex(s => s.src.endsWith(pagina.startsWith('Prototypes/') ? 'juego.js' : 'compat-paquetes.js'));
   assert(puente >= 0 && /type="module"/.test(scripts[puente].atributos));
   for (const consumidor of scripts.slice(puente + 1)) {
     assert(/\bdefer\b|type="module"/.test(consumidor.atributos), consumidor.src);
@@ -24,7 +24,7 @@ for (const pagina of ['index.html', 'Prototypes/Rocket Launcher/index.html', 'pa
   }
   if (pagina.startsWith('Prototypes/')) {
     const factory = scripts.findIndex(s => s.src.endsWith('factory-iconos.js'));
-    assert(factory > puente, 'factory-iconos usa ICONOS al cargar: debe ir después del puente');
+    assert.equal(factory, -1, 'iconos Factory se registran por import antes del editor');
   }
   const estilos = [...html.matchAll(/<link\b[^>]*href="([^"]+)"/g)]
     .map(([, href]) => href.split('?')[0]).filter(href => href.includes('/estilos/'))

@@ -59,7 +59,7 @@ Piezas: `"steel"`, `"polymer"`, `"nose"`, `"base"`, `"charge"`, `"motor"`, `"mis
 | `js/campaign.js` | Reglas puras con paso fijo: robots, tarimas, máquinas, banda, energía, pedidos, hitos, serialización. |
 | `js/campaign-terreno.js` | Relieve determinista: montes, río, muralla, carriles y colores. |
 | `js/campaign-3d.js`, `js/campaign-plano.js` | Vista 3D (diorama low-poly, dos pieles) y plano con zoom. |
-| `js/campaign-ui.js` | Inspector, ayuda, sugerencias, hitos e historial. |
+| `paquetes/interfaz/campaign-ui.js` (desde la raíz) | Inspector, ayuda, sugerencias, hitos e historial. |
 | `shared/i18n/campaign.js` | Textos ES/EN de la serie. |
 | `js/runtime.js`, `js/juego.js` | API del Worker (encargos múltiples, «cede») y enganche de la serie (`ES_CAMPAIGN`). |
 

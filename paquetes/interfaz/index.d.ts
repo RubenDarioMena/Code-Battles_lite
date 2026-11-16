@@ -26,3 +26,7 @@ export function instalarEtiquetas(ctx: ContextoInterfaz): ReturnType<typeof impo
 export function instalarRetosPantalla(ctx: ContextoInterfaz): ReturnType<typeof import('./retos.js').instalarRetosPantalla>;
 export function instalarEditorTexto(ctx: ContextoInterfaz): ReturnType<typeof import('./editor-texto.js').instalarEditorTexto>;
 export function instalarSugerencias(ctx: ContextoInterfaz): ReturnType<typeof import('./sugerencias.js').instalarSugerencias>;
+export { CAMPAIGN_UI } from './campaign-ui.js';
+export { FACTORY_FORM } from './factory-form.js';
+export { registrarIconosFactory } from './factory-iconos.js';
+export { instalarLayout } from './layout.js';

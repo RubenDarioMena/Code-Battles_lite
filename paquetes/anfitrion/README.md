@@ -22,7 +22,7 @@ reciben como argumentos.
   `() => null` y, para el modo de Campaign, `() => 'ok'`. Las funciones deben ser
   **autocontenidas**: `validar` de Factory y Campaign y `modoEnSnap` de Campaign
   lo son, y sus suites las evalúan desde su texto en un contexto vacío.
-El juego lo compone con `crearConductor` mediante `js/compat-paquetes.js`.
+El juego lo compone con `crearConductor` en `paquetes/app/juego/ciclo-programas.js`, sin puente clásico.
 La herramienta usa `crearAnfitrion` y `jugarPartida` mediante
 `herramientas/partida/jugar.mjs`. Ambos reciben las mismas piezas del Worker.
 `despertarCampaign` es un auxiliar interno; el despertar de War/Factory forma

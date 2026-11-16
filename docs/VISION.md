@@ -24,7 +24,7 @@ La arquitectura y sus fases están en [PLAN-ARQUITECTURA.md](PLAN-ARQUITECTURA.m
 
 Describe el punto de partida, anterior a la reestructura.
 
-JavaScript real en Web Workers, escenarios de lanzadores y sensores, editor con selección múltiple, mapa 3D y plano, inspector de estadísticas, telemetría, Ajustes y distribución configurable. El código está concentrado en `js/juego.js`; `js/layout.js` mantiene la lógica de pantalla separada mediante `window.cmg`.
+JavaScript real en Web Workers, escenarios de lanzadores y sensores, editor con selección múltiple, mapa 3D y plano, inspector de estadísticas, telemetría, Ajustes y distribución configurable. La entrada `js/juego.js` compone módulos ES de `paquetes/app/juego/` y `paquetes/interfaz/`; el layout recibe la fachada del juego por parámetro. `window.cmg` y `window.__banco` se conservan para QA y consola.
 
 La interfaz permite variar el orden y orientación de mapa/código. Al escribir en móvil se prioriza el editor y su paleta; el divisor permite ocupar toda el área con un panel.
 

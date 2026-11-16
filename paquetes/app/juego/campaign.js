@@ -1,3 +1,4 @@
+import { CAMPAIGN_UI } from '../../interfaz/index.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
  * @param {any} ctx */
@@ -10,7 +11,8 @@ export function instalarCampaignJuego(ctx) {
   /** @type {any} */
   let pielBatalla = ctx.ES_CAMPAIGN && !!ctx.guardado.leer("campaign-piel", false), ponerPiel = /** @type {(si: boolean) => void} */ (() => {});
   let tVivo = 0;
-  const uiC = ctx.ES_CAMPAIGN ? window.CAMPAIGN_UI.crear({
+  const uiC = ctx.ES_CAMPAIGN ? CAMPAIGN_UI.crear({
+    campaign: { ...ctx.campaign, instantanea: ctx.campaign.instantaneaHistorica },
     esc: ctx.esc, coma: ctx.coma, varDe: ctx.varDe, t: ctx.ti18n,
     tk: (...a) => ctx.tk(...a), fila: (...a) => ctx.fila(...a), nota: (...a) => ctx.nota(...a), grupo: (...a) => ctx.grupo(...a), tkValor: (...a) => ctx.tkValor(...a),
     vital: (...a) => ctx.vital(...a), celdas: (...a) => ctx.celdas(...a), variables: () => ctx.variablesPrograma(),
@@ -87,7 +89,7 @@ export function instalarCampaignJuego(ctx) {
     const codigos = ctx.ejec.codigos, inicio = ctx.ejec.inicio, lenguajes = { ...ctx.ejec.lenguajes };
     ctx.finActual = resultado;
     ctx.cerrarProgramas();
-    window.__banco.alTerminar?.(resultado, motivo, texto, linea, idProg);
+    ctx.__banco.alTerminar?.(resultado, motivo, texto, linea, idProg);
     if (resultado !== "error") { ctx.lineaCorre = {}; ctx.marcasSucias = true; }
     ctx.telemetria.push({ sandbox: "campaign", reto: 1, clave: ctx.claveReto(), titulo: ctx.def.titulo, hito: hitoActual().clave, intento: ctx.intento, inicio, resultado, motivo, mensaje: texto ?? null, linea: linea ?? null, programa: idProg ?? null,
       tiempoJuego: ctx.r2(ctx.mundo.t), presupuesto: ctx.mundo.presupuesto, producidos: { ...ctx.mundo.producidos }, uso: ctx.registroActual().uso, consolas: ctx.registroActual().consolas, codigos, lenguajes });
@@ -120,7 +122,7 @@ export function instalarCampaignJuego(ctx) {
   }
   function seguirCampaign() { ctx.ocultarBanner(); ctx.hitoDetiene = false; ctx.pausa = false; arrancarNuevos(); ctx.conductor?.reanudar(); ctx.pintarControles(); }
   function alCumplirHito(h) {
-    window.__banco.alHito?.(h);
+    ctx.__banco.alHito?.(h);
     const corriendo = !!ctx.ejec;
     ctx.pausa = corriendo;
     // Hay unidades nuevas o recién encendidas: se rehace el escenario 3D y se repinta la interfaz.

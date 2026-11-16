@@ -6,7 +6,7 @@ export async function probarEntrada(page, origen = 'http://127.0.0.1:8771/dist')
   await page.goto(`${origen}/`);
   eq(await page.evaluate(() => [...document.querySelectorAll('.cuadro h2')].map(x => x.textContent.replace('↗', '').trim())), ['Factory', 'War', 'Campaign'], 'el paquete ofrece los tres destinos de la entrada');
   await page.click('.factory');
-  await page.waitForFunction(() => !!window.cmg?.edicion && !!window.ESTRUCTURA && !!window.acorn);
+  await page.waitForFunction(() => !!window.cmg?.edicion && !!window.cmg.estructura && !!window.acorn);
   eq(await page.evaluate(() => document.title.includes('Factory')), true, 'Factory arranca con los módulos del paquete');
   await page.click('a[aria-label="Volver al inicio"]');
   await page.waitForSelector('.war'); await page.click('.war');

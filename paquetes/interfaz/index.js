@@ -11,3 +11,7 @@ export { instalarEtiquetas } from './etiquetas.js';
 export { instalarRetosPantalla } from './retos.js';
 export { instalarEditorTexto } from './editor-texto.js';
 export { instalarSugerencias } from './sugerencias.js';
+export { CAMPAIGN_UI } from './campaign-ui.js';
+export { FACTORY_FORM } from './factory-form.js';
+export { registrarIconosFactory } from './factory-iconos.js';
+export { instalarLayout } from './layout.js';

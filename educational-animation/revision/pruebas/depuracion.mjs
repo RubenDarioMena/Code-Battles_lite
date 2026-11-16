@@ -152,22 +152,22 @@ export async function probarDepuracion(page) {
       await page.click('#b-menu-cod');
       await page.click('#menu-cod [data-menu="revisar"]');
     } else await page.click('#b-revisar');
-    await page.waitForFunction(() => window.__revisionJuego && __revisionJuego.vista);
+    await page.waitForFunction(() => window.cmg.revisionJuego && window.cmg.revisionJuego.vista);
     await page.click('#revision-juego [data-accion="depurar"]');
     const r = await informe();
     eq([r.entrada.serie, r.entrada.programas[id].fuente], [serie, js], `${serie} ${ancho}: código del editor en el informe`);
-    eq(await page.evaluate(() => __revisionJuego.vista.depurar().salida), r.salida, `${serie} ${ancho}: API y diálogo tienen la misma salida`);
+    eq(await page.evaluate(() => window.cmg.revisionJuego.vista.depurar().salida), r.salida, `${serie} ${ancho}: API y diálogo tienen la misma salida`);
     await page.click('[data-accion="cerrarDepuracion"]');
     await page.click('#revision-juego [data-accion="codigo"]');
     eq(await page.evaluate(() => window.cmg.codigo.value), js, `${serie} ${ancho}: volver conserva el editor`);
-    await page.evaluate(({ id, py }) => { __banco.fuentes[id] = { lenguaje: 'python', enUso: true, texto: py }; CMGRevisionJuego.abrir(); }, { id, py });
-    await page.waitForFunction(() => window.__revisionJuego && __revisionJuego.vista);
-    await page.evaluate(id => __revisionJuego.vista.cambiarPrograma(id), id);
-    const python = await page.evaluate(() => __revisionJuego.vista.depurar());
+    await page.evaluate(({ id, py }) => { __banco.fuentes[id] = { lenguaje: 'python', enUso: true, texto: py }; window.cmg.revisionJuego.abrir(); }, { id, py });
+    await page.waitForFunction(() => window.cmg.revisionJuego && window.cmg.revisionJuego.vista);
+    await page.evaluate(id => window.cmg.revisionJuego.vista.cambiarPrograma(id), id);
+    const python = await page.evaluate(() => window.cmg.revisionJuego.vista.depurar());
     eq([python.entrada.programas[id].fuente, python.entrada.programas[id].lenguaje], [py, 'python'], `${serie} ${ancho}: fuente Python del editor`);
     ok(python.salida[id].filas[0].etiqueta.length > 0, `${serie} ${ancho}: salida Python disponible`);
-    eq(await page.evaluate(() => __banco.mundo.activo), false, `${serie} ${ancho}: revisión y depuración no arrancan la partida`);
-    await page.evaluate(() => CMGRevisionJuego.cerrar());
+    eq(await page.evaluate(() => window.cmg.ejecutando), false, `${serie} ${ancho}: revisión y depuración no arrancan la partida`);
+    await page.evaluate(() => window.cmg.revisionJuego.cerrar());
   }
   return { comprobaciones: n };
 }

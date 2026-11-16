@@ -17,7 +17,7 @@ Módulos ES con el código de antes, sin cambios de dibujo:
   Factory (antes en `js/vistas.js`). Factory delega en `dibujarFactory`.
 - `dibujarFactory(ctx, escena, colores, seleccion, geo)`: logística de Factory
   (antes `js/factory-vista.js`). Los dos iconos de la paleta que registraba ese
-  archivo siguen en `js/factory-iconos.js`, porque se registran al cargar.
+  archivo están en `paquetes/interfaz/factory-iconos.js`; la app los registra antes del editor.
 - `crearPlanoCampaign(estado, deps)` → `dibujar()`: plano de Campaign con zoom y
   desplazamiento propios (antes `js/campaign-plano.js`). `deps` añade `mapa`
   (`CAMPAIGN_NIVEL.MAPA`) y `reglas` (las funciones de Campaign).
@@ -30,7 +30,7 @@ fotograma), selección, colores, `cols`/`rows` y `geo2`, donde el plano publica
 su geometría para elegir y etiquetar. Se mantiene la extrapolación de antes:
 la escena actual adelantada `off` segundos.
 
-El juego carga el paquete a través de `js/compat-paquetes.js` (`VISTA_2D`).
+La composición `paquetes/app/juego/vistas.js` importa la entrada pública, sin global `VISTA_2D`.
 
 ## Decisiones y límites
 
