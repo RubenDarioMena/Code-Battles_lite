@@ -58,3 +58,8 @@ export function jugarPartida(opciones: OpcionesJugar): Promise<ResultadoJugar>;
 export function instalarCicloProgramas(ctx: any): ReturnType<typeof import('./juego/ciclo-programas.js').instalarCicloProgramas>;
 export function instalarCierreIntentos(ctx: any): ReturnType<typeof import('./juego/cierre-intentos.js').instalarCierreIntentos>;
 export function instalarBucleJuego(ctx: any): ReturnType<typeof import('./juego/bucle.js').instalarBucleJuego>;
+
+/** Marcado y proveedores clásicos de la página; reservado para opciones de composición. */
+export interface OpcionesArranqueJuego {}
+/** Instala la aplicación en el DOM existente y publica __banco, cmg y __juegoListo. */
+export function arrancarJuego(opciones?: OpcionesArranqueJuego): void;

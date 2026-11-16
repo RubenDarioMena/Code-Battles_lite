@@ -8,7 +8,7 @@ import { instalarCicloProgramas, crearConductor } from '../paquetes/app/index.js
 import war, { retos } from '../paquetes/reglas-war/index.js';
 import factory, { retos as retosFactory, validar as validarFactory } from '../paquetes/reglas-factory/index.js';
 import campaign, { nivel, quieto, validar as validarCampaign, modoEnSnap } from '../paquetes/reglas-campaign/index.js';
-import { cargar, archivoJuego } from '../herramientas/partida/cargar.mjs';
+import { cargar } from '../herramientas/partida/cargar.mjs';
 import { crearInstrumentador } from '../herramientas/partida/instrumentar.mjs';
 import { extraerFuncion } from './extraer-juego.mjs';
 import { crearPrograma } from '../herramientas/partida/programa.mjs';
@@ -18,7 +18,7 @@ import { resultadoWar } from '../herramientas/partida/anfitrion-war.mjs';
 import { resultadoFactory } from '../herramientas/partida/anfitrion-factory.mjs';
 import { resultadoCampaign } from '../herramientas/partida/anfitrion-campaign.mjs';
 
-const texto = readFileSync(archivoJuego, 'utf8');
+const texto = readFileSync(new URL('../paquetes/app/juego/campaign.js', import.meta.url), 'utf8');
 const funciones = ['cicloCampaign', 'arrancarNuevos', 'seguirCampaign'];
 const infoReto = readFileSync(new URL('../paquetes/interfaz/info-reto.js', import.meta.url), 'utf8');
 
@@ -101,6 +101,10 @@ export function adaptar(caso) {
       get programas() { return programas; }, set programas(v) { programas = v; },
       get fuentes() { return fuentes; }, set fuentes(v) { fuentes = v; },
       get mundo() { return mundo; }, set mundo(v) { mundo = v; },
+      get alCumplirHito() { return alCumplirHito; },
+      get guardarVivo() { return guardarVivo; },
+      get campaign() { return campaign; },
+      get ocultarBanner() { return ocultarBanner; },
       get partida() { return partida; }, set partida(v) { partida = v; },
       get anfitrion() { return anfitrion; }, set anfitrion(v) { anfitrion = v; },
       get conductor() { return conductor; }, set conductor(v) { conductor = v; },
@@ -172,6 +176,8 @@ export function adaptar(caso) {
       get lenguaje() { return lenguaje; },
       get CMGPythonJS() { return CMGPythonJS; },
       get terminar() { return terminar; },
+      get revisar() { return revisar; },
+      get arrancarPrograma() { return arrancarPrograma; },
       get nuevoMundo() { return nuevoMundo; },
       get __banco() { return window.__banco; },
       performance, URL, Blob, Worker, acorn: window.acorn,

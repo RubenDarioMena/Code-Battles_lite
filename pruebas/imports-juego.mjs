@@ -74,18 +74,26 @@ for (const nombre of ['layout', 'remota', 'revision-juego']) {
 }
 const fuenteJuego = await readFile(juego, 'utf8');
 const arbolJuego = acorn.parse(fuenteJuego, { ecmaVersion: 2022, sourceType: 'module' });
-const contexto = arbolJuego.body.flatMap(n => n.declarations || []).find(d => d.id.name === 'ctx').init;
-const clavesContexto = new Set(contexto.properties.map(p => p.key.name));
+assert.equal(arbolJuego.body.length, 2, 'la entrada solo importa y arranca');
+assert.equal(arbolJuego.body[1].expression.callee.name, 'arrancarJuego');
+const estado = acorn.parse(await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8'),
+  { ecmaVersion: 2022, sourceType: 'module' });
+const clavesContexto = new Set();
+visitar(estado, nodo => {
+  if (nodo.type === 'CallExpression' && nodo.callee.type === 'MemberExpression'
+    && nodo.callee.object.name === 'Object' && nodo.callee.property.name === 'getOwnPropertyDescriptors')
+    for (const p of nodo.arguments[0].properties) clavesContexto.add(p.key.name);
+});
+for (const claves of instaladores.values()) for (const clave of claves) clavesContexto.add(clave);
 for (const { nombre, archivo } of usosContexto)
-  assert(clavesContexto.has(nombre), `${archivo}: ctx.${nombre} tiene un accesor en la composición`);
-for (const nodo of arbolJuego.body) {
-  for (const decl of nodo.declarations || []) {
-    if (decl.init?.type !== 'CallExpression' || !instaladores.has(decl.init.callee.name)) continue;
-    assert.equal(decl.id.type, 'ObjectPattern');
-    for (const prop of decl.id.properties)
-      assert(instaladores.get(decl.init.callee.name).has(prop.key.name), `${decl.init.callee.name}: devuelve ${prop.key.name}`);
-  }
-}
+  assert(clavesContexto.has(nombre), `${archivo}: ctx.${nombre} tiene un accesor o servicio instalado`);
+const inicio = acorn.parse(await readFile(new URL('paquetes/app/juego/iniciar.js', raiz), 'utf8'),
+  { ecmaVersion: 2022, sourceType: 'module' });
+visitar(inicio, nodo => {
+  if (nodo.type === 'CallExpression' && nodo.callee.name === 'conectar')
+    assert(instaladores.has(nodo.arguments[0].name), `${nodo.arguments[0].name}: devuelve los servicios que conecta`);
+});
+const arranque = await readFile(new URL('paquetes/app/juego/arranque.js', raiz), 'utf8');
 for (const nombre of ['__banco', 'cmg', '__juegoListo'])
-  assert(fuenteJuego.includes(`window.${nombre} =`), `${nombre}: publicación explícita`);
+  assert(arranque.includes(`window.${nombre} =`), `${nombre}: publicación explícita`);
 console.log(`carga del juego: ${vistos.size} módulos y ${enlaces} imports/reexports locales con archivos y nombres existentes; orden module/defer conservado.`);

@@ -1,0 +1,48 @@
+import { crearEstadoJuego } from './estado.js';
+import { instalarCicloProgramas } from './ciclo-programas.js';
+import { instalarCierreIntentos } from './cierre-intentos.js';
+import { instalarBucleJuego } from './bucle.js';
+import { instalarVistasJuego } from './vistas.js';
+import { instalarCampoJuego } from './campo.js';
+import { instalarProgramasJuego } from './programas.js';
+import { instalarPythonJuego } from './python.js';
+import { instalarEscenarioJuego } from './escenario.js';
+import { instalarCampaignJuego } from './campaign.js';
+import { instalarProveedorJuego } from './proveedor.js';
+import { instalarArranqueJuego } from './arranque.js';
+import { instalarConsola, instalarInfoReto, instalarMaquinas, instalarInspector,
+  instalarPestanas, instalarRegistro, instalarAyuda, instalarVariantes,
+  instalarEtiquetas, instalarRetosPantalla, instalarEditorTexto,
+  instalarSugerencias } from '../../interfaz/index.js';
+
+/** Arranca sobre el marcado y los proveedores clásicos existentes, una vez por página.
+ * Los accesores conservan las variables de cada sección; nunca se copian sus valores.
+ * @param {import('../index.js').OpcionesArranqueJuego} [opciones] */
+export function arrancarJuego(opciones = {}) {
+  const ctx = crearEstadoJuego(opciones);
+  const conectar = instalar => Object.defineProperties(ctx,
+    Object.getOwnPropertyDescriptors(instalar(ctx)));
+  conectar(instalarCicloProgramas);
+  conectar(instalarCierreIntentos);
+  conectar(instalarConsola);
+  conectar(instalarVistasJuego);
+  conectar(instalarCampoJuego);
+  conectar(instalarVariantes);
+  conectar(instalarEtiquetas);
+  conectar(instalarRetosPantalla);
+  conectar(instalarInfoReto);
+  conectar(instalarMaquinas);
+  conectar(instalarInspector);
+  conectar(instalarPestanas);
+  conectar(instalarProgramasJuego);
+  conectar(instalarEditorTexto);
+  conectar(instalarSugerencias);
+  conectar(instalarPythonJuego);
+  conectar(instalarRegistro);
+  conectar(instalarAyuda);
+  conectar(instalarEscenarioJuego);
+  conectar(instalarCampaignJuego);
+  conectar(instalarBucleJuego);
+  conectar(instalarProveedorJuego);
+  conectar(instalarArranqueJuego);
+}

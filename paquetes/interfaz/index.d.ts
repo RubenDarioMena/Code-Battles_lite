@@ -21,3 +21,8 @@ export function instalarInspector(ctx: ContextoInterfaz): ReturnType<typeof impo
 export function instalarPestanas(ctx: ContextoInterfaz): ReturnType<typeof import('./pestanas.js').instalarPestanas>;
 export function instalarRegistro(ctx: ContextoInterfaz): ReturnType<typeof import('./registro.js').instalarRegistro>;
 export function instalarAyuda(ctx: ContextoInterfaz): ReturnType<typeof import('./ayuda.js').instalarAyuda>;
+export function instalarVariantes(ctx: ContextoInterfaz): ReturnType<typeof import('./variantes.js').instalarVariantes>;
+export function instalarEtiquetas(ctx: ContextoInterfaz): ReturnType<typeof import('./etiquetas.js').instalarEtiquetas>;
+export function instalarRetosPantalla(ctx: ContextoInterfaz): ReturnType<typeof import('./retos.js').instalarRetosPantalla>;
+export function instalarEditorTexto(ctx: ContextoInterfaz): ReturnType<typeof import('./editor-texto.js').instalarEditorTexto>;
+export function instalarSugerencias(ctx: ContextoInterfaz): ReturnType<typeof import('./sugerencias.js').instalarSugerencias>;

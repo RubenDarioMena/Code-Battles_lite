@@ -40,8 +40,8 @@ for (const [pagina, puente] of [
     assert(fuente.includes('hueco: CMGEditorPython.nombreDe'));
     assert(!/paquetes\/(?:app|reglas-|anfitrion)/.test(fuente));
   } else {
-    const juego = await readFile(new URL('js/juego.js', url), 'utf8');
-    assert(juego.includes("import * as lenguaje from '../../../paquetes/lenguaje/index.js'"));
+    const juego = await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8');
+    assert(juego.includes("import * as lenguaje from '../../lenguaje/index.js'"));
     assert(juego.includes('lenguaje.crearPython({ lezer: window.LezerPython, hueco: CMGEditorPython.nombreDe })'));
     assert(juego.includes('lenguaje.crearJSaPython({ acorn: window.acorn })'));
     for (const retirado of ['LENGUAJE', 'CMGEditorJS', 'CMGPythonJS', 'CMGJSaPython'])

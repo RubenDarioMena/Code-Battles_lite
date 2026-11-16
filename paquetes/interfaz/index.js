@@ -6,3 +6,8 @@ export { instalarInspector } from './inspector.js';
 export { instalarPestanas } from './pestanas.js';
 export { instalarRegistro } from './registro.js';
 export { instalarAyuda } from './ayuda.js';
+export { instalarVariantes } from './variantes.js';
+export { instalarEtiquetas } from './etiquetas.js';
+export { instalarRetosPantalla } from './retos.js';
+export { instalarEditorTexto } from './editor-texto.js';
+export { instalarSugerencias } from './sugerencias.js';

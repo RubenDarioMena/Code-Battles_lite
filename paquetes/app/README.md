@@ -1,6 +1,6 @@
 # app
 
-Estado: fase 2, paso 11a (primeras secciones del juego como instaladores ES).
+Estado: fase 2, paso 11b (entrada mínima del juego y composición como instaladores ES).
 
 Compone reglamento, vistas, anfitrión e interfaz. Conecta sus entradas públicas
 y deja la plataforma a las cáscaras.
@@ -121,12 +121,11 @@ Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de fron
 
 ## Pendiente
 
-El juego usa el conductor con Workers reales. Falta continuar el reparto de
-`juego.js` y trasladar `layout.js` a `interfaz`, adoptar el contrato completo
+El juego usa el conductor con Workers reales. Falta trasladar `layout.js` a `interfaz`, adoptar el contrato completo
 de las vistas y retirar los globales de compatibilidad que aún tienen consumidores.
 
 
-## Instaladores del juego en vivo (paso 11a)
+## Juego en vivo (pasos 11a y 11b)
 
 La entrada pública exporta `instalarCicloProgramas(ctx)`,
 `instalarCierreIntentos(ctx)` e `instalarBucleJuego(ctx)`, implementados en
@@ -143,13 +142,44 @@ La entrada pública exporta `instalarCicloProgramas(ctx)`,
 - El bucle devuelve `bucle(now)`. La composición lo inicia mediante
   `requestAnimationFrame`; conserva el cálculo de tiempo, dibujo y refrescos.
 
-`ctx` usa accesores sobre las variables locales de `juego.js`; el acumulador y
-el resto del estado compartido siguen allí. Las secciones leen el valor vigente
-al reanudar promesas o cambiar de partida. Los servicios de otras secciones se
-resuelven al llamarlos, manteniendo el orden de instalación original.
+`arrancarJuego(opciones = {})` instala la aplicación una vez sobre el DOM y
+los proveedores clásicos ya cargados; las opciones quedan reservadas, sin
+cambiar la selección actual por URL/localStorage. Importar `app` sigue sin
+acceder al navegador. `juego.js` solo importa esta función y la llama.
 
-El adaptador de pruebas importa el ciclo real. Solo extrae todavía `nuevoMundo`
-de `interfaz/info-reto.js` y tres funciones de Campaign que siguen en `juego.js`;
-no duplica su implementación. Las 41 referencias y la comprobación de
-reanudación conservan sus aserciones. La prueba de carga de `interfaz` verifica
-también el grafo local del juego y los instaladores de app.
+`juego/estado.js` crea `ctx`, las constantes y tablas visuales, guardado,
+lenguaje y las variables compartidas con accesores. Los demás instaladores
+leen `ctx.x` al llamar; sus descriptores se conectan sin evaluar getters, por
+lo que no se pierden sustituciones ni se adelantan lecturas de inicializadores.
+El orden de instalación explícito está en `juego/iniciar.js`.
+
+| Archivo de `juego/` | Responsabilidad |
+| --- | --- |
+| `vistas.js` | Escena por fotograma, montaje 3D/plano, proyección, elección 2D y cámara. Importa solo las entradas públicas de las vistas. |
+| `campo.js` | Ratón, tacto, selección en cuadro y entrada de coordenadas. |
+| `programas.js` | Programas, selección/lenguaje del documento y Add/Replace. |
+| `python.js` | Conversión de fragmentos, opciones del traductor, vocabulario y atajos Python. |
+| `escenario.js` | Formulario, copia/importación y guardado del escenario propio. |
+| `campaign.js` | Planta viva, hitos, checkpoints, historial y cierre de tramos. |
+| `proveedor.js` | Datos del juego inyectados al editor y los traductores. |
+| `arranque.js` | Publicación de `window.__banco`, `window.cmg`, `window.__juegoListo`, formulario Factory, primer reto y textos dinámicos. |
+
+Se conservan el aviso de fallo de carga de `index.html`, los IDs, las claves de
+guardado, los proveedores `window.FACTORY_FORM` y `window.CAMPAIGN_UI`, y los
+consumidores clásicos de `cmg`. `juego/entorno.d.ts` declara estos globales para
+`checkJs`; no crea globales en ejecución. No hay dependencias nuevas.
+
+El adaptador de pruebas importa el ciclo real. Solo extrae `nuevoMundo`
+de `interfaz/info-reto.js` y tres funciones de `app/juego/campaign.js`, sin
+copiar su implementación ni modificar sus aserciones: 41 referencias y la
+reanudación de Campaign.
+
+`pruebas/imports-juego.mjs` comprueba archivos, exports y servicios del contexto
+por el grafo real. `pruebas/juego-identificadores.mjs` comprueba todos los módulos
+del juego/interfaz y la entrada con resolución de ámbitos y detección de TDZ
+directa (incluye dos mutaciones de autoprueba). `pruebas/juego-arranque.mjs`
+ejecuta además los inicializadores y sus llamadas indirectas en Node, con
+DOM/editor/GPU emulados y un contexto que rechaza servicios leídos antes de
+conectarse: tres series, 2D/3D, escenario propio, `?poc=1` y respaldo sin GPU.
+Ambas entran en `npm test`. Esta emulación no verifica aspecto, gestos ni GPU;
+las suites y capturas de navegador siguen siendo necesarias para la paridad.
