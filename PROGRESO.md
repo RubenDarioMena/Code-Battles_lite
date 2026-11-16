@@ -8,7 +8,10 @@ Rama `ccr-62599b2d-2y0dow`, sobre `vfx-explosiones-singularidad`. Solo cambia `a
 - **Horizonte.** Sección nueva `horizonte`: disco azul casi negro de filo nítido, con un resplandor morado pegado al borde por dentro, algo cargado hacia arriba a la derecha y fuera del bloom. El borde interior del brillo de Hawking también es morado (`hawking.color_borde`).
 - **Tamaño.** Exponente del radio del horizonte 0,9 → 1,3: a masa 1 mide lo mismo (0,07 m) y a la masa crítica pasa de 0,56 m a 1,40 m (250 %). La variante al 200 % es `--ajuste curvas.radio_horizonte.exponente=1.2`. El radio de Einstein no cambia.
 - **Herramientas.** `--calidad alta` (1280 × 720), necesaria para juzgar líneas finas, y `--ajuste seccion.clave=valor` para probar variantes sin copiar el JSON.
-- **Efecto secundario.** Una línea tarda ahora 3,2–4,6 s en caer (antes 1,2–2,0 s) y la masa visible sube en la segunda mitad de ese tiempo: el agujero tarda más en crecer después de comer. Los instantes de los eventos no cambian.
+- **Efecto secundario.** Una línea tarda ahora 3,2–4,6 s en caer (antes 1,2–2,0 s) y la masa visible sube en la segunda mitad de ese tiempo: el agujero tarda más en crecer después de comer. La mancha inicial del enemigo es más estrecha (0,22 → 0,12 m).
+- **Verificado:** con Blender 5.2.4 LTS a 1280 × 720, la demo de masa (completa, modo simple y variante al 200 %), la demo de fusión (276 cuadros) y tres cuadros desde un ángulo bajo. Se revisaron las hojas de contactos y cuadros sueltos a tamaño real, comparados con el efecto anterior renderizado a la misma resolución (`previas/singularidad_antes_y_ahora.jpg`). Los eventos y sus instantes de las dos demos coinciden con los de la ejecución anterior. `borrador`, `final` y la fusión en modo simple corren (dos cuadros cada uno). `--ajuste` rechaza claves que no existen y valores que no son JSON.
+- **No verificado:** el movimiento en vídeo (solo cuadros, tres de ellos consecutivos), nada en WebGL/WebGPU ni rendimiento en GPU. No se ejecutaron las pruebas del juego: no se tocó ningún archivo suyo.
+- **Pendiente:** que el usuario elija entre 200 % y 250 %, y si quiere que la lente crezca con el disco (`--ajuste curvas.lente.exponente=0.7`, probado en un cuadro). Sigue lo pendiente de la entrada anterior.
 
 ## VFX · singularidad y explosiones, pruebas de concepto en Blender · 11 de noviembre de 2026
 
