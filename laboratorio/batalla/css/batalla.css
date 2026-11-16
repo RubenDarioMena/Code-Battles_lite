@@ -1,0 +1,151 @@
+/* Laboratorio de batalla · distribución. Colores, metal y editor vienen de tema.css, base.css y shared/editor. */
+#lab { height: 100dvh; display: flex; flex-direction: column; gap: 8px; min-height: 0;
+  padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.hueco { flex: 1 1 0; min-width: 0; }
+.mini { display: inline-grid; place-items: center; border: 1px solid var(--line); background: var(--surface-2); border-radius: 6px; padding: 3px 9px;
+  min-width: 34px; min-height: 32px; cursor: pointer; font: 650 12.5px var(--f-body); color: var(--muted); white-space: nowrap; }
+.mini:hover { color: var(--ink); }
+.mini[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.mini:disabled { opacity: .45; cursor: default; }
+select.mini { color: var(--ink); max-width: 46vw; }
+
+/* ---------- Barra superior ---------- */
+.barra { display: flex; align-items: center; gap: 6px; flex: none; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.barra::-webkit-scrollbar { display: none; }
+.barra > * { flex: none; }
+.barra > .hueco { flex: 1 1 0; }
+.volver { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); text-decoration: none; font-size: 16px; }
+.volver:hover { color: var(--ink); }
+.principal { min-height: 34px; padding: 4px 16px; border-radius: 7px; border: 1px solid var(--metal-negro); cursor: pointer; font: 800 13px var(--f-display); letter-spacing: .04em;
+  color: var(--accent-ink); background: linear-gradient(180deg, #9db9ff, var(--accent)); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); white-space: nowrap; }
+#lab[data-estado="corre"] .principal, #lab[data-estado="pausa"] .principal { color: #2a0c08; background: linear-gradient(180deg, #ff9d92, var(--bad)); }
+.velocidades, .paneles { display: inline-flex; gap: 3px; }
+.paneles { display: none; }
+
+/* ---------- Paneles ---------- */
+main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(340px, 1fr); gap: 8px; }
+.panel-batalla, .panel-codigo { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+
+.hud { display: flex; align-items: center; gap: 12px; flex: none; min-width: 0; font-size: 12px; }
+.hud .dato { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hud .dato i { font-style: normal; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10.5px; }
+.hud .dato b { font: 700 13px var(--f-code); color: var(--ink); min-width: 2ch; }
+.barra-muro { width: clamp(50px, 12vw, 140px); height: 8px; border-radius: 4px; background: var(--metal-negro); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.barra-muro span { display: block; height: 100%; width: 100%; background: var(--ok); transition: width .2s; }
+.barra-muro span[data-nivel="medio"] { background: var(--warn); }
+.barra-muro span[data-nivel="bajo"] { background: var(--bad); }
+
+.destinatarios { display: flex; gap: 5px; flex: none; overflow-x: auto; scrollbar-width: none; align-items: center; padding-bottom: 1px; }
+.destinatarios::-webkit-scrollbar { display: none; }
+.destinatarios .rotulo { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; flex: none; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 2px 9px; border-radius: 15px; border: 1px solid var(--line); background: var(--surface-2);
+  font: 700 11.5px var(--f-code); color: var(--muted); cursor: pointer; }
+.chip[aria-pressed="true"] { color: var(--bg); background: var(--sel); border-color: var(--sel); }
+.chip .oye { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.chip[data-oye="true"] .oye { background: var(--rol-rastreo); box-shadow: 0 0 6px var(--rol-rastreo); }
+.chip[data-estado="error"] { border-color: var(--bad); color: var(--bad); }
+.chip[data-estado="destruida"] { opacity: .5; text-decoration: line-through; }
+
+.campo { position: relative; flex: 1 1 auto; min-height: 120px; border-radius: 6px; overflow: hidden; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
+#lienzo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.zoom { position: absolute; right: 6px; top: 6px; display: grid; gap: 4px; opacity: .8; }
+.zoom .mini { min-width: 30px; min-height: 30px; padding: 0; font-size: 16px; background: rgba(5, 8, 10, .8); }
+.aviso-campo { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); max-width: min(92%, 520px); padding: 6px 12px; border-radius: 8px;
+  background: rgba(5, 8, 10, .9); border: 1px solid var(--edge); font-size: 12.5px; text-align: center; pointer-events: none; }
+.banner { position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; text-align: center; padding: 16px; background: rgba(5, 8, 10, .78); backdrop-filter: blur(2px); }
+.banner h2 { margin: 0; font: 800 clamp(22px, 4vw, 34px) var(--f-display); letter-spacing: .02em; }
+.banner[data-tipo="victoria"] h2 { color: var(--ok); }
+.banner[data-tipo="fallo"] h2 { color: var(--bad); }
+.banner p { margin: 0; color: var(--muted); max-width: 46ch; }
+.banner .cifras { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; font: 600 12.5px var(--f-code); color: var(--ink); }
+.banner .cifras span i { font-style: normal; color: var(--muted); margin-right: 5px; }
+.banner .botones { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+.prueba { flex: none; font-size: 12.5px; line-height: 1.45; max-height: 34%; overflow: auto; }
+.prueba summary { cursor: pointer; display: flex; align-items: center; gap: 8px; list-style: none; }
+.prueba summary::-webkit-details-marker { display: none; }
+.prueba summary b { font: 700 13.5px var(--f-display); }
+.prueba summary::after { content: "▾"; color: var(--muted); margin-left: auto; }
+.prueba:not([open]) summary::after { content: "▸"; }
+.prueba p { margin: 6px 0 0; color: var(--ink); }
+.prueba p i { display: inline-block; margin-right: 7px; font-style: normal; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.prueba .pista i { color: var(--warn); }
+.prueba .pregunta span, .prueba .pista span { color: var(--muted); }
+
+/* ---------- Código ---------- */
+.pestanas { display: flex; gap: 4px; flex: none; overflow-x: auto; scrollbar-width: none; }
+.pestanas::-webkit-scrollbar { display: none; }
+.pestana { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 3px 10px; border-radius: 7px 7px 0 0; border: 1px solid var(--line); border-bottom-color: transparent;
+  background: var(--surface-2); color: var(--muted); font: 700 12px var(--f-code); cursor: pointer; }
+.pestana[aria-selected="true"] { color: var(--ink); background: var(--code-bg); border-color: var(--edge); border-bottom-color: transparent; }
+.pestana .punto { width: 7px; height: 7px; border-radius: 50%; background: var(--rol-ofensiva); }
+.pestana[data-estado="error"] .punto { background: var(--bad); box-shadow: 0 0 6px var(--bad); }
+.pestana[data-estado="vivo"] .punto { box-shadow: 0 0 6px var(--rol-ofensiva); }
+.pestana[data-estado="destruida"] .punto { background: var(--muted); }
+.acciones { display: flex; align-items: center; gap: 5px; flex: none; min-width: 0; }
+.acciones .de { font-size: 12px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#b-aplicar { border-color: var(--warn); color: var(--warn); }
+.editor-raiz { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.editor-raiz.cmg-editor[data-autonomo] { --alto-editor: auto; gap: 6px; }
+.editor-raiz.cmg-editor[data-autonomo] .editor, .editor-raiz.cmg-editor[data-autonomo] .prog { flex: 1 1 auto; height: auto; min-height: 90px; }
+.editor-raiz.cmg-editor[data-autonomo] .b-pantalla { display: none; }
+.consola-cab { display: flex; align-items: center; gap: 6px; flex: none; }
+.consola { flex: 0 0 clamp(84px, 22%, 190px); overflow: auto; border-radius: 6px; background: var(--code-bg); box-shadow: inset 0 0 0 1px var(--line); padding: 5px 8px; font: 12px/1.5 var(--f-code); }
+.consola .linea { display: flex; gap: 8px; white-space: pre-wrap; word-break: break-word; }
+.consola .linea time { color: var(--muted); flex: none; min-width: 4.5ch; text-align: right; }
+.consola .linea .quien { flex: none; color: var(--rol-ofensiva); }
+.consola .linea.sim .quien { color: var(--muted); }
+.consola .linea.warn .texto { color: var(--warn); }
+.consola .linea.bad .texto, .consola .linea.error .texto { color: var(--bad); }
+.consola .linea.ok .texto { color: var(--ok); }
+.consola .linea.info .texto { color: var(--accent); }
+.consola .vacia { color: var(--muted); }
+.consola button.ir { all: unset; cursor: pointer; text-decoration: underline; color: var(--bad); }
+
+/* ---------- Guía ---------- */
+.guia { width: min(860px, 96vw); max-height: 90dvh; padding: 0; color: var(--ink); background: var(--surface); border: 1px solid var(--edge); border-radius: 10px; }
+.guia::backdrop { background: rgba(0, 0, 0, .6); }
+.guia header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.guia h2 { margin: 0; font: 800 16px var(--f-display); }
+.guia-cuerpo { padding: 4px 14px 16px; font-size: 13px; line-height: 1.5; }
+.guia-cuerpo h3 { margin: 16px 0 6px; font: 800 12px var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.guia-cuerpo table { width: 100%; border-collapse: collapse; }
+.guia-cuerpo td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.guia-cuerpo td:first-child { white-space: nowrap; }
+.guia-cuerpo code { font: 12.5px var(--f-code); color: var(--tk-fn); }
+.guia-cuerpo .quien { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+.guia-cuerpo p { margin: 6px 0; color: var(--muted); }
+.guia-tabla { overflow-x: auto; }
+
+/* ---------- Teléfono y ventanas estrechas: un panel cada vez ---------- */
+@media (max-width: 820px) {
+  #lab { gap: 6px; padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
+  main { grid-template-columns: minmax(0, 1fr); }
+  /* Dos filas: prueba y ejecutar arriba; ritmo, guía y cambio de panel debajo, siempre a la vista. */
+  .barra { flex-wrap: wrap; overflow: visible; row-gap: 5px; }
+  .barra > .hueco { display: none; }
+  .barra #escenario { flex: 1 1 calc(100% - 200px); min-width: 0; max-width: none; }
+  .barra .paneles { display: inline-flex; order: 0; }
+  .barra #b-ejecutar, .barra #b-pausa, .barra .velocidades, .barra #b-repetir, .barra #b-guia { order: 1; }
+  .barra #b-guia { margin-left: auto; }
+  .aviso-campo { font-size: 11.5px; padding: 4px 9px; bottom: 5px; }
+  .titulo { display: none; }
+  #lab[data-panel="batalla"] .panel-codigo, #lab[data-panel="codigo"] .panel-batalla { display: none; }
+  .panel-batalla, .panel-codigo { padding: 6px; }
+  .hud { gap: 9px; }
+  .hud .dato i { display: none; }
+  .hud .dato::before { content: attr(data-corto); color: var(--muted); font-size: 11px; }
+  .consola { flex-basis: 96px; }
+}
+/* Teléfono en vertical: el campo toma la forma del mapa (sin bandas) y la ficha de la prueba ocupa el resto. */
+@media (max-width: 820px) and (orientation: portrait) {
+  .campo { flex: none; aspect-ratio: 48 / 27; min-height: 0; }
+  .prueba { flex: 1 1 auto; max-height: none; }
+}
+@media (max-width: 950px) and (orientation: landscape) and (max-height: 520px) {
+  .prueba { display: none; }
+  .barra { flex-wrap: nowrap; overflow-x: auto; }
+  .barra .paneles { display: inline-flex; }
+  main { grid-template-columns: minmax(0, 1fr); }
+  #lab[data-panel="batalla"] .panel-codigo, #lab[data-panel="codigo"] .panel-batalla { display: none; }
+}
