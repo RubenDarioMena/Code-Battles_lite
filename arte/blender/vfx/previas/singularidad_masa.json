@@ -3,10 +3,10 @@
  "fps": 24,
  "cuadros": 216,
  "resolucion": [
-  768,
-  432
+  1280,
+  720
  ],
- "calidad": "final",
+ "calidad": "alta",
  "modo": "completo",
  "eventos": [
   {
@@ -188,80 +188,80 @@
    "lente": 0.9,
    "hawking": 1.7,
    "oscuridad": 0.014,
-   "arcos": 2.0,
-   "brillo_arcos": 1.5,
+   "arcos": 1.0,
+   "brillo_arcos": 1.2,
    "alcance_arcos": 0.9,
    "radio_absorcion": 1.4,
    "letalidad": 0.0063
   },
   "2": {
    "x": 0.2,
-   "radio": 0.131,
+   "radio": 0.172,
    "lente": 1.364,
    "hawking": 0.69,
    "oscuridad": 0.099,
-   "arcos": 3.364,
-   "brillo_arcos": 1.847,
+   "arcos": 1.231,
+   "brillo_arcos": 1.331,
    "alcance_arcos": 1.318,
    "radio_absorcion": 2.438,
    "letalidad": 0.029
   },
   "3": {
    "x": 0.3,
-   "radio": 0.188,
+   "radio": 0.292,
    "lente": 1.74,
    "hawking": 0.408,
    "oscuridad": 0.193,
-   "arcos": 4.559,
-   "brillo_arcos": 2.086,
+   "arcos": 1.39,
+   "brillo_arcos": 1.415,
    "alcance_arcos": 1.647,
    "radio_absorcion": 3.372,
    "letalidad": 0.0707
   },
   "4": {
    "x": 0.4,
-   "radio": 0.244,
+   "radio": 0.424,
    "lente": 2.068,
    "hawking": 0.28,
    "oscuridad": 0.291,
-   "arcos": 5.657,
-   "brillo_arcos": 2.274,
+   "arcos": 1.516,
+   "brillo_arcos": 1.477,
    "alcance_arcos": 1.929,
    "radio_absorcion": 4.244,
    "letalidad": 0.1332
   },
   "6": {
    "x": 0.6,
-   "radio": 0.351,
+   "radio": 0.719,
    "lente": 2.637,
    "hawking": 0.123,
    "oscuridad": 0.497,
-   "arcos": 7.667,
-   "brillo_arcos": 2.568,
+   "arcos": 1.712,
+   "brillo_arcos": 1.57,
    "alcance_arcos": 2.411,
    "radio_absorcion": 5.87,
    "letalidad": 0.325
   },
   "8": {
    "x": 0.8,
-   "radio": 0.455,
+   "radio": 1.045,
    "lente": 3.134,
    "hawking": 0.014,
    "oscuridad": 0.71,
-   "arcos": 9.514,
-   "brillo_arcos": 2.799,
+   "arcos": 1.866,
+   "brillo_arcos": 1.639,
    "alcance_arcos": 2.825,
    "radio_absorcion": 7.389,
    "letalidad": 0.6121
   },
   "10.0": {
    "x": 1.0,
-   "radio": 0.556,
+   "radio": 1.397,
    "lente": 3.583,
    "hawking": 0.0,
    "oscuridad": 0.93,
-   "arcos": 11.247,
-   "brillo_arcos": 2.993,
+   "arcos": 1.995,
+   "brillo_arcos": 1.695,
    "alcance_arcos": 3.193,
    "radio_absorcion": 8.833,
    "letalidad": 1.0
@@ -269,8 +269,8 @@
  },
  "tiempos_fusion": null,
  "segundos": {
-  "total": 45.0,
-  "por_cuadro": 0.21,
+  "total": 223.6,
+  "por_cuadro": 1.03,
   "renders_escenario": 1
  },
  "config": {
@@ -283,7 +283,7 @@
   "curvas": {
    "radio_horizonte": {
     "base": 0.07,
-    "exponente": 0.9
+    "exponente": 1.3
    },
    "lente": {
     "base": 0.9,
@@ -318,7 +318,35 @@
    "halo": 0.1,
    "halo_m": 0.45,
    "raya": 0.18,
-   "parpadeo": 0.22
+   "parpadeo": 0.22,
+   "color_borde": [
+    0.8,
+    0.1,
+    1.0
+   ],
+   "borde": 1.3
+  },
+  "horizonte": {
+   "fondo": [
+    0.003,
+    0.002,
+    0.012
+   ],
+   "borde_color": [
+    0.85,
+    0.06,
+    1.0
+   ],
+   "borde_color_interior": [
+    0.1,
+    0.03,
+    0.55
+   ],
+   "borde_ancho": 0.11,
+   "borde_brillo": 0.6,
+   "borde_asimetria": 0.45,
+   "borde_angulo_grados": 40,
+   "borde_suave": 0.03
   },
   "oscuridad": {
    "inicio": 0.08,
@@ -339,6 +367,7 @@
     1.0
    ],
    "largo_profundidad": 1.5,
+   "largo_lineas": 3.0,
    "suavizado": 0.02,
    "bloom": 0.3,
    "max_lentes": 4
@@ -352,8 +381,8 @@
   },
   "arcos": {
    "cantidad": {
-    "base": 2.0,
-    "exponente": 0.75
+    "base": 1.0,
+    "exponente": 0.3
    },
    "frecuencia": 14.0,
    "segmentos": 14,
@@ -364,11 +393,11 @@
     "exponente": 0.55
    },
    "brillo": {
-    "base": 1.5,
-    "exponente": 0.3
+    "base": 1.2,
+    "exponente": 0.15
    },
-   "ancho_m": 0.022,
-   "ramas": 0.4,
+   "ancho_m": 0.012,
+   "ramas": 0.2,
    "color": [
     0.5,
     0.76,
@@ -379,33 +408,43 @@
     0.42,
     1.0
    ],
-   "luz_suelo": 0.22,
-   "entre_agujeros": 3
+   "luz_suelo": 0.12,
+   "entre_agujeros": 1
   },
   "espagueti": {
    "estiramiento": 0.15,
    "orbita": [
-    1.2,
-    2.0
+    3.2,
+    4.6
    ],
    "vueltas": [
-    1.6,
-    3.0
+    5.0,
+    7.5
    ],
-   "inclinacion_max_grados": 32,
-   "largo": 0.4,
-   "despegue": 3.0,
+   "inclinacion_max_grados": 3,
+   "largo": [
+    0.03,
+    0.11
+   ],
+   "despegue": 6.0,
    "avance": 1.3,
-   "espiral": 0.6,
-   "ancho_m": 0.03,
-   "tamano_enemigo_m": 0.22,
-   "brillo": 2.6,
-   "segmentos": 24,
+   "espiral": 0.75,
+   "ancho_m": 0.013,
+   "tamano_enemigo_m": 0.12,
+   "brillo": 1.8,
+   "segmentos": 48,
+   "calentamiento": 0.6,
    "color_final": [
     0.8,
     0.9,
     1.0
-   ]
+   ],
+   "color_horizonte": [
+    0.7,
+    0.18,
+    1.0
+   ],
+   "horizonte": 2.2
   },
   "aparicion": {
    "brillo": 1.6,
