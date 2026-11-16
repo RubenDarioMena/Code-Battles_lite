@@ -1,14 +1,8 @@
 import { createHash } from 'node:crypto';
+import { canonico } from '../../paquetes/protocolo/index.js';
 
-/** JSON canónico de datos JSON: orden lexicográfico de claves, arrays en orden,
- * números sin redondear (representación JSON.stringify). Es autocontenida para addInitScript.
- * @param {any} valor @returns {string} */
-export function canonico(valor) {
-  if (Array.isArray(valor)) return '[' + valor.map(v => canonico(v)).join(',') + ']';
-  if (valor !== null && typeof valor === 'object')
-    return '{' + Object.keys(valor).sort().map(k => JSON.stringify(k) + ':' + canonico(valor[k])).join(',') + '}';
-  return JSON.stringify(valor);
-}
+// JSON canónico: una sola fuente en el protocolo (fase 2). Se reexporta para el contraste.
+export { canonico };
 
 /** Registra cada paso desde 1; el prefijo y salto delimitan registros sin ambigüedad.
  * @param {number} paso @param {any} instantanea */

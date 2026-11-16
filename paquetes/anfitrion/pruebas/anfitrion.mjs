@@ -1,7 +1,7 @@
 // Pruebas del anfitrión en Node: texto del Worker, ejecución en VM y despertar del lockstep.
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-import { fuenteTrabajador, algunoCorre, despertar, despertarCampaign } from '../index.js';
+import { fuenteTrabajador, algunoCorre, despertar, despertarCampaign, crearAnfitrion } from '../index.js';
 
 let comprobaciones = 0;
 const igual = (a, b, m) => { assert.deepEqual(a, b, m); comprobaciones++; };
@@ -90,5 +90,79 @@ igual(despertarCampaign(ejecC, { t: 1 }, foto), true, 'Campaign despierta');
 igual(envC.map(m => [m.id, m.snap.n]), [[1, 1], [3, 1]], 'vencidas en orden, una sola instantánea');
 igual([...pc.pend.keys()], [2, 4], 'quedan el encargo y la espera futura');
 igual(despertarCampaign(ejecC, { t: 1 }, foto), false, 'nada más que despertar');
+
+// crearAnfitrion con Workers asíncronos falsos: el orden de llegada real no cambia el resultado.
+const reglasWar = { id: 'war', api: { tipos: { drone: {} }, sensores: { visual: {} }, conf: { cadencia: 1 } } };
+/** Trabajador que contesta cuando el reloj de la prueba quiere, en el orden que se le diga. */
+function falsos() {
+  const cola = [], creados = new Map();
+  const crear = (_fuente, unidad, recibir) => {
+    const w = { unidad, recibidos: [], terminado: false, guion: [],
+      postMessage(m) { w.recibidos.push(m); for (const r of w.guion.shift() || []) cola.push(() => recibir(r)); },
+      terminate() { w.terminado = true; } };
+    creados.set(unidad, w);
+    return w;
+  };
+  return { crear, creados, async soltar(orden) {
+    // Entrega los mensajes pendientes en el orden pedido (índices sobre la cola) y cede al anfitrión.
+    const tareas = cola.splice(0); for (const i of orden ?? tareas.map((_, k) => k)) { tareas[i](); await null; }
+  } };
+}
+const cmd = (verbo, x) => ({ type: 'cmd', linea: 1, verbo, lugar: { x, y: 1, z: 0, id: null }, res: 'ok' });
+for (const invertido of [false, true]) {
+  const f = falsos();
+  const a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear, contexto: { nombres: ['A', 'B'] } });
+  await a.cargar('A', 'codigoA'); await a.cargar('B', 'codigoB');
+  f.creados.get('A').guion.push([cmd('regularShoot', 1), { type: 'espera', id: 1, linea: 2, s: 0.5 }]);
+  f.creados.get('B').guion.push([cmd('burstFire', 2), { type: 'espera', id: 1, linea: 2, s: 0.25 }]);
+  const turno = a.ceder({ t: 0 });
+  await f.soltar(invertido ? [2, 3, 0, 1] : [0, 1, 2, 3]);
+  const r = await turno;
+  igual(r.ordenes.map(o => [o.unidad, o.verbo, o.paso, o.origen]), [['A', 'regularShoot', 0, 'programa'], ['B', 'burstFire', 0, 'programa']],
+    `orden por unidad y llegada (${invertido ? 'B llega antes' : 'A llega antes'})`);
+  igual(r.avisos.map(m => `${m.unidad}.${m.type}`), ['A.cmd', 'A.espera', 'B.cmd', 'B.espera'], 'avisos en el mismo orden');
+  igual(f.creados.get('A').recibidos[0].type, 'run', 'el primer ceder arranca');
+  igual(f.creados.get('A').recibidos[0].conf, { cadencia: 1 }, 'conf del reglamento');
+  igual(f.creados.get('B').recibidos[0].nombres, ['A', 'B'], 'nombres del contexto');
+  igual(a.proximaEspera(), 0.25, 'la espera más próxima');
+  // En t=0.25 solo despierta B; A sigue esperando.
+  f.creados.get('B').guion.push([{ type: 'done' }]);
+  const t2 = a.ceder({ t: 0.25 }); await f.soltar(); const r2 = await t2;
+  igual(f.creados.get('A').recibidos.length, 1, 'A no despierta antes de tiempo');
+  igual(f.creados.get('B').recibidos.at(-1), { type: 'despierta', id: 1, snap: { t: 0.25 } }, 'B despierta con la instantánea');
+  igual([r2.ordenes, a.estado('B'), a.algunoCorre()], [[], 'fin', false], 'B termina');
+  a.detener();
+  ok(f.creados.get('A').terminado && f.creados.get('B').terminado, 'detener termina los Workers');
+}
+// Error de programa y MAX_ORDENES.
+{
+  const f = falsos();
+  const a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear, maxOrdenes: 3 });
+  await a.cargar('A', 'x');
+  f.creados.get('A').guion.push([cmd('regularShoot', 1), cmd('regularShoot', 2), cmd('regularShoot', 3), cmd('regularShoot', 4), cmd('regularShoot', 5)]);
+  const t = a.ceder({ t: 1 }); await f.soltar(); const r = await t;
+  igual(r.error, { unidad: 'A', mensaje: 'El programa de A dio 3 órdenes y lecturas sin esperar. ¿Falta await esperar(...) dentro del bucle?', linea: 1 }, 'MAX_ORDENES');
+  igual(r.ordenes.length, 4, 'la orden que supera el límite llega, las posteriores no (como el juego)');
+  igual(r.ordenes[0].paso, 20, 'paso de la orden según t');
+}
+{
+  const f = falsos();
+  const a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear });
+  await a.cargar('A', 'x');
+  f.creados.get('A').guion.push([{ type: 'error', mensaje: 'Malo.', linea: 7 }]);
+  const t = a.ceder({ t: 0 }); await f.soltar(); const r = await t;
+  igual(r.error, { unidad: 'A', mensaje: 'Malo.', linea: 7 }, 'error del Worker');
+  igual(a.estado('A'), 'error', 'estado de error');
+}
+// Imitación sin pantalla (entregar síncrono): un programa que no cede se corta sin colgar.
+{
+  const a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: () => ({ postMessage() {}, terminate() {}, entregar: () => false }) });
+  await a.cargar('A', 'x');
+  const r = await a.ceder({ t: 0 });
+  igual([r.error.unidad, r.error.motivo], ['A', 'sin-cesion'], 'sin-cesion');
+}
+let rechazo = null;
+try { crearAnfitrion({ reglas: { id: 'factory' }, crearTrabajador: () => null }); } catch (e) { rechazo = e.message; }
+ok(/todavía solo War/.test(rechazo), 'Factory y Campaign aún no pasan por crearAnfitrion');
 
 console.log(`anfitrion: ${comprobaciones} comprobaciones`);

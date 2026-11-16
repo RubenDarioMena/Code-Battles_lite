@@ -25,7 +25,8 @@ véanse las [fronteras de paquetes](../README.md). Contratos en `index.d.ts`.
 - `evaluar(mundo)` devuelve `mundo.final ?? null`. Al terminar se guardan
   `{ fin, motivo, mensaje }`, se actualiza `mundo.fin` y se desactiva el mundo.
 - `api` contiene datos planos: `ordenes` (`regularShoot`, `burstFire`, `stopFire`),
-  `tipos` y `sensores`, copiados de los catálogos existentes.
+  `tipos` y `sensores`, copiados de los catálogos existentes. Desde la fase 2, también
+  `conf` (`fallaRafaga`, `cadencia`, `cadenciaRafaga`), que el anfitrión entrega al Worker.
 
 La partida se crea con `crearPartida({ reglas, escenario: { reto }, semilla })`
 de `nucleo`. Su guardado conserva escenario, semilla y órdenes; `restaurar`

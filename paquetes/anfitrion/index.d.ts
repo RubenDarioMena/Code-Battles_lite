@@ -26,3 +26,26 @@ export function algunoCorre(ejec: Ejecucion | null | undefined): boolean;
 export function despertar(ejec: Ejecucion | null | undefined, mundo: MundoReloj, instantanea: () => unknown, ahora?: () => number): boolean;
 export function despertarCampaign(ejec: Ejecucion | null | undefined, mundo: MundoReloj, instantanea: () => unknown, ahora?: () => number): boolean;
 
+export interface Turno {
+  ordenes: import('../protocolo/index.js').Orden[];
+  /** Mensajes del Worker en orden fijo (unidad, llegada), con la unidad que los envió. */
+  avisos: Array<{ unidad: string; type: string; [clave: string]: unknown }>;
+  error: { unidad: string; mensaje: string; linea: number | null; motivo?: string } | null;
+}
+export interface OpcionesAnfitrion {
+  reglas: { id: string; api?: any };
+  crearTrabajador(fuente: string, unidad: string, recibir: (mensaje: any) => void): Trabajador & { entregar?(): boolean; onerror?: any };
+  contexto?: { nombres?: string[]; tipos?: string[]; sensores?: string[]; conf?: Record<string, number> };
+  piezas?: PiezasTrabajador;
+  maxOrdenes?: number;
+  ahora?: () => number;
+}
+export interface Anfitrion {
+  cargar(unidad: string, codigo: string, opciones?: { lenguaje?: 'js' | 'python' }): Promise<void>;
+  ceder(instantanea: { t: number; [clave: string]: unknown }): Promise<Turno>;
+  algunoCorre(): boolean;
+  estado(unidad: string): string | null;
+  proximaEspera(): number | null;
+  detener(): void;
+}
+export function crearAnfitrion(opciones: OpcionesAnfitrion): Anfitrion;

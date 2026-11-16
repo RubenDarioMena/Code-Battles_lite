@@ -14,6 +14,10 @@ están en `index.d.ts`; no requiere compilación.
   cadenas de error en español con la ruta del campo. Un arreglo vacío indica
   validez. No modifican los mensajes.
 - Tipos: `Origen`, `DatoPlano`, `Orden`, `Suceso`, `Instantanea`.
+- `canonico(valor)` (fase 2): JSON canónico con claves ordenadas, arreglos en
+  orden y números sin redondear. Base de las huellas de partida (antes en
+  `herramientas/partida/huella.mjs`, que ahora la reexporta). Es autocontenida:
+  el contraste del navegador la copia por su texto.
 
 ## Mensajes
 

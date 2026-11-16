@@ -74,6 +74,7 @@ export interface ReglamentoWar extends Reglamento<Mundo, Escenario, Final | null
     ordenes: string[];
     tipos: { [tipo: string]: { nombre: string; suelo: boolean; z: number; vel: number; hp: number; frio: boolean; letra: string } };
     sensores: { [sensor: string]: { nombre: string; alcance: number; niebla: number } };
+    conf: { fallaRafaga: number; cadencia: number; cadenciaRafaga: number };
   };
 }
 export const legado: {

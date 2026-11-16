@@ -39,6 +39,8 @@ const reglamento = {
     ordenes: ['regularShoot', 'burstFire', 'stopFire'],
     tipos: Object.fromEntries(Object.entries(TIPOS).map(([tipo, datos]) => [tipo, { ...datos }])),
     sensores: Object.fromEntries(Object.entries(SENSOR).map(([sensor, datos]) => [sensor, { ...datos }])),
+    // Lo que el Worker necesita para simular la orden en su instantánea (fase 2, anfitrión).
+    conf: { fallaRafaga: LAU.fallaRafaga, cadencia: LAU.cadencia, cadenciaRafaga: LAU.cadenciaRafaga },
   },
 };
 

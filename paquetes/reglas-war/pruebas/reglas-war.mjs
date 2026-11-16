@@ -58,6 +58,7 @@ comprobar(esDatoPlano(reglamento.api), 'API de datos planos');
 igual(reglamento.api.ordenes, ['regularShoot', 'burstFire', 'stopFire']);
 igual(reglamento.api.tipos, legado.TIPOS);
 igual(reglamento.api.sensores, legado.SENSOR);
+igual(reglamento.api.conf, { fallaRafaga: legado.LAU.fallaRafaga, cadencia: legado.LAU.cadencia, cadenciaRafaga: legado.LAU.cadenciaRafaga });
 igual(Object.keys(legado), ['crear', 'conectar', 'aplicarOrden', 'TIPOS', 'SENSOR', 'LAU', 'MISIL', 'REP', 'COSTE', 'cadencia']);
 igual(Object.keys(retos), ['RETOS', 'PROPIO_BASE', 'POS_LANZADORES', 'normalizar']);
 

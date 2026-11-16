@@ -137,3 +137,14 @@ export function validarInstantanea(i) {
   revisarDato(i, 'instantanea', new Set(), errores);
   return errores;
 }
+
+/** JSON canónico de una instantánea: claves en orden lexicográfico, arreglos en orden y números sin
+ * redondear (como JSON.stringify). Es la base de las huellas de partida. Autocontenida: el contraste
+ * del navegador la copia por su texto. Antes vivía en herramientas/partida/huella.mjs.
+ * @param {any} valor @returns {string} */
+export function canonico(valor) {
+  if (Array.isArray(valor)) return '[' + valor.map(v => canonico(v)).join(',') + ']';
+  if (valor !== null && typeof valor === 'object')
+    return '{' + Object.keys(valor).sort().map(k => JSON.stringify(k) + ':' + canonico(valor[k])).join(',') + '}';
+  return JSON.stringify(valor);
+}

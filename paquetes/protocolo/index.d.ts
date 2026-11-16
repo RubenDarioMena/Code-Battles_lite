@@ -26,3 +26,4 @@ export function esDatoPlano(valor: unknown): valor is DatoPlano;
 export function validarOrden(o: unknown): string[];
 export function validarSuceso(s: unknown): string[];
 export function validarInstantanea(i: unknown): string[];
+export function canonico(valor: unknown): string;

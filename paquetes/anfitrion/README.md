@@ -1,6 +1,6 @@
 # anfitrion
 
-Estado: fase 2, paso 1 (texto del Worker y despertar).
+Estado: fase 2, pasos 1 (texto del Worker y despertar) y 2 (`crearAnfitrion` para War).
 
 Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
 Hoy, un Web Worker por unidad programable; en la fase 5, un intérprete con
@@ -36,12 +36,38 @@ Quién lo usa:
 - La partida sin pantalla (`herramientas/partida/cargar.mjs` y `ciclo.mjs`), que
   importa el paquete en vez de capturar el Worker por `Blob`.
 
-## Contrato previsto (siguiente paso)
+## `crearAnfitrion` (paso 2, solo War)
 
-`crearAnfitrion({ reglas, lenguaje })`; `await cargar(unidad, fuente)`;
-`await ceder(instantanea)` devuelve órdenes y avisos cuando todos esperan. Debe
-absorber los mensajes comunes de «Ciclo de los programas» de `juego.js` y fijar
-el orden de los mensajes de distintas unidades en el mismo instante.
+`crearAnfitrion({ reglas, crearTrabajador, contexto?, piezas?, maxOrdenes = 4000, ahora? })`:
+
+- `crearTrabajador(fuente, unidad, recibir)` devuelve un Worker (o su imitación
+  sin pantalla) con `postMessage` y `terminate`. Si además tiene `entregar()`
+  (imitación síncrona de `herramientas/partida/programa.mjs`), el anfitrión lo
+  bombea por unidades; si no, espera a sus mensajes.
+- `contexto` completa el mensaje `run`: `nombres` (unidades nombrables),
+  `tipos`, `sensores` y `conf`; por defecto, de `reglas.api` (War añade
+  `api.conf` en este paso).
+- `await cargar(unidad, codigo, { lenguaje })`: código ya revisado,
+  instrumentado o traducido (eso sigue en el juego hasta que exista `lenguaje`).
+- `await ceder(instantanea)`: arranca los programas nuevos, despierta a los que
+  esperan con `despertar <= t + 1e-9` y cede hasta que ninguno corre. Devuelve
+  `{ ordenes, avisos, error }`: órdenes `{ paso: pasoDe(t), origen: 'programa',
+  unidad, verbo, args: [lugar] }` y los mensajes del Worker como avisos.
+- **Orden fijo** (decisión pendiente del plan, resuelta aquí): los mensajes se
+  anotan al llegar, pero órdenes y avisos se entregan ordenados por unidad
+  (orden de carga) y llegada. Dos órdenes del mismo instante ya no dependen del
+  reloj real entre Workers. Coincide con la imitación sin pantalla y no cambió
+  ninguna referencia (las 10 de War se reproducen con este anfitrión).
+- MAX_ORDENES cuenta lecturas, órdenes y consola por despertar; la que supera el
+  límite se entrega y las siguientes no, como en el juego. Un error del Worker
+  (`error` u `onerror`) para la cesión y se devuelve en `error`. Una imitación
+  sin nada que entregar devuelve `error.motivo = 'sin-cesion'`.
+- `algunoCorre()`, `estado(unidad)`, `proximaEspera()` y `detener()`.
+
+Límites: Factory y Campaign todavía no (sus encargos terminan por un gancho del
+mundo que el reglamento de la fase 1 no expone; ver «Decisiones pendientes»).
+Si dos unidades fallan en el mismo instante con Workers reales, gana la primera
+en llegar. El juego aún no usa `crearAnfitrion`: sigue con `window.RUNTIME`.
 
 ## De dónde sale
 
@@ -57,5 +83,7 @@ node paquetes/anfitrion/pruebas/anfitrion.mjs
 Registrada en `pruebas/todas.mjs`. Ejecuta el texto del Worker en `node:vm`
 (lectura, orden, espera, despertar, consola, fin, errores con línea, validación
 inyectada de Factory), comprueba `despertar`/`despertarCampaign` con programas
-falsos. La paridad con el juego la dan `partida-referencias` (41 partidas) y el
+falsos y `crearAnfitrion` con Workers asíncronos falsos cuyos mensajes llegan en
+distinto orden (mismo resultado), MAX_ORDENES, errores y `sin-cesion`.
+`pruebas/fronteras-fase2.mjs` lo usa con la imitación real de Worker. La paridad con el juego la dan `partida-referencias` (41 partidas) y el
 contraste con Chromium.
