@@ -97,6 +97,8 @@ export function restaurar(guardado: Guardado, reto?: Nivel): Mundo;
 export type Final = { fin: 'victoria'; hito: number; completado: true };
 export interface ReglamentoCampaign extends Reglamento<Mundo, Escenario, Final | null> {
   id: 'campaign'; version: number; instantanea(mundo: Mundo): Instantanea;
+  /** Lo que dibujan las vistas: datos planos independientes del mundo (fase 2). */
+  escena(mundo: Mundo): { t: number; porId: Record<string, any>; [clave: string]: any };
   api: { encargos: string[]; modos: string[]; lecturas: string[]; espera: string;
     piezas: typeof legado.PIEZAS; recetas: typeof legado.RECETAS;
     maquinas: typeof legado.MAQUINAS; robots: typeof legado.ROBOT; luces: string[] };

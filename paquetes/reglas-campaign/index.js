@@ -2,6 +2,7 @@ import { VERSION, crear, serializar, indexar, instantanea, metas, cuantos, enLot
   estadoMaquina, totalEntrada, esMaquina, esRobot, PIEZAS, RECETAS, MAQUINAS, ROBOT,
   BANDA, COSTE, PEDIDO, ARSENAL, TORRETA, LUCES, TARIMA_CAP, HITO_MAESTRO } from './estado.js';
 import { conectar } from './mundo.js';
+import { copiaPlana } from '../nucleo/index.js';
 import { validar, modoEnSnap } from './validacion.js';
 import { nivel } from './nivel.js';
 
@@ -42,6 +43,11 @@ const reglamento = {
   },
   instantanea(mundo) {
     return { t: mundo.t, maq: {}, auto: {}, vib: {}, campaign: JSON.parse(JSON.stringify(instantanea(mundo))) };
+  },
+  // Lo que dibujan las vistas (fase 2): copia en datos planos, independiente del mundo.
+  escena(mundo) {
+    return copiaPlana({ t: mundo.t, activo: mundo.activo, hito: mundo.hito, maquinas: mundo.maquinas, robots: mundo.robots,
+      tarimas: mundo.tarimas, misiles: mundo.misiles, explosiones: mundo.explosiones, bahia: mundo.bahia, porId: mundo.porId });
   },
   // El mundo continúa tras el último hito para ejecutar la salva y el suministro.
   evaluar(mundo) { return mundo.completado ? { fin: 'victoria', hito: mundo.hito, completado: true } : null; },

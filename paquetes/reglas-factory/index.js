@@ -1,3 +1,4 @@
+import { copiaPlana } from '../nucleo/index.js';
 import { crear, conectar, validar, instantanea, MATERIALES } from './mundo.js';
 import { retos } from './retos.js';
 
@@ -40,6 +41,10 @@ const reglamento = {
     // El legado conserva referencias y campos undefined para los Workers.
     // La entrada de reglamento devuelve datos planos independientes.
     return { t: mundo.t, maq: {}, auto: {}, vib: {}, factory: JSON.parse(JSON.stringify(instantanea(mundo))) };
+  },
+  // Lo que dibujan las vistas (fase 2): copia en datos planos, independiente del mundo.
+  escena(mundo) {
+    return copiaPlana({ t: mundo.t, revelado: mundo.revelado, entidades: mundo.entidades, robot: mundo.robot, porId: mundo.porId });
   },
   evaluar(mundo) { return mundo.final ?? null; },
   api: {

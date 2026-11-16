@@ -157,4 +157,33 @@ for (const nombre of ['juego', 'campaign-ui', 'campaign-3d', 'campaign-plano', '
   comprobar(scripts.indexOf(`js/${nombre}.js`) > puente);
 for (const nombre of ['campaign', 'campaign-nivel']) comprobar(!scripts.includes(`js/${nombre}.js`));
 comprobar(/js\/compat-paquetes\.js\?v=\d+/.test(html));
+
+// Escena (fase 2): lo que dibujan las vistas. Datos planos, mismos valores que el mundo e independiente de él.
+{
+  const ESCENARIO_ESCENA = { reto: nivel.NIVEL }, PASOS_ESCENA = 40;
+  const CAMPOS_ESCENA = ['maquinas', 'robots', 'tarimas', 'misiles', 'explosiones', 'bahia', 'hito', 'activo'];
+  const { esDatoPlano: plano } = await import('../../protocolo/index.js');
+  const { crearPartida: crear } = await import('../../nucleo/index.js');
+  const partidaEscena = crear({ reglas: reglamento, escenario: ESCENARIO_ESCENA, semilla: 7 });
+  for (const o of [{ paso: 0, origen: 'jugador', unidad: 'FRK-01', verbo: 'pickUp', args: ['BAY-1'] }]) partidaEscena.ordenar(o);  // con un encargo en curso
+  for (let i = 0; i < PASOS_ESCENA; i++) partidaEscena.paso();
+  const m = partidaEscena.mundo, e = reglamento.escena(m);
+  comprobar(plano(e), 'escena en datos planos');
+  igual(e.t, m.t, 'escena: t');
+  // Todo lo enumerable del mundo está en la escena con el mismo valor (la escena añade los getters).
+  const contiene = (x, o, ruta) => {
+    if (o === null || typeof o !== 'object') return igual(x, o, ruta);
+    if (Array.isArray(o)) { igual(Array.isArray(x) && x.length, o.length, ruta); o.forEach((v, i) => contiene(x[i], v, `${ruta}[${i}]`)); return; }
+    for (const k of Object.keys(o)) contiene(x[k], o[k], `${ruta}.${k}`);
+  };
+  for (const k of CAMPOS_ESCENA) contiene(e[k], JSON.parse(JSON.stringify(m[k])), `escena: ${k}`);
+  for (const [id, x] of Object.entries(e.porId)) contiene(x, JSON.parse(JSON.stringify(m.porId[id])), `escena: porId ${id}`);
+  // Las vistas leen también getters no enumerables (cx/cy del robot de Factory): deben estar en la escena.
+  for (const [id, x] of Object.entries(m.porId)) for (const k of Object.getOwnPropertyNames(x))
+    if (typeof x[k] !== 'function' && typeof x[k] !== 'object') igual(e.porId[id][k], x[k], `escena: ${id}.${k}`);
+  const antes = JSON.stringify(reglamento.instantanea(m));
+  for (const x of Object.values(e.porId)) { x.cx = -99; x.id = 'otro'; }
+  igual(JSON.stringify(reglamento.instantanea(m)), antes, 'cambiar la escena no toca el mundo');
+}
+
 console.log(`reglas-campaign: ${comprobaciones} comprobaciones`);

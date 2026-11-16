@@ -35,6 +35,12 @@ aplicarOrden(mundo, orden), instantanea(mundo), evaluar(mundo) }`. El escenario
 contiene datos planos; se copia antes de entregarlo al reglamento. La evolución
 debe depender únicamente del escenario, la semilla y las órdenes.
 
+- `copiaPlana(valor)` (fase 2): copia profunda de arreglos y objetos que
+  conserva referencias compartidas y ciclos, omite las propiedades con
+  funciones (Factory guarda una en `robot.tarea`) y copia por su valor los
+  getters propios, también los no enumerables (`cx`/`cy` del robot de Factory). La usan las `escena(mundo)`
+  de los reglamentos para entregar a las vistas datos planos independientes.
+
 ## Guardado por repetición
 
 `serializar()` devuelve copias de datos planos

@@ -32,6 +32,16 @@ La partida se crea con `crearPartida({ reglas, escenario: { reto }, semilla })`
 de `nucleo`. Su guardado conserva escenario, semilla y órdenes; `restaurar`
 repite los pasos para recuperar mundo, sucesos y resultado.
 
+
+## Escena para las vistas (fase 2)
+
+`escena(mundo)` devuelve lo que dibujan las vistas: `t`, `def.niebla`, `lanzadores`, `sensores`, `deposito`, `reparadores`,
+  `maquinas`, `enemigos`, `misiles`, `explosiones` y `porId` (sobre `maquinas`). Es una copia en
+datos planos (`copiaPlana` del núcleo) independiente del mundo: cambiarla no lo
+toca. No es `instantanea(mundo)`, que es lo que ven los programas y lo que
+protegen las huellas de referencia. El juego la entrega a las vistas una vez por
+fotograma (`estado.escena`); las vistas ya no leen el mundo.
+
 ## Sucesos
 
 Se anotan junto a las operaciones originales, sin cambiar el orden de sus

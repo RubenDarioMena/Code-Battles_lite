@@ -242,4 +242,19 @@ const reglas = {
   igual(restaurar(inicial.serializar(), reglas).instantanea(), inicial.instantanea());
 }
 
+// copiaPlana (fase 2): profunda, sin funciones, con referencias compartidas y ciclos.
+{
+  const { copiaPlana } = await import('../index.js');
+  const assert = comprobar;
+  const comun = { x: 1 }, original = { a: [comun, comun], b: { comun, f() {} }, g: () => 1, n: null, u: undefined, lista: [1, () => 2] };
+  original.yo = original;
+  const c = copiaPlana(original);
+  assert.ok(c !== original && c.a[0] === c.a[1] && c.a[0] === c.b.comun && c.a[0] !== comun); comprobaciones++;
+  assert.ok(c.yo === c && !('g' in c) && !('f' in c.b) && c.n === null && 'u' in c); comprobaciones++;
+  assert.deepEqual(c.lista, [1, null]); comprobaciones++;
+  c.a[0].x = 9; assert.equal(comun.x, 1); comprobaciones++;
+  assert.equal(copiaPlana(5), 5); comprobaciones++;
+  const conGetter = { x: 1 }; Object.defineProperty(conGetter, 'cx', { get: () => conGetter.x + .5 });
+  assert.deepEqual(copiaPlana(conGetter), { x: 1, cx: 1.5 }); comprobaciones++;
+}
 console.log(`nucleo: ${comprobaciones} comprobaciones`);

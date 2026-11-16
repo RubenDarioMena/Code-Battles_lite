@@ -37,6 +37,15 @@ las tareas en curso. El adaptador por defecto no ejecuta programas ni deduce
 su final: sus hooks `programaAcabado` y `llamadaPendiente` devuelven `false`.
 El anfitrión actual conserva esa detección mediante `legado.conectar`.
 
+
+## Escena para las vistas (fase 2)
+
+`escena(mundo)` devuelve lo que dibujan las vistas: `t`, `revelado`, `entidades`, `robot` (con `cx`/`cy`) y `porId`. Es una copia en
+datos planos (`copiaPlana` del núcleo) independiente del mundo: cambiarla no lo
+toca. No es `instantanea(mundo)`, que es lo que ven los programas y lo que
+protegen las huellas de referencia. El juego la entrega a las vistas una vez por
+fotograma (`estado.escena`); las vistas ya no leen el mundo.
+
 ## Sucesos
 
 El registro no enumerable se adjunta al crear el mundo. No cambia las colecciones

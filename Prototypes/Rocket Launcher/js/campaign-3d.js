@@ -234,7 +234,7 @@
     }
     function construir() {
       limpiar(fijo); limpiar(movil); objetos.clear(); tarimas.clear(); misiles.clear(); efectos.clear(); aros.clear(); camion = null;
-      const m = estado.mundo; if (!m) return;
+      const m = estado.escena; if (!m) return;
       for (const e of m.maquinas) {
         let o;
         if (C.esMaquina(e)) o = maquinaObj(e);
@@ -286,7 +286,7 @@
     }
     const giro = (a, b, k) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * k;
     function actualizar(off, ahora) {
-      const m = estado.mundo; if (!m) return;
+      const m = estado.escena; if (!m) return;
       const t = m.t + off, activo = m.activo;
       for (const e of m.maquinas) {
         const o = objetos.get(e.id); if (!o) continue;

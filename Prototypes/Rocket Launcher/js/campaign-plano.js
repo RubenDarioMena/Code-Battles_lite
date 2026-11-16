@@ -48,7 +48,7 @@
     const aMundo = (px, py) => ({ x: vista.cx + (px - w / 2) / vista.T, y: vista.cy + (py - h / 2) / vista.T });
 
     function dibujar() {
-      const m = estado.mundo; if (!m) return;
+      const m = estado.escena; if (!m) return;
       const r = $c2d.getBoundingClientRect(); if (!r.width || !r.height) return;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       if ($c2d.width !== Math.round(r.width * dpr) || $c2d.height !== Math.round(r.height * dpr)) { $c2d.width = Math.round(r.width * dpr); $c2d.height = Math.round(r.height * dpr); }

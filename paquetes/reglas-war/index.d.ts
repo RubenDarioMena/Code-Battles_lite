@@ -70,6 +70,8 @@ export interface Conexion {
 export interface ReglamentoWar extends Reglamento<Mundo, Escenario, Final | null> {
   id: 'war'; version: 1;
   instantanea(mundo: Mundo): InstantaneaWar;
+  /** Lo que dibujan las vistas: datos planos independientes del mundo (fase 2). */
+  escena(mundo: Mundo): { t: number; porId: Record<string, any>; [clave: string]: any };
   api: {
     ordenes: string[];
     tipos: { [tipo: string]: { nombre: string; suelo: boolean; z: number; vel: number; hp: number; frio: boolean; letra: string } };

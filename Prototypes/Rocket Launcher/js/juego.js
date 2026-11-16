@@ -528,8 +528,13 @@
 
   // ---------- Vista 3D ----------
   const leerVar = (k) => getComputedStyle(document.documentElement).getPropertyValue(`--${k}`).trim();
+  // Fase 2: las vistas dibujan la escena del reglamento (datos planos), no el mundo. Una copia por fotograma:
+  // se invalida al empezar cada fotograma y al crear un mundo nuevo.
+  const escenaDe = window.ESCENAS[SERIE];
+  let escenaFoto = null;
+  const invalidarEscena = () => { escenaFoto = null; };
   const estadoVista = {
-    get mundo() { return mundo; }, get seleccionadas() { return seleccionadas; }, get seleccion() { return seleccion; },
+    get escena() { return mundo ? (escenaFoto ||= escenaDe(mundo)) : null; }, get seleccionadas() { return seleccionadas; }, get seleccion() { return seleccion; },
     get arrastreCampo() { return arrastreCampo; }, get cols() { return COLS; }, get rows() { return ROWS; },
     get col() { return col; }, get geo2() { return geo2; }, set geo2(g) { geo2 = g; },
     get def() { return def; }, get vista() { return vista; },
@@ -1052,6 +1057,7 @@
       llamadaPendiente: () => !!ejec && [...ejec.progs.values()].some(p => p.encargo),
     });
     else combate = window.WAR.conectar(mundo, { registrar, terminar, avisoSistema, globo });
+    invalidarEscena();
     if (V3) V3.construir();
     for (const o of etiquetas.values()) { o.etq.remove(); o.g.remove(); }
     etiquetas.clear(); globos.clear();
@@ -2631,6 +2637,7 @@
   function bucle(now) {
     const real = Math.min(0.25, (now - ultimo) / 1000);
     ultimo = now;
+    invalidarEscena();
     if (mundo.activo && !mundo.fin && !pausa) { if (!algunoCorre()) acum += real * velocidad * turbo; avanzar(); }
     else if (!mundo.activo) acum = 0;
     if (ES_CAMPAIGN) cicloCampaign(now);

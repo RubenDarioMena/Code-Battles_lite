@@ -21,6 +21,16 @@ Los contratos de datos y operaciones están en `index.d.ts`.
 La separación sigue la costura entre estado/lecturas, funciones del Worker y
 simulación. Ningún archivo del paquete supera 500 líneas.
 
+
+## Escena para las vistas (fase 2)
+
+`escena(mundo)` devuelve lo que dibujan las vistas: `t`, `activo`, `hito`, `maquinas`, `robots`, `tarimas`, `misiles`,
+  `explosiones`, `bahia` y `porId`. Es una copia en
+datos planos (`copiaPlana` del núcleo) independiente del mundo: cambiarla no lo
+toca. No es `instantanea(mundo)`, que es lo que ven los programas y lo que
+protegen las huellas de referencia. El juego la entrega a las vistas una vez por
+fotograma (`estado.escena`); las vistas ya no leen el mundo.
+
 ## Entrada pública
 
 `index.js` exporta por defecto `{ id: 'campaign', version: 1, crearMundo, paso,

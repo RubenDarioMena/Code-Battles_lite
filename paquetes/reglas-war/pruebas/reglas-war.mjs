@@ -142,4 +142,33 @@ conexiones[0].paso(1);
 comprobar(conRegistro.sucesos.desde(0).some(suceso => suceso.tipo === 'sin-misiles'), 'hay sin-misiles');
 verificarSucesos({ mundo: conRegistro, sucesos: () => conRegistro.sucesos.desde(0) });
 
+
+// Escena (fase 2): lo que dibujan las vistas. Datos planos, mismos valores que el mundo e independiente de él.
+{
+  const ESCENARIO_ESCENA = { reto: retos.normalizar(retos.RETOS[2]) }, PASOS_ESCENA = 400;
+  const CAMPOS_ESCENA = ['lanzadores', 'sensores', 'deposito', 'reparadores', 'maquinas', 'enemigos', 'misiles', 'explosiones'];
+  const { esDatoPlano: plano } = await import('../../protocolo/index.js');
+  const { crearPartida: crear } = await import('../../nucleo/index.js');
+  const partidaEscena = crear({ reglas: reglamento, escenario: ESCENARIO_ESCENA, semilla: 7 });
+  for (const o of []) partidaEscena.ordenar(o);  // con un encargo en curso
+  for (let i = 0; i < PASOS_ESCENA; i++) partidaEscena.paso();
+  const m = partidaEscena.mundo, e = reglamento.escena(m);
+  comprobar(plano(e), 'escena en datos planos');
+  igual(e.t, m.t, 'escena: t');
+  // Todo lo enumerable del mundo está en la escena con el mismo valor (la escena añade los getters).
+  const contiene = (x, o, ruta) => {
+    if (o === null || typeof o !== 'object') return igual(x, o, ruta);
+    if (Array.isArray(o)) { igual(Array.isArray(x) && x.length, o.length, ruta); o.forEach((v, i) => contiene(x[i], v, `${ruta}[${i}]`)); return; }
+    for (const k of Object.keys(o)) contiene(x[k], o[k], `${ruta}.${k}`);
+  };
+  for (const k of CAMPOS_ESCENA) contiene(e[k], JSON.parse(JSON.stringify(m[k])), `escena: ${k}`);
+  for (const [id, x] of Object.entries(e.porId)) contiene(x, JSON.parse(JSON.stringify(m.porId[id])), `escena: porId ${id}`);
+  // Las vistas leen también getters no enumerables (cx/cy del robot de Factory): deben estar en la escena.
+  for (const [id, x] of Object.entries(m.porId)) for (const k of Object.getOwnPropertyNames(x))
+    if (typeof x[k] !== 'function' && typeof x[k] !== 'object') igual(e.porId[id][k], x[k], `escena: ${id}.${k}`);
+  const antes = JSON.stringify(reglamento.instantanea(m));
+  for (const x of Object.values(e.porId)) { x.cx = -99; x.id = 'otro'; }
+  igual(JSON.stringify(reglamento.instantanea(m)), antes, 'cambiar la escena no toca el mundo');
+}
+
 console.log(`reglas-war: ${comprobaciones} comprobaciones`);

@@ -61,3 +61,4 @@ export function crearPartida<Mundo extends object, Escenario extends DatoPlano, 
   semilla: number;
 }): Partida<Mundo, Escenario, Evaluacion>;
 export function restaurar<Mundo extends object, Escenario extends DatoPlano, Evaluacion>(datos: DatosPartida<Escenario>, reglas: Reglamento<Mundo, Escenario, Evaluacion>): Partida<Mundo, Escenario, Evaluacion>;
+export function copiaPlana<T>(valor: T): T;

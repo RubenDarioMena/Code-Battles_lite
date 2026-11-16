@@ -22,7 +22,8 @@ const logica = [
   'paquetes/app/pruebas/app.mjs',
   'fronteras-fase2',
 ];
-const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo'];
+const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente'];
+// vista-caliente: cambio 2D/3D en caliente sin reiniciar la partida (fase 2).
 // ejecutar-editor-demo: prueba de frontera 4 de la fase 2 (editor montado solo), adaptador de editor-demo.mjs.
 // ejecutar-terreno ejecuta terreno-navegador, terreno-modelado y terreno-estudio (editor de terreno, desde trunk).
 // ejecutar-idiomas ejecuta los diez idiomas*.mjs con un adaptador Playwright.

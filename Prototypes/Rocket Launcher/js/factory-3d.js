@@ -61,7 +61,7 @@
 
   function construir(ctx) {
     const { estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar } = ctx;
-    const mundo = estado.mundo;
+    const mundo = estado.escena;  // escena del reglamento (fase 2)
     const caja = (w, h, d, mat, x, y, z) => { const o = mesh(G.caja(w, h, d), mat); o.position.set(x, y, z); return o; };
     const lam = (hex) => new THREE.MeshLambertMaterial({ color: hex });
     const mats = { cobre: lam(MATERIAL.cobre), silicio: lam(MATERIAL.silicio), progreso: new THREE.MeshBasicMaterial({ color: 0xffffff }) };
@@ -167,7 +167,7 @@
   }
 
   function actualizar(c, ctx, dtReal) {
-    const { estado, camara, altoPx } = ctx, mundo = estado.mundo, r = mundo.robot, robot = c.robot;
+    const { estado, camara, altoPx } = ctx, mundo = estado.escena, r = mundo.robot, robot = c.robot;
     for (const e of mundo.entidades) {
       const o = c.edificios.get(e.id);
       if (o.pilas) for (const { mat, p } of o.pilas) { const n = e.stock[mat] || 0; p.forEach((cj, i) => { cj.visible = i < n; }); }

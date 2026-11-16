@@ -1,7 +1,7 @@
 import { DT, avanzar } from '../../../paquetes/nucleo/index.js';
-import { legado, retos } from '../../../paquetes/reglas-war/index.js';
-import { legado as factory, retos as factoryRetos } from '../../../paquetes/reglas-factory/index.js';
-import { legado as campaign, nivel } from '../../../paquetes/reglas-campaign/index.js';
+import war, { legado, retos } from '../../../paquetes/reglas-war/index.js';
+import reglasFactory, { legado as factory, retos as factoryRetos } from '../../../paquetes/reglas-factory/index.js';
+import reglasCampaign, { legado as campaign, nivel } from '../../../paquetes/reglas-campaign/index.js';
 import { fuenteTrabajador, algunoCorre, despertar, despertarCampaign } from '../../../paquetes/anfitrion/index.js';
 
 // Se borra al terminar la fase 2.
@@ -12,6 +12,8 @@ window.FACTORY_RETOS = { ...factoryRetos };
 window.CAMPAIGN = { ...campaign };
 window.CAMPAIGN_NIVEL = { ...nivel };
 window.NUCLEO = { DT, avanzar };
+// Lo que dibujan las vistas (fase 2): escena(mundo) de cada reglamento.
+window.ESCENAS = { war: war.escena, factory: reglasFactory.escena, campaign: reglasCampaign.escena };
 // Antes, js/runtime.js. Este módulo va después de shared/python/traductor.js por el preludio de Python.
 const fuente = fuenteTrabajador({
   validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,

@@ -144,3 +144,29 @@ export function restaurar(datos, reglas) {
   while (partida.pasoActual < datos.paso) partida.paso();
   return partida;
 }
+
+/** Copia en datos planos para las vistas: arreglos y objetos se copian en profundidad conservando las
+ * referencias compartidas (y los ciclos); las propiedades con funciones se omiten y los getters propios
+ * (también los no enumerables, como cx/cy del robot de Factory) se copian por su valor. Fase 2.
+ * @template T @param {T} valor @returns {T} */
+export function copiaPlana(valor) {
+  const vistos = new Map();
+  /** @param {any} v @returns {any} */
+  const copiar = v => {
+    if (v === null || typeof v !== 'object') return v;
+    if (vistos.has(v)) return vistos.get(v);
+    if (Array.isArray(v)) {
+      const a = []; vistos.set(v, a);
+      for (const x of v) a.push(typeof x === 'function' ? null : copiar(x));
+      return a;
+    }
+    const o = {}; vistos.set(v, o);
+    for (const k of Object.keys(v)) if (typeof v[k] !== 'function') o[k] = copiar(v[k]);
+    for (const k of Object.getOwnPropertyNames(v)) {
+      const d = Object.getOwnPropertyDescriptor(v, k);
+      if (d && d.get && !(k in o)) { const x = d.get.call(v); if (typeof x !== 'function') o[k] = copiar(x); }
+    }
+    return o;
+  };
+  return copiar(valor);
+}
