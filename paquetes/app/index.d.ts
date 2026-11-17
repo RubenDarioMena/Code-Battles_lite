@@ -12,7 +12,12 @@ export interface Almacen {
   borrar(clave: string): void;
 }
 /** Interfaz síncrona: escritorio precargará el guardado y persistirá por detrás. */
-export interface Plataforma { almacen: Almacen; sesion: Almacen }
+export interface Plataforma {
+  almacen: Almacen;
+  sesion: Almacen;
+  /** Opcional; la cáscara absorbe los fallos del servicio. */
+  logros?: { desbloquear(id: string): void };
+}
 export function crearPlataformaMemoria(): Plataforma;
 
 export interface VistaNula extends Vista {

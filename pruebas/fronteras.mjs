@@ -98,6 +98,8 @@ async function principal() {
         if (esEscritorio) {
           if (!destino.startsWith('cascaras/escritorio/'))
             informar(nodo, 'import-ruta', `escritorio no puede importar fuera de su cáscara: ${fuente}`);
+          if (destino === 'cascaras/escritorio/steam.cjs' && local !== 'cascaras/escritorio/main.cjs')
+            informar(nodo, 'import-ruta', 'solo el principal puede importar el adaptador Steam');
           return;
         }
         if (esWeb) {
@@ -116,8 +118,9 @@ async function principal() {
           informar(nodo, 'import-dependencia', `${paquete} no puede importar ${entrada[1]}`);
         }
       } else if (esEscritorio) {
-        if (fuente !== 'electron' && !/^node:.+/.test(fuente))
-          informar(nodo, 'import-desnudo', `escritorio solo puede importar Node/Electron: ${fuente}`);
+        const steam = local === 'cascaras/escritorio/steam.cjs' && fuente === 'steamworks.js';
+        if (fuente !== 'electron' && !/^node:.+/.test(fuente) && !steam)
+          informar(nodo, 'import-desnudo', `dependencia de escritorio no autorizada: ${fuente}`);
       } else if (!(prueba && /^node:.+/.test(fuente)) && !terceros[fuente]?.includes(paquete)) {
         informar(nodo, 'import-desnudo', `especificador no autorizado: ${fuente}`);
       }

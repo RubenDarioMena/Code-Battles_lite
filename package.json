@@ -25,6 +25,7 @@
     "tipos": "tsc --noEmit -p tsconfig.json",
     "escritorio": "electron .",
     "escritorio:empaquetar": "node scripts/empaquetar-escritorio.mjs",
+    "escritorio:steam-vdf": "node scripts/steam-vdf.mjs",
     "test:escritorio": "node pruebas/escritorio.mjs"
   }
 }

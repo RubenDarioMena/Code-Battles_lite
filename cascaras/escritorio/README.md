@@ -1,4 +1,4 @@
-# Cáscara de escritorio · fase 3, paso 1
+# Cáscara de escritorio · fase 3, pasos 1 y 2
 
 Desde la raíz, con las dependencias ya instaladas:
 
@@ -48,13 +48,38 @@ ilegible, inválido o de otra versión se aparta como
 sin sobreescribirlo.
 
 El preload aislado expone `cblCascara = { nombre: "escritorio", version,
-plataforma: { almacen, sesion } }`. Cada almacén tiene `leer`, `escribir` y
+plataforma: { almacen, sesion, logros } }`. Cada almacén tiene `leer`, `escribir` y
 `borrar` síncronos sobre texto, sin prefijos ni conversiones. La sesión vive en
 memoria del preload, con un espejo en RAM del principal para sobrevivir a
 recargas como sessionStorage; se reinicia al cerrar la ventana y no se escribe
 en disco. Solo el preload usa IPC; no expone Electron ni Node.
 `shared/i18n` conserva su propio localStorage de Electron, que también persiste
 en userData; el idioma no está en `guardado.json`.
+
+## Steam opcional
+
+El repositorio no trae AppID: `steam.json` contiene `{ "appId": null }`.
+Sin AppID no se carga `steamworks.js`, ni se modifica la GPU. El adaptador
+`crearSteam({ appId, cargar?, registro? })` de `steam.cjs` solo lo importa el
+principal; permite un módulo falso para probarlo en Node. Ofrece `estado()`
+(`{ activo, appId }`), `desbloquear(nombreApi)` y
+`prepararSuperposicion(entorno)`. Fallos de carga, inicialización o servicios se
+absorben y anotan una vez por adaptador. Desbloquear consulta `isActivated`
+antes de `activate`. El preload solo envía `cbl:logro`; el principal aplica el
+mismo control de remitente, marco y origen que al guardado.
+
+Para probar, pon tu AppID en `steam.json` o ejecuta
+`CBL_STEAM_APPID=123456 npm run escritorio`, con Steam abierto y licencia.
+La variable prevalece; `0` fuerza integración inactiva. El principal prepara
+la superposición antes de `app.whenReady()` únicamente si hay AppID y Steam
+lanzó el proceso (`SteamAppId` o `SteamGameId`). Así se limita el cambio
+`in-process-gpu` del módulo a las ejecuciones desde Steam.
+
+`logros.desbloquear("CBL_PRUEBA_VICTORIA")` es seguro sin Steam. Se solicita
+al ganar War/Factory o cumplir un hito de Campaign. La web no implementa
+`logros`. Steam Cloud usa Auto-Cloud sobre el archivo existente, sin código
+ni cambios de formato. La configuración, SteamPipe y la lista concreta de
+pruebas del autor están en [docs/STEAM.md](../../docs/STEAM.md).
 
 ## Protocolo y seguridad
 
@@ -79,14 +104,19 @@ y `data:`; los Workers blob siguen funcionando. La telemetría `/api/t` recibe
 El guion usa la misma lista/filtro que Netlify (sin pruebas de paquetes), añade
 esta carpeta y un package.json mínimo y llama a `@electron/packager` 20.3.0.
 Salida predeterminada: Windows y Linux x64 con ASAR en `dist/escritorio/`,
-`code-battle-lite.exe` y `code-battle-lite`, cuya existencia comprueba al final.
+`code-battle-lite.exe` y `code-battle-lite`, cuya existencia comprueba al final,
+junto con los `.node` y `steam_api64.dll` / `libsteam_api.so` desempaquetados.
+Incluye `steam.json`, declara `steamworks.js` 0.4.0 como dependencia de la app
+y copia del módulo instalado solo `index.js`, `package.json`, `LICENSE` y
+`dist/` de destino (`win64`, `linux64` u `osx`). Usa
+`asar: { unpack: '**/*.{node,dll,so,dylib}' }`; no instala ni recompila módulos.
 También acepta `--plataforma=darwin`. Los temporales se eliminan incluso al
 fallar. Preparar Netlify reconstruye `dist/`: hacerlo antes de empaquetar.
 
 El empaquetador necesita las distribuciones Electron de destino en su caché
 o conexión para obtenerlas; tener el módulo Electron del host no proporciona
 los binarios de otros sistemas. Sin icono personalizado, firma, instalador,
-actualización automática ni Steamworks (paso siguiente). Un cierre forzado
+actualización automática. Steam real y Steam Deck los verifica el autor. Un cierre forzado
 puede perder los últimos 300 ms; no hay recuperación automática de temporales.
 
 Pruebas sin Electron: `npm test`, `npm run tipos` y `node pruebas/publicacion.mjs`
@@ -94,8 +124,16 @@ tras preparar Netlify. `escritorio-node.mjs` comprueba rutas, MIME, symlinks,
 guardado atómico/agrupado/dañados, preload emulado y geometría. El principal
 emulado en `escritorio-principal.mjs` verifica además IPC, permisos, F11, menú
 y los tres puntos de volcado; no comprueba el comportamiento nativo de Electron.
+`steam.mjs`, `steam-empaquetado.mjs` y `steam-vdf.mjs` prueban el adaptador
+falso, manifiesto/copias, comprobación de salida emulada y plantillas sin
+ejecutar Electron, packager ni SteamCMD. `npm run escritorio:steam-vdf --
+--appid=N --depot-windows=N --depot-linux=N [--rama=qa-privada]` genera VDF
+en `dist/steam`; solo incluye `setlive` con una rama explícita distinta de default.
 `publicables.mjs` compara listas y bytes sin empaquetar. `test:escritorio` usa
 Electron real con datos temporales, sin navegador externo: arranque de las tres
 series, guardado/reapertura, seguridad y War 2/7 frente a la referencia que se
-contrastó con la web en fase 2. No sustituye revisar F11, el botón Fullscreen,
+contrastó con la web en fase 2 (fallo), más victoria War 1/7 con el programa
+en bucle de la referencia 2. Fuerza `CBL_STEAM_APPID=0` y comprueba que la
+API de logros existe y es inocua, sin errores de página ni del principal.
+No sustituye revisar F11, el botón Fullscreen,
 las tres resoluciones y la restauración de posición en Windows y Linux reales.

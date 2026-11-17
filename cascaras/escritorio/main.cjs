@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { servir, esInterna, peticionPermitida } = require('./protocolo.cjs');
 const { crearGuardado } = require('./guardado.cjs');
+const { crearSteam } = require('./steam.cjs');
 const { limitar, leerVentana, crearMenu } = require('./ventana.cjs');
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'cbl', privileges: {
@@ -64,11 +65,21 @@ function crearVentana() {
   });
   win.webContents.on('will-attach-webview', evento => evento.preventDefault());
   // Siempre la misma entrada; las pruebas pueden navegar internamente a cada serie.
-  void win.loadURL('cbl://app/Prototypes/Rocket%20Launcher/index.html').catch(console.error);
+  // ERR_ABORTED solo indica que otra navegación sustituyó a esta carga (recargar, cambiar de serie).
+  void win.loadURL('cbl://app/Prototypes/Rocket%20Launcher/index.html')
+    .catch(error => { if (error?.code !== 'ERR_ABORTED') console.error(error); });
 }
 
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
+  let appId = null;
+  try {
+    appId = process.env.CBL_STEAM_APPID !== undefined
+      ? Number(process.env.CBL_STEAM_APPID)
+      : JSON.parse(fs.readFileSync(path.join(__dirname, 'steam.json'), 'utf8')).appId;
+  } catch (error) { console.warn('Configuración Steam ilegible; integración desactivada.', error); }
+  const steam = crearSteam({ appId });
+  steam.prepararSuperposicion(process.env);
   app.on('second-instance', () => {
     if (!ventana) return;
     if (ventana.isMinimized()) ventana.restore();
@@ -100,6 +111,9 @@ else {
     });
     ipcMain.on('cbl:cambiar', (evento, operacion, clave, texto) => {
       if (autorizado(evento)) guardado.cambiar(operacion, clave, texto);
+    });
+    ipcMain.on('cbl:logro', (evento, nombreApi) => {
+      if (autorizado(evento) && typeof nombreApi === 'string') steam.desbloquear(nombreApi);
     });
     // Espejo solo en RAM para que la caché del preload sobreviva a recargas,
     // como sessionStorage. Se descarta junto con la ventana, nunca va al disco.

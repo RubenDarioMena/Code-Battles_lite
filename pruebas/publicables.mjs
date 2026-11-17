@@ -27,10 +27,12 @@ try {
   const web = path.join(temporal, 'web'), escritorio = path.join(temporal, 'escritorio');
   await copiarPublicables(raiz, web); await prepararApp(escritorio);
   const listaWeb = await inventario(web);
-  assert.deepEqual((await inventario(escritorio)).filter(([n]) => n !== 'package.json' && !n.startsWith('cascaras/escritorio/')), listaWeb);
+  assert.deepEqual((await inventario(escritorio)).filter(([n]) => n !== 'package.json'
+    && !n.startsWith('cascaras/escritorio/') && !n.startsWith('node_modules/steamworks.js/')), listaWeb);
   assert(!listaWeb.some(([n]) => /^(?:cascaras\/escritorio|pruebas)\//.test(n) || /^paquetes\/[^/]+\/pruebas\//.test(n)));
   const paquete = JSON.parse(await readFile(path.join(escritorio, 'package.json'), 'utf8'));
-  assert.deepEqual(Object.keys(paquete).sort(), ['main', 'name', 'productName', 'version']);
+  assert.deepEqual(Object.keys(paquete).sort(), ['dependencies', 'main', 'name', 'productName', 'version']);
+  assert.deepEqual(paquete.dependencies, { 'steamworks.js': '0.4.0' });
   assert.equal(paquete.version, JSON.parse(await readFile(path.join(raiz, 'package.json'), 'utf8')).version);
   assert.equal(paquete.productName, 'Code Battle Lite'); assert((await stat(path.join(escritorio, paquete.main))).isFile());
   assert.deepEqual(plataformas([]), ['win32', 'linux']);

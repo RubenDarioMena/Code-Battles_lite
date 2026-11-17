@@ -17,7 +17,16 @@ const esperarListo = page => page.waitForFunction(() => window.__juegoListo === 
 async function abrir() {
   const env = { ...process.env, CBL_DATOS: datos, CBL_OCULTA: '1' };
   delete env.ELECTRON_RUN_AS_NODE;
+  // Fuerza la integración inactiva incluso si el autor ya configuró steam.json.
+  env.CBL_STEAM_APPID = '0';
   app = await _electron.launch({ args: [raiz], cwd: raiz, env, chromiumSandbox: true, timeout: 45000 });
+  await app.evaluate(() => {
+    globalThis.__erroresPrincipal = [];
+    const original = console.error;
+    console.error = (...args) => {
+      globalThis.__erroresPrincipal.push(args.map(String).join(' ')); original(...args);
+    };
+  });
   const page = await app.firstWindow();
   page.on('pageerror', e => errores.push(e.message));
   app.context().on('request', peticion => {
@@ -28,6 +37,11 @@ async function abrir() {
   await page.reload(); await esperarListo(page);
   assert.equal(await page.evaluate(() => window.cblCascara.nombre), 'escritorio');
   assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
+  assert.equal(await page.evaluate(() => {
+    const logros = window.cblCascara.plataforma.logros;
+    logros.desbloquear('CBL_PRUEBA_VICTORIA');
+    return typeof logros.desbloquear;
+  }), 'function');
   const seguridad = await app.evaluate(({ BrowserWindow }) => {
     const w = BrowserWindow.getAllWindows()[0], p = w.webContents.getLastWebPreferences();
     return { aislado: p.contextIsolation, sandbox: p.sandbox, node: p.nodeIntegration, visible: w.isVisible() };
@@ -36,7 +50,12 @@ async function abrir() {
   return page;
 }
 
-async function cerrar() { if (app) { await app.close(); app = null; } }
+async function cerrar() {
+  if (!app) return;
+  const erroresPrincipal = await app.evaluate(() => globalThis.__erroresPrincipal);
+  await app.close(); app = null;
+  assert.deepEqual(erroresPrincipal, [], 'sin errores del principal, incluido el IPC de logros');
+}
 
 try {
   let page = await abrir();
@@ -117,6 +136,17 @@ try {
   const final = await page.evaluate(() => ({ fin: window.__banco.fin, t: window.__banco.mundo.t, disparos: window.__banco.mundo.consumidos }));
   assert(final.disparos > 0, 'el programa disparó');
   assert.equal(final.fin, referencia.resultado.fin); assert.equal(final.t, referencia.resultado.t);
+
+  // War 2/7 de referencia pierde. Su programa en bucle sí gana el reto 1:
+  // verificado también sin pantalla (semilla 7, victoria a 35,9 s).
+  await page.evaluate(() => {
+    const B = window.__banco, programa = B.RETOS[1].inicial['LAU-01'].join('\n');
+    B.elegirReto(0); B.fijarSemilla(7); B.turbo(30);
+    B.programas['LAU-01'] = programa; delete B.fuentes['LAU-01'];
+    B.abrirPrograma('LAU-01'); B.ejecutar();
+  });
+  await page.waitForFunction(() => !!window.__banco.fin, null, { timeout: 60000 });
+  assert.equal(await page.evaluate(() => window.__banco.fin), 'victoria', 'el camino del logro al ganar no interrumpe el juego');
   assert.deepEqual(errores, [], 'sin errores de página en las tres series');
   await cerrar();
 
@@ -126,5 +156,5 @@ try {
   assert(apartado); assert.equal(await readFile(path.join(datos, apartado), 'utf8'), '{dañado');
   assert.deepEqual(errores, []);
   await cerrar();
-  console.log('Electron: 3 series, sandbox, disco/reapertura/dañados, protocolo, red/navegación, menú y War 2/7 iguales a la referencia web.');
+  console.log('Electron: 3 series, sandbox, disco/reapertura/dañados, protocolo, red/navegación, menú, War 2/7 de referencia y victoria War 1 con logros inactivos.');
 } finally { await cerrar(); await rm(datos, { recursive: true, force: true }); }

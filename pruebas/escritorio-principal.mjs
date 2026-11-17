@@ -12,12 +12,13 @@ const require = createRequire(main);
 const datos = fs.mkdtempSync(path.join(os.tmpdir(), 'cbl-principal-'));
 const area = { x: 0, y: 0, width: 1700, height: 1100 };
 const app = Object.assign(new EventEmitter(), {
-  requestSingleInstanceLock: () => true, whenReady: () => Promise.resolve(),
+  requestSingleInstanceLock: () => true, whenReady: () => { ordenArranque.push('ready'); return Promise.resolve(); },
   getPath: () => datos, getVersion: () => '0.1.0', getLocale: () => 'es-MX',
   setPath(nombre, valor) { assert(['userData', 'sessionData'].includes(nombre)); assert.equal(valor, datos); }, quit() {},
 });
 let win, menu, privilegios, handler, filtrar, permisos, comprobarPermiso;
 const externos = [];
+const logros = [], ordenArranque = [];
 class BrowserWindow extends EventEmitter {
   constructor(opciones) {
     super(); win = this; this.opciones = opciones; this.bounds = opciones;
@@ -58,6 +59,13 @@ try {
     __dirname: path.dirname(fileURLToPath(main)), console, URL,
     process: { env: { CBL_DATOS: datos, CBL_OCULTA: '1' } },
     require(nombre) {
+      if (nombre === './steam.cjs') return { crearSteam({ appId }) {
+        assert.equal(appId, null);
+        return {
+          prepararSuperposicion(env) { assert.equal(env.CBL_OCULTA, '1'); ordenArranque.push('steam'); },
+          desbloquear(id) { logros.push(id); },
+        };
+      } };
       if (nombre !== 'electron') return require(nombre);
       return { app, BrowserWindow, Menu, ipcMain, session: { defaultSession: sesion },
         screen: { getPrimaryDisplay: () => ({ workArea: area }), getDisplayMatching: () => ({ workArea: area }) },
@@ -80,6 +88,15 @@ try {
     permisos({ getURL: () => origen }, permiso, v => assert.equal(v, valor));
   }
   const evento = { sender: win.webContents, senderFrame: win.webContents.mainFrame };
+  ipcMain.emit('cbl:logro', evento, 'CBL_PRUEBA_VICTORIA');
+  ipcMain.emit('cbl:logro', evento, null);
+  ipcMain.emit('cbl:logro', { sender: {}, senderFrame: win.webContents.mainFrame }, 'intruso');
+  ipcMain.emit('cbl:logro', { sender: win.webContents, senderFrame: { url: 'cbl://app/index.html' } }, 'submarco');
+  win.webContents.mainFrame.url = 'https://example.com';
+  ipcMain.emit('cbl:logro', evento, 'otro-origen');
+  win.webContents.mainFrame.url = 'cbl://app/index.html';
+  assert.deepEqual(logros, ['CBL_PRUEBA_VICTORIA']);
+  assert.deepEqual(ordenArranque, ['steam', 'ready']);
   ipcMain.emit('cbl:cargar', evento); assert.equal(evento.returnValue.version, '0.1.0');
   ipcMain.emit('cbl:cambiar', evento, 'escribir', 'cmg-banco03:reto', '1');
   ipcMain.emit('cbl:sesion', evento, 'escribir', '__proto__', 'RAM');

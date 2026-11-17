@@ -30,8 +30,8 @@ const esperadas = [
 esperadas.push('paquetes/app/cascara.js · import-ruta',
   ...Array(3).fill('cascaras/web/rutas.js · import-ruta'),
   'paquetes/app/escritorio.cjs · import-ruta',
-  ...Array(2).fill('cascaras/escritorio/rutas.cjs · import-ruta'),
-  'cascaras/escritorio/rutas.cjs · import-desnudo',
+  ...Array(3).fill('cascaras/escritorio/rutas.cjs · import-ruta'),
+  ...Array(2).fill('cascaras/escritorio/rutas.cjs · import-desnudo'),
   'cascaras/escritorio/rutas.cjs · import-dinamico');
 esperadas.sort();
 
@@ -57,7 +57,10 @@ try {
     require('../../paquetes/app/index.js');
     import('../../paquetes/editor/index.js');
     require('@cbl/app'); require(variable);
+    require('steamworks.js'); require('./steam.cjs');
   `);
+  await writeFile(join(raiz, 'cascaras/escritorio/steam.cjs'), "const cargar = () => require('steamworks.js');\n");
+  await writeFile(join(raiz, 'cascaras/escritorio/main.cjs'), "require('./steam.cjs');\n");
   await writeFile(join(raiz, 'paquetes/app/sintaxis.js'), 'export const = ;\n');
   await mkdir(join(raiz, 'paquetes/app/node_modules'), { recursive: true });
   await writeFile(join(raiz, 'paquetes/app/node_modules/ignorado.js'), 'esto no es JavaScript;\n');

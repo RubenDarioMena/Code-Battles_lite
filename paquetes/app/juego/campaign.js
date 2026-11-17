@@ -123,6 +123,7 @@ export function instalarCampaignJuego(ctx) {
   }
   function seguirCampaign() { ctx.ocultarBanner(); ctx.hitoDetiene = false; ctx.pausa = false; arrancarNuevos(); ctx.conductor?.reanudar(); ctx.pintarControles(); }
   function alCumplirHito(h) {
+    ctx.plataforma.logros?.desbloquear("CBL_PRUEBA_VICTORIA");
     ctx.__banco.alHito?.(h);
     const corriendo = !!ctx.ejec;
     ctx.pausa = corriendo;

@@ -4,6 +4,7 @@ export function instalarCierreIntentos(ctx) {
   function terminar(resultado, motivo, texto, linea, idProg) {
     if (ctx.ES_CAMPAIGN) return ctx.terminarCampaign(resultado, motivo, texto, linea, idProg);
     if (!ctx.mundo || !ctx.ejec) return;
+    if (resultado === "victoria") ctx.plataforma.logros?.desbloquear("CBL_PRUEBA_VICTORIA");
     const m = ctx.mundo;
     const codigos = ctx.ejec ? ctx.ejec.codigos : { ...ctx.programas };
     const inicio = ctx.ejec ? ctx.ejec.inicio : new Date().toISOString();

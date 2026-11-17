@@ -21,5 +21,8 @@ function crearAlmacen(inicial, canal) {
 
 contextBridge.exposeInMainWorld('cblCascara', {
   nombre: 'escritorio', version: datos.version,
-  plataforma: { almacen: crearAlmacen(datos.almacen, 'cbl:cambiar'), sesion: crearAlmacen(datos.sesion, 'cbl:sesion') },
+  plataforma: {
+    almacen: crearAlmacen(datos.almacen, 'cbl:cambiar'), sesion: crearAlmacen(datos.sesion, 'cbl:sesion'),
+    logros: { desbloquear(id) { if (typeof id === 'string') ipcRenderer.send('cbl:logro', id); } },
+  },
 });

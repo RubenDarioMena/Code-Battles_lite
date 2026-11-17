@@ -104,6 +104,10 @@ try {
   assert.equal(enviados.filter(e => e[0] === 'cbl:sesion').length, 6);
   assert.equal(cargarPreload().api.plataforma.sesion.leer('x'), null);
   assert.equal(enviados[0][0], 'cbl:cambiar');
+  assert.equal(typeof api.plataforma.logros.desbloquear, 'function');
+  api.plataforma.logros.desbloquear('CBL_PRUEBA_VICTORIA');
+  api.plataforma.logros.desbloquear(null);
+  assert.deepEqual(enviados.filter(e => e[0] === 'cbl:logro'), [['cbl:logro', 'CBL_PRUEBA_VICTORIA']]);
 
   const area = { x: -1600, y: 0, width: 1600, height: 900 };
   assert.deepEqual(limitar({ x: 9000, y: -2000, width: 1920, height: 1080 }, area), area);

@@ -1,0 +1,12 @@
+"appbuild"
+{
+  "appid" "{{APPID}}"
+  "desc" "Code Battle Lite - prueba privada"
+  "buildoutput" "{{BUILDOUTPUT}}"
+  {{SETLIVE}}
+  "depots"
+  {
+    "{{DEPOT_WINDOWS}}" "depot_build_windows.vdf"
+    "{{DEPOT_LINUX}}" "depot_build_linux.vdf"
+  }
+}

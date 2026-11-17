@@ -14,6 +14,12 @@ texto tal cual. El adaptador absorbe errores de almacenamiento: lectura fallida
 → `null`, escritura y borrado fallidos → sin efecto. Quien llama conserva sus
 conversiones JSON y migraciones; no se añade ningún prefijo en la plataforma.
 
+`Plataforma` admite además `logros?: { desbloquear(id: string): void }`.
+La web y la plataforma de memoria no lo implementan. Escritorio envía la
+petición por IPC y absorbe los fallos de Steam. Al ganar un intento de War o
+Factory, o cumplir un hito de Campaign (registrado como victoria), app solicita
+únicamente `CBL_PRUEBA_VICTORIA`; no importa Steam ni conoce su AppID.
+
 La interfaz es síncrona a propósito: escritorio cargará los datos al arrancar y
 persistirá en disco por detrás. `crearPlataformaMemoria()` crea dos almacenes
 independientes y aislados por llamada, sin DOM ni persistencia. Es el valor por
