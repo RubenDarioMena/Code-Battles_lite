@@ -243,6 +243,7 @@ export function instalarInfoReto(ctx) {
   addEventListener("pagehide", () => { if (ctx.ES_FACTORY && ctx.def) guardarFactoryAhora(); });
 
   function nuevoMundo(nIntento = ctx.intento + 1) {
+    ctx.vaciarEfectos?.();
     ctx.COLS = ctx.def.mapa?.cols || 32; ctx.ROWS = ctx.def.mapa?.rows || 18;
     ctx.partida = ctx.crearPartida({ reglas: ctx.reglas, escenario: { reto: ctx.def, ...(ctx.ES_FACTORY ? { intento: nIntento } : ctx.ES_CAMPAIGN ? { guardado: ctx.estadoCampaign } : {}) }, semilla: ctx.ES_FACTORY ? nIntento : ctx.semilla });
     ctx.mundo = ctx.partida.mundo;

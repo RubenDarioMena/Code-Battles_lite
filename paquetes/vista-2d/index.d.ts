@@ -27,6 +27,7 @@ export interface OpcionesVista2D {
   [dependencia: string]: any;
 }
 export interface Vista2D extends Vista {
+  vaciar(): void;
   suelo(x: number, y: number): { x: number; y: number; z: number };
 }
 export function crearVista(contenedor: HTMLCanvasElement, opciones: OpcionesVista2D): Vista2D;

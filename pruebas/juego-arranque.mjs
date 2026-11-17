@@ -52,10 +52,11 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
   const plataforma = crearPlataformaMemoria();
   plataforma.almacen.escribir(`cmg-banco03:${serie === 'war' ? '' : serie + '-'}vista`, JSON.stringify(vista));
   const url = new URL(`http://qa.invalid/?serie=${serie}&forma=${forma}&marco=1&poc=1${propio ? '&reto=propio' : ''}`);
-  let fotogramas = 0, medidas = 0, editor = null, estadoVistas = null;
+  let fotogramas = 0, medidas = 0, editor = null, estadoVistas = null, vaciados = 0;
+  const vaciar = () => vaciados++;
   const vistaFalsa = () => {
     if (sin3d) return null;
-    return { construir: noop, anillosDe: noop, aplicarColores: noop, tamano: noop,
+    return { vaciar, alSuceso: noop, construir: noop, anillosDe: noop, aplicarColores: noop, tamano: noop,
       batalla: noop, actualizar: noop, render: noop, dibujar: noop, redimensionar: noop, camara: () => ({ dist: 60 }) };
   };
   const ventana = new Elemento();
@@ -107,7 +108,7 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
         valores = Object.fromEntries(Object.keys(valores).map(n => [n,
           n === 'crearVista' ? (_contenedor, opciones) => {
             estadoVistas = opciones.estado;
-            return url.pathname.includes('/vista-2d/') ? { dibujar: noop } : vistaFalsa();
+            return url.pathname.includes('/vista-2d/') ? { dibujar: noop, vaciar, alSuceso: noop } : vistaFalsa();
           } : n.startsWith('crearPlano') ? (estado) => { estadoVistas = estado; return noop; } : vistaFalsa]));
       } else if (url.pathname.endsWith('/editor/index.js')) {
         valores = { ...valores, CMGTips: { crear: noop }, CMGEditor: { ...valores.CMGEditor, crear() {
@@ -147,6 +148,11 @@ async function cargar(serie, vista, propio, sin3d = false, mutacion = null, form
   assert(ctx.cmg.pulsos.programas.get('PY').lineas.size > 0, 'lector Python clásico inyectado');
   assert(estadoVistas.escena, 'la escena se obtiene después de crear el mundo');
   assert.equal(ctx.cmg.serie, serie);
+  if (serie === 'war') {
+    const antes = vaciados;
+    porId('b-reiniciar').dispatchEvent(new ctx.Event('click'));
+    assert.equal(vaciados - antes, sin3d ? 1 : 2, 'reiniciar vacía ambas vistas');
+  }
   assert.equal(porId('c2d').hidden, !sin3d && vista !== '2d');
   // Los handlers asíncronos leen los accesores vivos tras iniciar la página.
   ctx.__banco.abrirPrograma(ctx.__banco.mundo.programables[0].id);

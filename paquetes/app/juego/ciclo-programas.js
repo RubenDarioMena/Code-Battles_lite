@@ -16,6 +16,7 @@ export function instalarCicloProgramas(ctx) {
       return;
     }
     cerrarProgramas();
+    ctx.vaciarEfectos?.();
     if (ctx.CMGPulsos) ctx.CMGPulsos.reiniciar();
     // Cada unidad, en su lenguaje: JS se revisa con acorn; Python se traduce (huecos, sangría y sintaxis con su línea).
     const codigos = {}, lenguajes = {}, fuentesTexto = {};
@@ -134,6 +135,7 @@ export function instalarCicloProgramas(ctx) {
     }
   }
   function alSucesos(lista) {
+    ctx.sucesosVistas?.(lista);
     recogerRegistro();
     for (const s of lista) {
       const d = s.datos;

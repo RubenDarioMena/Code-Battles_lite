@@ -1,7 +1,8 @@
 /* Plano 2D de War (y marco común de Factory), antes en js/vistas.js. Dibuja solo con estado.escena. */
+import { dibujarAnotacionesWar } from './anotaciones-war.js';
 import { dibujarFactory } from './factory.js';
 
-export function crearPlano(estado, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2 }) {
+export function crearPlano(estado, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2, dibujarEfectos }) {
 function dibujar2D(off, _ahora = undefined) {
   const dpr = window.devicePixelRatio || 1, W = $c2d.clientWidth, H = $c2d.clientHeight;
   if (!W || !H) return;
@@ -79,11 +80,6 @@ function dibujar2D(off, _ahora = undefined) {
     caja(l.cx, l.cy, 1.1, 1.1, estado.col.building, l.atascado ? estado.col.bad : rol(l));
     c.strokeStyle = l.atascado ? estado.col.bad : estado.col.ink; c.lineWidth = Math.max(2, T * .18); c.lineCap = "round";
     c.beginPath(); c.moveTo(P(l.cx), Q(l.cy)); c.lineTo(P(l.cx + Math.cos(l.yaw) * .7), Q(l.cy + Math.sin(l.yaw) * .7)); c.stroke(); c.lineCap = "butt";
-    if (l.lugar && !l.atascado && l.modo !== "idle") {
-      const x = P(l.lugar.x), y = Q(l.lugar.y), r = T * .45;
-      c.strokeStyle = estado.col.accent; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.moveTo(x - r * 1.4, y); c.lineTo(x + r * 1.4, y); c.moveTo(x, y - r * 1.4); c.lineTo(x, y + r * 1.4); c.stroke();
-      if ((l.lugar.z || 0) > .05) { c.fillStyle = estado.col.accent; c.font = `700 ${Math.max(9, T * .42)}px "JetBrains Mono", monospace`; c.textAlign = "left"; c.textBaseline = "bottom"; c.fillText(`↑${r2(l.lugar.z)}`, x + r, y - r * .6); }
-    }
   }
   for (const r of estado.escena.reparadores) { c.fillStyle = rol(r); c.fillRect(P(r.cx) - T * .23, Q(r.cy) - T * .23, T * .46, T * .46); }
   // Luces: puntos claros encima de cada máquina (pilotos y faros); se apagan con el atasco.
@@ -92,12 +88,6 @@ function dibujar2D(off, _ahora = undefined) {
     if (e.clase === "vibracion" && ahora % 1600 >= 1100) continue;
     c.fillStyle = mezclaBlanco(rol(e), .55);
     for (const [lx, , lz] of LUCES[e.clase] || []) { c.beginPath(); c.arc(P(e.cx + lx), Q(e.cy + lz), Math.max(1.5, T * .07), 0, Math.PI * 2); c.fill(); }
-  }
-  // Selección: el mismo círculo del halo, nítido y claro, con un filo oscuro para leerse sobre cualquier color.
-  for (const e of estado.escena.maquinas) {
-    if (!estado.seleccionadas.has(e.id)) continue;
-    c.beginPath(); c.arc(P(e.cx), Q(e.cy), radioDe(e) * T, 0, Math.PI * 2);
-    c.strokeStyle = "rgba(0,0,0,.6)"; c.lineWidth = 4; c.stroke(); c.strokeStyle = estado.col.sel; c.lineWidth = 2; c.stroke();
   }
   // Enemigos: la sombra desplazada indica la altura.
   for (const e of estado.escena.enemigos) {
@@ -113,7 +103,6 @@ function dibujar2D(off, _ahora = undefined) {
       c.beginPath(); c.moveTo(x, y - T * .36); c.lineTo(x + T * .36, y); c.lineTo(x, y + T * .36); c.lineTo(x - T * .36, y); c.closePath();
       if (tp.frio) { c.strokeStyle = color; c.lineWidth = 2; c.stroke(); } else { c.fillStyle = color; c.fill(); }
     }
-    if (estado.seleccionadas.has(e.id)) { c.beginPath(); c.arc(x, y, T * .62, 0, Math.PI * 2); c.strokeStyle = "rgba(0,0,0,.6)"; c.lineWidth = 4; c.stroke(); c.strokeStyle = estado.col.sel; c.lineWidth = 2; c.stroke(); }
   }
   const t = estado.escena.t + off;
   for (const mi of estado.escena.misiles) {
@@ -122,18 +111,8 @@ function dibujar2D(off, _ahora = undefined) {
     c.strokeStyle = estado.col.misil; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P(mi.x0 + (mi.x1 - mi.x0) * Math.max(0, u - .18)), Q(mi.y0 + (mi.y1 - mi.y0) * Math.max(0, u - .18))); c.lineTo(x, y); c.stroke();
     c.fillStyle = estado.col.misil; c.beginPath(); c.arc(x, y, T * .14, 0, Math.PI * 2); c.fill();
   }
-  // Explosiones: llena = en el suelo, con borde discontinuo y altura = en el aire.
-  for (const x of estado.escena.explosiones) {
-    const u = Math.min(1, (t - x.t0) / .35), a = 1 - Math.max(0, (t - x.t0 - .25) / .5);
-    if (x.atasco) { c.fillStyle = estado.col.edge; c.globalAlpha = .5 * a; c.beginPath(); c.arc(P(x.x), Q(x.y), T * .7 * u, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; continue; }
-    const r = MISIL.radio * T * (.25 + .75 * Math.min(1, u * 1.4));
-    c.globalAlpha = .38 * a; c.fillStyle = estado.col.explosion; c.beginPath(); c.arc(P(x.x), Q(x.y), r, 0, Math.PI * 2); c.fill(); c.globalAlpha = Math.max(0, a);
-    if (x.z > .05) {
-      c.strokeStyle = estado.col.explosion; c.setLineDash([4, 3]); c.lineWidth = 1.5; c.stroke(); c.setLineDash([]);
-      c.fillStyle = estado.col.ink; c.font = `600 ${Math.max(8, T * .36)}px "JetBrains Mono", monospace`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(`↑${r2(x.z)}`, P(x.x), Q(x.y));
-    }
-    c.globalAlpha = 1;
-  }
+  dibujarEfectos?.(c, off);
+  dibujarAnotacionesWar(c, estado, { off, T, P, Q, MISIL, r2, radioDe });
 }
   return dibujar2D;
 }

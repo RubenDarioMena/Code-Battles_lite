@@ -5,6 +5,7 @@ export interface EstadoVista {
   readonly arrastreCampo: any;
   readonly cols: number;
   readonly rows: number;
+  readonly col?: Record<string, string>;
 }
 export interface DependenciasComunes {
   /** Three r128 inyectado por la entrada; undefined permite la caída al plano. */
@@ -21,6 +22,7 @@ export interface TerrenoEditorAPI {
   BLOQUES: { geometria(three: any, bloque: any): any };
 }
 export interface DependenciasWar extends DependenciasComunes {
+  montarEfectos?: (datos: any) => void;
   ES_FACTORY: boolean;
   ARCO: number[];
   FR: number;
@@ -94,6 +96,7 @@ export type OpcionesVista3D = (DependenciasWar | DependenciasCampaign) & {
   calidad?: string;
 };
 export interface VistaCreada3D extends Omit<Vista3D, 'elegir' | 'proyectar' | 'suelo'>, Vista {
+  vaciar(): void;
   suelo(x: number, y: number): { x: number; y: number; z: number } | null;
   batalla?(valor: boolean): void;
   verCampo?(): void;

@@ -35,20 +35,28 @@ export function instalarVistasJuego(ctx) {
     }
     return terrenoEditor;
   }
-  const comunes = { serie: ctx.SERIE, dt: ctx.DT, estado: estadoVista };
+  const nivel = new URLSearchParams(location.search).get('vfx');
+  const calidad = ['alto', 'medio', 'bajo', 'no'].includes(nivel) ? nivel : 'alto';
+  const comunes = { serie: ctx.SERIE, dt: ctx.DT, estado: estadoVista, calidad };
   const V3 = vista3d.crearVista(ctx.$("campo"), ctx.ES_CAMPAIGN
     ? { ...comunes, THREE: servicios.THREE, canvas: ctx.$("c3d"), $: ctx.$, FUNCIONES: ctx.FUNCIONES, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, mapa: ctx.campaign.nivel.MAPA, crearTerreno: vista2d.crearTerreno, reglas: ctx.campaign }
     : { ...comunes, THREE: servicios.THREE, canvas: ctx.$("c3d"), $: ctx.$, ES_FACTORY: ctx.ES_FACTORY, ARCO: ctx.ARCO, FR: ctx.FR, FUNCIONES: ctx.FUNCIONES, HALO: ctx.HALO, INTENSIDAD: ctx.INTENSIDAD, LINEA_BASE: ctx.LINEA_BASE, LUCES: ctx.LUCES, MISIL: ctx.MISIL, TIPOS: ctx.TIPOS, alcance: ctx.alcance, direccionDe: ctx.direccionDe, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, visual: ctx.visual, terreno: servicios.CMGTerreno, terrenoEditor: leerTerrenoEditor() });
 
   // ---------- Vista de plano (2D) ----------
   function leerColores() {
-    for (const k of ["bg", "surface", "ink", "muted", "line", "grid", "grid-2", "suelo", "building", "building-top", "edge", "accent", "accent-soft", "bad", "warn", "base", "enemigo", "enemigo-frio", "misil", "explosion", "s-visual", "s-termico", "s-vibra", "sel", ...Object.keys(ctx.FUNCIONES).map(f => `rol-${f}`)]) col[k] = leerVar(k);
+    for (const k of ["bg", "surface", "ink", "muted", "line", "grid", "grid-2", "suelo", "building", "building-top", "edge", "accent", "accent-soft", "bad", "warn", "base", "enemigo", "enemigo-frio", "misil", "explosion", "s-visual", "s-termico", "s-vibra", "sel", "ok", ...Object.keys(ctx.FUNCIONES).map(f => `rol-${f}`)]) col[k] = leerVar(k);
     if (V3) V3.aplicarColores();
   }
   const rgb = (hex) => { const n = parseInt(String(hex).replace("#", ""), 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
   const rgba = (hex, a) => `rgba(${rgb(hex).join(",")},${a})`;
   const mezclaBlanco = (hex, u) => `rgb(${rgb(hex).map(v => Math.round(v + (255 - v) * u)).join(",")})`;
   const V2 = vista2d.crearVista(ctx.$("c2d"), ctx.ES_CAMPAIGN ? ({ ...comunes, FUNCIONES: ctx.FUNCIONES, funcionDe: ctx.funcionDe, radioDe: ctx.radioDe, rgba, mezclaBlanco, leerBatalla: () => !!(ctx.__banco && ctx.$("b-piel") && ctx.$("b-piel").getAttribute("aria-pressed") === "true"), mapa: ctx.campaign.nivel.MAPA, reglas: ctx.campaign }) : ({ ...comunes, ES_FACTORY: ctx.ES_FACTORY, LINEA_BASE: ctx.LINEA_BASE, TIPOS: ctx.TIPOS, MISIL: ctx.MISIL, SENSOR: ctx.SENSOR, LAU: ctx.LAU, FUNCIONES: ctx.FUNCIONES, FR: ctx.FR, HALO: ctx.HALO, INTENSIDAD: ctx.INTENSIDAD, ARCO: ctx.ARCO, LUCES: ctx.LUCES, visual: ctx.visual, funcionDe: ctx.funcionDe, radioDe: ctx.radioDe, direccionDe: ctx.direccionDe, alcance: ctx.alcance, rgba, mezclaBlanco, r2: ctx.r2 }));
+  function vaciarEfectos() { V2.vaciar(); V3?.vaciar(); }
+  function sucesosVistas(lista) {
+    if (ctx.SERIE !== 'war') return;
+    invalidarEscena();
+    for (const s of lista) { V2.alSuceso(s); V3?.alSuceso(s); }
+  }
   const vistaActual = () => ctx.vista === "3d" && V3 ? V3 : V2;
   // Ratón y tacto comparten la selección. La cámara conserva sus botones y los gestos de dos dedos.
 
@@ -68,7 +76,7 @@ export function instalarVistasJuego(ctx) {
     get estadoVista() { return estadoVista; },
     get leerTerrenoEditor() { return leerTerrenoEditor; },
     get V3() { return V3; },
-    vistaActual,
+    vistaActual, vaciarEfectos, sucesosVistas,
     get col() { return col; }, set col(v) { col = v; },
     get leerColores() { return leerColores; },
     get rgb() { return rgb; },

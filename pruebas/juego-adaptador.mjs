@@ -22,7 +22,7 @@ const texto = readFileSync(new URL('../paquetes/app/juego/campaign.js', import.m
 const funciones = ['cicloCampaign', 'arrancarNuevos', 'seguirCampaign'];
 const infoReto = readFileSync(new URL('../paquetes/interfaz/info-reto.js', import.meta.url), 'utf8');
 
-export function adaptar(caso) {
+export function adaptar(caso, presentacion = {}) {
   const { contexto: C } = cargar();
   const serie = caso.reglas, reglas = { war, factory, campaign }[serie];
   const def = serie === 'campaign' ? nivel.NIVEL : serie === 'war' ? retos.normalizar(retos.RETOS[caso.reto - 1])
@@ -32,6 +32,7 @@ export function adaptar(caso) {
   Object.assign(C, { __instalarCicloProgramas: instalarCicloProgramas, __lenguaje: lenguaje, APP: { crearPartida, crearAnfitrion, crearConductor, quietoCampaign: quieto,
     piezasTrabajador: { validarFactory: validarFactory, validarCampaign: validarCampaign,
       modoCampaign: modoEnSnap, preludioPython: C.CMGPythonJS.preludio } },
+    __presentacion: presentacion,
     __instrumento: crearInstrumentador(C, muestra.mundo, serie), __def: def, __caso: caso,
     performance: { now: () => 0 }, __huella: huella, __pantallas: pantallas, __hitos: hitos, __finales: finales,
     __resultadoWar: resultadoWar, __resultadoFactory: resultadoFactory, __resultadoCampaign: resultadoCampaign,
@@ -86,6 +87,7 @@ export function adaptar(caso) {
       resultado = ES_CAMPAIGN ? __resultadoCampaign(m, ...args) : ES_FACTORY ? __resultadoFactory(m, intento, ...args) : __resultadoWar(m, ...args);
     }
     const ctx = {
+      sucesosVistas: __presentacion.sucesosVistas, vaciarEfectos: __presentacion.vaciarEfectos,
       get SERIE() { return SERIE; },
       get ES_FACTORY() { return ES_FACTORY; },
       get ES_CAMPAIGN() { return ES_CAMPAIGN; },

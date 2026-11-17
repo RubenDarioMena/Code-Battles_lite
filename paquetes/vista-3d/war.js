@@ -6,7 +6,7 @@ import { crearTerreno3D } from './terreno.js';
 
 /** @param {import('./index.js').EstadoVista} estado @param {import('./index.js').DependenciasWar} deps
  * @returns {import('./index.js').Vista3D | null} */
-export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null }) {
+export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null, montarEfectos }) {
     if (typeof THREE === "undefined") return null;
     // Factory usa el mismo visor con su propio contenido (factory.js) y un mapa más pequeño.
     let factory = null, ahoraPrevio = null;
@@ -17,6 +17,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
     // Bruma del horizonte: solo toca lo que queda más allá del campo, para que el terreno se pierda a lo lejos.
     const horizonte = new THREE.Fog(0xffffff, 60, 140);
     const camara = new THREE.PerspectiveCamera(38, 1.6, 0.1, 500);
+    montarEfectos?.({ THREE, escena, renderer, camara });
     const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.85);
     const sol = new THREE.DirectionalLight(0xffffff, 0.55); sol.position.set(-12, 30, 18);
     escena.add(hemi, sol);
@@ -28,8 +29,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
       afuera: lam("suelo", { hacia: "bg", u: .45 }),
       edificio: lam("building"), techo: lam("building-top"), borde: lam("edge"), acento: lam("accent"), mal: lam("bad"),
       enemigo: lam("enemigo"), frio: lam("enemigo-frio", { transparent: true, opacity: .72 }), golpe: lam("bad"),
-      misil: bas("misil"), explosion: bas("explosion", { transparent: true, opacity: .4, depthWrite: false }),
-      humo: bas("edge", { transparent: true, opacity: .5, depthWrite: false }),
+      misil: bas("misil"),
       sombra: bas("ink", { transparent: true, opacity: .16, depthWrite: false }), mira: bas("accent"),
       rVisual: bas("s-visual", { transparent: true, opacity: .75, side: THREE.DoubleSide }), rTermico: bas("s-termico", { transparent: true, opacity: .75, side: THREE.DoubleSide }),
       rVibra: bas("s-vibra", { transparent: true, opacity: .75, side: THREE.DoubleSide }), sel: bas("sel", { side: THREE.DoubleSide }),
@@ -136,7 +136,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
     const fijo = new THREE.Group(), movil = new THREE.Group();
     escena.add(fijo, movil);
     const objetos = new Map();  // id → { grupo, ... }
-    const misiles = new Map(), efectos = new Map();
+    const misiles = new Map();
     let anillos = null;
     const mesh = (g, m) => new THREE.Mesh(g, m);
     function lineas(puntos, mat) {
@@ -148,7 +148,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
     const { construirTerreno, pintarMontes } = crearTerreno3D({ THREE, estado, terreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar });
 
     function construir() {
-      limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); efectos.clear(); anillos = null;
+      limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); anillos = null;
       prepararVisual();
       if (!terrenoEditor) {
         const suelo = mesh(new THREE.PlaneGeometry(estado.cols, estado.rows), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(estado.cols / 2, 0, estado.rows / 2); fijo.add(suelo);
@@ -351,17 +351,6 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
         o.estela.geometry.attributes.position.needsUpdate = true;
       }
       for (const [id, o] of misiles) if (!enVuelo.has(id)) { movil.remove(o.bola, o.estela); o.estela.geometry.dispose(); misiles.delete(id); }
-      const vistos = new Set();
-      for (const x of estado.escena.explosiones) {
-        const k = `${x.t0}|${x.x}|${x.y}`; vistos.add(k);
-        let o = efectos.get(k);
-        if (!o) { o = mesh(G.esfera, (x.atasco ? M.humo : M.explosion).clone()); efectos.set(k, o); movil.add(o); }
-        const u = Math.min(1, (t - x.t0) / (x.atasco ? .8 : .35));
-        o.position.set(x.x, x.atasco ? 1 + u * .8 : x.z, x.y);
-        o.scale.setScalar((x.atasco ? .5 : MISIL.radio) * (.25 + .75 * Math.min(1, u * 1.4)));
-        o.material.opacity = (x.atasco ? .55 : .42) * (1 - Math.max(0, (t - x.t0 - .25) / .5));
-      }
-      for (const [k, o] of efectos) if (!vistos.has(k)) { movil.remove(o); o.material.dispose(); efectos.delete(k); }
       if (anillos && anillos.userData.sigue) {
         const en = estado.escena.enemigos.find(x => x.id === anillos.userData.sigue);
         if (en) anillos.position.set(en.x + en.vx * off, en.z, en.y); else anillos.visible = false;

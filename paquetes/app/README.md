@@ -263,3 +263,24 @@ versiones manuales; `juego-identificadores` y `juego-arranque` verifican nombres
 y lecturas prematuras. Las regresiones de revisión del juego y de depuración
 están registradas en `npm run test:navegador`, con el origen dedicado del ejecutor
 (`CBL_QA_ORIGIN`); la primera solo crea su servidor cuando ese origen no se proporciona.
+
+
+## Sucesos VFX de War (fase 4, paso 2)
+
+`juego/ciclo-programas.js` entrega cada lote `alSucesos(lista)` del conductor
+a `sucesosVistas` de `juego/vistas.js`. Este invalida la escena cacheada y
+reenvía cada suceso a **ambas** fachadas (`V2.alSuceso`, `V3.alSuceso`), solo
+si `SERIE === 'war'`. Así el cambio 2D/3D conserva los efectos activos sin
+reproducir ni modificar reglas, órdenes, telemetría o guardado.
+
+La app lee `?vfx=alto|medio|bajo|no` y pasa `calidad` en las opciones comunes;
+sin parámetro o con uno desconocido elige `alto`. Es provisional hasta
+Ajustes (paso 3). Los colores de `estado.col`, incluido `ok`, salen del tema.
+Las vistas resuelven el origen desde copias de la escena y del suceso,
+y evalúan partículas con `escena.t + off`; Factory/Campaign no reciben VFX.
+
+`vaciarEfectos()` vacía las dos vistas al empezar otra ejecución y desde
+`nuevoMundo` (también al reiniciar/cambiar reto). Destruir cada fachada
+libera su cola y dibujante. `pruebas/vfx-juego.mjs`, `juego-arranque.mjs` y
+`vistas-contrato.mjs` cubren esta ruta en Node con canvas/GPU emulados.
+No sustituyen las capturas ni la interacción real de navegador del autor.

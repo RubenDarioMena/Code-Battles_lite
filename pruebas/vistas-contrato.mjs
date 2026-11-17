@@ -23,11 +23,11 @@ try {
     lanzadores: Object.freeze([]), sensores: Object.freeze([]), reparadores: Object.freeze([]),
     misiles: Object.freeze([]), explosiones: Object.freeze([]), porId: Object.freeze({ 'DEP-01': maquina }) });
   const opciones = { serie: 'war', dt: .05, cols: 32, rows: 18, tema: {},
-    LINEA_BASE: 3, TIPOS: { crawler: { suelo: true } }, INTENSIDAD: { media: 1 },
+    MISIL: { radio: 1.3 }, LINEA_BASE: 3, TIPOS: { crawler: { suelo: true } }, INTENSIDAD: { media: 1 },
     HALO: {}, LUCES: {}, visual: { halo: 'no', brillo: 'no', intensidad: 'media' },
     funcionDe: () => ({ principal: 'ofensiva' }), radioDe: () => .6 };
   const vista = plano.crearVista(canvas, opciones);
-  for (const nombre of ['dibujar', 'alSuceso', 'elegir', 'proyectar', 'redimensionar', 'destruir'])
+  for (const nombre of ['dibujar', 'alSuceso', 'vaciar', 'elegir', 'proyectar', 'redimensionar', 'destruir'])
     assert.equal(typeof vista[nombre], 'function', nombre);
   // Comparación de llamadas con el plano anterior: fracciones 0 y 1 son off 0 y dt.
   for (const fraccion of [0, 1]) {

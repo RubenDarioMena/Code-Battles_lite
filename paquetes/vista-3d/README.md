@@ -43,8 +43,8 @@ Se conservan los métodos extra existentes: `construir`, `actualizar`,
 `verCampo` y `terreno`. `suelo` de la fachada ya no necesita ancho/alto;
 `tamano` y `girar` mantienen sus argumentos anteriores. `destruir` es
 idempotente: retira gestos/observadores y libera recursos de dibujo.
-`alSuceso` no hace nada todavía: los efectos actuales vienen en la escena;
-el consumo por `vfx` queda para la fase 4. Tipos comunes de `Vista` en
+`alSuceso` anota efectos locales en War; `vaciar()` los retira.
+Factory y Campaign ignoran los sucesos VFX. Tipos comunes de `Vista` en
 `protocolo`, reexportados por este paquete y usados también por app y vista-2d.
 
 Las dependencias conservan los nombres anteriores: `$`, `FUNCIONES`,
@@ -80,7 +80,7 @@ ni la fachada `cmg` de la página. Prueba: `node paquetes/vista-3d/pruebas/vista
 ## Dibujante de efectos (fase 4, paso 1)
 
 `crearDibujanteEfectos(THREE, grupo, opciones)` se exporta por `index.js` y
-vive en `efectos.js`; **todavía no se llama desde las vistas del juego**.
+vive en `efectos.js`; lo usa la fachada de War mediante `efectos-war.js`.
 Three se recibe como parámetro; el import funciona en Node sin DOM ni Three.
 
 ```js
@@ -109,3 +109,31 @@ No hay renderizador, consulta WebGL ni reloj dentro del dibujante. Destrucción
 idempotente que retira las nubes y libera geometrías/materiales.
 Contrato en `efectos.d.ts`; prueba r128 sin rasterizado en
 `node pruebas/vfx-dibujantes.mjs` (incluida en `npm test`).
+
+
+## War conectado (fase 4, paso 2)
+
+La composición `app/juego/vistas.js` reenvía `alSucesos` del conductor a las
+dos vistas, aunque una esté oculta, solo en War. `efectos-war.js` mantiene su
+cola `crearEfectos` y enriquece copias desde la escena: lanzador a altura 1
+para `disparo` (rumbo al destino) y `atasco`, al suelo para `reparado`;
+coordenadas del suceso para `brecha`; última posición dibujada con off para
+`derribo` (o actual si existe). Si el enemigo falta, espera la explosión
+posterior del mismo paso y lanzador; la escena aporta el respaldo del mismo
+paso. `recetaWar` elige impacto/fallo y descarta la explosión del atasco.
+
+La fachada monta un grupo fuera de fijo/móvil, con las dos nubes por encima
+de los calcos. Sustituye las antiguas esferas de explosión y humo de atasco.
+Antes de renderizar evalúa `particulas(escena.t + off, { colores: estado.col,
+calidad })`; usa `opciones.MISIL.radio` y `dt`. La app lee
+`?vfx=alto|medio|bajo|no`, con alto por defecto/valor desconocido, y pasa
+`calidad`; ni la vista ni VFX leen la URL. Factory/Campaign no montan VFX.
+
+El montaje obtiene `maxPunto` del contexto WebGL, `fov` de la cámara War y
+la altura física del canvas del renderer. `tamano`, `redimensionar` y el
+dibujo sincronizan la escala con el búfer. `vaciar()` retira cola, posiciones,
+pendientes y partículas visibles al ejecutar/reiniciar/crear mundo.
+`destruir()` además retira grupo, nubes, materiales y geometrías antes de
+liberar la escena/renderizador. `node pruebas/vfx-juego.mjs` (en `npm test`)
+comprueba integración, orígenes, calidad y recursos con GPU/canvas emulados;
+shaders, aspecto y capturas quedan para el autor.

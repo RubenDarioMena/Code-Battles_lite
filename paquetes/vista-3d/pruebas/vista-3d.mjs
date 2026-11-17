@@ -30,6 +30,8 @@ const THREE = contexto.THREE;
 igual(THREE.REVISION, '128', 'usa el Three local del juego');
 let escenaDibujada = null;
 class Renderizador {
+  domElement = { height: 400 };
+  getContext() { return { ALIASED_POINT_SIZE_RANGE: 1, getParameter: () => [1, 127] }; }
   dispose() { this.destruido = true; }
   setPixelRatio() {}
   setSize() {}

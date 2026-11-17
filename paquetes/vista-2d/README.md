@@ -46,8 +46,8 @@ la escala con la diferencia entre dos proyecciones, sin acceder a la geometría.
 
 El lienzo se ajusta en el siguiente dibujo; `redimensionar` no adelanta ese
 dibujo. `destruir` retira los gestos de Campaign y libera su fondo; es
-idempotente. `alSuceso` no hace nada todavía: los efectos vienen en la escena;
-su consumo por `vfx` corresponde a la fase 4.
+idempotente. En War, `alSuceso` anota efectos locales y `vaciar()` los retira;
+Factory y Campaign ignoran estos sucesos.
 
 Se conservan `crearPlano`, `dibujarFactory`, `crearPlanoCampaign` y
 `crearTerreno(mapa)` como entradas compatibles. La app inyecta el relieve a
@@ -71,7 +71,7 @@ frontera además de las pruebas del plano y del contrato de vistas.
 ## Dibujante de efectos (fase 4, paso 1)
 
 `crearDibujanteEfectos` se exporta por `index.js` y vive en `efectos.js`;
-**todavía no se llama desde las vistas del juego**.
+lo usa la fachada de War mediante `efectos-war.js`.
 
 ```js
 const fx = crearDibujanteEfectos({ T, ox, oy });
@@ -90,3 +90,26 @@ reutilizan en una caché acotada (256 entradas por defecto, `limiteCache`).
 requiere DOM. `destruir` libera la caché y es idempotente; el dibujante puede
 volver a generar sellos si se reutiliza. Contrato en `efectos.d.ts`.
 Prueba sin navegador: `node pruebas/vfx-dibujantes.mjs` (incluida en `npm test`).
+
+
+## War conectado (fase 4, paso 2)
+
+`app/juego/ciclo-programas.js` entrega `alSucesos(lista)` a la composición
+`app/juego/vistas.js`, que reenvía cada suceso a ambas fachadas solo en War.
+`efectos-war.js` crea su propio `crearEfectos`, con `dt`, `recetaWar` y
+`crearRecetasWar({ radioDanio: opciones.MISIL.radio })`. Se anota una copia:
+`disparo` desde el lanzador a altura 1 y rumbo al destino; `atasco` a altura 1;
+`reparado` desde el suelo del lanzador; `brecha` desde sus coordenadas.
+`derribo` usa la última posición dibujada (con off) o la posición actual si
+existe; sin ella espera la explosión posterior del mismo paso y lanzador,
+con respaldo en las explosiones de la escena del mismo paso.
+
+Dibuja `particulas(escena.t + off, { colores: estado.col, calidad })` tras
+unidades y misiles. `anotaciones-war.js` mantiene encima las miras, selección,
+aro discontinuo y etiqueta `↑z` de estallidos aéreos. Se retiran los discos
+rellenos de explosión y atasco. La app lee `?vfx=alto|medio|bajo|no` (alto por
+defecto o valor desconocido) y pasa `calidad`; la vista no consulta la URL.
+`vaciar()` se llama al ejecutar, reiniciar y crear un mundo; `destruir()`
+también vacía la cola y libera la caché de sellos. No cambia ningún dato del
+reglamento. Prueba de integración: `node pruebas/vfx-juego.mjs` en `npm test`,
+con canvas/GPU emulados; la revisión visual corresponde al autor.
