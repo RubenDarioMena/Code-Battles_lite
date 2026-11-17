@@ -1,3 +1,18 @@
+## VFX · el haz que carga el piso y la figura de Lichtenberg que late · 17 de noviembre de 2026
+
+Rama `vfx-explosiones-singularidad`. Solo cambia `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify.
+
+- **Origen.** El usuario pidió la otra mitad del arma del agujero negro: el rayo que carga el piso para que el agujero flote. Entre un rayo grueso «de Thor» y un haz de electrones se acordó la mezcla: golpe de rayo que se endereza en haz, y figura de Lichtenberg en el piso. Pidió además que las marcas se queden brillando con un palpitar sutil bajo el agujero.
+- **Haz (`carga.haz`).** Golpe de 0,18 s (rayo grueso y quebrado, con ramas al piso y fogonazo), que se endereza en un haz recto de 1,7 s: núcleo blanco, envoltura violeta, se abre al bajar y lleva filamentos que giran. Son líneas como los arcos, sin estado.
+- **Figura (`carga.py`, `carga.figura`).** Ramas sorteadas una vez con la semilla (9 troncos, unos 3.500 tramos, 14 m de radio). Cada nudo guarda el camino hasta el impacto; el frente del reparto y el latido salen de ese dato. Se dibuja una vez por cámara; en el motor sería una textura del suelo.
+- **Reposo y latido (`carga.reposo`).** Tras el fogonazo queda una marca oscura con luz morada. Brilla más bajo cada agujero (el foco crece con la masa) y late con dos golpes por ciclo a 1,3 Hz, la frecuencia del vaivén del agujero. La lente la deforma como al piso y el apagado del entorno la afecta a medias. Suben motas de polvo cargado.
+- **Demos.** `--demo carga` nueva (haz → figura → aparece un agujero que crece hasta masa 3,5). Las demos `masa` y `fusion` empiezan con el piso ya cargado (`piso_cargado`), así que su aspecto cambia: ahora llevan la figura latiendo debajo. Eventos nuevos: `haz_impacto` y `piso_cargado`.
+- **Sin cambio de reglas.** El piso cargado es solo vista; el agujero no lo lee para flotar. Los eventos y los instantes de las demos `masa` y `fusion` no deben cambiar: la figura y las motas usan semillas propias.
+- **Verificado hasta ahora:** con Blender 5.2.4 LTS a 1280 × 720, cuadros sueltos de la demo de carga (golpe, haz, reparto, reposo en cuatro fases del latido y agujero ya creado), revisados a tamaño real. Sintaxis de `singularidad.py` y `carga.py`, JSON válido y `git diff --check`.
+- **En curso al escribir esto:** render completo de las tres demos, modo simple, ángulo bajo y calidades `borrador` y `final`. Sus vistas previas aún no están en `previas/`; las de `masa` y `fusion` que hay son anteriores a este cambio.
+- **No verificado:** el movimiento en vídeo, nada en WebGL/WebGPU ni rendimiento en GPU. No se ejecutaron las pruebas del juego: no se tocó ningún archivo suyo.
+- **Pendiente:** revisión visual del usuario; que la figura rodee edificios en vez de pasar por debajo; modelo del arma que dispara el haz; decidir si `carga_perdida` apaga la figura.
+
 ## VFX · unificación de singularidad, artillería y previas · 16 de noviembre de 2026
 
 - **Fuente canónica:** `vfx-explosiones-singularidad`, reuniendo `ccr-62599b2d-2y0dow` (`346d4e2`, singularidad renovada), `ccr-293f5765-o1sulj` (`57402d7`, artillería) y `ccr-f2aee30f-2ivzok` (`ec18c69`, previa fuego/polvo). Los commits de las tres ramas quedan en el historial de la canónica; se retiran sus nombres remotos tras publicar la unión.

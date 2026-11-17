@@ -12,7 +12,9 @@ enemigos comidos) hasta la masa crítica. Todo lo que se ve sale de la masa y de
   cierra la espiral y se apaga en el horizonte (no hay disco de acreción estable: el «disco» son
   esas líneas, que juntas se leen como anillos concéntricos);
 - dos agujeros se repelen, entran en órbita cada vez más rápida, derivan hacia el fondo y se
-  fusionan con destello, anillo de onda gravitacional, retroceso y ringdown.
+  fusionan con destello, anillo de onda gravitacional, retroceso y ringdown;
+- el arma que carga el piso: un haz de electrones que entra con un golpe de rayo y deja en el suelo
+  una figura de Lichtenberg, que se queda encendida y late bajo cada agujero (carga.py).
 
 Blender solo pone el escenario de prueba (color y profundidad). Lo demás es un pase de numpy que
 hace lo que hará el motor en espacio de pantalla y con geometría mínima (líneas), sin estado.
@@ -20,14 +22,15 @@ Todos los números están en singularidad_config.json.
 
 Sin ventana:
     blender -b --factory-startup --python arte/blender/vfx/singularidad.py -- --salida <carpeta>
-        [--demo fusion|masa] [--calidad borrador|final|alta] [--modo completo|simple]
+        [--demo fusion|masa|carga] [--calidad borrador|final|alta] [--modo completo|simple]
         [--config ruta.json] [--ajuste seccion.clave=valor] [--cuadros 10,40,80] [--orbita 0]
         [--elevacion 38] [--distancia 17]
 
 Convenciones:
 - 1 m = 1 casilla; el suelo es z = 0.
 - El efecto no decide nada del juego: recibe posiciones, masas y eventos (crear, absorber, fusionar)
-  y emite los ganchos de `eventos` del config. No depende del estado de carga.
+  y emite los ganchos de `eventos` del config. El piso cargado es solo vista: el agujero flota
+  igual sin él, y quién decide si el piso está cargado es el juego.
 - `--modo simple` es la ruta degradada: sin lente, aberración ni bloom, y con la mitad de arcos.
 """
 import argparse
@@ -43,6 +46,7 @@ import numpy as np
 from mathutils import Vector
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import carga  # noqa: E402
 from comun import a_bytes, a_srgb, escribir_jpg, escribir_png, hoja, leer_exr, nodos, tono, video  # noqa: E402
 
 FPS = 24
@@ -279,13 +283,19 @@ class Guion:
         self.cfg, self.demo, self.semilla = cfg, demo, semilla
         self.rng = np.random.default_rng(semilla)
         self.agujeros, self.absorciones, self.eventos, self.enemigos = {}, [], [], []
-        self.fu = None
+        self.fu = self.carga = None
         d = cfg["demo"][demo]
         self.duracion = d["duracion"]
         if demo == "fusion":
             self._demo_fusion(d)
+        elif demo == "carga":
+            self._demo_carga(d)
         else:
             self._demo_masa(d)
+        if self.carga is None and d.get("piso_cargado"):  # el piso se cargó antes de empezar la demo
+            self.carga = dict(t=-1e3, centro=np.array(self.fu["a0"] if self.fu else self.a0, np.float64))
+        if self.carga:
+            self._preparar_carga()
         self.eventos.sort(key=lambda e: e["t"])
 
     # -- construcción ----------------------------------------------------------
@@ -359,12 +369,27 @@ class Guion:
             t += dt
 
     def _demo_masa(self, d):
+        m = self.cfg["masa"]
+        self.rampa = dict(t0=0.0, t1=0.92 * d["duracion"], m1=m["critica"], exponente=d["exponente"])
+        self._agujero_solo(d, 0.3, (0.0, 1.0))
+
+    def _demo_carga(self, d):
+        hz = self.cfg["carga"]["haz"]
+        t0, t_ag = d["impacto"]["t"], d["agujero"]["t"]
+        self.carga = dict(t=t0, centro=np.array(d["impacto"]["pos"], np.float64))
+        self._evento(t0, "haz_impacto")
+        self._evento(t0 + hz["golpe"] + hz["duracion"], "piso_cargado")
+        self.rampa = dict(t0=t_ag, t1=t_ag + 0.92 * (d["duracion"] - t_ag), m1=d["masa_final"], exponente=d["exponente"])
+        self._agujero_solo(d, t_ag, d["impacto"]["pos"])
+
+    def _agujero_solo(self, d, nace, pos):
+        """Un agujero quieto cuya masa sigue `self.rampa`, con líneas de enemigos solo para la vista."""
         cfg, m = self.cfg, self.cfg["masa"]
-        self.agujeros = {"A": dict(nace=0.3, m0=m["agujero"])}
+        self.agujeros = {"A": dict(nace=nace, m0=m["agujero"])}
         self.fu = None
-        self.a0 = np.array((0.0, 1.0))
-        self._evento(0.3, "agujero_creado", agujero="A")
-        t, antes = 0.6, m["agujero"]
+        self.a0 = np.array(pos, np.float64)
+        self._evento(nace, "agujero_creado", agujero="A")
+        t, antes = nace + 0.3, m["agujero"]
         while t < self.duracion:
             masa = self.masa("A", t)
             ang, r = self.rng.uniform(0, math.tau), curva(cfg["curvas"]["radio_absorcion"], masa) * 0.8
@@ -374,6 +399,17 @@ class Guion:
             antes = masa
             t += 1 / d["lineas_por_segundo"]
 
+    def _preparar_carga(self):
+        """Sortea una vez la figura del piso y las motas que suben de ella (con su propia semilla)."""
+        c = self.cfg["carga"]
+        self.arbol = carga.arbol(c["figura"], self.semilla)
+        r, mo = np.random.default_rng([self.semilla, 4244]), c["motas"]
+        nudos = r.integers(1, len(self.arbol["p"]), mo["cantidad"])
+        self.motas = dict(p=self.arbol["p"][nudos] + self.carga["centro"],
+                          llegada=carga.llegada(self.arbol, c, self.arbol["dist"][nudos]),
+                          periodo=r.uniform(*mo["periodo"], mo["cantidad"]), fase=r.random(mo["cantidad"]),
+                          deriva=r.normal(size=(mo["cantidad"], 2)) * mo["deriva_m"])
+
     # -- consultas sin estado --------------------------------------------------
 
     def id_actual(self, k, t):
@@ -381,9 +417,9 @@ class Guion:
 
     def masa(self, k, t):
         """Masa visible: sube mientras la línea del enemigo cruza el horizonte, no de golpe."""
-        if self.demo == "masa":
-            d, m = self.cfg["demo"]["masa"], self.cfg["masa"]
-            return m["agujero"] + (m["critica"] - m["agujero"]) * min(1.0, t / (0.92 * d["duracion"])) ** d["exponente"]
+        if self.fu is None:
+            ra, m0 = self.rampa, self.cfg["masa"]["agujero"]
+            return m0 + (ra["m1"] - m0) * min(1.0, max(0.0, (t - ra["t0"]) / (ra["t1"] - ra["t0"]))) ** ra["exponente"]
         fundido = self.fu and t >= self.fu["t_f"]
         total = 0.0
         for q in (("A", "B") if (k == "A" and fundido) else (k,)):
@@ -397,7 +433,7 @@ class Guion:
         """Posición del agujero k en el instante t (metros)."""
         fl = self.cfg["flotacion"]
         n = 0 if k == "A" else 1
-        z = fl["altura"] + fl["altura_por_masa"] * (self.masa(k, t) if self.demo == "masa" else 1.0) \
+        z = fl["altura"] + fl["altura_por_masa"] * (self.masa(k, t) if self.fu is None else 1.0) \
             + fl["vaiven"] * math.sin(math.tau * fl["frecuencia"] * t + 2.1 * n) \
             + fl["temblor"] * math.sin(t * 61.0 + n) * math.sin(t * 37.0 + 1.3 * n)
         if self.fu is None:
@@ -539,7 +575,77 @@ class Guion:
             if tau < on["duracion"]:
                 est["ondas"].append(dict(pos=centro, radio=on["velocidad"] * tau, ancho=on["ancho_m"] + 0.06 * on["velocidad"] * tau,
                                          amplitud=on["amplitud_m"] * escala * (1 - tau / on["duracion"]) ** 2, luz=on["luz"]))
+        if self.carga:
+            self._estado_carga(t, est)
         return est
+
+    def _estado_carga(self, t, est):
+        """El haz que carga el piso (golpe de rayo → haz recto), su destello y el estado del piso."""
+        c = self.cfg["carga"]
+        hz, de, mo, re = c["haz"], c["destello"], c["motas"], c["reposo"]
+        tau = t - self.carga["t"]
+        centro = self.carga["centro"]
+        fin = np.array((centro[0], centro[1], 0.0))
+        ini = fin + np.array(hz["origen_m"], np.float64)
+        t_fin = hz["golpe"] + hz["duracion"]
+        nivel = 0.0
+        if 0 <= tau < t_fin + hz["apagado"]:
+            nivel = 1 - suave((tau - t_fin) / hz["apagado"])
+            golpe = 1 - suave(tau / hz["golpe"])                            # 1 al caer el rayo, 0 ya como haz
+            quiebro = 1 - suave((tau - 0.5 * hz["golpe"]) / hz["enderezar"])  # el rayo se endereza
+            estable = suave((tau - hz["golpe"]) / 0.2)
+            n = hz["segmentos"]
+            r = np.random.default_rng([self.semilla, 555, int(tau * hz["frecuencia"])])
+            s = np.linspace(0, 1, n + 1)
+            pts = _rayo(r, ini, fin, n, hz["zigzag"] * quiebro, hz["zigzag_fino"] * quiebro)
+            parpadeo = 1 + 0.12 * math.sin(t * 47.0) * math.sin(t * 29.0)
+            abre = 1 + hz["ensanche"] * s  # los electrones se dispersan en el aire: el haz se abre al bajar
+            brillo = (hz["brillo"] + (hz["brillo_golpe"] - hz["brillo"]) * golpe) * nivel * parpadeo
+            est["lineas"].append(dict(pts=pts, arco=True, color=np.tile(np.array(hz["color"]) * brillo, (n + 1, 1)),
+                                      ancho=hz["ancho_m"] * abre * (1 + (hz["ancho_golpe"] - 1) * golpe) * (0.4 + 0.6 * nivel)))
+            est["lineas"].append(dict(pts=pts, arco=True, ancho=hz["envoltura_m"] * abre,
+                                      color=np.tile(np.array(hz["color_envoltura"]) * hz["envoltura_brillo"] * nivel * parpadeo, (n + 1, 1))))
+            # Filamentos: electrones que giran alrededor del haz en su último tramo.
+            eje = (fin - ini) / np.linalg.norm(fin - ini)
+            e1 = np.cross(eje, (0.0, 1.0, 0.0))
+            e1 /= np.linalg.norm(e1)
+            e2 = np.cross(eje, e1)
+            nf, largo = 60, min(hz["filamento_largo_m"], float(np.linalg.norm(fin - ini)))
+            sf = np.linspace(0, 1, nf + 1)
+            for j in range(hz["filamentos"]):
+                rj = np.random.default_rng([self.semilla, 556, int(tau * 24), j])
+                if estable <= 0 or rj.random() > 0.75:
+                    continue
+                ang = math.tau * (hz["filamento_vueltas"] * sf + j / hz["filamentos"] - 1.7 * t)
+                radio = hz["filamento_radio_m"] * (1 + 0.5 * sf) * (1 + 0.3 * rj.normal(size=nf + 1)) * np.sqrt(1 - sf * 0.6)
+                fil = fin - eje * (largo * (1 - sf))[:, None] + (radio * np.cos(ang))[:, None] * e1 + (radio * np.sin(ang))[:, None] * e2
+                est["lineas"].append(dict(pts=fil, arco=True, ancho=np.full(nf + 1, hz["filamento_ancho_m"]),
+                                          color=np.tile(np.array(hz["color_envoltura"]) * hz["filamento_brillo"] * estable * nivel
+                                                        * rj.uniform(0.6, 1.2), (nf + 1, 1))))
+            # Ramas del golpe: el rayo busca el piso alrededor antes de enderezarse.
+            if golpe > 0.05:
+                for j in range(hz["ramas_golpe"]):
+                    i = int(r.integers(n * 3 // 4, n - 2))
+                    az, rr = r.uniform(0, math.tau), r.uniform(1.2, 3.5)
+                    punta = fin + np.array((rr * math.cos(az), rr * math.sin(az), 0.0))
+                    rama = _rayo(r, pts[i], punta, 8, 0.13, 0.03)
+                    est["lineas"].append(dict(pts=rama, arco=True, suelo=punta, ancho=np.full(len(rama), hz["ancho_m"] * 0.5),
+                                              color=np.tile(np.array(hz["color"]) * hz["brillo"] * golpe, (len(rama), 1))))
+            est["destellos"].append(dict(pos=fin + (0, 0, 0.05), k=(0.3 * nivel * parpadeo) ** (1 / 1.5), brillo=de["brillo"],
+                                         radio=0.3 * de["radio_m"]))
+        if 0 <= tau < 5 * de["duracion"]:
+            est["destellos"].append(dict(pos=fin + (0, 0, 0.05), k=math.exp(-tau / de["duracion"]), brillo=de["brillo"],
+                                         radio=de["radio_m"]))
+        # El foco del reposo va bajo cada agujero y crece con su masa; sin agujeros, es el impacto.
+        focos = [(a["pos"][0], a["pos"][1], re["radio_bajo_m"][0] + (re["radio_bajo_m"][1] - re["radio_bajo_m"][0]) * a["x"])
+                 for a in est["agujeros"]] or [(centro[0], centro[1], re["radio_bajo_m"][0])]
+        est["carga"] = dict(tau=tau, centro=centro, haz=nivel, focos=focos,
+                            fogonazo=math.exp(-tau / de["duracion"]) if tau >= 0 else 0.0)
+        if tau > 0 and mo["cantidad"]:
+            M = self.motas
+            u = (t / M["periodo"] + M["fase"]) % 1.0
+            pts = np.column_stack([M["p"] + M["deriva"] * u[:, None], mo["altura_m"] * u ** 0.8])
+            est["motas"] = dict(pts=pts, brillo=np.sin(math.pi * u) ** 1.5 * (tau > M["llegada"] + u * M["periodo"]))
 
 
 def _superficie(ag, hacia):
@@ -681,7 +787,7 @@ def trazar(lienzo, x, y, sigma, color, ver):
     lienzo[by0:by1, bx0:bx1] += peso[..., None] * tinte
 
 
-def componer(vista, escena, zesc, est, cfg, modo):
+def componer(vista, escena, zesc, est, cfg, modo, arbol=None):
     """Un fotograma: lente de todos los agujeros con profundidad, entorno, horizontes y luz."""
     w, h, X, Y = vista.w, vista.h, vista.X, vista.Y
     completo = modo == "completo"
@@ -705,6 +811,17 @@ def componer(vista, escena, zesc, est, cfg, modo):
 
     hoyos = [dict(a, **local(a["pos"])) for a in est["agujeros"][:cl["max_lentes"]]]
     ondas = [dict(o, **local(o["pos"])) for o in est["ondas"]]
+
+    # 0. Piso cargado: la figura de Lichtenberg es luz del suelo, así que va antes que la lente (los
+    #    agujeros la deforman) y solo donde el suelo está a la vista.
+    ec, piso = est.get("carga"), None
+    if ec and ec["tau"] > 0:
+        cc = cfg["carga"]
+        piso, quemado = carga.luz_piso(carga.hornear(vista, arbol, cc, ec["centro"]), cc, ec, est["t"])
+        en_suelo = np.abs(zesc - vista.profundidad_plano(np.zeros(3), np.array((0.0, 0.0, 1.0)))) < 0.12
+        piso *= en_suelo[..., None]
+        escena = escena * (1 - quemado * en_suelo)[..., None]  # la quemadura es del piso: se deforma con él
+    apaga = np.ones((h, w), np.float32)  # cuánto apagan los agujeros el entorno en cada píxel
 
     # 1. Fondo deformado: suma de las lentes puntuales (β = θ − θE²/θ) y del pulso de la onda. La
     #    profundidad pondera cada lente: lo que está delante del agujero no se desvía.
@@ -735,6 +852,8 @@ def componer(vista, escena, zesc, est, cfg, modo):
         zmin = min([H["zc"] for H in hoyos] + [O["zc"] for O in ondas])
         valido = muestrear(zesc, X + desx, Y + desy) >= zmin - margen
         out = np.where(valido[..., None], lensado, escena)
+        if piso is not None:
+            piso = np.where(valido[..., None], muestrear(piso, X + desx, Y + desy), piso)
 
     # 2. Entorno según la masa: se apaga y pierde color alrededor; dentro del anillo de Einstein la
     #    imagen llega invertida y se atenúa para que se lea como pozo. Luz de los arcos en el suelo.
@@ -744,10 +863,12 @@ def componer(vista, escena, zesc, est, cfg, modo):
         gris = out @ np.array((0.3, 0.55, 0.15), np.float32)
         out += (gris[..., None] - out) * (osc["desaturar"] * H["oscuridad"] / osc["maxima"] * g)[..., None]
         out *= ((1 - H["oscuridad"] * g) ** osc["contraste"])[..., None]  # en lineal, para que en pantalla sea negro de verdad
+        apaga *= (1 - H["oscuridad"] * g) ** osc["contraste"]
         if completo:
             pozo = (1 - escalon(0.45 * H["lente"], H["lente"], H["r"])) * H["visible"] \
                 * detras(zesc, H["zc"], cl["largo_profundidad"])
             out *= (1 - osc["pozo"] * (0.4 + 0.6 * math.sqrt(H["x"])) * pozo)[..., None]
+            apaga *= 1 - osc["pozo"] * (0.4 + 0.6 * math.sqrt(H["x"])) * pozo
         gx, gy, gz = (float(v[0]) for v in vista.proyectar(np.array((H["pos"][0], H["pos"][1], 0.0))))
         ppg = (h / 2) / (max(gz, 0.5) * vista.ty)
         ra = max(0.8, H["alcance_arcos"]) * 1.3 * ppg
@@ -756,6 +877,16 @@ def componer(vista, escena, zesc, est, cfg, modo):
         fuerza_luz = cfg["arcos"]["luz_suelo"] * (0.6 * H["brillo_arcos"] * (1 - 0.75 * H["x"]) + 0.5 * H["hawking"])
         out += escena * (charco * fuerza_luz)[..., None] * col  # cerca de la masa crítica ya casi no alumbra
 
+    if ec and ec["tau"] >= 0:  # el impacto alumbra todo un instante; el haz, el suelo de alrededor
+        de = cfg["carga"]["destello"]
+        gx, gy, gz = (float(v[0]) for v in vista.proyectar(np.array((ec["centro"][0], ec["centro"][1], 0.0))))
+        ra = de["charco_m"] * (h / 2) / (max(gz, 0.5) * vista.ty)
+        charco = np.exp(-(((X - gx) / ra) ** 2 + ((Y - gy) / (ra * sen_elev)) ** 2))
+        out += escena * (de["escena"] * ec["fogonazo"] + de["charco"] * ec["haz"] * charco)[..., None] \
+            * np.array(cfg["carga"]["haz"]["color"], np.float32)
+    if piso is not None:
+        piso *= (apaga ** cfg["carga"]["reposo"]["oscurece"])[..., None]
+
     # 3. Horizontes: discos casi negros con un resplandor morado pegado al borde por dentro.
     hz = cfg["horizonte"]
     for H in hoyos:
@@ -763,6 +894,8 @@ def componer(vista, escena, zesc, est, cfg, modo):
         borde = max(0.7 / H["ppm"], H["radio"] * hz["borde_suave"])
         disco = (1 - escalon(H["radio"] - borde, H["radio"] + 0.3 / H["ppm"], H["r"])) * H["visible"]
         out *= (1 - disco)[..., None]
+        if piso is not None:
+            piso *= (1 - disco)[..., None]
         # El resplandor cae hacia el centro en «borde_ancho» radios y carga más hacia un lado de la pantalla.
         hondo = np.maximum(H["radio"] - H["r"], 0.0) / max(hz["borde_ancho"] * H["radio"], 0.5 / H["ppm"])
         cae = np.exp(-hondo)
@@ -831,6 +964,18 @@ def componer(vista, escena, zesc, est, cfg, modo):
         if completo and O["luz"] > 0:
             luz += (O["pulso"] / max(1e-3, O["amplitud"]) * O["luz"] * min(1.0, O["amplitud"] * 3))[..., None] \
                 * np.array((0.75, 0.85, 1.0), np.float32)
+    if "motas" in est:  # polvo cargado que sube de las ramas, más vivo bajo los agujeros
+        mo = cfg["carga"]["motas"]
+        px, py, pz = vista.proyectar(est["motas"]["pts"])
+        xi, yi = np.clip(px.astype(int), 0, w - 1), np.clip(py.astype(int), 0, h - 1)
+        cerca, _ = carga.foco(cfg["carga"], ec["focos"], est["motas"]["pts"][:, 0], est["motas"]["pts"][:, 1])
+        brillo = est["motas"]["brillo"] * cerca * mo["brillo"] * ((pz > 0.2) & (zesc[yi, xi] > pz - 0.15)) * apaga[yi, xi]
+        vivas = brillo > 0.01
+        salpicar(luz, px[vivas], py[vivas], brillo[vivas, None] * np.array(mo["color"], np.float32),
+                 mo["tamano_m"] * (h / 2) / (np.maximum(pz[vivas], 0.5) * vista.ty))
+    if piso is not None:
+        luz += piso * cfg["carga"]["reposo"]["bloom"]
+        out += piso * (1 - cfg["carga"]["reposo"]["bloom"])
     out += luz + nitida
 
     # 5. Bloom barato: solo de la luz, a un cuarto de resolución.
@@ -848,7 +993,7 @@ def main():
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     ap = argparse.ArgumentParser(prog="singularidad.py")
     ap.add_argument("--salida", required=True)
-    ap.add_argument("--demo", default="fusion", choices=("fusion", "masa"))
+    ap.add_argument("--demo", default="fusion", choices=("fusion", "masa", "carga"))
     ap.add_argument("--nombre")
     ap.add_argument("--config", default=CONFIG)
     ap.add_argument("--ajuste", action="append", default=[], metavar="seccion.clave=valor",
@@ -925,7 +1070,7 @@ def main():
             zesc = np.where(z[..., 3] > 0.5, z[..., 0], 1e6).astype(np.float32)
             vista = Vista(co, w, h)
             renders += 1
-        img = componer(vista, escena, zesc, est, cfg, a.modo)
+        img = componer(vista, escena, zesc, est, cfg, a.modo, getattr(guion, "arbol", None))
         salidas[c] = a_bytes(a_srgb(tono(img, 1.0, 0.8)))
         escribir_png(os.path.join(tmp, f"f{i:04d}.png"), salidas[c], nivel=3)
         if i % 24 == 0:
@@ -939,6 +1084,11 @@ def main():
             fu, t1 = guion.fu, guion.absorciones[0]["t"] if guion.absorciones else 1.0
             tiempos = [t1 - 0.3, t1 + 0.1, t1 + 0.7, fu["t_d"] + 1.2, fu["t_r"] + 0.15, fu["t_o"] + 0.3, fu["t_o"] + 1.6,
                        fu["t_f"] - 0.25, fu["t_f"] + 0.03, fu["t_f"] + 0.16, fu["t_f"] + 0.45, fu["t_f"] + 1.6]
+        elif a.demo == "carga":
+            hz, t0, t_ag = cfg["carga"]["haz"], guion.carga["t"], guion.agujeros["A"]["nace"]
+            t_fin = t0 + hz["golpe"] + hz["duracion"]
+            tiempos = [t0 + 0.05, t0 + 0.13, t0 + 0.3, t0 + 0.6, t0 + 1.2, t_fin + 0.15, t_fin + 0.6, t_ag - 0.3,
+                       t_ag + 0.1, t_ag + 1.0, (t_ag + guion.duracion) / 2, guion.duracion - 0.2]
         else:
             tiempos = [guion.duracion * (k + 0.5) / 8 for k in range(8)]
         elegidos = [salidas[min(n_total - 1, max(0, int(round(t * FPS))))][::2, ::2] for t in tiempos]
