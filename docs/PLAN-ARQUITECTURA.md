@@ -202,6 +202,7 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 - Paquete `vfx` según `docs/PLAN-VFX.md`: recetas de datos, partículas sin estado, mismo efecto en 2D y en 3D, laboratorio.
 - Niveles de calidad (bajo, medio, alto) con presupuesto de partículas; post-proceso solo en los niveles que lo aguanten.
 - Hecho cuando: los efectos de War se ven en las dos vistas, y la medida de carga está registrada para los tres niveles.
+- **Cerrada** (17 de noviembre de 2026, rama `arquitectura/fase-4`; detalle en `PROGRESO.md`). Paquete `vfx` (recetas de datos, partículas sin estado) con dibujantes 2D y 3D y laboratorio; efectos de War en las dos vistas desde los sucesos; calidad en Ajustes (automático, alto, medio, bajo, sin efectos; movimiento reducido quita destellos) con presupuestos 2000/1200/600/0; medida de carga en Electron con GPU real registrada en `docs/qa/vfx-carga-2026-11-17/`; instancias (`InstancedMesh`) para enemigos y misiles en `vista-3d`; el juego pasa de Three r128 a **r180** (WebGL 2, gestión de color, luces físicas). Sin post-proceso: ningún nivel está limitado por la GPU; se reconsidera con la medida en teléfono (fase 6). Pendientes del autor: tamaño de las recetas y acotar el cálculo de partículas al presupuesto (solo afecta a cargas extremas).
 
 ### Fase 5 · Anfitrión determinista
 

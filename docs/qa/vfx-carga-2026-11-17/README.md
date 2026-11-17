@@ -54,3 +54,26 @@
 | no | 2d | saturacion | 601 | 16.67 | 18.60 | 18.70 | 0 | 0/0 | 0.03 | 0.00 | 0.10 |
 | no | 3d | real | 601 | 16.66 | 18.60 | 18.70 | 0 | 0/0 | 0.02 | 0.00 | 0.10 |
 | no | 3d | saturacion | 600 | 16.67 | 18.60 | 18.70 | 0 | 0/0 | 0.03 | 0.01 | 0.10 |
+
+## Tras pasar a Three r180 (paso 5), 120 tríos/s
+
+Misma máquina y procedimiento, con el juego ya en r180 (`resumen-r180-120.json`). El resultado no cambia: 60 fps fijos en la partida real en todos los niveles y vistas; en saturación, medio, bajo y sin efectos a 60 fps y alto en 2D con 81 fotogramas de más de 33 ms. El dibujo 3D en saturación pasa de 0,08 a 0,34 ms de CPU porque cada partícula convierte su color de sRGB a lineal; sigue siendo despreciable.
+
+| Calidad | Vista | Escenario | Fotogramas | Media ms | p95 ms | p99 ms | >33 ms | Vivas máx./presupuesto | CPU partículas ms | CPU dibujo ms | CPU total p95 ms |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| alto | 2d | real | 601 | 16.67 | 18.50 | 18.60 | 0 | 194/2000 | 0.29 | 0.20 | 1.60 |
+| alto | 2d | saturacion | 515 | 19.45 | 33.40 | 34.60 | 81 | 2000/2000 | 15.54 | 1.69 | 18.20 |
+| alto | 3d | real | 601 | 16.66 | 17.80 | 18.30 | 0 | 194/2000 | 0.29 | 0.05 | 1.10 |
+| alto | 3d | saturacion | 593 | 16.89 | 17.10 | 33.30 | 7 | 2000/2000 | 15.47 | 0.34 | 16.60 |
+| medio | 2d | real | 601 | 16.67 | 18.20 | 18.60 | 0 | 113/1200 | 0.21 | 0.15 | 1.10 |
+| medio | 2d | saturacion | 600 | 16.67 | 16.90 | 18.30 | 0 | 1200/1200 | 8.94 | 1.03 | 10.50 |
+| medio | 3d | real | 601 | 16.67 | 18.30 | 18.60 | 0 | 113/1200 | 0.20 | 0.04 | 0.70 |
+| medio | 3d | saturacion | 601 | 16.67 | 17.10 | 18.10 | 0 | 1200/1200 | 8.95 | 0.21 | 9.90 |
+| bajo | 2d | real | 601 | 16.67 | 18.30 | 18.60 | 0 | 52/600 | 0.14 | 0.10 | 0.60 |
+| bajo | 2d | saturacion | 601 | 16.67 | 17.30 | 18.50 | 0 | 600/600 | 4.35 | 0.54 | 5.60 |
+| bajo | 3d | real | 601 | 16.67 | 18.20 | 18.60 | 0 | 52/600 | 0.13 | 0.03 | 0.40 |
+| bajo | 3d | saturacion | 601 | 16.67 | 17.70 | 18.50 | 0 | 600/600 | 4.47 | 0.12 | 5.60 |
+| no | 2d | real | 601 | 16.67 | 18.10 | 18.60 | 0 | 0/0 | 0.02 | 0.00 | 0.10 |
+| no | 2d | saturacion | 601 | 16.67 | 18.00 | 18.40 | 0 | 0/0 | 0.09 | 0.00 | 0.20 |
+| no | 3d | real | 600 | 16.67 | 18.30 | 18.60 | 0 | 0/0 | 0.02 | 0.01 | 0.10 |
+| no | 3d | saturacion | 600 | 16.67 | 18.20 | 18.50 | 0 | 0/0 | 0.10 | 0.01 | 0.20 |
