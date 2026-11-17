@@ -5,7 +5,7 @@ Efectos generados por código, fuera del juego. Nada de esta carpeta se carga en
 | Archivo | Qué hace | Estado |
 | --- | --- | --- |
 | `singularidad.py` | Agujero negro del arma de final de juego: lente, arcos, spaghettificación, fusión y el haz que carga el piso. | Prototipo completo |
-| `carga.py` | Piso cargado: figura de Lichtenberg, su reparto y su latido. Solo numpy; lo usa `singularidad.py`. | Prototipo completo |
+| `carga.py` | Piso cargado: figura de Lichtenberg y el latido de luz que la recorre. Solo numpy; lo usa `singularidad.py`. | Prototipo completo |
 | `singularidad_config.json` | Todos los parámetros de la singularidad y de la carga del piso. | — |
 | `explosion.py` | Simulación de gas de cada efecto de artillería: explosión en tierra, aérea, incendio y bocanada de estela. | Recetas en calidad media |
 | `empaquetar.py` | Convierte los cuadros en atlas de flipbook con su JSON, hoja de contactos y vista previa. | — |
@@ -52,7 +52,7 @@ blender -b --factory-startup --python arte/blender/vfx/singularidad.py -- --sali
 
 - **`--demo fusion`**: un agujero come enemigos; llega un segundo agujero, se repelen, orbitan cada vez más rápido mientras derivan hacia el fondo, y se fusionan.
 - **`--demo masa`**: un solo agujero cuya masa sube de 1 a la crítica. Enseña la apariencia según la masa.
-- **`--demo carga`**: el haz carga el piso, queda la figura latiendo y aparece un agujero que crece un poco. Las otras dos demos empiezan con el piso ya cargado (`demo.<nombre>.piso_cargado`).
+- **`--demo carga`**: el haz carga el piso (primer latido) y aparece un agujero que crece un poco (segundo latido). Las otras dos demos empiezan con el piso ya cargado (`demo.<nombre>.piso_cargado`): solo se ve el latido al aparecer el primer agujero.
 
 ### El haz que carga el piso
 
@@ -60,10 +60,13 @@ Un rayo descarga; lo que deposita carga es un haz de electrones. El arma hace la
 
 1. **Golpe** (0,18 s): un rayo grueso y quebrado cae sobre el punto, con fogonazo.
 2. **Haz** (1,7 s): el rayo se endereza en una columna recta de núcleo blanco y borde violeta, el color con que el aire brilla al paso de electrones. Se abre un poco al bajar y lleva filamentos que giran a su alrededor.
-3. **Reparto**: la carga se reparte por el piso en ramas, una figura de Lichtenberg. El frente sale del impacto, frena al alejarse y deja un fogonazo que se apaga.
-4. **Reposo**: la figura se queda como marca oscura con luz morada. Brilla más bajo cada agujero y late con dos golpes por ciclo, al ritmo del vaivén del agujero. Suben motas de polvo cargado.
+3. **Latido**: la carga se reparte por el piso en ramas, una figura de Lichtenberg, pero la figura nunca se ve entera ni deja marca. Solo se enciende el tramo por donde pasa una banda de luz que sale del impacto hacia fuera: frente blanco, cola violeta corta, y detrás nada.
 
-La figura se sortea una vez con la semilla y no guarda estado: cada punto sabe cuánto camino hay hasta el impacto, y de ahí salen el frente y el latido. La lente de los agujeros la deforma como al resto del piso. El piso cargado es solo vista: el agujero no lo lee para flotar.
+El piso late dos veces y nunca más: al impactar el haz y cuando el primer agujero queda sobre el punto de impacto. Es un complemento; el protagonista es el agujero.
+
+El haz puede venir de cualquier dirección (`carga.haz.origen_m`, respecto al impacto). En la demo llega casi horizontal, a unos 17° del suelo.
+
+La figura se sortea una vez con la semilla y no guarda estado: cada punto sabe cuánto camino hay hasta el impacto, y de ahí sale el latido. La lente de los agujeros lo deforma como al resto del piso. El piso cargado es solo vista: el agujero no lo lee para flotar.
 
 ### Qué es Blender y qué es el pase de pantalla
 
@@ -92,9 +95,7 @@ Blender solo renderiza el escenario de prueba: color y profundidad. Todo el efec
 | `carga.haz` | Duración del golpe, del haz y de su apagado; origen, zigzag, anchos, cuánto se abre, brillos, colores y filamentos. |
 | `carga.destello` | Fogonazo del impacto, cuánto alumbra el encuadre y la luz en el suelo mientras dura el haz. |
 | `carga.figura` | Forma de las ramas: radio, troncos, giro, ramificación, reparto del largo y anchos. |
-| `carga.reparto` | Tiempo que tarda el frente, brillo y duración de su fogonazo. |
-| `carga.reposo` | Brillo bajo el agujero y lejos de él, tamaño del foco, colores, fuerza, frecuencia y retardo del latido, quemadura y cuánto lo apaga el entorno. |
-| `carga.motas` | Cantidad, altura, ritmo, tamaño y brillo del polvo que sube. |
+| `carga.onda` | El latido: velocidad, nitidez del frente, largo de la cola, brillo, colores, alcance, desgaste al alejarse y cuánto lo apaga el entorno. |
 | `aparicion` | Destello al crearse un agujero. |
 | `fusion` | Velocidad de disparo, distancias, duración de repulsión y órbita, vueltas, exponentes del inspiral, inclinación, deriva y su dirección, retroceso y su asimetría, destello, onda y ringdown. |
 | `eventos` | Ganchos que emite y los reservados. |
@@ -114,7 +115,7 @@ El radio de Einstein (`curvas.lente`) no se cambió: la zona deformada es la mis
 
 ### Eventos
 
-El JSON de salida lista los eventos con su instante: `haz_impacto`, `piso_cargado` (al terminar el haz), `agujero_creado`, `enemigo_absorbido`, `repulsion`, `orbita`, `fusion` (con masa, asimetría y retroceso), `ringdown_fin`, `super_arma` y `masa_critica`. `carga_perdida` está reservado y nadie lo emite: el efecto no depende del estado de carga.
+El JSON de salida lista los eventos con su instante: `haz_impacto`, `piso_cargado` (al terminar el haz), `piso_late` (segundo latido), `agujero_creado`, `enemigo_absorbido`, `repulsion`, `orbita`, `fusion` (con masa, asimetría y retroceso), `ringdown_fin`, `super_arma` y `masa_critica`. `carga_perdida` está reservado y nadie lo emite: el efecto no depende del estado de carga.
 
 `Guion.pos(agujero, t)` es una función pura del tiempo. El juego puede llamar a la misma fórmula para saber dónde está cada agujero durante la fusión.
 
@@ -124,9 +125,9 @@ El JSON de salida lista los eventos con su instante: `haz_impacto`, `piso_cargad
 - Las trayectorias de la fusión son coreografía con forma de inspiral, no una simulación.
 - El enemigo desaparece al ser absorbido y lo sustituye una mancha de luz que se estira. El estirado de la malla del enemigo no está prototipado.
 - Los arcos caen sobre el plano del suelo; no buscan edificios ni unidades.
-- La figura del piso es plana y no rodea los edificios: pasa por debajo y se ve solo donde hay suelo a la vista. Las unidades la tapan.
-- El haz viene de un punto fijo en lo alto (`carga.haz.origen_m`); no hay modelo del arma que lo dispara.
-- Sin agujeros, el foco del reposo queda en el punto de impacto.
+- La figura del piso es plana y no rodea los edificios: el latido pasa por debajo y se ve solo donde hay suelo a la vista. Las unidades lo tapan.
+- El haz viene de un punto fijo (`carga.haz.origen_m`); no hay modelo del arma que lo dispara, y atraviesa lo que encuentre en su línea.
+- El segundo latido está atado en las demos a la aparición del primer agujero, que nace sobre el impacto. Detectar que un agujero en movimiento pasa por encima es cosa del juego.
 - No hay medida en GPU. Los tiempos del JSON son de numpy en CPU y solo sirven para comparar ejecuciones.
 
 ## Artillería
