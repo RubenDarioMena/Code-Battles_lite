@@ -5,16 +5,19 @@
   cargador de 10), debajo un motor simple y, a un lado, una placa de circuitos a la vista con los
   4 LED de vida.
 - WHL · rueda kamikaze: «rueda con patas». Un aro sin buje que gira alrededor de un núcleo que
-  no gira; el núcleo lleva la carga (naranja) y cuatro patas plegables. Rueda con las patas
-  recogidas y, al reponerse en la base, se apoya inclinada sobre ellas.
+  no gira y lleva la carga (naranja). La pista interior del aro es metal imantado (niquelado
+  de neodimio) y cada par de patas cuelga de un imán del mismo metal pegado a ella: nada va
+  atornillado, así que los pares pueden deslizarse por dentro del aro. Rueda con las patas
+  recogidas arriba y, al reponerse en la base, los imanes bajan y se apoya inclinada sobre ellas.
 
 Reutiliza piezas, paleta, suelo y render de `robots.py` (misma estética y convenciones: 1 m =
 1 casilla, apoyo en z = 0, mirada a +Y, pivotes Empty con nombre fijo).
 
 Pivotes:
 - VEH: torreta (giro Z), elevacion (giro X), rueda_i/d_0..1 (giro X), vida_0..3 (LED de la placa).
-- WHL: aro (giro X: lo único que rueda), nucleo, pata_X y rodilla_X con X en d1, d2, i1, i2
-  (giro Y). `pose_rueda(raiz, t)` va de rodando (t = 0) a apoyada (t = 1).
+- WHL: aro (giro X: lo único que rueda), nucleo, iman_1 e iman_2 (giro X: deslizan cada par de
+  patas por la pista), pata_X y rodilla_X con X en d1, d2, i1, i2 (giro Y).
+  `pose_rueda(raiz, t)` va de rodando (t = 0) a apoyada (t = 1).
 
 Sin ventana (Blender o el módulo `bpy` de pip):
     blender -b --factory-startup --python arte/blender/unidades_batalla.py -- <carpeta>
@@ -227,12 +230,17 @@ def vehiculo_torreta(col):
 
 WHL_R = 0.44               # radio exterior del aro
 WHL_W = 0.11               # ancho del neumático
-WHL_R_INT = WHL_R - 0.105  # radio de la pista interior, por donde corren los rodillos del núcleo
-WHL_CADERA = (0.1, 0.11, -0.19)  # |x|, |y| y z de las caderas respecto del centro del aro
-WHL_FEMUR, WHL_TIBIA = 0.21, 0.3
-WHL_PATAS = (("d1", 1, 1), ("d2", 1, -1), ("i1", -1, 1), ("i2", -1, -1))  # nombre, lado x, lado y
+WHL_R_INT = WHL_R - 0.11   # radio de la pista interior imantada
+WHL_CADERA_X = 0.1         # |x| de las caderas, a cada lado del imán
+WHL_CADERA_R = WHL_R_INT - 0.044  # distancia de las caderas al centro del aro
+WHL_FEMUR, WHL_TIBIA = 0.21, 0.32
+# Cada par de patas cuelga de un imán que se pega a la pista y puede deslizarse por ella.
+# nombre del imán, signo (delante +, detrás -) y sus dos patas (nombre, lado x)
+WHL_PARES = (("iman_1", 1, (("d1", 1), ("i1", -1))), ("iman_2", -1, (("d2", 1), ("i2", -1))))
+WHL_IMAN_RODANDO, WHL_IMAN_APOYADA = 90.0, 46.0  # grados desde abajo, hacia delante o detrás
 WHL_INCLINACION = 17.0     # grados que se recuesta al apoyarse
-WHL_PIES = {1: 0.47, -1: -0.3}  # x del pie apoyado (se recuesta hacia +X)
+WHL_PIES = {1: 0.47, -1: -0.27}  # x del pie apoyado (se recuesta hacia +X)
+g["PALETA"]["iman"] = ("#DFE3E8", 1.0, 0.13)  # niquelado de imán de neodimio
 
 
 def _aro_bm(r_ext, r_int, ancho, n=72):
@@ -267,7 +275,7 @@ def rueda_kamikaze(col):
     _objeto("neumatico", bm, "goma", aro, (0, 0, 0), (0, 0, 0), 0.01, 2)
     _objeto("llanta", _aro_bm(WHL_R - 0.045, WHL_R - 0.09, WHL_W - 0.016), "crema", aro, (0, 0, 0), (0, 0, 0),
             0.008, 2)
-    _objeto("pista", _aro_bm(WHL_R - 0.085, WHL_R_INT, 0.06), "grafito", aro, (0, 0, 0), (0, 0, 0), 0.004, 1)
+    _objeto("pista", _aro_bm(WHL_R - 0.085, WHL_R_INT, 0.074), "iman", aro, (0, 0, 0), (0, 0, 0), 0.006, 2)
     for k in range(6):  # marcas «rol» en la llanta: se ve que rueda y de quién es
         a = math.radians(k * 60)
         r = WHL_R - 0.0675
@@ -277,13 +285,13 @@ def rueda_kamikaze(col):
     # núcleo: cuna colgada de la pista por abajo; no gira con el aro
     nucleo = vacio("nucleo", centro)
     rc = WHL_R_INT - 0.014
-    sector("cuna", rc, rc - 0.085, -56, 56, 0.19, "crema", nucleo, bisel=0.014)
-    sector("cuna_franja", rc + 0.002, rc - 0.087, -36, -26, 0.194, "rol", nucleo, bisel=0.005)
-    sector("cuna_franja_b", rc + 0.002, rc - 0.087, 26, 36, 0.194, "rol", nucleo, bisel=0.005)
-    for k, a in enumerate((-61, 0, 61)):
+    sector("cuna", rc, rc - 0.085, -27, 27, 0.19, "crema", nucleo, bisel=0.014)
+    sector("cuna_franja", rc + 0.002, rc - 0.087, -22, -15, 0.194, "rol", nucleo, bisel=0.005)
+    sector("cuna_franja_b", rc + 0.002, rc - 0.087, 15, 22, 0.194, "rol", nucleo, bisel=0.005)
+    for k, a in enumerate((-31, 0, 31)):
         a = math.radians(a)
         r = WHL_R_INT - 0.026
-        articulacion(f"rodillo_{k}", (0, r * math.sin(a), -r * math.cos(a)), 0.026, 0.1, nucleo, tapa="acero")
+        articulacion(f"rodillo_{k}", (0, r * math.sin(a), -r * math.cos(a)), 0.026, 0.1, nucleo, tapa="iman")
     # carga: bidón naranja atravesado, con collar amarillo y detonadores encendidos
     zc = -(rc - 0.085) + 0.055
     cilindro("carga", 0.078, 0.3, (0, 0, zc), "naranja", nucleo, eje="X", verts=24, bisel=0.014)
@@ -295,9 +303,9 @@ def rueda_kamikaze(col):
     cilindro("carga_collar", 0.083, 0.05, (0, 0, zc), "amarillo", nucleo, eje="X", verts=24, bisel=0.004)
     caja("carga_brida", (0.07, 0.2, 0.03), (0, 0, zc - 0.07), "grafito", nucleo, bisel=0.008)
     # ojo único delante: lo que «ve» el sensor
-    ao = math.radians(47)
+    ao = math.radians(17)
     ro = rc - 0.04
-    cabeza = vacio("cabeza", nucleo, (0, ro * math.sin(ao), -ro * math.cos(ao)), rot=(math.radians(-22), 0, 0))
+    cabeza = vacio("cabeza", nucleo, (0, ro * math.sin(ao), -ro * math.cos(ao)), rot=(math.radians(-8), 0, 0))
     caja("cabeza_caja", (0.15, 0.1, 0.1), (0, 0.03, 0.04), "crema", cabeza, bisel=0.02)
     cilindro("ojo_aro", 0.042, 0.02, (0, 0.082, 0.04), "grafito", cabeza, eje="Y", bisel=0.004)
     cilindro("ojo_luz", 0.033, 0.026, (0, 0.084, 0.04), "ambar_luz", cabeza, eje="Y", bisel=0.002)
@@ -305,20 +313,27 @@ def rueda_kamikaze(col):
     cilindro("antena", 0.006, 0.12, (0.05, 0.02, 0.13), "grafito", cabeza, verts=8, bisel=0.0)
     esfera("antena_luz", 0.013, (0.05, 0.02, 0.195), "cian_luz", cabeza)
 
-    # patas: cadera y rodilla giran en Y; en reposo cuelgan hacia -Z
-    hx, hy, hz = WHL_CADERA
-    for nombre, sx, sy in WHL_PATAS:
-        caja(f"soporte_{nombre}", (0.05, 0.07, 0.07), (sx * (hx - 0.035), sy * hy, hz), "grafito", nucleo,
-             bisel=0.01)
-        pata = vacio(f"pata_{nombre}", nucleo, (sx * hx, sy * hy, hz))
-        articulacion(f"cadera_{nombre}", (0, 0, 0), 0.036, 0.075, pata, eje="Y")
-        caja(f"femur_{nombre}", (0.05, 0.04, WHL_FEMUR), (0, 0, -WHL_FEMUR / 2), "crema", pata, bisel=0.014)
-        rodilla = vacio(f"rodilla_{nombre}", pata, (0, 0, -WHL_FEMUR))
-        articulacion(f"eje_rodilla_{nombre}", (0, 0, 0), 0.03, 0.105, rodilla, eje="Y", tapa="rol")
-        ty = sy * 0.04  # la tibia va al lado del fémur para poder plegarse sobre él
-        cilindro(f"tibia_{nombre}", 0.014, WHL_TIBIA - 0.03, (0, ty, -(WHL_TIBIA - 0.03) / 2), "crema", rodilla,
-                 verts=14, r2=0.03, bisel=0.004)
-        esfera(f"pie_{nombre}", 0.022, (0, ty, -WHL_TIBIA + 0.022), "goma", rodilla)
+    # patas: cada par cuelga de un imán cilíndrico pegado a la pista (pivote iman_N, giro X en el
+    # centro del aro: deslizarlo cambia el par de sitio). Cadera y rodilla giran en Y; en reposo
+    # la pata apunta hacia fuera del aro (-Z del imán).
+    for iman, sy, patas in WHL_PARES:
+        piv = vacio(iman, centro)
+        zi = -(WHL_R_INT - 0.044)
+        cilindro(f"{iman}_cuerpo", 0.042, 0.15, (0, 0, zi), "iman", piv, eje="X", verts=28, bisel=0.008, segs=3)
+        for k in (-1, 0, 1):  # juntas entre los discos apilados
+            cilindro(f"{iman}_junta_{k}", 0.0425, 0.004, (k * 0.038, 0, zi), "grafito", piv, eje="X", verts=28,
+                     bisel=0.0)
+        for nombre, sx in patas:
+            pata = vacio(f"pata_{nombre}", piv, (sx * WHL_CADERA_X, 0, -WHL_CADERA_R))
+            cilindro(f"cadera_{nombre}", 0.036, 0.06, (0, 0, 0), "grafito", pata, eje="Y", verts=24, bisel=0.006)
+            cilindro(f"cadera_{nombre}_tapa", 0.022, 0.078, (0, 0, 0), "iman", pata, eje="Y", verts=20, bisel=0.004)
+            caja(f"femur_{nombre}", (0.05, 0.04, WHL_FEMUR), (0, 0, -WHL_FEMUR / 2), "crema", pata, bisel=0.014)
+            rodilla = vacio(f"rodilla_{nombre}", pata, (0, 0, -WHL_FEMUR))
+            articulacion(f"eje_rodilla_{nombre}", (0, 0, 0), 0.03, 0.105, rodilla, eje="Y", tapa="rol")
+            ty = sy * 0.04  # la tibia va al lado del fémur para poder plegarse sobre él
+            cilindro(f"tibia_{nombre}", 0.014, WHL_TIBIA - 0.03, (0, ty, -(WHL_TIBIA - 0.03) / 2), "crema",
+                     rodilla, verts=14, r2=0.03, bisel=0.004)
+            esfera(f"pie_{nombre}", 0.022, (0, ty, -WHL_TIBIA + 0.022), "goma", rodilla)
     pose_rueda(raiz, 0.0)
     return raiz
 
@@ -328,29 +343,37 @@ def _ang(dx, dz):
     return math.atan2(-dx, -dz)
 
 
-def pose_rueda(raiz, t=1.0):
-    """t = 0: rodando (vertical, patas plegadas). t = 1: apoyada (recostada, patas al suelo)."""
+def pose_rueda(raiz, t=1.0, imanes=None):
+    """t = 0: rodando (vertical, patas plegadas hacia el centro). t = 1: apoyada (recostada, pies al suelo).
+
+    `imanes` fija a mano el ángulo de cada imán sobre la pista (grados desde abajo, + hacia delante);
+    por defecto van de ±WHL_IMAN_RODANDO a ±WHL_IMAN_APOYADA. Los pies solo llegan al suelo con los
+    imanes en la mitad baja del aro."""
     hijos = {o.name.split(".")[0]: o for o in raiz.children_recursive}
     phi = math.radians(WHL_INCLINACION) * t
     alza = WHL_W / 2 * math.sin(phi)  # al recostarse apoya en el canto del neumático
-    raiz.rotation_euler = (0, phi, 0)
+    raiz.rotation_euler.y = phi
     raiz.location.z = alza
-    hx, hy, hz = WHL_CADERA
-    a_local = Matrix.Rotation(-phi, 3, "Y")
-    for nombre, sx, _ in WHL_PATAS:
-        plegada = (math.pi - sx * math.radians(6), sx * math.radians(172))  # fémur arriba, tibia de vuelta
-        cadera = Vector((sx * hx, 0, WHL_R + hz))
-        pie = a_local @ (Vector((WHL_PIES[sx], 0, 0.0)) - Vector((0, 0, alza)))
-        d = pie - cadera
-        L = min(d.length, (WHL_FEMUR + WHL_TIBIA) * 0.995)
-        a0 = _ang(d.x, d.z)
-        alfa = math.acos((WHL_FEMUR ** 2 + L ** 2 - WHL_TIBIA ** 2) / (2 * WHL_FEMUR * L))
-        af = a0 + sx * alfa  # la rodilla queda arriba y hacia fuera
-        rod = cadera + Vector((-math.sin(af), 0, -math.cos(af))) * WHL_FEMUR
-        at = _ang(pie.x - rod.x, pie.z - rod.z)
-        apoyada = (af, (at - af + math.pi) % (2 * math.pi) - math.pi)
-        hijos[f"pata_{nombre}"].rotation_euler = (0, plegada[0] + (apoyada[0] - plegada[0]) * t, 0)
-        hijos[f"rodilla_{nombre}"].rotation_euler = (0, plegada[1] + (apoyada[1] - plegada[1]) * t, 0)
+    for k, (iman, sy, patas) in enumerate(WHL_PARES):
+        grados = imanes[k] if imanes else sy * (WHL_IMAN_RODANDO + (WHL_IMAN_APOYADA - WHL_IMAN_RODANDO) * t)
+        th = math.radians(grados)
+        hijos[iman].rotation_euler = (th, 0, 0)  # +th lleva el -Z del imán hacia +Y (delante)
+        for nombre, sx in patas:
+            plegada = (math.pi - sx * math.radians(7), sx * math.radians(172))  # fémur al centro, tibia de vuelta
+            # pie en el marco del imán (plano y = 0): en el suelo y a la x de mundo pedida
+            x = WHL_PIES[sx] * math.cos(phi) + alza * math.sin(phi)
+            qz = WHL_PIES[sx] * math.sin(phi) - alza * math.cos(phi)
+            z = (qz - WHL_R) / max(math.cos(th), 0.2)
+            dx, dz = x - sx * WHL_CADERA_X, z + WHL_CADERA_R
+            L = min(math.hypot(dx, dz), (WHL_FEMUR + WHL_TIBIA) * 0.995)
+            a0 = _ang(dx, dz)
+            alfa = math.acos((WHL_FEMUR ** 2 + L ** 2 - WHL_TIBIA ** 2) / (2 * WHL_FEMUR * L))
+            af = a0 + sx * alfa  # la rodilla queda hacia fuera
+            rx, rz = -math.sin(af) * WHL_FEMUR, -math.cos(af) * WHL_FEMUR
+            at = _ang(dx - rx, dz - rz)
+            apoyada = (af, (at - af + math.pi) % (2 * math.pi) - math.pi)
+            hijos[f"pata_{nombre}"].rotation_euler = (0, plegada[0] + (apoyada[0] - plegada[0]) * t, 0)
+            hijos[f"rodilla_{nombre}"].rotation_euler = (0, plegada[1] + (apoyada[1] - plegada[1]) * t, 0)
 
 
 # ---------------------------------------------------------------- escena y render
@@ -360,6 +383,7 @@ UNIDADES = (  # colección, constructor, posición, giro Z en grados, pose de la
     ("vehiculo_torreta", vehiculo_torreta, (-1.0, 0.0, 0), 205, None),
     ("rueda_rodando", rueda_kamikaze, (0.35, -0.15, 0), 235, 0.0),
     ("rueda_apoyada", rueda_kamikaze, (1.6, 0.25, 0), 215, 1.0),
+    ("rueda_imanes", rueda_kamikaze, (2.75, -0.35, 0), 240, (0.0, (75, 180))),  # imanes cambiados de sitio
 )
 
 
@@ -374,7 +398,7 @@ def construir():
         escena.collection.children.link(col)
         r = fn(col)
         if pose is not None:
-            pose_rueda(r, pose)
+            pose_rueda(r, *pose) if isinstance(pose, tuple) else pose_rueda(r, pose)
         r.location = Vector(pos) + Vector((0, 0, r.location.z))
         r.rotation_euler.z = math.radians(giro)
         raices[nombre] = r
@@ -387,9 +411,9 @@ def construir():
 
 
 VISTAS = (  # archivo, objetivo, azimut, elevación, distancia, (ancho, alto)
-    ("render_unidades_batalla.png", (-0.3, 0.1, 0.35), 20, 30, 8.2, (1600, 1000)),
+    ("render_unidades_batalla.png", (0.45, 0.0, 0.35), 20, 30, 10.2, (1600, 1000)),
     ("render_vehiculo.png", (-1.0, 0.0, 0.3), -28, 22, 3.6, (1200, 900)),  # lado de la placa
-    ("render_rueda.png", (0.95, 0.05, 0.4), 12, 20, 4.6, (1400, 900)),
+    ("render_rueda.png", (1.55, -0.05, 0.4), 14, 18, 6.0, (1600, 900)),
 )
 
 
