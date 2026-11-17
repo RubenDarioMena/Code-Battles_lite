@@ -2,7 +2,7 @@ const formas = ['brillo', 'disco', 'humo'];
 const direcciones = ['esfera', 'hemisferio', 'cono', 'anillo', 'arriba'];
 const campos = new Set(['forma', 'mezcla', 'n', 'retraso', 'vida', 'dir', 'vel',
   'arrastre', 'grav', 'deriva', 'suelo', 'alto', 'adelante', 'tam', 'alfa', 'color',
-  'estela', 'ciclo', 'radioFinal']);
+  'estela', 'ciclo', 'radioFinal', 'destello']);
 const finito = x => typeof x === 'number' && Number.isFinite(x);
 export const maximo = v => Array.isArray(v) ? v[1] : v;
 
@@ -16,6 +16,7 @@ export function validarReceta(receta) {
     const error = (campo, texto) => errores.push(`capas[${i}].${campo}: ${texto}`);
     if (!c || typeof c !== 'object' || Array.isArray(c)) { error('', 'se espera un objeto'); continue; }
     for (const k of Object.keys(c)) if (!campos.has(k)) error(k, 'campo desconocido');
+    if (c.destello !== undefined && typeof c.destello !== 'boolean') error('destello', 'booleano requerido');
     if (!formas.includes(c.forma)) error('forma', 'usa brillo, disco o humo');
     if (!['normal', 'suma'].includes(c.mezcla)) error('mezcla', 'usa normal o suma');
     if (c.dir !== undefined && !direcciones.includes(c.dir)) error('dir', 'dirección desconocida');

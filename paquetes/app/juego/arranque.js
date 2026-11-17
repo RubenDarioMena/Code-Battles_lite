@@ -11,6 +11,9 @@ export function instalarArranqueJuego(ctx) {
     get partida() { return ctx.partida; }, get registro() { return ctx.registroActual(); }, get eventos() { return ctx.eventos; }, get fin() { return ctx.finActual; },
     get mundo() { return ctx.mundo; }, get def() { return ctx.def; }, get programas() { return ctx.programas; }, get fuentes() { return ctx.fuentes; }, RETOS: ctx.RETOS, instrumentar: ctx.instrumentar, lexico: ctx.lexico, normalizar: ctx.normalizar,
     turbo(n) { ctx.turbo = n; }, fijarSemilla(n) { ctx.semillaFija = true; ctx.semilla = n; }, usarEscenario(d) { ctx.guardarPropio(ctx.ES_FACTORY ? ctx.factory.retos.normalizar(d) : ctx.normalizar(d), true); }, elegirReto: ctx.elegirReto, ejecutar: ctx.ejecutar, abrirPrograma: ctx.abrirPrograma, seleccionar: ctx.seleccionar, get seleccionadas() { return [...ctx.seleccionadas]; }, get telemetria() { return ctx.telemetria; },
+    // QA: misma vía visual que alSucesos del conductor; nunca ordena ni modifica el mundo.
+    sucesosVistas: lista => ctx.sucesosVistas(lista),
+    medirEfectos: registrar => ctx.medirEfectos(registrar),
     // Campaign: la planta, sus checkpoints y la piel del mapa.
     get campana() { return { instantanea: () => ctx.campaign.instantaneaHistorica(ctx.mundo), quieto: () => ctx.campaign.quieto(ctx.mundo) }; }, get checkpoints() { return ctx.historialC; }, volverA: (i, conProgramas) => ctx.volverA(ctx.historialC[i], !!conProgramas), seguir: () => ctx.seguirCampaign(), nivelDeNuevo: () => ctx.nivelDeNuevo(),
   }; // para depurar y probar desde la consola

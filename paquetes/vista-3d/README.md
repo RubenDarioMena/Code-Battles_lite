@@ -28,8 +28,7 @@ Los relojes internos de animación de los motores anteriores se conservan.
 `escena` abastece los métodos extra (`construir`, `anillosDe`, etc.) entre
 fotogramas y antes del primer dibujo. Durante `dibujar` siempre se usa la
 escena recibida por argumento. Sin `estado`, se usan `cols` y `rows` de las
-opciones y la última escena dibujada. `tema`/`calidad` se reservan para el
-contrato del plan; los colores actuales se siguen obteniendo de `leerVar`.
+opciones y la última escena dibujada. `tema` se reserva para el contrato del plan; los colores actuales se siguen obteniendo de `leerVar`.
 
 El contenedor es el campo completo: `elegir`, `proyectar`, `suelo` y
 `redimensionar` obtienen ancho/alto de su `getBoundingClientRect()`, el mismo
@@ -125,9 +124,7 @@ paso. `recetaWar` elige impacto/fallo y descarta la explosión del atasco.
 La fachada monta un grupo fuera de fijo/móvil, con las dos nubes por encima
 de los calcos. Sustituye las antiguas esferas de explosión y humo de atasco.
 Antes de renderizar evalúa `particulas(escena.t + off, { colores: estado.col,
-calidad })`; usa `opciones.MISIL.radio` y `dt`. La app lee
-`?vfx=alto|medio|bajo|no`, con alto por defecto/valor desconocido, y pasa
-`calidad`; ni la vista ni VFX leen la URL. Factory/Campaign no montan VFX.
+calidad })`; usa `opciones.MISIL.radio` y `dt`. La app resuelve preferencias y URL; ni la vista ni VFX leen la URL. Factory/Campaign no montan VFX.
 
 El montaje obtiene `maxPunto` del contexto WebGL, `fov` de la cámara War y
 la altura física del canvas del renderer. `tamano`, `redimensionar` y el
@@ -137,3 +134,19 @@ pendientes y partículas visibles al ejecutar/reiniciar/crear mundo.
 liberar la escena/renderizador. `node pruebas/vfx-juego.mjs` (en `npm test`)
 comprueba integración, orígenes, calidad y recursos con GPU/canvas emulados;
 shaders, aspecto y capturas quedan para el autor.
+
+## Calidad viva y medida (fase 4, paso 3)
+
+`estado.efectos?: { calidad: 'alto'|'medio'|'bajo'|'no', sinDestellos?: boolean }`
+se consulta en cada dibujo y se reenvía a `particulas`. Las fachadas conservan
+el getter del estado externo. No vacían por cambiar nivel ni accesibilidad;
+los efectos en curso reaparecen si siguen vivos al subir calidad.
+Sin getter se conserva `opciones.calidad` (alto por defecto) para consumidores
+independientes. La resolución de `auto`, URL y movimiento reducido es de app.
+
+`estado.medicionEfectos?` recibe `{ ahora(): number, registrar(muestra) }`.
+Solo cuando está presente se cronometra `particulas()` y `dibujar()` con el
+reloj inyectado; entrega `{ vista, vivas, particulasMs, dibujarMs }` por dibujo.
+Excluye el render de escena/GPU. App lo habilita únicamente por el gancho de
+QA `__banco.medirEfectos`. `pruebas/vfx-juego.mjs` verifica cambios entre
+fotogramas de un mismo efecto y contadores con canvas/GPU emulados.

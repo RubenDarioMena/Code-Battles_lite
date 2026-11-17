@@ -1,3 +1,4 @@
+import { crearCalidadEfectos } from './calidad-efectos.js';
 import * as vista2d from '../../vista-2d/index.js';
 import * as vista3d from '../../vista-3d/index.js';
 
@@ -5,6 +6,9 @@ import * as vista3d from '../../vista-3d/index.js';
  * @param {any} ctx */
 export function instalarVistasJuego(ctx) {
   const servicios = ctx.servicios;
+  const calidadEfectos = crearCalidadEfectos({ almacen: ctx.plataforma?.almacen,
+    search: location.search, media: typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null });
+  let medicionEfectos = null;
   // ---------- Vista 3D ----------
   const leerVar = (k) => getComputedStyle(document.documentElement).getPropertyValue(`--${k}`).trim();
   // Fase 2: las vistas dibujan la escena del reglamento (datos planos), no el mundo. Una copia por fotograma:
@@ -18,6 +22,8 @@ export function instalarVistasJuego(ctx) {
     get escena() { return ctx.mundo ? (escenaFoto ||= { ...escenaDe(ctx.mundo), ...(ctx.ES_CAMPAIGN ? { activo: !!ctx.ejec } : {}) }) : null; }, get seleccionadas() { return ctx.seleccionadas; }, get seleccion() { return ctx.seleccion; },
     get arrastreCampo() { return ctx.arrastreCampo; }, get cols() { return ctx.COLS; }, get rows() { return ctx.ROWS; },
     get col() { return col; },
+    get efectos() { return calidadEfectos.leer(); },
+    get medicionEfectos() { return medicionEfectos; },
     get def() { return ctx.def; }, get vista() { return ctx.vista; },
   };
   function leerTerrenoEditor() {
@@ -35,9 +41,7 @@ export function instalarVistasJuego(ctx) {
     }
     return terrenoEditor;
   }
-  const nivel = new URLSearchParams(location.search).get('vfx');
-  const calidad = ['alto', 'medio', 'bajo', 'no'].includes(nivel) ? nivel : 'alto';
-  const comunes = { serie: ctx.SERIE, dt: ctx.DT, estado: estadoVista, calidad };
+  const comunes = { serie: ctx.SERIE, dt: ctx.DT, estado: estadoVista };
   const V3 = vista3d.crearVista(ctx.$("campo"), ctx.ES_CAMPAIGN
     ? { ...comunes, THREE: servicios.THREE, canvas: ctx.$("c3d"), $: ctx.$, FUNCIONES: ctx.FUNCIONES, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, mapa: ctx.campaign.nivel.MAPA, crearTerreno: vista2d.crearTerreno, reglas: ctx.campaign }
     : { ...comunes, THREE: servicios.THREE, canvas: ctx.$("c3d"), $: ctx.$, ES_FACTORY: ctx.ES_FACTORY, ARCO: ctx.ARCO, FR: ctx.FR, FUNCIONES: ctx.FUNCIONES, HALO: ctx.HALO, INTENSIDAD: ctx.INTENSIDAD, LINEA_BASE: ctx.LINEA_BASE, LUCES: ctx.LUCES, MISIL: ctx.MISIL, TIPOS: ctx.TIPOS, alcance: ctx.alcance, direccionDe: ctx.direccionDe, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, visual: ctx.visual, terreno: servicios.CMGTerreno, terrenoEditor: leerTerrenoEditor() });
@@ -76,7 +80,8 @@ export function instalarVistasJuego(ctx) {
     get estadoVista() { return estadoVista; },
     get leerTerrenoEditor() { return leerTerrenoEditor; },
     get V3() { return V3; },
-    vistaActual, vaciarEfectos, sucesosVistas,
+    vistaActual, vaciarEfectos, sucesosVistas, calidadEfectos,
+    medirEfectos(registrar) { medicionEfectos = registrar ? { ahora: () => performance.now(), registrar } : null; },
     get col() { return col; }, set col(v) { col = v; },
     get leerColores() { return leerColores; },
     get rgb() { return rgb; },

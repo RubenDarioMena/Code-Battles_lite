@@ -1,3 +1,4 @@
+import { instalarAjusteEfectos } from './layout-efectos.js';
 import { CMGTips } from '../editor/index.js';
 import { instalarPanelPantalla } from './layout-panel.js';
 import { instalarMenuFicha } from './layout-menu.js';
@@ -172,6 +173,8 @@ export function instalarLayout(ctx) {
     }
     pintarTextosAjustes(e);
   }
+  instalarAjusteEfectos($("ajustes-efectos"), { leer, escribir,
+    cambiar: valor => ctx.calidadEfectos.cambiar(valor) });
   const ajustes = $("ajustes"), confirmar = $("ajustes-confirmar");
   function abrirAjustes() {
     confirmar.checked = cmg.confirmarReplace;

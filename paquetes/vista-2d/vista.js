@@ -18,6 +18,9 @@ export function crearVista(contenedor, opciones) {
     get cols() { return externo?.cols ?? opciones.cols; },
     get rows() { return externo?.rows ?? opciones.rows; },
     get col() { return externo?.col ?? opciones.tema; },
+    /** @returns {{calidad: import('../vfx/index.js').Calidad, sinDestellos?: boolean}} */
+    get efectos() { return externo?.efectos ?? { calidad: opciones.calidad ?? 'alto' }; },
+    get medicionEfectos() { return externo?.medicionEfectos; },
     get geo2() { return geo2; }, set geo2(g) { geo2 = g; },
   };
   const efectos = opciones.serie === 'war' ? crearEfectosWar(estado, opciones) : null;

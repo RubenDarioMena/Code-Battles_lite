@@ -1,4 +1,6 @@
 export interface EstadoVista {
+  readonly efectos?: { calidad: import('../vfx/index.js').Calidad; sinDestellos?: boolean };
+  readonly medicionEfectos?: { ahora(): number; registrar(muestra: { vista: string; vivas: number; particulasMs: number; dibujarMs: number }): void };
   readonly escena: Readonly<Record<string, any>> | null;
   readonly seleccion: string | null;
   readonly seleccionadas: ReadonlySet<string>;
@@ -93,7 +95,7 @@ export type OpcionesVista3D = (DependenciasWar | DependenciasCampaign) & {
   rows?: number;
   canvas?: HTMLCanvasElement;
   tema?: Record<string, string>;
-  calidad?: string;
+  calidad?: import('../vfx/index.js').Calidad;
 };
 export interface VistaCreada3D extends Omit<Vista3D, 'elegir' | 'proyectar' | 'suelo'>, Vista {
   vaciar(): void;

@@ -29,7 +29,7 @@ function direccion(c, semilla, i, n, rumbo) {
  * @param {import('./index.js').Receta} receta @param {number} tv
  * @param {import('./index.js').OpcionesEvaluar} opciones
  * @param {(p: import('./index.js').Particula) => void} emitir */
-export function evaluar(suceso, receta, tv, { dt, colores = {}, calidad = 'alto' }, emitir) {
+export function evaluar(suceso, receta, tv, { dt, colores = {}, calidad = 'alto', sinDestellos = false }, emitir) {
   if (!(dt > 0) || !Number.isFinite(dt) || !Number.isFinite(tv)) throw new Error('dt debe ser positivo y tv finito');
   const [cantidad, escala] = nivel(calidad);
   if (!cantidad) return;
@@ -40,6 +40,7 @@ export function evaluar(suceso, receta, tv, { dt, colores = {}, calidad = 'alto'
     : Math.atan2(Number(datos.y || 0) - origen[1], Number(datos.x || 0) - origen[0]);
   const base = hash(JSON.stringify([suceso.paso, suceso.tipo, suceso.unidad ?? '']));
   for (const [ic, c] of receta.capas.entries()) {
+    if (sinDestellos && c.destello) continue;
     const semillaCapa = hash(`${base}/${ic}`);
     const total = Array.isArray(c.n)
       ? c.n[0] + Math.floor(azar(semillaCapa, 0) * (c.n[1] - c.n[0] + 1)) : c.n;
@@ -97,12 +98,12 @@ export function crearEfectos({ recetas, recetaDe, dt, presupuesto }) {
       sucesos.push({ suceso: JSON.parse(JSON.stringify(suceso)), receta, fin: suceso.paso * dt + duracion });
     },
     vaciar() { sucesos = []; },
-    particulas(tv, { colores = {}, calidad = 'alto' } = {}, emitir) {
+    particulas(tv, { colores = {}, calidad = 'alto', sinDestellos = false } = {}, emitir) {
       nivel(calidad);
       if (!Number.isFinite(tv)) throw new Error('tv debe ser finito');
       sucesos = sucesos.filter(s => tv < s.fin);
       let vivas = [];
-      for (const s of sucesos) evaluar(s.suceso, s.receta, tv, { dt, colores, calidad }, p => vivas.push(p));
+      for (const s of sucesos) evaluar(s.suceso, s.receta, tv, { dt, colores, calidad, sinDestellos }, p => vivas.push(p));
       const limite = calidad === 'no' ? 0 : limites[calidad];
       if (vivas.length > limite) {
         const prioridad = p => p.forma === 'humo' ? 0 : (p.mezcla === 'normal' ? 1 : 2);

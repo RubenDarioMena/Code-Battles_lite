@@ -366,6 +366,16 @@
       </div>
     </div>
     <p class="nota" id="ajustes-posicion-nota" data-i18n="ajustes.nota_posiciones">Ambas posiciones se guardan por separado. Automática usa la que corresponde al tamaño de la pantalla.</p>
+    <label class="ajuste-campo"><span data-i18n="ajustes.efectos">Efectos visuales</span>
+      <select id="ajustes-efectos" aria-describedby="ajustes-efectos-nota">
+        <option value="auto" data-i18n="ajustes.efectos_auto">Automático</option>
+        <option value="alto" data-i18n="ajustes.efectos_alto">Alto</option>
+        <option value="medio" data-i18n="ajustes.efectos_medio">Medio</option>
+        <option value="bajo" data-i18n="ajustes.efectos_bajo">Bajo</option>
+        <option value="no" data-i18n="ajustes.efectos_no">Sin efectos</option>
+      </select>
+    </label>
+    <p class="nota" id="ajustes-efectos-nota" data-i18n="ajustes.efectos_nota">Automático usa calidad alta, o baja si el sistema pide movimiento reducido. Con movimiento reducido siempre se quitan los destellos.</p>
     <label class="check"><input type="checkbox" id="ajustes-coordenadas"> <span data-i18n="ajustes.coordenadas_manuales">Mostrar coordenadas manuales</span></label>
     <label class="check"><input type="checkbox" id="ajustes-telemetria" checked> <span data-i18n="ajustes.telemetria">Enviar datos anónimos de uso (retos, intentos y su código) para mejorar el juego</span></label>
     <div class="ajuste-pantalla" id="ajustes-pantalla">

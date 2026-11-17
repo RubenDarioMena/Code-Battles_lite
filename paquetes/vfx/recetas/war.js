@@ -23,13 +23,13 @@ export function crearRecetasWar({ radioDanio }) {
   // Los ayudantes solo construyen datos; no son parte del esquema de receta.
   return {
     disparo: { capas: [
-      { forma: 'brillo', mezcla: 'suma', n: 1, vida: .12, alto: .05, adelante: .65,
+      { forma: 'brillo', mezcla: 'suma', n: 1, destello: true, vida: .12, alto: .05, adelante: .65,
         tam: [.9, .2], alfa: [.9, 0], color: ['#fff4dc', 'misil'] },
       { ...chispas('misil'), dir: 'cono', n: 9, vida: [.12, .3], alto: .05, adelante: .65, vel: [3, 6] },
       { ...humo(.08), n: 3, vida: [.35, .65], adelante: .65, dir: 'cono', tam: [.18, .6] },
     ] },
     impacto: { capas: [
-      { forma: 'brillo', mezcla: 'suma', n: 1, vida: .16, alto: .45,
+      { forma: 'brillo', mezcla: 'suma', n: 1, destello: true, vida: .16, alto: .45,
         tam: [2.5, .8], alfa: [.95, 0], color: ['#fff4dc', 'explosion'] },
       { forma: 'brillo', mezcla: 'suma', n: 7, vida: [.2, .45], alto: .4, dir: 'hemisferio',
         vel: [.3, 1.8], arrastre: 3, tam: [.5, .8, .1], alfa: [.65, .35, 0], color: ['explosion', 'misil'] },

@@ -14,6 +14,7 @@ export interface Capa {
   grav?: number;
   deriva?: RGB;
   suelo?: boolean;
+  destello?: boolean;
   alto?: number;
   adelante?: number;
   /** Radio estable del aro; no es velocidad. */
@@ -38,6 +39,7 @@ export interface OpcionesEvaluar {
   /** Tokens resueltos a hex #RGB/#RRGGBB o RGB normalizado [0,1]. */
   colores?: Record<string, string | RGB>;
   calidad?: Calidad;
+  sinDestellos?: boolean;
 }
 export interface OpcionesEfectos {
   recetas: Record<string, Receta>;

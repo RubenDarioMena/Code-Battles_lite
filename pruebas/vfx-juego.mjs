@@ -38,7 +38,7 @@ function lienzo() {
   return { width: 640, height: 400, clientWidth: 640, clientHeight: 400, llamadas,
     getContext: () => ctx, getBoundingClientRect: () => ({ width: 640, height: 400 }), addEventListener() {}, removeEventListener() {}, setPointerCapture() {} };
 }
-const claves = ['window', 'document', 'MutationObserver', 'innerWidth', 'innerHeight', 'location', 'getComputedStyle'];
+const claves = ['window', 'document', 'MutationObserver', 'innerWidth', 'innerHeight', 'location', 'getComputedStyle', 'matchMedia'];
 const previos = Object.fromEntries(claves.map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
 const col = Object.fromEntries(['bg', 'surface', 'ink', 'muted', 'grid', 'grid-2', 'suelo', 'base', 'building', 'edge', 'accent', 'sel',
   'misil', 'explosion', 'enemigo', 'enemigo-frio', 'bad', 'ok', 'rol-ofensiva'].map((k, i) => [k, i % 2 ? '#336699' : '#aa4422']));
@@ -59,10 +59,10 @@ const opciones = { serie: 'war', dt: .05, THREE, cols: 32, rows: 18, tema: col,
 function nubes() {
   const out = []; render.traverse(o => { if (o.isPoints) out.push(o); }); return out;
 }
-function esperadas(s, origen, calidad = 'alto', tv = .1) {
+function esperadas(s, origen, calidad = 'alto', tv = .1, sinDestellos = false) {
   const gestor = crearEfectos({ recetas: crearRecetasWar({ radioDanio: 1.3 }), recetaDe: recetaWar, dt: .05 });
   gestor.anotar({ ...s, datos: { ...s.datos, ...origen } });
-  return gestor.particulas(tv, { colores: col, calidad });
+  return gestor.particulas(tv, { colores: col, calidad, sinDestellos });
 }
 function comprobar(vista, canvas, dimension, esperadas) {
   if (dimension === '2d') {
@@ -92,15 +92,20 @@ function comprobar(vista, canvas, dimension, esperadas) {
     });
   }
 }
+let cambiarMovimiento;
 try {
   Object.assign(globalThis, { window: { devicePixelRatio: 2 }, document: { createElement: lienzo, documentElement: {} },
     MutationObserver: class { observe() {} disconnect() {} }, innerWidth: 1280, innerHeight: 720,
+    matchMedia: () => ({ matches: false, addEventListener(_tipo, f) { cambiarMovimiento = f; }, removeEventListener() {} }),
     location: { search: '' }, getComputedStyle: () => ({ getPropertyValue: k => col[k.slice(2)] || '#336699' }) });
   for (const dimension of ['2d', '3d']) {
     for (const calidad of ['alto', 'medio', 'bajo', 'no']) {
       const canvas = lienzo();
       let foto = escena;
-      const estado = { get escena() { return foto; }, cols: 32, rows: 18, col, seleccionadas: new Set(['L']) };
+      let configuracion = { calidad, sinDestellos: false };
+      const muestras = [];
+      const estado = { get escena() { return foto; }, get efectos() { return configuracion; },
+        medicionEfectos: { ahora: () => 1, registrar: m => muestras.push(m) }, cols: 32, rows: 18, col, seleccionadas: new Set(['L']) };
       const vista = dimension === '2d' ? crear2D(canvas, { ...opciones, calidad, estado })
         : crear3D(contenedor, { ...opciones, calidad, estado, canvas });
       if (dimension === '3d') { vista.construir(); vista.redimensionar(); }
@@ -146,6 +151,17 @@ try {
       // La fracción usa escena.t + off, no el reloj del fotograma.
       vista.alSuceso(casos[0][0]); dibujar(.075, .5);
       comprobar(vista, canvas, dimension, esperadas(casos[0][0], casos[0][1], calidad));
+      // Cambia la calidad y accesibilidad entre dibujos del MISMO suceso vivo.
+      // No se reanota ni se vacía: al volver a alto reaparecen sus partículas.
+      for (const nivel of ['no', 'bajo', 'medio', 'alto']) {
+        for (const sinDestellos of [true, false]) {
+          configuracion = { calidad: nivel, sinDestellos }; dibujar();
+          comprobar(vista, canvas, dimension, esperadas(casos[0][0], casos[0][1], nivel, .1, sinDestellos));
+          const m = muestras.at(-1);
+          assert.equal(m.vista, dimension); assert.equal(m.vivas, esperadas(casos[0][0], casos[0][1], nivel, .1, sinDestellos).length);
+          assert.equal(m.particulasMs, 0); assert.equal(m.dibujarMs, 0);
+        }
+      }
       if (dimension === '3d') {
         const [normal] = nubes(); let liberados = 0;
         for (const n of nubes()) { n.geometry.addEventListener('dispose', () => liberados++); n.material.addEventListener('dispose', () => liberados++); }
@@ -204,6 +220,16 @@ try {
     ctx.vista = '3d'; api.vistaActual().dibujar(null, foto, 0, 0);
     const cantidad = () => nubes().reduce((n, o) => n + o.geometry.drawRange.count, 0);
     assert.equal(cantidad(), esperadas(s, { origen: [4, 6, 1], rumbo: Math.PI / 2 }, calidad).length);
+    // Preferencia de Ajustes y cambio del sistema atraviesan app → getter → fachada.
+    api.calidadEfectos.cambiar('auto'); cambiarMovimiento({ matches: true });
+    const efectiva = ['alto', 'medio', 'bajo', 'no'].includes(valor) ? valor : 'bajo';
+    const previstas = esperadas(s, { origen: [4, 6, 1], rumbo: Math.PI / 2 }, efectiva, .1, true);
+    api.vistaActual().dibujar(null, foto, 0, 0); assert.equal(cantidad(), previstas.length);
+    ctx.vista = '2d'; plano.llamadas.length = 0; api.vistaActual().dibujar(null, foto, 0, 0);
+    assert.equal(plano.llamadas.filter(([k]) => k === 'drawImage').length, previstas.filter(p => p.alfa > 0).length);
+    api.calidadEfectos.cambiar('no'); cambiarMovimiento({ matches: false });
+    assert.equal(api.estadoVista.efectos.calidad, ['alto', 'medio', 'bajo', 'no'].includes(valor) ? valor : 'no');
+    api.calidadEfectos.destruir?.();
     api.vaciarEfectos(); assert.equal(cantidad(), 0);
     ctx.vista = '2d'; plano.llamadas.length = 0; api.vistaActual().dibujar(null, foto, 0, 0);
     assert.equal(plano.llamadas.filter(([k]) => k === 'drawImage').length, 0);

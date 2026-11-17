@@ -6,6 +6,8 @@ export { crearPlanoCampaign } from './campaign.js';
 export { crearTerreno } from './campaign-terreno.js';
 
 export interface EstadoVista2D {
+  readonly efectos?: { calidad: import('../vfx/index.js').Calidad; sinDestellos?: boolean };
+  readonly medicionEfectos?: { ahora(): number; registrar(muestra: { vista: string; vivas: number; particulasMs: number; dibujarMs: number }): void };
   readonly escena: Readonly<Record<string, any>> | null;
   readonly seleccion?: string | null;
   readonly seleccionadas?: ReadonlySet<string>;
@@ -22,7 +24,7 @@ export interface OpcionesVista2D {
   cols?: number;
   rows?: number;
   tema?: Record<string, string>;
-  calidad?: string;
+  calidad?: import('../vfx/index.js').Calidad;
   /** Catálogos y funciones del plano de la serie, inyectados por la composición. */
   [dependencia: string]: any;
 }

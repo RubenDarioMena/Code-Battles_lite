@@ -1,0 +1,1311 @@
+{
+  "backend": "electron",
+  "origen": "cbl://app",
+  "visible": false,
+  "segundos": 10,
+  "calentamientoSegundos": 2,
+  "fecha": "2026-11-17T08:25:27.840Z",
+  "saturacion": "12 tríos/s real (disparo, derribo, explosion con golpe), ambas colas vía __banco.sucesosVistas",
+  "ventanaSolicitada": {
+    "ancho": 1280,
+    "alto": 720
+  },
+  "resultados": [
+    {
+      "calidad": "alto",
+      "vista": "2d",
+      "escenario": "real",
+      "vivasMax": 194,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10001.800000000003,
+      "esperaMs": 17019.699999994038,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 600,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 600,
+        "mediaMs": 16.66966666666667,
+        "p95Ms": 18.700000000000728,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.80000000000291,
+        "totalMs": 10001.800000000003
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 600,
+          "mediaMs": 0.253999999910593,
+          "p95Ms": 0.7999999821186066,
+          "p99Ms": 1,
+          "maxMs": 1.4000000059604645,
+          "totalMs": 152.39999994635582
+        },
+        "dibujar": {
+          "muestras": 600,
+          "mediaMs": 0.1766666675110658,
+          "p95Ms": 0.5999999940395355,
+          "p99Ms": 0.800000011920929,
+          "maxMs": 0.9000000059604645,
+          "totalMs": 106.00000050663948
+        },
+        "total": {
+          "muestras": 600,
+          "mediaMs": 0.4306666674216588,
+          "p95Ms": 1.399999976158142,
+          "p99Ms": 1.600000023841858,
+          "maxMs": 2.300000011920929,
+          "totalMs": 258.4000004529953
+        }
+      },
+      "errores": [],
+      "presupuesto": 2000,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "alto",
+      "vista": "2d",
+      "escenario": "saturacion",
+      "vivasMax": 1357,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10016.5,
+      "esperaMs": 2013.1000000178815,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.666389351081527,
+        "p95Ms": 18.400000000000546,
+        "p99Ms": 18.700000000000273,
+        "maxMs": 18.800000000000182,
+        "totalMs": 10016.499999999998
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 1.5570715473912122,
+          "p95Ms": 2.0999999940395355,
+          "p99Ms": 2.7000000178813934,
+          "maxMs": 4.299999982118607,
+          "totalMs": 935.7999999821186
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 1.1041597339654723,
+          "p95Ms": 1.4000000059604645,
+          "p99Ms": 1.9000000059604645,
+          "maxMs": 2.7000000178813934,
+          "totalMs": 663.6000001132488
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 2.6612312813566845,
+          "p95Ms": 3.5,
+          "p99Ms": 4.5,
+          "maxMs": 6.799999982118607,
+          "totalMs": 1599.4000000953674
+        }
+      },
+      "errores": [],
+      "presupuesto": 2000,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "alto",
+      "vista": "3d",
+      "escenario": "real",
+      "vivasMax": 194,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10001.899999999998,
+      "esperaMs": 17041.4,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 600,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 600,
+        "mediaMs": 16.66983333333333,
+        "p95Ms": 18.600000000002183,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.799999999999272,
+        "totalMs": 10001.899999999998
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 600,
+          "mediaMs": 0.2658333335320155,
+          "p95Ms": 0.800000011920929,
+          "p99Ms": 1.0999999940395355,
+          "maxMs": 1.4000000059604645,
+          "totalMs": 159.5000001192093
+        },
+        "dibujar": {
+          "muestras": 600,
+          "mediaMs": 0.016499999711910882,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.5,
+          "totalMs": 9.89999982714653
+        },
+        "total": {
+          "muestras": 600,
+          "mediaMs": 0.28233333324392634,
+          "p95Ms": 0.9000000059604645,
+          "p99Ms": 1.199999988079071,
+          "maxMs": 1.5,
+          "totalMs": 169.39999994635582
+        }
+      },
+      "errores": [],
+      "presupuesto": 2000,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "alto",
+      "vista": "3d",
+      "escenario": "saturacion",
+      "vivasMax": 1392,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10016.5,
+      "esperaMs": 2011.8000000059606,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.66638935108153,
+        "p95Ms": 18.399999999999636,
+        "p99Ms": 18.699999999999818,
+        "maxMs": 18.700000000000728,
+        "totalMs": 10016.5
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 3.135274542746647,
+          "p95Ms": 4.199999988079071,
+          "p99Ms": 4.5,
+          "maxMs": 4.800000011920929,
+          "totalMs": 1884.3000001907349
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.11797005002589868,
+          "p95Ms": 0.20000001788139343,
+          "p99Ms": 0.30000001192092896,
+          "maxMs": 0.4000000059604645,
+          "totalMs": 70.90000006556511
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 3.2532445927725457,
+          "p95Ms": 4.300000011920929,
+          "p99Ms": 4.600000023841858,
+          "maxMs": 4.9000000059604645,
+          "totalMs": 1955.2000002563
+        }
+      },
+      "errores": [],
+      "presupuesto": 2000,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "medio",
+      "vista": "2d",
+      "escenario": "real",
+      "vivasMax": 113,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10016.600000000002,
+      "esperaMs": 16999.40000001192,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.666555740432617,
+        "p95Ms": 18.69999999999709,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.700000000000728,
+        "totalMs": 10016.600000000002
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 0.17986688731910783,
+          "p95Ms": 0.5,
+          "p99Ms": 0.699999988079071,
+          "maxMs": 0.800000011920929,
+          "totalMs": 108.0999992787838
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.12945091531002978,
+          "p95Ms": 0.4000000059604645,
+          "p99Ms": 0.5,
+          "maxMs": 0.9000000059604645,
+          "totalMs": 77.8000001013279
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 0.3093178026291376,
+          "p95Ms": 0.9000000059604645,
+          "p99Ms": 1.199999988079071,
+          "maxMs": 1.5999999940395355,
+          "totalMs": 185.8999993801117
+        }
+      },
+      "errores": [],
+      "presupuesto": 1200,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "medio",
+      "vista": "2d",
+      "escenario": "saturacion",
+      "vivasMax": 797,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10016.4,
+      "esperaMs": 2005.1999999821187,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.666222961730444,
+        "p95Ms": 18.600000000000364,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.799999999999272,
+        "totalMs": 10016.399999999998
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 1.4194675544633246,
+          "p95Ms": 2.300000011920929,
+          "p99Ms": 2.5,
+          "maxMs": 2.7000000178813934,
+          "totalMs": 853.1000002324581
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.8276206320415123,
+          "p95Ms": 1.4000000059604645,
+          "p99Ms": 1.699999988079071,
+          "maxMs": 2,
+          "totalMs": 497.39999985694885
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 2.247088186504837,
+          "p95Ms": 3.699999988079071,
+          "p99Ms": 3.800000011920929,
+          "maxMs": 4.5999999940395355,
+          "totalMs": 1350.500000089407
+        }
+      },
+      "errores": [],
+      "presupuesto": 1200,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "medio",
+      "vista": "3d",
+      "escenario": "real",
+      "vivasMax": 113,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10014.599999999999,
+      "esperaMs": 17041.600000023842,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.663227953410978,
+        "p95Ms": 18.69999999999709,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.799999999999272,
+        "totalMs": 10014.599999999999
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 0.18452579021057156,
+          "p95Ms": 0.5,
+          "p99Ms": 0.7000000178813934,
+          "maxMs": 1,
+          "totalMs": 110.8999999165535
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.010149750604407363,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.20000001788139343,
+          "totalMs": 6.100000113248825
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 0.1946755408149789,
+          "p95Ms": 0.5999999940395355,
+          "p99Ms": 0.7000000178813934,
+          "maxMs": 1,
+          "totalMs": 117.00000002980232
+        }
+      },
+      "errores": [],
+      "presupuesto": 1200,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "medio",
+      "vista": "3d",
+      "escenario": "saturacion",
+      "vivasMax": 803,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10016.5,
+      "esperaMs": 2008.299999988079,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.66638935108153,
+        "p95Ms": 18.600000000000364,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.800000000000182,
+        "totalMs": 10016.5
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 2.136439268382734,
+          "p95Ms": 2.800000011920929,
+          "p99Ms": 3.199999988079071,
+          "maxMs": 3.2999999821186066,
+          "totalMs": 1284.0000002980232
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.12895174654271957,
+          "p95Ms": 0.20000001788139343,
+          "p99Ms": 0.30000001192092896,
+          "maxMs": 0.4000000059604645,
+          "totalMs": 77.49999967217445
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 2.265391014925454,
+          "p95Ms": 2.9000000059604645,
+          "p99Ms": 3.2999999821186066,
+          "maxMs": 3.399999976158142,
+          "totalMs": 1361.4999999701977
+        }
+      },
+      "errores": [],
+      "presupuesto": 1200,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "bajo",
+      "vista": "2d",
+      "escenario": "real",
+      "vivasMax": 52,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10000.099999999999,
+      "esperaMs": 17024.29999997616,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 600,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 600,
+        "mediaMs": 16.66683333333333,
+        "p95Ms": 18.69999999999709,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.799999999999272,
+        "totalMs": 10000.099999999999
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 600,
+          "mediaMs": 0.11733333225051562,
+          "p95Ms": 0.30000001192092896,
+          "p99Ms": 0.4000000059604645,
+          "maxMs": 0.7999999821186066,
+          "totalMs": 70.39999935030937
+        },
+        "dibujar": {
+          "muestras": 600,
+          "mediaMs": 0.08483333388964336,
+          "p95Ms": 0.29999998211860657,
+          "p99Ms": 0.5,
+          "maxMs": 0.5,
+          "totalMs": 50.90000033378601
+        },
+        "total": {
+          "muestras": 600,
+          "mediaMs": 0.20216666614015896,
+          "p95Ms": 0.5,
+          "p99Ms": 0.800000011920929,
+          "maxMs": 1.0999999940395355,
+          "totalMs": 121.29999968409538
+        }
+      },
+      "errores": [],
+      "presupuesto": 600,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "bajo",
+      "vista": "2d",
+      "escenario": "saturacion",
+      "vivasMax": 352,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10014.8,
+      "esperaMs": 2013.6000000059603,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.663560732113144,
+        "p95Ms": 18.69999999999891,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.80000000000109,
+        "totalMs": 10014.8
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 1.1316139774393916,
+          "p95Ms": 1.5,
+          "p99Ms": 1.5999999940395355,
+          "maxMs": 1.7000000178813934,
+          "totalMs": 680.1000004410744
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.8114808646593237,
+          "p95Ms": 1.0999999940395355,
+          "p99Ms": 1.2999999821186066,
+          "maxMs": 1.600000023841858,
+          "totalMs": 487.6999996602535
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 1.9430948420987153,
+          "p95Ms": 2.5,
+          "p99Ms": 2.600000023841858,
+          "maxMs": 3,
+          "totalMs": 1167.800000101328
+        }
+      },
+      "errores": [],
+      "presupuesto": 600,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "bajo",
+      "vista": "3d",
+      "escenario": "real",
+      "vivasMax": 52,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10014.899999999998,
+      "esperaMs": 17046.4,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.663727121464223,
+        "p95Ms": 18.599999999998545,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.80000000000291,
+        "totalMs": 10014.899999999998
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 0.11946755379884691,
+          "p95Ms": 0.30000001192092896,
+          "p99Ms": 0.5,
+          "maxMs": 0.800000011920929,
+          "totalMs": 71.799999833107
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.0116472548732345,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.19999998807907104,
+          "totalMs": 7.000000178813934
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 0.13111480867208142,
+          "p95Ms": 0.30000001192092896,
+          "p99Ms": 0.5,
+          "maxMs": 0.800000011920929,
+          "totalMs": 78.80000001192093
+        }
+      },
+      "errores": [],
+      "presupuesto": 600,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "bajo",
+      "vista": "3d",
+      "escenario": "saturacion",
+      "vivasMax": 366,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10016.5,
+      "esperaMs": 2011.700000011921,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.66638935108153,
+        "p95Ms": 18.600000000000364,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.799999999999272,
+        "totalMs": 10016.5
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 1.1417637267049259,
+          "p95Ms": 1.4000000059604645,
+          "p99Ms": 1.5999999940395355,
+          "maxMs": 2,
+          "totalMs": 686.1999997496605
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.06505823621337306,
+          "p95Ms": 0.19999998807907104,
+          "p99Ms": 0.20000001788139343,
+          "maxMs": 0.30000001192092896,
+          "totalMs": 39.09999996423721
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 1.206821962918299,
+          "p95Ms": 1.5,
+          "p99Ms": 1.699999988079071,
+          "maxMs": 2.0999999940395355,
+          "totalMs": 725.2999997138977
+        }
+      },
+      "errores": [],
+      "presupuesto": 600,
+      "presupuestoAlcanzado": false
+    },
+    {
+      "calidad": "no",
+      "vista": "2d",
+      "escenario": "real",
+      "vivasMax": 0,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10016.599999999999,
+      "esperaMs": 17007.800000005962,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.66655574043261,
+        "p95Ms": 18.600000000002183,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.700000000000728,
+        "totalMs": 10016.599999999999
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 0.018801996543284464,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.10000002384185791,
+          "totalMs": 11.299999922513962
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.0013311147788995117,
+          "p95Ms": 0,
+          "p99Ms": 0.09999999403953552,
+          "maxMs": 0.10000002384185791,
+          "totalMs": 0.7999999821186066
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 0.020133111322183973,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.10000002384185791,
+          "totalMs": 12.099999904632568
+        }
+      },
+      "errores": [],
+      "presupuesto": 0,
+      "presupuestoAlcanzado": true
+    },
+    {
+      "calidad": "no",
+      "vista": "2d",
+      "escenario": "saturacion",
+      "vivasMax": 0,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 240,
+      "duracionMs": 10017.1,
+      "esperaMs": 2003.7999999821186,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 12.000000000000036,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.66738768718802,
+        "p95Ms": 18.600000000000364,
+        "p99Ms": 18.700000000000273,
+        "maxMs": 18.80000000000109,
+        "totalMs": 10017.1
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 0.029450914724892665,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.19999998807907104,
+          "totalMs": 17.699999749660492
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.0018302827528034788,
+          "p95Ms": 0,
+          "p99Ms": 0.09999999403953552,
+          "maxMs": 0.09999999403953552,
+          "totalMs": 1.0999999344348907
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 0.03128119747769614,
+          "p95Ms": 0.10000002384185791,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.19999998807907104,
+          "totalMs": 18.799999684095383
+        }
+      },
+      "errores": [],
+      "presupuesto": 0,
+      "presupuestoAlcanzado": true
+    },
+    {
+      "calidad": "no",
+      "vista": "3d",
+      "escenario": "real",
+      "vivasMax": 0,
+      "inyectados": 0,
+      "reinicios": 0,
+      "pasosMax": 540,
+      "duracionMs": 10015.5,
+      "esperaMs": 17043.29999999404,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 27.00000000000025,
+      "fin": null,
+      "fotogramas": 601,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 601,
+        "mediaMs": 16.664725457570714,
+        "p95Ms": 18.600000000002183,
+        "p99Ms": 18.700000000000728,
+        "maxMs": 18.799999999999272,
+        "totalMs": 10015.5
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 601,
+          "mediaMs": 0.021131447716282926,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.20000001788139343,
+          "totalMs": 12.700000077486038
+        },
+        "dibujar": {
+          "muestras": 601,
+          "mediaMs": 0.00482529114169408,
+          "p95Ms": 0,
+          "p99Ms": 0.09999999403953552,
+          "maxMs": 0.10000002384185791,
+          "totalMs": 2.899999976158142
+        },
+        "total": {
+          "muestras": 601,
+          "mediaMs": 0.025956738857977005,
+          "p95Ms": 0.10000002384185791,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.20000001788139343,
+          "totalMs": 15.60000005364418
+        }
+      },
+      "errores": [],
+      "presupuesto": 0,
+      "presupuestoAlcanzado": true
+    },
+    {
+      "calidad": "no",
+      "vista": "3d",
+      "escenario": "saturacion",
+      "vivasMax": 0,
+      "inyectados": 360,
+      "reinicios": 0,
+      "pasosMax": 239,
+      "duracionMs": 10000.4,
+      "esperaMs": 2003.1,
+      "ritmo": 12,
+      "entorno": {
+        "gpu": {
+          "renderer": "WebKit WebGL",
+          "vendor": "WebKit",
+          "rendererReal": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "vendorReal": "Google Inc. (Apple)"
+        },
+        "ventana": {
+          "ancho": 1280,
+          "alto": 720
+        },
+        "devicePixelRatio": 2,
+        "campo": {
+          "x": 25,
+          "y": 79.8203125,
+          "width": 693.1953125,
+          "height": 563.1796875,
+          "top": 79.8203125,
+          "right": 718.1953125,
+          "bottom": 643,
+          "left": 25
+        },
+        "canvas": {
+          "ancho": 1386,
+          "alto": 1126
+        },
+        "reducido": false
+      },
+      "simulacionT": 11.950000000000035,
+      "fin": null,
+      "fotogramas": 600,
+      "fotogramasMas33": 0,
+      "fotograma": {
+        "muestras": 600,
+        "mediaMs": 16.667333333333332,
+        "p95Ms": 18.59999999999991,
+        "p99Ms": 18.699999999999818,
+        "maxMs": 18.799999999999727,
+        "totalMs": 10000.4
+      },
+      "cpu": {
+        "particulas": {
+          "muestras": 600,
+          "mediaMs": 0.03383333350221316,
+          "p95Ms": 0.10000002384185791,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.20000001788139343,
+          "totalMs": 20.300000101327896
+        },
+        "dibujar": {
+          "muestras": 600,
+          "mediaMs": 0.006666666716337204,
+          "p95Ms": 0.09999999403953552,
+          "p99Ms": 0.10000002384185791,
+          "maxMs": 0.10000002384185791,
+          "totalMs": 4.000000029802322
+        },
+        "total": {
+          "muestras": 600,
+          "mediaMs": 0.04050000021855037,
+          "p95Ms": 0.10000002384185791,
+          "p99Ms": 0.19999998807907104,
+          "maxMs": 0.20000001788139343,
+          "totalMs": 24.30000013113022
+        }
+      },
+      "errores": [],
+      "presupuesto": 0,
+      "presupuestoAlcanzado": true
+    }
+  ]
+}

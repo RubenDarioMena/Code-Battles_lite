@@ -28,7 +28,7 @@ reloj para los halos; Campaign no usa ese argumento).
 sobre la escena vigente entre fotogramas, incluso antes del primer dibujo.
 Durante `dibujar` siempre se usa el argumento `escena`. Sin `estado`, se pueden
 dar `cols`, `rows` y `tema` en opciones; la selección queda vacía.
-`calidad` queda reservada para la fase 4, sin efecto actual.
+`estado.efectos` aporta la calidad y accesibilidad vivas (véase paso 3).
 
 Las dependencias conservan los nombres de los planos anteriores: `FUNCIONES`,
 `TIPOS`, `MISIL`, `SENSOR`, `LAU`, `LINEA_BASE`, `FR`, `HALO`, `INTENSIDAD`,
@@ -107,9 +107,24 @@ con respaldo en las explosiones de la escena del mismo paso.
 Dibuja `particulas(escena.t + off, { colores: estado.col, calidad })` tras
 unidades y misiles. `anotaciones-war.js` mantiene encima las miras, selección,
 aro discontinuo y etiqueta `↑z` de estallidos aéreos. Se retiran los discos
-rellenos de explosión y atasco. La app lee `?vfx=alto|medio|bajo|no` (alto por
-defecto o valor desconocido) y pasa `calidad`; la vista no consulta la URL.
+rellenos de explosión y atasco. La app resuelve preferencias y URL; la vista no las consulta.
 `vaciar()` se llama al ejecutar, reiniciar y crear un mundo; `destruir()`
 también vacía la cola y libera la caché de sellos. No cambia ningún dato del
 reglamento. Prueba de integración: `node pruebas/vfx-juego.mjs` en `npm test`,
 con canvas/GPU emulados; la revisión visual corresponde al autor.
+
+## Calidad viva y medida (fase 4, paso 3)
+
+`estado.efectos?: { calidad: 'alto'|'medio'|'bajo'|'no', sinDestellos?: boolean }`
+se consulta en cada dibujo y se reenvía a `particulas`. Las fachadas conservan
+el getter del estado externo. No vacían por cambiar nivel ni accesibilidad;
+los efectos en curso reaparecen si siguen vivos al subir calidad.
+Sin getter se conserva `opciones.calidad` (alto por defecto) para consumidores
+independientes. La resolución de `auto`, URL y movimiento reducido es de app.
+
+`estado.medicionEfectos?` recibe `{ ahora(): number, registrar(muestra) }`.
+Solo cuando está presente se cronometra `particulas()` y `dibujar()` con el
+reloj inyectado; entrega `{ vista, vivas, particulasMs, dibujarMs }` por dibujo.
+Excluye el render de escena/GPU. App lo habilita únicamente por el gancho de
+QA `__banco.medirEfectos`. `pruebas/vfx-juego.mjs` verifica cambios entre
+fotogramas de un mismo efecto y contadores con canvas/GPU emulados.

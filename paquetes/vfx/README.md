@@ -1,7 +1,6 @@
 # vfx
 
-Fase 4, paso 1: recetas de datos y partículas sin estado. No está conectado al
-juego. Solo puede importar `protocolo`; funciona en Node sin entorno gráfico,
+Fase 4, pasos 1–3: recetas de datos y partículas sin estado, conectadas a War. Solo puede importar `protocolo`; funciona en Node sin entorno gráfico,
 reloj, RNG de partida ni acceso al mundo. No añade dependencias.
 
 ## Entrada pública
@@ -48,7 +47,8 @@ nunca al núcleo VFX. El laboratorio aporta posiciones de muestra.
 Opcionales: `dir` (`esfera`, `hemisferio`, `cono`, `anillo`, `arriba`),
 `arrastre ≥ 0`, `grav`, `deriva: [x,y,z]`, `suelo`, `alto`, `adelante`,
 `estela` (copias de 18 ms, menores y más tenues), `radioFinal` (radio fijo de
-un anillo). `ciclo` se valida y queda reservado: todavía no produce bucles.
+un anillo). `destello?: boolean` identifica un brillo breve que puede suprimirse
+por accesibilidad; el esquema acepta solo booleanos. `ciclo` se valida y queda reservado: todavía no produce bucles.
 
 Cada partícula depende solo de paso/tipo/unidad/capa/índice y de
 `τ = tv − paso×dt − retraso`; está viva cuando `0 ≤ τ < vida`.
@@ -84,12 +84,21 @@ El conteo incluye las estelas. Para recortar se quita primero humo, después
 restos (mezcla normal), después luz; dentro de cada grupo, sucesos antiguos
 por paso y desempate estable por orden de anotación/capa/índice/estela.
 
+`evaluar` y `particulas` aceptan `sinDestellos?: boolean` (por defecto `false`).
+Con `true` omiten exclusivamente capas `destello: true`, conservando sus índices
+originales y las semillas de todas las demás capas. Se filtra antes de aplicar
+el presupuesto: en saturación pueden caber otras partículas en su lugar.
+No se podan sucesos por cambiar calidad o accesibilidad; volver al nivel anterior
+conserva los efectos aún vivos. Sin la opción la salida es idéntica bit a bit.
+La app resuelve movimiento reducido y preferencias; VFX no conoce el navegador.
+
 ## War
 
 Nueve recetas: `disparo`, `impacto`, `fallo`, `derribo-oruga`, `derribo-dron`,
 `derribo-dron-frio`, `atasco`, `reparado`, `brecha`. Datos en `recetas/war.js`,
 exportados por la entrada pública. Eventos ≤1,6 s, destellos ≤0,2 s,
-luz aditiva y humo con alfa ≤0,24. Impacto y fallo incluyen el aro de daño.
+luz aditiva y humo con alfa ≤0,24. Solo el fogonazo de disparo (0,12 s)
+y el destello inicial de impacto (0,16 s) llevan `destello: true`. Impacto y fallo incluyen el aro de daño.
 `recetaWar` traduce `explosion` según `golpe`, ignora la explosión del atasco
 (`misil: null`) y traduce `crawler`/`drone`/`stealth` para los derribos.
 `golpe`/`aparece` y sucesos ajenos no generan recetas aquí.
@@ -105,3 +114,6 @@ luz aditiva y humo con alfa ≤0,24. Impacto y fallo incluyen el aro de daño.
 - Las tres entran en `npm test`. Fronteras y su autoprueba vigilan reloj y azar.
 - [Laboratorio y hojas](../../herramientas/laboratorio-vfx/README.md): revisión
   visual y medidas de navegador pendientes del autor en este paso.
+
+`node pruebas/vfx-calidad.mjs` verifica filtro por capa, esquema y regresión
+binaria de 4360 partículas contra el paso 2; entra en `npm test`.

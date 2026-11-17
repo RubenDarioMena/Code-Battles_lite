@@ -16,6 +16,9 @@ export function crearVista(contenedor, opciones) {
     get cols() { return externo?.cols ?? opciones.cols; },
     get rows() { return externo?.rows ?? opciones.rows; },
     get col() { return externo?.col ?? opciones.tema; },
+    /** @returns {{calidad: import('../vfx/index.js').Calidad, sinDestellos?: boolean}} */
+    get efectos() { return externo?.efectos ?? { calidad: opciones.calidad ?? 'alto' }; },
+    get medicionEfectos() { return externo?.medicionEfectos; },
   };
   let efectos = null;
   /** @type {any} */

@@ -273,9 +273,21 @@ reenvía cada suceso a **ambas** fachadas (`V2.alSuceso`, `V3.alSuceso`), solo
 si `SERIE === 'war'`. Así el cambio 2D/3D conserva los efectos activos sin
 reproducir ni modificar reglas, órdenes, telemetría o guardado.
 
-La app lee `?vfx=alto|medio|bajo|no` y pasa `calidad` en las opciones comunes;
-sin parámetro o con uno desconocido elige `alto`. Es provisional hasta
-Ajustes (paso 3). Los colores de `estado.col`, incluido `ok`, salen del tema.
+`juego/calidad-efectos.js` resuelve la calidad en app: `?vfx=auto|alto|medio|bajo|no`
+válido > preferencia JSON `cmg-juego-efectos` > `auto`. Valores guardados
+desconocidos o dañados se tratan como `auto`; una URL inválida se ignora.
+`auto` elige bajo con `prefers-reduced-motion: reduce`, alto en otro caso.
+Con movimiento reducido, `sinDestellos` siempre es `true`, incluso con URL o
+nivel manual. No cambia ningún formato previo de guardado.
+
+El selector Pantalla → Efectos visuales está disponible en las tres series;
+`interfaz/layout-efectos.js` escribe mediante `escribir` de layout y actualiza
+el controlador de app. El evento `change` del MediaQueryList actualiza la
+preferencia de movimiento. `estado.efectos` devuelve `{ calidad, sinDestellos }`
+y las fachadas lo leen en cada dibujo: efecto en el siguiente fotograma,
+sin vaciar ni reiniciar. `opciones.calidad` queda como respaldo de consumidores
+independientes de las vistas, no se pasa fija desde el juego.
+Los colores de `estado.col`, incluido `ok`, salen del tema.
 Las vistas resuelven el origen desde copias de la escena y del suceso,
 y evalúan partículas con `escena.t + off`; Factory/Campaign no reciben VFX.
 
@@ -284,3 +296,13 @@ y evalúan partículas con `escena.t + off`; Factory/Campaign no reciben VFX.
 libera su cola y dibujante. `pruebas/vfx-juego.mjs`, `juego-arranque.mjs` y
 `vistas-contrato.mjs` cubren esta ruta en Node con canvas/GPU emulados.
 No sustituyen las capturas ni la interacción real de navegador del autor.
+
+Para QA, solo `__banco` expone `sucesosVistas(lista)` (misma entrega a ambas
+fachadas que el conductor, sin tocar el mundo) y `medirEfectos(callback|null)`.
+El segundo habilita un contador pasivo con `{ vista, vivas, particulasMs,
+dibujarMs }`; el reloj vive en app y no se consulta cuando está apagado.
+No forma parte de la API de los programas. La herramienta
+[`medir-carga`](../../herramientas/medir-carga/README.md) inyecta saturación y
+registra rAF/CPU/GPU; la ejecuta el autor. `pruebas/vfx-calidad.mjs`,
+`vfx-juego.mjs` y `medir-carga-node.mjs` verifican calidad, persistencia,
+cambio en caliente y el guion con emulación Node, sin medir GPU real.

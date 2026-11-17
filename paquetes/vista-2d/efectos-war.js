@@ -2,7 +2,7 @@ import { crearEfectos, crearRecetasWar, recetaWar } from '../vfx/index.js';
 import { crearDibujanteEfectos } from './efectos.js';
 
 /** @param {any} estado @param {any} opciones */
-export function crearEfectosWar(estado, { dt, MISIL, calidad = 'alto', crearLienzo }) {
+export function crearEfectosWar(estado, { dt, MISIL, crearLienzo }) {
   const efectos = crearEfectos({ dt, recetas: crearRecetasWar({ radioDanio: MISIL.radio }), recetaDe: recetaWar });
   const origenes = crearOrigenes(dt);
   let dibujante = null, escala = null;
@@ -17,8 +17,12 @@ export function crearEfectosWar(estado, { dt, MISIL, calidad = 'alto', crearLien
         dibujante?.destruir();
         dibujante = crearDibujanteEfectos({ ...g, crearLienzo }); escala = { ...g };
       }
-      const particulas = efectos.particulas(escena.t + off, { colores: estado.col, calidad });
+      const medida = estado.medicionEfectos, inicio = medida?.ahora();
+      const particulas = efectos.particulas(escena.t + off, { colores: estado.col, ...estado.efectos });
+      const evaluadas = medida?.ahora();
       if (particulas.length) dibujante.dibujar(ctx, particulas);
+      if (medida) medida.registrar({ vista: '2d', vivas: particulas.length,
+        particulasMs: evaluadas - inicio, dibujarMs: medida.ahora() - evaluadas });
     },
     vaciar,
     destruir() { vaciar(); dibujante?.destruir(); dibujante = null; },
