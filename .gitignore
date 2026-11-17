@@ -11,3 +11,4 @@ coverage/
 
 # Paquete estático de publicación (regenerar con scripts/preparar-netlify.mjs)
 /dist/
+dist/
