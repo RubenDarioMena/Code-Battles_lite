@@ -30,7 +30,9 @@ const THREE = contexto.THREE;
 igual(THREE.REVISION, '128', 'usa el Three local del juego');
 let escenaDibujada = null;
 class Renderizador {
-  domElement = { height: 400 };
+  domElement = { height: 400, toDataURL: () => 'data:image/png;simulada' };
+  info = { render: { calls: 42, triangles: 1234 } };
+  forceContextLoss() {}
   getContext() { return { ALIASED_POINT_SIZE_RANGE: 1, getParameter: () => [1, 127] }; }
   dispose() { this.destruido = true; }
   setPixelRatio() {}
@@ -87,11 +89,19 @@ escenaDibujada.traverse(o => { if (o.isMesh) mallas++; });
 ok(mallas > 20, 'construye máquinas, misiles, explosiones y paisaje');
 ok(eventos.has('pointermove') && eventos.has('wheel'), 'registra los gestos del visor');
 const inicial = vista.camara();
+igual(inicial.dibujo, { calls: 42, triangles: 1234 }, 'expone los contadores del último render');
 eventos.get('wheel')({ preventDefault() {}, deltaY: -100 });
 ok(vista.camara().dist < inicial.dist, 'la rueda conserva el zoom');
 vista.centrar(10, 5); vista.recentrar();
 igual(vista.camara().dist, inicial.dist, 'recentrar restaura la postura');
+let liberadasInstancias = 0;
+escenaDibujada.traverse(o => { if (o.name === 'War instancias') o.addEventListener('dispose', () => liberadasInstancias++); });
 vista.construir(); vista.actualizar(.02, 50); vista.render();
+igual(liberadasInstancias, 5, 'reconstruir libera los cinco lotes usados por un dron y un misil');
+vista.aplicarColores();
+const coloresWar = [];
+escenaDibujada.traverse(o => { if (o.name === 'War instancias') coloresWar.push(o.material.color.getHexString()); });
+ok(coloresWar.every(c => c === '336699'), 'cambio de tema alcanza todos los materiales instanciados');
 igual(JSON.stringify(escena), antes, 'construir y actualizar no escriben en la escena congelada');
 
 // El paisaje del editor se recibe ya validado: la vista no consulta URL ni almacenamiento.
@@ -117,10 +127,13 @@ const reparando = congelar({ ...escena, reparadores: [{ ...reparador, estado: 'r
 for (const fraccion of [0, 1]) {
   comun.dibujar(null, reparando, fraccion, 160);
   let drone, reparador;
-  escenaDibujada.traverse(o => { if (o.userData.id === 'D1') drone = o; if (o.userData.id === 'REP-01') reparador = o; });
-  igual(drone.position.x, 14 - 2 * fraccion * .05, 'render ve actualizar(off) antes de dibujar');
+  escenaDibujada.traverse(o => { if (o.isInstancedMesh && o.geometry.type === 'SphereGeometry' && o.userData.ids?.includes('D1')) drone = o; if (o.userData.id === 'REP-01') reparador = o; });
+  const matriz = new THREE.Matrix4(); drone.getMatrixAt(drone.userData.ids.indexOf('D1'), matriz);
+  ok(Math.abs(matriz.elements[12] - (14 - 2 * fraccion * .05)) < 1e-6, 'render ve actualizar(off) antes de dibujar');
   igual(reparador.rotation.y, 1, 'el cuarto argumento ahora llega sin alterarse al motor');
 }
+const puntoDrone = comun.proyectar(13.9, 2.5, 9.5);
+igual(comun.elegir(puntoDrone.x, puntoDrone.y), 'D1', 'raycast real selecciona la instancia aérea');
 igual(comun.proyectar(4, 0, 5), vista.proyectar(4, 0, 5, 1280, 720), 'proyección mide el mismo rectángulo del campo');
 const punto = comun.proyectar(deposito.cx, 0, deposito.cy);
 igual(comun.elegir(punto.x, punto.y), deposito.id, 'elección 3D sin ancho/alto externos');
@@ -130,6 +143,10 @@ ok(rectangulos >= 4, 'tamaño, proyección y selección miden el contenedor');
 comun.alSuceso({ paso: 0, tipo: 'disparo' });
 comun.destruir(); comun.destruir();
 igual(eventos.size, 0, 'destruir retira los gestos de la fachada');
+igual(vista.retrato('drone'), 'data:image/png;simulada', 'retrato conserva el camino suelto');
+const piezasRetrato = []; escenaDibujada.traverse(o => { if (o.isMesh) piezasRetrato.push(o); });
+igual(piezasRetrato.length, 9, 'retrato dron: ocho piezas y piso');
+ok(piezasRetrato.every(o => !o.isInstancedMesh), 'el retrato no instancia sus piezas');
 
 THREE.WebGLRenderer = class { constructor() { throw new Error('sin WebGL'); } };
 igual(crear3D(estado, deps), null, 'War conserva el respaldo si falla WebGL');

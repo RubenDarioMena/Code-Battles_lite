@@ -7,7 +7,7 @@ import ts from 'typescript';
 
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const entrada = raiz + 'Prototypes/Rocket Launcher/js/juego.js';
-const archivos = [entrada, raiz + 'herramientas/vfx-hojas.mjs', raiz + 'herramientas/medir-carga.mjs',
+const archivos = [entrada, raiz + 'herramientas/capturas-vista.mjs', raiz + 'herramientas/capturas-combate.mjs', raiz + 'herramientas/vfx-hojas.mjs', raiz + 'herramientas/medir-carga.mjs',
   ...readdirSync(raiz + 'herramientas/medir-carga/').filter(f => f.endsWith('.mjs')).map(f => raiz + 'herramientas/medir-carga/' + f), raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'cascaras/escritorio/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js', raiz + 'paquetes/app/plataforma.js', raiz + 'cascaras/web/plataforma.js',
   ...readdirSync(raiz + 'cascaras/escritorio/').filter(f => f.endsWith('.cjs')).map(f => raiz + 'cascaras/escritorio/' + f),
   ...['archivos-publicables', 'empaquetar-escritorio', 'steam-vdf', 'preparar-netlify'].map(f => raiz + 'scripts/' + f + '.mjs'),
@@ -25,6 +25,7 @@ const globalesConocidos = new Set(`Array Blob Boolean Infinity CustomEvent Date 
   parseInt performance requestAnimationFrame sessionStorage setTimeout visualViewport window
   globalThis Response decodeURIComponent`.split(/\s+/));
 const globalesNode = new Set([...globalesConocidos, 'require', 'module', '__dirname', 'process', 'Buffer']);
+const globalesCapturas = new Set([...globalesNode, 'localStorage', 'eval', 'Image', 'OffscreenCanvas']);
 const globalesUsados = new Set();
 function revisar(mutacion = '', auditar = false) {
   const host = ts.createCompilerHost(opciones), leer = host.readFile;
@@ -49,7 +50,7 @@ function revisar(mutacion = '', auditar = false) {
             /\/node_modules\/(?:typescript\/lib\/lib\.|@types\/node\/)/.test(d.getSourceFile().fileName));
           if (ambiente) {
             const nombre = nodo.getSourceFile().fileName;
-            const permitidos = /\/(?:cascaras\/escritorio|scripts)\/|\/herramientas\/(?:vfx-hojas\.mjs$|medir-carga)/.test(nombre) ? globalesNode : globalesConocidos;
+            const permitidos = nombre === raiz + 'herramientas/capturas-vista.mjs' ? globalesCapturas : /\/(?:cascaras\/escritorio|scripts)\/|\/herramientas\/(?:vfx-hojas\.mjs$|medir-carga)/.test(nombre) ? globalesNode : globalesConocidos;
             assert(permitidos.has(nodo.text), `${nombre}: global ${nodo.text} sin declarar en la lista de su entorno`);
             globalesUsados.add(nodo.text);
           }

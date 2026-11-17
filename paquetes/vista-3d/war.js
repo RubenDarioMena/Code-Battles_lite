@@ -1,3 +1,4 @@
+import { crearInstanciasWar, enemigoMesh } from './instancias-war.js';
 import { liberarEscena } from './recursos.js';
 /* Visor 3D común de War y Factory, antes en js/vistas.js. Solo lee estado.escena. */
 import { factory3d } from './factory.js';
@@ -136,7 +137,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
     const fijo = new THREE.Group(), movil = new THREE.Group();
     escena.add(fijo, movil);
     const objetos = new Map();  // id → { grupo, ... }
-    const misiles = new Map();
+    let instancias = null;
     let anillos = null;
     const mesh = (g, m) => new THREE.Mesh(g, m);
     function lineas(puntos, mat) {
@@ -148,7 +149,8 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
     const { construirTerreno, pintarMontes } = crearTerreno3D({ THREE, estado, terreno, terrenoEditor, M, G, L, mesh, lineas, fijo, leerVar });
 
     function construir() {
-      limpiar(fijo); limpiar(movil); objetos.clear(); misiles.clear(); anillos = null;
+      instancias?.destruir(); instancias = null;
+      limpiar(fijo); limpiar(movil); objetos.clear(); anillos = null;
       prepararVisual();
       if (!terrenoEditor) {
         const suelo = mesh(new THREE.PlaneGeometry(estado.cols, estado.rows), M.suelo); suelo.rotation.x = -Math.PI / 2; suelo.position.set(estado.cols / 2, 0, estado.rows / 2); fijo.add(suelo);
@@ -165,6 +167,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
         aplicarColores(); anillosDe(estado.seleccion);
         return;
       }
+      instancias = crearInstanciasWar({ THREE, G, M, L, TIPOS, movil });
       const zona = mesh(new THREE.PlaneGeometry(LINEA_BASE, estado.rows), M.base); zona.rotation.x = -Math.PI / 2; zona.position.set(LINEA_BASE / 2, .015, estado.rows / 2); fijo.add(zona);
       const br = lineas([[LINEA_BASE, .03, 0], [LINEA_BASE, .03, estado.rows]], L.brecha); br.computeLineDistances(); fijo.add(br);
       escena.fog = estado.escena.def.niebla ? new THREE.Fog(0xffffff, 10, 34) : horizonte;
@@ -213,27 +216,6 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
       anillosDe(estado.seleccion);
     }
 
-    function enemigoMesh(e) {
-      const g = new THREE.Group(); g.userData.id = e.id;
-      const tp = TIPOS[e.tipo], mat = tp.frio ? M.frio : M.enemigo;
-      if (tp.suelo) {
-        const cuerpo = mesh(G.caja(.82, .4, .6), mat); cuerpo.position.y = .3;
-        const o1 = mesh(G.caja(.9, .2, .14), M.borde); o1.position.set(0, .1, .3);
-        const o2 = o1.clone(); o2.position.z = -.3;
-        g.add(cuerpo, o1, o2);
-        return { grupo: g, cuerpo, mat };
-      }
-      const cuerpo = mesh(G.esfera, mat); cuerpo.scale.setScalar(.22);
-      const brazo1 = mesh(G.caja(.85, .04, .06), M.borde), brazo2 = brazo1.clone(); brazo2.rotation.y = Math.PI / 2;
-      const rotores = [[.4, 0], [-.4, 0], [0, .4], [0, -.4]].map(([x, z]) => { const r = mesh(G.rotor, M.borde); r.position.set(x, .06, z); return r; });
-      const cuerpoG = new THREE.Group(); cuerpoG.add(cuerpo, brazo1, brazo2, ...rotores);
-      const sombra = mesh(G.disco, M.sombra); sombra.rotation.x = -Math.PI / 2; sombra.scale.setScalar(.36); sombra.position.y = .02;
-      const alt = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0)]), L.altura);
-      alt.computeLineDistances();
-      g.add(cuerpoG, sombra, alt);
-      return { grupo: g, cuerpo, cuerpoG, sombra, alt, rotores, mat };
-    }
-
     // Retrato de un tipo de enemigo con su modelo actual (placeholder de las fichas de información).
     // Se usa una vez para generar img/enemigos/*.png: window.cmg.retrato("crawler") devuelve un PNG en data URL.
     function retrato(tipo, w = 288, h = 216) {
@@ -243,7 +225,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
       esc.add(hemi.clone(), sol.clone());
       const piso = mesh(new THREE.PlaneGeometry(6, 6), M.suelo); piso.rotation.x = -Math.PI / 2;
       const p = []; for (let i = -3; i <= 3; i++) p.push([i, .01, -3], [i, .01, 3], [-3, .01, i], [3, .01, i]);
-      const o = enemigoMesh({ id: "retrato", tipo }), aire = !TIPOS[tipo].suelo;
+      const o = enemigoMesh(THREE, G, M, L, TIPOS, { id: "retrato", tipo }), aire = !TIPOS[tipo].suelo;
       if (o.cuerpoG) { o.cuerpoG.position.y = 1.15; o.alt.scale.set(1, 1.15, 1); for (const rr of o.rotores) rr.rotation.y = .6; }
       o.grupo.rotation.y = .35;
       esc.add(piso, lineas(p, L.grid), o.grupo);
@@ -251,7 +233,8 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
       c.position.set(-1.6, aire ? 2.2 : 1.55, aire ? 2.8 : 2.5); c.lookAt(0, aire ? .78 : .24, 0);
       r.render(esc, c);
       const url = r.domElement.toDataURL("image/png");
-      r.dispose(); r.forceContextLoss();
+      const propias = new Set(); esc.traverse(o => { if (o.geometry && !Object.values(G).includes(o.geometry)) propias.add(o.geometry); });
+      propias.forEach(g => g.dispose()); r.dispose(); r.forceContextLoss();
       return url;
     }
 
@@ -279,11 +262,6 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
         a.userData.unidad = otro;
         grupo.add(a);
       }
-    }
-
-    function posMisil(mi, t) {
-      const u = Math.min(1, Math.max(0, (t - mi.t0) / mi.dur));
-      return [mi.x0 + (mi.x1 - mi.x0) * u, mi.z0 + (mi.z1 - mi.z0) * u + mi.arco * 4 * u * (1 - u), mi.y0 + (mi.y1 - mi.y0) * u];
     }
 
     function actualizar(off, ahora) {
@@ -320,37 +298,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
         const on = mal ? false : e.clase === "vibracion" ? ahora % 1600 < 1100 : e.clase === "reparador" && e.estado !== "base" ? ahora % 500 < 300 : true;
         for (const luz of b.luces) luz.visible = on;
       }
-      const vivos = new Set();
-      for (const e of estado.escena.enemigos) {
-        vivos.add(e.id);
-        let o = objetos.get(e.id);
-        if (!o) { o = enemigoMesh(e); objetos.set(e.id, o); movil.add(o.grupo); }
-        const x = e.x + e.vx * off, y = e.y + e.vy * off;
-        o.grupo.position.set(x, 0, y);
-        o.cuerpo.material = estado.escena.t - e.golpeT < .25 ? M.golpe : o.mat;
-        if (o.cuerpoG) {
-          o.cuerpoG.position.y = e.z;
-          o.alt.scale.set(1, e.z, 1);
-          for (const r of o.rotores) r.rotation.y = ahora / 40;
-        }
-      }
-      for (const [id, o] of objetos) if (o.mat && !vivos.has(id)) { movil.remove(o.grupo); objetos.delete(id); }
-      const enVuelo = new Set();
-      for (const mi of estado.escena.misiles) {
-        enVuelo.add(mi.id);
-        let o = misiles.get(mi.id);
-        if (!o) {
-          const bola = mesh(G.esfera, M.misil); bola.scale.setScalar(.12);
-          const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(30), 3));
-          const estela = new THREE.Line(g, L.estela); estela.frustumCulled = false;
-          o = { bola, estela }; misiles.set(mi.id, o); movil.add(bola, estela);
-        }
-        const p = posMisil(mi, t); o.bola.position.set(...p);
-        const arr = o.estela.geometry.attributes.position.array;
-        for (let k = 0; k < 10; k++) { const q = posMisil(mi, t - k * .03); arr[k * 3] = q[0]; arr[k * 3 + 1] = q[1]; arr[k * 3 + 2] = q[2]; }
-        o.estela.geometry.attributes.position.needsUpdate = true;
-      }
-      for (const [id, o] of misiles) if (!enVuelo.has(id)) { movil.remove(o.bola, o.estela); o.estela.geometry.dispose(); misiles.delete(id); }
+      instancias.actualizar(estado.escena, off, ahora);
       if (anillos && anillos.userData.sigue) {
         const en = estado.escena.enemigos.find(x => x.id === anillos.userData.sigue);
         if (en) anillos.position.set(en.x + en.vx * off, en.z, en.y); else anillos.visible = false;
@@ -366,5 +314,5 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
 
       const { altoPx, ...controles } = crearCamara3D({ THREE, estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil, get factory() { return factory; } });
     return { construir, actualizar, ...controles,
-      destruir() { controles.destruir(); liberarEscena(escena, renderer, [...Object.values(G), ...Object.values(M), ...Object.values(D), ...Object.values(tex)]); }, anillosDe, aplicarColores, retrato };
+      destruir() { controles.destruir(); instancias?.destruir(); liberarEscena(escena, renderer, [...Object.values(G), ...Object.values(M), ...Object.values(L), ...Object.values(D), ...Object.values(tex)]); }, anillosDe, aplicarColores, retrato };
 }

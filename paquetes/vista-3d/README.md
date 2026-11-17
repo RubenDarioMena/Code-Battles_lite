@@ -150,3 +150,41 @@ reloj inyectado; entrega `{ vista, vivas, particulasMs, dibujarMs }` por dibujo.
 Excluye el render de escena/GPU. App lo habilita únicamente por el gancho de
 QA `__banco.medirEfectos`. `pruebas/vfx-juego.mjs` verifica cambios entre
 fotogramas de un mismo efecto y contadores con canvas/GPU emulados.
+
+## Instancias de War (fase 4, paso 4)
+
+`instancias-war.js` conserva el modelo suelto para `retrato` y reutiliza dos
+patrones (oruga/dron) para componer exactamente sus `matrixWorld`. En combate
+hay un `InstancedMesh` por pareja geometría/material: cuerpos de oruga y dron
+normal/frío/golpe, orugas, brazos, rotores, sombras y esferas de misil. No usa
+`instanceColor`: el golpe es `M.golpe` durante los mismos 0,25 s; frío mantiene
+`M.frio`, transparente con opacidad 0,72. Materiales compartidos con el visor,
+por lo que `aplicarColores` llega también a todos los lotes.
+
+Capacidad inicial 1, duplicada sin techo fijo; `count` cuenta piezas vivas
+(dos orugas, dos brazos o cuatro rotores por unidad). Se compactan las bajas
+y las migraciones de material, sin matrices de unidades muertas. Solo se
+marca `instanceMatrix.needsUpdate` si cambia alguna matriz o crece el búfer;
+`frustumCulled=false` evita recortes por el volumen del patrón en el origen.
+
+Las líneas de altura y las estelas siguen por unidad para conservar trazado,
+mezcla y discontinuidad: altura usa el mismo `lineDistance=[0,1]` antes de
+escalar a `e.z`; cada estela conserva los diez puntos separados por 0,03 s.
+Máquinas, miras y anillos siguen como antes. Los retratos usan mallas sueltas.
+
+`camara.js` resuelve cada hit mediante `instanceId` y `object.userData.ids`;
+las piezas, sombras y alturas devuelven el ID de su enemigo. Los objetos
+sueltos siguen buscando `userData.id` en sus padres. Anillos sin cambios.
+Al reconstruir/destruir se retiran y liberan instancias y geometrías propias;
+los búferes sustituidos al duplicar se liberan inmediatamente. El visor es
+el dueño de G/M/L y libera esos recursos compartidos al destruirse.
+
+`camara().dibujo = { calls, triangles }` en War/Factory copia los contadores
+del último render (`renderer.info.render`), incluido el resto del paisaje,
+máquinas y VFX. La página los expone con `cmg.camara().dibujo`.
+
+Pruebas: `node paquetes/vista-3d/pruebas/instancias-war.mjs` (en `npm test`):
+Three r128 real sin GPU, todas las matrices contra el modelo suelto, materiales,
+counts, no actualización redundante, crecimiento 513→1024, selección, líneas,
+bajas y liberación. `vista-3d.mjs` comprueba además raycast real desde cámara,
+tema, reconstrucción, retratos y contrato. No comprueban rasterizado.

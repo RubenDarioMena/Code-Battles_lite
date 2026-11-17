@@ -1,25 +1,32 @@
 // Capturas deterministas del campo (2D y 3D) para comparar dos versiones píxel a píxel (fase 2).
 //   node herramientas/capturas-vista.mjs capturar <origen> <carpeta>
+//   node herramientas/capturas-vista.mjs capturar <origen> <carpeta> --enemigos 2000
 //   node herramientas/capturas-vista.mjs comparar <carpetaA> <carpetaB>
 // Sirve cada versión en su puerto (p. ej. un `git worktree` del commit anterior en 8772 y la rama en 8771).
-// War y Factory juegan su reto con semilla 7 hasta el final; Campaign se captura al empezar. Después se
-// congelan performance.now y la marca de requestAnimationFrame y se captura el lienzo.
-// Ruido conocido (también entre dos capturas de la misma versión): el brazo del robot de Factory 3D se
-// suaviza con el reloj real, y los chips de texto sobre el lienzo pueden variar algún píxel.
+// War/Factory finales y Campaign inicial conservan las capturas anteriores. Se añaden
+// war-combate-{2d,3d}.png: reto 3/semilla 7/paso 512 (25,6 s), pausa síncrona en alPaso.
+// COMBATE fija paso y reloj visual; off=0 por la pausa, nueve rAF a la misma marca,
+// fuentes listas y contexto nuevo por captura. Repetir con mismo navegador/GPU/fuentes.
+// resumen.json e impresión incluyen calls/triangles del último render en War 3D.
+// comparar recorre todos los PNG, incluidos los de combate. Factory mantiene el ruido
+// histórico de suavizado de su brazo; la garantía de combate no depende de ese reloj.
 import { chromium } from 'playwright';
+import { COMBATE, prepararCombate, escenaCarga } from './capturas-combate.mjs';
 
 /** Globales de la página del juego (solo dentro de page.evaluate). */
 /** @type {any} */ let __banco;
-import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const CASOS = [['war', '2d', true], ['war', '3d', true], ['factory', '2d', true], ['factory', '3d', true], ['campaign', '2d', false], ['campaign', '3d', false]];
+const CASOS = [['war', '2d', true], ['war', '3d', true], ['factory', '2d', true], ['factory', '3d', true], ['campaign', '2d', false], ['campaign', '3d', false], ['war', '2d', 'combate'], ['war', '3d', 'combate']];
 
-async function capturar(origen, carpeta) {
+async function capturar(origen, carpeta, cantidad = 0) {
   mkdirSync(carpeta, { recursive: true });
   const browser = await chromium.launch({ headless: true });
+  const resumen = [];
   try {
-    for (const [serie, vista, correr] of CASOS) {
+    const casos = cantidad ? [['war', '3d', 'combate']] : CASOS;
+    for (const [serie, vista, correr] of casos) {
       const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
       await ctx.addInitScript(([serie, vista]) => {
         if (!sessionStorage.getItem('capturas')) { localStorage.clear(); sessionStorage.setItem('capturas', '1'); }
@@ -30,7 +37,16 @@ async function capturar(origen, carpeta) {
       page.on('pageerror', e => errores.push(e.message));
       await page.goto(`${origen}/Prototypes/Rocket%20Launcher/index.html?serie=${serie}`);
       await page.waitForFunction(() => /** @type {any} */ (window).__juegoListo === true, null, { timeout: 30000 });
-      if (correr) {
+      await page.evaluate(() => document.fonts.ready);
+      if (correr === 'combate') {
+        // La función se evalúa con sus argumentos explícitos, igual que en la prueba Node.
+        await page.evaluate(({ fuente, config }) => {
+          const preparar = (0, eval)(`(${fuente})`); preparar(__banco, config);
+        }, { fuente: prepararCombate.toString(), config: COMBATE });
+        await page.waitForFunction(() => __banco.capturaLista === true, null, { timeout: 120000 });
+        const paso = await page.evaluate(() => __banco.partida.pasoActual);
+        if (paso !== COMBATE.paso) throw new Error(`Combate avanzó hasta ${paso}`);
+      } else if (correr) {
         await page.evaluate(() => { __banco.fijarSemilla(7); __banco.turbo(40); __banco.ejecutar(); });
         await page.waitForFunction(() => !!__banco.mundo.fin, null, { timeout: 120000 });
       }
@@ -40,10 +56,29 @@ async function capturar(origen, carpeta) {
         window.requestAnimationFrame = cb => raf(() => cb(123456));
       });
       for (let i = 0; i < 9; i++) await page.evaluate(() => new Promise(r => requestAnimationFrame(() => r(undefined))));
-      await page.locator(vista === '3d' ? '#c3d' : '#c2d').screenshot({ path: join(carpeta, `${serie}-${vista}.png`) });
-      console.log(`${serie} ${vista} · t=${await page.evaluate(() => __banco.mundo.t)} · errores de página: ${errores.length}${errores.length ? ` (${errores[0]})` : ''}`);
+      let carga = null;
+      if (cantidad) {
+        // Vacía el rAF ya pendiente y evita que el bucle normal sobrescriba la escena sintética.
+        await page.evaluate(() => new Promise(resolve => {
+          const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = () => 0;
+          raf(() => resolve(undefined));
+        }));
+        carga = await page.evaluate(({ fuente, cantidad }) => {
+          const crear = (0, eval)(`(${fuente})`), escena = crear(__banco.escenaVista, cantidad);
+          __banco.dibujarCaptura(escena, 123456);
+          return { enemigos: escena.enemigos.length, misiles: escena.misiles.length };
+        }, { fuente: escenaCarga.toString(), cantidad });
+      }
+      const nombre = cantidad ? `war-carga-3d-${cantidad}` : `${serie}${correr === 'combate' ? '-combate' : ''}-${vista}`;
+      const muestra = await page.evaluate(() => ({ paso: __banco.partida.pasoActual, t: __banco.mundo.t,
+        enemigos: __banco.mundo.enemigos?.length ?? 0, misiles: __banco.mundo.misiles?.length ?? 0,
+        dibujo: /** @type {any} */ (window).cmg.camara()?.dibujo }));
+      resumen.push({ nombre, ...muestra, ...(carga ?? {}), errores });
+      await page.locator(vista === '3d' ? '#c3d' : '#c2d').screenshot({ path: join(carpeta, `${nombre}.png`) });
+      console.log(`${nombre} · paso=${muestra.paso} · t=${muestra.t} · dibujo=${JSON.stringify(muestra.dibujo)} · errores de página: ${errores.length}${errores.length ? ` (${errores[0]})` : ''}`);
       await ctx.close();
     }
+    writeFileSync(join(carpeta, 'resumen.json'), JSON.stringify(resumen, null, 2) + '\n');
   } finally { await browser.close(); }
 }
 
@@ -52,7 +87,11 @@ async function comparar(a, b) {
   const page = await browser.newPage();
   let distintas = 0;
   try {
-    for (const nombre of readdirSync(a).filter(n => n.endsWith('.png')).sort()) {
+    const nombres = new Set([...readdirSync(a), ...readdirSync(b)].filter(n => n.endsWith('.png')));
+    for (const nombre of [...nombres].sort()) {
+      if (![a, b].every(c => existsSync(join(c, nombre)))) {
+        distintas++; console.log(`${nombre}: falta en una carpeta`); continue;
+      }
       const datos = [a, b].map(c => 'data:image/png;base64,' + readFileSync(join(c, nombre)).toString('base64'));
       const r = await page.evaluate(async ([x, y]) => {
         const leer = async src => { const i = new Image(); i.src = src; await i.decode(); const c = new OffscreenCanvas(i.width, i.height); const g = c.getContext('2d'); g.drawImage(i, 0, 0); return g.getImageData(0, 0, i.width, i.height); };
@@ -73,7 +112,9 @@ async function comparar(a, b) {
   return distintas;
 }
 
-const [orden, x, y] = process.argv.slice(2);
-if (orden === 'capturar' && x && y) await capturar(x, y);
-else if (orden === 'comparar' && x && y) await comparar(x, y);
+const [orden, x, y, opcion, valor] = process.argv.slice(2);
+const cantidad = opcion === '--enemigos' ? Number(valor) : 0;
+if (opcion && (opcion !== '--enemigos' || !Number.isSafeInteger(cantidad) || cantidad < 1)) throw new Error('Uso: --enemigos <entero positivo>');
+if (orden === 'capturar' && x && y) await capturar(x, y, cantidad);
+else if (orden === 'comparar' && x && y) process.exitCode = (await comparar(x, y)) ? 1 : 0;
 else { console.error('Uso: node herramientas/capturas-vista.mjs capturar <origen> <carpeta> | comparar <carpetaA> <carpetaB>'); process.exitCode = 1; }

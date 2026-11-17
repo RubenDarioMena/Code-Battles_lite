@@ -37,6 +37,8 @@ const logica = [
   'globales-juego', 'imports-juego', 'juego-identificadores', 'juego-arranque', 'vistas-contrato',
   'paquetes/vista-2d/pruebas/vista-2d.mjs',
   'paquetes/vista-3d/pruebas/vista-3d.mjs',
+  'paquetes/vista-3d/pruebas/instancias-war.mjs',
+  'pruebas/capturas-combate.mjs',
   'fronteras-fase2', 'fronteras-factory', 'fronteras-campaign', 'juego-conductor',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente',

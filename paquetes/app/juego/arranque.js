@@ -14,6 +14,10 @@ export function instalarArranqueJuego(ctx) {
     // QA: misma vía visual que alSucesos del conductor; nunca ordena ni modifica el mundo.
     sucesosVistas: lista => ctx.sucesosVistas(lista),
     medirEfectos: registrar => ctx.medirEfectos(registrar),
+    // QA terminal: se invoca dentro de alPaso; cierra el conductor antes del paso siguiente.
+    congelarVista() { ctx.pausa = true; ctx.conductor?.cerrar(); ctx.pintarControles(); },
+    get escenaVista() { return ctx.estadoVista.escena; },
+    dibujarCaptura(escena, ahora) { ctx.vistaActual().dibujar(null, escena, 0, ahora); },
     // Campaign: la planta, sus checkpoints y la piel del mapa.
     get campana() { return { instantanea: () => ctx.campaign.instantaneaHistorica(ctx.mundo), quieto: () => ctx.campaign.quieto(ctx.mundo) }; }, get checkpoints() { return ctx.historialC; }, volverA: (i, conProgramas) => ctx.volverA(ctx.historialC[i], !!conProgramas), seguir: () => ctx.seguirCampaign(), nivelDeNuevo: () => ctx.nivelDeNuevo(),
   }; // para depurar y probar desde la consola

@@ -53,6 +53,8 @@ export interface DependenciasCampaign extends DependenciasComunes {
     BANDA: { vel: number };
   };
 }
+/** Último fotograma enviado al renderer (incluye paisaje, máquinas y VFX). */
+export interface MedidaRender3D { calls: number; triangles: number }
 export interface Vista3D {
   destruir(): void;
   construir(): void;
@@ -68,7 +70,7 @@ export interface Vista3D {
   aplicarColores(): void;
   girar(da: number, px: number, py: number, w: number, h: number): void;
   retrato(tipo?: string, w?: number, h?: number): string | null;
-  camara(): Record<string, any>;
+  camara(): Record<string, any> & { dibujo?: MedidaRender3D };
 }
 export interface VistaCampaign3D extends Vista3D {
   batalla(valor: boolean): void;

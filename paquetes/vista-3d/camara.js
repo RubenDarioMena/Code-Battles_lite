@@ -1,3 +1,4 @@
+import { idDeImpacto } from './instancias-war.js';
 import { escucharEn } from './recursos.js';
 /* Posturas, proyección, selección y gestos del visor común, antes en js/vistas.js. */
 export function crearCamara3D(ctx) {
@@ -74,7 +75,7 @@ export function crearCamara3D(ctx) {
       ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
       ray.setFromCamera(ndc, camara);
       const hits = ray.intersectObjects([...fijo.children, ...movil.children], true);
-      for (const hit of hits) { let o = hit.object; while (o && !o.userData.id) o = o.parent; if (o) return o.userData.id; }
+      for (const hit of hits) { const id = idDeImpacto(hit); if (id != null) return id; }
       return null;
     }
     function suelo(px, py, w, h) {
@@ -156,6 +157,6 @@ export function crearCamara3D(ctx) {
     }
     return { destruir() { oyentes.destruir(); observador.disconnect(); punteros.clear(); }, render, tamano, proyectar, elegir, suelo, centrar, recentrar, girar,
       altoPx: () => altoCampo,
-      camara: () => { const factory = ctx.factory; return ({ clave: camActual && camActual.k, ...cam, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }); },
+      camara: () => { const factory = ctx.factory; return ({ clave: camActual && camActual.k, ...cam, dibujo: { calls: renderer.info?.render.calls ?? 0, triangles: renderer.info?.render.triangles ?? 0 }, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }); },
     };
 }

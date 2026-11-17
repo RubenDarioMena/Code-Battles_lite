@@ -1,5 +1,7 @@
 # Plan de efectos visuales (VFX)
 
+> **Fase 4, paso 4:** War 3D agrupa enemigos y esferas de misil por geometría/material en instancias r128; captura de combate al paso 512 y contadores de dibujo en [CAPTURAS-VISTA](../herramientas/CAPTURAS-VISTA.md). Pruebas Node sin GPU; comparación visual pendiente del autor.
+
 > **Fase 4, paso 3 (17 de noviembre de 2026).** Ajustes ES/EN con `cmg-juego-efectos` independiente; URL > preferencia > auto (alto/bajo por movimiento reducido), sin destellos siempre con movimiento reducido y cambio en caliente sin vaciar. `herramientas/medir-carga.mjs` prepara la medida Electron/Chromium (real y saturación); ejecución GPU/capturas pendientes del autor.
 
 > **Fase 4, paso 2 (16 de noviembre de 2026).** War conecta los sucesos del conductor a ambas fachadas, enriquece copias desde la escena y sustituye discos/esferas por recetas a `escena.t + off`; conserva altura aérea, selección y miras. Calidad provisional `?vfx=alto|medio|bajo|no` leída en app, limpieza por ejecución/mundo/destrucción y pruebas Node de integración; QA visual/capturas a cargo del autor, sin navegador en este paso. Ajustes y medidas de carga siguen pendientes.
