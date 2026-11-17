@@ -9,10 +9,12 @@ try {
     reglas: { type: 'string' }, reto: { type: 'string' }, semilla: { type: 'string' },
     lenguaje: { type: 'string' }, intento: { type: 'string' }, escenario: { type: 'string' },
     programas: { type: 'string' }, json: { type: 'boolean', default: false },
+    motor: { type: 'string', default: 'interprete' },
     'max-pasos': { type: 'string' },
   } });
   if (!['war', 'factory', 'campaign'].includes(v.reglas) || (v.reglas !== 'campaign' && (!v.reto || !(v.semilla || (v.reglas === 'factory' && v.intento)))))
-    throw new Error('Uso: --reglas war|factory --reto N (--semilla S | --intento K), o --reglas campaign [--lenguaje js|python]; [--programas archivo.json] [--json] [--max-pasos N].');
+    throw new Error('Uso: --reglas war|factory --reto N (--semilla S | --intento K), o --reglas campaign [--lenguaje js|python]; [--programas archivo.json] [--json] [--max-pasos N] [--motor vm|interprete].');
+  if (!['vm', 'interprete'].includes(v.motor)) throw new Error('--motor debe ser vm|interprete.');
   const programas = v.programas ? JSON.parse(readFileSync(v.programas, 'utf8')) : undefined;
   if (v.reglas !== 'campaign' && v.programas && (!programas || typeof programas !== 'object' || Array.isArray(programas)))
     throw new Error('--programas requiere un objeto JSON por unidad.');
@@ -23,7 +25,7 @@ try {
   const { instantanea, ...salida } = await ejecutar(/** @type {any} */ ({ lenguaje: v.lenguaje, reto: Number(v.reto), semilla: v.semilla == null ? undefined : Number(v.semilla),
     intento: v.intento == null ? undefined : Number(v.intento),
     escenario: v.escenario ? JSON.parse(readFileSync(v.escenario, 'utf8')) : undefined,
-    programas, maxPasos: v['max-pasos'] == null ? undefined : Number(v['max-pasos']) }));
+    programas, motor: v.motor, maxPasos: v['max-pasos'] == null ? undefined : Number(v['max-pasos']) }));
   if (v.json) console.log(JSON.stringify(salida));
   else {
     console.log('tramos' in salida ? 'Campaign · H0–H5' : `${v.reglas === 'factory' ? 'Factory' : 'War'} · reto ${salida.reto} · semilla ${salida.semilla}`);

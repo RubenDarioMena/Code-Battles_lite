@@ -1,4 +1,4 @@
-// Campaign en el navegador (Playwright): juega H0–H5 con los programas de referencia, Workers reales y turbo.
+// Campaign en el navegador (Playwright): juega H0–H5 con los programas de referencia, intérprete real y turbo.
 // Uso: python3 -m http.server 8771 --bind 127.0.0.1 &  ·  node pruebas/campaign-juego.cjs <carpeta de capturas> [escritorio|movil]
 const { chromium } = require('playwright');
 const SOL = require('./campaign-soluciones.cjs');

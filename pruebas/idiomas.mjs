@@ -112,7 +112,7 @@ export async function probarIdiomas(page, origen = 'http://127.0.0.1:8771') {
     await page.evaluate(() => { window.__mundoIdiomas = __banco.mundo; window.__tiempoIdiomas = __banco.mundo.t; });
     await page.click('#b-ajustes');
     await page.click('#ajustes [data-idioma-interfaz="es"]');
-    eq(await page.evaluate(() => cmg.ejecutando && cmg.codigo.readOnly && __banco.mundo === window.__mundoIdiomas && __banco.mundo.t >= window.__tiempoIdiomas), true, 'el cambio desde Ajustes conserva la ejecución del Worker');
+    eq(await page.evaluate(() => cmg.ejecutando && cmg.codigo.readOnly && __banco.mundo === window.__mundoIdiomas && __banco.mundo.t >= window.__tiempoIdiomas), true, 'el cambio desde Ajustes conserva la ejecución del programa');
     await page.click('#ajustes-cerrar');
     await page.click('#b-ejecutar');
     await page.waitForFunction(() => !cmg.ejecutando);

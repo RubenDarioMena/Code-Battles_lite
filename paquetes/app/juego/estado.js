@@ -25,7 +25,7 @@ export function crearEstadoJuego(opciones = {}) {
     modoCampaign: campaign.modoEnSnap, preludioPython: CMGPythonJS.preludio };
 
   /* Code Battle Lite · juego de programación y defensa.
-   * Simulación determinista, runtime del jugador en Web Workers, vista 3D/plano, inspector y editor.
+   * Simulación determinista, runtime del jugador en el intérprete, vista 3D/plano, inspector y editor.
    * Inspector en tres estados con signos vitales, pulsación larga en el campo y paleta de iconos.
    * El reparto de pantalla, el teclado del teléfono y los tooltips viven en layout.js. */
   const localizarHTML = html => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(html) : html;
@@ -38,11 +38,10 @@ export function crearEstadoJuego(opciones = {}) {
   const ti18n = (clave, valores) => servicios.CMGI18n ? servicios.CMGI18n.t(clave, valores) : clave;
   const htmlInterfaz = html => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(html) : html;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
-  // líneas (paquetes/lenguaje) y corre en el mismo Worker.
+  // líneas (paquetes/lenguaje) y corre en la misma unidad.
   const PYTHON = !!CMGAdaptadorPython && !!CMGPythonJS;
   let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
-  const VIGIA_MS = 2500;           // bucle sin await
   const T_LIMITE = 400;            // tiempo de juego máximo de un intento
   const CLAVE = "cmg-banco03";
   const { TIPOS, SENSOR, LAU, MISIL, REP, COSTE } = datosWar;
@@ -166,7 +165,7 @@ export function crearEstadoJuego(opciones = {}) {
   const etiquetaLenguaje = l => l && l !== "js" ? ` <span class="etq-lenguaje">${l === "python" ? "Python" : "JS + Python"}</span>` : "";
   let telemetria = guardado.leer(`${PREFIJO}telemetria`, []);
   let partida = null, anfitrion = null, conductor = null, enVuelo = null, finActual = null;
-  let eventos = [], desdeRegistro = 0, unidadVigia = null;
+  let eventos = [], desdeRegistro = 0;
   const registrosPendientes = new Map();
   let consolasCampaign = { log: 0, info: 0, warn: 0, error: 0 };
   // Campaign: estado con el que se monta el mundo (el guardado en vivo o un checkpoint) e hito recién cumplido.
@@ -240,7 +239,6 @@ export function crearEstadoJuego(opciones = {}) {
     get COLS() { return COLS; }, set COLS(v) { COLS = v; },
     get ROWS() { return ROWS; }, set ROWS(v) { ROWS = v; },
     get LINEA_BASE() { return LINEA_BASE; },
-    get VIGIA_MS() { return VIGIA_MS; },
     get T_LIMITE() { return T_LIMITE; },
     get CLAVE() { return CLAVE; },
     get TIPOS() { return TIPOS; },
@@ -313,7 +311,6 @@ export function crearEstadoJuego(opciones = {}) {
     get finActual() { return finActual; }, set finActual(v) { finActual = v; },
     get eventos() { return eventos; }, set eventos(v) { eventos = v; },
     get desdeRegistro() { return desdeRegistro; }, set desdeRegistro(v) { desdeRegistro = v; },
-    get unidadVigia() { return unidadVigia; }, set unidadVigia(v) { unidadVigia = v; },
     get registrosPendientes() { return registrosPendientes; },
     get consolasCampaign() { return consolasCampaign; }, set consolasCampaign(v) { consolasCampaign = v; },
     get estadoCampaign() { return estadoCampaign; }, set estadoCampaign(v) { estadoCampaign = v; },
@@ -358,9 +355,6 @@ export function crearEstadoJuego(opciones = {}) {
     get paletaRota() { return paletaRota; }, set paletaRota(v) { paletaRota = v; },
     get confirmarBorrado() { return confirmarBorrado; }, set confirmarBorrado(v) { confirmarBorrado = v; },
     get performance() { return performance; },
-    get URL() { return URL; },
-    get Blob() { return Blob; },
-    get Worker() { return Worker; },
     get servicios() { return servicios; },
     get CMGI18n() { return servicios.CMGI18n; },
     get CMGPaleta() { return CMGPaleta; },

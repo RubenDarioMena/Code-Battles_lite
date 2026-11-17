@@ -30,6 +30,7 @@ const logica = [
   'paquetes/reglas-factory/pruebas/reglas-factory.mjs',
   'paquetes/reglas-campaign/pruebas/reglas-campaign.mjs',
   'paquetes/anfitrion/pruebas/anfitrion.mjs',
+  'paquetes/anfitrion/pruebas/unidad.mjs', 'pruebas/partida-interprete.mjs',
   'paquetes/lenguaje/pruebas/lenguaje.mjs',
   'paquetes/lenguaje/pruebas/carga.mjs',
   'paquetes/editor/pruebas/editor.mjs',

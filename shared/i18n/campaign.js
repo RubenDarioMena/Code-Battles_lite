@@ -163,7 +163,7 @@ window.CMGI18n?.registrar("es", {
   "campaign.aviso.nuevas": "Encendido: {unidades}.",
   "campaign.aviso.sin_programa": "{unidad} no arrancó: {motivo}",
   "campaign.aviso.resultado": "{orden} → {resultado}",
-  "campaign.vigia": "El programa de {unidad} giró 2,5 s sin llegar a un await, así que el tiempo de la planta no puede avanzar. Cada vuelta del bucle necesita un await: una orden o await wait(0.5).",
+  "campaign.presupuesto": "El programa de {unidad} dio demasiadas vueltas sin llegar a un await, así que el tiempo de la planta no puede avanzar. Cada vuelta del bucle necesita un await: una orden o await wait(0.5).",
   "campaign.ordenes_sin_esperar": "El programa de {unidad} dio {n} órdenes y lecturas sin esperar. ¿Falta await wait(...) dentro del bucle?",
 
   "campaign.ayuda.planta.t": "La planta en vivo",
@@ -358,7 +358,7 @@ window.CMGI18n?.registrar("en", {
   "campaign.aviso.nuevas": "Switched on: {unidades}.",
   "campaign.aviso.sin_programa": "{unidad} did not start: {motivo}",
   "campaign.aviso.resultado": "{orden} → {resultado}",
-  "campaign.vigia": "{unidad}'s program spun for 2.5 s without reaching an await, so plant time cannot move forward. Every pass of the loop needs an await: an order or await wait(0.5).",
+  "campaign.presupuesto": "{unidad}'s program ran too many iterations without reaching an await, so plant time cannot move forward. Every pass of the loop needs an await: an order or await wait(0.5).",
   "campaign.ordenes_sin_esperar": "{unidad}'s program gave {n} orders and readings without waiting. Is an await wait(...) missing inside the loop?",
 
   "campaign.ayuda.planta.t": "The live plant",

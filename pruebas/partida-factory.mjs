@@ -1,21 +1,17 @@
-// Lógica únicamente: los hashes de VM necesitan aún el contraste con Workers reales.
+// Lógica con el intérprete real; el contraste de navegador se ejecuta aparte.
 import assert from 'node:assert/strict';
 import { ejecutarFactory } from '../herramientas/partida/anfitrion-factory.mjs';
 import { ejecutarWar } from '../herramientas/partida/anfitrion-war.mjs';
 import { canonico } from '../herramientas/partida/huella.mjs';
-import { casosFactory, opcionesFactory, exclusionFactory } from './partida-factory-casos.mjs';
+import { casosFactory, opcionesFactory } from './partida-factory-casos.mjs';
 
-const cuentas = { iguales: 0, deltas: 0, diferencias: 0, excluidos: 0 };
+const cuentas = { iguales: 0, deltas: 0, diferencias: 0, presupuesto: 0 };
 console.log('caso · resultado · comparación');
 for (const c of casosFactory()) {
   const opciones = opcionesFactory(c), r = await ejecutarFactory(opciones);
-  const exclusion = exclusionFactory(c);
-  if (exclusion) {
-    assert.equal(r.resultado.fin, 'bloqueado');
-    assert.equal(r.resultado.motivo, 'vm-timeout');
-    cuentas.excluidos++;
-    console.log(`${c.id} · bloqueado/vm-timeout · EXCLUIDO: ${exclusion}`);
-    continue;
+  if (c.id === 'bucle-sin-await') {
+    assert.equal(r.resultado.fin, 'error'); assert.equal(r.resultado.linea, 1);
+    cuentas.presupuesto++;
   }
   // Compara todos los campos usados por factory-comun, incluidos eventos y t exacto.
   const campos = Object.keys(c.esperado).filter(k => canonico(r.resultado[k]) !== canonico(c.esperado[k]));
@@ -40,6 +36,8 @@ const limitado = await ejecutarFactory({ reto: 1, intento: 1, maxPasos: 3 });
 assert.equal(limitado.metricas.pasos, 3); assert.equal(limitado.resultado.fin, 'límite');
 // La misma protección cubre bucles al arrancar y en una continuación de promesa.
 const bloqueado = await ejecutarWar({ reto: 1, semilla: 1, programas: { 'LAU-01': 'await esperar(0.1); while (true) {}' } });
-assert.equal(bloqueado.resultado.fin, 'bloqueado');
-console.log(`Factory: ${cuentas.iguales} iguales, ${cuentas.deltas} deltas aceptados, ${cuentas.diferencias} DIFERENCIAS, ${cuentas.excluidos} excluidos; 28 ejecutados.`);
+assert.equal(bloqueado.resultado.fin, 'error');
+assert.equal(bloqueado.resultado.linea, 1);
+assert.match(bloqueado.resultado.texto, /demasiadas vueltas/);
+console.log(`Factory: ${cuentas.iguales} iguales, ${cuentas.deltas} deltas aceptados, ${cuentas.diferencias} DIFERENCIAS, ${cuentas.presupuesto} por presupuesto; 28 ejecutados.`);
 assert.equal(cuentas.diferencias, 0, 'Diferencias NO aceptadas con el oráculo');

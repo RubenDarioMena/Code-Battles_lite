@@ -1,15 +1,15 @@
 # anfitrion
 
-Estado: fase 2, paso 8c (`crearAnfitrion` para War, Factory y Campaign,
-registro incremental y vigía).
+Estado: fase 5, paso 3. War, Factory y Campaign ejecutan sus programas con
+unidades del intérprete, en el hilo principal y sin Workers.
 
 Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
-Hoy, un Web Worker por unidad programable; en la fase 5, un intérprete con
-presupuesto de instrucciones. El resto de la aplicación no debe saber cuál.
+El juego y la herramienta sin pantalla usan el mismo intérprete y presupuesto
+por tarea. El resto de la aplicación conserva el canal de mensajes histórico.
 
 ## Puede importar
 
-`nucleo`, `protocolo`, `lenguaje`. Véanse las reglas de [paquetes](../README.md).
+`nucleo`, `protocolo`, `lenguaje`, `interprete`. Véanse las reglas de [paquetes](../README.md).
 No importa reglamentos: las funciones de validación que necesita el Worker se
 reciben como argumentos.
 
@@ -22,6 +22,26 @@ reciben como argumentos.
   `() => null` y, para el modo de Campaign, `() => 'ok'`. Las funciones deben ser
   **autocontenidas**: `validar` de Factory y Campaign y `modoEnSnap` de Campaign
   lo son, y sus suites las evalúan desde su texto en un contexto vacío.
+
+### Unidad determinista
+
+`crearTrabajadorInterprete({ acorn, presupuesto = 600000, mensajePresupuesto? })`
+devuelve `crearTrabajador(fuente, unidad, recibir, maxOrdenes = 4000)`:
+
+- Ejecuta el texto completo del arnés histórico con `crearInterprete`. Acorn se
+  inyecta: script clásico en el juego, distribución local en Node.
+- `postMessage` clona inmediatamente; `entregar()` ejecuta una tarea FIFO y vacía
+  los trabajos del intérprete y sus salidas síncronamente. Los temporizadores son
+  locales, virtuales y ordenados por vencimiento/id; no avanzan la simulación.
+- Cada tarea reinicia el presupuesto de **600 000 nodos**, incluyendo el código
+  de la API y las microtareas. Un límite menor altera `factory-limite-sensores`.
+  `CBL_PRESUPUESTO` se entrega como `{ type: 'error', mensaje, linea, code }`,
+  con la línea del intérprete. `mensajePresupuesto(unidad)` permite inyectar el
+  texto de catálogo; no usa el último pulso ni reloj real.
+- `terminate()` cancela colas/timers y llama a `liberar()`, idempotentemente;
+  `medir()` permite comprobar la liberación. No ejecuta continuaciones al cerrar.
+  Los límites de memoria/operaciones nativas son los del README de `interprete`.
+
 El juego lo compone con `crearConductor` en `paquetes/app/juego/ciclo-programas.js`, sin puente clásico.
 La herramienta usa `crearAnfitrion` y `jugarPartida` mediante
 `herramientas/partida/jugar.mjs`. Ambos reciben las mismas piezas del Worker.
@@ -32,10 +52,10 @@ parte de `crearAnfitrion`. No hay funciones públicas para el ciclo anterior.
 
 `crearAnfitrion({ reglas, crearTrabajador, contexto?, piezas?, maxOrdenes = 4000, ahora? })`:
 
-- `crearTrabajador(fuente, unidad, recibir)` devuelve un Worker (o su imitación
-  sin pantalla) con `postMessage` y `terminate`. Si además tiene `entregar()`
-  (imitación síncrona de `herramientas/partida/programa.mjs`), el anfitrión lo
-  bombea por unidades; si no, espera a sus mensajes.
+- `crearTrabajador(fuente, unidad, recibir)` devuelve una unidad con `postMessage`,
+  `terminate` y `entregar()` síncrono: el anfitrión la bombea por unidades.
+  Conserva compatibilidad con adaptadores asíncronos sin `entregar`, a los que
+  espera por mensajes; la VM sigue disponible para comparación sin pantalla.
 - `contexto` completa el mensaje `run`: `nombres` (unidades nombrables),
   `tipos`, `sensores` y `conf`; por defecto, de `reglas.api` (War añade
   `api.conf` en este paso).
@@ -56,7 +76,9 @@ parte de `crearAnfitrion`. No hay funciones públicas para el ciclo anterior.
   (`error` u `onerror`) para la cesión y se devuelve en `error`. Una imitación
   sin nada que entregar devuelve `error.motivo = 'sin-cesion'`.
 - `algunoCorre()`, `estado(unidad)`, `proximaEspera()` y `detener()`.
-- `vigilar(ahora, ms, mensaje)` examina los programas en estado `corre`. Si
+- `vigilar(ahora, ms, mensaje)` queda como API opcional para adaptadores
+  asíncronos y conserva sus pruebas. **El juego no lo llama** y ya no hay
+  `VIGIA_MS`: sus diagnósticos ES/EN proceden del presupuesto. Examina los programas en estado `corre`. Si
   alguno lleva `ms` o más desde `p.desde` (marcado con el reloj `ahora` inyectado
   al crear el anfitrión), falla con `mensaje(unidad)`, despierta el turno pendiente
   como `onerror` y devuelve esa unidad. En otro caso devuelve `null`. No consulta
@@ -94,7 +116,7 @@ cero con cada encargo. War conserva su tratamiento anterior de MAX_ORDENES.
   El registro se hace al ceder, en el mismo orden fijo que las órdenes; los
   resultados usan el tiempo de su instantánea de respuesta.
 - `detener(respuestas = [])` acepta las respuestas terminales: las registra y
-  entrega antes de cerrar los Workers, sin ejecutar continuaciones tras el fin.
+  entrega antes de cerrar las unidades, sin ejecutar continuaciones tras el fin.
   Evita perder el último encargo cuando su entrega cumple las metas.
 
 Campaign conserva varias esperas y encargos por programa (`p.pend`) y usa
@@ -117,10 +139,9 @@ por unidad como en la medición temporal por llegada. Se conserva el orden por
 unidad. La aplicación entrega primero las respuestas de encargos y cede sus
 continuaciones; después despierta las esperas por tiempo, como el ciclo antiguo.
 
-Límites:
-Si dos unidades fallan en el mismo instante con Workers reales, gana la primera
-en llegar. El juego y las herramientas usan `crearAnfitrion`; la VM no reproduce
-la planificación de CPU ni el vigía de reloj real de los Workers.
+Si varias unidades fallan en el mismo turno, gana la primera por orden de carga.
+La VM opcional conserva su timeout de diagnóstico y no reproduce el presupuesto
+de nodos del intérprete. No es el motor predeterminado de ninguna serie.
 
 ## De dónde sale
 
@@ -133,7 +154,11 @@ programas» de `Prototypes/Rocket Launcher/js/juego.js` (migrada en el paso 8b).
 node paquetes/anfitrion/pruebas/anfitrion.mjs
 ```
 
-Registrada en `pruebas/todas.mjs`. Ejecuta el texto del Worker en `node:vm`
+`pruebas/unidad.mjs` comprueba clonación nativa/propia, aislamiento, FIFO, timers,
+trabajos, presupuesto por tarea, línea y liberación. `pruebas/partida-interprete.mjs`
+compara las 41 partidas con VM/intérprete, incluidos mensajes, y prueba los bucles
+deterministas y el cierre/reinicio/creación de mundo de las tres series. Ambas
+están registradas en `pruebas/todas.mjs`. La suite histórica también está registrada; ejecuta el texto del Worker en `node:vm`
 (lectura, orden, espera, despertar, consola, fin, errores con línea, validación
 inyectada de Factory), comprueba el auxiliar interno `despertarCampaign` con programas
 falsos y `crearAnfitrion` con Workers asíncronos falsos cuyos mensajes llegan en

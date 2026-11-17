@@ -1,5 +1,5 @@
 // Ejecuta el ciclo importado de app con ctx falso, sin DOM ni Chromium.
-// Los Workers se emulan con el texto real: esto complementa, no sustituye, el contraste de navegador.
+// Las unidades usan el intérprete real: esto complementa, no sustituye, el contraste de navegador.
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { crearPartida, DT } from '../paquetes/nucleo/index.js';
@@ -11,7 +11,7 @@ import campaign, { nivel, quieto, validar as validarCampaign, modoEnSnap } from 
 import { cargar } from '../herramientas/partida/cargar.mjs';
 import { crearInstrumentador } from '../herramientas/partida/instrumentar.mjs';
 import { extraerFuncion } from './extraer-juego.mjs';
-import { crearPrograma } from '../herramientas/partida/programa.mjs';
+import { traducir } from '../herramientas/partida/diagnosticos.mjs';
 import { crearHuella } from '../herramientas/partida/huella.mjs';
 import * as lenguaje from '../paquetes/lenguaje/index.js';
 import { resultadoWar } from '../herramientas/partida/anfitrion-war.mjs';
@@ -29,27 +29,21 @@ export function adaptar(caso, presentacion = {}) {
     : caso.reto === 7 ? retosFactory.normalizar(caso.escenario) : retosFactory.RETOS[caso.reto - 1];
   const muestra = crearPartida({ reglas, escenario: { reto: def }, semilla: 1 });
   const huella = crearHuella(), pantallas = [], hitos = [], finales = [];
-  Object.assign(C, { __instalarCicloProgramas: instalarCicloProgramas, __lenguaje: lenguaje, APP: { crearPartida, crearAnfitrion, crearConductor, quietoCampaign: quieto,
+  Object.assign(C, { __instalarCicloProgramas: instalarCicloProgramas, __lenguaje: lenguaje, APP: { crearPartida, crearAnfitrion: presentacion.crearAnfitrion ?? crearAnfitrion, crearConductor, quietoCampaign: quieto,
     piezasTrabajador: { validarFactory: validarFactory, validarCampaign: validarCampaign,
       modoCampaign: modoEnSnap, preludioPython: C.CMGPythonJS.preludio } },
-    __presentacion: presentacion,
+    __presentacion: presentacion, __traducir: traducir,
     __instrumento: crearInstrumentador(C, muestra.mundo, serie), __def: def, __caso: caso,
     performance: { now: () => 0 }, __huella: huella, __pantallas: pantallas, __hitos: hitos, __finales: finales,
     __resultadoWar: resultadoWar, __resultadoFactory: resultadoFactory, __resultadoCampaign: resultadoCampaign,
-    URL: { createObjectURL: b => b.fuente }, Blob: class { constructor(partes) { this.fuente = partes.join(''); } },
-    Worker: class {
-      constructor(fuente) {
-        const w = { onmessage: null, onerror: null };
-        return Object.assign(w, crearPrograma(fuente, 'juego', m => w.onmessage?.({ data: m }), 4000));
-      }
-    },
+
   });
   const extraidas = funciones.map(n => extraerFuncion(texto, n, C.acorn).texto).join('\n');
   const crearMundo = extraerFuncion(infoReto, 'nuevoMundo', C.acorn).texto;
   return vm.runInContext(`(() => {
     const SERIE = __caso.reglas, ES_FACTORY = SERIE === 'factory', ES_CAMPAIGN = SERIE === 'campaign';
     const reglas = { war: __reglasWar, factory: __reglasFactory, campaign: __reglasCampaign }[SERIE];
-    const { TIPOS, SENSOR, LAU } = WAR, DT = APP.DT || .05, VIGIA_MS = 2500;
+    const { TIPOS, SENSOR, LAU } = WAR, DT = APP.DT || .05;
     const NIVELES = ['log', 'info', 'warn', 'error'], PYTHON = true;
     const { instrumentar, opcionesPython, mensajePython } = __instrumento;
     const { crearPartida, crearAnfitrion, crearConductor, piezasTrabajador } = APP;
@@ -57,19 +51,19 @@ export function adaptar(caso, presentacion = {}) {
     const lenguaje = __lenguaje;
     let def = __def, programas = {}, fuentes = {}, mundo = null, partida = null, anfitrion = null, conductor = null;
     let ejec = null, enVuelo = null, finActual = null, pausa = false, hitoDetiene = false, estadoCampaign = null, hitoPendiente = null;
-    let eventos = [], desdeRegistro = 0, unidadVigia = null, acum = 0, lineaCorre = {}, lineaErr = null;
+    let eventos = [], desdeRegistro = 0, acum = 0, lineaCorre = {}, lineaErr = null;
     let eventosSucios = false, marcasSucias = false, progSel = def.robots?.[0]?.id || def.lanzadores?.[0]?.id;
     let intento = (__caso.intento ?? __caso.semilla ?? 1) - 1, semilla = __caso.semilla ?? 1, semillaFija = true;
     let consolasCampaign = { log: 0, info: 0, warn: 0, error: 0 }, resultado = null, tVivo = 0;
     let COLS, ROWS, seleccion = null, seleccionadas = new Set();
-    const registrosPendientes = new Map(), urlsTrabajador = new Map(), etiquetas = new Map(), globos = new Map();
+    const registrosPendientes = new Map(), etiquetas = new Map(), globos = new Map();
     const historia = new Map(), V3 = null, edicion = { mixto: false }, $codigo = { value: '' };
     const programablesDe = () => ES_CAMPAIGN ? mundo.programables : def.robots || def.lanzadores;
     const nombradas = () => ES_CAMPAIGN ? mundo.unidades : ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores];
     const lenguajeDe = id => fuentes[id]?.enUso ? 'python' : 'js';
     const textoDe = id => lenguajeDe(id) === 'python' ? fuentes[id].texto : programas[id];
     const unidadPorId = id => mundo.porId[id], esc = String, htmlInterfaz = String, escapeMsg = String;
-    const ti18n = clave => clave, $ = () => ({ value: '', hidden: true });
+    const ti18n = __traducir, $ = () => ({ value: '', hidden: true });
     const consola = (...args) => __pantallas.push(args), mostrarConsola = consola, globo = consola, avisoSistema = consola, entregaCampaign = consola;
     const pintarControles = () => {}, pintarProgs = () => {}, pintarEdicion = () => {}, invalidarEscena = () => {};
     const pintarMaquinas = () => {}, pintarInspector = () => {}, pintarPieIns = () => {}, configurarEdicion = () => {};
@@ -96,7 +90,6 @@ export function adaptar(caso, presentacion = {}) {
       get SENSOR() { return SENSOR; },
       get LAU() { return LAU; },
       get DT() { return DT; },
-      get VIGIA_MS() { return VIGIA_MS; },
       get NIVELES() { return NIVELES; },
       get PYTHON() { return PYTHON; },
       get def() { return def; }, set def(v) { def = v; },
@@ -119,7 +112,6 @@ export function adaptar(caso, presentacion = {}) {
       get hitoDetiene() { return hitoDetiene; }, set hitoDetiene(v) { hitoDetiene = v; },
       get eventos() { return eventos; }, set eventos(v) { eventos = v; },
       get desdeRegistro() { return desdeRegistro; }, set desdeRegistro(v) { desdeRegistro = v; },
-      get unidadVigia() { return unidadVigia; }, set unidadVigia(v) { unidadVigia = v; },
       get acum() { return acum; }, set acum(v) { acum = v; },
       get lineaCorre() { return lineaCorre; }, set lineaCorre(v) { lineaCorre = v; },
       get lineaErr() { return lineaErr; }, set lineaErr(v) { lineaErr = v; },
@@ -180,9 +172,10 @@ export function adaptar(caso, presentacion = {}) {
       get terminar() { return terminar; },
       get revisar() { return revisar; },
       get arrancarPrograma() { return arrancarPrograma; },
+      get cerrarProgramas() { return cerrarProgramas; },
       get nuevoMundo() { return nuevoMundo; },
       get __banco() { return window.__banco; },
-      performance, URL, Blob, Worker, acorn: window.acorn,
+      acorn: window.acorn,
     };
     const { ejecutar, revisar, arrancarPrograma, registroActual, avanzar, cerrarProgramas } = __instalarCicloProgramas(ctx);
     ${crearMundo}
@@ -203,6 +196,7 @@ export function adaptar(caso, presentacion = {}) {
         while (enVuelo) await enVuelo.then(() => {}).then(() => {}).then(() => {});
         if (ES_CAMPAIGN) cicloCampaign(0);
       },
+      nuevoMundo: () => nuevoMundo(),
       terminarHuella: () => __huella.terminar(),
       detener: () => terminar('detenido', 'detenido', null), seguir: seguirCampaign,
       get resultado() { return resultado; }, get partida() { return partida; }, get ejecutando() { return !!ejec; },

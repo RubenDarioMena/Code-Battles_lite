@@ -1,8 +1,9 @@
 // Pruebas propias de app en Node: vista nula y bucle de partida con un reglamento mínimo y un anfitrión falso.
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { crearVistaNula, crearConductor, jugarPartida } from '../index.js';
 import { crearPartida } from '../../nucleo/index.js';
-import { crearAnfitrion } from '../../anfitrion/index.js';
+import { crearAnfitrion, crearTrabajadorInterprete } from '../../anfitrion/index.js';
 import factory, { retos } from '../../reglas-factory/index.js';
 
 let comprobaciones = 0;
@@ -120,7 +121,7 @@ igual([corta.pasos, corta.limite, corta.evaluacion], [3, true, null], 'límite d
   igual([cierres, partida.mundo.n], [1, 5], 'cerrar una sola vez y no aplicar órdenes posteriores');
 }
 
-// Worker asíncrono: se recupera el control sin pasos, se reanuda y no se duplican los turnos.
+// Adaptador asíncrono opcional (la producción usa unidades síncronas): se recupera el control sin pasos, se reanuda y no se duplican los turnos.
 const reglasAsync = { ...reglas, id: 'war', aplicarOrden(m, o) { m.n += o.args[0]?.x ?? 0; } };
 {
   let recibir, cerrado = false;
@@ -145,7 +146,7 @@ const reglasAsync = { ...reglas, id: 'war', aplicarOrden(m, o) { m.n += o.args[0
   c.cerrar(); igual(cerrado, true, 'cierra el Worker');
 }
 
-// El vigía libera el turno pendiente y el conductor informa el error sin avanzar.
+// API opcional conservada: el vigía libera el turno pendiente y el conductor informa el error sin avanzar.
 {
   const anfitrion = crearAnfitrion({ reglas: reglasAsync, ahora: () => 50,
     crearTrabajador: () => ({ postMessage() {}, terminate() {} }) });
@@ -230,6 +231,23 @@ const reglasAsync = { ...reglas, id: 'war', aplicarOrden(m, o) { m.n += o.args[0
   fallo = { unidad: 'R1', mensaje: 'Falta await', linea: 2 };
   igual(await c.avanzar(3), { pasos: 0, terminada: true }, 'no da pasos con un fallo anotado tras el turno');
   igual(c.error, fallo, 'el error del conductor es el del anfitrión');
+}
+
+// Producción: el intérprete completa el turno en el hilo principal, sin esperar eventos externos.
+for (const codigo of ['await esperar(0.05);', 'await esperar(0.05);\nwhile(true){}']) {
+  const unidades = [];
+  const crear = crearTrabajadorInterprete({ acorn: createRequire(import.meta.url)('../../../shared/vendor/acorn-8.11.3.js') });
+  const anfitrion = crearAnfitrion({ reglas: reglasAsync, crearTrabajador(...args) {
+    const unidad = crear(...args); unidades.push(unidad); return unidad;
+  } });
+  await anfitrion.cargar('A', codigo);
+  const partida = crearPartida({ reglas: reglasAsync, escenario: { inicio: 0 }, semilla: 1 });
+  const c = crearConductor({ reglas: reglasAsync, partida, anfitrion });
+  igual(await c.avanzar(1), { pasos: 1, terminada: codigo.includes('while') }, 'resuelve la continuación sin mensajes externos');
+  igual(c.turnoPendiente(), null, 'ningún turno espera eventos de Worker');
+  if (codigo.includes('while')) igual(c.error.linea, 2, 'presupuesto: línea del bucle tras despertar');
+  c.cerrar(); c.cerrar();
+  igual(unidades.every(u => u.medir().liberado && !u.entregar()), true, 'cerrar libera el intérprete');
 }
 
 console.log(`app: ${comprobaciones} comprobaciones`);

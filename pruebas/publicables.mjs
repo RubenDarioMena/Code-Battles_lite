@@ -29,6 +29,8 @@ try {
   const listaWeb = await inventario(web);
   for (const archivo of ['three.module.min.js', 'three.core.min.js', 'loaders/GLTFLoader.js', 'utils/BufferGeometryUtils.js'])
     assert(listaWeb.some(([n]) => n === 'shared/vendor/three-r180/' + archivo), archivo);
+  for (const archivo of ['index.js', 'sentencias-rapido.js', 'expresiones-rapido.js'])
+    assert(listaWeb.some(([n]) => n === 'paquetes/interprete/' + archivo), `intérprete publicado: ${archivo}`);
   assert(!listaWeb.some(([n]) => /shared\/vendor\/(?:three-r128\.min\.js|GLTFLoader-r128\.js|LICENSE-three)$/.test(n)));
   assert.deepEqual((await inventario(escritorio)).filter(([n]) => n !== 'package.json'
     && !n.startsWith('cascaras/escritorio/') && !n.startsWith('node_modules/steamworks.js/')), listaWeb);

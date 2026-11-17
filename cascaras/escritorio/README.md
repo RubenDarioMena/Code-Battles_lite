@@ -96,7 +96,8 @@ entregarlo, `/package.json` sigue dando 404. No se usa `file://`.
 al marco principal de la ventana y al origen fijo `cbl://app`. Navegación solo
 a ese origen, `window.open` denegado; los enlaces https abren el navegador del
 sistema con `shell.openExternal`. Recursos y conexiones solo `cbl:`, `blob:`
-y `data:`; los Workers blob siguen funcionando. La telemetría `/api/t` recibe
+y `data:`; GLTFLoader necesita `blob:` para las texturas integradas. El juego
+usa unidades del intérprete, sin Workers ni URLs blob de programas. La telemetría `/api/t` recibe
 404 local y no sale a Internet. No se adjuntan webviews ni se descargan archivos.
 
 ## Empaquetado y límites

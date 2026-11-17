@@ -91,7 +91,7 @@ usa `jugarPartida`, dividido para poder dosificarlo desde el juego:
   recibir cada turno y agota las respuestas inmediatas sin consumir pasos.
   Tras cada paso procesa primero las respuestas y sus continuaciones, después
   las esperas vencidas mediante `ceder`. Corta por error, evaluación o `detener`.
-  Si un Worker sigue corriendo devuelve el control y conserva su turno pendiente;
+  Si un adaptador asíncrono sigue corriendo devuelve el control y conserva su turno pendiente;
   la llamada siguiente lo recoge sin duplicar cesiones ni avanzar el reloj
   mientras corre. También `iniciar` puede dejar pendiente el primer turno.
   Las llamadas se hacen secuencialmente, con `await`.
@@ -112,14 +112,15 @@ usa `jugarPartida`, dividido para poder dosificarlo desde el juego:
 `jugarPartida` espera internamente los turnos pendientes sin sondeo, incluidos
 los del último paso permitido, y cierra el conductor al terminar o lanzar una
 excepción. Conserva su resultado y su límite total de pasos. La aplicación en
-vivo puede atender al vigía entre llamadas a `avanzar`.
+vivo usa unidades síncronas con presupuesto de nodos, sin vigía de reloj real.
 
 ## Pruebas
 
 - `node paquetes/app/pruebas/app.mjs`: vista nula y bucle con un reglamento
   mínimo y un anfitrión falso (orden de aplicación, error, límite), lotes del
   conductor, callbacks, continuaciones inmediatas, corte por tramo, Workers
-  asíncronos simulados y vigía. Comprueba que `jugarPartida` recoge el turno
+  asíncronos simulados y vigía opcional; también unidades reales con presupuesto
+  y liberación. Comprueba que `jugarPartida` recoge el turno
   asíncrono del último paso antes de cerrar por límite.
 - `node pruebas/fronteras-fase2.mjs` (en `pruebas/` porque usa el instrumentador
   y la imitación de Worker de `herramientas/partida/`): pruebas de frontera 1–3
@@ -144,9 +145,9 @@ README de `reglas-factory`).
 huellas y resultados de H0–H5, secuencia paso a paso y 12 repeticiones exactas.
 
 `node pruebas/juego-conductor.mjs` importa `instalarCicloProgramas` y lo ejecuta
-con un `ctx` falso sin DOM, con el texto real del Worker y un canal emulado. Compara las
+con un `ctx` falso sin DOM y unidades reales del intérprete. Compara las
 41 huellas, pasos y resultados con las referencias, los seis cortes Campaign
-y la reanudación con las unidades nuevas. No verifica Workers ni dibujo reales;
+y la reanudación con las unidades nuevas. No verifica interacción ni dibujo;
 eso lo comprueban las suites de navegador sobre `__banco`.
 
 Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de frontera
@@ -154,7 +155,7 @@ Estas suites están registradas en `pruebas/todas.mjs`. La cuarta prueba de fron
 
 ## Pendiente
 
-El juego usa el conductor con Workers reales. Falta adoptar el contrato completo
+El juego usa el conductor con unidades síncronas del intérprete (fase 5, paso 3). Falta adoptar el contrato completo
 de las vistas y retirar los globales de compatibilidad que aún tienen consumidores.
 
 
@@ -165,10 +166,11 @@ La entrada pública exporta `instalarCicloProgramas(ctx)`,
 `juego/`. Importarlos no accede al DOM ni arranca fotogramas o Workers.
 
 - El ciclo devuelve `ejecutar`, `arrancarPrograma`, `avanzar`, `cerrarProgramas`,
-  `registroActual`, `vigia` y los auxiliares de revisión/formato. Recibe las
+  `registroActual` y los auxiliares de revisión/formato. Recibe las
   fábricas de partida, anfitrión y conductor; el reglamento, el instrumentador,
   las fuentes Python y los callbacks de presentación por `ctx`. El entorno
-  de Workers (`Worker`, `URL`, `Blob`, `performance`) también se inyecta.
+  del intérprete recibe Acorn y mensajes de presupuesto ES/EN desde los catálogos.
+  No crea Workers ni URLs blob y no llama a `vigilar`.
 - El cierre devuelve `terminar` y `detener`. Conserva la telemetría, récords,
   banners y guardado de los intentos; Campaign delega en su composición actual.
   Separarlo del ciclo permite probar este con una presentación falsa.

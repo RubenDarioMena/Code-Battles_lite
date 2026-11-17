@@ -1,8 +1,12 @@
 # @cbl/interprete
 
-Fase 5, paso 2. Intérprete ESTree sobre Acorn inyectado; no tiene dependencias de
-otros paquetes ni imports externos. Todavía no se conecta al juego ni al anfitrión.
-El adaptador del Worker completo vive en `herramientas/espina-interprete/propio-paquete.mjs`.
+Fase 5, pasos 2–3. Intérprete ESTree sobre Acorn inyectado; no tiene dependencias
+de otros paquetes ni imports externos. Su consumidor real es
+`anfitrion.crearTrabajadorInterprete`: ejecuta el arnés completo en War, Factory y
+Campaign, tanto en el juego como sin pantalla, sin Workers. El prototipo de
+medición/depuración sigue en `herramientas/espina-interprete/propio-paquete.mjs`.
+El anfitrión fija 600 000 nodos por tarea entregada, drena la cola propia y libera
+el motor al cerrar o agotar presupuesto; el presupuesto incluye todavía la API.
 
 ## Contrato
 

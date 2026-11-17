@@ -45,8 +45,8 @@ Cada módulo es una carpeta de `paquetes/` con su `README.md` (contrato), su ent
 | `nucleo` | Reloj de paso fijo, RNG con semilla, almacén de entidades, cola de órdenes, registro de sucesos, guardar y restaurar | `protocolo` |
 | `reglas-war`, `reglas-factory`, `reglas-campaign` | Un reglamento por serie: mundo, paso, órdenes, metas y lo que ven los programas | `nucleo`, `protocolo` |
 | `lenguaje` | Léxico, estructura tolerante, traductor de Python, seudocódigo, instrumentación. Sin DOM | Nada |
-| `interprete` | ESTree de Acorn inyectado, presupuesto, cola propia y pausas; sin integración hasta fase 5/paso 3 | Nada |
-| `anfitrion` | Ejecuta los programas del jugador contra un reglamento. Hoy con Web Workers; después con un intérprete determinista | `nucleo`, `protocolo`, `lenguaje`, `interprete` |
+| `interprete` | ESTree de Acorn inyectado, presupuesto, cola propia y pausas; consumidor real: `anfitrion` (fase 5/paso 3) | Nada |
+| `anfitrion` | Ejecuta los programas del jugador contra un reglamento. Con unidades del intérprete y presupuesto por tarea, sin Workers (fase 5/paso 3) | `nucleo`, `protocolo`, `lenguaje`, `interprete` |
 | `editor` | Editor de código por botones. Se puede montar solo | `lenguaje` |
 | `vfx` | Recetas de efectos y su evaluación sin estado | `protocolo` |
 | `vista-2d`, `vista-3d` | Dibujan el mundo a partir de instantáneas y sucesos | `protocolo`, `vfx` |

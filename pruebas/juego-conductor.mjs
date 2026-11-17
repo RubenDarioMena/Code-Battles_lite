@@ -48,4 +48,4 @@ for (const caso of casosReferencia()) {
   assert.ok(partida.pasoActual > paso, 'Seguir entrega pendientes y permite nuevos pasos');
   juego.detener();
 }
-console.log(`Adaptador juego/conductor en VM: ${iguales}/41 huellas, pasos y resultados iguales; Campaign conserva partida, pausa y reanuda.`);
+console.log(`Adaptador juego/conductor con intérprete: ${iguales}/41 huellas, pasos y resultados iguales; Campaign conserva partida, pausa y reanuda.`);

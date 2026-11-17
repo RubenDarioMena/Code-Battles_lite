@@ -3,11 +3,12 @@ import { crearPartida, DT } from '../../paquetes/nucleo/index.js';
 import war, { retos } from '../../paquetes/reglas-war/index.js';
 import factory, { retos as retosFactory, instantaneaHistorica as fotoFactory } from '../../paquetes/reglas-factory/index.js';
 import { instantaneaHistorica as fotoCampaign } from '../../paquetes/reglas-campaign/index.js';
-import { crearAnfitrion } from '../../paquetes/anfitrion/index.js';
+import { crearTrabajadorInterprete, crearAnfitrion } from '../../paquetes/anfitrion/index.js';
 import { jugarPartida } from '../../paquetes/app/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
 import { crearPrograma as programaVM } from './programa.mjs';
+import { traducir } from './diagnosticos.mjs';
 import { crearHuella } from './huella.mjs';
 
 /** Conserva los undefined que entraron en las huellas de la fase 0. */
@@ -38,8 +39,11 @@ export function prepararEscenario({ reglas: serie, reto, semilla, intento = semi
 /** Un intento o tramo, sobre crearAnfitrion + jugarPartida. Devuelve también la partida para repetición.
  * @param {any} opciones */
 export async function jugar({ reglas, escenario, semilla = 1, partida: existente, programas, maxPasos = 10000,
-  vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar(), crearPrograma = programaVM }) {
+  vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar(), crearPrograma, motor = 'interprete' }) {
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
+  if (!['vm', 'interprete'].includes(motor)) throw new Error('--motor debe ser vm|interprete.');
+  crearPrograma ??= motor === 'vm' ? programaVM : crearTrabajadorInterprete({ acorn: sesion.contexto.acorn,
+    mensajePresupuesto: unidad => traducir(reglas.id === 'campaign' ? 'campaign.presupuesto' : `partida.presupuesto.${reglas.id}`, { unidad }) });
   const partida = existente ?? crearPartida({ reglas, escenario, semilla });
   const mundo = partida.mundo, def = mundo.def;
   const { contexto: C, fuenteWorker } = sesion;

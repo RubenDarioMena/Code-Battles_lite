@@ -29,8 +29,8 @@ export function programasCampaign(lenguaje = 'js') {
 /** Secuencia de tramos sobre la misma partida; el corte precede a sus continuaciones.
  * @param {{lenguaje?: 'js'|'python', programas?: Record<string, import('./anfitrion-war.mjs').Fuente>[],
  * maxPasos?: number, alPaso?: (paso: number, instantanea: any) => void,
- * crearPrograma?: typeof import('./programa.mjs').crearPrograma}} [opciones] */
-export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000, alPaso, crearPrograma } = {}) {
+ * motor?: 'vm'|'interprete', crearPrograma?: typeof import('./programa.mjs').crearPrograma}} [opciones] */
+export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000, alPaso, crearPrograma, motor = 'interprete' } = {}) {
   if (!['js', 'python'].includes(lenguaje)) throw new Error('--lenguaje debe ser js|python.');
   const inicio = performance.now(), fuentes = programas ?? programasCampaign(lenguaje);
   if (!Array.isArray(fuentes) || !fuentes.length || fuentes.some(p => !p || typeof p !== 'object' || Array.isArray(p)))
@@ -43,7 +43,7 @@ export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 
     const programas = Object.fromEntries(Object.entries(tramoFuentes).map(([id, fuente]) =>
       [id, typeof fuente === 'string' ? { lenguaje, codigo: fuente } : fuente]));
     const desde = mundo.hito;
-    const r = await jugar({ reglas, partida, escenario, programas, maxPasos, sesion, crearPrograma,
+    const r = await jugar({ reglas, partida, escenario, programas, maxPasos, sesion, crearPrograma, motor,
       detener: (p, anfitrion) => p.mundo.hito !== desde || p.mundo.completado ||
         (mundo.programables.every(u => anfitrion.estado(u.id) === 'fin') && quieto(mundo)),
       alPaso: (_n, snap) => { total.paso(snap); alPaso?.(++pasos, snap); } });

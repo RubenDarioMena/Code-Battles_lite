@@ -53,3 +53,16 @@ export interface Anfitrion {
   detener(respuestas?: import('../nucleo/index.js').Respuesta[]): void;
 }
 export function crearAnfitrion(opciones: OpcionesAnfitrion): Anfitrion;
+
+export interface OpcionesTrabajadorInterprete {
+  acorn: import('../interprete/index.js').Analizador;
+  /** Nodos por tarea entregada, incluida su cola de trabajos. Por defecto 600000. */
+  presupuesto?: number;
+  mensajePresupuesto?: (unidad: string) => string;
+}
+export interface TrabajadorInterprete extends Trabajador {
+  entregar(): boolean;
+  medir(): import('../interprete/index.js').Medida;
+}
+export function crearTrabajadorInterprete(opciones: OpcionesTrabajadorInterprete):
+  (fuente: string, unidad: string, recibir: (mensaje: any) => void, maxOrdenes?: number) => TrabajadorInterprete;

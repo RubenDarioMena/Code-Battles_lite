@@ -25,9 +25,10 @@ async function ejecutar() {
       ['idiomas-escenario-war', 'probarIdiomasEscenarioWar'],
       ['idiomas-retos', 'probarIdiomasRetos'],
       ['idiomas-pendientes', 'probarIdiomasPendientes'],
+      ['programas-presupuesto', 'probarProgramasPresupuesto'],
     ]) {
       const contexto = await browser.newContext({ viewport: { width: 1366, height: 900 } });
-      // La suite comprueba idioma/edición; el watchdog conocido de 3D se valida por separado.
+      // La suite comprueba idioma/edición; limita el coste de dibujo usando Plano.
       await contexto.addInitScript(() => {
         localStorage.setItem('cmg-banco03:vista', JSON.stringify('2d'));
         localStorage.setItem('cmg-banco03:factory-vista', JSON.stringify('2d'));

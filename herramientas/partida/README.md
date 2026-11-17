@@ -1,8 +1,8 @@
 # Partidas sin pantalla
 
-Fase 2, paso 8c. War, Factory y Campaign usan `crearPartida`, `crearAnfitrion`
+Fase 5, paso 3. War, Factory y Campaign usan `crearPartida`, `crearAnfitrion`
 y `jugarPartida`, el mismo conductor que el juego. Node ejecuta el texto real
-del Worker en una VM por unidad, sin DOM ni Chromium. No hay dependencias nuevas.
+del arnés histórico en una unidad del intérprete, sin DOM ni Chromium. No hay dependencias nuevas.
 
 ## Uso
 
@@ -12,7 +12,7 @@ node herramientas/partida.mjs --reglas factory --reto 1 --intento 1
 node herramientas/partida.mjs --reglas campaign --lenguaje python
 ```
 
-Opciones: `--json`, `--programas archivo.json`, `--max-pasos N`. War admite
+Opciones: `--json`, `--programas archivo.json`, `--max-pasos N`, `--motor interprete|vm`. War admite
 retos 1–5 y una semilla entera segura. Factory admite retos 1–6 y el reto 7
 propio (`--escenario archivo.json`); su intento es positivo y equivale a la
 semilla. Si se dan ambos, deben coincidir. Campaign usa un nivel continuo,
@@ -36,7 +36,7 @@ asíncronas: sus consumidores deben usar `await`. Las tres primeras devuelven:
   `resultadoFactory`, `resultadoCampaign`). Se compone el mundo con
   `anfitrion.registro()`; los programas no escriben registros en el mundo.
 - `metricas`: `pasos`, `t`, `mensajes` por tipo y `ms` de reloj real.
-  `alTurno` cuenta los mensajes entregados por la VM, incluidos los que el
+  `alTurno` cuenta los mensajes entregados por la unidad, incluidos los que el
   anfitrión rechaza al detectar un fallo; descarta los posteriores al fallo.
 - `hash`: SHA-256 incremental de `paso + ":" + canonico(snap) + "\n"`.
 - `instantanea`: última foto incluida en la huella, clonada; null sin pasos.
@@ -70,7 +70,7 @@ posterior a completar H5 queda fuera de la secuencia de referencia.
 - `cargar.mjs`: scripts reales seleccionados de `index.html`, contexto sin DOM
   y texto del Worker de `fuenteTrabajador`, con validadores y preludio Python.
 - `instrumentar.mjs`: extrae las funciones puras actuales de `juego.js` con Acorn.
-- `programa.mjs`: canal Worker clonado, microtareas y timers virtuales por VM.
+- `programa.mjs`: alternativa VM para comparación, con canal clonado y timers virtuales.
   La composición vacía las tareas locales del turno antes de otra foto del mundo,
   conservando también los mensajes `cede` programados con `setTimeout(0)`.
 - `huella.mjs`, `casos.mjs`, `referencias.mjs`: serialización, selección de los
@@ -78,8 +78,9 @@ posterior a completar H5 queda fuera de la secuencia de referencia.
 
 ## Límites y comprobación
 
-El vigía real de 2,5 s del juego no se emula. Cada evaluación de VM y sus
-microtareas tienen un timeout de 1000 ms. `jugar.mjs` captura ese fallo después
+El juego y el modo predeterminado sin pantalla usan presupuesto por tarea, sin
+vigía de reloj real. Con `--motor vm`, cada evaluación y sus microtareas tienen
+un timeout de 1000 ms. `jugar.mjs` captura ese fallo después
 de cerrar el conductor y conserva `bloqueado/vm-timeout`, su texto y la huella
 hasta el último paso. Si no hay tarea virtual ni espera del juego,
 `crearAnfitrion` devuelve `sin-cesion` y la composición lo presenta como
@@ -88,7 +89,8 @@ hasta el último paso. Si no hay tarea virtual ni espera del juego,
 
 MAX_ORDENES=4000 y los 500 sensores de Factory conservan diagnósticos y efectos.
 El oráculo ejecuta 28 casos: solo `bucle-sin-await` se excluye de las referencias
-por depender del vigía de reloj real. Su salida bloqueada sí se comprueba.
+por haber dependido del vigía histórico. Hoy se comprueba su resultado completo
+de error del programa por presupuesto, línea 1 y dos ejecuciones idénticas.
 `bucle-con-metas` sigue incluido: termina antes de alcanzar el bucle.
 
 ```sh
@@ -101,8 +103,18 @@ npm run test:navegador
 
 Las 41 referencias persistentes se documentan en
 [pruebas/referencias/README.md](../../pruebas/referencias/README.md).
-Las comprobaciones Node/VM no sustituyen los Workers reales ni las capturas.
+Las comprobaciones Node no sustituyen la interacción ni las capturas en el navegador.
 El comparador de Campaign conserva la tolerancia histórica al intercalado de
 unidades dentro del mismo tiempo, con FIFO y todos los campos por unidad;
 `partida-campaign-intercalado.json` conserva su evidencia. La lógica de los
 resultados y las referencias se compara sin esa normalización.
+
+## Motor de los programas (fase 5, paso 3)
+
+Por defecto `jugar` usa `crearTrabajadorInterprete` con Acorn local y 600 000
+nodos por tarea, sin Workers ni reloj para los límites. Los diagnósticos usan
+los mismos catálogos ES que el juego y la línea del intérprete. La CLI acepta
+`--motor interprete|vm`; `crearPrograma` sigue siendo inyectable y prevalece
+sobre esa selección. La VM conserva su timeout como herramienta de comparación.
+`pruebas/partida-interprete.mjs` compara las 41 partidas entre ambos motores y
+comprueba bucles repetibles sin añadirlos al archivo de referencias.

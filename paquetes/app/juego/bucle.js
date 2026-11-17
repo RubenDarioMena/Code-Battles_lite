@@ -8,7 +8,7 @@ export function instalarBucleJuego(ctx) {
     ultimo = now;
     ctx.invalidarEscena();
     if (ctx.ES_CAMPAIGN) ctx.cicloCampaign(now);
-    if (ctx.ejec && !ctx.pausa) { ctx.vigia(now); if (!ctx.algunoCorre()) ctx.acum += real * ctx.velocidad * ctx.turbo; ctx.avanzar(); }
+    if (ctx.ejec && !ctx.pausa) { if (!ctx.algunoCorre()) ctx.acum += real * ctx.velocidad * ctx.turbo; ctx.avanzar(); }
     else if (!ctx.ejec) ctx.acum = 0;
     const off = ctx.ejec && !ctx.pausa && !ctx.algunoCorre() ? Math.min(ctx.acum, ctx.DT) : 0;
     ctx.vistaActual().dibujar(null, ctx.estadoVista.escena, off / ctx.DT, now);

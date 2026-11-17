@@ -1,5 +1,7 @@
 /* Catálogos ES/EN para textos dinámicos de la interfaz de Rocket Launcher. */
 window.CMGI18n.registrar('es', {
+  "partida.presupuesto.war": "El programa de {unidad} dio demasiadas vueltas sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.",
+  "partida.presupuesto.factory": "El programa de {unidad} dio demasiadas vueltas sin llegar a un await, así que el tiempo de la fábrica no puede avanzar. Cada vuelta del bucle necesita un await: una orden o await yo.esperar(0.5).",
   'partida.consola.vacia': 'Aquí aparecen los console.log / warn / error y lo que reportan las máquinas.',
   'partida.ejecutar.ejecutar': '▶ Ejecutar',
   'partida.ejecutar.detener': '■ Detener',
@@ -60,6 +62,8 @@ window.CMGI18n.registrar('es', {
 });
 
 window.CMGI18n.registrar('en', {
+  "partida.presupuesto.war": "{unidad}'s program ran too many iterations without reaching await esperar(...), so game time cannot move forward. Every pass of the loop needs a wait.",
+  "partida.presupuesto.factory": "{unidad}'s program ran too many iterations without reaching an await, so factory time cannot move forward. Every pass of the loop needs an await: an order or await yo.esperar(0.5).",
   'partida.consola.vacia': 'console.log / warn / error messages and machine reports appear here.',
   'partida.ejecutar.ejecutar': '▶ Run',
   'partida.ejecutar.detener': '■ Stop',

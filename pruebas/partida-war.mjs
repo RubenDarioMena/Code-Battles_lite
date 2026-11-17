@@ -1,9 +1,11 @@
-// Regresiones del anfitrión: no sustituyen al contraste con Workers reales.
+// Regresiones del anfitrión: intérprete real y VM opcional; contraste web aparte.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { ejecutarWar } from '../herramientas/partida/anfitrion-war.mjs';
 import { canonico, crearHuella, registro } from '../herramientas/partida/huella.mjs';
-import { crearPrograma } from '../herramientas/partida/programa.mjs';
+import { crearPrograma as programaVM } from '../herramientas/partida/programa.mjs';
+import { crearTrabajadorInterprete } from '../paquetes/anfitrion/index.js';
+import { traducir } from '../herramientas/partida/diagnosticos.mjs';
 import { cargar } from '../herramientas/partida/cargar.mjs';
 import { extraerFuncion, extraerConst } from './extraer-juego.mjs';
 
@@ -45,11 +47,13 @@ assert.deepEqual(sinCesion.resultado, { fin: 'bloqueado', motivo: 'sin-cesion', 
   texto: 'Programa sin espera del juego ni tarea virtual.', linea: null, idProg: null });
 assert.equal(sinCesion.metricas.pasos, 0);
 assert.equal(sinCesion.instantanea, null);
-for (const previa of ['', 'await esperar(0.1); ']) {
+for (const motor of ['interprete', 'vm']) for (const previa of ['', 'await esperar(0.1); ']) {
   const bloqueo = await ejecutarWar({ reto: 1, semilla: 7,
-    programas: { 'LAU-01': previa + 'while (true) {}' } });
-  assert.deepEqual(bloqueo.resultado, { fin: 'bloqueado', motivo: 'vm-timeout', t: previa ? .1 : 0,
-    texto: 'El programa no cedió dentro del límite de VM (1000 ms).', linea: null, idProg: null });
+    motor, programas: { 'LAU-01': previa + 'while (true) {}' } });
+  assert.deepEqual(bloqueo.resultado, motor === 'vm' ? { fin: 'bloqueado', motivo: 'vm-timeout', t: previa ? .1 : 0,
+    texto: 'El programa no cedió dentro del límite de VM (1000 ms).', linea: null, idProg: null } :
+    { fin: 'error', motivo: 'error', t: previa ? .1 : 0,
+      texto: traducir('partida.presupuesto.war', { unidad: 'LAU-01' }), linea: 1, idProg: 'LAU-01' });
   assert.equal(bloqueo.metricas.pasos, previa ? 2 : 0);
   if (previa) {
     const hastaEspera = await ejecutarWar({ reto: 1, semilla: 7, maxPasos: 2,
@@ -59,8 +63,9 @@ for (const previa of ['', 'await esperar(0.1); ']) {
   }
 }
 
-// Dos Workers con globales separados; envío y recepción clonan, incluso entre
+// Dos unidades con globales separados; envío y recepción clonan, incluso entre
 // la primera entrega y la continuación por temporizador virtual.
+for (const crearPrograma of [programaVM, crearTrabajadorInterprete({ acorn: cargar().contexto.acorn })]) {
 const salida = [];
 const fuente = `onmessage = async (ev) => {
   self.propio = ev.data.id; await Promise.resolve();
@@ -76,6 +81,7 @@ w1.entregar(); w2.entregar(); w1.entregar(); w2.entregar();
 assert.deepEqual(salida, [{ propio: 'a', dato: { n: 1 } }, { propio: 'b', dato: { n: 2 } }, { propio: 'a' }, { propio: 'b' }]);
 w1.terminate(); w2.terminate();
 assert.equal(w1.entregar(), false);
+}
 
 const C = cargar().contexto;
 assert.throws(() => extraerFuncion('function otra() {}', 'instrumentar', C.acorn), /no se encuentra/);

@@ -14,7 +14,7 @@ import { resultadoCampaign } from '../herramientas/partida/anfitrion-campaign.mj
 
 const origen = 'http://127.0.0.1:8771';
 
-/** Instala la observación antes del primer script del juego; conserva Workers y reloj reales.
+/** Instala la observación antes del primer script del juego; conserva el intérprete y el reloj de fotogramas del juego.
  * @param {import('playwright').Page} page */
 export async function instalarGancho(page) {
   // Una sola fuente de serialización y formato de registro en ambos entornos.

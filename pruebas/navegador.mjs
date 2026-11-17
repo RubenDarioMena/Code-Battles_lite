@@ -64,7 +64,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   eq(await evaluar(() => window.cmg.confirmarReplace), false, 'No preguntar otra vez persiste al recargar');
   await page.click('#b-ejecutar');
   await page.waitForFunction(() => window.__banco.mundo.t > .1 && document.querySelector('#consola').textContent.includes('programa aplicado'));
-  eq(await evaluar(() => window.cmg.codigo.readOnly), true, 'Web Workers ejecutan el programa aplicado y bloquean edición');
+  eq(await evaluar(() => window.cmg.codigo.readOnly), true, 'Las unidades del intérprete ejecutan el programa aplicado y bloquean edición');
   await page.click('#b-ejecutar');
   eq(await evaluar(() => window.cmg.codigo.readOnly), false, 'detener permite editar otra vez');
 
@@ -305,7 +305,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await page.waitForTimeout(50);
   eq(await camara(), { clave: 'girada', yaw: yaw1 }, 'cada cámara recuerda dónde se dejó durante la sesión');
   // Los gestos 3D ya están comprobados. Esta última prueba verifica los botones y el cambio de panel:
-  // en Chromium por software, dibujar el mapa 3D recién reconstruido puede agotar el watchdog del Worker
+  // en Chromium por software, dibujar el mapa 3D recién reconstruido puede retrasar los fotogramas
   // antes de que entregue su primer mensaje (también pasaba antes de estos arreglos).
   await page.click('[data-vista="2d"]');
   await page.click('#b-ver-codigo');

@@ -299,7 +299,7 @@ for (const id of ['factory', 'campaign']) {
   a.detener();
 }
 
-// Vigía: usa el reloj inyectado, incluye el umbral y despierta al turno pendiente.
+// API opcional conservada para adaptadores asíncronos; el juego ya no la llama. Usa el reloj inyectado, incluye el umbral y despierta al turno pendiente.
 {
   const f = falsos(), a = crearAnfitrion({ reglas: reglasWar, crearTrabajador: f.crear, ahora: () => 100 });
   await a.cargar('A', 'x'); await a.cargar('B', 'x');

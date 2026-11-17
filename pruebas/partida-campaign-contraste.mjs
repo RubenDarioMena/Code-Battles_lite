@@ -3,7 +3,7 @@ import { compararCampaign } from './partida-campaign-comparacion.mjs';
 import { diagnosticoPartida } from './partida-diagnostico.mjs';
 import { canonico, registro } from '../herramientas/partida/huella.mjs';
 
-/** Contrasta la secuencia Campaign con Workers reales; no ejecuta la salva posterior a H5.
+/** Contrasta la secuencia Campaign con intérprete real; no ejecuta la salva posterior a H5.
  * @param {import('playwright').Browser} browser @param {any} caso
  * @param {(page: import('playwright').Page) => Promise<void>} instalarGancho */
 export async function probarCampaign(browser, caso, instalarGancho) {

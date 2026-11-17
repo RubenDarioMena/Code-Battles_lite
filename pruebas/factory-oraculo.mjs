@@ -1,5 +1,7 @@
 // Oráculo de paridad: navegador y Web Worker originales, sin copiar la simulación.
 // Importar desde ego-browser nodejs; instrucciones en factory-oraculo.md. Requiere un checkout de b76411b: el original ya no está en el árbol.
+// Para el runtime actual (incluido presupuesto), usar probarFactoryComun; este generador conserva el vigía histórico.
+export { probarFactoryComun as probarOraculoActual } from './factory-comun.mjs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';

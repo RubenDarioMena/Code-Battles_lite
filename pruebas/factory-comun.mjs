@@ -1,12 +1,10 @@
 // Paridad contra el oráculo histórico, en la aplicación y runtime comunes.
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { casosFactory } from './partida-factory-casos.mjs';
 
 export async function probarFactoryComun(page, { origen = 'http://127.0.0.1:8771', todos = true } = {}) {
   assert.match(origen, /^http:\/\/(127\.0\.0\.1|localhost):8771$/);
-  const fixture = JSON.parse(await readFile(new URL('./factory-oraculo.json', import.meta.url), 'utf8'));
-  const deltas = JSON.parse(await readFile(new URL('./factory-deltas.json', import.meta.url), 'utf8'));
-  for (const c of fixture.casos) if (deltas.casos[c.id]) Object.assign(c.resultado, deltas.casos[c.id].cambios);
+  const fixture = { casos: casosFactory().map(c => ({ ...c, resultado: c.esperado })) };
   const casos = fixture.casos.filter(c => todos || c.reto === 0);
   await page.goto(origen);
   const respaldo = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([k]) => k.startsWith('cmg-banco03:'))));

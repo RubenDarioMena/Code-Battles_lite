@@ -1,8 +1,8 @@
 /* Lockstep por llamadas, compartido por la aplicación en vivo y jugarPartida. */
 import { crearVistaNula } from './vista-nula.js';
 
-// Solo jugarPartida espera al Worker: la aplicación en vivo recupera el control
-// para dibujar y atender al vigía, y vuelve a llamar a avanzar en otro fotograma.
+// La unidad del intérprete entrega síncronamente. También se admiten adaptadores
+// asíncronos: la aplicación recupera el control y jugarPartida espera su turno.
 const esperas = new WeakMap();
 export function esperarConductor(conductor) { return esperas.get(conductor)?.(); }
 

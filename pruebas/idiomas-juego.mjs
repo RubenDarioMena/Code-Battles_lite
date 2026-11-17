@@ -68,7 +68,7 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
   );
 
   try {
-    // La prueba usa el plano para que el watchdog de Worker no dependa de 3D por software.
+    // La prueba usa el plano para acotar el coste de dibujo en Chromium por software.
     await page.evaluate(() => {
       localStorage.setItem('cmg-banco03:vista', JSON.stringify('2d'));
       localStorage.setItem('cmg-banco03:factory-vista', JSON.stringify('2d'));
@@ -133,7 +133,7 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
       await page.waitForFunction(() => !!window.CMGI18n);
     }
 
-    // Estados dinámicos del Worker: cambiar idioma no detiene, reanuda ni reemplaza la partida.
+    // Estados dinámicos del programa: cambiar idioma no detiene, reanuda ni reemplaza la partida.
     await abrirJuego('war');
     await page.click('[data-vista="2d"]');
     await page.evaluate(() => {
@@ -156,13 +156,13 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
       cmg.ejecutando, cmg.codigo.readOnly, document.querySelector('#b-pausa').disabled,
       __banco.mundo === window.__idiomasJuegoMundo,
     ]);
-    eq(activoEs, ['■ Detener', 'Pausa', true, true, false, true], 'Worker activo en español mantiene ejecución, control y mundo');
+    eq(activoEs, ['■ Detener', 'Pausa', true, true, false, true], 'Programa activo en español mantiene ejecución, control y mundo');
     await cambiarDesdeAjustes('en');
     eq(await page.evaluate(() => [
       document.querySelector('#b-ejecutar').textContent, document.querySelector('#b-pausa').textContent,
       cmg.ejecutando, cmg.codigo.readOnly, document.querySelector('#b-pausa').disabled,
       __banco.mundo === window.__idiomasJuegoMundo,
-    ]), ['■ Stop', 'Pause', true, true, false, true], 'Worker activo en inglés mantiene ejecución, control y mundo');
+    ]), ['■ Stop', 'Pause', true, true, false, true], 'Programa activo en inglés mantiene ejecución, control y mundo');
     await page.evaluate(() => document.querySelector('#ajustes-cerrar').click());
     await page.click('#b-pausa');
     await page.waitForTimeout(180);

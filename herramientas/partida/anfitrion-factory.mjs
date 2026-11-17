@@ -2,6 +2,7 @@ import { jugar, prepararEscenario } from './jugar.mjs';
 
 /** @typedef {{ reto: number, intento?: number, semilla?: number, escenario?: any,
  * programas?: Record<string, import('./anfitrion-war.mjs').Fuente>, maxPasos?: number,
+ * motor?: 'vm'|'interprete', crearPrograma?: typeof import('./programa.mjs').crearPrograma,
  * alPaso?: (paso: number, instantanea: any) => void }} OpcionesFactory */
 
 /** Resultado común con factory-comun: datos finales sin reloj real ni redondear t.

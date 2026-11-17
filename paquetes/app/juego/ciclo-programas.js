@@ -1,6 +1,10 @@
+import { crearTrabajadorInterprete } from '../../anfitrion/index.js';
+
 /** instalarCicloProgramas: sección del juego; estado y servicios vivos inyectados por la composición.
  * @param {any} ctx */
 export function instalarCicloProgramas(ctx) {
+  const crearTrabajador = crearTrabajadorInterprete({ acorn: ctx.acorn,
+    mensajePresupuesto: unidad => ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.presupuesto" : `partida.presupuesto.${ctx.SERIE}`, { unidad }) });
   // ---------- Ciclo de los programas (lockstep) ----------
   const algunoCorre = () => !!ctx.ejec && ctx.anfitrion.algunoCorre();
   function soloComentarios(src) { return ctx.lexico(src).every(([k]) => k === "com" || k === "esp" || k === "nl"); }
@@ -54,10 +58,10 @@ export function instalarCicloProgramas(ctx) {
     // Campaign conserva la partida; cada ejecución tiene su propio anfitrión.
     if (ctx.ES_CAMPAIGN) { ctx.eventos = []; ctx.eventosSucios = true; ctx.hitoPendiente = null; ctx.hitoDetiene = false; }
     else ctx.nuevoMundo(ctx.intento);
-    ctx.finActual = null; ctx.desdeRegistro = 0; ctx.unidadVigia = null; ctx.acum = 0; ctx.registrosPendientes.clear();
+    ctx.finActual = null; ctx.desdeRegistro = 0; ctx.acum = 0; ctx.registrosPendientes.clear();
     if (ctx.ES_CAMPAIGN && ctx.anfitrion) { const c = ctx.anfitrion.registro().consolas; for (const n of ctx.NIVELES) ctx.consolasCampaign[n] += c[n]; }
     ctx.anfitrion = ctx.crearAnfitrion({ reglas: ctx.reglas, piezas: ctx.piezasTrabajador,
-      crearTrabajador, ahora: () => ctx.performance.now(),
+      crearTrabajador,
       contexto: { nombres: ctx.nombradas().map(e => e.id), tipos: Object.keys(ctx.TIPOS), sensores: Object.keys(ctx.SENSOR),
         conf: { fallaRafaga: ctx.LAU.fallaRafaga, cadencia: ctx.LAU.cadencia, cadenciaRafaga: ctx.LAU.cadenciaRafaga } } });
     ctx.limpiarConsola(); ctx.ocultarBanner(); ctx.cerrarAvisos();
@@ -80,17 +84,10 @@ export function instalarCicloProgramas(ctx) {
     avanzar();
   }
 
-  const urlsTrabajador = new Map();
-  function crearTrabajador(fuente, unidad, recibir) {
-    if (!urlsTrabajador.has(fuente)) urlsTrabajador.set(fuente, ctx.URL.createObjectURL(new ctx.Blob([fuente], { type: "text/javascript" })));
-    const w = new ctx.Worker(urlsTrabajador.get(fuente));
-    w.onmessage = ev => recibir(ev.data);
-    return w;
-  }
   function arrancarPrograma(id, codigo, fuente) {
     ctx.ejec.progs.set(id, { id, finT: null });
     ctx.ejec.codigos[id] = fuente ?? codigo;
-    // cargar crea el ctx.Worker inmediatamente; el conductor lo arranca al ceder.
+    // cargar crea la unidad inmediatamente; el conductor lo arranca al ceder.
     ctx.anfitrion.cargar(id, ctx.instrumentar(codigo), { lenguaje: ctx.ejec.lenguajes[id] });
   }
 
@@ -158,7 +155,7 @@ export function instalarCicloProgramas(ctx) {
       recogerRegistro();
       if (actual.error) {
         const e = actual.error;
-        errorPrograma({ id: e.unidad }, e.mensaje, ctx.unidadVigia === e.unidad ? ctx.lineaCorre[e.unidad] ?? null : e.linea);
+        errorPrograma({ id: e.unidad }, e.mensaje, e.linea);
       } else if (!ctx.ES_CAMPAIGN) {
         const fin = ctx.partida.evaluar();
         if (fin) ctx.terminar(fin.fin, fin.motivo, fin.mensaje);
@@ -194,13 +191,8 @@ export function instalarCicloProgramas(ctx) {
     ctx.ejec = null; ctx.enVuelo = null; ctx.pausa = false; ctx.hitoDetiene = false;
   }
 
-  function vigia(now) {
-    if (!ctx.ejec) return;
-    ctx.unidadVigia ||= ctx.anfitrion.vigilar(now, ctx.VIGIA_MS, id => ctx.ES_CAMPAIGN ? ctx.ti18n("campaign.vigia", { unidad: id }) : ctx.ES_FACTORY ? "Un bucle giró 2.5 s sin ningún await, así que R1 nunca recibió órdenes. Cada vuelta necesita al menos un await yo.…." : `El programa de ${id} giró ${ctx.VIGIA_MS / 1000} s sin llegar a un await esperar(...), así que el tiempo de juego no puede avanzar. Cada vuelta del bucle necesita una espera.`);
-  }
-
   return {
     algunoCorre, soloComentarios, revisar, ejecutar, arrancarPrograma, fmtLugar, registroActual,
-    avanzar, cerrarProgramas, vigia
+    avanzar, cerrarProgramas
   };
 }
