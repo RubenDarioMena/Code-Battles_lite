@@ -1,0 +1,68 @@
+{
+ "_": "Parámetros de la escena de prueba de artillería (artilleria.py). Distancias en metros del juego (1 m = 1 casilla), tiempos en segundos. Las claves «_» son notas.",
+
+ "vista": {
+  "_": "Cámara ortográfica del juego: elevación en grados, píxeles por metro y el punto del suelo que queda en el centro.",
+  "ancho": 1280, "alto": 720, "ppm": 40, "fps": 30, "duracion": 12.0,
+  "elevacion": 53.0, "centro": [0.0, 4.5], "rejilla": true
+ },
+
+ "cohete": {
+  "_": "Cuerpo y llama del cohete. La velocidad por defecto es la del misil de War (MISIL.vel).",
+  "velocidad": 14.0, "largo": 0.55, "ancho": 0.11, "color": [0.07, 0.075, 0.08],
+  "llama": 3.2, "radio_llama": 0.2, "halo": 0.9, "radio_halo": 0.75,
+  "sombra": 0.3
+ },
+
+ "estelas": {
+  "_": "La estela es una fila de bocanadas del atlas «bocanada», sin estado: la bocanada i nace en t0 + i·paso/velocidad en el punto de la trayectoria de ese instante, y todo lo demás es función de su edad. «tinte» multiplica el color del atlas (blanco): así salen la estela clara y la oscura de la misma textura.",
+  "ligera": {
+   "paso": 0.42, "radio": 0.26, "crecer": 1.5, "vida": 2.4, "alfa": 0.8,
+   "tinte": [0.95, 0.95, 0.97], "subida": 0.22, "viento": [0.28, 0.1],
+   "dispersion": 0.07, "calor": 0.9, "duracion_calor": 0.14, "sombra": 0.16
+  },
+  "pesada": {
+   "paso": 0.5, "radio": 0.42, "crecer": 1.9, "vida": 4.2, "alfa": 0.92,
+   "tinte": [0.17, 0.16, 0.16], "subida": 0.3, "viento": [0.28, 0.1],
+   "dispersion": 0.13, "calor": 1.3, "duracion_calor": 0.2, "sombra": 0.3
+  }
+ },
+
+ "fogonazo": {
+  "_": "Salida del cohete: bocanadas grandes en el lanzador y un destello corto.",
+  "bocanadas": 7, "radio": 0.5, "crecer": 1.6, "vida": 1.7, "alfa": 0.7, "dispersion": 0.55,
+  "retroceso": 2.2,
+  "capas": {"destello": 0.45, "luz": 0.5, "chispas": 0, "quemadura": 0.0, "onda": 0.0}
+ },
+
+ "lanzadores": {
+  "_": "Posición en el suelo y altura de la boca.",
+  "L1": {"pos": [-13.0, 9.0], "boca": 0.9},
+  "L2": {"pos": [-13.5, 2.5], "boca": 0.9},
+  "L3": {"pos": [-12.5, -3.5], "boca": 1.1, "pesado": true}
+ },
+
+ "drones": {
+  "_": "Blancos aéreos: posición y altura (los drones de War vuelan a 2,5 m).",
+  "D1": [-1.0, 12.0, 2.5],
+  "D2": [8.5, 11.0, 2.5],
+  "D3": [12.0, 5.5, 2.5]
+ },
+
+ "vehiculos": {
+  "_": "Blancos en tierra: posición y tamaño (largo, ancho, alto). Si un disparo cae a menos de 1,5 m, quedan como restos.",
+  "V1": {"pos": [8.5, 1.5], "tam": [1.7, 1.1, 0.7]}
+ },
+
+ "guion": [
+  {"_": "Cada disparo: instante, lanzador, blanco (un dron o un punto [x, y, z]), altura del arco, estela y atlas de la explosión. «incendio» deja un flipbook en bucle sobre el blanco; «rotulo» es el texto del vídeo.",
+   "t": 0.4, "desde": "L1", "hasta": "D1", "arco": 0.9, "estela": "ligera", "explosion": "aerea_p1", "rotulo": "aérea · poder 1"},
+  {"t": 1.0, "desde": "L2", "hasta": "D2", "arco": 1.2, "estela": "ligera", "explosion": "aerea_p1"},
+  {"t": 1.7, "desde": "L1", "hasta": [2.5, 8.0, 0.0], "arco": 3.2, "estela": "ligera", "explosion": "tierra_p1", "rotulo": "tierra · poder 1 · sin onda"},
+  {"t": 3.1, "desde": "L2", "hasta": [8.5, 1.5, 0.0], "arco": 3.6, "estela": "ligera", "explosion": "tierra_p2", "incendio": "incendio_p2", "rotulo": "tierra · poder 2 · onda leve"},
+  {"t": 4.3, "desde": "L1", "hasta": "D3", "arco": 1.4, "estela": "ligera", "explosion": "aerea_p2", "rotulo": "aérea · poder 2"},
+  {"t": 5.4, "desde": "L3", "hasta": [2.0, -1.0, 0.0], "arco": 6.5, "velocidad": 10.0, "estela": "pesada", "explosion": "tierra_p3", "rotulo": "tierra · poder 3 · onda fuerte"}
+ ],
+
+ "hoja": [0.6, 1.5, 2.2, 3.0, 3.6, 4.5, 4.9, 5.6, 6.2, 7.0, 7.3, 7.6, 8.2, 9.0, 10.0, 11.5]
+}

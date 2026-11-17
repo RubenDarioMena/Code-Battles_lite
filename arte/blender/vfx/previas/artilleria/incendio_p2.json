@@ -1,0 +1,51 @@
+{
+ "nombre": "incendio_p2",
+ "variante": "incendio",
+ "poder": 2,
+ "semillas": [
+  1
+ ],
+ "columnas": 6,
+ "filas": 6,
+ "cuadros": 32,
+ "px": 256,
+ "fps": 16,
+ "duracion_s": 2.0,
+ "encuadre_m": 4.4,
+ "escala": 0.55,
+ "suelo": true,
+ "bucle": true,
+ "ancla": [
+  0.5,
+  0.2
+ ],
+ "elevacion_grados": 53.0,
+ "alfa": "premultiplicado",
+ "espacio": "sRGB",
+ "mezcla": "ONE, ONE_MINUS_SRC_ALPHA",
+ "orden": "izquierda→derecha, arriba→abajo",
+ "capas": {
+  "destello": 0.0,
+  "luz": 0.0,
+  "chispas": 0,
+  "quemadura": 0.0,
+  "onda": 0.0,
+  "radio_onda": 4.0,
+  "duracion_onda": 0.35,
+  "sombra": 0.4
+ },
+ "uso_cuadro_px": [
+  7,
+  7,
+  252,
+  249
+ ],
+ "kb": 1876,
+ "calidad": "media",
+ "blender": "5.2.4 LTS",
+ "segundos": {
+  "sim": 200.1,
+  "render": 186.8,
+  "cuadro_max": 5.07
+ }
+}

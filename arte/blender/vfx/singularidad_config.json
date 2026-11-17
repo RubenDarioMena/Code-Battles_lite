@@ -1,0 +1,154 @@
+{
+ "_": "Parámetros del VFX de la singularidad. Distancias en metros (1 m = 1 casilla), tiempos en segundos, colores RGB lineales. Las claves «_» son notas y se ignoran. Las curvas {base, exponente} valen base · masa^exponente.",
+
+ "masa": {
+  "_": "Masa total = agujeros fusionados + enemigos comidos. El VFX solo lee la masa; quién la suma es el juego.",
+  "agujero": 1.0,
+  "enemigo": 0.1,
+  "super_arma": 8.0,
+  "critica": 10.0
+ },
+
+ "curvas": {
+  "_": "Lo que crece (de forma no lineal) con la masa. «letalidad» = (masa/crítica)^exponente, de 0 a 1: la consume el juego, el VFX no la usa. El tamaño a masa 1 es «base»; el tamaño justo antes de la derrota lo fija el exponente. Con masa crítica 10, cada +0,1 de exponente lo multiplica por 1,26.",
+  "radio_horizonte": {"_": "Disco negro. Exponente 0,9 = tamaño final original (100 %); 1,2 = 200 %; 1,3 = 250 %.", "base": 0.07, "exponente": 1.3},
+  "lente": {"_": "radio de Einstein", "base": 0.9, "exponente": 0.6},
+  "radio_absorcion": {"base": 1.4, "exponente": 0.8},
+  "letalidad": {"exponente": 2.2}
+ },
+
+ "hawking": {
+  "_": "Brillo inverso a la masa: brillo · masa^-exponente, y se apaga del todo entre las dos fracciones de la masa crítica de «apagado».",
+  "brillo": 1.7,
+  "exponente": 1.3,
+  "apagado": [0.45, 0.9],
+  "color_pequeno": [0.70, 0.85, 1.0],
+  "color_grande": [0.42, 0.36, 0.85],
+  "nucleo_m": 0.07,
+  "halo": 0.10,
+  "halo_m": 0.45,
+  "raya": 0.18,
+  "parpadeo": 0.22,
+  "color_borde": [0.80, 0.10, 1.0],
+  "borde": 1.3
+ },
+
+ "horizonte": {
+  "_": "Interior del disco negro. «fondo» es su color (azul casi negro). El resplandor morado va pegado al borde por dentro: «borde_color» en el filo, «borde_color_interior» más adentro, y se apaga hacia el centro en «borde_ancho» radios. «borde_asimetria» lo carga hacia el lado de la pantalla que marca «borde_angulo_grados» (0 = derecha, 90 = arriba). «borde_suave» es el difuminado del filo, en radios. En «hawking», «color_borde» tiñe el borde interior del brillo y «borde» dice hasta dónde llega el tinte (en anchos de la rampa con que nace la corona).",
+  "fondo": [0.003, 0.002, 0.012],
+  "borde_color": [0.85, 0.06, 1.0],
+  "borde_color_interior": [0.10, 0.03, 0.55],
+  "borde_ancho": 0.11,
+  "borde_brillo": 0.6,
+  "borde_asimetria": 0.45,
+  "borde_angulo_grados": 40,
+  "borde_suave": 0.03
+ },
+
+ "oscuridad": {
+  "_": "Cuánto se apaga el entorno al crecer la masa. x = masa/crítica; fuerza = maxima · ((x − inicio)/(1 − inicio))^exponente; el entorno se multiplica por (1 − fuerza)^contraste. «pozo» atenúa la imagen invertida de dentro del anillo de Einstein; «desaturar» quita color al entorno cerca de la masa crítica.",
+  "inicio": 0.08,
+  "exponente": 1.1,
+  "maxima": 0.93,
+  "contraste": 2.0,
+  "radio_m": [2.5, 9.0],
+  "pozo": 0.75,
+  "desaturar": 0.7
+ },
+
+ "lente": {
+  "_": "Pase de pantalla. alcance = alcance[0] · lente + alcance[1]: fuera de ese radio no hay deformación. «largo_profundidad»: metros por detrás del agujero a los que la lente ya actúa a la mitad. «largo_lineas» es lo mismo para las líneas de los anillos: alto = la parte de atrás del anillo se levanta poco a poco, sin escalón a los lados.",
+  "aberracion": 0.012,
+  "alcance": [2.6, 1.0],
+  "largo_profundidad": 1.5,
+  "largo_lineas": 3.0,
+  "suavizado": 0.02,
+  "bloom": 0.3,
+  "max_lentes": 4
+ },
+
+ "flotacion": {
+  "_": "El agujero flota repelido por el piso cargado. El efecto no lee el estado de carga: solo dibuja la altura que se le da.",
+  "altura": 1.8,
+  "altura_por_masa": 0.04,
+  "vaiven": 0.07,
+  "frecuencia": 1.3,
+  "temblor": 0.02
+ },
+
+ "arcos": {
+  "_": "Rayos erráticos entre el agujero y el piso. Cada arco vive un intervalo de 1/frecuencia y se vuelve a sortear: no guarda estado.",
+  "cantidad": {"base": 1.0, "exponente": 0.3},
+  "frecuencia": 14.0,
+  "segmentos": 14,
+  "zigzag": 0.13,
+  "zigzag_fino": 0.03,
+  "alcance": {"base": 0.9, "exponente": 0.55},
+  "brillo": {"base": 1.2, "exponente": 0.15},
+  "ancho_m": 0.012,
+  "ramas": 0.2,
+  "color": [0.50, 0.76, 1.0],
+  "color_critico": [0.72, 0.42, 1.0],
+  "luz_suelo": 0.12,
+  "entre_agujeros": 1
+ },
+
+ "espagueti": {
+  "_": "Cada enemigo absorbido es una línea independiente: se estira en «estiramiento» hasta ocupar una fracción de su trayectoria sorteada en «largo», orbita cerrando la espiral y se acorta y apaga al cruzar el horizonte. Para que las líneas se lean como anillos alineados: «inclinacion_max_grados» bajo (todas en el mismo plano), muchas «vueltas» (cada línea cae poco por vuelta) y «largo» corto (cada una es un arco, no una espiral). «calentamiento» es la fracción de la caída en la que pasa del color del enemigo a «color_final»: lejos del agujero conserva su color. «despegue» alto = sube pronto del suelo al plano del agujero. Dentro de «horizonte» radios se tiñe de «color_horizonte».",
+  "estiramiento": 0.15,
+  "orbita": [3.2, 4.6],
+  "vueltas": [5.0, 7.5],
+  "inclinacion_max_grados": 3,
+  "largo": [0.03, 0.11],
+  "despegue": 6.0,
+  "avance": 1.3,
+  "espiral": 0.75,
+  "ancho_m": 0.013,
+  "tamano_enemigo_m": 0.12,
+  "brillo": 1.8,
+  "segmentos": 48,
+  "calentamiento": 0.6,
+  "color_final": [0.80, 0.90, 1.0],
+  "color_horizonte": [0.70, 0.18, 1.0],
+  "horizonte": 2.2
+ },
+
+ "aparicion": {"_": "Destello al crearse un agujero.", "brillo": 1.6, "duracion": 0.25, "radio_m": 0.5},
+
+ "fusion": {
+  "_": "Secuencia de dos agujeros: disparo lento → repulsión (misma carga) → órbita mutua que se acelera → fusión. La fase orbital sigue (1 − u)^exponente_fase y la separación (1 − u)^exponente_separacion, como un inspiral.",
+  "velocidad_disparo": 3.5,
+  "distancia_inicial": 7.0,
+  "distancia_minima": 0.7,
+  "repulsion": 0.85,
+  "distancia_orbita": 1.7,
+  "orbita": 3.0,
+  "vueltas": 4.5,
+  "exponente_fase": 0.625,
+  "exponente_separacion": 0.25,
+  "inclinacion_grados": 14,
+  "deriva": 0.45,
+  "direccion_deriva": [0.0, 1.0],
+  "retroceso": {"_": "Empujón tras la fusión: velocidad · (1 + asimetria · |mA − mB|/(mA + mB)), frenado exponencial.", "velocidad": 2.0, "asimetria": 3.0, "frenado": 0.7},
+  "destello": {"brillo": 3.0, "duracion": 0.12, "radio_m": 0.6},
+  "onda": {"_": "Anillo de onda gravitacional: pulso radial de distorsión.", "velocidad": 11.0, "amplitud_m": 0.6, "ancho_m": 0.5, "duracion": 1.1, "luz": 0.5},
+  "ringdown": {"_": "Palpitación amortiguada del agujero resultante.", "frecuencia": 7.0, "amortiguacion": 0.22, "amplitud": 0.45}
+ },
+
+ "eventos": {
+  "_": "Ganchos que emite el efecto (o que recibe del juego) para conectar lógica o cinemáticas después. «carga_perdida» está reservado: hoy nadie lo emite y el VFX no depende de la carga.",
+  "emite": ["agujero_creado", "enemigo_absorbido", "repulsion", "orbita", "fusion", "ringdown_fin", "super_arma", "masa_critica"],
+  "reservados": ["carga_perdida"]
+ },
+
+ "demo": {
+  "_": "Solo para las vistas previas de singularidad.py; el juego no lo usa.",
+  "fusion": {
+   "duracion": 11.5,
+   "agujero_a": {"t": 0.4, "pos": [0.0, 0.0]},
+   "agujero_b": {"t": 3.0, "direccion_grados": -78},
+   "enemigos": {"cantidad": 13, "velocidad": 1.2, "primero_y": 2.6, "separacion_y": 1.25, "carriles_x": [-0.55, 0.15, 0.5, -0.2]}
+  },
+  "masa": {"_": "Un agujero cuya masa sube de 1 a la crítica: muestra la apariencia según la masa.", "duracion": 9.0, "exponente": 1.6, "lineas_por_segundo": 3.0}
+ }
+}
