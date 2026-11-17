@@ -1,5 +1,8 @@
 {
   "name": "code-battles-lite",
+  "version": "0.1.0",
+  "main": "cascaras/escritorio/main.cjs",
+  "productName": "Code Battle Lite",
   "private": true,
   "description": "Juego Code Battle Lite y herramientas de desarrollo, pruebas y telemetría.",
   "dependencies": {
@@ -18,6 +21,9 @@
   "scripts": {
     "test": "node pruebas/todas.mjs",
     "test:navegador": "node pruebas/todas.mjs --navegador",
-    "tipos": "tsc --noEmit -p tsconfig.json"
+    "tipos": "tsc --noEmit -p tsconfig.json",
+    "escritorio": "electron .",
+    "escritorio:empaquetar": "node scripts/empaquetar-escritorio.mjs",
+    "test:escritorio": "node pruebas/escritorio.mjs"
   }
 }

@@ -7,7 +7,9 @@ import ts from 'typescript';
 
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const entrada = raiz + 'Prototypes/Rocket Launcher/js/juego.js';
-const archivos = [entrada, raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js', raiz + 'paquetes/app/plataforma.js', raiz + 'cascaras/web/plataforma.js',
+const archivos = [entrada, raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'cascaras/escritorio/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js', raiz + 'paquetes/app/plataforma.js', raiz + 'cascaras/web/plataforma.js',
+  ...readdirSync(raiz + 'cascaras/escritorio/').filter(f => f.endsWith('.cjs')).map(f => raiz + 'cascaras/escritorio/' + f),
+  ...['archivos-publicables', 'empaquetar-escritorio', 'preparar-netlify'].map(f => raiz + 'scripts/' + f + '.mjs'),
   raiz + 'paquetes/editor/dependencias.js', raiz + 'paquetes/editor/edicion-acciones.js',
   ...['paquetes/app/juego/', 'paquetes/interfaz/', 'paquetes/vista-2d/', 'paquetes/vista-3d/'].flatMap(dir =>
     readdirSync(raiz + dir).filter(f => f.endsWith('.js')).map(f => raiz + dir + f))];
@@ -19,7 +21,9 @@ const globalesConocidos = new Set(`Array Blob Boolean Infinity CustomEvent Date 
   MutationObserver Node Number Object Promise Proxy RegExp ResizeObserver Set String URL URLSearchParams
   Uint8Array Worker addEventListener cancelAnimationFrame clearTimeout console crypto document fetch
   getComputedStyle history innerHeight innerWidth location matchMedia navigator parseFloat
-  parseInt performance requestAnimationFrame sessionStorage setTimeout visualViewport window`.split(/\s+/));
+  parseInt performance requestAnimationFrame sessionStorage setTimeout visualViewport window
+  globalThis Response decodeURIComponent`.split(/\s+/));
+const globalesNode = new Set([...globalesConocidos, 'require', 'module', '__dirname', 'process', 'Buffer']);
 const globalesUsados = new Set();
 function revisar(mutacion = '', auditar = false) {
   const host = ts.createCompilerHost(opciones), leer = host.readFile;
@@ -43,14 +47,16 @@ function revisar(mutacion = '', auditar = false) {
           const ambiente = simbolo?.declarations?.some(d =>
             /\/node_modules\/(?:typescript\/lib\/lib\.|@types\/node\/)/.test(d.getSourceFile().fileName));
           if (ambiente) {
-            assert(globalesConocidos.has(nodo.text), `${nodo.getSourceFile().fileName}: global ${nodo.text} sin declarar en la lista del navegador`);
+            const nombre = nodo.getSourceFile().fileName;
+            const permitidos = /\/(?:cascaras\/escritorio|scripts)\//.test(nombre) ? globalesNode : globalesConocidos;
+            assert(permitidos.has(nodo.text), `${nombre}: global ${nodo.text} sin declarar en la lista de su entorno`);
             globalesUsados.add(nodo.text);
           }
         }
       }
       ts.forEachChild(nodo, visitar);
     }
-    for (const nombre of archivos.filter(n => n.endsWith('.js'))) visitar(programa.getSourceFile(nombre));
+    for (const nombre of archivos.filter(n => /\.(?:cjs|mjs|js)$/.test(n))) visitar(programa.getSourceFile(nombre));
   }
   return archivos.flatMap(nombre => programa.getSemanticDiagnostics(programa.getSourceFile(nombre)))
     .filter(d => codigos.has(d.code));

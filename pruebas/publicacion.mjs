@@ -24,7 +24,7 @@ async function recorrer(carpeta) {
   }
 }
 await recorrer(raiz);
-for (const excluido of ['pruebas', 'docs', '.git', '.env', 'README.md']) {
+for (const excluido of ['pruebas', 'docs', '.git', '.env', 'README.md', 'cascaras/escritorio']) {
   await assert.rejects(stat(path.join(raiz, excluido)), { code: 'ENOENT' });
 }
 // Única excepción del laboratorio: los tres módulos que el juego carga directamente.

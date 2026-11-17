@@ -86,7 +86,10 @@ const arbolJuego = acorn.parse(fuenteJuego, { ecmaVersion: 2022, sourceType: 'mo
 assert.equal(arbolJuego.body.length, 4, 'la entrada solo importa app/plataforma/servicios y arranca');
 assert.equal(arbolJuego.body.at(-1).expression.callee.name, 'arrancarJuego');
 assert.deepEqual(arbolJuego.body.at(-1).expression.arguments[0].properties.map(p => p.key.name), ['plataforma', 'servicios']);
-assert.equal(arbolJuego.body.at(-1).expression.arguments[0].properties[0].value.callee.name, 'crearPlataformaWeb');
+const plataformaEntrada = arbolJuego.body.at(-1).expression.arguments[0].properties[0].value;
+assert.equal(plataformaEntrada.operator, '??');
+assert.equal(fuenteJuego.slice(plataformaEntrada.left.start, plataformaEntrada.left.end), 'globalThis.cblCascara?.plataforma');
+assert.equal(plataformaEntrada.right.callee.name, 'crearPlataformaWeb');
 const estado = acorn.parse(await readFile(new URL('paquetes/app/juego/estado.js', raiz), 'utf8'),
   { ecmaVersion: 2022, sourceType: 'module' });
 const clavesContexto = new Set();

@@ -31,7 +31,7 @@ async function archivos(carpeta) {
     if (entrada.name === 'node_modules') continue;
     const ruta = resolve(carpeta, entrada.name);
     if (entrada.isDirectory()) encontrados.push(...await archivos(ruta));
-    else if (entrada.isFile() && /\.(?:js|mjs)$/.test(entrada.name)) encontrados.push(ruta);
+    else if (entrada.isFile() && /\.(?:js|mjs|cjs)$/.test(entrada.name)) encontrados.push(ruta);
   }
   return encontrados.sort();
 }
@@ -65,19 +65,25 @@ async function principal() {
   vm.runInContext(await readFile(resolve(raizPropia, 'shared/vendor/acorn-8.11.3.js'), 'utf8'), contexto);
   const acorn = contexto.acorn;
   const web = resolve(raiz, 'cascaras/web');
+  const escritorio = resolve(raiz, 'cascaras/escritorio');
   const rutasWeb = await archivos(web).catch(error => {
     if (error.code === 'ENOENT') return [];
     throw error;
   });
-  const rutas = [...await archivos(carpeta), ...rutasWeb];
+  const rutasEscritorio = await archivos(escritorio).catch(error => {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  });
+  const rutas = [...await archivos(carpeta), ...rutasWeb, ...rutasEscritorio];
   let infracciones = 0;
   for (const ruta of rutas) {
     const esWeb = ruta.startsWith(web + sep);
-    const local = relative(esWeb ? raiz : carpeta, ruta).split(sep).join('/');
+    const esEscritorio = ruta.startsWith(escritorio + sep);
+    const local = relative(esWeb || esEscritorio ? raiz : carpeta, ruta).split(sep).join('/');
     const [paquete, ...resto] = local.split('/');
     const prueba = resto[0] === 'pruebas';
     const puro = puros.has(paquete) && !prueba;
-    const nombre = esWeb ? local : `paquetes/${local}`;
+    const nombre = esWeb || esEscritorio ? local : `paquetes/${local}`;
     const informar = (nodo, regla, detalle) => {
       console.error(`${nombre}:${nodo.loc.start.line} · ${regla} · ${detalle}`);
       infracciones++;
@@ -89,6 +95,11 @@ async function principal() {
       }
       if (fuente.startsWith('./') || fuente.startsWith('../')) {
         const destino = posix.normalize(posix.join(posix.dirname(local), fuente));
+        if (esEscritorio) {
+          if (!destino.startsWith('cascaras/escritorio/'))
+            informar(nodo, 'import-ruta', `escritorio no puede importar fuera de su cáscara: ${fuente}`);
+          return;
+        }
         if (esWeb) {
           if (destino.startsWith('cascaras/web/')) return;
           const profundidad = posix.dirname(local).split('/').length;
@@ -104,6 +115,9 @@ async function principal() {
         else if (!dependencias[paquete]?.includes(entrada[1])) {
           informar(nodo, 'import-dependencia', `${paquete} no puede importar ${entrada[1]}`);
         }
+      } else if (esEscritorio) {
+        if (fuente !== 'electron' && !/^node:.+/.test(fuente))
+          informar(nodo, 'import-desnudo', `escritorio solo puede importar Node/Electron: ${fuente}`);
       } else if (!(prueba && /^node:.+/.test(fuente)) && !terceros[fuente]?.includes(paquete)) {
         informar(nodo, 'import-desnudo', `especificador no autorizado: ${fuente}`);
       }
@@ -125,6 +139,8 @@ async function principal() {
       if (nodo.type === 'ImportExpression') {
         revisarImport(nodo, nodo.source.type === 'Literal' ? nodo.source.value : undefined);
       }
+      if (nodo.type === 'CallExpression' && nodo.callee.type === 'Identifier' && nodo.callee.name === 'require')
+        revisarImport(nodo, nodo.arguments[0]?.type === 'Literal' ? nodo.arguments[0].value : undefined);
       if (puro) {
         if (nodo.type === 'Identifier' && identificadores.has(nodo.name)
           && !esNombreDePropiedad(nodo, padre, clave)) informar(nodo, 'entorno', nodo.name);

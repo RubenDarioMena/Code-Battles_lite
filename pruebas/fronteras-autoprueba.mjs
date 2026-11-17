@@ -28,7 +28,11 @@ const esperadas = [
 ].flatMap(([archivo, regla, cantidad]) => Array.from({ length: Number(cantidad) },
   () => `paquetes/${archivo} · ${regla}`)).sort();
 esperadas.push('paquetes/app/cascara.js · import-ruta',
-  ...Array(3).fill('cascaras/web/rutas.js · import-ruta'));
+  ...Array(3).fill('cascaras/web/rutas.js · import-ruta'),
+  'paquetes/app/escritorio.cjs · import-ruta',
+  ...Array(2).fill('cascaras/escritorio/rutas.cjs · import-ruta'),
+  'cascaras/escritorio/rutas.cjs · import-desnudo',
+  'cascaras/escritorio/rutas.cjs · import-dinamico');
 esperadas.sort();
 
 // Solo el temporal contiene sintaxis inválida y node_modules: todos los archivos
@@ -46,6 +50,14 @@ try {
     import '../../paquetes/app/index.js?v=1';
   `);
   await writeFile(join(raiz, 'paquetes/app/cascara.js'), "import '../../cascaras/web/plataforma.js';\n");
+  await writeFile(join(raiz, 'paquetes/app/escritorio.cjs'), "require('../../cascaras/escritorio/main.cjs');\n");
+  await mkdir(join(raiz, 'cascaras/escritorio'), { recursive: true });
+  await writeFile(join(raiz, 'cascaras/escritorio/rutas.cjs'), `
+    require('electron'); require('node:fs'); require('./guardado.cjs');
+    require('../../paquetes/app/index.js');
+    import('../../paquetes/editor/index.js');
+    require('@cbl/app'); require(variable);
+  `);
   await writeFile(join(raiz, 'paquetes/app/sintaxis.js'), 'export const = ;\n');
   await mkdir(join(raiz, 'paquetes/app/node_modules'), { recursive: true });
   await writeFile(join(raiz, 'paquetes/app/node_modules/ignorado.js'), 'esto no es JavaScript;\n');

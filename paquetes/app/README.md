@@ -20,7 +20,11 @@ independientes y aislados por llamada, sin DOM ni persistencia. Es el valor por
 defecto de `arrancarJuego({ plataforma?, servicios? })` y permite pruebas y
 partidas sin pantalla; las partidas de `jugarPartida` no necesitan guardado.
 
-La entrada del juego inyecta la plataforma web. App e interfaz la consultan por
+Una cáscara puede inyectar su plataforma antes de la entrada mediante
+`globalThis.cblCascara.plataforma`; si no existe se crea la plataforma web, con
+el mismo comportamiento y almacenamiento. La cáscara de escritorio mantiene
+claves y textos en disco; `shared/i18n` sigue usando su propio localStorage de
+Electron, que persiste en userData. App e interfaz consultan la plataforma por
 `ctx.plataforma`; el editor recibe `configurar({ sesion: plataforma.sesion })`.
 Las claves, valores y el orden de las migraciones siguen intactos. El inventario
 por archivo y la limitación de i18n están en
