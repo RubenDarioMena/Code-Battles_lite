@@ -71,6 +71,51 @@ def escribir_png(ruta, a, nivel=9):
                 + trozo(b"IDAT", datos) + trozo(b"IEND", b""))
 
 
+def leer_png(ruta):
+    """PNG RGB o RGBA de 8 bits sin entrelazar → (h, w, c) uint8, con los datos tal cual (sin tocar el alfa).
+
+    Lee lo que escribe `escribir_png` (filtros Ninguno, Sub y Up); así los atlas se leen igual que en el motor.
+    """
+    d = open(ruta, "rb").read()
+    if d[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"{ruta} no es un PNG")
+    pos, idat, cab = 8, [], None
+    while pos < len(d):
+        n, tipo = struct.unpack(">I4s", d[pos:pos + 8])
+        if tipo == b"IHDR":
+            cab = struct.unpack(">IIBBBBB", d[pos + 8:pos + 8 + n])
+        elif tipo == b"IDAT":
+            idat.append(d[pos + 8:pos + 8 + n])
+        pos += 12 + n
+    w, h, bits, color, _, _, entrelazado = cab
+    if bits != 8 or color not in (2, 6) or entrelazado:
+        raise ValueError(f"{ruta}: solo PNG RGB/RGBA de 8 bits sin entrelazar")
+    c = {2: 3, 6: 4}[color]
+    crudo = np.frombuffer(zlib.decompress(b"".join(idat)), np.uint8).reshape(h, 1 + w * c)
+    filtros, filas = crudo[:, 0], crudo[:, 1:].reshape(h, w, c)
+    if (filtros == 1).all():      # Sub en todas las filas: suma acumulada a lo largo de cada fila
+        return np.cumsum(filas, axis=1, dtype=np.uint8)
+    if (filtros == 2).all():      # Up en todas las filas: suma acumulada hacia abajo
+        return np.cumsum(filas, axis=0, dtype=np.uint8)
+    out = np.zeros((h, w, c), np.uint8)
+    for y in range(h):
+        if filtros[y] == 0:
+            out[y] = filas[y]
+        elif filtros[y] == 1:
+            out[y] = np.cumsum(filas[y], axis=0, dtype=np.uint8)
+        elif filtros[y] == 2:
+            out[y] = filas[y] + (out[y - 1] if y else 0)
+        else:
+            raise ValueError(f"{ruta}: filtro PNG {filtros[y]} no admitido")
+    return out
+
+
+def de_srgb(x8):
+    """Bytes sRGB → lineal, con tabla."""
+    t = np.arange(256, dtype=np.float32) / 255.0
+    return np.where(t <= 0.04045, t / 12.92, ((t + 0.055) / 1.055) ** 2.4).astype(np.float32)[x8]
+
+
 def escribir_jpg(ruta, rgb8, calidad=88):
     h, w, _ = rgb8.shape
     im = bpy.data.images.new("hoja", w, h, alpha=False)

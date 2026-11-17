@@ -1,0 +1,51 @@
+{
+ "nombre": "tierra_p3",
+ "variante": "tierra",
+ "poder": 3,
+ "semillas": [
+  1
+ ],
+ "columnas": 8,
+ "filas": 8,
+ "cuadros": 64,
+ "px": 384,
+ "fps": 16,
+ "duracion_s": 4.0,
+ "encuadre_m": 12.8,
+ "escala": 1.6,
+ "suelo": true,
+ "bucle": false,
+ "ancla": [
+  0.5,
+  0.2
+ ],
+ "elevacion_grados": 53.0,
+ "alfa": "premultiplicado",
+ "espacio": "sRGB",
+ "mezcla": "ONE, ONE_MINUS_SRC_ALPHA",
+ "orden": "izquierda→derecha, arriba→abajo",
+ "capas": {
+  "destello": 1.4,
+  "luz": 1.5,
+  "chispas": 90,
+  "quemadura": 2.1,
+  "onda": 1.0,
+  "radio_onda": 9.5,
+  "duracion_onda": 0.55,
+  "sombra": 0.5
+ },
+ "uso_cuadro_px": [
+  10,
+  3,
+  380,
+  381
+ ],
+ "kb": 9496,
+ "calidad": "media",
+ "blender": "5.2.4 LTS",
+ "segundos": {
+  "sim": 117.9,
+  "render": 566.4,
+  "cuadro_max": 10.77
+ }
+}

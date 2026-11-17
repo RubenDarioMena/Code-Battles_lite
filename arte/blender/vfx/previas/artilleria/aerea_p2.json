@@ -1,0 +1,51 @@
+{
+ "nombre": "aerea_p2",
+ "variante": "aerea",
+ "poder": 2,
+ "semillas": [
+  1
+ ],
+ "columnas": 8,
+ "filas": 8,
+ "cuadros": 64,
+ "px": 256,
+ "fps": 20,
+ "duracion_s": 3.2,
+ "encuadre_m": 8.0,
+ "escala": 1.0,
+ "suelo": false,
+ "bucle": false,
+ "ancla": [
+  0.5,
+  0.5
+ ],
+ "elevacion_grados": 53.0,
+ "alfa": "premultiplicado",
+ "espacio": "sRGB",
+ "mezcla": "ONE, ONE_MINUS_SRC_ALPHA",
+ "orden": "izquierda→derecha, arriba→abajo",
+ "capas": {
+  "destello": 1.1,
+  "luz": 0.35,
+  "chispas": 40,
+  "quemadura": 0.0,
+  "onda": 0.35,
+  "radio_onda": 3.0,
+  "duracion_onda": 0.28,
+  "sombra": 0.35
+ },
+ "uso_cuadro_px": [
+  5,
+  4,
+  253,
+  248
+ ],
+ "kb": 3524,
+ "calidad": "media",
+ "blender": "5.2.4 LTS",
+ "segundos": {
+  "sim": 113.6,
+  "render": 260.5,
+  "cuadro_max": 4.54
+ }
+}
