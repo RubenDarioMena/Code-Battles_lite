@@ -67,3 +67,26 @@ En el paso 13, el plano Campaign recibe `leerBatalla()` por opciones (por defect
 `false`), en lugar de consultar `window.__banco` y el botón de piel. La app
 conserva la misma condición de UI. `pruebas/globales-juego.mjs` protege esta
 frontera además de las pruebas del plano y del contrato de vistas.
+
+## Dibujante de efectos (fase 4, paso 1)
+
+`crearDibujanteEfectos` se exporta por `index.js` y vive en `efectos.js`;
+**todavía no se llama desde las vistas del juego**.
+
+```js
+const fx = crearDibujanteEfectos({ T, ox, oy });
+fx.dibujar(ctx2, particulas); // Particula[] del paquete vfx
+fx.vaciarCache();
+fx.destruir();
+```
+
+`T` es píxeles por metro, `ox/oy` el origen del mapa. Puede pasarse
+`proyectar(x,y,z) → {x,y}`; `T` sigue determinando el diámetro del sello.
+La proyección por defecto ignora altura, como el plano actual. Guarda/restaura
+el estado del contexto y dibuja humo, restos y luz, por ese orden (`lighter`
+para luz). Los sellos radiales se cuantizan a 16 niveles RGB por canal y se
+reutilizan en una caché acotada (256 entradas por defecto, `limiteCache`).
+`crearLienzo(lado)` permite inyectar un canvas falso; importar el módulo no
+requiere DOM. `destruir` libera la caché y es idempotente; el dibujante puede
+volver a generar sellos si se reutiliza. Contrato en `efectos.d.ts`.
+Prueba sin navegador: `node pruebas/vfx-dibujantes.mjs` (incluida en `npm test`).

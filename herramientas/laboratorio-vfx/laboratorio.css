@@ -1,0 +1,14 @@
+html, body { height: auto; overflow: auto; overscroll-behavior: auto; }
+body { padding: 18px; max-width: 1640px; margin: auto; }
+h1 { font-size: 22px; margin: 0; } h2 { font-size: 16px; margin: 8px 0; }
+p { color: var(--muted); margin: 8px 0; }
+.controles { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+label { display: flex; align-items: center; gap: 6px; }
+button, select { background: var(--surface-2); border: 1px solid var(--edge); border-radius: 4px; padding: 5px 8px; }
+input { accent-color: var(--accent); } output { font-family: var(--f-code); }
+.visores { display: flex; gap: 16px; flex-wrap: wrap; }
+canvas { display: block; background: var(--suelo); border: 1px solid var(--grid-2); }
+.visores canvas { max-width: 100%; height: auto; }
+#hoja { overflow: auto; background: var(--bg); padding: 8px; width: max-content; max-width: 100%; }
+body.captura { width: 1600px; max-width: none; }
+body.captura #hoja { max-width: none; overflow: visible; }

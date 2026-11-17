@@ -15,7 +15,7 @@ const esperadas = [
   ['reglas-factory/entorno.js', 'entorno', 1],
   ['reglas-campaign/entorno.js', 'entorno', 1],
   ['lenguaje/entorno.js', 'entorno', 1],
-  ['vfx/entorno.js', 'entorno', 1],
+  ['vfx/entorno.js', 'entorno', 5],
   ['nucleo/rutas.js', 'import-ruta', 4],
   ['reglas-war/pruebas/rutas.mjs', 'import-ruta', 2],
   ['nucleo/rutas.js', 'import-desnudo', 3],

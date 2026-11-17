@@ -76,3 +76,36 @@ Si falta, devuelven `null` para conservar la caída al plano. Cámara, terreno y
 Factory reciben la misma instancia por parámetros; `factory3d.cargar(THREE)`
 conserva la carga diferida de GLTFLoader y del modelo. El paquete no lee Three
 ni la fachada `cmg` de la página. Prueba: `node paquetes/vista-3d/pruebas/vista-3d.mjs`.
+
+## Dibujante de efectos (fase 4, paso 1)
+
+`crearDibujanteEfectos(THREE, grupo, opciones)` se exporta por `index.js` y
+vive en `efectos.js`; **todavía no se llama desde las vistas del juego**.
+Three se recibe como parámetro; el import funciona en Node sin DOM ni Three.
+
+```js
+const fx = crearDibujanteEfectos(THREE, grupo, {
+  pixelRatio, alturaBufer, fov: camara.fov,
+  maxPunto: gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1],
+  capacidad: 2000,
+});
+fx.dibujar(particulas);
+fx.redimensionar({ alturaCss, pixelRatio, fov: camara.fov });
+fx.destruir();
+```
+
+Dos `Points` (normal y aditivo), cada uno con búfer fijo de `capacidad`,
+`setDrawRange`, `raycast` vacío, `depthWrite:false`, renderOrder 2/3 sobre
+los calcos actuales (1). La capacidad cuenta estelas; si se supera en una
+mezcla se trunca su cola. El gestor VFX debe usar un presupuesto acorde.
+Convierte mapa `(x,y,z altura)` a Three `(x,z,y)`.
+
+Shader pequeño compatible con r128: formas procedurales, tamaño en metros
+con perspectiva, límite físico de punto y fragmentos de niebla. La niebla
+apaga la luz aditiva hacia negro. `alturaBufer` son píxeles físicos (no se
+multiplican otra vez por pixelRatio); `redimensionar` sí convierte altura CSS.
+Debe inyectarse el máximo del dispositivo; el respaldo es 64 px conservadores.
+No hay renderizador, consulta WebGL ni reloj dentro del dibujante. Destrucción
+idempotente que retira las nubes y libera geometrías/materiales.
+Contrato en `efectos.d.ts`; prueba r128 sin rasterizado en
+`node pruebas/vfx-dibujantes.mjs` (incluida en `npm test`).

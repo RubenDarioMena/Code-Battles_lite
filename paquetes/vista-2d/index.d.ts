@@ -30,3 +30,5 @@ export interface Vista2D extends Vista {
   suelo(x: number, y: number): { x: number; y: number; z: number };
 }
 export function crearVista(contenedor: HTMLCanvasElement, opciones: OpcionesVista2D): Vista2D;
+
+export { crearDibujanteEfectos } from './efectos.js';

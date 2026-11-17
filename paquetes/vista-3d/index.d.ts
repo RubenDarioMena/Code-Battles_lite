@@ -100,3 +100,5 @@ export interface VistaCreada3D extends Omit<Vista3D, 'elegir' | 'proyectar' | 's
   terreno?: any;
 }
 export function crearVista(contenedor: HTMLElement, opciones: OpcionesVista3D): VistaCreada3D | null;
+
+export { crearDibujanteEfectos } from './efectos.js';

@@ -11,7 +11,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
-  "include": ["paquetes/**/*.js", "paquetes/**/*.d.ts", "cascaras/web/**/*.js", "cascaras/escritorio/**/*.cjs", "cascaras/escritorio/**/*.d.ts", "herramientas/*.mjs", "herramientas/partida/**/*.mjs", "pruebas/todas.mjs", "pruebas/fronteras.mjs"],
+  "include": ["paquetes/**/*.js", "paquetes/**/*.d.ts", "cascaras/web/**/*.js", "cascaras/escritorio/**/*.cjs", "cascaras/escritorio/**/*.d.ts", "herramientas/*.mjs", "herramientas/partida/**/*.mjs", "herramientas/laboratorio-vfx/**/*.js", "pruebas/todas.mjs", "pruebas/fronteras.mjs"],
   // herramientas/lezer-python es el generador histórico del lector de Python (sus dependencias no se instalan aquí).
   "exclude": ["node_modules", "educational-animation", "herramientas/lezer-python"]
 }
