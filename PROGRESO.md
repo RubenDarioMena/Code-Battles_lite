@@ -1,3 +1,11 @@
+## Diseño tentativo en Blender · vehículo y rueda kamikaze · 17 de noviembre de 2026
+
+- **Origen.** El autor pidió revisar las unidades nuevas del laboratorio de batalla y proponer un diseño en Blender. Indicó dos cosas: la rueda como «rueda con patas» (aro grande con patas plegables, según una foto de referencia) y el vehículo como armazón tubular con solo dos ejes, tubos que se juntan en un aro central, torreta arriba, motor simple debajo y una placa de circuitos a la vista en un costado.
+- **Qué hay.** `arte/blender/unidades_batalla.py` reutiliza piezas, paleta, suelo y render de `robots.py` y construye por código: **VEH** (armazón tubular, 4 ruedas en 2 ejes, aro central, torreta con dos lanzadores de 5 tubos = cargador de 10, mástil de sensor, motor con aletas y árbol al eje trasero, placa con 4 LED de vida) y **WHL** (aro sin buje que gira alrededor de un núcleo fijo con la carga naranja, un ojo y 4 patas; `pose_rueda` va de rodando con patas plegadas a apoyada y recostada 17°). Pivotes con nombre para animar por código. Escena en `arte/blender/unidades_batalla.blend`; renders `render_unidades_batalla.png` (con el T1 de escala), `render_vehiculo.png` y `render_rueda.png`.
+- **Cómo se generó.** En el contenedor de la nube, con el módulo `bpy` 5.3 de pip y Cycles por CPU (`CBL_MOTOR=cycles`), porque sin GPU EEVEE no arranca. Sin esa variable el script usa EEVEE como `robots.py`; esa ruta no se ha ejecutado aquí, y el aspecto puede variar algo respecto de `render_familia.png`.
+- **Límites.** Es un diseño tentativo para revisar: sin animación, sin exportar GLB, sin LOD y sin integrar en el laboratorio (que sigue en plano 2D). No cambia código del juego ni versiones; no se ejecutaron suites.
+- **Commits.** Guardado en la rama `ccr-684f16c6-yq5at1` porque el contenedor es efímero; sin pull request ni publicación.
+
 ## Laboratorio de batalla · vehículos, rueda kamikaze y órdenes por clic · 16 de noviembre de 2026
 
 - **Origen.** El autor pidió proponer y aplicar en una demo dos mecánicas: vehículos que salen del muro (con torreta, o una rueda kamikaze con recorrido evasivo) y `.onClick()` para programar qué hacen los robots cuando el jugador hace clic en el terreno o en un enemigo durante la batalla. [Propuesta y resultados](docs/PROPUESTA-MECANICAS-BATALLA.md).
