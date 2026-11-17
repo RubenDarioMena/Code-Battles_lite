@@ -20,6 +20,12 @@ Requiere Blender oficial (probado con 5.2.4 LTS) y `ffmpeg` para los MP4. El mó
 mkdir -p /opt/blender && cd /opt/blender && curl -fL -o b.tar.xz https://download.blender.org/release/Blender5.2/blender-5.2.4-linux-x64.tar.xz && tar -xf b.tar.xz && ln -sf /opt/blender/blender-5.2.4-linux-x64/blender /usr/local/bin/blender
 ```
 
+## Unificación · 16 de noviembre de 2026
+
+La rama canónica es `vfx-explosiones-singularidad`. Se reúnen la singularidad de `ccr-62599b2d-2y0dow` (`346d4e2`), la artillería de `ccr-293f5765-o1sulj` (`57402d7`) y la previa adicional de `ccr-f2aee30f-2ivzok` (`ec18c69`). Sus commits quedan como antecesores de la rama canónica aunque se retiren esos nombres de rama.
+
+La misma carpeta se sincroniza a `trunk` y `campaign-nivel-1`; esto no integra los efectos en el juego. Las hojas `explosion_*_borrador_hoja.jpg` y `explosiones_fuego_polvo.mp4` se conservan como referencias históricas: no representan las recetas actuales de artillería.
+
 ## Singularidad
 
 Un agujero negro diminuto y con carga eléctrica flota repelido por el piso. Todo lo que se ve sale de la **masa** (agujeros fusionados más enemigos comidos) y de unos pocos eventos. No hay disco de acreción estable: el disco son las líneas de los enemigos absorbidos.

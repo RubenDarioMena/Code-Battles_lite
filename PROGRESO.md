@@ -1,3 +1,11 @@
+## VFX · unificación de singularidad, artillería y previas · 16 de noviembre de 2026
+
+- **Fuente canónica:** `vfx-explosiones-singularidad`, reuniendo `ccr-62599b2d-2y0dow` (`346d4e2`, singularidad renovada), `ccr-293f5765-o1sulj` (`57402d7`, artillería) y `ccr-f2aee30f-2ivzok` (`ec18c69`, previa fuego/polvo). Los commits de las tres ramas quedan en el historial de la canónica; se retiran sus nombres remotos tras publicar la unión.
+- **Contenido sincronizado:** `arte/blender/vfx/` en la canónica, `trunk` y `campaign-nivel-1`. Singularidad con anillos finos, borde morado y disco al 250 %; artillería terrestre/aérea de tres poderes, estelas, incendio y capas; todas las previas adicionales. Las dos hojas de explosión en borrador se conservan como referencias históricas, junto al vídeo fuego/polvo. README combinado con procedencia y límites.
+- **Alcance:** en las ramas de destino solo se añade la carpeta VFX y esta entrada, conservando la torreta y los demás cambios propios de cada rama. Los efectos siguen fuera del juego y del paquete Netlify.
+- **Verificación actual:** sintaxis de los seis scripts Python, resolución estática de imports locales, 16 JSON válidos, `bash -n`, 15 MP4 con vídeo y duración positiva comprobados con ffprobe; interacción **124**, editor Python **34**, traductor Python **64** en las tres bases. Igualdad del árbol VFX entre las tres ramas y comparación con las fuentes.
+- **Límites:** no se regeneran renders ni atlas, no se repite QA visual o de navegador (no cambia la interacción/arranque); los resultados de render anteriores son históricos. Los atlas PNG siguen sin estar versionados y no hay nueva medición GPU.
+
 ## VFX · singularidad al estilo Kurzgesagt: anillos finos, borde morado y disco mayor · 16 de noviembre de 2026
 
 Rama `ccr-62599b2d-2y0dow`, sobre `vfx-explosiones-singularidad`. Solo cambia `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify.
