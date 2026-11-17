@@ -7,7 +7,7 @@ import { crearAnfitrion } from '../../paquetes/anfitrion/index.js';
 import { jugarPartida } from '../../paquetes/app/index.js';
 import { cargar } from './cargar.mjs';
 import { crearInstrumentador } from './instrumentar.mjs';
-import { crearPrograma } from './programa.mjs';
+import { crearPrograma as programaVM } from './programa.mjs';
 import { crearHuella } from './huella.mjs';
 
 /** Conserva los undefined que entraron en las huellas de la fase 0. */
@@ -38,7 +38,7 @@ export function prepararEscenario({ reglas: serie, reto, semilla, intento = semi
 /** Un intento o tramo, sobre crearAnfitrion + jugarPartida. Devuelve también la partida para repetición.
  * @param {any} opciones */
 export async function jugar({ reglas, escenario, semilla = 1, partida: existente, programas, maxPasos = 10000,
-  vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar() }) {
+  vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar(), crearPrograma = programaVM }) {
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   const partida = existente ?? crearPartida({ reglas, escenario, semilla });
   const mundo = partida.mundo, def = mundo.def;

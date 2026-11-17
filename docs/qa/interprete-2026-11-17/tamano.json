@@ -1,0 +1,14 @@
+{
+  "juegoActualBytes": 0,
+  "P": {
+    "bytes": 25003,
+    "gzipBytes": 8537,
+    "archivos": [{"archivo":"herramientas/espina-interprete/canal.mjs","bytes":2009,"gzipBytes":949},{"archivo":"herramientas/espina-interprete/propio/entorno.mjs","bytes":1604,"gzipBytes":541},{"archivo":"herramientas/espina-interprete/propio/evaluador.mjs","bytes":6136,"gzipBytes":2317},{"archivo":"herramientas/espina-interprete/propio/expresiones.mjs","bytes":6941,"gzipBytes":1898},{"archivo":"herramientas/espina-interprete/propio/index.mjs","bytes":1672,"gzipBytes":724},{"archivo":"herramientas/espina-interprete/propio/promesa.mjs","bytes":2245,"gzipBytes":817},{"archivo":"herramientas/espina-interprete/propio/sentencias.mjs","bytes":4396,"gzipBytes":1291}]
+  },
+  "Q": {
+    "bytes": 576707,
+    "gzipBytes": 254368,
+    "archivos": [{"archivo":"quickjs-emscripten-core/dist/chunk-TAV5CUKK.mjs","bytes":3052,"gzipBytes":1088},{"archivo":"quickjs-emscripten-core/dist/chunk-V2S4ZYJR.mjs","bytes":45838,"gzipBytes":10655},{"archivo":"quickjs-emscripten-core/dist/index.mjs","bytes":7103,"gzipBytes":2076},{"archivo":"quickjs-emscripten-core/dist/module-ES6BEMUI.mjs","bytes":277,"gzipBytes":165},{"archivo":"quickjs-emscripten-core/dist/module-asyncify-2EFITU5U.mjs","bytes":171,"gzipBytes":144},{"archivo":"@jitl/quickjs-ffi-types/dist/index.mjs","bytes":1113,"gzipBytes":655},{"archivo":"@jitl/quickjs-wasmfile-release-sync/dist/index.mjs","bytes":282,"gzipBytes":216},{"archivo":"@jitl/quickjs-wasmfile-release-sync/dist/ffi.mjs","bytes":6369,"gzipBytes":1036},{"archivo":"@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.browser.mjs","bytes":9368,"gzipBytes":4290},{"archivo":"@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm","bytes":503134,"gzipBytes":234043}],
+    "puentePrototipo": {"bytes":8386,"gzipBytes":3570,"archivos":[{"archivo":"herramientas/espina-interprete/quickjs.mjs","bytes":4387,"gzipBytes":1722},{"archivo":"herramientas/espina-interprete/canal.mjs","bytes":2009,"gzipBytes":949},{"archivo":"herramientas/espina-interprete/clon.mjs","bytes":1990,"gzipBytes":899}]}
+  }
+}

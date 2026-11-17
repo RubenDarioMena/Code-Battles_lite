@@ -1,0 +1,53 @@
+{
+  "cortes": [
+    {"motor":"Q","serie":"war","nombre":"vacío","determinista":true,"repeticiones":[{"ms":1.4898330000000328,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21}}},{"ms":1.440499999999986,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21}}}]},
+    {"motor":"Q","serie":"factory","nombre":"vacío","determinista":true,"repeticiones":[{"ms":1.6222080000000005,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21}}},{"ms":1.5174169999999663,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21}}}]},
+    {"motor":"Q","serie":"war","nombre":"sensor","determinista":true,"repeticiones":[{"ms":68.82483299999996,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21}}},{"ms":67.31124999999997,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21}}}]},
+    {"motor":"Q","serie":"war","nombre":"contador","determinista":true,"repeticiones":[{"ms":6.5985410000000115,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21,"contador":209305}}},{"ms":6.507166999999981,"error":{"type":"error","mensaje":"Presupuesto Q agotado (21).","linea":null},"medida":{"ticks":21,"corte":{"ticks":21,"contador":209305}}}]},
+    {"motor":"P","serie":"war","nombre":"vacío","determinista":true,"repeticiones":[{"ms":113.95183299999997,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"cache":{"arboles":8,"bytesFuente":54667}}},{"ms":89.86670900000001,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"cache":{"arboles":8,"bytesFuente":54667}}}]},
+    {"motor":"P","serie":"factory","nombre":"vacío","determinista":true,"repeticiones":[{"ms":95.49275,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"cache":{"arboles":8,"bytesFuente":54667}}},{"ms":82.11374999999998,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"cache":{"arboles":8,"bytesFuente":54667}}}]},
+    {"motor":"P","serie":"war","nombre":"sensor","determinista":true,"repeticiones":[{"ms":181.78666699999997,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"cache":{"arboles":9,"bytesFuente":54743}}},{"ms":189.91666699999996,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"cache":{"arboles":9,"bytesFuente":54743}}}]},
+    {"motor":"P","serie":"war","nombre":"contador","determinista":true,"repeticiones":[{"ms":113.28374999999983,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":2},"medida":{"nodos":600001,"linea":2,"contador":119921,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}},{"ms":103.22083300000008,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":2},"medida":{"nodos":600001,"linea":2,"contador":119921,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}}]},
+    {"motor":"Q5","serie":"war","nombre":"vacío","determinista":true,"repeticiones":[{"ms":0.9160839999999553,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6}}},{"ms":0.8573330000001533,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6}}}]},
+    {"motor":"Q5","serie":"factory","nombre":"vacío","determinista":true,"repeticiones":[{"ms":0.928707999999915,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6}}},{"ms":0.9477499999998145,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6}}}]},
+    {"motor":"Q5","serie":"war","nombre":"sensor","determinista":true,"repeticiones":[{"ms":19.507790999999997,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6}}},{"ms":19.352957999999944,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6}}}]},
+    {"motor":"Q5","serie":"war","nombre":"contador","determinista":true,"repeticiones":[{"ms":2.2640839999999116,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6,"contador":59305}}},{"ms":2.2392090000000735,"error":{"type":"error","mensaje":"Presupuesto Q agotado (6).","linea":null},"medida":{"ticks":6,"corte":{"ticks":6,"contador":59305}}}]},
+    {"motor":"P50000","serie":"war","nombre":"vacío","determinista":true,"repeticiones":[{"ms":8.980749999999944,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}},{"ms":8.354000000000042,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}}]},
+    {"motor":"P50000","serie":"factory","nombre":"vacío","determinista":true,"repeticiones":[{"ms":8.382499999999936,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}},{"ms":8.654500000000098,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}}]},
+    {"motor":"P50000","serie":"war","nombre":"sensor","determinista":true,"repeticiones":[{"ms":16.078040999999985,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}},{"ms":15.570875000000115,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}}]},
+    {"motor":"P50000","serie":"war","nombre":"contador","determinista":true,"repeticiones":[{"ms":9.58379200000013,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":2},"medida":{"nodos":50001,"linea":2,"contador":9921,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}},{"ms":9.482290999999805,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":2},"medida":{"nodos":50001,"linea":2,"contador":9921,"trabajos":0,"cache":{"arboles":10,"bytesFuente":54835}}}]}
+  ],
+  "errores": [
+    {"motor":"vm","codigo":"noExiste();","errores":[{"type":"error","mensaje":"noExiste is not defined","linea":1}]},
+    {"motor":"vm","codigo":"const x = null;\nx.foo;","errores":[{"type":"error","mensaje":"Cannot read properties of null (reading 'foo')","linea":2}]},
+    {"motor":"vm","codigo":"await esperar(0);","errores":[{"type":"error","mensaje":"esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió 0.","linea":1}]},
+    {"motor":"vm","codigo":"throw new Error(\"fallo deliberado\");","errores":[{"type":"error","mensaje":"fallo deliberado","linea":1}]},
+    {"motor":"Q","codigo":"noExiste();","errores":[{"type":"error","mensaje":"'noExiste' is not defined","linea":1}]},
+    {"motor":"Q","codigo":"const x = null;\nx.foo;","errores":[{"type":"error","mensaje":"cannot read property 'foo' of null","linea":2}]},
+    {"motor":"Q","codigo":"await esperar(0);","errores":[{"type":"error","mensaje":"esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió 0.","linea":1}]},
+    {"motor":"Q","codigo":"throw new Error(\"fallo deliberado\");","errores":[{"type":"error","mensaje":"fallo deliberado","linea":1}]},
+    {"motor":"P","codigo":"noExiste();","errores":[{"type":"error","mensaje":"noExiste is not defined","linea":1}]},
+    {"motor":"P","codigo":"const x = null;\nx.foo;","errores":[{"type":"error","mensaje":"Cannot read properties of null (reading 'foo')","linea":2}]},
+    {"motor":"P","codigo":"await esperar(0);","errores":[{"type":"error","mensaje":"esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió 0.","linea":1}]},
+    {"motor":"P","codigo":"throw new Error(\"fallo deliberado\");","errores":[{"type":"error","mensaje":"fallo deliberado","linea":1}]}
+  ],
+  "pasoAPaso": {
+    "P": {"codigo":"let x = 1;\nx += 2;\nconsole.log(x);\nawait esperar(0.1);\nconsole.log(x + 1);","traza":[{"linea":1,"nodo":"VariableDeclaration"},{"linea":2,"nodo":"ExpressionStatement"},{"linea":3,"nodo":"ExpressionStatement"},{"linea":4,"nodo":"ExpressionStatement"},{"linea":5,"nodo":"ExpressionStatement"}],"mensajes":[{"type":"consola","linea":3,"nivel":"log","texto":"3"},{"type":"espera","id":1,"linea":4,"s":0.1},{"type":"consola","linea":5,"nivel":"log","texto":"4"},{"type":"done"}],"reanudaTrasAwait":true},
+    "semanticaP": {"const":{"valor":2},"tdz":{"error":"x is not defined"},"varFuncion":{"error":"x is not defined"}},
+    "Q": {"disponible":true,"suspenderEnInterrupt":false,"motivo":"La variante release-sync expone interrupción terminal; no expone PC, gancho de línea ni continuación de la pila interrumpida."}
+  },
+  "clonadoDatosPlanos": true,
+  "perfilP50000": {
+    "caso": "factory-limite-sensores",
+    "camposDistintos": ["resultado"],
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pasos": 0,
+    "mensaje": "Presupuesto P agotado (50001).",
+    "linea": 1
+  },
+  "perfilQ5": {
+    "caso": "factory-limite-sensores",
+    "camposDistintos": ["resultado"],
+    "mensaje": "Presupuesto Q agotado (6)."
+  }
+}

@@ -208,6 +208,8 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 
 - Sustituir un Worker por máquina por un intérprete con presupuesto de instrucciones: sin límites de reloj real, con muchas unidades y con ejecución paso a paso.
 - Primero una prueba corta de las dos opciones (intérprete propio sobre el árbol de Acorn, o QuickJS en WebAssembly) con los programas reales del juego; después, la decisión, registrada aquí.
+- **Decisión (17 de noviembre de 2026): intérprete propio sobre Acorn.** Prueba en [docs/qa/interprete-2026-11-17/](qa/interprete-2026-11-17/README.md): los dos motores reproducen las 41 referencias (Factory 28/28, Campaign 12/12 tramos) ejecutando el texto completo del Worker. El propio gana en lo que pide esta fase: puede **suspender en cada línea** (QuickJS en su compilación publicada solo aborta desde la interrupción), es más rápido con 500 unidades (21 frente a 29 ms por turno en War, 71 frente a 165 en Campaign), no reserva memoria WASM por contexto (QuickJS, ~430 KiB por unidad), conserva los mensajes de error de V8 que ve el jugador (Electron y el WebView de Android también son V8) y añade 24 KiB frente a 563 KiB. Sus riesgos y cómo se tratan: semántica incompleta (pruebas diferenciales contra V8 de cada construcción), sin aislamiento (cerrar el camino al `Function` del anfitrión y proteger los objetos intrínsecos compartidos) y coste a escala (también la VM nativa pasa de 16 ms con 500 unidades de Campaign: el coste está en ejecutar la API entera y clonar la instantánea por unidad, no en el motor). Codex recomendaba QuickJS por fidelidad a JavaScript; la decisión se aparta por el paso a paso y la medida.
+- Pasos: (1) prueba corta y decisión; (2) paquete `interprete` (semántica comprobada contra V8, presupuesto, ganchos por línea, cola de promesas propia, aislamiento); (3) el anfitrión ejecuta los programas con el intérprete en el juego y sin pantalla, sin Workers, y el presupuesto sustituye al vigía de 2,5 s; (4) API de confianza en el anfitrión e instantánea compartida, y medida de 500 unidades a paso fijo; (5) ejecución paso a paso en el anfitrión.
 - Hecho cuando: los programas guardados dan los mismos resultados, y una partida con 500 unidades programadas mantiene el paso fijo.
 
 ### Fase 6 · Android
@@ -234,7 +236,7 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 
 ## Decisiones pendientes
 
-- Intérprete propio o QuickJS (fase 5).
+- ~~Intérprete propio o QuickJS (fase 5).~~ Decidido: intérprete propio (véase la fase 5).
 - Si el núcleo corre en un hilo aparte desde la fase 2 o se deja para cuando la medida lo pida.
 - Qué empaquetador usan las cáscaras.
 - Qué hacer con `PROGRESO.md` (189 KB): se propone archivarlo en `docs/historial/` y empezar uno nuevo al cerrar la fase 0. **Sigue pendiente**: la fase 0 no lo archivó para no mover historia sin decisión del autor.
