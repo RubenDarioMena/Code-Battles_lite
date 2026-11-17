@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { guardarMedidas } from './medidas.mjs';
 import os from 'node:os';
 import { crearPrograma as vm } from '../partida/programa.mjs';
-import { crearPrograma as propio } from './propio/index.mjs';
+import { crearPrograma as propio } from './propio-paquete.mjs';
 import { cargarQuickJS, motorQuickJS } from './quickjs.mjs';
 import { escenario, programaWar, programaCampaign } from './escenarios.mjs';
 const MB = 1024 * 1024;
@@ -73,7 +73,8 @@ if (process.argv[2] === '--caso') {
     const salida = execFileSync(process.execPath, ['--expose-gc', new URL(import.meta.url).pathname, '--caso', motor, serie, String(n)],
       { encoding: 'utf8', env: process.env, maxBuffer: 10 * MB });
     const r = JSON.parse(salida); datos.casos.push(r);
+    if (r.errores.length) process.exitCode = 1;
     console.log(`${motor} ${serie} ${n}: ${r.ms.media.toFixed(2)} ms media; p95 ${r.ms.p95.toFixed(2)}; max ${r.ms.max.toFixed(2)}; RSS ${r.memoria.rssMB.toFixed(1)} MiB; arranque ${r.arranque.porUnidadMs.toFixed(2)} ms/u; errores ${r.errores.length}`);
-    guardarMedidas('carga', datos);
+    guardarMedidas('paso-2-carga', datos);
   }
 }

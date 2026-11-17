@@ -18,7 +18,8 @@ Los contratos son orientativos: los nombres definitivos los fija la fase 2.
 | `reglas-factory` | `nucleo`, `protocolo` |
 | `reglas-campaign` | `nucleo`, `protocolo` |
 | `lenguaje` | Nada |
-| `anfitrion` | `nucleo`, `protocolo`, `lenguaje` |
+| `interprete` | Nada (Acorn inyectado por opciones) |
+| `anfitrion` | `nucleo`, `protocolo`, `lenguaje`, `interprete` |
 | `editor` | `lenguaje` |
 | `vfx` | `protocolo` |
 | `vista-2d` | `protocolo`, `vfx` |
@@ -42,7 +43,7 @@ la carpeta `pruebas/` de cada paquete.
 
 ## Entorno y determinismo
 
-En `protocolo`, `nucleo`, `reglas-*`, `lenguaje` y `vfx` no se permiten APIs de
+En `protocolo`, `nucleo`, `reglas-*`, `lenguaje`, `interprete` y `vfx` no se permiten APIs de
 navegador ni Three.js. Deben funcionar en Node sin simulación del navegador.
 La comprobación detecta APIs de navegador: `window`, `document`, almacenamiento web,
 `requestAnimationFrame`, `THREE`, `setTimeout`, `setInterval`, y accesos a
@@ -58,3 +59,5 @@ Forma parte de `npm test`, junto con `pruebas/fronteras-autoprueba.mjs`.
 `--raiz <dir>` permite comprobar otro árbol mínimo con carpeta `paquetes/`.
 Las infracciones salen como `archivo:línea · regla · detalle` y código 1.
 Esta barrera estática no sustituye las pruebas de contratos y paridad del plan.
+
+`interprete` ejecuta ESTree con presupuesto y cola de trabajos propios. Su [contrato](interprete/README.md) incluye aislamiento de intrínsecos, pausas y pruebas contra V8. En fase 5/paso 2 solo lo usan las herramientas; la dependencia permitida de `anfitrion` se activará en el paso 3. El comprobador prohíbe además todo uso de `Date`, `performance` y canceladores de temporizadores en este paquete.

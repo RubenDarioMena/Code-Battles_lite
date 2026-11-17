@@ -3,9 +3,11 @@ import { performance } from 'node:perf_hooks';
 import { guardarMedidas } from './medidas.mjs';
 import { escenario } from './escenarios.mjs';
 import { crearPrograma as vm } from '../partida/programa.mjs';
-import { motorPropio } from './propio/index.mjs';
+import { motorPropio } from './propio-paquete.mjs';
 import { cargarQuickJS, motorQuickJS } from './quickjs.mjs';
-import { Evaluador } from './propio/evaluador.mjs';
+import { crearInterprete } from '../../paquetes/interprete/index.js';
+import { createRequire } from 'node:module';
+const acorn = createRequire(import.meta.url)('../../shared/vendor/acorn-8.11.3.js');
 import { referencias, ejecutarCaso, diferencias } from './corpus.mjs';
 import { codificar, decodificar } from './clon.mjs';
 const Q = await cargarQuickJS();
@@ -78,16 +80,17 @@ for (const [motor, crear] of Object.entries(presupuestados).filter(([m]) => m !=
 }
 // Límites semánticos exploratorios: no se confunden con compatibilidad de las 41 referencias.
 {
-  const e = new Evaluador(); e.reiniciar();
-  assert.equal(e.compilar(['return new Function("n", "return n + 2")(3);'], false)(), 5);
+  const e = crearInterprete({ acorn }); e.reiniciarPresupuesto();
+  assert.equal(e.ejecutar('new Function("n", "return n + 2")(3)'), 5);
   datos.pasoAPaso.semanticaP = {};
   for (const [nombre, codigo] of Object.entries({ const: 'const x=1; x=2; return x;',
     tdz: 'return x; let x=1;', varFuncion: 'if(true){var x=2;} return x;' })) {
-    try { datos.pasoAPaso.semanticaP[nombre] = { valor: e.compilar([codigo], false)() }; }
+    try { datos.pasoAPaso.semanticaP[nombre] = { valor: e.ejecutar(`(function(){${codigo}})()`) }; }
     catch (x) { datos.pasoAPaso.semanticaP[nombre] = { error: x.message }; }
   }
+  e.liberar();
 }
 datos.pasoAPaso.Q = { disponible: !!Q, suspenderEnInterrupt: false,
   motivo: 'La variante release-sync expone interrupción terminal; no expone PC, gancho de línea ni continuación de la pila interrumpida.' };
-guardarMedidas('diagnosticos', datos);
+guardarMedidas('paso-2-diagnosticos', datos);
 console.log('Paso a paso P: líneas 1→2→3→4 (await)→5, salida 3/4 y done comprobados.');

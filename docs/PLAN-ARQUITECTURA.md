@@ -45,7 +45,8 @@ Cada módulo es una carpeta de `paquetes/` con su `README.md` (contrato), su ent
 | `nucleo` | Reloj de paso fijo, RNG con semilla, almacén de entidades, cola de órdenes, registro de sucesos, guardar y restaurar | `protocolo` |
 | `reglas-war`, `reglas-factory`, `reglas-campaign` | Un reglamento por serie: mundo, paso, órdenes, metas y lo que ven los programas | `nucleo`, `protocolo` |
 | `lenguaje` | Léxico, estructura tolerante, traductor de Python, seudocódigo, instrumentación. Sin DOM | Nada |
-| `anfitrion` | Ejecuta los programas del jugador contra un reglamento. Hoy con Web Workers; después con un intérprete determinista | `nucleo`, `protocolo`, `lenguaje` |
+| `interprete` | ESTree de Acorn inyectado, presupuesto, cola propia y pausas; sin integración hasta fase 5/paso 3 | Nada |
+| `anfitrion` | Ejecuta los programas del jugador contra un reglamento. Hoy con Web Workers; después con un intérprete determinista | `nucleo`, `protocolo`, `lenguaje`, `interprete` |
 | `editor` | Editor de código por botones. Se puede montar solo | `lenguaje` |
 | `vfx` | Recetas de efectos y su evaluación sin estado | `protocolo` |
 | `vista-2d`, `vista-3d` | Dibujan el mundo a partir de instantáneas y sucesos | `protocolo`, `vfx` |
@@ -54,7 +55,7 @@ Cada módulo es una carpeta de `paquetes/` con su `README.md` (contrato), su ent
 
 Las cáscaras viven en `cascaras/`: `web` (QA por enlace), `escritorio` (Electron y Steamworks) y `android` (Capacitor). Solo ellas conocen la plataforma: guardado, pantalla completa, logros, nube.
 
-**Prohibido en `protocolo`, `nucleo`, `reglas-*`, `lenguaje` y `vfx`:** `window`, `document`, `performance.now`, `Date.now`, `Math.random`, Three.js y cualquier API de navegador. Deben ejecutarse en Node sin simular nada.
+**Prohibido en `protocolo`, `nucleo`, `reglas-*`, `lenguaje`, `interprete` y `vfx`:** `window`, `document`, `performance.now`, `Date.now`, `Math.random`, Three.js y cualquier API de navegador. Deben ejecutarse en Node sin simular nada.
 
 Una comprobación automática (`pruebas/fronteras`) recorre los imports y falla si alguien cruza una frontera. Forma parte de la verificación habitual.
 
@@ -210,6 +211,7 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 - Primero una prueba corta de las dos opciones (intérprete propio sobre el árbol de Acorn, o QuickJS en WebAssembly) con los programas reales del juego; después, la decisión, registrada aquí.
 - **Decisión (17 de noviembre de 2026): intérprete propio sobre Acorn.** Prueba en [docs/qa/interprete-2026-11-17/](qa/interprete-2026-11-17/README.md): los dos motores reproducen las 41 referencias (Factory 28/28, Campaign 12/12 tramos) ejecutando el texto completo del Worker. El propio gana en lo que pide esta fase: puede **suspender en cada línea** (QuickJS en su compilación publicada solo aborta desde la interrupción), es más rápido con 500 unidades (21 frente a 29 ms por turno en War, 71 frente a 165 en Campaign), no reserva memoria WASM por contexto (QuickJS, ~430 KiB por unidad), conserva los mensajes de error de V8 que ve el jugador (Electron y el WebView de Android también son V8) y añade 24 KiB frente a 563 KiB. Sus riesgos y cómo se tratan: semántica incompleta (pruebas diferenciales contra V8 de cada construcción), sin aislamiento (cerrar el camino al `Function` del anfitrión y proteger los objetos intrínsecos compartidos) y coste a escala (también la VM nativa pasa de 16 ms con 500 unidades de Campaign: el coste está en ejecutar la API entera y clonar la instantánea por unidad, no en el motor). Codex recomendaba QuickJS por fidelidad a JavaScript; la decisión se aparta por el paso a paso y la medida.
 - Pasos: (1) prueba corta y decisión; (2) paquete `interprete` (semántica comprobada contra V8, presupuesto, ganchos por línea, cola de promesas propia, aislamiento); (3) el anfitrión ejecuta los programas con el intérprete en el juego y sin pantalla, sin Workers, y el presupuesto sustituye al vigía de 2,5 s; (4) API de confianza en el anfitrión e instantánea compartida, y medida de 500 unidades a paso fijo; (5) ejecución paso a paso en el anfitrión.
+- **Paso 2 implementado (17 de noviembre de 2026):** `paquetes/interprete`, sin integración; contrato, diferencial (140 fragmentos + 80 programas reales), presupuesto, pausas, cola propia y fachadas de intrínsecos. Ver [informe Paso 2](qa/interprete-2026-11-17/README.md#paso-2--paquete-interprete-17-de-noviembre-de-2026). La integración permanece en el paso 3; el aumento de memoria y el coste a 500 unidades siguen pendientes.
 - Hecho cuando: los programas guardados dan los mismos resultados, y una partida con 500 unidades programadas mantiene el paso fijo.
 
 ### Fase 6 · Android

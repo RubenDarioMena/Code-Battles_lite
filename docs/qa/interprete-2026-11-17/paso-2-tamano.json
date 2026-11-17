@@ -1,0 +1,11 @@
+{
+  "juegoActualBytes": 0,
+  "P": {
+    "bytes": 88183,
+    "gzipBytes": 27329,
+    "archivos": [{"archivo":"herramientas/espina-interprete/canal.mjs","bytes":2009,"gzipBytes":949},{"archivo":"herramientas/espina-interprete/propio-paquete.mjs","bytes":1847,"gzipBytes":823},{"archivo":"paquetes/interprete/analisis.js","bytes":2149,"gzipBytes":911},{"archivo":"paquetes/interprete/clases-rapido.js","bytes":5460,"gzipBytes":1864},{"archivo":"paquetes/interprete/clases.js","bytes":5375,"gzipBytes":1805},{"archivo":"paquetes/interprete/entorno.js","bytes":3505,"gzipBytes":1144},{"archivo":"paquetes/interprete/expresiones-rapido.js","bytes":11073,"gzipBytes":3026},{"archivo":"paquetes/interprete/expresiones.js","bytes":11384,"gzipBytes":3000},{"archivo":"paquetes/interprete/funciones.js","bytes":6904,"gzipBytes":2247},{"archivo":"paquetes/interprete/index.js","bytes":6627,"gzipBytes":2278},{"archivo":"paquetes/interprete/intrinsecos.js","bytes":12245,"gzipBytes":3211},{"archivo":"paquetes/interprete/promesa.js","bytes":4814,"gzipBytes":1629},{"archivo":"paquetes/interprete/sentencias-rapido.js","bytes":7337,"gzipBytes":2231},{"archivo":"paquetes/interprete/sentencias.js","bytes":7454,"gzipBytes":2211}]
+  },
+  "Q": {
+    "omitido": "Falta CBL_QUICKJS"
+  }
+}

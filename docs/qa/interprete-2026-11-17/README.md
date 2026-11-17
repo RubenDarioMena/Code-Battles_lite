@@ -243,3 +243,79 @@ Ejecutado: npm test **60/60**, npm run tipos limpio, node pruebas/fronteras.mjs
 de los dos adaptadores modificados; comparar.mjs con Q/P/VM, carga.mjs y diagnosticos.mjs
 con Q disponible. Sin navegador: no cambia interacción, dibujo ni arranque del juego;
 la integración con WebView/Electron no pertenece a esta prueba sin pantalla.
+
+## Paso 2 · paquete `interprete` (17 de noviembre de 2026)
+
+Esta sección es la verificación actual del paquete. Las cifras, límites y recomendaciones
+anteriores se conservan como evidencia histórica del paso 1; P ya no usa `propio/`.
+No hay integración en el juego/anfitrión, dependencias nuevas, red, commits ni publicación.
+No se modificaron PROGRESO.md, las referencias, las reglas, la API, el guardado ni los textos.
+
+- Paquete `@cbl/interprete`, [contrato](../../../paquetes/interprete/README.md), entrada ES y `.d.ts`;
+  Acorn inyectado, sin imports externos ni dependencias entre paquetes. El anfitrión tiene
+  permiso de frontera para importarlo en el paso 3, pero todavía no lo importa.
+- **140 fragmentos diferenciales** contra V8: valor, traza y tipo/mensaje de excepción.
+  Ámbitos/TDZ/const/elevación, cierres por iteración, etiquetas/switch/finally, objetos,
+  clases/super/campos privados, generadores y cierre, async flecha, opcionales/this,
+  plantillas, operadores, arguments, parámetros, desestructuración e iteradores.
+  Las trazas de promesas contrastan await, thenables, cadenas intercaladas, los seis
+  combinadores/métodos estáticos y queueMicrotask. La cola es propia, sin microtareas de V8.
+- **80 programas reales**, **17 traducidos de Python** con el traductor actual: iniciales
+  de las tres series, casos del oráculo y soluciones existentes. Ejecutan el Worker íntegro
+  y hasta tres reanudaciones sintéticas; comparan mensajes y errores. Además, `comparar.mjs`
+  conserva **41/41**, **Factory 28/28**, **Campaign 2/2 y 12/12 tramos** completos.
+- **339 comprobaciones de aislamiento**: constructores/prototipos, reflexión, descriptores,
+  getters, métodos heredados y proxies. Mutaciones comparadas con V8 estricto sobre
+  intrínsecos congelados; se verifica que los intrínsecos del proceso siguen intactos.
+  Las fachadas locales materializan propiedades al usarlas, sin congelar originales.
+  Function/AsyncFunction/GeneratorFunction compilan con Acorn y un global local.
+- Presupuesto: nodos y llamadas nativas, corte terminal repetible, incluido getter sin
+  órdenes y cola infinita. Pausas por sentencia async, reanudación con cierres, `loc`,
+  caché LRU acotada, compilación dinámica y liberación ejecutadas en las pruebas.
+  Los errores normales usan `linea` y pila sintética; **no** se les añade `__linea`,
+  porque `__py.mensaje` la reserva a errores de API. Esto mantiene mensajes Python.
+- Se rechazan módulos/import(), with, async generators y for await. Date/eval no están
+  disponibles y Math.random no es utilizable. Acorn conserva sus diagnósticos sintácticos;
+  no se promete igualdad de mensajes de sintaxis con V8 ni certificación Test262.
+
+### Carga P, antes y después
+
+Mismo Apple M1/Node y protocolo del paso 1: Worker completo, 120 cesiones virtuales,
+100 muestras tras descartar 20, GC, un proceso por celda, sin otras suites en paralelo.
+**Node real**, sin emulación ni pruebas de Electron/WebView/Android. Los valores «antes»
+son los del paso 1 publicados arriba, no las pasadas de desarrollo de este paso.
+Todas las celdas actuales terminaron con cero errores. VM también se volvió a medir;
+las doce celdas y muestras completas están en [paso-2-carga.json](paso-2-carga.json).
+
+| P/serie | Unidades | Media antes → ahora ms | p95 antes → ahora | Máx. ahora | RSS antes → ahora MiB | Arranque antes → ahora ms/u |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| war | 50 | 1.99 → 1.63 | 6.82 → 5.17 | 8.02 | 131.67 → 131.19 | 1.77 → 1.94 |
+| war | 200 | 8.17 → 6.75 | 27.94 → 21.87 | 34.44 | 210.58 → 265.23 | 0.78 → 1.06 |
+| war | 500 | 20.97 → 17.12 | 68.25 → 56.61 | 69.27 | 289.70 → 539.94 | 0.64 → 0.81 |
+| campaign | 50 | 6.50 → 5.88 | 24.85 → 23.29 | 36.84 | 185.42 → 222.08 | 7.02 → 4.59 |
+| campaign | 200 | 27.33 → 23.14 | 106.60 → 85.97 | 120.23 | 245.16 → 402.39 | 6.09 → 3.20 |
+| campaign | 500 | 70.82 → 60.14 | 283.27 → 220.52 | 319.32 | 367.95 → 710.14 | 5.90 → 3.06 |
+
+El recorrido recursivo evita generadores en código sin suspensiones y los índices de
+ámbitos se calculan una sola vez por árbol. Con 500 unidades, la media mejora ~18 %
+en War y ~15 % en Campaign; el p95 también mejora. El arranque de War sube ligeramente;
+las cifras de 50 unidades incluyen más calentamiento y no son latencia fría garantizada.
+La memoria empeora: las fachadas y ámbitos locales elevan el heap retenido a **112/145 MiB**
+y el RSS a **540/710 MiB**, frente a 43/60 de heap y 290/368 de RSS en el paso 1.
+RSS incluye arenas de V8 y no se debe sumar al heap ni interpretar como coste exacto por unidad.
+
+**Riesgos para el paso 3:** aún no cabe en 16 ms con 500 unidades; Campaign tampoco en
+50 ms de media. Las fachadas por motor requieren reducir memoria antes de fijar capacidad.
+El presupuesto de 600 000 incluye el Worker entero y sigue siendo alto para una guardia
+interactiva: separar la API de confianza e instantáneas compartidas sigue siendo el paso 4.
+Una llamada nativa (regex/JSON/array) puede consumir mucha CPU/memoria sin ceder; esto no es
+un sandbox para código hostil. Getters, traps y callbacks síncronos no se suspenden dentro
+de una pila nativa. El corpus es evidencia de los casos enumerados, no de todo ECMAScript.
+
+Verificación actual: **npm test 64/64**, `npm run tipos`, fronteras **169 archivos / 14
+paquetes**, autoprueba **80 infracciones esperadas**, `node --check` de fuentes nuevas y
+modificadas, comparar, diagnosticos, carga y tamano. Sin navegador: no cambia arranque,
+interacción ni dibujo del juego. No se ejecutaron pruebas de Godot.
+Resultados: [paso-2-compatibilidad.json](paso-2-compatibilidad.json),
+[paso-2-diagnosticos.json](paso-2-diagnosticos.json), [paso-2-tamano.json](paso-2-tamano.json)
+y [paso-2-salida.txt](paso-2-salida.txt).

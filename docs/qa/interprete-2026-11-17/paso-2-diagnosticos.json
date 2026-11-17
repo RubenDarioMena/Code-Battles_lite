@@ -1,0 +1,36 @@
+{
+  "cortes": [
+    {"motor":"P","serie":"war","nombre":"vacío","determinista":true,"repeticiones":[{"ms":50.520959000000005,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":8,"caracteres":54681},"liberado":true}},{"ms":44.24466699999999,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":8,"caracteres":54681},"liberado":true}}]},
+    {"motor":"P","serie":"factory","nombre":"vacío","determinista":true,"repeticiones":[{"ms":33.915250000000015,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":8,"caracteres":54681},"liberado":true}},{"ms":34.067916999999966,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":8,"caracteres":54681},"liberado":true}}]},
+    {"motor":"P","serie":"war","nombre":"sensor","determinista":true,"repeticiones":[{"ms":180.70608299999998,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":9,"caracteres":54767},"liberado":true}},{"ms":181.9007919999999,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":1},"medida":{"nodos":600001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":9,"caracteres":54767},"liberado":true}}]},
+    {"motor":"P","serie":"war","nombre":"contador","determinista":true,"repeticiones":[{"ms":120.72475000000009,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":2},"medida":{"nodos":600001,"linea":2,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true,"contador":119915}},{"ms":115.484917,"error":{"type":"error","mensaje":"Presupuesto P agotado (600001).","linea":2},"medida":{"nodos":600001,"linea":2,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true,"contador":119915}}]},
+    {"motor":"P50000","serie":"war","nombre":"vacío","determinista":true,"repeticiones":[{"ms":3.4540000000000646,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true}},{"ms":3.4244169999999485,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true}}]},
+    {"motor":"P50000","serie":"factory","nombre":"vacío","determinista":true,"repeticiones":[{"ms":3.538708999999926,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true}},{"ms":3.5509170000000267,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true}}]},
+    {"motor":"P50000","serie":"war","nombre":"sensor","determinista":true,"repeticiones":[{"ms":10.439499999999953,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true}},{"ms":18.345374999999876,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":1},"medida":{"nodos":50001,"linea":1,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true}}]},
+    {"motor":"P50000","serie":"war","nombre":"contador","determinista":true,"repeticiones":[{"ms":10.373708000000079,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":2},"medida":{"nodos":50001,"linea":2,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true,"contador":9915}},{"ms":9.425167000000101,"error":{"type":"error","mensaje":"Presupuesto P agotado (50001).","linea":2},"medida":{"nodos":50001,"linea":2,"trabajos":0,"pausas":0,"cache":{"arboles":10,"caracteres":54869},"liberado":true,"contador":9915}}]}
+  ],
+  "errores": [
+    {"motor":"vm","codigo":"noExiste();","errores":[{"type":"error","mensaje":"noExiste is not defined","linea":1}]},
+    {"motor":"vm","codigo":"const x = null;\nx.foo;","errores":[{"type":"error","mensaje":"Cannot read properties of null (reading 'foo')","linea":2}]},
+    {"motor":"vm","codigo":"await esperar(0);","errores":[{"type":"error","mensaje":"esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió 0.","linea":1}]},
+    {"motor":"vm","codigo":"throw new Error(\"fallo deliberado\");","errores":[{"type":"error","mensaje":"fallo deliberado","linea":1}]},
+    {"motor":"P","codigo":"noExiste();","errores":[{"type":"error","mensaje":"noExiste is not defined","linea":1}]},
+    {"motor":"P","codigo":"const x = null;\nx.foo;","errores":[{"type":"error","mensaje":"Cannot read properties of null (reading 'foo')","linea":2}]},
+    {"motor":"P","codigo":"await esperar(0);","errores":[{"type":"error","mensaje":"esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió 0.","linea":1}]},
+    {"motor":"P","codigo":"throw new Error(\"fallo deliberado\");","errores":[{"type":"error","mensaje":"fallo deliberado","linea":1}]}
+  ],
+  "pasoAPaso": {
+    "P": {"codigo":"let x = 1;\nx += 2;\nconsole.log(x);\nawait esperar(0.1);\nconsole.log(x + 1);","traza":[{"linea":1,"nodo":"VariableDeclaration"},{"linea":2,"nodo":"ExpressionStatement"},{"linea":3,"nodo":"ExpressionStatement"},{"linea":4,"nodo":"ExpressionStatement"},{"linea":5,"nodo":"ExpressionStatement"}],"mensajes":[{"type":"consola","linea":3,"nivel":"log","texto":"3"},{"type":"espera","id":1,"linea":4,"s":0.1},{"type":"consola","linea":5,"nivel":"log","texto":"4"},{"type":"done"}],"reanudaTrasAwait":true},
+    "semanticaP": {"const":{"error":"Assignment to constant variable."},"tdz":{"error":"Cannot access 'x' before initialization"},"varFuncion":{"valor":2}},
+    "Q": {"disponible":false,"suspenderEnInterrupt":false,"motivo":"La variante release-sync expone interrupción terminal; no expone PC, gancho de línea ni continuación de la pila interrumpida."}
+  },
+  "clonadoDatosPlanos": true,
+  "perfilP50000": {
+    "caso": "factory-limite-sensores",
+    "camposDistintos": ["resultado"],
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pasos": 0,
+    "mensaje": "Presupuesto P agotado (50001).",
+    "linea": 1
+  }
+}

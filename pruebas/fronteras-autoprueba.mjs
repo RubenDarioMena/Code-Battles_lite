@@ -15,6 +15,9 @@ const esperadas = [
   ['reglas-factory/entorno.js', 'entorno', 1],
   ['reglas-campaign/entorno.js', 'entorno', 1],
   ['lenguaje/entorno.js', 'entorno', 1],
+  ['interprete/entorno.js', 'entorno', 9],
+  ['interprete/rutas.js', 'import-dependencia', 1],
+  ['interprete/rutas.js', 'import-desnudo', 1],
   ['vfx/entorno.js', 'entorno', 5],
   ['nucleo/rutas.js', 'import-ruta', 4],
   ['reglas-war/pruebas/rutas.mjs', 'import-ruta', 2],
@@ -43,6 +46,11 @@ const raiz = await mkdtemp(join(tmpdir(), 'cbl-fronteras-'));
 let resultado;
 try {
   await cp(casos, raiz, { recursive: true });
+  await mkdir(join(raiz, 'paquetes/interprete'), { recursive: true });
+  await mkdir(join(raiz, 'paquetes/anfitrion'), { recursive: true });
+  await writeFile(join(raiz, 'paquetes/interprete/entorno.js'), 'window; document; setTimeout(f); setInterval(f); Date; performance; Math.random(); clearTimeout(1); clearInterval(1);');
+  await writeFile(join(raiz, 'paquetes/interprete/rutas.js'), "import '../lenguaje/index.js'; import 'node:vm';");
+  await writeFile(join(raiz, 'paquetes/anfitrion/interprete.js'), "import '../interprete/index.js';");
   await mkdir(join(raiz, 'paquetes/vista-3d/pruebas'), { recursive: true });
   await writeFile(join(raiz, 'paquetes/vista-3d/pruebas/vendor.mjs'), `
     import '../../../shared/vendor/three-r180/three.module.min.js';

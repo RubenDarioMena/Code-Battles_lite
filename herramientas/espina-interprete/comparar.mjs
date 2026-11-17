@@ -2,7 +2,7 @@ import { performance } from 'node:perf_hooks';
 import { isDeepStrictEqual } from 'node:util';
 import { guardarMedidas } from './medidas.mjs';
 import { crearPrograma as vm } from '../partida/programa.mjs';
-import { crearPrograma as propio } from './propio/index.mjs';
+import { crearPrograma as propio } from './propio-paquete.mjs';
 import { cargarQuickJS, motorQuickJS } from './quickjs.mjs';
 import { referencias, ejecutarCaso, diferencias } from './corpus.mjs';
 export async function comparar() {
@@ -30,7 +30,10 @@ export async function comparar() {
       ms: performance.now() - t, casos };
     console.log(`${motor}: ${resultados[motor].iguales}/41; Factory ${resultados[motor].factory.iguales}/28; Campaign ${resultados[motor].campaign.iguales}/2; ${Math.round(resultados[motor].ms)} ms`);
   }
-  guardarMedidas('compatibilidad', resultados);
+  guardarMedidas('paso-2-compatibilidad', resultados);
   return resultados;
 }
-if (process.argv[1] === new URL(import.meta.url).pathname) await comparar();
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  const resultados = await comparar();
+  if (Object.values(resultados).some(r => r.iguales !== r.total)) process.exitCode = 1;
+}

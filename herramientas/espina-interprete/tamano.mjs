@@ -10,7 +10,8 @@ function medir(archivos) {
   return { bytes: datos.reduce((s, a) => s + a.bytes, 0), gzipBytes: datos.reduce((s, a) => s + a.gzipBytes, 0), archivos: datos };
 }
 const base = resolve(raiz, 'herramientas/espina-interprete');
-const P = medir([resolve(base, 'canal.mjs'), ...readdirSync(resolve(base, 'propio')).filter(f => f.endsWith('.mjs')).map(f => resolve(base, 'propio', f))]);
+const paquete = resolve(raiz, 'paquetes/interprete');
+const P = medir([resolve(base, 'canal.mjs'), resolve(base, 'propio-paquete.mjs'), ...readdirSync(paquete).filter(f => f.endsWith('.js')).map(f => resolve(paquete, f))]);
 const datos = { juegoActualBytes: 0, P, Q: { omitido: 'Falta CBL_QUICKJS' } };
 if (process.env.CBL_QUICKJS) {
   const externo = process.env.CBL_QUICKJS;
@@ -25,5 +26,5 @@ if (process.env.CBL_QUICKJS) {
   datos.Q = medir(paths);
   datos.Q.puentePrototipo = medir(['quickjs.mjs', 'canal.mjs', 'clon.mjs'].map(f => resolve(base, f)));
 }
-guardarMedidas('tamano', datos);
+guardarMedidas('paso-2-tamano', datos);
 console.log(JSON.stringify(datos, null, 2));

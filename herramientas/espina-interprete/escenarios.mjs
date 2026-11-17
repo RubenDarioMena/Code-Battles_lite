@@ -12,7 +12,7 @@ export function escenario(serie = 'war') {
   const propia = mundo.programables[0].id;
   const nombres = (serie === 'campaign' ? mundo.unidades : serie === 'factory' ? mundo.maquinas : [...mundo.programables, ...mundo.sensores]).map(x => x.id);
   const lenguaje = crearInstrumentador(sesion.contexto, mundo, serie);
-  return { fuente: sesion.fuenteWorker, snap, propia,
+  return { fuente: sesion.fuenteWorker, snap, propia, lenguaje,
     mensaje(codigo) { return { type: 'run', serie, lenguaje: 'js', propia, nombres,
       tipos: Object.keys(war.api.tipos), sensores: Object.keys(war.api.sensores), conf: war.api.conf,
       snap, codigo: lenguaje.instrumentar(codigo) }; } };

@@ -9,7 +9,7 @@ const dependencias = {
   'reglas-war': ['nucleo', 'protocolo'],
   'reglas-factory': ['nucleo', 'protocolo'],
   'reglas-campaign': ['nucleo', 'protocolo'],
-  lenguaje: [], anfitrion: ['nucleo', 'protocolo', 'lenguaje'],
+  lenguaje: [], interprete: [], anfitrion: ['nucleo', 'protocolo', 'lenguaje', 'interprete'],
   editor: ['lenguaje'], vfx: ['protocolo'],
   'vista-2d': ['protocolo', 'vfx'], 'vista-3d': ['protocolo', 'vfx'],
   interfaz: ['protocolo', 'editor'], app: [],
@@ -18,7 +18,7 @@ dependencias.app = Object.keys(dependencias).filter(nombre => nombre !== 'app');
 // Especificadores exactos: no autorizan subrutas ni paquetes homónimos.
 const terceros = { three: ['vista-3d'], acorn: ['lenguaje'], '@lezer/python': ['lenguaje'] };
 const puros = new Set(['protocolo', 'nucleo', 'reglas-war', 'reglas-factory',
-  'reglas-campaign', 'lenguaje', 'vfx']);
+  'reglas-campaign', 'lenguaje', 'interprete', 'vfx']);
 const identificadores = new Set(['window', 'document', 'localStorage',
   'requestAnimationFrame', 'THREE', 'setTimeout', 'setInterval']);
 const metodos = new Set(['performance.now', 'Date.now', 'Math.random']);
@@ -147,7 +147,8 @@ async function principal() {
       if (nodo.type === 'CallExpression' && nodo.callee.type === 'Identifier' && nodo.callee.name === 'require')
         revisarImport(nodo, nodo.arguments[0]?.type === 'Literal' ? nodo.arguments[0].value : undefined);
       if (puro) {
-        if (nodo.type === 'Identifier' && identificadores.has(nodo.name)
+        if (nodo.type === 'Identifier' && (identificadores.has(nodo.name)
+          || paquete === 'interprete' && ['Date', 'performance', 'clearTimeout', 'clearInterval'].includes(nodo.name))
           && !esNombreDePropiedad(nodo, padre, clave)) informar(nodo, 'entorno', nodo.name);
         if (nodo.type === 'MemberExpression' && nodo.object.type === 'Identifier') {
           const acceso = `${nodo.object.name}.${propiedad(nodo)}`;
