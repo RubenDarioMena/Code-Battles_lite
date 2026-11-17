@@ -333,6 +333,8 @@ def componer(vista, escena, zesc, est, guion, cfg, modo):
     luz = np.zeros((h, w, 3), np.float32)
     # Penumbra: el escenario baja de exposición mientras el arma carga y dispara.
     penumbra = lz["penumbra"] * (min(1.0, pot) if est["emite"] else 0.6 * est["carga"] ** 2)
+    if t >= guion.t_corte:  # vuelve la luz poco a poco, no de golpe
+        penumbra = lz["penumbra"] * math.exp(-(t - guion.t_corte) / 0.25)
     escena = escena * (1 - penumbra)
     out = escena.copy()
     o = vista.mat[:3, 3]
