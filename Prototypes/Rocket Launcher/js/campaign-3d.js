@@ -431,6 +431,39 @@
     function centrar(x, y) { cam.x = x + Math.sin(cam.yaw); cam.z = y + Math.cos(cam.yaw); cam.dist = Math.min(cam.dist, 16); moverCamara(); }
     function recentrar() { Object.assign(cam, cam0); camActual.movida = false; }
     // Vista general del campo de batalla, con la muralla a la izquierda.
+    // Encuadra varias unidades (selector de unidades del código): centro de su caja y distancia que las abarca.
+    function abarcar(puntos) {
+      if (!cam || !puntos.length) return;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const [x, y] of puntos) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      const ext = Math.max(x1 - x0, (y1 - y0) * Math.max(1, camara.aspect));
+      cam.x = (x0 + x1) / 2; cam.z = (y0 + y1) / 2;
+      cam.dist = Math.min(ZOOM[1], Math.max(14, (ext * 1.35 + 10) / Math.min(1, Math.max(.5, camara.aspect))));
+      moverCamara();
+    }
+    // Retrato 3D de una unidad para su ficha completa: una copia del modelo que gira en su propio lienzo.
+    // Devuelve la función que lo detiene y libera el contexto WebGL.
+    function retratoUnidad(id, lienzo) {
+      const o = objetos.get(id); if (!o || !lienzo) return null;
+      let r2;
+      try { r2 = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true }); } catch { return null; }
+      r2.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+      const w = lienzo.clientWidth || lienzo.width, h = lienzo.clientHeight || lienzo.height;
+      r2.setSize(w, h, false);
+      const esc2 = new THREE.Scene(), cam2 = new THREE.PerspectiveCamera(32, w / h, .1, 100);
+      esc2.add(new THREE.HemisphereLight(0xffffff, 0x8a9488, .9));
+      const luz = new THREE.DirectionalLight(0xffffff, .7); luz.position.set(-4, 8, 5); esc2.add(luz);
+      const copia = o.grupo.clone(true); copia.position.set(0, 0, 0); copia.rotation.set(0, 0, 0);
+      const caja3 = new THREE.Box3().setFromObject(copia), centro = caja3.getCenter(new THREE.Vector3()), tam = caja3.getSize(new THREE.Vector3());
+      copia.position.sub(new THREE.Vector3(centro.x, caja3.min.y, centro.z));
+      const pivote = new THREE.Group(); pivote.add(copia); esc2.add(pivote);
+      const radio = Math.max(tam.x, tam.y, tam.z) || 1;
+      cam2.position.set(0, radio * .9 + tam.y * .3, radio * 2.1); cam2.lookAt(0, tam.y * .45, 0);
+      let raf = 0, vivo = true;
+      const girarCopia = (t) => { if (!vivo) return; pivote.rotation.y = t * .0006; r2.render(esc2, cam2); raf = requestAnimationFrame(girarCopia); };
+      raf = requestAnimationFrame(girarCopia);
+      return () => { vivo = false; cancelAnimationFrame(raf); r2.dispose(); if (r2.forceContextLoss) r2.forceContextLoss(); };
+    }
     function verCampo() { Object.assign(cam, { yaw: 0, pitch: .95, dist: camara.aspect < 1.25 ? 150 : 105, x: 138, z: 58 }); moverCamara(); }
     const canvas = $("c3d"), punteros = new Map();
     let gesto = null;
@@ -473,7 +506,7 @@
       colocarCamara(); const despues = suelo(px, py, w, h);
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
-    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato: () => null, batalla, verCampo,
+    return { construir, actualizar, render, tamano, proyectar, elegir, suelo, centrar, recentrar, anillosDe, aplicarColores, girar, retrato: () => null, batalla, verCampo, abarcar, retratoUnidad,
       camara: () => ({ clave: camActual && camActual.k, ...cam, piel }), terreno: T };
   }
   window.CAMPAIGN_3D = { crear };

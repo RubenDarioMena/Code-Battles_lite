@@ -124,6 +124,15 @@
       for (const id of estado.seleccionadas) { const e = m.porId[id]; if (!e || !e.presente) continue; g.strokeStyle = col.sel; g.lineWidth = 2; g.beginPath(); g.arc(X(e.cx), Y(e.cy), radioDe(e) * S, 0, 7); g.stroke(); }
     }
     dibujar.recentrar = () => { vista = null; };
+    // Encuadra varias unidades (selector de unidades del código).
+    dibujar.abarcar = (puntos) => {
+      if (!puntos.length) return;
+      if (!vista) vista = inicial();
+      const xs = puntos.map(p => p[0]), ys = puntos.map(p => p[1]);
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      vista.cx = (x0 + x1) / 2; vista.cy = (y0 + y1) / 2;
+      vista.T = Math.min(w / (x1 - x0 + 14), h / (y1 - y0 + 12), 24); limitar();
+    };
     return dibujar;
   }
   window.CAMPAIGN_PLANO = { crear };

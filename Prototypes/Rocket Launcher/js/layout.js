@@ -324,7 +324,11 @@
   // o el botón ▾/▴ lo cierra o lo recupera con su último alto. Alto y contenido se guardan por forma.
   const pie = $("pie"), pieCuerpo = $("pie-cuerpo"), pieBarra = $("pie-barra"), pieAgarre = $("pie-agarre"), bPie = $("b-pie");
   const PIE = { escritorio: 170, movil: 0 }, PIE_ABRIR = { escritorio: 170, movil: 130 }, PIE_MIN = 48;
-  let pieModo = leer("pie-modo", "inspector") === "consola" ? "consola" : "inspector";
+  // Campaign suma «objetivo» (campaign-hud.js) y empieza por él.
+  const ES_CAMPAIGN = document.documentElement.dataset.serie === "campaign";
+  const MODOS_PIE = ES_CAMPAIGN ? ["objetivo", "inspector", "consola"] : ["inspector", "consola"];
+  let pieModo = leer(ES_CAMPAIGN ? "pie-modo-campaign" : "pie-modo", MODOS_PIE[0]);
+  if (!MODOS_PIE.includes(pieModo)) pieModo = MODOS_PIE[0];
   const numero = (v, d) => Number.isFinite(Number(v)) ? Number(v) : d;
   const altoPie = () => Math.max(0, numero(leer(`pie-alto-${forma}`, PIE[forma]), PIE[forma]));
   const altoActual = () => pie.dataset.abierto === "true" ? pieCuerpo.getBoundingClientRect().height : 0;
@@ -385,7 +389,7 @@
   bPie.addEventListener("click", () => abrirPie(pie.dataset.abierto !== "true"));
   pie.querySelector(".pie-modos").addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-pie-modo]"); if (!b) return;
-    pieModo = b.dataset.pieModo; escribir("pie-modo", pieModo);
+    pieModo = b.dataset.pieModo; escribir(ES_CAMPAIGN ? "pie-modo-campaign" : "pie-modo", pieModo);
     if (pie.dataset.abierto !== "true") abrirPie(true); else aplicarPie(altoActual());
   });
   let piePulso = null;
@@ -443,7 +447,8 @@
   // El divisor sigue funcionando; esos botones vuelven a llevar a pantalla completa.
   const MANTENER_MS = 2000;
   const gruesa = matchMedia("(pointer: coarse)");
-  let pantallaActiva = leer("pantalla-completa", false) === true, panelFS = "mapa";
+  // Campaign en el teléfono empieza con la pantalla completa (se puede quitar como siempre, manteniendo el botón).
+  let pantallaActiva = leer(ES_CAMPAIGN ? "pantalla-completa-campaign" : "pantalla-completa", ES_CAMPAIGN && decidirForma() === "movil") === true, panelFS = "mapa";
   const pantallaPermitida = () => forma === "movil" || innerWidth <= 1100 || (gruesa.matches && innerWidth <= 1400);
   const pantallaEfectiva = () => pantallaActiva && pantallaPermitida();
   // Reparto al cambiar de forma: el panel a pantalla completa, o el guardado.
@@ -521,7 +526,7 @@
   });
   function alternarPantalla() {
     pantallaActiva = !pantallaActiva;
-    escribir("pantalla-completa", pantallaActiva);
+    escribir(ES_CAMPAIGN ? "pantalla-completa-campaign" : "pantalla-completa", pantallaActiva);
     aplicarPantalla();
     if (pantallaActiva) { verPanel("mapa"); avisoPantalla("activado", true); }
     else { panelFS = "mapa"; aplicarReparto(leer(claveReparto(), REPARTO[forma])); avisoPantalla("desactivado"); }
@@ -598,16 +603,18 @@
   $menu.setAttribute("role", "menu"); $menu.setAttribute("aria-label", t("disposicion.menu.aria_label"));
   document.body.append($menu);
   const $bMenu = $("b-menu-cod");
+  // La serie puede cambiar las entradas (Campaign en el escritorio: pantallas del panel del código).
+  const entradasMenu = () => window.cmg && typeof window.cmg.menu === "function" ? window.cmg.menu(MENU) : MENU;
   function pintarTextosMenu() {
     $menu.setAttribute("aria-label", t("disposicion.menu.aria_label"));
-    for (const m of MENU) {
+    for (const m of entradasMenu()) {
       const etiqueta = $menu.querySelector(`[data-menu="${m.id}"] span`);
       if (etiqueta) etiqueta.textContent = m.t();
     }
   }
   function pintarMenu() {
     const actual = zonaCodigo.dataset.pestana || "programa";
-    const botones = MENU.filter(m => !m.ver || m.ver()).map(m => {
+    const botones = entradasMenu().filter(m => !m.ver || m.ver()).map(m => {
       const esPestana = !m.fn, encendido = esPestana ? m.id === actual : m.activo ? m.activo() : false;
       const boton = document.createElement("button");
       boton.type = "button";
@@ -618,7 +625,7 @@
       if (esPestana && encendido) boton.setAttribute("aria-current", "page");
       if (m.activo) boton.setAttribute("aria-pressed", String(encendido));
       // El HTML del icono es una constante local; todo texto visible se asigna como texto plano.
-      boton.innerHTML = svg(ICO_MENU[m.id]);
+      boton.innerHTML = m.ico || svg(ICO_MENU[m.id]);
       const etiqueta = document.createElement("span");
       etiqueta.textContent = m.t();
       boton.append(etiqueta);
@@ -646,7 +653,7 @@
   $menu.addEventListener("pointerdown", (ev) => ev.preventDefault());
   $menu.addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-menu]"); if (!b) return;
-    const m = MENU.find(x => x.id === b.dataset.menu);
+    const m = entradasMenu().find(x => x.id === b.dataset.menu);
     abrirMenu(false);
     if (m.fn) m.fn(); else $(`t-${m.id}`).click();
   });

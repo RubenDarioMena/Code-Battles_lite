@@ -392,7 +392,7 @@
     ejec = null;
     pausa = false;
     if (mundo) { mundo.activo = false; if (ES_FACTORY) mundo.robot.tarea = null; }
-    if (ES_CAMPAIGN && campana) { campana.cancelarTareas(); campana.soltarLuces(); }
+    if (ES_CAMPAIGN && campana) { campana.cancelarTareas(); campana.soltarLuces(); manual.clear(); }
   }
 
   function terminar(resultado, motivo, texto, linea, idProg) {
@@ -646,7 +646,9 @@
       const elegido = largo.id;
       arrastreCampo.ficha = true;
       cancelarLargo(); seleccionar([elegido], { inspeccionar: false });
-      ponerInspector("abierto");
+      if (hud && hud.escritorio()) hud.abrirFicha(elegido);
+      else if (fichaEnHoja()) abrirFichaHoja();
+      else ponerInspector("abierto");
       if (navigator.vibrate) navigator.vibrate(12);
     }, LARGO_MS);
     const tick = (now) => {
@@ -852,6 +854,14 @@
   const marca = (estado) => `<i class="marca ${estado}" aria-hidden="true"></i>`;
   const num = (v) => Number.isInteger(v) ? String(v) : coma(v);
   const INFO = {
+    // Campaign (teléfono con pantalla completa): la ficha de la unidad elegida, en la hoja.
+    unidad: () => {
+      const e = ES_CAMPAIGN && seleccion && mundo.porId[seleccion];
+      if (!e) return `<p class="info-nota">${esc(ti18n("campaign.hud.sin_unidad"))}</p>`;
+      const { c1, c2, botones } = uiC.ficha(e), [cls, txt] = uiC.estado(e);
+      return `<div class="info-unidad"><h4>${esc(e.id)} <small>${esc(uiC.clase(e))}</small> <span class="estado ${cls}" data-info-estado>${esc(txt)}</span></h4>
+        <div class="vitales" data-info-vitales>${htmlVitales(e)}</div><div class="ins-cols"><div class="ins-col">${c1}</div><div class="ins-col">${c2}</div></div>${botones ? `<div class="fila-botones">${botones}</div>` : ""}</div>`;
+    },
     objetivo: () => `<section class="objetivo" data-i18n-aria-label="juego.info_reto.objetivo" aria-label="${esc(ti18n("juego.info_reto.objetivo"))}"><p id="info-reto-txt">${hojaReto("objetivo", def.objetivo)}</p><div class="leccion" id="info-reto-leccion">${hojaReto("leccion", def.leccion)}</div></section>`,
     metas: () => {
       const m = mundo, filas = estadoMetas();
@@ -920,7 +930,7 @@
   }
   const avisarInfo = () => $("app").dispatchEvent(new CustomEvent("cmg:info", { detail: { pestana: infoPestana, abierta: !$("info-reto").hidden } }));
   function pintarInfoReto() {
-    if (PORTALES[infoPestana] && !conPortales()) infoPestana = "objetivo";
+    if ((PORTALES[infoPestana] && !conPortales()) || (infoPestana === "unidad" && !fichaEnHoja())) infoPestana = "objetivo";
     actualizarContenidoReto();
     for (const b of document.querySelectorAll("#info-pestanas [data-info]")) {
       const si = b.dataset.info === infoPestana;
@@ -936,6 +946,12 @@
   function vivoInfoReto() {
     if ($("info-reto").hidden) return;
     if (infoPestana === "metas") $("info-cuerpo").innerHTML = htmlInterfaz(INFO.metas());
+    if (infoPestana === "unidad") {
+      const e = seleccion && mundo.porId[seleccion], c = $("info-cuerpo");
+      const v = c.querySelector("[data-info-vitales]"); if (v && e) { const h = htmlVitales(e); if (v.innerHTML !== h) v.innerHTML = h; }
+      const est = c.querySelector("[data-info-estado]"); if (est && e) { const [cls, txt] = uiC.estado(e); est.className = `estado ${cls}`; est.textContent = txt; }
+      refrescarVivos(c);
+    }
     estadosPestanas();
   }
   function elegirInfo(k, foco) {
@@ -973,6 +989,8 @@
     ev.preventDefault(); elegirInfo(ks[(j + ks.length) % ks.length], true);
   });
   $("info-cuerpo").addEventListener("click", (ev) => {
+    const prog = ev.target.closest('[data-accion="programa"]');
+    if (prog && seleccion) { abrirInfoReto(false); abrirPestana("programa"); abrirPrograma(seleccion); return; }
     const a = ev.target.closest("[data-info-accion]"); if (!a) return;
     const acc = a.dataset.infoAccion;
     if (acc === "ver-pista") { const p = pistaDe(); p.vistas = Math.min(partesPista().length, p.vistas + 1); guardarPista(p); pintarInfoReto(); }
@@ -1227,7 +1245,11 @@
   // Empieza cerrado y solo se abre al elegir una unidad en el campo, en sus chips o en un enlace; abrir un
   // programa o corregir la selección cambia de unidad sin abrirlo (opción inspeccionar: "conservar").
   let insEstado = "cerrado";
-  const inspectorCompleto = () => $("app").dataset.forma === "movil" && $("app").dataset.inspectorMovil !== "tira";
+  // Campaign en el teléfono con pantalla completa: la ficha no tapa el mapa; sus datos van a la hoja ⓘ (pestaña Unidad),
+  // que se pliega o se cierra del todo. Sin pantalla completa, la ficha ocupa el mapa como en War.
+  const fichaEnHoja = () => ES_CAMPAIGN && $("app").dataset.forma === "movil" && $("app").dataset.pantallaCompleta === "true";
+  function abrirFichaHoja() { verPanel("codigo"); abrirInfoReto(true, "unidad"); }
+  const inspectorCompleto = () => $("app").dataset.forma === "movil" && $("app").dataset.inspectorMovil !== "tira" && !fichaEnHoja();
   function seleccionar(id, opciones = {}) {
     const ids = (Array.isArray(id) ? id : id ? [id] : []).filter(id => unidadPorId(id));
     seleccionadas = new Set(ids);
@@ -1241,6 +1263,7 @@
     const programables = ids.filter(id => Object.hasOwn(programas, id));
     configurarEdicion(programables.length ? programables : [progSel]);
     pintarInspector();
+    if (hud) { hud.seleccionCambia(opciones); hud.alSeleccionar(); }
   }
   $("app").addEventListener("cmg:forma", () => {
     if (seleccion && inspectorCompleto() && insEstado !== "cerrado") ponerInspector("abierto");
@@ -1596,11 +1619,11 @@
   }
   $("inspector").addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-accion]");
-    if (!b) { if (insEstado === "tira" && ev.target.closest(".ins-tira")) abrirInspector(); return; }
+    if (!b) { if (insEstado === "tira" && ev.target.closest(".ins-tira")) { if (fichaEnHoja()) abrirFichaHoja(); else abrirInspector(); } return; }
     const a = b.dataset.accion;
     if (a === "programa") { verPanel("codigo"); abrirPestana("programa"); abrirPrograma(seleccion); }
     else if (a === "centrar") centrarEn(seleccion);
-    else if (a === "abrir") abrirInspector();
+    else if (a === "abrir") { if (fichaEnHoja()) abrirFichaHoja(); else abrirInspector(); }
     else if (a === "plegar") ponerInspector("tira");
     else if (a === "cerrar") ponerInspector("cerrado");
   });
@@ -1633,6 +1656,7 @@
   function actualizarVivos() {
     const $i = $("inspector");
     muestrear();
+    if (ES_CAMPAIGN && infoPestana === "unidad") vivoInfoReto();
     for (const el of $("pie-ins").querySelectorAll("[data-vivo]")) {
       const v = valorVivo(el.dataset.vivo); if (v == null) continue;
       const txt = textoVivo(el, v);
@@ -1795,6 +1819,7 @@
     editorPrograma.abrir({ id: claveDocumento(), lenguaje: edicion.lenguaje, texto: $codigo.value, revision: 0 });
     actualizarEtiquetasEdicion();
     pintarProgs(); medirEditor(); pintarEdicion(); pintarPieIns(); pintarLenguaje(); marcasSucias = true;
+    if (hud) hud.alProgramas();
   }
   function actualizarEtiquetasEdicion() {
     const $codigoActivo = $("codigo");
@@ -2440,13 +2465,116 @@
   // además se guarda el estado en vivo para seguir tras recargar la página.
   const CLAVE_VIVO = "campaign-1-vivo", CLAVE_HIST = "campaign-1-historial", MAX_CHECKPOINTS = 30;
   let historialC = ES_CAMPAIGN ? guardado.leer(CLAVE_HIST, []).filter(c => c && c.mundo && c.mundo.rev === RETOS[0].revision) : [];
-  let pielBatalla = ES_CAMPAIGN && !!guardado.leer("campaign-piel", false), ponerPiel = () => {};
+  // El modo batalla (sin paisaje) ya no es un botón: se enciende solo mientras hay combate o salva de prueba.
+  let pielBatalla = false, ponerPiel = () => {};
   let tVivo = 0;
   const uiC = ES_CAMPAIGN ? window.CAMPAIGN_UI.crear({
     esc, coma, varDe, t: ti18n,
     tk: (...a) => tk(...a), fila: (...a) => fila(...a), nota: (...a) => nota(...a), grupo: (...a) => grupo(...a), tkValor: (...a) => tkValor(...a),
     vital: (...a) => vital(...a), celdas: (...a) => celdas(...a), variables: () => variablesPrograma(),
     get mundo() { return mundo; }, get def() { return def; }, get progSel() { return progSel; },
+  }) : null;
+
+  // Órdenes a mano (clic derecho, como en los juegos de estrategia): una tarea suelta, sin bucle.
+  // El robot no repite nada: para trabajar en ciclo hace falta un programa. Mientras haya órdenes a mano
+  // o algo en marcha, la planta avanza aunque no corra ningún programa.
+  const manual = new Map();
+  let sigManual = 1;
+  function ordenManual(id, pasos) {
+    const r = mundo && mundo.porId[id];
+    if (!r || !window.CAMPAIGN.esRobot(r) || r.presente === false) return ti18n("campaign.manual.no_robot");
+    if (r.tarea || manual.has(id)) return ti18n("campaign.manual.ocupado", { unidad: id });
+    manual.set(id, { pasos: pasos.slice(), actual: null });
+    siguienteManual(id);
+    return null;
+  }
+  function siguienteManual(id) {
+    const q = manual.get(id); if (!q) return;
+    const paso = q.pasos.shift();
+    if (!paso) { manual.delete(id); return; }
+    const [verbo, lugar] = paso;
+    q.actual = { verbo, lugar };
+    mundo.activo = true;
+    campana.iniciarOrden(id, { id: `manual#${sigManual++}`, verbo, args: [lugar] });
+  }
+  function finManual(unidad, res) {
+    const q = manual.get(unidad), a = q && q.actual, texto = a ? `${a.verbo}(${varDe(a.lugar)})` : "?";
+    registrar(unidad, "", `${texto} · ${ti18n("campaign.manual.etiqueta")}`, res, res === "ok" ? "ok" : "warn");
+    if (res !== "ok") {
+      manual.delete(unidad);
+      consola("warn", unidad, null, esc(ti18n("campaign.manual.fallo", { unidad, orden: texto, resultado: res })));
+      globo(unidad, "warn", res);
+      return;
+    }
+    if (q && q.pasos.length) siguienteManual(unidad); else manual.delete(unidad);
+  }
+  // Clic derecho sin arrastrar: con robots elegidos, recoger (manos vacías) o entregar (con carga) en lo señalado.
+  // Arrastrar con el botón derecho sigue moviendo la cámara.
+  let clicDer = null;
+  function ordenarEn(x, y) {
+    const robots = [...seleccionadas].map(id => mundo.porId[id]).filter(e => e && window.CAMPAIGN.esRobot(e) && e.presente !== false);
+    if (!robots.length) return;
+    const destino = unidadEn(x, y), l = destino && mundo.porId[destino];
+    if (!l || robots.some(r => r.id === destino)) { if (hud) hud.marcaOrden(x, y, false); return; }
+    let alguna = false;
+    for (const r of robots) {
+      const err = ordenManual(r.id, [[r.carga ? "deliver" : "pickUp", l.id]]);
+      if (err) consola("warn", r.id, null, esc(err)); else alguna = true;
+    }
+    if (hud) hud.marcaOrden(x, y, alguna);
+  }
+  if (ES_CAMPAIGN) {
+    $campo.addEventListener("pointerdown", (ev) => { if (ev.button === 2 && ev.target.tagName === "CANVAS") clicDer = { id: ev.pointerId, x: ev.clientX, y: ev.clientY }; }, true);
+    $campo.addEventListener("pointermove", (ev) => { if (clicDer && clicDer.id === ev.pointerId && Math.hypot(ev.clientX - clicDer.x, ev.clientY - clicDer.y) > 6) clicDer = null; }, true);
+    $campo.addEventListener("pointerup", (ev) => {
+      if (!clicDer || clicDer.id !== ev.pointerId || ev.button !== 2) return;
+      clicDer = null; ordenarEn(ev.clientX, ev.clientY);
+    }, true);
+  }
+
+  // Guardado manual en ranuras (mundo y programas), aparte de los checkpoints de cada hito.
+  const CLAVE_RANURAS = "campaign-1-ranuras", N_RANURAS = 5;
+  const ranuras = {
+    leer() { const l = guardado.leer(CLAVE_RANURAS, []); return Array.from({ length: N_RANURAS }, (_, i) => Array.isArray(l) && l[i] && l[i].mundo && l[i].mundo.rev === RETOS[0].revision ? l[i] : null); },
+    guardar(i) {
+      const l = ranuras.leer();
+      l[i] = { id: Date.now(), hito: mundo.hito, t: r2(mundo.t), cuando: Date.now(), mundo: window.CAMPAIGN.serializar(mundo), programas: { ...programas }, fuentes: PYTHON ? copiaFuentes() : {} };
+      guardado.escribir(CLAVE_RANURAS, l);
+      consola("sistema", null, null, esc(ti18n("campaign.hud.guardado_ok", { n: i + 1 })));
+    },
+    cargar(i) { const r = ranuras.leer()[i]; if (r) volverA(r, true); },
+    borrar(i) { const l = ranuras.leer(); l[i] = null; guardado.escribir(CLAVE_RANURAS, l); },
+  };
+  // Valores vivos de cualquier parte de la interfaz (ficha compacta y completa de Campaign).
+  function refrescarVivos(raiz) {
+    for (const el of raiz.querySelectorAll("[data-vivo]")) {
+      const v = valorVivo(el.dataset.vivo); if (v == null) continue;
+      const txt = textoVivo(el, v);
+      if (el.textContent !== txt) { el.textContent = txt; if (el.dataset.ins != null) el.dataset.ins = txt; }
+    }
+  }
+  // La cámara abarca las unidades marcadas en el selector.
+  function abarcar(ids) {
+    const ps = ids.map(id => mundo.porId[id]).filter(e => e && e.presente !== false).map(e => [e.cx ?? e.x, e.cy ?? e.y]);
+    if (!ps.length) return;
+    if (vista === "3d" && V3 && V3.abarcar) V3.abarcar(ps);
+    else if (vista === "2d" && dibujar2D.abarcar) dibujar2D.abarcar(ps);
+  }
+  function ponerTextoPrograma(id, texto, lenguaje) {
+    if (ejec) { avisoEditor(ti18n("campaign.hud.detener_antes")); return; }
+    abrirPrograma(id);
+    if (lenguaje && lenguaje !== edicion.lenguaje) avisoEditor(ti18n("campaign.hud.otro_lenguaje", { lenguaje: lenguaje === "python" ? "Python" : "JavaScript" }));
+    $codigo.value = texto;
+    $codigo.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  const hud = ES_CAMPAIGN && window.CAMPAIGN_HUD ? window.CAMPAIGN_HUD.crear({
+    esc, coma, varDe, t: ti18n, uiC, guardado,
+    tk: (...a) => tk(...a), htmlVitales: e => htmlVitales(e), vivos: refrescarVivos,
+    get mundo() { return mundo; }, get def() { return def; }, get progSel() { return progSel; }, get seleccionadas() { return seleccionadas; },
+    seleccionar: (ids, o) => seleccionar(ids, o), abrirPrograma: id => abrirPrograma(id), verPanel, abrirPestana, abarcar,
+    suelo: (x, y) => coordenadasEn(x, y), aPantalla: (x, y) => puntoPantalla({ cx: x, cy: y }),
+    ordenManual, ranuras, textoPrograma: id => textoDe(id) || "", lenguajeDe: id => lenguajeDe(id), ponerTextoPrograma,
+    retrato3D: (id, lienzo) => V3 && V3.retratoUnidad ? V3.retratoUnidad(id, lienzo) : null,
   }) : null;
   const hitoActual = () => def.hitos[mundo.hito];
   const guardarVivo = () => guardado.escribir(CLAVE_VIVO, { cuando: Date.now(), mundo: window.CAMPAIGN.serializar(mundo) });
@@ -2465,6 +2593,7 @@
     pintarRetos(); pintarProgs(); pintarMaquinas(); pintarInspector(); pintarPieIns(); pintarEscenario(); pintarControles();
     metasClave = "";
     if (!$("info-reto").hidden) pintarInfoReto();
+    if (hud) hud.alHito();
   }
   function volverA(cp, conProgramas) {
     if (!cp) return;
@@ -2546,6 +2675,7 @@
   }
   // Un robot terminó su encargo: se anota y se despierta al programa que lo esperaba.
   function finEncargoCampaign(unidad, clave, res) {
+    if (String(clave).startsWith("manual#")) return finManual(unidad, res);
     if (!ejec) return;
     const corte = String(clave).lastIndexOf("#"), p = ejec.progs.get(String(clave).slice(0, corte)), id = +String(clave).slice(corte + 1);
     const orden = p && p.pend.get(id);
@@ -2576,10 +2706,15 @@
       pistaTrasFallo();
       ultimoAviso[claveReto()] = { resultado, motivo, texto, linea, id: idProg, intento, t: r2(mundo.t), cuando: Date.now() };
       mostrarBanner("fallo", linea ? ti18n("campaign.banner.error_linea", { linea, unidad: idProg }) : ti18n("campaign.banner.error", { unidad: idProg }), esc(texto), null,
-        [[ti18n("campaign.banner.ir"), "primario", () => { ocultarBanner(); abrirPrograma(idProg); if (linea) irALinea(linea); }]]);
+        [[ti18n("campaign.banner.ir"), "primario", () => { ocultarBanner(); abrirPrograma(idProg); if (linea) irALinea(linea); }], ...accionesCheckpoint()]);
     } else if (motivo === "quieto") consola("sistema", null, null, esc(ti18n("campaign.aviso.quieto")));
     pintarControles(); pintarProgs(); pintarResumen(); pintarEdicion(); pintarInspector(); metasClave = "";
     if (!$("info-reto").hidden) pintarInfoReto();
+  }
+  // Pantalla de derrota: los checkpoints viven aquí (y en Historial), ya no en la barra del mapa.
+  function accionesCheckpoint() {
+    const cp = [...historialC].reverse().find(c => c.hito === mundo.hito) || historialC[historialC.length - 1];
+    return cp ? [[ti18n("campaign.banner.checkpoint", { hito: def.hitos[cp.hito].clave }), "", () => volverA(cp, false)]] : [];
   }
   // Programas de las unidades recién encendidas: arrancan al seguir tras un hito.
   function arrancarNuevos() {
@@ -2627,6 +2762,12 @@
   // Cada fotograma: hitos recién cumplidos, guardado en vivo y parada cuando ya no queda nada en marcha.
   function cicloCampaign(now) {
     if (hitoPendiente) { const h = hitoPendiente; hitoPendiente = null; alCumplirHito(h); }
+    // Modo batalla automático: solo con combate (la salva de prueba o misiles en el aire).
+    const combate = !!(mundo.salva && !mundo.salva.hecha) || mundo.misiles.length > 0;
+    if (combate !== pielBatalla) ponerPiel(combate);
+    if (hud) hud.ciclo(now);
+    // Órdenes a mano sin programas: la planta se detiene cuando ya no queda nada en marcha.
+    if (!ejec && mundo.activo && !manual.size && campana.quieto()) { mundo.activo = false; guardarVivo(); pintarControles(); }
     if (!ejec || !mundo.activo || pausa) return;
     if (now - tVivo > 5000) { tVivo = now; guardarVivo(); }
     if ([...ejec.progs.values()].every(p => p.estado === "fin") && campana.quieto()) terminar("detenido", "quieto", null);
@@ -2668,7 +2809,7 @@
     get mundo() { return mundo; }, get def() { return def; }, get programas() { return programas; }, get fuentes() { return fuentes; }, RETOS, instrumentar, lexico, normalizar,
     turbo(n) { turbo = n; }, fijarSemilla(n) { semillaFija = true; semilla = n; }, usarEscenario(d) { guardarPropio(ES_FACTORY ? window.FACTORY_RETOS.normalizar(d) : normalizar(d), true); }, elegirReto, ejecutar, abrirPrograma, seleccionar, get seleccionadas() { return [...seleccionadas]; }, get telemetria() { return telemetria; },
     // Campaign: la planta, sus checkpoints y la piel del mapa.
-    get campana() { return campana; }, get checkpoints() { return historialC; }, volverA: (i, conProgramas) => volverA(historialC[i], !!conProgramas), seguir: () => seguirCampaign(), nivelDeNuevo: () => nivelDeNuevo(),
+    get campana() { return campana; }, get checkpoints() { return historialC; }, punto: id => { const e = unidadPorId(id); return e ? puntoPantalla(e) : null; }, volverA: (i, conProgramas) => volverA(historialC[i], !!conProgramas), seguir: () => seguirCampaign(), nivelDeNuevo: () => nivelDeNuevo(),
   }; // para depurar y probar desde la consola
   window.cmg = { editor: editorPrograma, get edicion() { return editorPrograma.fachada.edicion; }, get seudo() { return editorPrograma.fachada.seudo; }, serie: SERIE, insertar, envolver, alternarComentario, medirEditor, get codigo() { return $codigo; }, get ejecutando() { return !!ejec; }, get confirmarReplace() { return confirmarReplace; }, set confirmarReplace(v) { preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
@@ -2680,6 +2821,8 @@
     retrato: (tipo) => V3 && TIPOS[tipo] ? V3.retrato(tipo) : null,
     proveedor: proveedorEditor,
     funciones: proveedorEditor.funciones,
+    // Campaign en el escritorio: el menú ⋯ lleva a las pantallas del panel del código (campaign-hud.js).
+    menu: hud ? hud.menu : null,
     get claveDocumento() { return claveDocumento(); },
     // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
     datos: () => ({
@@ -2731,10 +2874,10 @@
     const probar = $("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "campaign"); probar.href = u.pathname + u.search; }
     const $piel = $("b-piel");
     if ($piel) {
-      $piel.hidden = false;
-      const poner = (si) => { pielBatalla = !!si; guardado.escribir("campaign-piel", pielBatalla); $piel.setAttribute("aria-pressed", String(pielBatalla)); if (V3) V3.batalla(pielBatalla); };
-      $piel.addEventListener("click", () => poner(!pielBatalla));
-      ponerPiel = poner; poner(pielBatalla);
+      // Sin botón: el modo batalla se enciende solo con el combate (cicloCampaign).
+      $piel.hidden = true;
+      const poner = (si) => { pielBatalla = !!si; $piel.setAttribute("aria-pressed", String(pielBatalla)); if (V3) V3.batalla(pielBatalla); if (hud) hud.alPiel(pielBatalla); };
+      ponerPiel = poner; poner(false);
     }
   }
   for (const enlace of document.querySelectorAll("[data-serie]")) {
@@ -2753,6 +2896,7 @@
   aplicarVista(vista);
   aplicarLetra();
   elegirReto(retoIdx);
+  if (hud) hud.alHito();
   if (paletaRota) avisoEditor("La paleta no se pudo cargar: recarga la página sin caché (Ctrl+F5 o Ctrl+Shift+R).");
   function actualizarTextosDinamicos() {
     actualizarEtiquetasControles();

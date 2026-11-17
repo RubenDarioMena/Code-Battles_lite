@@ -51,6 +51,12 @@ Nombres en inglés; en pantalla las unidades llevan guion (`PRS-01`) y en el có
 
 Piezas: `"steel"`, `"polymer"`, `"nose"`, `"base"`, `"charge"`, `"motor"`, `"missile"`. Lugares: `BAY_1`, `SUP_1`–`SUP_2`, `LOT_1`–`LOT_5`, `PAD_1`–`PAD_4`, `STK_1`, `DEP_01`.
 
+## Interfaz de escritorio (17-nov-2026)
+
+Sale del [feedback del autor](qa/campaign-2026-11-17/feedback-war-prototipo.md); detalle en `PROGRESO.md`. Resumen: mapa sin barra superior (misión, revisar y ajustes en la esquina; metas y recursos en columna; 3D/2D en el centro; batalla automática), ficha compacta abajo a la izquierda y completa en el panel del código, Máquinas en lugar de Checkpoint, clic derecho para órdenes sueltas, selector de unidades en árbol, Biblioteca, Guardado en ranuras, pantallas del menú ⋯ y panel Objetivo · Specs · Consola. En el teléfono se queda la interfaz de War, con pantalla completa de entrada.
+
+Guardado nuevo (`cmg-banco03:`): `campaign-1-ranuras`, `campaign-biblioteca`, `campaign-hito-visto`, `campaign-pistas-h{n}`. Preferencias (`cmg-juego-`): `pie-modo-campaign`, `pantalla-completa-campaign`. Ya no se usa `campaign-piel`.
+
 ## Archivos
 
 | Archivo | Responsabilidad |
@@ -60,6 +66,7 @@ Piezas: `"steel"`, `"polymer"`, `"nose"`, `"base"`, `"charge"`, `"motor"`, `"mis
 | `js/campaign-terreno.js` | Relieve determinista: montes, río, muralla, carriles y colores. |
 | `js/campaign-3d.js`, `js/campaign-plano.js` | Vista 3D (diorama low-poly, dos pieles) y plano con zoom. |
 | `js/campaign-ui.js` | Inspector, ayuda, sugerencias, hitos e historial. |
+| `js/campaign-hud.js` | Interfaz de escritorio: esquina del mapa, ficha compacta y completa, selector, pantallas, biblioteca, guardado, widget de colocación y ajustes. |
 | `shared/i18n/campaign.js` | Textos ES/EN de la serie. |
 | `js/runtime.js`, `js/juego.js` | API del Worker (encargos múltiples, «cede») y enganche de la serie (`ES_CAMPAIGN`). |
 
