@@ -1,12 +1,9 @@
-// Three r128 real; no GPU/DOM. Matrices contra el modelo suelto de los retratos.
+import * as ThreeReal from '../../../shared/vendor/three-r180/three.module.min.js';
+// Three r180 real; no GPU/DOM. Matrices contra el modelo suelto de los retratos.
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
-import { readFileSync } from 'node:fs';
 import { crearInstanciasWar, enemigoMesh, idDeImpacto, posMisil } from '../instancias-war.js';
-const contexto = vm.createContext({});
-vm.runInContext(readFileSync(new URL('../../../shared/vendor/three-r128.min.js', import.meta.url), 'utf8'), contexto);
-const T = contexto.THREE;
-assert.equal(T.REVISION, '128');
+const T = { ...ThreeReal };
+assert.equal(T.REVISION, '180');
 const instancias = [], cajas = [];
 const ClaseInstancia = T.InstancedMesh;
 T.InstancedMesh = class extends ClaseInstancia {
@@ -137,4 +134,4 @@ for (const [foto, calls, triangles] of [[combate, 14, 3528], [carga, 919, 577200
   assert.equal(lotes().reduce((n, o) => n + o.count * o.geometry.index.count / 3, 0), triangles);
 }
 escala.destruir(); assert.equal(compartidasLiberadas, 0);
-console.log('instancias-war: r128, matrices de todos los componentes, materiales, líneas, selección, crecimiento 513→1024, muertos y liberación; sin GPU.');
+console.log('instancias-war: r180, matrices de todos los componentes, materiales, líneas, selección, crecimiento 513→1024, muertos y liberación; sin GPU.');

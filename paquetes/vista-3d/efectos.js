@@ -28,7 +28,9 @@ void main() {
   float sello = vForma < 0.5 ? pow(1.0-r, 2.0)
     : (vForma < 1.5 ? 1.0-smoothstep(0.75, 1.0, r) : pow(1.0-r*r, 3.0));
   gl_FragColor = vec4(vColor, vAlfa * sello);
-  // r128: la luz aditiva se desvanece hacia negro, no hacia el color de niebla.
+  // Salida sRGB antes de la niebla, como los materiales de r180.
+  #include <colorspace_fragment>
+  // La luz aditiva se desvanece hacia negro, no hacia el color de niebla.
   #include <fog_fragment>
   #ifdef USE_FOG
     if (aditiva > 0.5) gl_FragColor.rgb -= fogColor * fogFactor;
@@ -64,6 +66,7 @@ export function crearDibujanteEfectos(THREE, grupo, { pixelRatio = 1, alturaBufe
     grupo.add(puntos);
     return { mezcla, geometria, material, puntos, usados: 0 };
   });
+  const color = new THREE.Color();
   let destruido = false;
   return {
     /** @param {import('../vfx/index.js').Particula[]} particulas */
@@ -75,7 +78,9 @@ export function crearDibujanteEfectos(THREE, grupo, { pixelRatio = 1, alturaBufe
         if (n.usados >= capacidad) continue;
         const i = n.usados++, a = n.geometria.attributes;
         a.position.setXYZ(i, p.x, p.z, p.y);
-        a.tinte.setXYZ(i, ...p.color);
+        // VFX comparte RGB sRGB con el lienzo 2D; el shader necesita Linear-sRGB.
+        color.setRGB(...p.color, THREE.SRGBColorSpace);
+        a.tinte.setXYZ(i, color.r, color.g, color.b);
         a.tam.setX(i, p.tam); a.alfa.setX(i, p.alfa);
         a.forma.setX(i, p.forma === 'brillo' ? 0 : (p.forma === 'disco' ? 1 : 2));
       }

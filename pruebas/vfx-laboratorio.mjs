@@ -1,7 +1,7 @@
+import * as ThreeReal from '../shared/vendor/three-r180/three.module.min.js';
 // Arranque y controles con DOM/canvas/GPU falsos: no lanza Chromium ni Electron.
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import vm from 'node:vm';
 import { es, en } from '../herramientas/laboratorio-vfx/textos.js';
 
 assert.deepEqual(Object.keys(es).sort(), Object.keys(en).sort());
@@ -15,10 +15,9 @@ for (const [, ruta] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
 for (const [, k] of html.matchAll(/data-texto="([^"]+)"/g)) assert(k in es, k);
 const tema = readFileSync(new URL('../paquetes/editor/estilos/tema.css', import.meta.url), 'utf8');
 const tokens = Object.fromEntries([...tema.matchAll(/--([\w-]+):\s*(#[\da-f]+);/gi)].map(m => [m[1], m[2]]));
-const c = vm.createContext({});
-vm.runInContext(readFileSync(new URL('../shared/vendor/three-r128.min.js', import.meta.url), 'utf8'), c);
 let dibujados = 0, liberados = 0, contactos = 0;
-c.THREE.WebGLRenderer = class {
+const THREE = { ...ThreeReal };
+THREE.WebGLRenderer = class {
   setPixelRatio() {} setSize() {}
   getContext() { return { ALIASED_POINT_SIZE_RANGE: 1, getParameter: () => [1, 127] }; }
   render(escena, camara) { escena.updateMatrixWorld(); camara.updateMatrixWorld(); dibujados++; }
@@ -38,7 +37,7 @@ const nodos = Object.fromEntries(['receta', 'calidad', 'velocidad', 'tiempo', 'r
 }]));
 for (const id of ['tres', 'plano', 'contactos']) nodos[id] = lienzo(id);
 let siguiente, salida;
-const claves = ['document', 'location', 'getComputedStyle', 'Option', 'requestAnimationFrame', 'addEventListener', 'THREE', 'laboratorioVfx'];
+const claves = ['document', 'location', 'getComputedStyle', 'Option', 'requestAnimationFrame', 'addEventListener', 'laboratorioVfx'];
 const previos = Object.fromEntries(claves.map(k => [k, Object.getOwnPropertyDescriptor(globalThis, k)]));
 try {
   Object.assign(globalThis, {
@@ -49,9 +48,9 @@ try {
     Option: class { constructor(nombre, value) { this.text = nombre; this.value = value; } },
     requestAnimationFrame: f => { siguiente = f; },
     addEventListener: (tipo, f) => { if (tipo === 'pagehide') salida = f; },
-    THREE: c.THREE,
   });
-  await import('../herramientas/laboratorio-vfx/laboratorio.js');
+  const { iniciarLaboratorio } = await import('../herramientas/laboratorio-vfx/laboratorio.js');
+  iniciarLaboratorio(THREE);
   const api = globalThis.laboratorioVfx;
   assert.equal(api.listo, true, api.error);
   assert.equal(api.nombres.length, 9); assert.equal(contactos, 14);

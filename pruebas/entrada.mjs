@@ -10,7 +10,7 @@ export async function probarEntrada(page, origen = 'http://127.0.0.1:8771/dist')
   eq(await page.evaluate(() => document.title.includes('Factory')), true, 'Factory arranca con los módulos del paquete');
   await page.click('a[aria-label="Volver al inicio"]');
   await page.waitForSelector('.war'); await page.click('.war');
-  await page.waitForFunction(() => !!window.cmg?.edicion && !!window.cmg?.seudo && !!window.THREE && !!window.acorn);
+  await page.waitForFunction(() => !!window.cmg?.edicion && !!window.cmg?.seudo && !!window.__juegoListo && !!window.acorn);
   eq(await page.evaluate(() => document.title.includes('War')), true, 'War arranca con los módulos del paquete');
   await page.click('a[aria-label="Volver al inicio"]');
   await page.waitForSelector('.campaign'); await page.click('.campaign');

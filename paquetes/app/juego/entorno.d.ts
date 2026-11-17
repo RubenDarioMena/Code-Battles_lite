@@ -4,7 +4,6 @@ declare global {
   interface Window {
     LezerPython: any;
     acorn: any;
-    THREE: any;
     CMGTrazador: any;
     CMGFlujo: any;
     CMGPythonRevision: any;

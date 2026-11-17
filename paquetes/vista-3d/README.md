@@ -55,8 +55,7 @@ usa `vistaActual()` para dibujo, elección y proyección.
 
 Se conservan las entradas `crear3D(estado, deps)`,
 `crearCampaign3D(estado, deps)` y `factory3d` (incluido su gancho mutable
-`ultimo` para QA). Three r128 sigue siendo global y local al repositorio;
-las rutas del T1 y su cargador glTF conservan la resolución anterior.
+`ultimo` para QA). Three r180 es ESM local; la ruta del T1 conserva su resolución relativa a la página.
 
 ## Pruebas
 
@@ -72,8 +71,9 @@ las rutas del T1 y su cargador glTF conservan la resolución anterior.
 
 `crearVista`, `crear3D` y `crearCampaign3D` reciben `THREE` en sus opciones.
 Si falta, devuelven `null` para conservar la caída al plano. Cámara, terreno y
-Factory reciben la misma instancia por parámetros; `factory3d.cargar(THREE)`
-conserva la carga diferida de GLTFLoader y del modelo. El paquete no lee Three
+Factory reciben la misma instancia por parámetros;
+`factory3d.cargar(cargarGLTFLoader)` recibe una función asíncrona que devuelve
+el constructor GLTFLoader r180. Solo Factory lo solicita y carga el modelo. El paquete no lee Three
 ni la fachada `cmg` de la página. Prueba: `node paquetes/vista-3d/pruebas/vista-3d.mjs`.
 
 ## Dibujante de efectos (fase 4, paso 1)
@@ -99,14 +99,14 @@ los calcos actuales (1). La capacidad cuenta estelas; si se supera en una
 mezcla se trunca su cola. El gestor VFX debe usar un presupuesto acorde.
 Convierte mapa `(x,y,z altura)` a Three `(x,z,y)`.
 
-Shader pequeño compatible con r128: formas procedurales, tamaño en metros
+Shader pequeño compatible con r180: formas procedurales, tamaño en metros
 con perspectiva, límite físico de punto y fragmentos de niebla. La niebla
 apaga la luz aditiva hacia negro. `alturaBufer` son píxeles físicos (no se
 multiplican otra vez por pixelRatio); `redimensionar` sí convierte altura CSS.
 Debe inyectarse el máximo del dispositivo; el respaldo es 64 px conservadores.
 No hay renderizador, consulta WebGL ni reloj dentro del dibujante. Destrucción
 idempotente que retira las nubes y libera geometrías/materiales.
-Contrato en `efectos.d.ts`; prueba r128 sin rasterizado en
+Contrato en `efectos.d.ts`; prueba r180 sin rasterizado en
 `node pruebas/vfx-dibujantes.mjs` (incluida en `npm test`).
 
 
@@ -184,7 +184,35 @@ del último render (`renderer.info.render`), incluido el resto del paisaje,
 máquinas y VFX. La página los expone con `cmg.camara().dibujo`.
 
 Pruebas: `node paquetes/vista-3d/pruebas/instancias-war.mjs` (en `npm test`):
-Three r128 real sin GPU, todas las matrices contra el modelo suelto, materiales,
+Three r180 real sin GPU, todas las matrices contra el modelo suelto, materiales,
 counts, no actualización redundante, crecimiento 513→1024, selección, líneas,
 bajas y liberación. `vista-3d.mjs` comprueba además raycast real desde cámara,
 tema, reconstrucción, retratos y contrato. No comprueban rasterizado.
+
+## Migración Three r180 (fase 4, paso 5)
+
+La entrada del juego importa `three.module.min.js` y lo inyecta; este paquete
+no importa Three ni modifica su namespace. Su import map resuelve `three`
+para el GLTFLoader ESM y sus utilidades locales, también en `cbl://app/`.
+CMGTerreno recibe THREE explícitamente: no necesita `window.THREE`.
+WebGL 2 es obligatorio; si falla el constructor se conserva la caída al plano.
+El editor de terreno usa el módulo WebGPU de la misma distribución.
+
+Gestión de color activa: hex/CSS se interpretan como sRGB y se convierten a
+Linear-sRGB automáticamente; no se aplica una segunda conversión ni un factor
+adicional a los colores del tema. Salida `SRGBColorSpace`, `NoToneMapping`
+(exposición 1). Las luces compensan el modo heredado con ×π: War/Factory,
+hemisférica 0,85π y direccional 0,55π; Campaign, 0,82π y 0,62π. Las mezclas
+entre colores se hacen ahora en lineal; el rasterizado puede variar.
+Las CanvasTexture de halos llevan `SRGBColorSpace` (alfa sin conversión).
+El robot conserva los valores lineales glTF al adaptar PBR a Lambert,
+sin el antiguo `convertLinearToSRGB`.
+
+VFX recibe el mismo RGB sRGB que 2D, lo convierte a lineal en el búfer y usa
+`colorspace_fragment` antes de la niebla (como los materiales r180). La niebla
+aditiva sigue desvaneciéndose a negro. No hay `outputEncoding`, `encoding`,
+luces heredadas ni alias `*BufferGeometry` en los consumidores actuales.
+`node pruebas/three-r180.mjs` verifica el grafo ESM oficial, el T1 y MIME/rutas
+del protocolo de escritorio sin Electron ni red.
+Las pruebas Node usan r180 real con dobles mutables de renderizador; no se
+reescribe el namespace importado. No verifican shaders en GPU ni capturas.

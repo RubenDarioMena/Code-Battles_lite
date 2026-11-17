@@ -4,8 +4,10 @@ import { MISIL } from '../../paquetes/reglas-war/index.js';
 import { muestra } from './escenarios.js';
 import { crearVisores } from './visores.js';
 
+// Dependencia explícita: la entrada usa Three ESM; las pruebas inyectan la GPU falsa.
+export function iniciarLaboratorio(THREE) {
 const idioma = new URLSearchParams(location.search).get('idioma') === 'en' ? en : es;
-export const texto = (clave, params = {}) => idioma[clave].replace(/\{(\w+)\}/g, (_, k) => params[k] ?? `{${k}}`);
+const texto = (clave, params = {}) => idioma[clave].replace(/\{(\w+)\}/g, (_, k) => params[k] ?? `{${k}}`);
 /** @returns {any} */
 const $ = id => document.getElementById(id);
 document.documentElement.lang = idioma === en ? 'en' : 'es';
@@ -25,7 +27,7 @@ if (nombres.includes(params.get('receta'))) select.value = params.get('receta');
 if (['alto', 'medio', 'bajo', 'no'].includes(params.get('calidad'))) calidad.value = params.get('calidad');
 let tv = 0, pausado = false, ultimo = null, visores;
 let error = null;
-try { visores = crearVisores(globalThis.THREE, $('tres'), $('plano'), colores, texto); }
+try { visores = crearVisores(THREE, $('tres'), $('plano'), colores, texto); }
 catch (e) { error = String(e); $('estado').textContent = texto('fallo', { error }); }
 
 function anotar() { gestor.vaciar(); gestor.anotar(muestra(select.value)); }
@@ -103,3 +105,5 @@ if (visores) {
   requestAnimationFrame(fotograma);
 }
 addEventListener('pagehide', () => visores?.destruir(), { once: true });
+
+}

@@ -1,12 +1,11 @@
-/* Adaptador de malla común a Three r128 (juego) y Three moderno (editor). */
+/* Adaptador de malla común a Three r180 WebGL (juego) y WebGPU (editor). */
 (() => {
   "use strict";
   const terreno = window.CMGTerreno;
   function colores(THREE) {
     return terreno.PALETA.map(({ color }) => {
       const c = new THREE.Color(color);
-      // Cada versión conserva la gestión de color de su visor: el juego r128
-      // trabaja en su espacio legado; el editor moderno convierte hex a lineal.
+      // Gestión de color activa en ambos visores: hex sRGB → Linear-sRGB.
       return c;
     });
   }
@@ -69,7 +68,7 @@
   function crearGeometriaAgua(THREE, mapa) {
     const geometria = new THREE.BufferGeometry(), total = mapa.columnas * mapa.filas;
     geometria.setAttribute("position", new THREE.BufferAttribute(new Float32Array(total * 3), 3));
-    // Three r128 y moderno activan alpha de vértice con color.itemSize === 4.
+    // Three r180 activa alpha de vértice con color.itemSize === 4.
     geometria.setAttribute("color", new THREE.BufferAttribute(new Float32Array(total * 4), 4));
     const normales = new Float32Array(total * 3);
     for (let i = 0; i < total; i++) normales[i * 3 + 1] = 1;

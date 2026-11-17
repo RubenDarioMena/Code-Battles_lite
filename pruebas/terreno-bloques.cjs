@@ -1,3 +1,4 @@
+(async () => {
 // Primitivas, transformaciones y topología: node pruebas/terreno-bloques.cjs
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
@@ -8,7 +9,7 @@ for (const archivo of ['datos.js', 'bloques.js']) {
   vm.runInContext(readFileSync(path.join(__dirname, '..', 'shared/terreno', archivo), 'utf8'), contexto, { filename: archivo });
 }
 const T = contexto.window.CMGTerreno, B = T.BLOQUES;
-const THREE = require('../shared/vendor/three-r128.min.js');
+const THREE = await import('../shared/vendor/three-r180/three.core.min.js');
 const mapa = () => T.crear({ relieve: false });
 const copia = v => JSON.parse(JSON.stringify(v));
 const cerca = (a, b, tolerancia = 1e-8) => assert.ok(Math.abs(a - b) < tolerancia, `${a} ≠ ${b}`);
@@ -78,7 +79,7 @@ prueba('colocación inicial apoya la base en el terreno', () => {
   const plano = B.crear(m, 'plano', { x: 16, z: 9 });
   cerca(plano.posicion[1], T.alturaEn(m, 16, 9) + .04);
 });
-prueba('adaptador r128 conserva índices y crea normales y límites finitos', () => {
+prueba('adaptador r180 conserva índices y crea normales y límites finitos', () => {
   const b = B.crear(mapa(), 'caja'), g = B.geometria(THREE, b);
   assert.equal(g.getAttribute('position').count, 8);
   assert.deepEqual(Array.from(g.index.array), copia(b.indices));
@@ -162,3 +163,5 @@ prueba('JSON conserva geometría, transformaciones y color de bloques editados',
   assert.notEqual(m.bloques[0].vertices[0], 111);
 });
 console.log(`Bloques de terreno: ${comprobaciones} comprobaciones correctas.`);
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -10,8 +10,10 @@ export interface EstadoVista {
   readonly col?: Record<string, string>;
 }
 export interface DependenciasComunes {
-  /** Three r128 inyectado por la entrada; undefined permite la caída al plano. */
+  /** Three r180 inyectado por la entrada; undefined permite la caída al plano. */
   THREE?: any;
+  /** Import diferido del GLTFLoader r180, resuelto por la entrada. */
+  cargarGLTFLoader?: () => Promise<any>;
   $(id: string): any;
   FUNCIONES: Record<string, any>;
   funcionDe(unidad: any): { principal: string; secundaria?: string };
@@ -82,7 +84,7 @@ export function crearCampaign3D(estado: EstadoVista, deps: DependenciasCampaign)
 export const factory3d: {
   construir(ctx: any): any;
   actualizar(contenido: any, ctx: any, dtReal: number): void;
-  cargar(): Promise<any>;
+  cargar(cargarGLTFLoader?: () => Promise<any>): Promise<any>;
   ik(h: number, v: number): { a1: number; a2: number; a3: number };
   ultimo: any | null;
 };

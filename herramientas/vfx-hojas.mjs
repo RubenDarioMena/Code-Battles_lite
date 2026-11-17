@@ -41,7 +41,7 @@ export async function generarHojas(opciones) {
       }
     }
     if (errores.length) throw new Error(`Errores del laboratorio: ${errores.join('\n')}`);
-    const resumen = { origen: opciones.origen, three: 'r128', unidadCPU: 'ms de particulas(); no GPU',
+    const resumen = { origen: opciones.origen, three: 'r180', unidadCPU: 'ms de particulas(); no GPU',
       escala: 'mapa 32x18; cámara 38°, distancia 33m; recortes 1:1', resultados };
     await writeFile(path.join(salida, 'resumen.json'), JSON.stringify(resumen, null, 2) + '\n');
     console.log(`Hojas VFX: ${resultados.length} PNG y resumen.json en ${salida}`);

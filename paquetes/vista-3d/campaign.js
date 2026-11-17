@@ -12,10 +12,12 @@ export function crearCampaign3D(estado, { THREE, $, FUNCIONES, funcionDe, leerVa
     if (typeof THREE === "undefined" || !crearTerreno) return null;
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.NoToneMapping;
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     const T = crearTerreno(mapa), C = reglas;
     const escena = new THREE.Scene(), camara = new THREE.PerspectiveCamera(38, 1.6, 0.5, 900);
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.82), sol = new THREE.DirectionalLight(0xffffff, 0.62);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.82 * Math.PI), sol = new THREE.DirectionalLight(0xffffff, 0.62 * Math.PI);
     sol.position.set(-60, 120, 50); escena.add(hemi, sol);
     const paisaje = new THREE.Group(), fijo = new THREE.Group(), movil = new THREE.Group();
     escena.add(paisaje, fijo, movil);
@@ -96,7 +98,9 @@ export function crearCampaign3D(estado, { THREE, $, FUNCIONES, funcionDe, leerVa
       const g = new THREE.BufferGeometry();
       g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pos), 3));
       colA = new Float32Array(pos.length); colB = new Float32Array(pos.length);
-      caras.forEach((f, n) => { const c = T.color(f.x, f.y, f.h, f.pend), s = .93 + .14 * T.hash(n, 7, 3); for (let k = 0; k < 3; k++) colA.set([c[0] * s, c[1] * s, c[2] * s], n * 9 + k * 3); });
+      // T.color da RGB sRGB (como el plano); los colores de vértice de r180 son lineales.
+      const lin = new THREE.Color();
+      caras.forEach((f, n) => { const c = T.color(f.x, f.y, f.h, f.pend), s = .93 + .14 * T.hash(n, 7, 3); lin.setRGB(c[0] * s, c[1] * s, c[2] * s, THREE.SRGBColorSpace); for (let k = 0; k < 3; k++) colA.set([lin.r, lin.g, lin.b], n * 9 + k * 3); });
       g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(colA), 3));
       g.computeVertexNormals();
       terreno = mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })); terreno.raycast = () => {};

@@ -28,11 +28,11 @@ pwsh -NoProfile -File ./server.ps1 -Root "." -Port 8770 -NoBrowser
 
 Sirve la entrada y ambos juegos. Mantén como raíz la carpeta completa: los juegos usan los recursos de `shared/`. PowerShell sigue pendiente de comprobación en Windows.
 
-La aplicación sirve Acorn 8.11.3, Three.js r128 y GLTFLoader r128 desde `shared/vendor/`, con licencias y hashes fijados. Usa fuentes instaladas en el dispositivo. Los juegos funcionan desde el servidor local sin CDN ni conexión a Internet. La telemetría remota opcional necesita red para enviar datos.
+La aplicación sirve Acorn 8.11.3, Three.js r180 y GLTFLoader r180 desde `shared/vendor/`, con licencias y hashes fijados. Usa fuentes instaladas en el dispositivo. Los juegos funcionan desde el servidor local sin CDN ni conexión a Internet. La telemetría remota opcional necesita red para enviar datos.
 
 ## Estudio de terreno
 
-[Abrir el editor de terreno](http://localhost:8770/herramientas/terreno/) para esculpir el paisaje de War en un visor de pantalla completa, ampliar/recortar sus bordes, pintar materiales a cualquier altura y preparar bloques con controles XYZ. Incluye inspector plegable para móvil, pinceles de inflar y detalle, y resolución de hasta 25 cm. Usa Three.js r180 local, prefiere WebGPU y dispone de respaldo WebGL 2; el juego mantiene su renderizador actual. No requiere instalación ni compilación.
+[Abrir el editor de terreno](http://localhost:8770/herramientas/terreno/) para esculpir el paisaje de War en un visor de pantalla completa, ampliar/recortar sus bordes, pintar materiales a cualquier altura y preparar bloques con controles XYZ. Incluye inspector plegable para móvil, pinceles de inflar y detalle, y resolución de hasta 25 cm. Usa Three.js r180 local, prefiere WebGPU y dispone de respaldo WebGL 2; el juego usa el renderizador WebGL 2 de la misma versión. No requiere instalación ni compilación.
 
 Incluye ratón/lápiz con presión, cámara táctil, edición de vértices, extrusión de triángulos, unión de mallas, deshacer/rehacer, borrador local, abrir/guardar JSON y exportar altura PNG de 16 bits + mezcla RGBA + máscara de agua. «Probar en War» abre una copia visual del escenario en el juego. El campo jugable conserva altura cero; las reglas y los programas se mantienen. [Uso, formato y límites](docs/EDITOR-TERRENO.md). El S Pen necesita comprobación en dispositivo físico.
 
@@ -97,7 +97,7 @@ Las simulaciones usan cuadrícula y paso fijo; defensa conserva su RNG con semil
 - Victoria al cumplir metas; las entregas llenas conservan la carga. `count` devuelve 0 para edificio vacío y null si no existe. [Reglamento completo](docs/REGLAMENTO.md).
 - Importación única de programas y preferencias desde `cmg-banco02:*`, sin escribir en ese banco. Los programas comunes usan `cmg-banco03:prog-factory-*`; el árbol antiguo se convierte a JS cuando era la fuente activa.
 - Récord por tiempo con versión de reglas, telemetría local separada y stock determinista por intento. War conserva sus claves y telemetría remota.
-- Vista 3D (por defecto) o plano, recordada por serie. R1 es el transporte T1 de Blender: el brazo alcanza el edificio al recoger o entregar y lleva la caja con el color del material. El nivel de detalle (LOD0–2) depende del tamaño del robot en pantalla. El cargador glTF r128 local se carga solo en Factory.
+- Vista 3D (por defecto) o plano, recordada por serie. R1 es el transporte T1 de Blender: el brazo alcanza el edificio al recoger o entregar y lleva la caja con el color del material. El nivel de detalle (LOD0–2) depende del tamaño del robot en pantalla. El cargador glTF r180 ESM local se carga solo en Factory.
 - Comparación histórica: 28 casos, con [13 diferencias aprobadas](pruebas/factory-deltas.json) y 15 resultados idénticos. El [oráculo original](pruebas/factory-oraculo.md) se conserva.
 - El Factory original (`Prototypes/Tres vistas/`) está retirado: sus URL y `Prototypes/02_tres_vistas.html` redirigen aquí conservando query y hash. Su código queda en el historial de git (`b76411b`).
 

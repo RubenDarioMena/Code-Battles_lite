@@ -3,7 +3,7 @@
 Fase 4, paso 1. Recetas aisladas de War, sin conectar las vistas ni cambiar
 reglas, API, textos o guardado del juego. No lee ni escribe almacenamiento.
 El laboratorio no está en la lista de Netlify ni en la cáscara de escritorio.
-No añade dependencias; usa el Three r128 local de `shared/vendor/`.
+No añade dependencias; usa el Three r180 local de `shared/vendor/`.
 
 ## Abrir
 
@@ -63,7 +63,7 @@ API de QA: `globalThis.laboratorioVfx` ofrece `listo`, `error`, `nombres`,
 
 `node pruebas/vfx-laboratorio.mjs` (en `npm test`) ejecuta el arranque, los
 controles, el rebobinado y las 36 combinaciones con DOM/canvas/renderizador
-falsos y Three r128 real. Comprueba también recursos locales y paridad ES/EN.
+falsos y Three r180 real. Comprueba también recursos locales y paridad ES/EN.
 Es una **emulación**, no comprueba shaders, rasterizado ni apariencia.
 
 ## Revisar las hojas
@@ -74,3 +74,8 @@ humo breve y tenue; etiquetas/selección legibles. Comparar 3D/plano y alto/
 medio/bajo/no sin que los destellos invadan el mapa. La inspección visual y
 las medidas reales quedan pendientes del autor: no se ha lanzado navegador
 en este paso. La integración con War es el paso 2, y la fase 4 sigue abierta.
+
+La entrada `entrada.js` importa `three.module.min.js` y llama a
+`iniciarLaboratorio(THREE)`; no usa globales. Salida sRGB y sin tone mapping,
+con las mismas conversiones VFX que War. Los rótulos, la biblioteca cargada y
+`resumen.json` dicen r180.

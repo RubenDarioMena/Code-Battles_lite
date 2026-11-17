@@ -4,6 +4,7 @@ import { crearDibujanteEfectos as crear2D } from '../../paquetes/vista-2d/index.
 export function crearVisores(THREE, canvas3, canvas2, colores, texto) {
   const W = 640, H = 400;
   const renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true, preserveDrawingBuffer: true });
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NoToneMapping;
   renderer.setPixelRatio(1); renderer.setSize(W, H, false);
   const escena = new THREE.Scene();
   escena.background = new THREE.Color(colores.suelo);

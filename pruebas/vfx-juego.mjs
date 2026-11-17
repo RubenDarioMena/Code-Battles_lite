@@ -1,7 +1,6 @@
+import * as ThreeReal from '../shared/vendor/three-r180/three.module.min.js';
 // Fachadas y composición reales; canvas y GPU emulados. No abre navegador.
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
-import { readFileSync } from 'node:fs';
 import { crearVista as crear2D, crearTerreno } from '../paquetes/vista-2d/index.js';
 import { crearVista as crear3D } from '../paquetes/vista-3d/index.js';
 import { crearEfectos, crearRecetasWar, recetaWar } from '../paquetes/vfx/index.js';
@@ -11,10 +10,8 @@ import { adaptar } from './juego-adaptador.mjs';
 import { casosReferencia } from '../herramientas/partida/casos.mjs';
 import campaign, * as datosCampaign from '../paquetes/reglas-campaign/index.js';
 
-const c = vm.createContext({});
-vm.runInContext(readFileSync(new URL('../shared/vendor/three-r128.min.js', import.meta.url), 'utf8'), c);
-const THREE = c.THREE;
-THREE.GLTFLoader = class { load(_url, ok) { ok(null); } };
+const THREE = { ...ThreeReal };
+const cargarGLTFLoader = async () => class { load(_url, ok) { ok(null); } };
 let render, recursosLiberados = 0, consultasGl = 0;
 THREE.WebGLRenderer = class {
   constructor({ canvas }) { this.domElement = canvas; this.ratio = 1; }
@@ -49,7 +46,7 @@ const enemigo = { id: 'E', tipo: 'drone', x: 14, y: 8, z: 3, vx: -2, vy: 1, hp: 
 const escena = congelar({ t: 0, def: { niebla: false }, lanzadores: [l], deposito: d, maquinas: [l, d], sensores: [], reparadores: [],
   enemigos: [enemigo], explosiones: [], misiles: [], porId: { L: l, DEP: d } });
 const contenedor = { getBoundingClientRect: () => ({ width: 640, height: 400 }) };
-const opciones = { serie: 'war', dt: .05, THREE, cols: 32, rows: 18, tema: col,
+const opciones = { serie: 'war', dt: .05, THREE, cargarGLTFLoader, cols: 32, rows: 18, tema: col,
   $: id => id === 'app' ? { dataset: {} } : lienzo(),
   MISIL: { radio: 1.3 }, TIPOS: { drone: {}, crawler: { suelo: true } }, LINEA_BASE: 3,
   FUNCIONES: { ofensiva: 'O', fabrica: 'F' }, FR: .62, ARCO: [2, 2.9], HALO: { medio: [[0, .5], [.2, 0]] }, LUCES: {}, INTENSIDAD: { media: 1 },
@@ -186,14 +183,18 @@ try {
       vista.alSuceso({ paso: 0, tipo: 'explosion', datos: { x: 9, y: 7, golpe: 1, misil: 1 } });
       if (dimension === '3d') { vista.construir(); vista.redimensionar(); }
       vista.dibujar(null, foto, 0, 100);
-      if (dimension === '3d') assert.equal(nubes().length, 0);
+      if (dimension === '3d') {
+        assert.equal(nubes().length, 0);
+        assert.deepEqual(render.children.filter(o => o.isLight).map(o => o.intensity),
+          (serie === 'factory' ? [.85, .55] : [.82, .62]).map(i => i * Math.PI));
+      }
       else assert.equal(canvas.llamadas.filter(([k, imagen]) => k === 'drawImage' && imagen.width === 64).length, 0);
       assert.equal(consultasGl, previas); vista.destruir();
     }
   }
   for (const serie of ['factory', 'campaign']) {
     const ctx = { ...opciones, SERIE: serie, ES_FACTORY: serie === 'factory', ES_CAMPAIGN: serie === 'campaign', DT: .05,
-      servicios: { THREE }, campaign: datosCampaign, reglas: { escena: () => escena }, mundo: {}, COLS: 32, ROWS: 18,
+      servicios: { THREE, cargarGLTFLoader }, campaign: datosCampaign, reglas: { escena: () => escena }, mundo: {}, COLS: 32, ROWS: 18,
       $: id => id === 'c2d' || id === 'c3d' ? lienzo() : id === 'app' ? { dataset: {} } : contenedor };
     const api = instalarVistasJuego(ctx);
     let entregas = 0;
@@ -207,7 +208,7 @@ try {
   for (const [valor, calidad] of [['', 'alto'], ['invalido', 'alto'], ['alto', 'alto'], ['medio', 'medio'], ['bajo', 'bajo'], ['no', 'no']]) {
     globalThis.location.search = '?vfx=' + valor;
     const plano = lienzo(), tres = lienzo(); let lecturas = 0;
-    const ctx = { ...opciones, SERIE: 'war', DT: .05, COLS: 32, ROWS: 18, servicios: { THREE },
+    const ctx = { ...opciones, SERIE: 'war', DT: .05, COLS: 32, ROWS: 18, servicios: { THREE, cargarGLTFLoader },
       reglas: { escena() { lecturas++; return escena; } }, mundo: {}, seleccionadas: new Set(['L']),
       $: id => id === 'c2d' ? plano : id === 'c3d' ? tres : id === 'app' ? { dataset: {} } : contenedor };
     const api = instalarVistasJuego(ctx); api.leerColores(); api.V3.construir(); api.V3.redimensionar();

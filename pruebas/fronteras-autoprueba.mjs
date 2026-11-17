@@ -33,6 +33,8 @@ esperadas.push('paquetes/app/cascara.js · import-ruta',
   ...Array(3).fill('cascaras/escritorio/rutas.cjs · import-ruta'),
   ...Array(2).fill('cascaras/escritorio/rutas.cjs · import-desnudo'),
   'cascaras/escritorio/rutas.cjs · import-dinamico');
+esperadas.push(...Array(3).fill('paquetes/vista-3d/pruebas/vendor.mjs · import-ruta'),
+  'paquetes/vista-3d/vendor.js · import-ruta');
 esperadas.sort();
 
 // Solo el temporal contiene sintaxis inválida y node_modules: todos los archivos
@@ -41,6 +43,16 @@ const raiz = await mkdtemp(join(tmpdir(), 'cbl-fronteras-'));
 let resultado;
 try {
   await cp(casos, raiz, { recursive: true });
+  await mkdir(join(raiz, 'paquetes/vista-3d/pruebas'), { recursive: true });
+  await writeFile(join(raiz, 'paquetes/vista-3d/pruebas/vendor.mjs'), `
+    import '../../../shared/vendor/three-r180/three.module.min.js';
+    import '../../../shared/vendor/three-r180/three.core.min.js';
+    import '../../../shared/vendor/three-r180/loaders/GLTFLoader.js';
+    import '../../../shared/vendor/three-r128.min.js';
+    import '../../../shared/vendor/three-r180/three.module.min.js?v=1';
+  `);
+  await writeFile(join(raiz, 'paquetes/vista-3d/vendor.js'),
+    "import '../../shared/vendor/three-r180/three.module.min.js';\n");
   await mkdir(join(raiz, 'cascaras/web'), { recursive: true });
   await writeFile(join(raiz, 'cascaras/web/rutas.js'), `
     import '../../paquetes/app/index.js';

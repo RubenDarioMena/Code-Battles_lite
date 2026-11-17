@@ -1,10 +1,11 @@
+(async () => {
 // Regresiones del estudio: tamaños, pinceles, precisión y pintura elevada persistente.
 const assert = require('node:assert/strict');
 const {readFileSync} = require('node:fs');
 const vm = require('node:vm');
 const contexto = vm.createContext({window:{}});
 for(const archivo of ['datos','malla','bloques']) vm.runInContext(readFileSync(`${__dirname}/../shared/terreno/${archivo}.js`,'utf8'),contexto);
-const T=contexto.window.CMGTerreno, THREE=require('../shared/vendor/three-r128.min.js');
+const T=contexto.window.CMGTerreno, THREE=await import('../shared/vendor/three-r180/three.core.min.js');
 let n=0; const prueba=(nombre,fn)=>{try{fn();n++;}catch(e){e.message=nombre+': '+e.message;throw e;}};
 const indice=(m,x,z)=>Math.round((z-m.origen.z)/m.paso)*m.columnas+Math.round((x-m.origen.x)/m.paso);
 prueba('ampliar y recortar conservan las muestras originales, pesos, agua y bloques',()=>{
@@ -63,3 +64,5 @@ prueba('pintura de caras viaja por JSON, malla, extrusión y unión',()=>{
  assert.doesNotThrow(()=>T.validar(m));m.bloques[0].coloresCaras[0]='red';assert.throws(()=>T.validar(m));
 });
 console.log(`Estudio de terreno: ${n} regresiones correctas.`);
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

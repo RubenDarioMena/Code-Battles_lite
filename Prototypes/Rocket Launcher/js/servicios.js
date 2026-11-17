@@ -1,9 +1,14 @@
-// Único punto de lectura de las bibliotecas clásicas, tras sus scripts ordenados.
+// Three ESM local; los clásicos restantes se capturan tras sus scripts ordenados.
+import * as THREE from '../../../shared/vendor/three-r180/three.module.min.js';
+
+// Solo Factory solicita el cargador. El namespace ESM de Three nunca se modifica.
+const cargarGLTFLoader = () => import('../../../shared/vendor/three-r180/loaders/GLTFLoader.js')
+  .then(modulo => modulo.GLTFLoader);
 export const servicios = {
   CMGI18n: window.CMGI18n, CMGPresentacion: window.CMGPresentacion,
   CMGTerreno: window.CMGTerreno, CMGTrazador: window.CMGTrazador,
   CMGFlujo: window.CMGFlujo, CMGPythonRevision: window.CMGPythonRevision,
-  THREE: window.THREE, acorn: window.acorn, LezerPython: window.LezerPython,
+  THREE, cargarGLTFLoader, acorn: window.acorn, LezerPython: window.LezerPython,
   cargarRevision,
 };
 let cargaRevision = null;

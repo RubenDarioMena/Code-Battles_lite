@@ -1,7 +1,6 @@
+import * as ThreeReal from '../../../shared/vendor/three-r180/three.module.min.js';
 // Three real con renderizador y DOM falsos: comprueba geometría y lecturas sin WebGL ni navegador.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import vm from 'node:vm';
 import * as vistas from '../index.js';
 
 let comprobaciones = 0;
@@ -24,10 +23,8 @@ igual(crear3D({}, {}), null, 'War devuelve null sin THREE');
 igual(crear3D({}, { ES_FACTORY: true }), null, 'Factory devuelve null sin THREE');
 igual(crearCampaign3D({}, {}), null, 'Campaign devuelve null sin THREE');
 
-const contexto = vm.createContext({});
-vm.runInContext(readFileSync(new URL('../../../shared/vendor/three-r128.min.js', import.meta.url), 'utf8'), contexto);
-const THREE = contexto.THREE;
-igual(THREE.REVISION, '128', 'usa el Three local del juego');
+const THREE = { ...ThreeReal };
+igual(THREE.REVISION, '180', 'usa el Three local del juego');
 let escenaDibujada = null;
 class Renderizador {
   domElement = { height: 400, toDataURL: () => 'data:image/png;simulada' };
@@ -83,6 +80,12 @@ vista.actualizar(0, 0);
 vista.tamano(1280, 720);
 vista.render();
 ok(escenaDibujada.isScene && escenaDibujada.children.length >= 4, 'construye una escena Three con luces y grupos');
+const luces = escenaDibujada.children.filter(o => o.isLight);
+igual(luces.map(o => o.intensity), [.85 * Math.PI, .55 * Math.PI], 'compensa las luces físicas con π');
+igual(escenaDibujada.background.getHexString(), '336699', 'el fondo vuelve al color CSS sRGB');
+const texturas = [];
+escenaDibujada.traverse(o => { if (o.material?.map) texturas.push(o.material.map); });
+ok(texturas.length > 0 && texturas.every(t => t.colorSpace === THREE.SRGBColorSpace), 'lienzos etiquetados sRGB');
 ok(escenaDibujada.getObjectByProperty('isInstancedMesh', true).count > 0, 'construye los montes instanciados');
 let mallas = 0;
 escenaDibujada.traverse(o => { if (o.isMesh) mallas++; });

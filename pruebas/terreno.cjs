@@ -1,3 +1,4 @@
+(async () => {
 // Formato y pinceles del terreno, sin DOM ni dependencias: node pruebas/terreno.cjs
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
@@ -9,7 +10,7 @@ const archivo = 'shared/terreno/datos.js';
 vm.runInContext(readFileSync(path.join(__dirname, '..', archivo), 'utf8'), contexto, { filename: archivo });
 const T = contexto.window.CMGTerreno;
 vm.runInContext(readFileSync(path.join(__dirname, '..', 'shared/terreno/malla.js'), 'utf8'), contexto, { filename: 'shared/terreno/malla.js' });
-const THREE = require('../shared/vendor/three-r128.min.js');
+const THREE = await import('../shared/vendor/three-r180/three.core.min.js');
 let comprobaciones = 0;
 function prueba(nombre, fn) {
   try { fn(); comprobaciones++; }
@@ -177,7 +178,7 @@ prueba('muestreo bilineal y bordes', () => {
   cerca(T.alturaEn(m, -1e5, -1e5), 7);
   cerca(T.alturaEn(m, 1e5, 1e5), 9);
 });
-prueba('malla r128: resolución, caras superiores y extensión del mundo', () => {
+prueba('malla r180: resolución, caras superiores y extensión del mundo', () => {
   const m = plano(), g = T.crearGeometria(THREE, m);
   assert.equal(g.getAttribute('position').count, 12513);
   assert.equal(g.getAttribute('color').count, 12513);
@@ -364,3 +365,5 @@ prueba('malla de agua vacía, pintada y recortada por la altura del suelo', () =
 });
 
 console.log(`Terreno: ${comprobaciones} comprobaciones correctas.`);
+
+})().catch(error => { console.error(error); process.exitCode = 1; });

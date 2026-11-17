@@ -27,6 +27,9 @@ try {
   const web = path.join(temporal, 'web'), escritorio = path.join(temporal, 'escritorio');
   await copiarPublicables(raiz, web); await prepararApp(escritorio);
   const listaWeb = await inventario(web);
+  for (const archivo of ['three.module.min.js', 'three.core.min.js', 'loaders/GLTFLoader.js', 'utils/BufferGeometryUtils.js'])
+    assert(listaWeb.some(([n]) => n === 'shared/vendor/three-r180/' + archivo), archivo);
+  assert(!listaWeb.some(([n]) => /shared\/vendor\/(?:three-r128\.min\.js|GLTFLoader-r128\.js|LICENSE-three)$/.test(n)));
   assert.deepEqual((await inventario(escritorio)).filter(([n]) => n !== 'package.json'
     && !n.startsWith('cascaras/escritorio/') && !n.startsWith('node_modules/steamworks.js/')), listaWeb);
   assert(!listaWeb.some(([n]) => /^(?:cascaras\/escritorio|pruebas)\//.test(n) || /^paquetes\/[^/]+\/pruebas\//.test(n)));

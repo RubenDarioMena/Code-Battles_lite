@@ -7,20 +7,22 @@ import { crearTerreno3D } from './terreno.js';
 
 /** @param {import('./index.js').EstadoVista} estado @param {import('./index.js').DependenciasWar} deps
  * @returns {import('./index.js').Vista3D | null} */
-export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null, montarEfectos }) {
+export function crear3D(estado, { THREE, cargarGLTFLoader, $, ES_FACTORY, ARCO, FR, FUNCIONES, HALO, INTENSIDAD, LINEA_BASE, LUCES, MISIL, TIPOS, alcance, direccionDe, funcionDe, leerVar, radioDe, visual, terreno, terrenoEditor = null, montarEfectos }) {
     if (typeof THREE === "undefined") return null;
     // Factory usa el mismo visor con su propio contenido (factory.js) y un mapa más pequeño.
     let factory = null, ahoraPrevio = null;
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas: $("c3d"), antialias: true }); } catch { return null; }
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.NoToneMapping;
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     const escena = new THREE.Scene();
     // Bruma del horizonte: solo toca lo que queda más allá del campo, para que el terreno se pierda a lo lejos.
     const horizonte = new THREE.Fog(0xffffff, 60, 140);
     const camara = new THREE.PerspectiveCamera(38, 1.6, 0.1, 500);
     montarEfectos?.({ THREE, escena, renderer, camara });
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.85);
-    const sol = new THREE.DirectionalLight(0xffffff, 0.55); sol.position.set(-12, 30, 18);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a9488, 0.85 * Math.PI);
+    const sol = new THREE.DirectionalLight(0xffffff, 0.55 * Math.PI); sol.position.set(-12, 30, 18);
     escena.add(hemi, sol);
     const lam = (k, extra = {}) => { const { hacia, u, ...resto } = extra; return new THREE.MeshLambertMaterial({ color: 0xffffff, ...resto, userData: { k, hacia, u } }); };
     const bas = (k, extra) => new THREE.MeshBasicMaterial({ color: 0xffffff, ...extra, userData: { k } });
@@ -69,7 +71,8 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
     function textura(pintar, n = 128) {
       const cv = document.createElement("canvas"); cv.width = cv.height = n;
       pintar(cv.getContext("2d"), n / 2);
-      return new THREE.CanvasTexture(cv);
+      const mapa = new THREE.CanvasTexture(cv); mapa.colorSpace = THREE.SRGBColorSpace;
+      return mapa;
     }
     const blancoA = (a) => `rgba(255,255,255,${a})`;
     const tex = {
@@ -162,7 +165,7 @@ export function crear3D(estado, { THREE, $, ES_FACTORY, ARCO, FR, FUNCIONES, HAL
       fijo.add(lineas(p1, L.grid), lineas(p2, L.grid2));
       if (ES_FACTORY) {
         escena.fog = horizonte;
-        factory = factory3d.construir({ THREE, estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
+        factory = factory3d.construir({ THREE, cargarGLTFLoader, estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar });
         factory3d.ultimo = factory;
         aplicarColores(); anillosDe(estado.seleccion);
         return;

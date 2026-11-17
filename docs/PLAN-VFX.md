@@ -1,5 +1,12 @@
 # Plan de efectos visuales (VFX)
 
+Desde la fase 4, paso 5 del plan de arquitectura, el dibujante 3D y el
+laboratorio usan Three r180 ESM local (WebGL 2), con gestión de color activa.
+El RGB sRGB compartido con 2D se convierte a lineal antes del shader y vuelve
+a sRGB mediante `colorspace_fragment`, antes de la niebla; la mezcla aditiva
+se desvanece a negro. El dibujante 2D no depende de Three. La validación visual
+de esta migración queda a cargo del autor (capturas y Electron).
+
 > **Fase 4, paso 4:** War 3D agrupa enemigos y esferas de misil por geometría/material en instancias r128; captura de combate al paso 512 y contadores de dibujo en [CAPTURAS-VISTA](../herramientas/CAPTURAS-VISTA.md). Pruebas Node sin GPU; comparación visual pendiente del autor.
 
 > **Fase 4, paso 3 (17 de noviembre de 2026).** Ajustes ES/EN con `cmg-juego-efectos` independiente; URL > preferencia > auto (alto/bajo por movimiento reducido), sin destellos siempre con movimiento reducido y cambio en caliente sin vaciar. `herramientas/medir-carga.mjs` prepara la medida Electron/Chromium (real y saturación); ejecución GPU/capturas pendientes del autor.

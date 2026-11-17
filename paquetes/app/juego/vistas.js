@@ -43,8 +43,8 @@ export function instalarVistasJuego(ctx) {
   }
   const comunes = { serie: ctx.SERIE, dt: ctx.DT, estado: estadoVista };
   const V3 = vista3d.crearVista(ctx.$("campo"), ctx.ES_CAMPAIGN
-    ? { ...comunes, THREE: servicios.THREE, canvas: ctx.$("c3d"), $: ctx.$, FUNCIONES: ctx.FUNCIONES, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, mapa: ctx.campaign.nivel.MAPA, crearTerreno: vista2d.crearTerreno, reglas: ctx.campaign }
-    : { ...comunes, THREE: servicios.THREE, canvas: ctx.$("c3d"), $: ctx.$, ES_FACTORY: ctx.ES_FACTORY, ARCO: ctx.ARCO, FR: ctx.FR, FUNCIONES: ctx.FUNCIONES, HALO: ctx.HALO, INTENSIDAD: ctx.INTENSIDAD, LINEA_BASE: ctx.LINEA_BASE, LUCES: ctx.LUCES, MISIL: ctx.MISIL, TIPOS: ctx.TIPOS, alcance: ctx.alcance, direccionDe: ctx.direccionDe, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, visual: ctx.visual, terreno: servicios.CMGTerreno, terrenoEditor: leerTerrenoEditor() });
+    ? { ...comunes, THREE: servicios.THREE, cargarGLTFLoader: servicios.cargarGLTFLoader, canvas: ctx.$("c3d"), $: ctx.$, FUNCIONES: ctx.FUNCIONES, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, mapa: ctx.campaign.nivel.MAPA, crearTerreno: vista2d.crearTerreno, reglas: ctx.campaign }
+    : { ...comunes, THREE: servicios.THREE, cargarGLTFLoader: servicios.cargarGLTFLoader, canvas: ctx.$("c3d"), $: ctx.$, ES_FACTORY: ctx.ES_FACTORY, ARCO: ctx.ARCO, FR: ctx.FR, FUNCIONES: ctx.FUNCIONES, HALO: ctx.HALO, INTENSIDAD: ctx.INTENSIDAD, LINEA_BASE: ctx.LINEA_BASE, LUCES: ctx.LUCES, MISIL: ctx.MISIL, TIPOS: ctx.TIPOS, alcance: ctx.alcance, direccionDe: ctx.direccionDe, funcionDe: ctx.funcionDe, leerVar, radioDe: ctx.radioDe, visual: ctx.visual, terreno: servicios.CMGTerreno, terrenoEditor: leerTerrenoEditor() });
 
   // ---------- Vista de plano (2D) ----------
   function leerColores() {

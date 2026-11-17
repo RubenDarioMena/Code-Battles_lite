@@ -17,6 +17,16 @@ Distribución ESM local de **Three.js 0.180.0**, obtenida del [tag oficial r180]
 
 `WebGPURenderer` se inicializa de forma asíncrona y utiliza su respaldo WebGL 2 cuando WebGPU no está disponible. El editor puede solicitar `forceWebGL: true` para comprobar ese respaldo. La disponibilidad real depende del navegador, el dispositivo y el contexto seguro (HTTPS o localhost).
 
-Estos módulos no reemplazan el `THREE` global r128 del juego ni su GLTFLoader. Las dos versiones se mantienen separadas por documento; se comparten datos de terreno, sin trasladar objetos o materiales entre instancias.
+El juego y el laboratorio VFX usan `WebGLRenderer` de `three.module.min.js`
+(WebGL 2 obligatorio); el editor de terreno conserva `WebGPURenderer`. El mapa
+de imports del juego resuelve `three` hacia el módulo WebGL: GLTFLoader se
+importa bajo demanda desde la entrada y se inyecta en Factory. No hay global
+`window.THREE` ni escrituras en el namespace ESM. Web y Electron (`cbl://app/`)
+sirven estos mismos archivos relativos sin red.
+
+Los archivos `.d.ts` adyacentes son declaraciones locales del límite externo
+inyectado (tipo `any`, como antes); evitan comprobar el JS minificado de terceros
+con `checkJs`. No son copias oficiales ni forman parte del manifiesto de origen.
+Los contratos de las vistas se comprueban por separado.
 
 Para actualizar, cambiar todos los archivos de esta carpeta juntos desde otro tag explícito, conservar la licencia, revisar imports y API, y recalcular los hashes. El manifiesto original de `shared/vendor/manifest.json` no cubre esta carpeta.

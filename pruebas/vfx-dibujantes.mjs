@@ -1,14 +1,11 @@
+import * as ThreeReal from '../shared/vendor/three-r180/three.module.min.js';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
-import { readFileSync } from 'node:fs';
 // Importar las entradas públicas sin preparar DOM ni Three.
 import { crearDibujanteEfectos as crear2D } from '../paquetes/vista-2d/index.js';
 import { crearDibujanteEfectos as crear3D } from '../paquetes/vista-3d/index.js';
 import { opcionesHojas } from '../herramientas/vfx-hojas.mjs';
 
-const contexto = vm.createContext({});
-vm.runInContext(readFileSync(new URL('../shared/vendor/three-r128.min.js', import.meta.url), 'utf8'), contexto);
-const THREE = contexto.THREE, grupo = new THREE.Group();
+const THREE = ThreeReal, grupo = new THREE.Group();
 const p = { x: 2, y: 3, z: 4, tam: 1, alfa: .5, color: [1, .5, 0], forma: 'disco', mezcla: 'normal', paso: 0, capa: 0, indice: 0, estela: 0 };
 const dib3 = crear3D(THREE, grupo, { alturaBufer: 400, pixelRatio: 2, fov: 38, capacidad: 2, maxPunto: 127 });
 assert.equal(grupo.children.length, 2);
@@ -21,12 +18,21 @@ for (const n of grupo.children) {
   assert.equal(n.material.uniforms.maxPunto.value, 127);
   n.geometry.addEventListener('dispose', () => liberados++); n.material.addEventListener('dispose', () => liberados++);
   assert(n.material.vertexShader.includes('#include <fog_vertex>'));
-  assert(n.material.fragmentShader.includes('#include <fog_fragment>'));
+  const fs = n.material.fragmentShader;
+  assert(fs.includes('#include <fog_fragment>'));
+  assert(fs.indexOf('#include <colorspace_fragment>') < fs.indexOf('#include <fog_fragment>'));
+  // Todas las inclusiones existen en el shader de la distribución real r180.
+  for (const shader of [n.material.vertexShader, fs]) for (const [, nombre] of shader.matchAll(/#include <(\w+)>/g)) {
+    assert.equal(typeof THREE.ShaderChunk[nombre], 'string', nombre);
+  }
 }
 dib3.dibujar([p, { ...p, mezcla: 'suma', forma: 'brillo' }]);
 assert.equal(normal.geometry.drawRange.count, 1); assert.equal(suma.geometry.drawRange.count, 1);
 assert.deepEqual(Array.from(normal.geometry.attributes.position.array.slice(0, 3)), [2, 4, 3]);
 assert.equal(normal.geometry.attributes.tam.array[0], 1);
+const tinte = normal.geometry.attributes.tinte;
+assert(Math.abs(tinte.getY(0) - THREE.ColorManagement.toWorkingColorSpace(new THREE.Color().setRGB(1, .5, 0), THREE.SRGBColorSpace).g) < 1e-7);
+assert(tinte.getY(0) < .22, 'el RGB sRGB de 2D se convierte a lineal una sola vez');
 assert(normal.geometry.attributes.position.version > 0);
 assert.equal(suma.material.blending, THREE.AdditiveBlending);
 dib3.dibujar([p, p, p]); assert.equal(normal.geometry.drawRange.count, 2); assert.equal(suma.geometry.drawRange.count, 0);
@@ -66,4 +72,4 @@ assert.deepEqual(llamadas.find(c => c[0] === 'drawImage').slice(4), [5, 2, 2, 2]
 assert.equal(opcionesHojas([]).origen, 'http://127.0.0.1:8771');
 assert.deepEqual(opcionesHojas(['--calidades', 'alto,bajo']).calidades, ['alto', 'bajo']);
 assert.throws(() => opcionesHojas(['--calidades', 'ultra']), /Calidades/);
-console.log('Dibujantes VFX: imports sin entorno; Three r128 real sin GPU; búferes, coordenadas, niebla, liberación y contexto 2D falso; CLI de hojas sin lanzar navegador.');
+console.log('Dibujantes VFX: imports sin entorno; Three r180 real sin GPU; búferes, coordenadas, niebla, liberación y contexto 2D falso; CLI de hojas sin lanzar navegador.');

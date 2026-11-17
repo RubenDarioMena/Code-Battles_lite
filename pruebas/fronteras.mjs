@@ -110,6 +110,8 @@ async function principal() {
           return;
         }
         if (destino.startsWith(`${paquete}/`)) return;
+        // Solo los arneses pueden cargar la distribución local real, sin npm ni GPU.
+        if (prueba && paquete === 'vista-3d' && /^\.\.\/shared\/vendor\/three-r180\/three\.(?:core|module)\.min\.js$/.test(destino)) return;
         // Ruta relativa exacta a la entrada pública, también desde subcarpetas (p. ej. pruebas/).
         const profundidad = posix.dirname(local).split('/').length;
         const entrada = new RegExp(`^(?:\\.\\./){${profundidad}}([^/]+)/index\\.js$`).exec(fuente);

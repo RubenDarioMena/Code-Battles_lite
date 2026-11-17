@@ -55,7 +55,15 @@ for (const [archivo, hash] of Object.entries(JSON.parse(leer('shared/vendor/mani
 }
 const acorn = require('../shared/vendor/acorn-8.11.3.js');
 assert.equal(acorn.version, '8.11.3');
-assert.equal(require('../shared/vendor/three-r128.min.js').REVISION, '128');
+const three = await import('../shared/vendor/three-r180/three.module.min.js');
+assert.equal(three.REVISION, '180');
+assert.equal(three.ColorManagement.enabled, true);
+const vendorThree = 'shared/vendor/three-r180/';
+for (const [archivo, datos] of Object.entries(JSON.parse(leer(vendorThree + 'manifest.json')).files)) {
+  const bytes = fs.readFileSync(path.join(raiz, vendorThree, archivo));
+  assert.equal(bytes.length, datos.bytes, archivo);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), datos.sha256, archivo);
+}
 acorn.parse('async function viaje() { await pickUp(ENT_1, "cobre"); } await viaje();', { ecmaVersion: 2022, allowAwaitOutsideFunction: true });
 assert.throws(() => acorn.parse('function viaje() { await pickUp(); }', { ecmaVersion: 2022 }));
 for (const archivo of ['Prototypes/Rocket Launcher/index.html', 'Prototypes/Rocket Launcher/probar.html', 'paquetes/vista-3d/factory.js']) {

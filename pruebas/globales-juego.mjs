@@ -124,7 +124,7 @@ if (!vm.SourceTextModule) {
 const fuentes = await readFile(new URL('Prototypes/Rocket Launcher/js/servicios.js', raiz), 'utf8');
 assert(!fuentes.includes('?v='));
 const iniciales = ['CMGI18n', 'CMGPresentacion', 'CMGTerreno', 'CMGTrazador', 'CMGFlujo',
-  'CMGPythonRevision', 'THREE', 'acorn', 'LezerPython'];
+  'CMGPythonRevision', 'acorn', 'LezerPython'];
 const leidos = new Map(), eventos = new Map(), recursos = [];
 let link = null, fallar = 'catalogo.js';
 const valores = Object.fromEntries([...iniciales, 'CMGCatalogoRevision', 'CMGRevision'].map(k => [k, { id: k }]));
@@ -144,9 +144,18 @@ const contexto = vm.createContext({ window: ventana, addEventListener: (tipo, fn
   },
 });
 const modulo = new vm.SourceTextModule(fuentes, { context: contexto });
-await modulo.link(() => { throw new Error('La entrada de servicios no importa paquetes'); });
+const three = await import('../shared/vendor/three-r180/three.module.min.js');
+await modulo.link(ruta => {
+  assert.equal(ruta, '../../../shared/vendor/three-r180/three.module.min.js');
+  return new vm.SyntheticModule(Object.keys(three), function () {
+    for (const [k, valor] of Object.entries(three)) this.setExport(k, valor);
+  }, { context: contexto });
+});
 await modulo.evaluate();
 const servicios = modulo.namespace.servicios;
+assert.equal(servicios.THREE.REVISION, '180');
+assert.equal(typeof servicios.cargarGLTFLoader, 'function');
+assert.equal(leidos.has('THREE'), false, 'Three viene del módulo, sin leer globales');
 for (const k of iniciales) { assert.equal(leidos.get(k), 1, k); assert.equal(servicios[k], valores[k]); }
 assert.equal(leidos.has('CMGRevision'), false, 'no lee el visor antes de cargarlo');
 const fallida = servicios.cargarRevision();

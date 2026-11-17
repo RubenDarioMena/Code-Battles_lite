@@ -2,8 +2,6 @@
  * La cámara, la selección y las etiquetas son las de la vista 3D común (war.js); aquí solo el contenido.
  * Solo dibujo: lee la escena y nunca lo cambia. */
   const MODELO = "modelos/t1.glb";
-  // Cargador glTF de la misma versión que three.min.js (r128). Solo lo descarga Factory, al abrir el 3D.
-  const CARGADOR = "../../shared/vendor/GLTFLoader-r128.js";
   const ESCALA = .8;  // el T1 mide ~1 m de largo: cabe en su casilla con margen
   // LOD por tamaño en pantalla (px que ocupa el robot), no por distancia: así el teléfono, con menos
   // píxeles por metro, baja de nivel a la misma distancia aparente que el PC. Margen para no parpadear.
@@ -18,19 +16,15 @@
   const POSE_VACIO = { giro: 0, a1: rad(12), a2: rad(118), a3: rad(50), pinza: rad(16) };
 
   let cargando = null;
-  function cargar(THREE) {
-    if (cargando) return cargando;
-    const leer = (ok) => new THREE.GLTFLoader().load(MODELO, ok, undefined, () => ok(null));
-    cargando = new Promise((ok) => {
-      if (THREE.GLTFLoader) return leer(ok);
-      const s = document.createElement("script");
-      s.src = CARGADOR; s.onload = () => (THREE.GLTFLoader ? leer(ok) : ok(null)); s.onerror = () => ok(null);
-      document.head.append(s);
-    });
+  function cargar(cargarGLTFLoader) {
+    if (!cargarGLTFLoader) return Promise.resolve(null);
+    if (!cargando) cargando = cargarGLTFLoader().then(GLTFLoader => new Promise(ok => {
+      new GLTFLoader().load(MODELO, ok, undefined, () => ok(null));
+    })).catch(() => { cargando = null; return null; });
     return cargando;
   }
 
-  // El modelo trae materiales PBR lineales; el resto del escenario usa Lambert con colores sRGB.
+  // glTF y Lambert trabajan en Linear-sRGB; conservar los valores del modelo.
   function adaptarMateriales(raiz, propios, THREE) {
     raiz.traverse((o) => {
       if (!o.isMesh) return;
@@ -38,8 +32,8 @@
       const nuevos = lista.map((m) => {
         const clave = m.name;
         if (!propios[clave]) {
-          const color = m.color.clone().convertLinearToSRGB(), luz = m.emissive && m.emissive.getHex() !== 0;
-          propios[clave] = new THREE.MeshLambertMaterial({ color, emissive: luz ? m.emissive.clone().convertLinearToSRGB() : 0x000000, name: clave });
+          const color = m.color.clone(), luz = m.emissive && m.emissive.getHex() !== 0;
+          propios[clave] = new THREE.MeshLambertMaterial({ color, emissive: luz ? m.emissive.clone() : 0x000000, name: clave });
         }
         return propios[clave];
       });
@@ -58,7 +52,7 @@
   }
 
   function construir(ctx) {
-    const { THREE, estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar } = ctx;
+    const { THREE, cargarGLTFLoader, estado, fijo, movil, objetos, M, mesh, G, lineas, L, leerVar } = ctx;
     const mundo = estado.escena;  // escena del reglamento (fase 2)
     const caja = (w, h, d, mat, x, y, z) => { const o = mesh(G.caja(w, h, d), mat); o.position.set(x, y, z); return o; };
     const lam = (hex) => new THREE.MeshLambertMaterial({ color: hex });
@@ -109,7 +103,7 @@
     const provisional = caja(.6, .45, .8, M.borde, 0, .25, 0); robot.grupo.add(provisional);
     movil.add(robot.grupo); objetos.set("R1", { grupo: robot.grupo, alto: .9 });
     const propios = {};
-    cargar(THREE).then((g) => {
+    cargar(cargarGLTFLoader).then((g) => {
       if (!g || !robot.grupo.parent) return;
       robot.grupo.remove(provisional);
       for (let n = 0; n < 3; n++) {

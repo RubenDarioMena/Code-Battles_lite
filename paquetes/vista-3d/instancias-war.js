@@ -1,4 +1,4 @@
-/* Modelos y lotes de War. Three r128 inyectado; solo consume la escena visible. */
+/* Modelos y lotes de War. Three r180 inyectado; solo consume la escena visible. */
 export function enemigoMesh(THREE, G, M, L, TIPOS, e) {
   const mesh = (g, m) => new THREE.Mesh(g, m);
   const g = new THREE.Group(); g.userData.id = e.id;

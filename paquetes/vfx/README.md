@@ -107,7 +107,7 @@ y el destello inicial de impacto (0,16 s) llevan `destello: true`. Impacto y fal
 
 - `node paquetes/vfx/pruebas/vfx.mjs`: esquema, determinismo binario, tiempos,
   fórmula, primer contacto, calidad, selector y descarte con presupuesto.
-- `node pruebas/vfx-dibujantes.mjs`: imports públicos sin entorno, Three r128
+- `node pruebas/vfx-dibujantes.mjs`: imports públicos sin entorno, Three r180
   real sin GPU, búferes fijos, liberación, contexto 2D falso y CLI de hojas.
 - `node pruebas/vfx-laboratorio.mjs`: arranque y controles emulados en Node;
   no sustituye la revisión visual.
