@@ -1,4 +1,4 @@
-# VFX: singularidad y artillería (pruebas de concepto)
+# VFX: singularidad, rayo láser y artillería (pruebas de concepto)
 
 Efectos generados por código, fuera del juego. Nada de esta carpeta se carga en War ni en Factory ni entra en el paquete de Netlify. Sirve para decidir el aspecto antes de la migración a WebGPU.
 
@@ -7,6 +7,8 @@ Efectos generados por código, fuera del juego. Nada de esta carpeta se carga en
 | `singularidad.py` | Agujero negro del arma de final de juego: lente, arcos, spaghettificación, fusión y el haz que carga el piso. | Prototipo completo |
 | `carga.py` | Piso cargado: figura de Lichtenberg y el latido de luz que la recorre. Solo numpy; lo usa `singularidad.py`. | Prototipo completo |
 | `singularidad_config.json` | Todos los parámetros de la singularidad y de la carga del piso. | — |
+| `rayo.py` | Rayo láser con textura: serpenteo, hebras, turbulencia, chispas, impacto y cicatriz. | Prototipo completo |
+| `rayo_config.json` | Todos los parámetros del rayo. | — |
 | `explosion.py` | Simulación de gas de cada efecto de artillería: explosión en tierra, aérea, incendio y bocanada de estela. | Recetas en calidad media |
 | `empaquetar.py` | Convierte los cuadros en atlas de flipbook con su JSON, hoja de contactos y vista previa. | — |
 | `capas.py` | Capas baratas sin estado: destello, luz, onda expansiva, chispas, quemadura y sombra proyectada. | — |
@@ -129,6 +131,66 @@ El JSON de salida lista los eventos con su instante: `haz_impacto`, `piso_cargad
 - El haz viene de un punto fijo (`carga.haz.origen_m`); no hay modelo del arma que lo dispara, y atraviesa lo que encuentre en su línea.
 - El segundo latido está atado en las demos a la aparición del primer agujero, que nace sobre el impacto. Detectar que un agujero en movimiento pasa por encima es cosa del juego.
 - No hay medida en GPU. Los tiempos del JSON son de numpy en CPU y solo sirven para comparar ejecuciones.
+
+## Rayo láser
+
+Un haz que no es una línea uniforme: serpentea, late y lleva textura. Reutiliza el escenario, la cámara y las utilidades de `singularidad.py`.
+
+```bash
+blender -b --factory-startup --python arte/blender/vfx/rayo.py -- --salida <carpeta> --calidad final
+```
+
+```bash
+blender -b --factory-startup --python arte/blender/vfx/rayo.py -- --salida <carpeta> --calidad final --vista cerca
+```
+
+Opciones: `--modo simple` (ruta degradada), `--config otro.json`, `--cuadros 26,50` (solo esos cuadros, en una hoja de prueba), `--nombre`.
+
+La demo: una torre carga, dispara al suelo, barre hasta un enemigo y lo destruye, pasa a otro, sube por la fachada de un edificio y corta.
+
+### Cómo está hecho
+
+El haz es una cinta entre el arma y el punto de impacto. Cada píxel calcula `s` (metros desde el arma) y `x` (metros hacia un lado), y el color sale de una fórmula de `s`, `x` y el tiempo. No hay estado: se puede pausar, saltar o evaluar en cualquier orden. En el motor sería un quad orientado a la cámara con ese fragment shader y una textura de ruido que se desplaza.
+
+- **Serpenteo y grosor**: la línea central se aparta con ondas que viajan hacia el blanco, y el ancho late con pulsos y ruido. Pegado al arma, el haz sale recto.
+- **Capas**: núcleo casi blanco, vaina naranja con ruido que fluye, halo rojo y jirones que se desprenden del borde.
+- **Hebras**: hélices de plasma trenzadas alrededor del núcleo, que se interrumpen a ratos.
+- **Nudos**: bultos brillantes que recorren el haz y lo engordan a su paso.
+- **Chispas**: partículas sin estado a lo largo del haz, en el impacto (con gravedad) y convergiendo al arma durante la carga.
+- **Extremos**: destello con raya de lente en la boca del arma, bola que hierve en el impacto, y cicatriz al rojo que se enfría y deja quemadura.
+- **Entorno**: luz roja sobre el escenario según la distancia real al haz, penumbra general mientras dispara, refracción de calor y bloom.
+- **Fases**: carga, disparo (el frente avanza a `velocidad_frente`), sostenido y corte (la cola se va del arma y queda un rescoldo).
+
+### Parámetros ajustables (`rayo_config.json`)
+
+| Sección | Qué controla |
+| --- | --- |
+| `haz` | Radios y colores del núcleo, la vaina y el halo; brillo general. |
+| `onda` | Serpenteo y pulsos de grosor: amplitud, longitud de onda y velocidad de cada onda, más su parte irregular. |
+| `filamentos` | Cantidad de hebras, radio, ancho, paso, giro, interrupciones y color. |
+| `turbulencia` | Escala, velocidad y contraste del ruido; fuerza y alcance de los jirones. |
+| `nudos` | Separación, velocidad, largo, engrosamiento y brillo. |
+| `chispas` | Cantidad, vida, velocidad, frenado, gravedad y color de las del haz, el impacto y la carga. |
+| `origen`, `impacto` | Destellos de los extremos; `impacto.cicatriz` para la marca que deja. |
+| `luz` | Luz sobre el escenario, penumbra y neblina. |
+| `calor` | Refracción del fondo. |
+| `fases` | Duración de la carga, velocidad del frente, exceso de potencia al arrancar, respiración y rescoldo. |
+| `demo` | Guion y cámaras de la vista previa; el juego no lo usa. |
+
+Para un haz más liso, baja `onda.serpenteo`, `onda.grosor_irregular` y `turbulencia.contraste`. Para uno más salvaje, súbelos junto con `turbulencia.jirones` y `filamentos.cantidad`.
+
+### Eventos
+
+El JSON de salida lista `carga`, `disparo`, `impacto` (con la superficie), `objetivo_destruido`, `corte` y `apagado` con su instante.
+
+### Límites conocidos
+
+- El efecto recibe el punto de impacto; no lo busca. En la demo lo decide el guion (la mira, o el primer enemigo que se cruce).
+- La destrucción del enemigo es solo un fogonazo: la explosión es otro efecto.
+- La cinta mira a la cámara. Vista casi de punta (el haz hacia la cámara) no está resuelta.
+- La penumbra oscurece todo el escenario para que el haz destaque a plena luz. Es una decisión de aspecto y se quita con `luz.penumbra: 0`.
+- La cicatriz no se aplasta con la perspectiva del suelo, y las chispas no rebotan.
+- No hay medida en GPU. Los tiempos del JSON son de numpy en CPU.
 
 ## Artillería
 

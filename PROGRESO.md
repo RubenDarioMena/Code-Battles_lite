@@ -1,3 +1,13 @@
+## VFX · rayo láser con textura, prueba de concepto en Blender · 17 de noviembre de 2026
+
+Rama `vfx-explosiones-singularidad`. Vive en `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify.
+
+- **Origen.** Pedido del usuario con una referencia de visión de calor: un rayo que no sea uniforme, con variaciones en su onda y «textura».
+- **Rayo (`rayo.py`, `rayo_config.json`).** El haz es una cinta entre el arma y el impacto; el color de cada píxel es una fórmula de su posición en la cinta y del tiempo, sin estado. La línea central serpentea y el grosor late; lleva núcleo casi blanco, vaina naranja con ruido que fluye, halo rojo, jirones, hebras trenzadas y nudos de plasma. Hay chispas, destello en el arma, impacto que hierve, cicatriz al rojo, luz sobre el escenario, penumbra, refracción de calor y fases de carga, disparo, sostenido y corte.
+- **Reparto.** Igual que la singularidad: Blender renderiza el escenario de prueba (color y profundidad) y el efecto es un pase de numpy. `rayo.py` importa el escenario y las utilidades de `singularidad.py`, que no cambia.
+- **Verificado:** la demo corre completa en calidad final en vista general, vista de cerca y `--modo simple`; se revisaron hojas de contactos y cuadros sueltos de las tres. **No verificado:** el movimiento en vídeo (solo cuadros), nada en WebGL/WebGPU, ni rendimiento en GPU.
+- **Pendiente:** revisión visual del usuario (intensidad del serpenteo, color y penumbra), haz visto de punta, explosión del enemigo y portar el pase a TSL tras la migración.
+
 ## VFX · el haz que carga el piso y el latido de Lichtenberg · 17 de noviembre de 2026
 
 Rama `vfx-explosiones-singularidad`. Solo cambia `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify.
