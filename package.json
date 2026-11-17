@@ -6,7 +6,8 @@
   "private": true,
   "description": "Juego Code Battle Lite y herramientas de desarrollo, pruebas y telemetría.",
   "dependencies": {
-    "@netlify/blobs": "^8.2.0"
+    "@netlify/blobs": "^8.2.0",
+    "steamworks.js": "0.4.0"
   },
   "devDependencies": {
     "@electron/packager": "20.3.0",
