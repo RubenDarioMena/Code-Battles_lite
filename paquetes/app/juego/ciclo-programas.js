@@ -3,7 +3,7 @@ import { crearTrabajadorInterprete } from '../../anfitrion/index.js';
 /** instalarCicloProgramas: sección del juego; estado y servicios vivos inyectados por la composición.
  * @param {any} ctx */
 export function instalarCicloProgramas(ctx) {
-  const crearTrabajador = crearTrabajadorInterprete({ acorn: ctx.acorn,
+  const crearTrabajador = crearTrabajadorInterprete({ acorn: ctx.acorn, piezas: ctx.piezasTrabajador,
     mensajePresupuesto: unidad => ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.presupuesto" : `partida.presupuesto.${ctx.SERIE}`, { unidad }) });
   // ---------- Ciclo de los programas (lockstep) ----------
   const algunoCorre = () => !!ctx.ejec && ctx.anfitrion.algunoCorre();

@@ -57,9 +57,10 @@ export function cargar() {
     CMGPythonJS: crearPython({ lezer: contexto.LezerPython }),
     CMGJSaPython: crearJSaPython({ acorn: contexto.acorn }) });
   // El mismo texto que el juego (paquetes/anfitrion) entrega a sus Workers.
-  const fuenteWorker = fuenteTrabajador({
+  const piezasTrabajador = {
     validarFactory: factory.validar, validarCampaign: campaign.validar, modoCampaign: campaign.modoEnSnap,
     preludioPython: contexto.CMGPythonJS.preludio,
-  });
-  return { contexto, fuenteWorker, cargados };
+  };
+  const fuenteWorker = fuenteTrabajador(piezasTrabajador);
+  return { contexto, fuenteWorker, piezasTrabajador, cargados };
 }

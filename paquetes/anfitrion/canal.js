@@ -1,12 +1,12 @@
 // FIFO y temporizadores virtuales locales; ningún reloj del sistema.
 import { clonar } from './clon.js';
-export function crearCanal(recibir, maxOrdenes = 4000) {
+export function crearCanal(recibir, maxOrdenes = 4000, fotoCompartida = false) {
   const entradas = [], salidas = [], timers = new Map();
   let vivo = true, reloj = 0, seq = 0, mensajes = 0, sensores = 0;
   return {
     entradas, salidas, timers,
     get vivo() { return vivo; },
-    postMessage(m) { if (vivo) entradas.push(clonar(m)); },
+    postMessage(m) { if (vivo) entradas.push(fotoCompartida && m && typeof m === 'object' ? { ...clonar({ ...m, snap: undefined }), snap: m.snap } : clonar(m)); },
     emitir(m) {
       if (!vivo) return;
       salidas.push(clonar(m));

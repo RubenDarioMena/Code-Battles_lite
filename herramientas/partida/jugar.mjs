@@ -42,7 +42,7 @@ export async function jugar({ reglas, escenario, semilla = 1, partida: existente
   vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar(), crearPrograma, motor = 'interprete' }) {
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   if (!['vm', 'interprete'].includes(motor)) throw new Error('--motor debe ser vm|interprete.');
-  crearPrograma ??= motor === 'vm' ? programaVM : crearTrabajadorInterprete({ acorn: sesion.contexto.acorn,
+  crearPrograma ??= motor === 'vm' ? programaVM : crearTrabajadorInterprete({ acorn: sesion.contexto.acorn, piezas: sesion.piezasTrabajador,
     mensajePresupuesto: unidad => traducir(reglas.id === 'campaign' ? 'campaign.presupuesto' : `partida.presupuesto.${reglas.id}`, { unidad }) });
   const partida = existente ?? crearPartida({ reglas, escenario, semilla });
   const mundo = partida.mundo, def = mundo.def;

@@ -1,0 +1,125 @@
+npm test
+
+> code-battles-lite@0.1.0 test
+> node pruebas/todas.mjs
+
+ok · campaign-reglas · 0.88 s · Campaign · reglas: todo correcto
+ok · editor-contrato · 0.09 s · E0: carga sin juego/DOM, aislamiento, offsets UTF-16, estructura diferida y confirmaciones Add/Replace correctos.
+ok · editor-lenguajes · 0.11 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · editor-python · 0.07 s · 34 comprobaciones de Python correctas
+ok · factory-reglas · 0.03 s · OK: null en lugar inexistente, cero en existente vacío; encargos siguen validando destino
+ok · fronteras · 0.33 s · Fronteras: 174 archivos y 14 paquetes revisados; sin infracciones.
+ok · fronteras-autoprueba · 0.11 s · Fronteras autoprueba: 80 infracciones esperadas; archivos correctos e ignorados sin avisos.
+ok · i18n-catalogos · 0.10 s · 1448 claves ES/EN: paridad, variables, duplicados y referencias correctos (15837 comprobaciones).
+ok · i18n · 0.03 s · i18n: fallback, fusión, interpolación segura, storage, DOM y delegación correctos.
+ok · interaccion · 0.07 s · 124 comprobaciones correctas
+ok · partida-campaign · 14.24 s · Contraste: intercalado simultáneo acotado y diagnóstico limitado correctos
+ok · partida-factory · 0.67 s · Factory: 15 iguales, 13 deltas aceptados, 0 DIFERENCIAS, 1 por presupuesto; 28 ejecutados.
+ok · partida-war · 2.28 s · OK: repetición, huella, límite, MAX_ORDENES, error API, JS/Python, aislamiento, clonación, microtareas, timer virtual y extracción.
+ok · partida-referencias · 6.92 s · 41 referencias de paridad iguales
+ok · python-conversion-regresiones · 0.18 s · 20 regresiones JS → Python correctas (CPython 3.14.6)
+ok · python-semantica-regresiones · 0.06 s · 3 regresiones de semántica Python correctas
+ok · python-traductor · 0.10 s · 64 comprobaciones del traductor Python correctas
+ok · terreno · 1.47 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · terreno-bloques · 1.50 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · terreno-estudio · 0.84 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · terreno-png · 0.17 s · PNG terreno: estructura, CRC, zlib, altura16, RGBA, agua gris8, compatibilidad v1 y 12.513 muestras correctas.
+ok · paquetes/protocolo/pruebas/protocolo.mjs · 0.03 s · protocolo: 113 comprobaciones
+ok · paquetes/nucleo/pruebas/nucleo.mjs · 0.04 s · nucleo: 3216 comprobaciones
+ok · paquetes/interprete/pruebas/diferencial.mjs · 0.18 s · Intérprete diferencial: 140 fragmentos iguales a V8 (valor, traza, excepción).
+ok · paquetes/interprete/pruebas/aislamiento.mjs · 0.49 s · Intérprete aislamiento: 339 comprobaciones; anfitrión intacto.
+ok · paquetes/interprete/pruebas/motor.mjs · 0.13 s · Intérprete motor: presupuesto repetible, getter, trabajos, loc, pausa/cierres, compilación, caché y liberación.
+ok · paquetes/interprete/pruebas/reales.mjs · 0.86 s · Intérprete reales: 80 fragmentos del juego, 17 traducidos de Python; Worker íntegro, traza y errores iguales a V8.
+ok · paquetes/vfx/pruebas/vfx.mjs · 0.19 s · VFX: 12 grupos de pruebas; determinismo binario, fórmula, suelo, calidades, recetas y presupuesto.
+ok · pruebas/three-r180.mjs · 0.14 s · Three r180: import map, carga diferida oficial, T1/LOD/materiales lineales y rutas/MIME cbl verificados; sin GPU ni red.
+ok · pruebas/vfx-dibujantes.mjs · 0.29 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · pruebas/vfx-laboratorio.mjs · 0.22 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · pruebas/vfx-juego.mjs · 1.92 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · pruebas/vfx-calidad.mjs · 0.16 s · Calidad: prioridad, persistencia independiente, movimiento reducido en caliente, esquema y filtro de destellos; 4360 partículas idénticas al hash anterior.
+ok · pruebas/medir-carga-node.mjs · 3.74 s · Medida: CLI sin lanzamiento, percentiles, reloj rAF, ventana/calor, programa, semilla, CPU, inyección y presupuesto alto; emulación Node, sin GPU real.
+ok · paquetes/reglas-war/pruebas/reglas-war.mjs · 0.09 s · reglas-war: 4892 comprobaciones
+ok · paquetes/reglas-factory/pruebas/reglas-factory.mjs · 0.07 s · reglas-factory: 4789 comprobaciones
+ok · paquetes/reglas-campaign/pruebas/reglas-campaign.mjs · 0.24 s · reglas-campaign: 3938 comprobaciones
+ok · paquetes/anfitrion/pruebas/anfitrion.mjs · 0.05 s · anfitrion: 106 comprobaciones
+ok · pruebas/api-nativa.mjs · 0.32 s · API nativa: reino/ámbitos/liberación, capa War y errores iguales a VM; mínimo 44024 (sensor: 7024), cortes [{"codigo":"while(true){}","ms":7.711250000000007},{"codigo":"while(true){}","ms":3.3296250000000214},{"codigo":"while(true){yo.missiles;}","ms":14.738833},{"codigo":"while(true){yo.missiles;}","ms":13.284915999999953}].
+ok · paquetes/anfitrion/pruebas/unidad.mjs · 0.06 s · Unidad: clonación, FIFO, timers virtuales, trabajos, presupuesto por tarea, línea y liberación.
+ok · pruebas/partida-interprete.mjs · 14.69 s · Intérprete: 41/41 VM iguales (huella, pasos, resultado, mensajes); 5 límites deterministas y juego iguales.
+ok · paquetes/lenguaje/pruebas/lenguaje.mjs · 0.06 s · lenguaje: léxico, estructura, inyección, cache aislada, preludio autónomo, conversión, instrumentación y diagnósticos correctos.
+ok · paquetes/lenguaje/pruebas/carga.mjs · 0.04 s · lenguaje: 27 rutas, puentes del juego y demo en orden, proveedores anteriores, consumidores defer y módulos locales verificados.
+ok · paquetes/editor/pruebas/editor.mjs · 0.08 s · editor: API pública importable en Node sin DOM ni globales; módulos ≤500 líneas y dependencia única en lenguaje.
+ok · paquetes/editor/pruebas/carga.mjs · 0.03 s · editor: 43 rutas de script/link existentes; puente anterior a consumidores e iconos y orden CSS conservados.
+ok · paquetes/app/pruebas/app.mjs · 0.10 s · app: 53 comprobaciones
+ok · pruebas/plataforma.mjs · 0.07 s · Plataforma: claves/textos exactos, separación local/sesión, memoria aislada, errores, migración Factory y portapapeles verificados en Node.
+ok · pruebas/escritorio-node.mjs · 0.45 s · Escritorio Node: rutas/MIME, escapes/symlinks, disco atómico agrupado/cierre/dañados, preload y geometría verificados.
+ok · pruebas/escritorio-principal.mjs · 0.04 s · Principal emulado: privilegios, red, permisos Fullscreen, IPC, sesión RAM, tres volcados, F11, menú y ventana verificados sin Electron.
+ok · pruebas/publicables.mjs · 0.50 s · Publicables: lista histórica y filtro intactos; 265 archivos idénticos en web/escritorio; manifiesto y opciones verificados sin empaquetar.
+ok · pruebas/steam.mjs · 0.03 s · Steam opcional: carga diferida, fallos tolerados, logro idempotente y superposición condicionada; módulo falso, sin Electron.
+ok · pruebas/steam-empaquetado.mjs · 0.54 s · Manifiesto Steam y copias por plataforma verificados; comprobador de ejecutable/nativos probado con archivos emulados, sin empaquetar.
+ok · pruebas/steam-vdf.mjs · 0.11 s · SteamPipe: IDs, rutas absolutas con espacios, dos depósitos y setlive solo con rama explícita; sin cuentas ni subida.
+ok · paquetes/interfaz/pruebas/interfaz.mjs · 0.05 s · interfaz: 12 instaladores importables en Node sin DOM.
+ok · globales-juego · 2.01 s · Globales: 144 archivos de paquetes sin lecturas externas ni almacenamiento libre; HTML sin ?v=; captura única, orden diferido, concurrencia, reintento y demo verificados en Node; 15 infracciones inyectadas rechazadas.
+ok · imports-juego · 0.32 s · carga del juego: 149 módulos y 234 imports/reexports locales con archivos y nombres existentes; dependencias clásicas anteriores a la composición ES.
+ok · juego-identificadores · 5.61 s · Identificadores: 107 módulos/entrada con ámbitos resueltos; 63 globales estándar permitidos; sin nombres libres desconocidos ni TDZ directa; 3 mutaciones rechazadas (nombre libre, global inexistente y TDZ).
+ok · juego-arranque · 1.07 s · Arranque emulado en Node: 32 cargas (3 series, 2D/3D, propio, sin GPU, poc, escritorio/móvil y marco); sin ReferenceError/TDZ ni servicios leídos antes de conectarse. TDZ indirecta inyectada rechazada. DOM/editor/GPU emulados; no sustituye QA de navegador.
+ok · vistas-contrato · 0.07 s · crearVista: exportaciones 2D/3D, contrato 2D, dibujo idéntico con fracciones 0/1, selección y destrucción verificados en Node.
+ok · paquetes/vista-2d/pruebas/vista-2d.mjs · 0.04 s · vista-2d: 5 comprobaciones
+ok · paquetes/vista-3d/pruebas/vista-3d.mjs · 0.10 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · paquetes/vista-3d/pruebas/instancias-war.mjs · 0.08 s · (Use `node --trace-warnings ...` to show where the warning was created)
+ok · pruebas/capturas-combate.mjs · 0.16 s · capturas-combate: corte exacto y repetición escena/sucesos; paso 512, 6 orugas/5 drones/1 misil; llamadas móviles esperadas 65→14 (rasterizado pendiente).
+ok · fronteras-fase2 · 0.79 s · Fronteras de la fase 2 (1–3): 154 comprobaciones; War 10/10: huellas y registro en orden, uso, consolas y lecturas idénticos.
+ok · fronteras-factory · 0.44 s · Fronteras Factory: 28/28 iguales; pasos 28/28; resultado completo 28/28; repetición exacta 28/28.
+ok · fronteras-campaign · 17.56 s · Fronteras Campaign: 2/2 iguales; repetición exacta 12/12; diferencias 0.
+ok · juego-conductor · 5.51 s · Adaptador juego/conductor con intérprete: 41/41 huellas, pasos y resultados iguales; Campaign conserva partida, pausa y reanuda.
+Resumen: 67 ok, 0 falla, 0 omitida
+
+
+comparar
+Q omitido: falta CBL_QUICKJS (node_modules externo; no se descarga nada).
+vm: 41/41; Factory 28/28; Campaign 2/2; 7622 ms
+P: 41/41; Factory 28/28; Campaign 2/2; 9901 ms
+N: 41/41; Factory 28/28; Campaign 2/2; 6709 ms
+
+
+preludio
+{"interpretado":{"inicializaciones":500,"inicioMs":73.36091699999999,"msPorUnidad":0.14672183399999997,"llamadas":10000,"mediaMs":116.93192519999998,"muestrasMs":[109.89254199999999,138.59841699999998,109.21162500000003,109.27358399999991,117.68345799999997]},"nativo":{"inicializaciones":500,"inicioMs":1.9400419999999485,"msPorUnidad":0.003880083999999897,"llamadas":10000,"mediaMs":8.59380839999999,"muestrasMs":[9.239000000000033,8.55595900000003,8.406957999999918,8.37399999999991,8.393125000000055]}}
+
+
+diagnosticos
+Q omitido: falta CBL_QUICKJS.
+P war vacío: 55.40/35.63 ms; {"nodos":600001,"linea":1}
+P factory vacío: 35.38/46.65 ms; {"nodos":600001,"linea":1}
+P war sensor: 190.03/188.89 ms; {"nodos":600001,"linea":1}
+P war contador: 121.81/117.88 ms; {"nodos":600001,"linea":2,"contador":119913}
+N war vacío: 7.33/5.32 ms; {"nodos":44025,"linea":1}
+N factory vacío: 3.26/3.05 ms; {"nodos":44025,"linea":1}
+N war sensor: 15.78/15.02 ms; {"nodos":44025,"linea":1}
+N war contador: 10.76/10.73 ms; {"nodos":44025,"linea":2,"contador":8802}
+P50000 war vacío: 3.54/3.44 ms; {"nodos":50001,"linea":1}
+P50000 factory vacío: 3.60/3.64 ms; {"nodos":50001,"linea":1}
+P50000 war sensor: 9.97/15.41 ms; {"nodos":50001,"linea":1}
+P50000 war contador: 11.13/10.27 ms; {"nodos":50001,"linea":2,"contador":9913}
+Paso a paso P: líneas 1→2→3→4 (await)→5, salida 3/4 y done comprobados.
+
+
+carga
+Q omitido: falta CBL_QUICKJS (node_modules externo).
+vm war 50: 0.90 ms media; p95 3.04; max 3.71; RSS 83.0 MiB; arranque 0.68 ms/u; errores 0
+vm war 200: 3.64 ms media; p95 12.32; max 15.26; RSS 133.4 MiB; arranque 0.66 ms/u; errores 0
+vm war 500: 14.94 ms media; p95 33.49; max 438.30; RSS 193.2 MiB; arranque 0.58 ms/u; errores 0
+vm campaign 50: 3.42 ms media; p95 10.23; max 11.14; RSS 111.9 MiB; arranque 1.60 ms/u; errores 0
+vm campaign 200: 12.84 ms media; p95 36.45; max 51.80; RSS 187.0 MiB; arranque 0.94 ms/u; errores 0
+vm campaign 500: 34.95 ms media; p95 97.23; max 123.77; RSS 283.9 MiB; arranque 0.95 ms/u; errores 0
+P war 50: 1.65 ms media; p95 5.33; max 9.20; RSS 133.8 MiB; arranque 2.22 ms/u; errores 0
+P war 200: 6.76 ms media; p95 23.93; max 38.92; RSS 264.2 MiB; arranque 1.16 ms/u; errores 0
+P war 500: 17.82 ms media; p95 57.82; max 113.33; RSS 612.3 MiB; arranque 0.88 ms/u; errores 0
+P campaign 50: 5.54 ms media; p95 21.81; max 27.30; RSS 230.4 MiB; arranque 4.57 ms/u; errores 0
+P campaign 200: 22.81 ms media; p95 85.90; max 101.68; RSS 417.2 MiB; arranque 3.29 ms/u; errores 0
+P campaign 500: 60.01 ms media; p95 224.90; max 350.74; RSS 832.6 MiB; arranque 2.97 ms/u; errores 0
+N war 50: 0.28 ms media; p95 0.96; max 1.45; RSS 78.1 MiB; arranque 0.37 ms/u; errores 0
+N war 200: 0.98 ms media; p95 3.18; max 5.67; RSS 106.7 MiB; arranque 0.19 ms/u; errores 0
+N war 500: 2.41 ms media; p95 8.00; max 11.13; RSS 125.5 MiB; arranque 0.15 ms/u; errores 0
+N campaign 50: 0.59 ms media; p95 2.77; max 3.27; RSS 103.3 MiB; arranque 0.63 ms/u; errores 0
+N campaign 200: 2.12 ms media; p95 8.70; max 9.77; RSS 126.3 MiB; arranque 0.41 ms/u; errores 0
+N campaign 500: 5.39 ms media; p95 20.35; max 24.03; RSS 233.7 MiB; arranque 0.34 ms/u; errores 0
+
+Verificación adicional ejecutada: npm run tipos (sin errores); fronteras 174 archivos / 14 paquetes; autoprueba 80 infracciones esperadas; node --check 20 scripts; juego-identificadores 107 módulos; juego-conductor 41/41.

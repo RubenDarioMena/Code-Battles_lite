@@ -1,3 +1,4 @@
+import { crearPrograma as nativo } from './nativo.mjs';
 import { performance } from 'node:perf_hooks';
 import { execFileSync } from 'node:child_process';
 import { guardarMedidas } from './medidas.mjs';
@@ -10,7 +11,7 @@ const MB = 1024 * 1024;
 export async function medir(motor, serie, n) {
   const Q = motor === 'Q' ? await cargarQuickJS() : null;
   if (motor === 'Q' && !Q) return { omitido: 'Falta CBL_QUICKJS' };
-  const crear = motor === 'Q' ? motorQuickJS(Q) : motor === 'P' ? propio : vm;
+  const crear = motor === 'Q' ? motorQuickJS(Q) : motor === 'P' ? propio : motor === 'N' ? nativo : vm;
   const e = escenario(serie), workers = [], muestras = [], arranques = [], respuestas = [];
   // El corpus de War tiene objetivos en el mundo; aquí fijamos uno para ejercitar órdenes completas.
   if (serie === 'war') e.snap.auto[e.propia].visual.crawler = { id: 'enemigo-fijo', x: 30, y: 20, z: 0 };
@@ -65,7 +66,7 @@ export async function medir(motor, serie, n) {
 if (process.argv[2] === '--caso') {
   console.log(JSON.stringify(await medir(process.argv[3], process.argv[4], Number(process.argv[5]))));
 } else {
-  const motores = ['vm', ...(process.env.CBL_QUICKJS ? ['Q'] : []), 'P'];
+  const motores = ['vm', ...(process.env.CBL_QUICKJS ? ['Q'] : []), 'P', 'N'];
   if (!process.env.CBL_QUICKJS) console.warn('Q omitido: falta CBL_QUICKJS (node_modules externo).');
   const datos = { equipo: { plataforma: process.platform, arquitectura: process.arch, cpu: os.cpus()[0].model,
     node: process.version, memoriaGB: os.totalmem() / MB / 1024 }, protocolo: '120 turnos DT=.05; descarta 20; proceso separado por celda; GC antes/después; instantáneas fijas; respuestas de encargos a los 3 pasos', casos: [] };
@@ -75,6 +76,6 @@ if (process.argv[2] === '--caso') {
     const r = JSON.parse(salida); datos.casos.push(r);
     if (r.errores.length) process.exitCode = 1;
     console.log(`${motor} ${serie} ${n}: ${r.ms.media.toFixed(2)} ms media; p95 ${r.ms.p95.toFixed(2)}; max ${r.ms.max.toFixed(2)}; RSS ${r.memoria.rssMB.toFixed(1)} MiB; arranque ${r.arranque.porUnidadMs.toFixed(2)} ms/u; errores ${r.errores.length}`);
-    guardarMedidas('paso-2-carga', datos);
+    guardarMedidas('paso-4a-carga', datos);
   }
 }

@@ -319,3 +319,131 @@ interacción ni dibujo del juego. No se ejecutaron pruebas de Godot.
 Resultados: [paso-2-compatibilidad.json](paso-2-compatibilidad.json),
 [paso-2-diagnosticos.json](paso-2-diagnosticos.json), [paso-2-tamano.json](paso-2-tamano.json)
 y [paso-2-salida.txt](paso-2-salida.txt).
+
+
+## Paso 4a
+
+Verificación actual del 17 de noviembre de 2026, sobre `60e6f6240d9a0ed28c560adbd532fa70d5f0d7ff`
+(paso 3, HEAD separado en este directorio; mismo commit de `arquitectura/fase-5`).
+Sin commits, publicación, dependencias nuevas, Chromium ni Electron. No se cambian
+PROGRESO.md, referencias, reglamentos, simulación, guardado, catálogos ni traductor.
+
+### Fuente única, reino e instantánea
+
+- `paquetes/anfitrion/api.js` contiene la fábrica autocontenida `crearAPI` (278 líneas).
+  Incluye la API War/Factory/Campaign, consola, formato/copia, globales, errores,
+  calibración de líneas y entrega run/despierta. `trabajador.js` serializa esa misma
+  fábrica con `toString()` y las piezas para la VM. La VM sigue compilando/ejecutando
+  todo dentro de un contexto V8 independiente; N recibe los objetos como valores
+  nativos e interpreta únicamente al jugador instrumentado/traducido.
+- Juego y herramienta inyectan piezas **como funciones** al creador; no se evalúa
+  texto en el anfitrión. Para la firma histórica por fuente existe un registro de
+  compatibilidad acotado a 32 fuentes. El arnés genérico de las pruebas del canal
+  conserva su camino interpretado; no se usa en producción para la API.
+- Un motor por creador/partida; fachadas y Promise congeladas compartidas, una cola
+  determinista y caché LRU de árboles por analizador (acotada, sin retener motores).
+  `crearAmbito` separa bindings, global/self/globalThis y compilación dinámica por unidad.
+  Cada entrega activa su ámbito, renueva presupuesto y drena trabajos; los timers
+  siguen siendo FIFO virtual local. API y continuaciones usan Promise del motor,
+  incluido el orden de `cederLuego(0)`. No hay microtareas del anfitrión en ese camino.
+- Terminar una unidad cancela su canal, API y ámbito; sus funciones quedan inválidas.
+  La última libera el reino. El creador puede iniciar otra partida. Las medidas
+  guardan los contadores propios de cada entrega, incluso después del cierre.
+- `canal.js` comparte **la misma referencia** de snap en run/despierta y copia el resto
+  del mensaje. El programa solo recibe copias de las lecturas. La única escritura
+  encontrada en SNAP era `orden` de War: ahora modifica una fila propia creada al
+  primer uso, descartada con cada nueva foto. Otra unidad ve la foto común; la propia
+  ve sus cambios de mode/target/fireRate/failureRate. Se mantienen los clones de salida
+  para que ni argumentos del jugador ni esa fila puedan cambiar mensajes ya encolados.
+- Los errores nativos normales reciben la pila sintética del intérprete; `fallo`
+  conserva `__linea` y una pila sintética cuando la línea está instrumentada. Se corrigió
+  la anotación de errores con `__linea: null`: conserva el mensaje Python y permite
+  resolver la línea del llamante sin filtrar marcos del anfitrión.
+
+### Python y presupuesto
+
+Se elige **preludio Python nativo**. `preludio.mjs` aísla la medida con la fábrica
+real, un reino ya creado, AST caliente y cinco muestras después de calentar:
+500 inicializaciones pasan de **73.36 a 1.94 ms** (0.147 → 0.0039 ms/unidad);
+10 000 operaciones `__py.bin` llamadas desde código interpretado pasan de
+**116.93 a 8.59 ms** de media. No cambia `__py.mensaje`; la paridad incluye
+los 17 programas Python reales y errores Python/API. Son micropruebas Node,
+no una estimación de todo programa Python. Datos: [preludio](paso-4a-preludio.json).
+
+Presupuesto de producción: **44 024**, por entrega y su drenaje. Se cuentan nodos
+más llamadas nativas explícitas (una unidad adicional por llamada); el cuerpo de
+la API y del preludio queda fuera. **7 024** es el mínimo para la traza completa
+del sensor 501; **44 024** es el mínimo para conservar también la traza completa
+de las 4001 consolas exigidas por `partida-war`. Las pruebas verifican que restar
+uno cambia el mensaje final, aunque el anfitrión pueda haber decidido ya su error.
+No se reduce el umbral a costa de quitar MAX_ORDENES ni la lectura 501.
+
+**Revisión:** el valor por defecto de producción queda en **1 000 000**, no en el mínimo. El mínimo solo garantiza el corpus; un programa guardado con más cálculo legítimo por turno (el vigía de Workers le dejaba 2,5 s) se cortaría con un error falso. Un presupuesto mayor no cambia ningún resultado del corpus. Corte medido con `corte.mjs` (War reto 1, tres ejecuciones, M1, incluye preparar la partida): bucle vacío 57 ms, cálculo 87 ms, getter que copia 297 ms; con 44 024, 4–17, 6–15 y 18–29 ms. Las pruebas siguen comprobando el mínimo exacto con el valor explícito.
+
+Dos ejecuciones aisladas del perfil N: while vacío War **7.33/5.32 ms**, Factory
+**3.26/3.05 ms**; bucle de getter sin mensajes **15.78/15.02 ms**; contador
+**10.76/10.73 ms**. Todos cortan en **44 025**, misma línea y contador repetido
+(8802 en el caso contador). Frente al perfil P actual de 600 000, el getter pasa
+de 190.03/188.89 ms a ~15 ms. No es una garantía de reloj: el getter sigue siendo
+el caso más lento y una operación nativa masiva (JSON, regex, array) puede superar
+el tiempo de un paso sin que el contador limite su cuerpo. Datos: [diagnósticos](paso-4a-diagnosticos.json).
+
+### Paridad registrada
+
+`npm test` registra `pruebas/api-nativa.mjs`; `partida-interprete.mjs` captura
+cada mensaje completo **antes** del filtrado del anfitrión y compara unidad,
+orden y todos los campos (tipo/línea/texto/valor/errores/IDs), además de huella,
+pasos, resultado y tramos. Resultado **41/41**, Factory **28/28**, Campaign
+**2/2 y 12/12 tramos**. El corpus real compara ahora también N con VM:
+**80 programas, 17 de Python**, con tres reanudaciones sintéticas. Se conservan
+los contrastes anteriores P/VM. Hay pruebas de ámbitos con nombres iguales,
+intrínsecos compartidos intactos, compilación dinámica, liberar una unidad y seguir
+con otra, reinicio de partida y dos lanzadores que leen el mode ajeno en el mismo
+turno. La prueba del canal comprueba identidad de snap y copia de los otros campos.
+También se comparan errores nativos de API con ciclos, errores Python, esperas
+inválidas, copia del objetivo y las trazas de ambos límites de mensajes.
+
+`comparar.mjs`: VM, P y N **41/41**; QuickJS omitido porque no está instalado en
+CBL_QUICKJS; no se descarga. [Comparación](paso-4a-compatibilidad.json).
+
+### Carga antes/después
+
+Mismo protocolo: escenarios/fotos fijos, 120 cesiones virtuales de 50 ms, descarta
+20, 100 muestras, GC antes/después y proceso independiente por celda. Carga corrida
+sola, después de terminar todas las suites y comparadores. Son mediciones reales
+Node/Apple M1; no hay simulación ni dibujo en el coste. N incluye API nativa,
+mensajes, timers, drenaje, compartir foto y recorrer unidades inactivas.
+
+Antes = **paso 2 publicado**, conservado arriba. El paso 3 integró el mismo perfil
+Worker completo/600 000 en el juego; no tenía una tabla de carga independiente.
+No se presenta una reconstrucción histórica como medición nueva del paso 3.
+La ejecución actual incluye además VM y P como controles (Worker completo sobre
+la fábrica compartida), con sus muestras completas en [carga](paso-4a-carga.json).
+
+| Serie | Unidades | Media antes → 4a ms | p95 antes → 4a | Máx. 4a | RSS antes → 4a MiB | Arranque antes → 4a ms/u |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| war | 50 | 1.63 → 0.28 | 5.17 → 0.96 | 1.45 | 131.19 → 78.09 | 1.94 → 0.37 |
+| war | 200 | 6.75 → 0.98 | 21.87 → 3.18 | 5.67 | 265.23 → 106.67 | 1.06 → 0.19 |
+| war | 500 | 17.12 → 2.41 | 56.61 → 8.00 | 11.13 | 539.94 → 125.55 | 0.81 → 0.15 |
+| campaign | 50 | 5.88 → 0.59 | 23.29 → 2.77 | 3.27 | 222.08 → 103.27 | 4.59 → 0.63 |
+| campaign | 200 | 23.14 → 2.12 | 85.97 → 8.70 | 9.77 | 402.39 → 126.34 | 3.20 → 0.41 |
+| campaign | 500 | 60.14 → 5.39 | 220.52 → 20.35 | 24.03 | 710.14 → 233.67 | 3.06 → 0.34 |
+
+Para contextualizar el paso 1, sus 500 unidades dieron War **20.97/68.25 ms**
+(media/p95), **289.70 MiB**, arranque **0.64 ms/u**; Campaign **70.82/283.27 ms**,
+**367.95 MiB**, **5.90 ms/u**. Los valores de pasos 1–2 son históricos, no otra
+pasada actual. En los controles actuales de 500 unidades, P da War **17.82/57.82 ms**
+y Campaign **60.01/224.90 ms**; RSS **612.3/832.6 MiB**. VM/War tuvo un máximo
+atípico de **438.30 ms** que se conserva en los datos, sin descartar muestras.
+
+Las seis celdas N terminan sin errores. Con 500 unidades, War y Campaign quedan
+bajo **16 ms de media y 50 ms p95**. RSS es del proceso retenido tras GC, no coste
+exacto por unidad ni máximo de memoria. No demuestra una partida real con 500
+entidades distintas ni rendimiento de Steam Deck/Android. Paso 4a completado;
+quedan esa validación de partida completa y el paso 5 de depuración. No se cierra
+la fase 5.
+
+Verificación: **npm test 67/67**, tipos, fronteras **174 archivos/14 paquetes**,
+autoprueba **80 infracciones esperadas**, `node --check` de **20 scripts**, los
+identificadores y conductor del juego, comparar, diagnósticos, preludio y carga.
+Sin navegador por instrucción del encargo. [Salida completa](paso-4a-salida.txt).

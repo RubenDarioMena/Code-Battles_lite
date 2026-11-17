@@ -5,16 +5,24 @@ import { ejecutarWar } from '../herramientas/partida/anfitrion-war.mjs';
 import { ejecutarFactory } from '../herramientas/partida/anfitrion-factory.mjs';
 import { ejecutarCampaign } from '../herramientas/partida/anfitrion-campaign.mjs';
 import { casosFactory, opcionesFactory } from './partida-factory-casos.mjs';
-import { crearAnfitrion } from '../paquetes/anfitrion/index.js';
+import { createRequire } from 'node:module';
+import { crearPrograma as crearVM } from '../herramientas/partida/programa.mjs';
+import { crearAnfitrion, crearTrabajadorInterprete } from '../paquetes/anfitrion/index.js';
 import { adaptar } from './juego-adaptador.mjs';
 import { traducir } from '../herramientas/partida/diagnosticos.mjs';
 const ejecutar = { war: ejecutarWar, factory: ejecutarFactory, campaign: ejecutarCampaign };
 const determinista = r => ({ hash: r.hash, pasos: r.metricas.pasos, t: r.metricas.t,
   mensajes: r.metricas.mensajes, resultado: r.resultado, ...(r.tramos ? { tramos: r.tramos } : {}) });
+const acorn = createRequire(import.meta.url)('../shared/vendor/acorn-8.11.3.js');
 for (const caso of referencias) {
-  const vm = await ejecutar[caso.reglas]({ ...caso.parametros, motor: 'vm' });
-  const interprete = await ejecutar[caso.reglas]({ ...caso.parametros, motor: 'interprete' });
+  const trazas = { vm: [], interprete: [] };
+  const capturar = (motor, crear) => (fuente, unidad, recibir, max) => crear(fuente, unidad, m => {
+    trazas[motor].push({ unidad, mensaje: structuredClone(m) }); recibir(m);
+  }, max);
+  const vm = await ejecutar[caso.reglas]({ ...caso.parametros, motor: 'vm', crearPrograma: capturar('vm', crearVM) });
+  const interprete = await ejecutar[caso.reglas]({ ...caso.parametros, motor: 'interprete', crearPrograma: capturar('interprete', crearTrabajadorInterprete({ acorn })) });
   assert.deepEqual(determinista(interprete), determinista(vm), caso.id);
+  assert.deepEqual(trazas.interprete, trazas.vm, `${caso.id}: mensajes completos y orden`);
 }
 const bucleFactory = casosFactory().find(c => c.id === 'bucle-sin-await');
 const casos = [

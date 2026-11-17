@@ -10,14 +10,14 @@ const ok = (v, m) => { assert.ok(v, m); comprobaciones++; };
 
 // Texto: sin piezas usa los valores neutros; con piezas, su texto literal.
 const neutro = fuenteTrabajador();
-ok(neutro.includes('const validarFactory = () => null;'), 'validarFactory neutro');
-ok(neutro.includes('const __py = (() => null)();'), 'preludio neutro');
-ok(neutro.includes("const modoCampaign = () => 'ok';"), 'modo neutro');
+ok(neutro.includes('validarFactory: () => null'), 'validarFactory neutro');
+ok(neutro.includes('preludioPython: () => null'), 'preludio neutro');
+ok(neutro.includes("modoCampaign: () => 'ok'"), 'modo neutro');
 igual(fuenteTrabajador(), neutro, 'el texto es determinista');
 function validarDePrueba(s, v) { return v === 'malo' ? 'no' : null; }
 const conPiezas = fuenteTrabajador({ validarFactory: validarDePrueba, validarCampaign: '(c) => null' });
-ok(conPiezas.includes(`const validarFactory = ${validarDePrueba.toString()};`), 'función por texto');
-ok(conPiezas.includes('const validarCampaign = (c) => null;'), 'cadena tal cual');
+ok(conPiezas.includes(`validarFactory: ${validarDePrueba.toString()}`), 'función por texto');
+ok(conPiezas.includes('validarCampaign: (c) => null'), 'cadena tal cual');
 new vm.Script(neutro); comprobaciones++;
 new vm.Script(conPiezas); comprobaciones++;
 

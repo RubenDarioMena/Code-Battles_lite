@@ -1,3 +1,4 @@
+import { crearPrograma as nativo } from './nativo.mjs';
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { guardarMedidas } from './medidas.mjs';
@@ -11,7 +12,7 @@ const acorn = createRequire(import.meta.url)('../../shared/vendor/acorn-8.11.3.j
 import { referencias, ejecutarCaso, diferencias } from './corpus.mjs';
 import { codificar, decodificar } from './clon.mjs';
 const Q = await cargarQuickJS();
-const motores = { vm, ...(Q ? { Q: motorQuickJS(Q) } : {}), P: motorPropio() };
+const motores = { vm, ...(Q ? { Q: motorQuickJS(Q) } : {}), P: motorPropio(), N: nativo };
 if (!Q) console.warn('Q omitido: falta CBL_QUICKJS.');
 const datos = { cortes: [], errores: [], pasoAPaso: {} };
 const clon = { u: undefined, a: [undefined, , NaN, Infinity, -0, 12n], mapa: new Map([['x', undefined]]) };
@@ -92,5 +93,5 @@ for (const [motor, crear] of Object.entries(presupuestados).filter(([m]) => m !=
 }
 datos.pasoAPaso.Q = { disponible: !!Q, suspenderEnInterrupt: false,
   motivo: 'La variante release-sync expone interrupción terminal; no expone PC, gancho de línea ni continuación de la pila interrumpida.' };
-guardarMedidas('paso-2-diagnosticos', datos);
+guardarMedidas('paso-4a-diagnosticos', datos);
 console.log('Paso a paso P: líneas 1→2→3→4 (await)→5, salida 3/4 y done comprobados.');

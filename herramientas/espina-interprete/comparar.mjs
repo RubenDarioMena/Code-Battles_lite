@@ -1,3 +1,4 @@
+import { crearPrograma as nativo } from './nativo.mjs';
 import { performance } from 'node:perf_hooks';
 import { isDeepStrictEqual } from 'node:util';
 import { guardarMedidas } from './medidas.mjs';
@@ -6,7 +7,7 @@ import { crearPrograma as propio } from './propio-paquete.mjs';
 import { cargarQuickJS, motorQuickJS } from './quickjs.mjs';
 import { referencias, ejecutarCaso, diferencias } from './corpus.mjs';
 export async function comparar() {
-  const Q = await cargarQuickJS(), motores = { vm, ...(Q ? { Q: motorQuickJS(Q) } : {}), P: propio };
+  const Q = await cargarQuickJS(), motores = { vm, ...(Q ? { Q: motorQuickJS(Q) } : {}), P: propio, N: nativo };
   if (!Q) console.warn('Q omitido: falta CBL_QUICKJS (node_modules externo; no se descarga nada).');
   const resultados = {};
   for (const [motor, crearPrograma] of Object.entries(motores)) {
@@ -30,7 +31,7 @@ export async function comparar() {
       ms: performance.now() - t, casos };
     console.log(`${motor}: ${resultados[motor].iguales}/41; Factory ${resultados[motor].factory.iguales}/28; Campaign ${resultados[motor].campaign.iguales}/2; ${Math.round(resultados[motor].ms)} ms`);
   }
-  guardarMedidas('paso-2-compatibilidad', resultados);
+  guardarMedidas('paso-4a-compatibilidad', resultados);
   return resultados;
 }
 if (process.argv[1] === new URL(import.meta.url).pathname) {

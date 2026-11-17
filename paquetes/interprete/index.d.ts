@@ -13,6 +13,8 @@ export interface Medida {
 }
 export interface Motor {
   global: Record<string, any>;
+  /** Activar solo entre entregas, con la cola drenada. Intrínsecos y cola compartidos. */
+  crearAmbito(globales?: Record<string, any>): { global: Record<string, any>; activar(): void; liberar(): void };
   ejecutar(fuente: string, opciones?: { usuario?: boolean }): any;
   vaciarTrabajos(): void;
   reiniciarPresupuesto(): void;

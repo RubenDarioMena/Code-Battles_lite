@@ -16,6 +16,7 @@ export const funciones = {
     const motor = this;
     const ejecutar = (receptor, args, nuevo) => {
       motor.comprobarVivo();
+      if (contexto.ambito?.liberado) throw new Error('Ámbito liberado');
       return motor.invocar(n, cierre, contexto, receptor, args, nuevo);
     };
     let fn;
@@ -111,7 +112,7 @@ export const funciones = {
   asincronico(gen) {
     return new this.Promise((resolve, reject) => {
       const continuar = (valor = undefined, lanzar = false) => {
-        if (this.liberado) return;
+        if (this.liberado || this.ambitoActual?.liberado) return;
         try {
           const r = lanzar ? gen.throw(valor) : gen.next(valor);
           if (r.done) { resolve(r.value); return; }

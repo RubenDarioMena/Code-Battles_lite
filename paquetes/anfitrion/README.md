@@ -1,46 +1,55 @@
 # anfitrion
 
-Estado: fase 5, paso 3. War, Factory y Campaign ejecutan sus programas con
-unidades del intérprete, en el hilo principal y sin Workers.
-
-Ejecuta los programas del jugador contra un reglamento y recoge órdenes y avisos.
-El juego y la herramienta sin pantalla usan el mismo intérprete y presupuesto
-por tarea. El resto de la aplicación conserva el canal de mensajes histórico.
+Estado: fase 5, paso 4a. War, Factory y Campaign interpretan únicamente los
+programas del jugador; la API de confianza corre nativamente en el anfitrión.
 
 ## Puede importar
 
-`nucleo`, `protocolo`, `lenguaje`, `interprete`. Véanse las reglas de [paquetes](../README.md).
-No importa reglamentos: las funciones de validación que necesita el Worker se
-reciben como argumentos.
+`nucleo`, `protocolo`, `lenguaje`, `interprete`. No importa reglamentos:
+las validaciones, modos y preludio Python se inyectan como piezas autocontenidas.
 
-## Contrato vigente
+## Fuente única y referencia VM
 
-- `fuenteTrabajador({ validarFactory, validarCampaign, modoCampaign, preludioPython })`
-  devuelve el texto del Worker, **idéntico byte a byte** al que construía
-  `js/runtime.js` (comprobado contra `fb9a8e9`). Cada pieza es una función (se
-  copia su `toString()`) o una cadena. Sin pieza se usan los valores de antes:
-  `() => null` y, para el modo de Campaign, `() => 'ok'`. Las funciones deben ser
-  **autocontenidas**: `validar` de Factory y Campaign y `modoEnSnap` de Campaign
-  lo son, y sus suites las evalúan desde su texto en un contexto vacío.
+`api.js` contiene `crearAPI`: sin imports ni cierres externos, recibe el global de
+la unidad, compilador, Promise, emisor, timer y piezas. `fuenteTrabajador(piezas)`
+serializa **esa misma fábrica con `toString()`**, junto con las piezas, para que
+la VM la ejecute en su contexto independiente. El contrato es de valores, errores,
+líneas y mensajes ordenados; ya no es identidad textual con el antiguo runtime.
+Las piezas nativas son funciones; el generador VM admite también cadenas.
+Juego y herramienta inyectan las piezas al crear el trabajador (`piezas`).
+El registro interno de compatibilidad (32 fuentes) permite recuperarlas al consumir
+la firma histórica `crearTrabajador(fuente, unidad, recibir)` sin evaluar texto.
 
 ### Unidad determinista
 
-`crearTrabajadorInterprete({ acorn, presupuesto = 600000, mensajePresupuesto? })`
+`crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, mensajePresupuesto? })`
 devuelve `crearTrabajador(fuente, unidad, recibir, maxOrdenes = 4000)`:
 
-- Ejecuta el texto completo del arnés histórico con `crearInterprete`. Acorn se
-  inyecta: script clásico en el juego, distribución local en Node.
-- `postMessage` clona inmediatamente; `entregar()` ejecuta una tarea FIFO y vacía
-  los trabajos del intérprete y sus salidas síncronamente. Los temporizadores son
-  locales, virtuales y ordenados por vencimiento/id; no avanzan la simulación.
-- Cada tarea reinicia el presupuesto de **600 000 nodos**, incluyendo el código
-  de la API y las microtareas. Un límite menor altera `factory-limite-sensores`.
-  `CBL_PRESUPUESTO` se entrega como `{ type: 'error', mensaje, linea, code }`,
-  con la línea del intérprete. `mensajePresupuesto(unidad)` permite inyectar el
-  texto de catálogo; no usa el último pulso ni reloj real.
-- `terminate()` cancela colas/timers y llama a `liberar()`, idempotentemente;
-  `medir()` permite comprobar la liberación. No ejecuta continuaciones al cerrar.
-  Los límites de memoria/operaciones nativas son los del README de `interprete`.
+- Un reino por creador/partida, con fachadas, caché de árboles y Promise/cola
+  compartidas; un ámbito global, canal, API y estado de esperas por unidad.
+  Cada entrega activa su ámbito y drena todos sus trabajos antes de pasar a otra.
+- Solo se compila el programa instrumentado/traducido con Acorn. Las promesas de
+  la API son del motor; no se usan microtareas ni timers reales del anfitrión.
+  El preludio Python corre nativamente y mantiene `__py.mensaje`.
+- `postMessage` comparte la referencia de `snap`; copia los demás datos del
+  mensaje. La foto queda inaccesible directamente al programa: todas las lecturas
+  de objetos devuelven copias. War superpone una copia diferida de la fila propia
+  para `mode`, `target`, `fireRate` y `failureRate`; se descarta con cada foto.
+  Los mensajes de salida se clonan antes de encolarse para evitar referencias
+  mutables del programa o de esa fila. No se añade un clon por unidad de la foto.
+- Cada tarea reinicia **`PRESUPUESTO` = 1 000 000 unidades** (nodos y llamadas
+  nativas, incluyendo trabajos). Cada llamada API cuesta una llamada nativa,
+  sin interpretar su cuerpo. 7 024 conserva toda la traza del sensor 501 y
+  44 024 es el mínimo para las 4001 consolas de la suite; el valor por defecto
+  es holgado a propósito para no cortar programas guardados con más cálculo
+  legítimo por turno (el vigía antiguo dejaba 2,5 s). Corte medido en un M1
+  (`herramientas/espina-interprete/corte.mjs`): ~60 ms un bucle vacío, ~90 ms
+  uno de cálculo y ~0,3 s el peor (un getter que copia en cada vuelta).
+  `CBL_PRESUPUESTO` se entrega como `{ type: 'error', mensaje, linea, code }`.
+- `terminate()` cancela entradas, salidas y timers y libera solo su ámbito.
+  Cerrar la última unidad libera el reino; el creador puede abrir otra partida.
+  `medir()` conserva el último presupuesto de cada unidad, también tras cerrar.
+  El arnés genérico sin fábrica se conserva para las pruebas del canal.
 
 El juego lo compone con `crearConductor` en `paquetes/app/juego/ciclo-programas.js`, sin puente clásico.
 La herramienta usa `crearAnfitrion` y `jugarPartida` mediante
@@ -175,3 +184,11 @@ nuevo: huella, pasos, resultado completo y repetición exacta coinciden 28/28.
 En `Turno.avisos`, `unidad` identifica siempre al programa emisor (también
 cuando el maestro Campaign actúa sobre otra máquina). El destino de la acción
 sigue en `Turno.ordenes`. El juego usa el emisor para las líneas del editor.
+
+Paso 4a: `pruebas/api-nativa.mjs` (raíz) prueba ámbitos y compilación dinámica,
+intrínsecos compartidos intactos, liberación independiente, capa propia de dos
+lanzadores, errores JS/Python, pila sintética y mínimos de presupuesto.
+`pruebas/partida-interprete.mjs` compara también **cada mensaje completo**, no
+solo contadores, en las 41 partidas (Factory 28 y Campaign 12 tramos).
+El corpus real ejecuta además la API nativa frente a la VM (80/17 Python).
+Medidas y límites actuales: [Paso 4a](../../docs/qa/interprete-2026-11-17/README.md#paso-4a).

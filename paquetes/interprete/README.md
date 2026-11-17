@@ -1,12 +1,13 @@
 # @cbl/interprete
 
-Fase 5, pasos 2–3. Intérprete ESTree sobre Acorn inyectado; no tiene dependencias
+Fase 5, pasos 2–4a. Intérprete ESTree sobre Acorn inyectado; no tiene dependencias
 de otros paquetes ni imports externos. Su consumidor real es
-`anfitrion.crearTrabajadorInterprete`: ejecuta el arnés completo en War, Factory y
+`anfitrion.crearTrabajadorInterprete`: ejecuta los programas instrumentados/traducidos en War, Factory y
 Campaign, tanto en el juego como sin pantalla, sin Workers. El prototipo de
 medición/depuración sigue en `herramientas/espina-interprete/propio-paquete.mjs`.
-El anfitrión fija 600 000 nodos por tarea entregada, drena la cola propia y libera
-el motor al cerrar o agotar presupuesto; el presupuesto incluye todavía la API.
+El anfitrión fija 1 000 000 unidades de presupuesto por tarea entregada (API nativa), drena la cola propia y libera
+el ámbito al cerrar o agotar presupuesto; al cerrar la última unidad libera el reino.
+El cuerpo de la API de confianza queda fuera del presupuesto.
 
 ## Contrato
 
@@ -99,3 +100,14 @@ Los nodos sin await/yield recorren un evaluador recursivo síncrono. Los tres ar
 `*-rapido.js` se generan estáticamente desde sus originales con
 `node herramientas/espina-interprete/generacion/rapido.mjs`; se entregan ya generados.
 No hay generación dinámica de código del jugador ni fase de compilación al ejecutar.
+
+## Ámbitos de un reino (paso 4a)
+
+`motor.crearAmbito(globales?)` devuelve `{ global, activar(), liberar() }`.
+Cada ámbito tiene bindings/global/self/globalThis propios y comparte las fachadas
+congeladas, compiladores, Promise y cola del motor. El consumidor activa el ámbito
+antes de entregar una tarea y drena la cola antes de activar otro; el presupuesto
+se reinicia por entrega. Los compiladores dinámicos usan el ámbito activo.
+Liberar un ámbito invalida sus funciones y limpia sus bindings, sin cerrar los demás.
+`motor.liberar()` cierra todos los ámbitos y libera las fachadas y colas del reino.
+La prueba de integración está en `pruebas/api-nativa.mjs` de la raíz.

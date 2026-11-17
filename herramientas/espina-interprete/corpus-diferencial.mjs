@@ -9,6 +9,7 @@ import { escenario } from './escenarios.mjs';
 import { cargar } from '../partida/cargar.mjs';
 import { crearPrograma as vm } from '../partida/programa.mjs';
 import { crearPrograma as propio } from './propio-paquete.mjs';
+import { crearTrabajadorInterprete } from '../../paquetes/anfitrion/index.js';
 import { referencias } from './corpus.mjs';
 const require = createRequire(import.meta.url), soluciones = require('../../pruebas/campaign-soluciones.cjs');
 const sesion = cargar(), casos = [];
@@ -36,6 +37,7 @@ function ejecutar(crear, e, mensaje) {
     return traza;
   } finally {w.terminate();}
 }
+const nativo = crearTrabajadorInterprete({ acorn: sesion.contexto.acorn });
 let traducidos=0;
 for(const c of casos) {
   const e=escenarios.get(c.serie);let codigo=c.codigo;
@@ -44,6 +46,8 @@ for(const c of casos) {
     assert.ok(t.ok,`${c.id}: ${JSON.stringify(t.diagnosticos)}`);codigo=t.js;traducidos++;
   }
   const mensaje={...e.mensaje(codigo),lenguaje:c.lenguaje||'js'};
-  assert.deepEqual(ejecutar(propio,e,mensaje),ejecutar(vm,e,mensaje),c.id);
+  const esperado = ejecutar(vm,e,mensaje);
+  assert.deepEqual(ejecutar(propio,e,mensaje),esperado,c.id);
+  assert.deepEqual(ejecutar(nativo,e,mensaje),esperado,`${c.id}: API nativa`);
 }
 console.log(`Intérprete reales: ${casos.length} fragmentos del juego, ${traducidos} traducidos de Python; Worker íntegro, traza y errores iguales a V8.`);

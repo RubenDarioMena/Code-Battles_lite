@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { crearTrabajadorInterprete, crearAnfitrion } from '../index.js';
 import { createRequire } from 'node:module';
+import { crearCanal } from '../canal.js';
 import { clonar, codificar, decodificar } from '../clon.js';
 const acorn = createRequire(import.meta.url)('../../../shared/vendor/acorn-8.11.3.js');
 const crear = crearTrabajadorInterprete({ acorn });
@@ -15,6 +16,13 @@ assert.deepEqual(copia.a, entrada.a); assert(!Object.hasOwn(copia.a, 1));
 assert.throws(() => copiar({ f() {} }), /no clonable|could not be cloned/);
 assert.throws(() => copiar(Symbol()), /no clonable|could not be cloned/);
 }
+const foto = { maq: { A: { mode: 'idle' } } };
+const compartido = crearCanal(() => {}, 4000, true);
+const dato = { snap: foto, codigo: 'x', nombres: ['A'] };
+compartido.postMessage(dato); dato.nombres.push('B');
+const entregado = compartido.tarea().mensaje;
+assert.equal(entregado.snap, foto); assert.deepEqual(entregado.nombres, ['A']);
+compartido.terminate();
 const salidas = [];
 const fuente = `let cancelado;
 onmessage = e => {
