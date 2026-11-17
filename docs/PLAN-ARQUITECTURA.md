@@ -194,6 +194,7 @@ Puede empezar al terminar la fase 0, en paralelo con las fases 1 y 2.
 - `cascaras/escritorio` con Electron: ventana, pantalla completa, resoluciones, guardado en disco detrás de una interfaz de guardado común (en web sigue siendo localStorage).
 - Steamworks (`steamworks.js` o equivalente): superposición, logros de prueba, Steam Cloud para el guardado. Comprobación en Steam Deck.
 - Hecho cuando: hay un ejecutable de Windows y otro de Linux generados por un guion, y una lista de lo que el autor debe hacer en Steamworks (cuenta, AppID, subida a una rama privada). Los agentes no tienen acceso a esa cuenta.
+- **En curso** (rama `arquitectura/fase-3`; detalle en `PROGRESO.md`). Paso 1 hecho: `cascaras/escritorio` (Electron 45, protocolo `cbl://`, ventana, pantalla completa, resoluciones, guardado en disco detrás de `Plataforma`) y `npm run escritorio:empaquetar` con ejecutables de Windows y Linux x64 (@electron/packager, `asar`). Empaquetador decidido para escritorio: @electron/packager, sin compilación del juego (se copia el mismo conjunto que Netlify). Pendiente: Steamworks y la lista del autor.
 
 ### Fase 4 · Motor de dibujo y efectos
 
