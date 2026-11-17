@@ -308,3 +308,16 @@ No forma parte de la API de los programas. La herramienta
 registra rAF/CPU/GPU; la ejecuta el autor. `pruebas/vfx-calidad.mjs`,
 `vfx-juego.mjs` y `medir-carga-node.mjs` verifican calidad, persistencia,
 cambio en caliente y el guion con emulación Node, sin medir GPU real.
+
+## Banco de unidades (fase 5, paso 4b)
+
+Solo QA: `__banco.medirUnidades(preparar)` pasa el contexto de composición a una
+función externa para instalar un escenario temporal y decorar los tiempos; no
+se invoca automáticamente ni importa herramientas en app. El observador
+opcional `__banco.alFotograma({ahora, transcurrido, real, sinAcumular})` recibe el
+intervalo original, el recorte a 0,25 s y si ese fotograma no acumuló por programas
+corriendo. Apagado no consulta otro reloj ni añade llamadas a `algunoCorre`.
+El cálculo de acumulador y las reglas del juego se conservan. Ver contrato,
+aislamiento y límites en [medir-unidades](../../herramientas/medir-unidades/README.md).
+Las pruebas Node usan el bucle importado con rAF emulado y revisan los nombres
+con juego-identificadores. La validación gráfica queda para el autor.

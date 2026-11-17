@@ -7,6 +7,7 @@ import { cargar } from '../herramientas/partida/cargar.mjs';
 import { escenario } from '../herramientas/espina-interprete/escenarios.mjs';
 import { crearPrograma as vm } from '../herramientas/partida/programa.mjs';
 import { referencias, ejecutarCaso, diferencias } from '../herramientas/espina-interprete/corpus.mjs';
+import './api-muchos-nombres.mjs';
 const acorn = createRequire(import.meta.url)('../shared/vendor/acorn-8.11.3.js');
 const nativo = crearTrabajadorInterprete({ acorn });
 const drenar = w => { let n = 0; while (w.entregar()) assert(++n < 100); };

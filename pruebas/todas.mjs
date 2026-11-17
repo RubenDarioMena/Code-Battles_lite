@@ -25,7 +25,7 @@ const logica = [
   'pruebas/vfx-laboratorio.mjs',
   'pruebas/vfx-juego.mjs',
   'pruebas/vfx-calidad.mjs',
-  'pruebas/medir-carga-node.mjs',
+  'pruebas/medir-carga-node.mjs', 'pruebas/medir-unidades-node.mjs',
   'paquetes/reglas-war/pruebas/reglas-war.mjs',
   'paquetes/reglas-factory/pruebas/reglas-factory.mjs',
   'paquetes/reglas-campaign/pruebas/reglas-campaign.mjs',

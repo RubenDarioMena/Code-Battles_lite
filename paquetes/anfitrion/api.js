@@ -9,6 +9,41 @@ let propiaMaq = null;
 
 let SNAP = null, PROPIA = null, NOMBRES = [], TIPOS = [], SENSORES = [], CONF = {}, OFF = null, seq = 0, espera = null;
 let ES_ROBOT = false;
+let nombresPorVariable = new Map(), primerVib;
+const lineasAPI = new WeakMap();
+const nombresMaterializados = new WeakSet();
+// Los nombres son propiedades propias, no enumerables y no configurables, como
+// antes. Solo materializamos sus descriptores si el programa inspecciona/muta el
+// objeto; la lectura habitual usa el índice compartido y la línea de este objeto.
+function materializarNombres(o) {
+  if (nombresMaterializados.has(o)) return;
+  const linea = lineasAPI.get(o);
+  for (const [nombre, id] of nombresPorVariable) {
+    if (ES_CAMPAIGN) Object.defineProperty(o, nombre, { get: () => unidadC(id, linea) });
+    else Object.defineProperty(o, nombre, { get: () => maquina(id, linea) });
+  }
+  nombresMaterializados.add(o);
+}
+const accesoNombres = {
+  get(o, p, receptor) {
+    if (!nombresMaterializados.has(o) && nombresPorVariable.has(p)) return maquina(nombresPorVariable.get(p), lineasAPI.get(o));
+    return Reflect.get(o, p, receptor);
+  },
+  has: (o, p) => (!nombresMaterializados.has(o) && nombresPorVariable.has(p)) || Reflect.has(o, p),
+  ownKeys(o) { materializarNombres(o); return Reflect.ownKeys(o); },
+  getOwnPropertyDescriptor(o, p) { materializarNombres(o); return Reflect.getOwnPropertyDescriptor(o, p); },
+  set(o, p, v, receptor) { materializarNombres(o); return Reflect.set(o, p, v, receptor); },
+  deleteProperty(o, p) { materializarNombres(o); return Reflect.deleteProperty(o, p); },
+  defineProperty(o, p, d) { materializarNombres(o); return Reflect.defineProperty(o, p, d); },
+  preventExtensions(o) { materializarNombres(o); return Reflect.preventExtensions(o); },
+};
+function conNombres(o, linea) {
+  lineasAPI.set(o, linea);
+  // Un nombre puede coincidir con una función de la API de War: el getter la
+  // sustituía al construir __L. Se conserva también el orden de las propiedades.
+  if (Object.getOwnPropertyNames(o).some(p => nombresPorVariable.has(p))) materializarNombres(o);
+  return new Proxy(o, accesoNombres);
+}
 const MATERIALES = ["cobre", "silicio"];
 
 // Auxiliares de Python (E5): el traductor genera JS que llama a __py con las mismas líneas del programa.
@@ -122,7 +157,7 @@ const lista = (a) => a.map(x => '"' + x + '"').join(", ");
 function apuntarAPI(linea, id, tipo, sensor) {
   if (!TIPOS.includes(tipo)) throw fallo(linea, "autoTarget necesita el tipo de enemigo como primer argumento: " + lista(TIPOS) + ". Recibió " + q(tipo) + ".");
   if (sensor === "vibration" || sensor === "vibracion") {
-    const vib = NOMBRES.find(n => n.startsWith("VIB"));
+    const vib = primerVib;
     throw fallo(linea, "El sensor de vibración no va montado en el lanzador: es de la red de sensores. " + (vib ? "Usa " + nombreVar(vib) + '.detect("crawler").' : "En este mapa no hay ninguno."));
   }
   if (!SENSORES.includes(sensor)) throw fallo(linea, "autoTarget necesita el sensor como segundo argumento: " + lista(SENSORES) + ". Recibió " + q(sensor) + ".");
@@ -198,8 +233,7 @@ function LCampaign(linea) {
   for (const verbo of Object.keys(ORDENES_C)) o[verbo] = (...a) => ordenC(linea, PROPIA, verbo, a);
   for (const [alias, verbo] of Object.entries(ALIAS_C)) o[alias] = o[verbo];
   Object.defineProperty(o, "yo", { get: () => unidadC(PROPIA, linea) });
-  for (const id of NOMBRES) Object.defineProperty(o, nombreVar(id), { get: () => unidadC(id, linea) });
-  return o;
+  return conNombres(o, linea);
 }
 const GLOBALES_C = ["wait", "esperar", "count", "cuantos", "log", "console", ...Object.keys(ORDENES_C), ...Object.keys(ALIAS_C)];
 function __L(linea) {
@@ -215,8 +249,13 @@ function __L(linea) {
   };
   if (ES_ROBOT) for (const k of ["recoger", "entregar", "esperar", "cuantos", "pickUp", "deliver", "wait", "count"]) o[k] = robotAPI(linea)[k];
   Object.defineProperty(o, "yo", { get: () => maquina(PROPIA, linea) });
-  for (const id of NOMBRES) Object.defineProperty(o, nombreVar(id), { get: () => maquina(id, linea) });
-  return o;
+  // Factory solo programa R1 y conserva el camino pequeño también en el arnés
+  // histórico que interpreta/presupuesta la API entera (no es producción).
+  if (ES_ROBOT) {
+    for (const id of NOMBRES) Object.defineProperty(o, nombreVar(id), { get: () => maquina(id, linea) });
+    return o;
+  }
+  return conNombres(o, linea);
 }
 // Sin instrumentar (dentro de plantillas de texto, por ejemplo) también funcionan, solo que sin línea.
 function instalarGlobales() {
@@ -251,7 +290,13 @@ function onmessage(ev) {
   }
   if (m.type !== "run") return;
   ES_ROBOT = m.serie === "factory"; ES_CAMPAIGN = m.serie === "campaign"; LENGUAJE = m.lenguaje === "python" ? "python" : "js";
-  SNAP = m.snap; propiaMaq = null; PROPIA = m.propia; NOMBRES = m.nombres.filter(id => (!(ES_ROBOT || ES_CAMPAIGN) || !(nombreVar(id) in globalPrograma)) && /^[A-Za-z_$][\w$]*$/.test(nombreVar(id)) && m.nombres.filter(n => nombreVar(n) === nombreVar(id)).length === 1 && !["yo", "console", "log", "pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos"].includes(nombreVar(id))); TIPOS = m.tipos; SENSORES = m.sensores; CONF = m.conf;
+  SNAP = m.snap; propiaMaq = null; PROPIA = m.propia;
+  const cuentas = new Map(), variables = m.nombres.map(nombreVar);
+  for (const nombre of variables) cuentas.set(nombre, (cuentas.get(nombre) || 0) + 1);
+  NOMBRES = m.nombres.filter((id, i) => (!(ES_ROBOT || ES_CAMPAIGN) || !(variables[i] in globalPrograma)) && /^[A-Za-z_$][\w$]*$/.test(variables[i]) && cuentas.get(variables[i]) === 1 && !["yo", "console", "log", "pickUp", "deliver", "wait", "count", "recoger", "entregar", "esperar", "cuantos"].includes(variables[i]));
+  nombresPorVariable = new Map(NOMBRES.map(id => [nombreVar(id), id]));
+  primerVib = NOMBRES.find(n => n.startsWith("VIB"));
+  TIPOS = m.tipos; SENSORES = m.sensores; CONF = m.conf;
   return calibrar().then(() => ejecutarPrograma(m));
 }
 function calibrar() {

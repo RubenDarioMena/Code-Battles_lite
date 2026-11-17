@@ -192,3 +192,14 @@ lanzadores, errores JS/Python, pila sintética y mínimos de presupuesto.
 solo contadores, en las 41 partidas (Factory 28 y Campaign 12 tramos).
 El corpus real ejecuta además la API nativa frente a la VM (80/17 Python).
 Medidas y límites actuales: [Paso 4a](../../docs/qa/interprete-2026-11-17/README.md#paso-4a).
+
+Paso 4b: `api.js` cuenta una vez los nombres normalizados por run. War/Campaign
+resuelven nombres de cada objeto `__L(linea)` mediante un índice y handler Proxy
+compartidos por unidad; conservan la línea y materializan los descriptores propios
+si se inspeccionan o mutan. Los getters globales se instalan una vez por unidad;
+Factory conserva su camino pequeño. La ordenación de mensajes usa el índice de
+carga, sin búsquedas lineales por comparación. No cambian valores, copias, errores
+ni orden. `pruebas/api-muchos-nombres.mjs` (raíz, importada por api-nativa) compara
+50 lanzadores, nombre ausente, objetos retenidos, globals, líneas y reflexión con
+VM mensaje a mensaje. [Medida completa](../../herramientas/medir-unidades/README.md)
+y [resultados](../../docs/qa/interprete-2026-11-17/README.md#paso-4b).

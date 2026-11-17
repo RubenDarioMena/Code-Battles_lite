@@ -4,8 +4,10 @@ export function instalarBucleJuego(ctx) {
   // ---------- Bucle de juego ----------
   let ultimo = performance.now(), ultVivos = 0;
   function bucle(now) {
-    const real = Math.min(0.25, (now - ultimo) / 1000);
+    const transcurrido = (now - ultimo) / 1000;
+    const real = Math.min(0.25, transcurrido);
     ultimo = now;
+    const sinAcumular = ctx.__banco?.alFotograma ? !!ctx.ejec && !ctx.pausa && ctx.algunoCorre() : false;
     ctx.invalidarEscena();
     if (ctx.ES_CAMPAIGN) ctx.cicloCampaign(now);
     if (ctx.ejec && !ctx.pausa) { if (!ctx.algunoCorre()) ctx.acum += real * ctx.velocidad * ctx.turbo; ctx.avanzar(); }
@@ -19,6 +21,7 @@ export function instalarBucleJuego(ctx) {
     if (ctx.marcasSucias) ctx.pintarMarcasYa();
     if (ctx.eventosSucios) ctx.pintarEventosYa();
     ctx.editorPrograma.iniciarVistas();
+    ctx.__banco?.alFotograma?.({ ahora: now, transcurrido, real, sinAcumular });
   requestAnimationFrame(bucle);
   }
 

@@ -14,6 +14,8 @@ export function instalarArranqueJuego(ctx) {
     // QA: misma vía visual que alSucesos del conductor; nunca ordena ni modifica el mundo.
     sucesosVistas: lista => ctx.sucesosVistas(lista),
     medirEfectos: registrar => ctx.medirEfectos(registrar),
+    // QA de carga: configuración externa y transitoria; solo actúa al invocarlo.
+    medirUnidades: preparar => preparar(ctx),
     // QA terminal: se invoca dentro de alPaso; cierra el conductor antes del paso siguiente.
     congelarVista() { ctx.pausa = true; ctx.conductor?.cerrar(); ctx.pintarControles(); },
     get escenaVista() { return ctx.estadoVista.escena; },

@@ -7,7 +7,8 @@ import ts from 'typescript';
 
 const raiz = fileURLToPath(new URL('../', import.meta.url));
 const entrada = raiz + 'Prototypes/Rocket Launcher/js/juego.js';
-const archivos = [entrada, raiz + 'herramientas/capturas-vista.mjs', raiz + 'herramientas/partida/jugar.mjs', raiz + 'herramientas/partida/diagnosticos.mjs', raiz + 'herramientas/capturas-combate.mjs', raiz + 'herramientas/vfx-hojas.mjs', raiz + 'herramientas/medir-carga.mjs',
+const archivos = [entrada, raiz + 'herramientas/medir-unidades.mjs',
+  ...readdirSync(raiz + 'herramientas/medir-unidades/').filter(f => f.endsWith('.mjs')).map(f => raiz + 'herramientas/medir-unidades/' + f), raiz + 'herramientas/capturas-vista.mjs', raiz + 'herramientas/partida/jugar.mjs', raiz + 'herramientas/partida/diagnosticos.mjs', raiz + 'herramientas/capturas-combate.mjs', raiz + 'herramientas/vfx-hojas.mjs', raiz + 'herramientas/medir-carga.mjs',
   ...readdirSync(raiz + 'herramientas/medir-carga/').filter(f => f.endsWith('.mjs')).map(f => raiz + 'herramientas/medir-carga/' + f), raiz + 'paquetes/editor/demo/demo.js', raiz + 'Prototypes/Rocket Launcher/js/servicios.js', raiz + 'paquetes/app/juego/entorno.d.ts', raiz + 'cascaras/escritorio/entorno.d.ts', raiz + 'paquetes/app/vista-nula.js', raiz + 'paquetes/app/plataforma.js', raiz + 'cascaras/web/plataforma.js',
   ...readdirSync(raiz + 'cascaras/escritorio/').filter(f => f.endsWith('.cjs')).map(f => raiz + 'cascaras/escritorio/' + f),
   ...['archivos-publicables', 'empaquetar-escritorio', 'steam-vdf', 'preparar-netlify'].map(f => raiz + 'scripts/' + f + '.mjs'),
@@ -19,7 +20,7 @@ const opciones = { allowJs: true, checkJs: true, noEmit: true, strict: false,
   moduleResolution: ts.ModuleResolutionKind.NodeNext, types: ['node'] };
 const codigos = new Set([2304, 2552, 18004, 2339, 2448, 2454]);
 const globalesConocidos = new Set(`Array BigInt TypeError structuredClone Blob Boolean Infinity CustomEvent Date Error Event Float32Array JSON Map Math
-  MutationObserver Node Number Object Option Promise Proxy RegExp ResizeObserver Set String URL URLSearchParams
+  MutationObserver Node Number Object Option Promise Proxy Reflect RegExp ResizeObserver Set String URL URLSearchParams WeakMap WeakSet
   Uint8Array devicePixelRatio setInterval clearInterval Worker addEventListener cancelAnimationFrame clearTimeout console crypto document fetch
   getComputedStyle history innerHeight innerWidth location matchMedia navigator parseFloat
   parseInt performance requestAnimationFrame sessionStorage setTimeout visualViewport window
@@ -50,7 +51,7 @@ function revisar(mutacion = '', auditar = false) {
             /\/node_modules\/(?:typescript\/lib\/lib\.|@types\/node\/)/.test(d.getSourceFile().fileName));
           if (ambiente) {
             const nombre = nodo.getSourceFile().fileName;
-            const permitidos = nombre === raiz + 'herramientas/capturas-vista.mjs' ? globalesCapturas : /\/(?:cascaras\/escritorio|scripts)\/|\/herramientas\/(?:vfx-hojas\.mjs$|medir-carga)/.test(nombre) ? globalesNode : globalesConocidos;
+            const permitidos = nombre === raiz + 'herramientas/capturas-vista.mjs' ? globalesCapturas : /\/(?:cascaras\/escritorio|scripts)\/|\/herramientas\/(?:vfx-hojas\.mjs$|medir-(?:carga|unidades))/.test(nombre) ? globalesNode : globalesConocidos;
             assert(permitidos.has(nodo.text), `${nombre}: global ${nodo.text} sin declarar en la lista de su entorno`);
             globalesUsados.add(nodo.text);
           }

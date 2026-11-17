@@ -447,3 +447,220 @@ Verificación: **npm test 67/67**, tipos, fronteras **174 archivos/14 paquetes**
 autoprueba **80 infracciones esperadas**, `node --check` de **20 scripts**, los
 identificadores y conductor del juego, comparar, diagnósticos, preludio y carga.
 Sin navegador por instrucción del encargo. [Salida completa](paso-4a-salida.txt).
+
+## Paso 4b
+
+Medida actual del 17 de noviembre de 2026, sobre `bc383e5f8644db5985857409fa26ccc45fc7a271`
+(HEAD separado, contenido de arquitectura/fase-5), con los cambios locales de este paso.
+Sin commit, publicación, dependencias nuevas, Chromium ni Electron. PROGRESO.md y
+pruebas/referencias/ intactos. Reglas, simulación, contrato observable de la API, guardado, retos y catálogos intactos.
+La implementación interna de API/anfitrión sí se optimiza tras perfilar.
+
+La herramienta [medir-unidades](../../../herramientas/medir-unidades/README.md) usa
+crearPartida, el conductor del juego y el intérprete real del anfitrión. War instala
+500 lanzadores con IDs y casillas distintos en el mapa 32×18, evitando exclusivamente
+en el banco el recorte del formulario. Disparan con autoTarget y regularShoot,
+con esperas repartidas de 0,1..0,5 s. Las 12 oleadas de 40 unidades conservan las
+reglas de combate; el escenario de banco permite brechas para no truncar la ventana.
+Campaign añade 500 obreros en el pasillo del mapa original, 20 destinos y programas
+con Promise.all(goTo, wait) de ida y vuelta; deja H0 abierto. Son encargos resueltos
+por las reglas, con desplazamiento real. El motor no impone colisiones ni límite
+de robots; esto no prueba 500 estaciones produciendo. Factory solo programa R1:
+su máximo es **1**, multiplicarlo exigiría cambiar las reglas.
+
+### Protocolo y criterio
+
+Node: 1200 pasos medidos + 40 de calentamiento (62 s simulados), semilla 7,
+dos procesos independientes por celda; GC antes del arranque y ninguna muestra
+eliminada después. Las cifras siguientes corresponden a la **primera** repetición;
+la segunda conserva sus cifras y comprueba la misma huella de todas las fotos y
+todas las órdenes. Hash fuera del reloj del paso. RSS muestreado tras cada paso,
+sin GC final para rebajar la memoria; no es un pico instantáneo del asignador.
+
+Simulación = paso, incluida la copia de las respuestas Campaign. Instantánea =
+las dos fotos que crea el conductor por paso. Ceder y responder incluyen sus
+continuaciones. Total incluye también órdenes, sucesos y callbacks del conductor;
+no incluye hash, dibujo ni el recogerRegistro posterior de app. Cada columna tiene
+media, p50, p95, p99 y máximo y muestras completas en el JSON. No se suman percentiles.
+
+El criterio propuesto por el autor se conserva: 60 s **reales** a 1×, |deriva final|≤
+0,05 s, ningún fotograma recortado a 0,25 s y p95 del paso completo<16,7 ms. Se añade
+como diagnóstico el tiempo que el bucle no acumula porque corren programas. La
+deriva usa pasos completados y reloj real, incluido terminar el último lote. Un
+caso detenido, con error o incompleto no valida el criterio. Node mide costes,
+no ritmo de rAF ni dibujo: por sí solo no cierra ese criterio del plan.
+
+### Cifras sin pantalla
+
+Apple M1, 8 núcleos, 16 GiB, macOS arm64, Node v22.19.0. **Antes**: una
+repetición completa de la fuente local original, congelada en un cargador de Node
+antes de editar. **Después**: comando predeterminado exacto, sin perfilador:
+
+```sh
+node herramientas/medir-unidades.mjs
+```
+
+[Datos de ambas medidas y perfiles](paso-4b-node.json): estadísticas completas,
+ambas repeticiones posteriores, memoria, actividad y huellas; cada registro ocupa
+una línea para evitar miles de líneas de evidencia. La tabla usa la primera
+repetición y p95 por columna en **ms**, en orden **simulación / instantánea /
+ceder / responder / total**. Arranque en ms; RSS máximo muestreado en MiB.
+
+| Serie / unidades | Antes: S / I / C / R / T | Después: S / I / C / R / T | Arranque antes → después | RSS antes → después |
+| --- | --- | --- | --- | --- |
+| war / 50 | 0.109 / 1.297 / 1.939 / 0.000 / 2.849 | 0.090 / 0.888 / 0.564 / 0.000 / 1.449 | 61.7 → 35.1 | 215.3 → 136.6 |
+| war / 200 | 0.191 / 2.209 / 26.156 / 0.000 / 27.512 | 0.119 / 1.195 / 2.363 / 0.000 / 3.394 | 1214.3 → 104.8 | 452.4 → 308.3 |
+| war / 500 | 0.337 / 4.051 / 170.316 / 0.000 / 174.530 | 0.281 / 2.753 / 6.026 / 0.000 / 9.011 | 16145.7 → 386.4 | 1023.7 → 681.0 |
+| campaign / 50 | 0.091 / 0.126 / 0.029 / 0.130 / 0.361 | 0.091 / 0.126 / 0.027 / 0.081 / 0.326 | 116.2 → 49.1 | 119.7 → 107.3 |
+| campaign / 200 | 0.749 / 0.389 / 0.134 / 0.800 / 2.202 | 0.700 / 0.336 / 0.079 / 0.217 / 1.325 | 1738.1 → 140.1 | 229.1 → 146.9 |
+| campaign / 500 | 6.819 / 2.630 / 0.550 / 5.913 / 13.232 | 4.843 / 1.473 / 0.306 / 0.624 / 6.474 | 20130.3 → 479.1 | 473.3 → 301.0 |
+
+Las dos repeticiones a 500 dan **9,011 / 9,129 ms** (War) y **6,474 / 6,420 ms**
+(Campaign): ambas por debajo de 16,7 ms. Arranques respectivos **386 / 414 ms** y
+**479 / 477 ms**, frente a 16,1 s y 20,1 s anteriores. Las seis celdas conservan
+exactamente las huellas de todas las fotos y órdenes **antes y después**, y las
+repeticiones posteriores son deterministas. La cifra anterior de la sesión
+interrumpida (War ~185 ms, arranque ~17 s, RSS ~999 MiB; Campaign ~11,4 ms) es
+histórica: la tabla contiene la nueva ejecución completa, no mezcla sus muestras.
+
+### Perfil y arreglo de la API
+
+Antes de editar se ejecutó:
+
+```sh
+mkdir -p tmp/perfil-unidades-antes
+node --cpu-prof --cpu-prof-dir=tmp/perfil-unidades-antes herramientas/medir-unidades.mjs --caso --series war --unidades 500 --pasos 120 --calentamiento 40 > tmp/perfil-unidades-antes/war-500.json
+```
+
+El perfil de 33,9 s confirma **nombreVar 48,8 %**, **__L 26,9 %** y **GC 13,2 %**
+del tiempo propio muestreado: el filtro anidado recalculaba nombres durante cada
+arranque, y __L creaba todos los descriptores en cada llamada. El arranque de ese
+perfil fue 16,6 s; p95 ceder 169,6 ms, total 172,1 ms. Es diagnóstico con V8
+instrumentado, separado de las cifras de la tabla.
+
+Cambios en la fuente única `paquetes/anfitrion/api.js` (también serializada a VM):
+
+- Cuentas de nombres normalizados calculadas una vez por run: O(N), frente a
+  O(N²) por programa y O(N³) al arrancar N programas. Mismos duplicados, nombres
+  inválidos, reservados y conflictos con globals. Primer VIB también precalculado.
+- War y Campaign resuelven nombres de __L/LCampaign por índice Map y un handler
+  Proxy compartido por unidad. Cada objeto conserva su línea en WeakMap; cada
+  lectura sigue creando maquina(id, linea), sin cachear lecturas ni unidades.
+- La reflexión o mutación materializa las propiedades originales en el mismo
+  orden, con iguales getters/flags, identidad fresca y errores. Incluye los raros
+  nombres que coinciden con métodos. Los globals conservan sus getters propios,
+  instalados **una vez por unidad**: queda coste O(N²) de arranque, sin repetirlo
+  por llamada. Moverlos al prototipo alteraría la reflexión del programa.
+- Factory conserva el camino pequeño original de getters (solo R1); evita
+  añadir pasos al arnés histórico que interpreta la API entera con presupuesto.
+- En `anfitrion.js`, la ordenación usa el índice fijo asignado al cargar en vez
+  de indexOf por comparación. Conserva exactamente unidad/carga y llegada.
+
+Perfiles posteriores (War y Campaign por separado):
+
+```sh
+mkdir -p tmp/perfil-unidades-despues
+node --cpu-prof --cpu-prof-dir=tmp/perfil-unidades-despues herramientas/medir-unidades.mjs --caso --series war --unidades 500 --pasos 240 --calentamiento 40 > tmp/perfil-unidades-despues/war-500.json
+node --cpu-prof --cpu-prof-dir=tmp/perfil-unidades-despues herramientas/medir-unidades.mjs --caso --series campaign --unidades 500 --pasos 240 --calentamiento 40 > tmp/perfil-unidades-despues/campaign-500.json
+```
+
+War: __L baja al 1,9 % y conNombres supone 2,7 % del perfil completo; dominan
+structuredClone (16,4 %), GC (12,4 %) e instantáneas. Campaign: structuredClone
+18,7 % y las funciones instantanea 20,7 %. Estos perfiles incluyen arranque,
+huella y cierre y tienen distinta ventana; sus porcentajes localizan trabajo,
+no son un contraste de latencia ni suman todos los costes nativos descendientes.
+
+En esta carga, simulación e instantánea War crecen aproximadamente con N entre
+200 y 500 (0,119→0,281 y 1,195→2,753 ms). Campaign crece peor: simulación
+0,700→4,843 ms. `reglas-campaign/index.js`, terminarOrden, crea y clona **la foto
+completa por encargo terminado**, dentro de paso; cada robot puede acabar en un
+instante distinto del mismo paso. Revisar compartir datos inmutables conservando
+esas fotos intermedias sería trabajo futuro, con pruebas de paridad. No se ha
+tocado esa regla ni su copia. También quedan el registro de órdenes/sucesos y
+RSS elevado (War 681 MiB a 62 s): estas cifras no garantizan sesiones largas ni
+Android. No hay otro recorrido de todos los nombres en la llamada habitual de
+API: los recorridos de inventario o de encargos pendientes dependen de los datos
+que se consultan, no de la lista de unidades.
+
+La regresión `pruebas/api-muchos-nombres.mjs`, importada por api-nativa, hace que
+50 lanzadores lean al siguiente, retengan objetos de líneas 7 y 19, lean globals
+sin instrumentar y reciban otra foto; uno consulta un nombre inexistente.
+Compara **cada mensaje y su orden**, y examina propiedades, flags, duplicados,
+colisiones, mutación y extensibilidad en las tres series frente a VM. También
+se contrastó localmente con la fuente original congelada: sin diferencias.
+
+
+### Juego real
+
+Cifras de Electron más abajo (ejecutadas por Claude tras la entrega de Codex). Emulación Node de rAF/DOM verifica el contador,
+el recorte, la ventana, la deriva y el cierre; no es evidencia de GPU o de interfaz.
+El gancho mínimo de app solo presta el contexto al banco y observa fotogramas;
+no carga herramientas ni cambia el acumulador del jugador. La preparación usa
+nuevoMundo y ejecutar reales, con UI, pulsos, eventos, escena y dibujo habituales.
+
+```sh
+node herramientas/medir-unidades.mjs --modo juego --unidades 500 --segundos 60 --salida tmp/unidades-electron
+```
+
+Cuatro casos (War/Campaign × 2D/3D), ventana visible, 1280×720, VFX alto, perfil
+nuevo y temporal. Para Chromium, en dos terminales:
+
+```sh
+python3 -m http.server 8771 --bind 127.0.0.1
+node herramientas/medir-unidades.mjs --modo juego --origen http://127.0.0.1:8771 --unidades 500 --segundos 60 --salida tmp/unidades-chromium
+```
+
+Para las seis cargas usar `--unidades 50,200,500`. Cada salida contiene versión/equipo/GPU/DPR/calidad,
+intervalos, costes de cada paso, deriva/recortes y memoria de procesos cada segundo
+(Electron getAppMetrics; Chromium CDP + RSS del SO). Suma de RSS puede duplicar
+memoria compartida; un fallo al leerla queda explícito. No usar el origen donde
+se esté jugando. Revisar GPU real y ausencia de errores antes de comparar equipos.
+
+Electron, Apple M1, 1280×720, VFX alto, 60 s a 1×, semilla 7, 17 de noviembre de 2026 ([datos](paso-4b-electron.json)). RSS máx. es el del proceso de la página (pestaña); GPU 140–200 MiB y proceso principal ~150–180 MiB aparte.
+
+| Serie / 500 | Vista | Fotogramas media/p95/p99 ms; >33 ms | Pasos/s real | Deriva | Recortes | Paso completo p95 ms | RSS pestaña | Resultado |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| War | 2D | 26,6 / 33,6 / 50,0; 1159 de 2260 | 20,01 | +0,03 s (0,6 pasos) | 2 (arranque, máx. 583 ms) | 15,2 (ceder 11,2) | 1968 MiB | paso fijo sí; 60 fps no |
+| War | 3D | 37,8 / 50,1 / 66,7; 1511 de 1587 | 20,06 | +0,19 s (3,7 pasos) | 1 (arranque, máx. 700 ms) | 15,3 (ceder 11,5) | 2092 MiB | paso fijo sí; 60 fps no |
+| Campaign | 2D | 17,1 / 17,1 / 18,4; 3 de 3503 | 20,07 | +0,20 s (3,9 pasos) | 1 (arranque, máx. 1617 ms) | 5,4 (ceder 0,4) | 1816 MiB | paso fijo sí; 60 fps sí |
+| Campaign | 3D | 20,9 / 33,4 / 34,4; 657 de 2872 | 20,07 | +0,19 s (3,9 pasos) | 1 (arranque, máx. 583 ms) | 5,5 (ceder 0,4) | 723 MiB | paso fijo sí; 60 fps casi |
+
+**Lectura.** El **paso fijo se mantiene** en los cuatro casos: 20,0 pasos por segundo real y el paso completo (simulación + instantánea + programas) con p95 de 15,2 ms en War y 5,4 ms en Campaign, bajo 16,7 ms. La deriva positiva de 3–4 pasos no es retraso: es el primer fotograma, que carga los 500 programas (0,6–1,6 s), se recorta a 0,25 s y sus pasos caen al inicio de la ventana; sin él, 1187 pasos en 59,36 s son 19,997 pasos/s. El criterio `mantieneRitmo` de la herramienta (|deriva| ≤ 1 paso) lo marca como fallo por ese artefacto; habría que abrir la ventana después del primer fotograma.
+
+**Límites a 500 que no son de esta fase.** (1) **War dibuja a ~30 fps**: los fotogramas de más de 33 ms (1159) coinciden casi uno a uno con los que contienen un paso (1190); el paso cuesta ~10 ms, sobre todo `ceder`, y sumado al dibujo de 500 lanzadores no cabe en 16,7 ms. Opciones: repartir el turno de las unidades entre fotogramas, abaratar más `ceder`, o llevar núcleo e intérprete a un hilo aparte (decisión pendiente del plan, que estos datos informan). Campaign 2D va a 60 fps. (2) **Memoria de la pestaña ~2 GB** con 500 unidades (frente a 681 MiB sin pantalla): sin investigar; probablemente interfaz y registro por unidad, o el pico de arranque. Es un riesgo para Android (fase 6), no para el criterio de esta fase.
+
+### Android y cierre del paso
+
+Para fase 6 hace falta repetir los casos en WebView/Capacitor sobre teléfonos
+reales, registrar modelo, versión, memoria y temperatura, probar CPU/GPU sostenida,
+calidad baja/alta, ambas vistas y pausa/reanudación. Un Mac no predice ese margen.
+Antes de elegir calidad o limitar unidades, separar coste de programas, copias de
+respuestas y escena/dibujo; cualquier optimización de reglas requiere otro encargo
+y pruebas de determinismo/paridad. Aquí solo se optimizan la construcción de API
+y el índice para ordenar mensajes; no las reglas ni la simulación.
+
+### Verificación actual y estado
+
+- `npm test`: **68/68**, sin omitidas; incluye api-nativa y sus 50 nombres,
+  partida-interprete **41/41 con mensajes completos**, reales **80 fragmentos / 17
+  Python**, Factory **28/28** y Campaign **12/12 tramos/repeticiones**.
+- `npm run tipos`, `node pruebas/fronteras.mjs` (174 archivos, 14 paquetes),
+  `node pruebas/fronteras-autoprueba.mjs` (80 infracciones inyectadas),
+  `node pruebas/juego-identificadores.mjs` (115 módulos),
+  `node pruebas/juego-conductor.mjs` (**41/41**) y `node --check` de los **17**
+  scripts modificados/nuevos: correctos. La auditoría declara también los
+  intrínsecos estándar WeakMap/WeakSet/Reflect usados por los índices/proxies.
+- `node herramientas/espina-interprete/comparar.mjs`: **VM/P/N 41/41**, Factory
+  **28/28**, Campaign **12/12 tramos**; [salida](paso-4b-compatibilidad.json).
+  QuickJS omitido porque CBL_QUICKJS no está instalado/configurado; no se descarga.
+  Factory conserva su construcción pequeña para mantener también el presupuesto
+  histórico de P (600 000, incluyendo toda la API interpretada). El camino de
+  producción N y su presupuesto no cambian.
+- `node herramientas/medir-unidades.mjs`: las seis celdas, dos repeticiones,
+  sin detener partidas; huellas iguales entre repeticiones y a la fuente previa.
+  Ninguna dependencia nueva. PROGRESO.md, referencias y datos históricos intactos;
+  el comparador escribió temporalmente su salida antigua y se restauró ese archivo,
+  conservando esta ejecución en el archivo nuevo del paso 4b. Sin commit ni push.
+
+**Fase 5 / paso 4b:** herramienta, paridad y umbral de coste sin pantalla hechos.
+En el juego real (Electron), el criterio «mantiene el paso fijo» **se cumple** con 500 unidades en War y Campaign; los límites de fotogramas y memoria quedan anotados arriba.

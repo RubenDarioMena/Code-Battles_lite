@@ -86,8 +86,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
     if (despertar && campaign) despertarCampaign({ progs }, { t }, () => instantanea, ahora);
     await esperarTurno();
     // Orden fijo: unidad (orden de carga) y llegada. No depende del reloj real entre Workers.
-    const orden = [...progs.keys()];
-    const lote = recibidos.sort((a, b) => orden.indexOf(a.unidad) - orden.indexOf(b.unidad) || a.n - b.n);
+    const lote = recibidos.sort((a, b) => progs.get(a.unidad).orden - progs.get(b.unidad).orden || a.n - b.n);
     recibidos = [];
     /** @type {import('../protocolo/index.js').Orden[]} */
     const ordenes = [];
@@ -121,7 +120,7 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
   return {
     async cargar(unidad, codigo, opciones = {}) {
       if (progs.has(unidad)) throw new Error(`La unidad ${unidad} ya tiene programa.`);
-      const p = { id: unidad, codigo, lenguaje: opciones.lenguaje === 'python' ? 'python' : 'js', estado: 'nuevo',
+      const p = { id: unidad, orden: progs.size, codigo, lenguaje: opciones.lenguaje === 'python' ? 'python' : 'js', estado: 'nuevo',
         mensajes: 0, espera: null, despertar: 0, t: 0, finT: null, desde: 0, worker: null,
         encargo: null, acabado: false, sensoresSeguidos: 0, pend: new Map() };
       p.worker = crearTrabajador(fuente, unidad, m => recibir(p, m));
