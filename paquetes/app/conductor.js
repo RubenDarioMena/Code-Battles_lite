@@ -88,9 +88,9 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
       if (!Number.isSafeInteger(maxPasos) || maxPasos < 0) throw new Error('maxPasos debe ser un entero seguro no negativo.');
       await conductor.iniciar();
       let dados = 0;
-      if (terminada) return { pasos: dados, terminada };
+      if (terminada) return { pasos: dados, terminada, ...(anfitrion?.pausas?.().length ? { esperandoPausa: true } : {}) };
       partida.aplicarOrdenes();
-      if (!await completarTurnos()) return { pasos: dados, terminada };
+      if (!await completarTurnos()) return { pasos: dados, terminada, ...(anfitrion?.pausas?.().length ? { esperandoPausa: true } : {}) };
       while (!comprobarFin() && dados < maxPasos && !anfitrion?.algunoCorre?.()) {
         // Con Workers reales un mensaje puede llegar tras cerrar su turno (dos encargos seguidos sin await):
         // el fallo ya anotado por el anfitrión corta antes de dar otro paso, como el ciclo antiguo.
@@ -107,8 +107,11 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
           if (!await completarTurnos()) break;
         }
       }
-      return { pasos: dados, terminada };
+      return { pasos: dados, terminada, ...(anfitrion?.pausas?.().length ? { esperandoPausa: true } : {}) };
     },
+    pausas() { return anfitrion?.pausas?.() ?? []; },
+    async avanzarLinea(unidad) { return await anfitrion?.avanzarLinea(unidad) ?? null; },
+    async continuar() { await anfitrion?.continuar(); },
     reanudar() {
       if (!cerrado && !error) terminada = false;
     },

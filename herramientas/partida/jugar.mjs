@@ -39,17 +39,18 @@ export function prepararEscenario({ reglas: serie, reto, semilla, intento = semi
 /** Un intento o tramo, sobre crearAnfitrion + jugarPartida. Devuelve también la partida para repetición.
  * @param {any} opciones */
 export async function jugar({ reglas, escenario, semilla = 1, partida: existente, programas, maxPasos = 10000,
-  vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar(), crearPrograma, motor = 'interprete' }) {
+  vista, ordenes, detener, alPaso, alSucesos, alTurno, sesion = cargar(), crearPrograma, motor = 'interprete', pasoAPaso = false, alLinea, maxLineas }) {
   if (!Number.isInteger(maxPasos) || maxPasos < 1) throw new Error('--max-pasos debe ser un entero positivo.');
   if (!['vm', 'interprete'].includes(motor)) throw new Error('--motor debe ser vm|interprete.');
-  crearPrograma ??= motor === 'vm' ? programaVM : crearTrabajadorInterprete({ acorn: sesion.contexto.acorn, piezas: sesion.piezasTrabajador,
+  if (pasoAPaso && motor !== 'interprete') throw new Error('El paso a paso requiere --motor interprete.');
+  crearPrograma ??= motor === 'vm' ? programaVM : crearTrabajadorInterprete({ acorn: sesion.contexto.acorn, depurar: pasoAPaso, piezas: sesion.piezasTrabajador,
     mensajePresupuesto: unidad => traducir(reglas.id === 'campaign' ? 'campaign.presupuesto' : `partida.presupuesto.${reglas.id}`, { unidad }) });
   const partida = existente ?? crearPartida({ reglas, escenario, semilla });
   const mundo = partida.mundo, def = mundo.def;
   const { contexto: C, fuenteWorker } = sesion;
   const lenguaje = crearInstrumentador(C, mundo, reglas.id), idiomas = {};
   const mensajes = {}, recibidos = [], eventos = [];
-  const anfitrion = crearAnfitrion({ reglas, maxOrdenes: 4000,
+  const anfitrion = crearAnfitrion({ reglas, pasoAPaso, maxOrdenes: 4000,
     crearTrabajador: (_fuente, unidad, recibir) => {
       const worker = crearPrograma(fuenteWorker, unidad, m => {
         if (anfitrion.fallo()) return;
@@ -95,7 +96,7 @@ export async function jugar({ reglas, escenario, semilla = 1, partida: existente
   let desde = 0, pasos = 0, r;
   const contar = () => { for (const tipo of recibidos.splice(0)) mensajes[tipo] = (mensajes[tipo] || 0) + 1; };
   try {
-    r = await jugarPartida({ reglas, partida, escenario, semilla, anfitrion, maxPasos, vista, ordenes, detener: p => detener?.(p, anfitrion),
+    r = await jugarPartida({ reglas, partida, escenario, semilla, anfitrion, maxPasos, alLinea, maxLineas, vista, ordenes, detener: p => detener?.(p, anfitrion),
       alPaso(n, _snap, p) {
         pasos = n;
         const snap = instantaneaHuella(reglas, p);
@@ -114,13 +115,13 @@ export async function jugar({ reglas, escenario, semilla = 1, partida: existente
       } });
   } catch (error) {
     if (error.code !== 'ERR_SCRIPT_EXECUTION_TIMEOUT') throw error;
-    r = { partida, pasos, limite: false, evaluacion: partida.evaluar(), instantanea: partida.instantanea(),
+    r = { partida, pasos, lineas: 0, limiteLineas: false, limite: false, evaluacion: partida.evaluar(), instantanea: partida.instantanea(),
       error: { motivo: 'vm-timeout', mensaje: 'El programa no cedió dentro del límite de VM (1000 ms).', linea: null, unidad: null } };
   } finally { contar(); }
   const final = r.error ? { fin: r.error.motivo ? 'bloqueado' : 'error', motivo: r.error.motivo ?? 'error',
     mensaje: idiomas[r.error.unidad] === 'python' ? lenguaje.mensajePython(r.error.mensaje) : r.error.mensaje,
     linea: r.error.linea, unidad: r.error.motivo ? null : r.error.unidad }
-    : r.limite ? { fin: 'límite', motivo: 'pasos', mensaje: `Límite de ${maxPasos} pasos.` } : r.evaluacion;
+    : r.limite ? { fin: 'límite', motivo: r.limiteLineas ? 'lineas' : 'pasos', mensaje: r.limiteLineas ? `Límite de ${maxLineas} líneas.` : `Límite de ${maxPasos} pasos.` } : r.evaluacion;
   return { ...r, final, anfitrion, registro: anfitrion.registro(), eventos, mensajes, huella: huella.terminar() };
 }
 

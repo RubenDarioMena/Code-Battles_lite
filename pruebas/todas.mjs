@@ -32,6 +32,7 @@ const logica = [
   'paquetes/anfitrion/pruebas/anfitrion.mjs',
   'pruebas/api-nativa.mjs',
   'paquetes/anfitrion/pruebas/unidad.mjs', 'pruebas/partida-interprete.mjs',
+  'pruebas/paso-a-paso.mjs', 'pruebas/paso-a-paso-control.mjs',
   'paquetes/lenguaje/pruebas/lenguaje.mjs',
   'paquetes/lenguaje/pruebas/carga.mjs',
   'paquetes/editor/pruebas/editor.mjs',

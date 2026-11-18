@@ -664,3 +664,134 @@ y el índice para ordenar mensajes; no las reglas ni la simulación.
 
 **Fase 5 / paso 4b:** herramienta, paridad y umbral de coste sin pantalla hechos.
 En el juego real (Electron), el criterio «mantiene el paso fijo» **se cumple** con 500 unidades en War y Campaign; los límites de fotogramas y memoria quedan anotados arriba.
+
+## Paso 5
+
+17 de noviembre de 2026. Ejecución paso a paso en el anfitrión y el conductor,
+sin interfaz. **Fase 5 / paso 5 implementado y demostrado sin pantalla.** No se
+modifican reglas, simulación, API del jugador, guardado, textos del juego,
+PROGRESO.md ni referencias. Sin dependencias nuevas, commit o publicación.
+
+### Contrato y orden
+
+- Unidad: `crearTrabajadorInterprete({ ..., depurar: true })`, `pausa()` →
+  `{ linea } | null`, `reanudar()` → nueva pausa o `null`. `entregar()` no consume
+  entradas mientras haya pausa. Solo el programa async instrumentado y sus
+  funciones async anidadas; API de confianza/preludio Python/calibración fuera.
+  Python conserva su número de línea; las declaraciones JS de bindings y
+  temporales se ejecutan sin pausa. El presupuesto solo se reinicia con una
+  nueva tarea, nunca al avanzar una sentencia.
+- Anfitrión: `crearAnfitrion({ ..., pasoAPaso: true })`, `pausas()` en orden de
+  carga, `await avanzarLinea(unidad?)`, `await continuar()` hasta acabar el turno
+  actual. `ceder`/`responder` siguen pendientes durante las pausas y
+  `algunoCorre()` permanece verdadero. `detener()` libera y resuelve la cesión.
+  El creador recibe `{ depurar: true }` como quinto argumento opcional; los
+  decoradores deben propagarlo o configurar depuración en su creador.
+- Conductor: `avanzar(maxPasos)` añade `esperandoPausa: true`; no avanza reloj
+  mientras espera. Expone `pausas`, `avanzarLinea` y `continuar`; `cerrar` sigue
+  siendo idempotente. `jugarPartida` consume la primera pausa y admite
+  `alLinea({ unidad, t, linea })`/`maxLineas` para observar y limitar la demo.
+- QA futura de app: `__banco.pasoAPaso = true` antes de ejecutar;
+  `pausas()`, `avanzarLinea(unidad?)`, `continuar()`. Apagado por defecto,
+  sin UI ni persistencia. No se abrió Chromium ni Electron en este paso.
+
+La entrega activa retiene las unidades siguientes hasta su await/fin: así ni
+siquiera el `done` de un programa vacío adelanta mensajes de otra unidad en pausa.
+Habitualmente solo hay una pausa disponible del anfitrión. Las salidas de una
+unidad se retienen hasta acabar su entrega y el lote mantiene unidad/llegada.
+El reino sigue compartido: cuenta, línea, trabajos y pausas se conservan por
+ámbito; las liberaciones son independientes. Una llamada async interpretada
+retiene también a su llamador durante su parte síncrona; la cola de microtareas
+se detiene en la siguiente pausa, conservando el orden con Promise.all.
+Sin depuración se mantiene el recorrido rápido, la FIFO sin etiquetas y el
+presupuesto habitual; no se crean tramos ni cuentas suspendidas de depuración.
+
+### Pruebas registradas y reproducibles
+
+```sh
+node pruebas/paso-a-paso.mjs --informe docs/qa/interprete-2026-11-17/paso-5-paridad.json
+node pruebas/paso-a-paso-control.mjs
+```
+
+Ambas están registradas en `npm test`. [Datos de esta ejecución](paso-5-paridad.json):
+**41/41**, sin subconjunto ni casos omitidos, **14 415 sentencias** avanzando
+siempre la primera pausa. War: 11 partidas (10 JS y War 2/7 Python); Factory:
+28 (27 del oráculo y reto 1 Python); Campaign: 2 partidas completas JS/Python,
+**12 tramos H0–H5**. Se comparan huella y pasos grabados; además resultado
+completo, pasos, tiempo de juego, tramos y **cada mensaje completo en el mismo
+orden de recepción** frente al intérprete sin pausas. No se reordenan mensajes
+en la prueba ni se regraban referencias. El contraste normal intérprete/VM
+continúa en `pruebas/partida-interprete.mjs`.
+
+La prueba de control afirma las secuencias exactas, sin API/preludio:
+
+- War, bucle con autoTarget/regularShoot/await esperar:
+  `1,2,3,4,5,6,3,4,5,6,8`; local `n` termina en `2`.
+- Python: `1,2,3,4,5,3,4,5,6`; consola `1,2,2`, conservando `n` entre esperas.
+- Campaign: `1,2,3,4`, Promise.all de encargo y espera; locales y resultados
+  conservados, consola `9 ok ok`.
+- Promise.all con dos funciones async interpretadas, con/sin await interno:
+  mensajes idénticos a la ejecución normal, incluidas sus microtareas.
+- Dos unidades pausadas directamente en el mismo reino e intercaladas: cuenta
+  monotónica y mismo corte por presupuesto, línea y número de nodos que sin
+  pausas; liberación independiente. Conductor real: carga invertida para probar
+  orden, reloj a cero durante pausas, avance hasta 0,1 s al despertar,
+  continuar hasta fin del turno actual y cierre con cesión pendiente.
+- CLI en proceso Node: límites entre tramos Campaign/Python (2 y 3 sentencias),
+  resultado de límite y stdout JSON válido; traza exclusivamente en stderr.
+
+### Demostración CLI
+
+```sh
+node herramientas/partida.mjs --reglas war --reto 2 --semilla 7 --paso-a-paso --max-lineas 8
+```
+
+```text
+LAU-01 t=0.00 línea=1
+LAU-01 t=0.00 línea=2
+LAU-01 t=0.00 línea=3
+LAU-01 t=0.00 línea=4
+LAU-01 t=0.50 línea=2
+LAU-01 t=0.50 línea=3
+LAU-01 t=0.50 línea=4
+LAU-01 t=1.00 línea=2
+```
+
+El corte es `motivo: "lineas"`, 20 pasos, tiempo de juego 1 s; huella parcial
+`a990f102d1e4b7365221a4ec63fcfb28a006e0857d817667d1454b99ed4a116c`.
+`--max-lineas` limita toda la secuencia Campaign; no reinicia al cambiar de hito.
+Con `--json` se imprime la traza en stderr y un único JSON en stdout. Sin límite
+se ejecuta la partida completa por sentencias; con `--motor vm` se rechaza.
+
+### Coste y límites
+
+Pausar añade recorrido suspendible, generadores/continuaciones retenidos,
+selección de trabajos por ámbito y llamadas async al consumidor. No consume
+presupuesto adicional, pero sí CPU/memoria. En esta ejecución Node v22.19.0,
+macOS arm64, sumando partidas de cada serie (normal / paso a paso, sin imprimir
+cada línea): War 356 / 359 ms; Factory 286 / 270 ms; Campaign 7206 / 7979 ms.
+Son tiempos de una ejecución con simulación, huella y captura de mensajes,
+**no un benchmark aislado ni evidencia de latencia/fps a 500 unidades**; el
+orden de ejecución y el calentamiento afectan a estas cifras. Las medidas del
+paso 4b siguen siendo históricas de aquel paso, con depuración apagada.
+
+Funciones y callbacks síncronos nativos, getters y trampas Proxy corren hasta
+volver; no se suspende una pila nativa. Una línea puede tener varios puntos
+(sentencias JS en el mismo renglón o un constructo Python traducido). Los
+encabezados de bucle pausan al entrar en la sentencia; cada iteración pausa en
+sus sentencias interiores. No hay controles de interfaz en este paso ni QA
+visual nueva; la validación de los ganchos en navegador queda para más adelante.
+
+### Verificación del paso
+
+- `npm test`: **70/70**, cero fallos y cero omitidas; incluye las dos suites
+  nuevas, paridad **41/41** sin pausas y línea a línea, Factory **28/28**,
+  Campaign **12/12** tramos/repeticiones y adaptador juego/conductor **41/41**.
+- `npm run tipos`, fronteras (174 archivos/14 paquetes, sin infracciones),
+  autoprueba de fronteras (80 infracciones esperadas), identificadores (115
+  módulos), `node pruebas/juego-conductor.mjs` y `node --check` de los **16**
+  scripts modificados/nuevos: correctos. `git diff --check` sin incidencias.
+- CLI War del ejemplo ejecutada; límites Campaign/Python y JSON ejecutados
+  en procesos Node independientes por la prueba de control.
+- Sin Chromium/Electron, capturas ni emulación de una validación gráfica en
+  este paso. PROGRESO.md y pruebas/referencias/ sin cambios.

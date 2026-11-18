@@ -29,15 +29,22 @@ export interface Turno {
   avisos: Array<{ unidad: string; type: string; [clave: string]: unknown }>;
   error: { unidad: string; mensaje: string; linea: number | null; motivo?: string } | null;
 }
+export interface PausaUnidad { unidad: string; linea: number }
+export type AvanceLinea = PausaUnidad | { unidad: string; finTurno: true } | null;
 export interface OpcionesAnfitrion {
   reglas: { id: string; api?: any };
-  crearTrabajador(fuente: string, unidad: string, recibir: (mensaje: any) => void): Trabajador & { entregar?(): boolean; onerror?: any };
+  crearTrabajador(fuente: string, unidad: string, recibir: (mensaje: any) => void, maxOrdenes?: number,
+    opciones?: { depurar?: boolean }): Trabajador & { entregar?(): boolean; pausa?(): { linea: number } | null; reanudar?(): unknown; onerror?: any };
+  pasoAPaso?: boolean;
   contexto?: { nombres?: string[]; tipos?: string[]; sensores?: string[]; conf?: Record<string, number> };
   piezas?: PiezasTrabajador;
   maxOrdenes?: number;
   ahora?: () => number;
 }
 export interface Anfitrion {
+  pausas(): PausaUnidad[];
+  avanzarLinea(unidad?: string): Promise<AvanceLinea>;
+  continuar(): Promise<void>;
   cargar(unidad: string, codigo: string, opciones?: { lenguaje?: 'js' | 'python' }): Promise<void>;
   ceder(instantanea: { t: number; [clave: string]: unknown }, respuestas?: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
   responder(respuestas: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
@@ -55,6 +62,7 @@ export interface Anfitrion {
 export function crearAnfitrion(opciones: OpcionesAnfitrion): Anfitrion;
 
 export interface OpcionesTrabajadorInterprete {
+  depurar?: boolean;
   /** Piezas como funciones nativas; sin ellas se recuperan del generador de fuente. */
   piezas?: PiezasTrabajador;
   acorn: import('../interprete/index.js').Analizador;
@@ -64,9 +72,11 @@ export interface OpcionesTrabajadorInterprete {
 }
 export interface TrabajadorInterprete extends Trabajador {
   entregar(): boolean;
+  pausa(): { linea: number } | null;
+  reanudar(): { linea: number } | null;
   medir(): import('../interprete/index.js').Medida;
 }
 /** Presupuesto por defecto de cada tarea entregada (nodos y llamadas nativas). */
 export const PRESUPUESTO: number;
 export function crearTrabajadorInterprete(opciones: OpcionesTrabajadorInterprete):
-  (fuente: string, unidad: string, recibir: (mensaje: any) => void, maxOrdenes?: number) => TrabajadorInterprete;
+  (fuente: string, unidad: string, recibir: (mensaje: any) => void, maxOrdenes?: number, opciones?: { depurar?: boolean }) => TrabajadorInterprete;

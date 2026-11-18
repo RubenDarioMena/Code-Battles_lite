@@ -110,17 +110,40 @@ export const funciones = {
     return yield* puente;
   },
   asincronico(gen) {
+    if (this.depurar) return this.asincronicoDepurable(gen);
     return new this.Promise((resolve, reject) => {
       const continuar = (valor = undefined, lanzar = false) => {
         if (this.liberado || this.ambitoActual?.liberado) return;
         try {
           const r = lanzar ? gen.throw(valor) : gen.next(valor);
           if (r.done) { resolve(r.value); return; }
-          if (r.value.tipo === 'linea') {
-            this.pausas.push({ ...r.value, reanudar: () => continuar() }); return;
-          }
           this.Promise.resolve(r.value.valor).then(v => continuar(v), e => continuar(e, true));
         } catch (e) { if (e?.code === 'CBL_PRESUPUESTO') throw e; reject(e); }
+      };
+      continuar();
+    });
+  },
+  asincronicoDepurable(gen) {
+    const ambito = this.ambitoActual;
+    return new this.Promise((resolve, reject) => {
+      const continuar = (valor = undefined, lanzar = false, tramo = { activo: true, esperas: [] }) => {
+        if (this.liberado || ambito?.liberado) return;
+        const ceder = () => {
+          tramo.activo = false;
+          for (const fn of tramo.esperas.splice(0)) fn();
+        };
+        try {
+          const r = lanzar ? gen.throw(valor) : gen.next(valor);
+          if (r.done) { resolve(r.value); ceder(); return; }
+          if (r.value.tipo === 'linea') {
+            this.pausas.push({ ...r.value, ambito, tramo, reanudar: () => continuar(undefined, false, tramo) }); return;
+          }
+          if (r.value.tipo === 'llamada') {
+            r.value.tramo.esperas.push(() => continuar(undefined, false, tramo)); return;
+          }
+          this.Promise.resolve(r.value.valor).then(v => continuar(v), e => continuar(e, true));
+          ceder();
+        } catch (e) { if (e?.code === 'CBL_PRESUPUESTO') throw e; reject(e); ceder(); }
       };
       continuar();
     });

@@ -13,12 +13,13 @@ export interface Medida {
 }
 export interface Motor {
   global: Record<string, any>;
-  /** Activar solo entre entregas, con la cola drenada. Intrínsecos y cola compartidos. */
+  /** Intrínsecos compartidos. Sin depuración, activar con la cola drenada; con depuración conserva presupuesto, pausas y trabajos por ámbito. */
   crearAmbito(globales?: Record<string, any>): { global: Record<string, any>; activar(): void; liberar(): void };
   ejecutar(fuente: string, opciones?: { usuario?: boolean }): any;
   vaciarTrabajos(): void;
   reiniciarPresupuesto(): void;
   medir(): Medida;
+  /** Pausas del ámbito activo (o del global si no hay ámbito). */
   pausasPendientes(): Pausa[];
   /** Reanuda una sentencia; el consumidor decide cuándo drenar trabajos. */
   reanudar(): Pausa | null;

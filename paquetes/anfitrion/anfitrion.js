@@ -13,7 +13,7 @@ const CUENTAN = new Set(['lee', 'cmd', 'consola']);
 
 /** @param {import('./index.js').OpcionesAnfitrion} opciones
  * @returns {import('./index.js').Anfitrion} */
-export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas, maxOrdenes = MAX_ORDENES, ahora = () => 0 }) {
+export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas, maxOrdenes = MAX_ORDENES, ahora = () => 0, pasoAPaso = false }) {
   if (!reglas || !['war', 'factory', 'campaign'].includes(reglas.id)) throw new Error(`crearAnfitrion: solo War, Factory y Campaign (recibido ${reglas?.id}).`);
   if (typeof crearTrabajador !== 'function') throw new Error('crearAnfitrion necesita crearTrabajador(fuente, unidad, recibir).');
   const fuente = fuenteTrabajador(piezas);
@@ -35,7 +35,11 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
   /** @type {null | (() => void)} */
   let alCambiar = null;
 
-  const corre = () => [...progs.values()].some(p => p.estado === 'corre');
+  const pausas = () => pasoAPaso && vivo && !error ? [...progs.values()].flatMap(p => {
+    const pausa = p.worker.pausa?.();
+    return pausa ? [{ unidad: p.id, linea: pausa.linea }] : [];
+  }) : [];
+  const corre = () => vivo && [...progs.values()].some(p => p.estado === 'corre');
   function fallar(p, mensaje, linea) {
     if (error) return;
     error = { unidad: p.id, mensaje, linea: linea ?? null };
@@ -104,9 +108,14 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
     for (;;) {
       if (!vivo || error || !corre()) return;
       let entregado = false;
-      for (const p of progs.values()) if (p.worker.entregar?.()) entregado = true;
+      for (const p of progs.values()) {
+        if (p.worker.entregar?.()) entregado = true;
+        // Conserva la secuencia de entregas normal, incluso mensajes «done» de
+        // programas vacíos: no arranca otra unidad mientras esta entrega pausa.
+        if (pasoAPaso && p.worker.pausa?.()) break;
+      }
       if (entregado) continue;
-      if ([...progs.values()].some(p => p.estado === 'corre' && p.worker.entregar)) {
+      if ((!pasoAPaso || !pausas().length) && [...progs.values()].some(p => p.estado === 'corre' && p.worker.entregar)) {
         // Imitación sin pantalla sin nada que entregar: el programa no cede (como «sin-cesion»).
         const p = [...progs.values()].find(x => x.estado === 'corre');
         fallar(p, 'Programa sin espera del juego ni tarea virtual.', null);
@@ -118,12 +127,33 @@ export function crearAnfitrion({ reglas, crearTrabajador, contexto = {}, piezas,
   }
 
   return {
+    pausas,
+    async avanzarLinea(unidad) {
+      const pausa = unidad == null ? pausas()[0] : pausas().find(p => p.unidad === unidad);
+      if (!pausa) return null;
+      const p = progs.get(pausa.unidad);
+      p.worker.reanudar();
+      // Incluye los timers de cesión de Campaign antes de resolver el turno.
+      while (vivo && !error && p.worker.entregar()) { /* tareas virtuales */ }
+      alCambiar?.();
+      await Promise.resolve();
+      const siguiente = pausas().find(x => x.unidad === p.id);
+      return siguiente ?? { unidad: p.id, finTurno: true };
+    },
+    async continuar() {
+      while (pausas().length) await this.avanzarLinea();
+    },
     async cargar(unidad, codigo, opciones = {}) {
       if (progs.has(unidad)) throw new Error(`La unidad ${unidad} ya tiene programa.`);
       const p = { id: unidad, orden: progs.size, codigo, lenguaje: opciones.lenguaje === 'python' ? 'python' : 'js', estado: 'nuevo',
         mensajes: 0, espera: null, despertar: 0, t: 0, finT: null, desde: 0, worker: null,
         encargo: null, acabado: false, sensoresSeguidos: 0, pend: new Map() };
-      p.worker = crearTrabajador(fuente, unidad, m => recibir(p, m));
+      p.worker = pasoAPaso
+        ? crearTrabajador(fuente, unidad, m => recibir(p, m), maxOrdenes, { depurar: true })
+        : crearTrabajador(fuente, unidad, m => recibir(p, m));
+      if (pasoAPaso && (!p.worker.pausa || !p.worker.reanudar)) {
+        p.worker.terminate(); throw new Error('El paso a paso necesita una unidad depurable.');
+      }
       if (p.worker && 'onerror' in p.worker) p.worker.onerror = ev => { ev?.preventDefault?.(); fallar(p, ev?.message || 'Error en el programa.', null); alCambiar?.(); };
       progs.set(unidad, p);
     },

@@ -60,7 +60,7 @@ export function instalarCicloProgramas(ctx) {
     else ctx.nuevoMundo(ctx.intento);
     ctx.finActual = null; ctx.desdeRegistro = 0; ctx.acum = 0; ctx.registrosPendientes.clear();
     if (ctx.ES_CAMPAIGN && ctx.anfitrion) { const c = ctx.anfitrion.registro().consolas; for (const n of ctx.NIVELES) ctx.consolasCampaign[n] += c[n]; }
-    ctx.anfitrion = ctx.crearAnfitrion({ reglas: ctx.reglas, piezas: ctx.piezasTrabajador,
+    ctx.anfitrion = ctx.crearAnfitrion({ reglas: ctx.reglas, pasoAPaso: !!ctx.__banco?.pasoAPaso, piezas: ctx.piezasTrabajador,
       crearTrabajador,
       contexto: { nombres: ctx.nombradas().map(e => e.id), tipos: Object.keys(ctx.TIPOS), sensores: Object.keys(ctx.SENSOR),
         conf: { fallaRafaga: ctx.LAU.fallaRafaga, cadencia: ctx.LAU.cadencia, cadenciaRafaga: ctx.LAU.cadenciaRafaga } } });

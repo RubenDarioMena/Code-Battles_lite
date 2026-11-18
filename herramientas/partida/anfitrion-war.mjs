@@ -2,6 +2,7 @@ import { jugar, prepararEscenario } from './jugar.mjs';
 
 /** @typedef {string | { lenguaje: 'js' | 'python', codigo: string }} Fuente */
 /** @typedef {{ reto: number, semilla: number, programas?: Record<string, Fuente>, maxPasos?: number,
+ * pasoAPaso?: boolean, maxLineas?: number, alLinea?: (pausa: { unidad: string, linea: number, t: number }) => void,
  * motor?: 'vm'|'interprete', crearPrograma?: typeof import('./programa.mjs').crearPrograma,
  * alPaso?: (paso: number, instantanea: any) => void }} OpcionesWar */
 

@@ -107,7 +107,33 @@ No hay generación dinámica de código del jugador ni fase de compilación al e
 Cada ámbito tiene bindings/global/self/globalThis propios y comparte las fachadas
 congeladas, compiladores, Promise y cola del motor. El consumidor activa el ámbito
 antes de entregar una tarea y drena la cola antes de activar otro; el presupuesto
-se reinicia por entrega. Los compiladores dinámicos usan el ámbito activo.
+se reinicia por entrega. Con depuración, pausas, trabajos, cuenta y línea quedan
+asociados al ámbito: se puede activar otro sin perder el tramo suspendido.
+`pausasPendientes()`, `reanudar()` y `medir()` consultan el ámbito activo.
+`vaciarTrabajos()` se detiene al encontrar su próxima pausa, sin consumir trabajos
+de otros ámbitos. Liberar un ámbito elimina sus pausas y trabajos retenidos. Los compiladores dinámicos usan el ámbito activo.
 Liberar un ámbito invalida sus funciones y limpia sus bindings, sin cerrar los demás.
 `motor.liberar()` cierra todos los ámbitos y libera las fachadas y colas del reino.
 La prueba de integración está en `pruebas/api-nativa.mjs` de la raíz.
+
+## Consumidor real del paso a paso (fase 5, paso 5)
+
+`paquetes/anfitrion/unidad.js` configura `depurar: { parametro: "__L" }`: solo el
+programa compilado por la API y sus funciones async anidadas. La API y el preludio
+Python son nativos; la unidad omite las declaraciones JS auxiliares de Python.
+`pausa()`/`reanudar()` de la unidad y `pausas()`/`avanzarLinea()`/`continuar()` del
+anfitrión permiten conservar el turno abierto sin mover el reloj de simulación.
+
+Al pausar dentro de una llamada async interpretada se retiene también el llamador
+hasta que la parte síncrona de la llamada llegue a await/retorno. Después se drena
+la FIFO propia hasta el siguiente punto. Así `Promise.all` con varias funciones
+async conserva sus mensajes y el orden de las microtareas. Pausar no cobra un
+nodo adicional ni reinicia el presupuesto; sin depuración se mantiene el recorrido
+rápido y la FIFO habitual, sin etiquetar trabajos ni crear tramos de depuración.
+
+El coste de depurar incluye generadores, continuaciones, selección por ámbito y
+viajes al consumidor por sentencia. Funciones/callbacks síncronos, getters y traps
+de Proxy siguen corriendo hasta volver; no se suspende una pila nativa.
+`pruebas/paso-a-paso.mjs` y `pruebas/paso-a-paso-control.mjs` (raíz, registradas en
+npm test) prueban este consumo real, las 41 referencias y mensajes completos,
+Python, locales, Promise.all, presupuesto por ámbito y liberación.

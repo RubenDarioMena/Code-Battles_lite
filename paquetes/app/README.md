@@ -321,3 +321,27 @@ El cálculo de acumulador y las reglas del juego se conservan. Ver contrato,
 aislamiento y límites en [medir-unidades](../../herramientas/medir-unidades/README.md).
 Las pruebas Node usan el bucle importado con rAF emulado y revisan los nombres
 con juego-identificadores. La validación gráfica queda para el autor.
+
+## Paso a paso sin interfaz (fase 5, paso 5)
+
+El conductor usa un `anfitrion` con `pasoAPaso: true`. `await avanzar(maxPasos)`
+conserva `{ pasos, terminada }` y añade `esperandoPausa: true` cuando espera una
+sentencia. Puede devolver cero pasos; no mueve el reloj mientras `algunoCorre()`.
+`pausas()`, `await avanzarLinea(unidad?)` y `await continuar()` delegan en el
+anfitrión. Después se llama otra vez a `avanzar`; `turnoPendiente()` solo se
+resuelve al cerrar el turno, y `cerrar()` descarta también las pausas.
+
+`jugarPartida({ ..., anfitrion, alLinea?, maxLineas? })` consume siempre la primera
+pausa antes de avanzar el mundo. `alLinea({ unidad, linea, t })` observa cada
+sentencia antes de ejecutarla; puede ser async. `maxLineas` es un entero no
+negativo (por defecto infinito). Devuelve también `lineas` y `limiteLineas`;
+cuando alcanza el límite antes de otra pausa, cierra el conductor y marca
+`limite: true`. Sin pausas mantiene el camino habitual.
+
+QA futura en navegador: configurar `__banco.pasoAPaso = true` **antes** de
+`__banco.ejecutar()`. Después se dispone de `__banco.pausas()`,
+`await __banco.avanzarLinea(unidad?)` y `await __banco.continuar()`.
+Es transitorio, sin botones, atajos ni guardado; el modo normal sigue apagado.
+`pruebas/paso-a-paso-control.mjs` prueba el conductor real sin DOM y la CLI;
+`pruebas/juego-identificadores.mjs` comprueba también los ganchos de composición.
+No se ha abierto Chromium ni Electron para este paso.

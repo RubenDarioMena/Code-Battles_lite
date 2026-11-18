@@ -1,6 +1,6 @@
 # anfitrion
 
-Estado: fase 5, paso 4a. War, Factory y Campaign interpretan únicamente los
+Estado: fase 5, paso 5. War, Factory y Campaign interpretan únicamente los
 programas del jugador; la API de confianza corre nativamente en el anfitrión.
 
 ## Puede importar
@@ -22,7 +22,7 @@ la firma histórica `crearTrabajador(fuente, unidad, recibir)` sin evaluar texto
 
 ### Unidad determinista
 
-`crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, mensajePresupuesto? })`
+`crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, mensajePresupuesto?, depurar? })`
 devuelve `crearTrabajador(fuente, unidad, recibir, maxOrdenes = 4000)`:
 
 - Un reino por creador/partida, con fachadas, caché de árboles y Promise/cola
@@ -203,3 +203,53 @@ ni orden. `pruebas/api-muchos-nombres.mjs` (raíz, importada por api-nativa) com
 50 lanzadores, nombre ausente, objetos retenidos, globals, líneas y reflexión con
 VM mensaje a mensaje. [Medida completa](../../herramientas/medir-unidades/README.md)
 y [resultados](../../docs/qa/interprete-2026-11-17/README.md#paso-4b).
+
+## Ejecución paso a paso (fase 5, paso 5)
+
+`crearTrabajadorInterprete({ acorn, piezas, depurar: true })` conserva el reino
+compartido y los ámbitos por unidad. `entregar()` se detiene **antes** de la
+siguiente sentencia del programa async; `pausa()` devuelve `{ linea }` o `null`;
+`reanudar()` consume ese punto, drena hasta el siguiente punto/await/fin y devuelve
+la nueva pausa o `null`. `entregar()` devuelve `false` mientras esté pausada.
+No se interpreta ni se pausa la API nativa, el preludio Python o la calibración.
+Python conserva las líneas de su fuente; sus declaraciones JS de bindings y
+temporales se ejecutan sin punto de pausa. Un constructo traducido puede tener
+varias sentencias en la misma línea. Los cierres y locales se conservan.
+Pausar/reanudar **no** reinicia el presupuesto: solo lo hace una nueva tarea de
+entrada/timer. El reino conserva cuenta, línea, pausas y trabajos por ámbito;
+liberar una unidad descarta también sus continuaciones sin afectar a otra.
+
+`crearAnfitrion({ ..., pasoAPaso: true })` solicita depuración al creador mediante
+su quinto argumento opcional `{ depurar: true }` (el cuarto es `maxOrdenes`).
+Un decorador debe transmitirlo, o configurar `depurar: true` en el creador.
+Los adaptadores sin `pausa`/`reanudar` se rechazan al cargar en este modo.
+
+- `pausas()` → `[{ unidad, linea }]`, copia en orden de carga. El bombeo conserva
+  el orden de entregas sin pausas: retiene las unidades siguientes hasta que la
+  entrega activa llegue a await/fin. Normalmente hay una sola unidad lista para
+  avanzar; las demás todavía no recibieron su tarea.
+- `await avanzarLinea(unidad?)` consume la pausa de esa unidad o de la primera;
+  devuelve su nueva `{ unidad, linea }`, `{ unidad, finTurno: true }` cuando acaba
+  su entrega, o `null` si no está pausada. El fin de una entrega no significa
+  necesariamente que termine el programa ni el turno de las demás unidades.
+- `await continuar()` consume las pausas hasta acabar **el turno actual**; el
+  siguiente turno vuelve a pausar. Ninguno de estos métodos mueve el mundo.
+- `ceder`/`responder` mantienen su promesa pendiente y `algunoCorre()` sigue
+  verdadero durante una pausa. Los mensajes salen al acabar la entrega y el
+  lote de órdenes/avisos se publica al cerrar el turno, con el orden habitual.
+  `detener()` libera pausas/trabajos y resuelve la cesión pendiente.
+
+Sin `pasoAPaso`, se usa el recorrido habitual y no se crean continuaciones de depuración,
+colas etiquetadas ni estados de presupuesto por pausa. La depuración cuesta
+recorrido suspendible, puntos retenidos, selección de trabajos y una llamada
+asíncrona del consumidor por sentencia; no sirve como medida de rendimiento a
+500 unidades. Callbacks síncronos nativos, funciones síncronas, getters y trampas
+de Proxy corren hasta volver: no se puede suspender su pila nativa.
+
+Pruebas registradas en `npm test`: `pruebas/paso-a-paso.mjs` reproduce las **41**
+referencias con cada pausa (siempre la primera) y compara huella grabada, pasos,
+resultado, tiempo y secuencia íntegra de mensajes con la ejecución normal;
+`pruebas/paso-a-paso-control.mjs` comprueba líneas/locales War, Python y Campaign
+con Promise.all, async anidadas/microtareas, presupuesto intercalando ámbitos,
+reloj detenido, continuar, cierre y límite CLI entre tramos. Resultados actuales:
+[informe Paso 5](../../docs/qa/interprete-2026-11-17/README.md#paso-5).

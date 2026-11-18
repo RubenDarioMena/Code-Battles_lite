@@ -36,8 +36,11 @@ export interface OpcionesConductor {
   alTurno?: (turno: Turno) => void;
 }
 export interface Conductor {
+  pausas(): import('../anfitrion/index.js').PausaUnidad[];
+  avanzarLinea(unidad?: string): Promise<import('../anfitrion/index.js').AvanceLinea>;
+  continuar(): Promise<void>;
   iniciar(): Promise<void>;
-  avanzar(maxPasos: number): Promise<{ pasos: number; terminada: boolean }>;
+  avanzar(maxPasos: number): Promise<{ pasos: number; terminada: boolean; esperandoPausa?: boolean }>;
   reanudar(): void;
   /** Promesa del turno que sigue esperando a los programas, o null. */
   turnoPendiente(): Promise<void> | null;
@@ -52,8 +55,13 @@ export interface OpcionesJugar extends Omit<OpcionesConductor, 'partida'> {
   partida?: Partida<any, any, any>;
   ordenes?: Orden[];
   maxPasos?: number;
+  /** Con paso a paso: observación antes de ejecutar cada sentencia. */
+  alLinea?: (pausa: import('../anfitrion/index.js').PausaUnidad & { t: number }) => void | Promise<void>;
+  maxLineas?: number;
 }
 export interface ResultadoJugar {
+  lineas: number;
+  limiteLineas: boolean;
   partida: Partida<any, any, any>;
   pasos: number;
   error: { unidad: string; mensaje: string; linea: number | null; motivo?: string } | null;

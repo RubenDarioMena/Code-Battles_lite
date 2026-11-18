@@ -29,8 +29,9 @@ export function programasCampaign(lenguaje = 'js') {
 /** Secuencia de tramos sobre la misma partida; el corte precede a sus continuaciones.
  * @param {{lenguaje?: 'js'|'python', programas?: Record<string, import('./anfitrion-war.mjs').Fuente>[],
  * maxPasos?: number, alPaso?: (paso: number, instantanea: any) => void,
+ * pasoAPaso?: boolean, maxLineas?: number, alLinea?: (pausa: { unidad: string, linea: number, t: number }) => void,
  * motor?: 'vm'|'interprete', crearPrograma?: typeof import('./programa.mjs').crearPrograma}} [opciones] */
-export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000, alPaso, crearPrograma, motor = 'interprete' } = {}) {
+export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 30000, alPaso, crearPrograma, motor = 'interprete', pasoAPaso = false, maxLineas = Infinity, alLinea } = {}) {
   if (!['js', 'python'].includes(lenguaje)) throw new Error('--lenguaje debe ser js|python.');
   const inicio = performance.now(), fuentes = programas ?? programasCampaign(lenguaje);
   if (!Array.isArray(fuentes) || !fuentes.length || fuentes.some(p => !p || typeof p !== 'object' || Array.isArray(p)))
@@ -38,20 +39,22 @@ export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 
   const escenario = { reto: nivel.NIVEL }, partida = crearPartida({ reglas, escenario, semilla: 1 });
   const mundo = partida.mundo, sesion = cargar(), total = crearHuella(), tramos = [], mensajes = {};
   const consolas = { log: 0, info: 0, warn: 0, error: 0 };
-  let pasos = 0;
+  let pasos = 0, lineas = 0;
   for (const tramoFuentes of fuentes) {
     const programas = Object.fromEntries(Object.entries(tramoFuentes).map(([id, fuente]) =>
       [id, typeof fuente === 'string' ? { lenguaje, codigo: fuente } : fuente]));
     const desde = mundo.hito;
-    const r = await jugar({ reglas, partida, escenario, programas, maxPasos, sesion, crearPrograma, motor,
+    const r = await jugar({ reglas, partida, escenario, programas, maxPasos, sesion, crearPrograma, motor, pasoAPaso, alLinea, maxLineas: maxLineas - lineas,
       detener: (p, anfitrion) => p.mundo.hito !== desde || p.mundo.completado ||
         (mundo.programables.every(u => anfitrion.estado(u.id) === 'fin') && quieto(mundo)),
       alPaso: (_n, snap) => { total.paso(snap); alPaso?.(++pasos, snap); } });
+    lineas += r.lineas;
     for (const k of Object.keys(consolas)) consolas[k] += r.registro.consolas[k];
     const motivo = mundo.hito !== desde || mundo.completado ? 'detenido' : 'quieto';
     const f = r.final ?? { fin: 'detenido', motivo, mensaje: null };
     // Campaign conserva el motivo de corte incluso cuando evaluar devuelve victoria.
     const final = r.error || r.limite ? f : { fin: 'detenido', motivo, mensaje: null };
+    if (r.limiteLineas) final.mensaje = `Límite de ${maxLineas} líneas.`;
     const resultado = resultadoCampaign({ ...mundo, ...r.registro, consolas }, final.fin, final.motivo,
       final.mensaje, final.linea, final.unidad);
     for (const [tipo, n] of Object.entries(r.mensajes)) mensajes[tipo] = (mensajes[tipo] || 0) + n;
@@ -59,7 +62,7 @@ export async function ejecutarCampaign({ lenguaje = 'js', programas, maxPasos = 
       pasos: r.pasos, t: mundo.t, hash: r.huella.hash, resultado });
     partida.ordenar({ paso: partida.pasoActual, origen: 'sistema', unidad: 'campaign', verbo: 'fin-tramo', args: [] });
     partida.aplicarOrdenes();
-    if (mundo.completado || mundo.hito === desde) break;
+    if (r.limite || mundo.completado || mundo.hito === desde) break;
   }
   const h = total.terminar();
   return { reglas: 'campaign', resultado: tramos.at(-1).resultado, tramos,

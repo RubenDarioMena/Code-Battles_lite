@@ -1,0 +1,418 @@
+{
+  "node": "v22.19.0",
+  "plataforma": "darwin/arm64",
+  "criterio": "Huella grabada y pasos; resultado completo, tiempo y secuencia íntegra de mensajes iguales a ejecución sin pausas.",
+  "casos": [
+    {
+      "id": "war-1-1",
+      "reglas": "war",
+      "hash": "715ed6affec6531c2803bc1808cf1e1b64e52d4f68d1ae13f93dee1527e87e0f",
+      "pasos": 755,
+      "lineas": 2,
+      "mensajes": 3,
+      "normalMs": 48.157375,
+      "pasoAPasoMs": 29.32379200000001
+    },
+    {
+      "id": "war-1-7",
+      "reglas": "war",
+      "hash": "715ed6affec6531c2803bc1808cf1e1b64e52d4f68d1ae13f93dee1527e87e0f",
+      "pasos": 755,
+      "lineas": 2,
+      "mensajes": 3,
+      "normalMs": 25.131833999999998,
+      "pasoAPasoMs": 21.190082999999987
+    },
+    {
+      "id": "war-2-1",
+      "reglas": "war",
+      "hash": "6cb935b99109e5457d3e17c5ec43060ab1e24a0cf36aea1ef6fdb97eac46e2b5",
+      "pasos": 493,
+      "lineas": 151,
+      "mensajes": 150,
+      "normalMs": 25.207458000000003,
+      "pasoAPasoMs": 25.165665999999987
+    },
+    {
+      "id": "war-2-7",
+      "reglas": "war",
+      "hash": "6cb935b99109e5457d3e17c5ec43060ab1e24a0cf36aea1ef6fdb97eac46e2b5",
+      "pasos": 493,
+      "lineas": 151,
+      "mensajes": 150,
+      "normalMs": 17.128875000000022,
+      "pasoAPasoMs": 19.687958000000037
+    },
+    {
+      "id": "war-3-1",
+      "reglas": "war",
+      "hash": "90544813b4e9d692a38a740451e380656e83e984c653e9ff448fa3f99d933391",
+      "pasos": 692,
+      "lineas": 211,
+      "mensajes": 276,
+      "normalMs": 32.66395800000004,
+      "pasoAPasoMs": 35.25845800000002
+    },
+    {
+      "id": "war-3-7",
+      "reglas": "war",
+      "hash": "90544813b4e9d692a38a740451e380656e83e984c653e9ff448fa3f99d933391",
+      "pasos": 692,
+      "lineas": 211,
+      "mensajes": 276,
+      "normalMs": 26.807124999999985,
+      "pasoAPasoMs": 28.75637499999999
+    },
+    {
+      "id": "war-4-1",
+      "reglas": "war",
+      "hash": "0306cc3d3d3a85c674c6652584b0078796144c973417e7b442934f782ba23a11",
+      "pasos": 1014,
+      "lineas": 636,
+      "mensajes": 441,
+      "normalMs": 41.96554099999997,
+      "pasoAPasoMs": 45.860833999999954
+    },
+    {
+      "id": "war-4-7",
+      "reglas": "war",
+      "hash": "ccbddbad76e8edfb15b4129c24d804f3eaba8d0cc74af3d0b663340aad15245f",
+      "pasos": 1014,
+      "lineas": 636,
+      "mensajes": 439,
+      "normalMs": 39.134124999999926,
+      "pasoAPasoMs": 42.016707999999994
+    },
+    {
+      "id": "war-5-1",
+      "reglas": "war",
+      "hash": "4e4e216598972eda0c15cbaea667404db4a2881d8ed70a7400999dbabc2f61ed",
+      "pasos": 500,
+      "lineas": 302,
+      "mensajes": 362,
+      "normalMs": 35.380250000000046,
+      "pasoAPasoMs": 38.39850000000001
+    },
+    {
+      "id": "war-5-7",
+      "reglas": "war",
+      "hash": "4e4e216598972eda0c15cbaea667404db4a2881d8ed70a7400999dbabc2f61ed",
+      "pasos": 500,
+      "lineas": 302,
+      "mensajes": 362,
+      "normalMs": 36.11354199999994,
+      "pasoAPasoMs": 39.58520800000008
+    },
+    {
+      "id": "factory-reto-0-inicial",
+      "reglas": "factory",
+      "hash": "6010c6c4529a94e2b97ce6060108f41af3f111fcf352903b907922153b625ce7",
+      "pasos": 58,
+      "lineas": 2,
+      "mensajes": 3,
+      "normalMs": 7.143167000000062,
+      "pasoAPasoMs": 4.0825419999999895
+    },
+    {
+      "id": "factory-reto-0-victoria",
+      "reglas": "factory",
+      "hash": "7916dcf2af47a5fddf0238def42eab417eec2a516a914c15f22fb6bf27f8aeea",
+      "pasos": 174,
+      "lineas": 8,
+      "mensajes": 6,
+      "normalMs": 8.786625000000072,
+      "pasoAPasoMs": 9.32991699999991
+    },
+    {
+      "id": "factory-reto-1-inicial",
+      "reglas": "factory",
+      "hash": "6d5fd4103c9924688d09bbaca2973904b08394867aa1989062230a6c50ed22c1",
+      "pasos": 214,
+      "lineas": 8,
+      "mensajes": 7,
+      "normalMs": 11.36241700000005,
+      "pasoAPasoMs": 10.54141699999991
+    },
+    {
+      "id": "factory-reto-1-victoria",
+      "reglas": "factory",
+      "hash": "c8fa6be0ca6b03dc31cb643923f3c951eba83d4749dafca76cd6d6278dcb040a",
+      "pasos": 448,
+      "lineas": 16,
+      "mensajes": 12,
+      "normalMs": 20.282208999999966,
+      "pasoAPasoMs": 19.055625000000077
+    },
+    {
+      "id": "factory-reto-2-inicial",
+      "reglas": "factory",
+      "hash": "0d855ec39e84293afe030d1d8dd4082eae86711df3fdc58ca5a887808c8cc582",
+      "pasos": 214,
+      "lineas": 8,
+      "mensajes": 6,
+      "normalMs": 10.542542000000026,
+      "pasoAPasoMs": 9.859041999999931
+    },
+    {
+      "id": "factory-reto-2-victoria",
+      "reglas": "factory",
+      "hash": "dbd7596e4be9f5252849b53012535757cf92174835468b1571837226e03d07ba",
+      "pasos": 784,
+      "lineas": 21,
+      "mensajes": 19,
+      "normalMs": 26.590374999999995,
+      "pasoAPasoMs": 27.105332999999973
+    },
+    {
+      "id": "factory-reto-3-inicial",
+      "reglas": "factory",
+      "hash": "238465a3bd716d26cb825ba6908e517e330808c40a62e3bdaa3c7c3fd4b66681",
+      "pasos": 361,
+      "lineas": 15,
+      "mensajes": 11,
+      "normalMs": 14.969124999999963,
+      "pasoAPasoMs": 14.814250000000015
+    },
+    {
+      "id": "factory-reto-3-victoria",
+      "reglas": "factory",
+      "hash": "9ba6364baba407b1cd1c8d27dee0d275027e55743136146b8dc4fdb0a20b4771",
+      "pasos": 313,
+      "lineas": 18,
+      "mensajes": 12,
+      "normalMs": 13.677458999999999,
+      "pasoAPasoMs": 13.722832999999923
+    },
+    {
+      "id": "factory-reto-4-inicial",
+      "reglas": "factory",
+      "hash": "a569c3ceffbb05a995637fc4647e2dbb9f1c08d8725ade0852e54758c40d37f8",
+      "pasos": 290,
+      "lineas": 12,
+      "mensajes": 11,
+      "normalMs": 9.783833999999956,
+      "pasoAPasoMs": 9.503958000000011
+    },
+    {
+      "id": "factory-reto-4-victoria",
+      "reglas": "factory",
+      "hash": "dd153915fdbeaf934f632e12b21f93b5bf44fd9b6b439dc5dcf64651c85f8cfc",
+      "pasos": 406,
+      "lineas": 15,
+      "mensajes": 21,
+      "normalMs": 12.599958000000015,
+      "pasoAPasoMs": 12.466958999999974
+    },
+    {
+      "id": "factory-reto-5-inicial",
+      "reglas": "factory",
+      "hash": "54f13d6ef46e7fd6bcef75a7ba608f7e5876680c00c02f91ebb4d60a80ea2e7d",
+      "pasos": 257,
+      "lineas": 9,
+      "mensajes": 12,
+      "normalMs": 10.122749999999996,
+      "pasoAPasoMs": 9.661500000000046
+    },
+    {
+      "id": "factory-reto-5-victoria",
+      "reglas": "factory",
+      "hash": "2b0beeafce7cc5ba280c0d16ba98e65a11c9949b10ffba1e2b7d1668ee29227e",
+      "pasos": 408,
+      "lineas": 19,
+      "mensajes": 24,
+      "normalMs": 15.600541999999905,
+      "pasoAPasoMs": 14.715582999999924
+    },
+    {
+      "id": "factory-reto-6-inicial",
+      "reglas": "factory",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pasos": 0,
+      "lineas": 0,
+      "mensajes": 1,
+      "normalMs": 2.3171250000000327,
+      "pasoAPasoMs": 1.7632919999998649
+    },
+    {
+      "id": "factory-reto-6-victoria",
+      "reglas": "factory",
+      "hash": "7916dcf2af47a5fddf0238def42eab417eec2a516a914c15f22fb6bf27f8aeea",
+      "pasos": 174,
+      "lineas": 8,
+      "mensajes": 6,
+      "normalMs": 6.723707999999988,
+      "pasoAPasoMs": 6.525290999999925
+    },
+    {
+      "id": "factory-stock-intento-2",
+      "reglas": "factory",
+      "hash": "a5fd628bbe5ea6bda2fb871dc50f7328bb930b69e590fd2af5cd2cbb97badccb",
+      "pasos": 174,
+      "lineas": 7,
+      "mensajes": 9,
+      "normalMs": 6.129750000000058,
+      "pasoAPasoMs": 7.0835420000000795
+    },
+    {
+      "id": "factory-stock-intento-3",
+      "reglas": "factory",
+      "hash": "af4562d0f6268cddffa7b202e4374d7a608fa6cf30b98de06dbbd5cf0f8b74f0",
+      "pasos": 348,
+      "lineas": 13,
+      "mensajes": 18,
+      "normalMs": 11.073082999999997,
+      "pasoAPasoMs": 10.807250000000067
+    },
+    {
+      "id": "factory-stock-intento-4",
+      "reglas": "factory",
+      "hash": "a299291bc19bc8e41e9e7b80d980a33d04fb51a15aab4a51df91110e4dadb7ff",
+      "pasos": 232,
+      "lineas": 9,
+      "mensajes": 12,
+      "normalMs": 8.393749999999955,
+      "pasoAPasoMs": 7.565958000000137
+    },
+    {
+      "id": "factory-stock-intento-5",
+      "reglas": "factory",
+      "hash": "131d146860d1d8f21f12913b33d65a70f28751ccf875654212edec73e8c51a8c",
+      "pasos": 290,
+      "lineas": 11,
+      "mensajes": 15,
+      "normalMs": 9.482416999999941,
+      "pasoAPasoMs": 9.582167000000027
+    },
+    {
+      "id": "factory-derrame-con-limite",
+      "reglas": "factory",
+      "hash": "0d855ec39e84293afe030d1d8dd4082eae86711df3fdc58ca5a887808c8cc582",
+      "pasos": 214,
+      "lineas": 8,
+      "mensajes": 6,
+      "normalMs": 8.211415999999872,
+      "pasoAPasoMs": 8.855499999999893
+    },
+    {
+      "id": "factory-derrame-sin-limite",
+      "reglas": "factory",
+      "hash": "95bde7c72630febc056aee9ff3d46ded8c83a6f305256c1e5a82a0b8c9f4c9e9",
+      "pasos": 194,
+      "lineas": 12,
+      "mensajes": 11,
+      "normalMs": 6.890291999999818,
+      "pasoAPasoMs": 6.9105409999999665
+    },
+    {
+      "id": "factory-viaje-vacio",
+      "reglas": "factory",
+      "hash": "7e5c50606c9c32c16152b0f7db388e0fe659da17b32f944ed5eca9389b69ed30",
+      "pasos": 29,
+      "lineas": 1,
+      "mensajes": 2,
+      "normalMs": 3.3161660000000666,
+      "pasoAPasoMs": 2.467208000000028
+    },
+    {
+      "id": "factory-viaje-vacio-prohibido",
+      "reglas": "factory",
+      "hash": "5795383f3d4992da2a15b0db286f6805e10f3d533bdef53334444c4d781b76a7",
+      "pasos": 29,
+      "lineas": 1,
+      "mensajes": 1,
+      "normalMs": 2.3241250000000946,
+      "pasoAPasoMs": 2.311416999999892
+    },
+    {
+      "id": "factory-sin-await",
+      "reglas": "factory",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pasos": 0,
+      "lineas": 2,
+      "mensajes": 2,
+      "normalMs": 2.0452920000000177,
+      "pasoAPasoMs": 1.7640830000000278
+    },
+    {
+      "id": "factory-bucle-con-metas",
+      "reglas": "factory",
+      "hash": "7916dcf2af47a5fddf0238def42eab417eec2a516a914c15f22fb6bf27f8aeea",
+      "pasos": 174,
+      "lineas": 8,
+      "mensajes": 6,
+      "normalMs": 6.807999999999993,
+      "pasoAPasoMs": 6.177207999999837
+    },
+    {
+      "id": "factory-limite-sensores",
+      "reglas": "factory",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pasos": 0,
+      "lineas": 1,
+      "mensajes": 502,
+      "normalMs": 21.63562499999989,
+      "pasoAPasoMs": 16.76974999999993
+    },
+    {
+      "id": "factory-lugar-inexistente",
+      "reglas": "factory",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pasos": 0,
+      "lineas": 1,
+      "mensajes": 2,
+      "normalMs": 2.5526250000000346,
+      "pasoAPasoMs": 1.9892079999999623
+    },
+    {
+      "id": "factory-rechazo-conserva-carga",
+      "reglas": "factory",
+      "hash": "54dc45d7d7d5e64cf049b0ef1b319e3c149710cff19e504a842a011c708f9e34",
+      "pasos": 58,
+      "lineas": 2,
+      "mensajes": 3,
+      "normalMs": 4.831542000000127,
+      "pasoAPasoMs": 4.270833000000039
+    },
+    {
+      "id": "campaign-js",
+      "reglas": "campaign",
+      "hash": "9a7bfd5f8676882813790279af63a49e1be083a80d88b09c2f90b517f13714ae",
+      "pasos": 16707,
+      "lineas": 5693,
+      "mensajes": 6273,
+      "normalMs": 3070.3362499999994,
+      "pasoAPasoMs": 3488.185917
+    },
+    {
+      "id": "campaign-python",
+      "reglas": "campaign",
+      "hash": "9a7bfd5f8676882813790279af63a49e1be083a80d88b09c2f90b517f13714ae",
+      "pasos": 16707,
+      "lineas": 5718,
+      "mensajes": 6273,
+      "normalMs": 4135.920542,
+      "pasoAPasoMs": 4490.992375
+    },
+    {
+      "id": "war-2-7-python",
+      "reglas": "war",
+      "hash": "6cb935b99109e5457d3e17c5ec43060ab1e24a0cf36aea1ef6fdb97eac46e2b5",
+      "pasos": 493,
+      "lineas": 151,
+      "mensajes": 150,
+      "normalMs": 28.02679200000057,
+      "pasoAPasoMs": 34.16462500000125
+    },
+    {
+      "id": "factory-reto-1-victoria-python",
+      "reglas": "factory",
+      "hash": "c8fa6be0ca6b03dc31cb643923f3c951eba83d4749dafca76cd6d6278dcb040a",
+      "pasos": 448,
+      "lineas": 14,
+      "mensajes": 12,
+      "normalMs": 21.399082999996608,
+      "pasoAPasoMs": 20.354291999999987
+    }
+  ],
+  "lineas": 14415
+}

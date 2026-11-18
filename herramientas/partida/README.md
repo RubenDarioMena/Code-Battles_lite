@@ -118,3 +118,13 @@ los mismos catálogos ES que el juego y la línea del intérprete. La CLI acepta
 sobre esa selección. La VM conserva su timeout como herramienta de comparación.
 `pruebas/partida-interprete.mjs` compara las 41 partidas entre ambos motores y
 comprueba bucles repetibles sin añadirlos al archivo de referencias.
+
+## Ejecución por sentencias
+
+`node herramientas/partida.mjs --reglas war --reto 2 --semilla 7 --paso-a-paso --max-lineas 8`
+imprime `unidad t=segundos línea=N` antes de ejecutar cada sentencia y el resultado
+habitual al terminar. Solo intérprete; sin navegador ni reloj de pared para ceder.
+`--max-lineas N` limita las sentencias ejecutadas (entero positivo), también entre
+tramos Campaign. Al cortar, el resultado indica `motivo: "lineas"`. No es una
+partida completa ni una referencia de paridad. Con `--json`, las líneas van a
+stderr y stdout conserva un único JSON. Sin límite recorre todas las pausas.

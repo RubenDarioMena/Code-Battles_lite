@@ -11,6 +11,11 @@ export function instalarArranqueJuego(ctx) {
     get partida() { return ctx.partida; }, get registro() { return ctx.registroActual(); }, get eventos() { return ctx.eventos; }, get fin() { return ctx.finActual; },
     get mundo() { return ctx.mundo; }, get def() { return ctx.def; }, get programas() { return ctx.programas; }, get fuentes() { return ctx.fuentes; }, RETOS: ctx.RETOS, instrumentar: ctx.instrumentar, lexico: ctx.lexico, normalizar: ctx.normalizar,
     turbo(n) { ctx.turbo = n; }, fijarSemilla(n) { ctx.semillaFija = true; ctx.semilla = n; }, usarEscenario(d) { ctx.guardarPropio(ctx.ES_FACTORY ? ctx.factory.retos.normalizar(d) : ctx.normalizar(d), true); }, elegirReto: ctx.elegirReto, ejecutar: ctx.ejecutar, abrirPrograma: ctx.abrirPrograma, seleccionar: ctx.seleccionar, get seleccionadas() { return [...ctx.seleccionadas]; }, get telemetria() { return ctx.telemetria; },
+    // QA: configurar antes de ejecutar. Sin controles de interfaz ni persistencia.
+    pasoAPaso: false,
+    pausas: () => ctx.conductor?.pausas() ?? [],
+    avanzarLinea: unidad => ctx.conductor?.avanzarLinea(unidad),
+    continuar: () => ctx.conductor?.continuar(),
     // QA: misma vía visual que alSucesos del conductor; nunca ordena ni modifica el mundo.
     sucesosVistas: lista => ctx.sucesosVistas(lista),
     medirEfectos: registrar => ctx.medirEfectos(registrar),

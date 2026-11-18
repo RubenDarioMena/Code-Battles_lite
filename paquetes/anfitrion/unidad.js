@@ -9,10 +9,11 @@ import { piezasDeFuente } from './trabajador.js';
 export const PRESUPUESTO = 1000000;
 
 /** @param {import('./index.js').OpcionesTrabajadorInterprete} opciones */
-export function crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, mensajePresupuesto, piezas: piezasInyectadas }) {
+export function crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, mensajePresupuesto, piezas: piezasInyectadas, depurar = false }) {
   let motor, unidades = 0;
-  return function crearTrabajador(fuente, unidad, recibir, maxOrdenes = 4000) {
-    motor ??= crearInterprete({ acorn, presupuesto });
+  return function crearTrabajador(fuente, unidad, recibir, maxOrdenes = 4000, opciones = {}) {
+    const debug = depurar || opciones.depurar;
+    motor ??= crearInterprete({ acorn, presupuesto, depurar: debug ? { parametro: '__L' } : false });
     const reino = motor;
     const piezas = piezasInyectadas ?? piezasDeFuente(fuente);
     if (!piezas && fuente.startsWith('const API = ')) throw new Error('Faltan las piezas nativas de esta fuente; inyéctalas al crear el trabajador.');
@@ -23,6 +24,7 @@ export function crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, me
       clearTimeout: id => canal.cancelar(id),
     });
     ambito.activar(); unidades++;
+    let python = false;
     let ultima, api, medida = { ...reino.medir(), contador: undefined };
     const medir = () => ultima ?? medida;
     const registrarMedida = () => { medida = { ...reino.medir(), contador: Object.getOwnPropertyDescriptor(ambito.global, '__contador')?.value }; };
@@ -43,26 +45,52 @@ export function crearTrabajadorInterprete({ acorn, presupuesto = PRESUPUESTO, me
         reino.ejecutar(fuente, { usuario: false }); reino.vaciarTrabajos();
       }
     } catch (error) { terminate(); throw error; }
+    function pausa() {
+      if (!debug || !canal.vivo) return null;
+      ambito.activar();
+      const p = reino.pausasPendientes()[0];
+      return p ? { linea: p.linea } : null;
+    }
+    function ejecutarTarea(fn) {
+      try {
+        fn(); reino.vaciarTrabajos();
+        // Python declara sus bindings/temporales en JS antes de las asignaciones.
+        // Son contabilidad del traductor, no sentencias escritas por el jugador.
+        while (debug && python && reino.pausasPendientes()[0]?.nodo === 'VariableDeclaration') {
+          reino.reanudar(); reino.vaciarTrabajos();
+        }
+      } catch (error) {
+        if (error.code !== 'CBL_PRESUPUESTO') { terminate(); throw error; }
+        registrarMedida();
+        canal.salidas.push({ type: 'error', mensaje: mensajePresupuesto?.(unidad) ?? error.message, linea: error.__linea,
+          code: error.code });
+        try { canal.vaciar(); } finally { terminate(); }
+        return true;
+      }
+      registrarMedida();
+      // No comunicar «espera»/«encargo» hasta acabar la entrega: puede quedar
+      // código tras una llamada sin await. El turno sigue abierto durante la pausa.
+      if (!pausa()) canal.vaciar();
+      return true;
+    }
     return {
+      pausa,
+      reanudar() {
+        if (!pausa()) return null;
+        ejecutarTarea(() => reino.reanudar());
+        return pausa();
+      },
       postMessage: m => canal.postMessage(m),
       entregar() {
-        if (!canal.vivo) return false;
+        if (!canal.vivo || pausa()) return false;
         const tarea = canal.tarea();
         if (!tarea) return false;
         ambito.activar(); reino.reiniciarPresupuesto();
-        try {
+        if ('mensaje' in tarea && tarea.mensaje.type === 'run') python = tarea.mensaje.lenguaje === 'python';
+        return ejecutarTarea(() => {
           if ('mensaje' in tarea) (api?.onmessage ?? ambito.global.onmessage)({ data: tarea.mensaje });
           else tarea.fn(...tarea.args);
-          reino.vaciarTrabajos();
-        } catch (error) {
-          if (error.code !== 'CBL_PRESUPUESTO') { terminate(); throw error; }
-          registrarMedida();
-          canal.salidas.push({ type: 'error', mensaje: mensajePresupuesto?.(unidad) ?? error.message, linea: error.__linea,
-            code: error.code });
-          try { canal.vaciar(); } finally { terminate(); }
-          return true;
-        }
-        registrarMedida(); canal.vaciar(); return true;
+        });
       },
       medir, terminate,
     };
