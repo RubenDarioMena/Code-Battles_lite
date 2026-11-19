@@ -1,3 +1,8 @@
+## Alcance de «sin framework ni compilación» · 19 de noviembre de 2026
+
+- Decisión del autor: la regla queda acotada a las builds de prueba (lo que existe hoy). No aplica a las builds de producto para Android, Steam y Campaign, cuyo stack (framework, TypeScript, compilación, WASM, empaquetado) se elegirá al planificarlas, con mediciones. Actualizado `AGENTS.md`; `docs/PLAN-UNIFICACION.md` y `docs/PLAN-EDITOR-LENGUAJES.md` conservan la regla porque describen trabajo sobre la build de prueba.
+- Sin cambios de código. Cambio local, sin commits, push ni publicación.
+
 ## Correcciones del review del editor móvil · 5 de noviembre de 2026
 
 - **Ficha accesible en todas las vistas.** JS, Seudo y Bloques comparten un contenedor para el programa y la ficha ⓘ. Ocultar el textarea ya no retira el acceso al Inspector y a la Consola; el asa mide ese contenedor común. Se conservan los mismos nodos, valores vivos y preferencias de alto.
