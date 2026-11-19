@@ -4,6 +4,7 @@ Esfera nominal de 1 m, compuerta doble centrada entre pistas a 45°, alojamiento
 
 - `Torreta_observacion_1m.blend`: fuente editable, materiales, controles y animación de 456 fotogramas a 24 fps (19 s). Abre en reposo; pulsa Espacio.
 - `Animacion_torreta.mp4` y `.gif`: reposo, inversión, apertura, extensión y miradas con varios ejes simultáneos.
+- `esfera/`: **rediseño vigente**, procedural. Esfera con dientes helicoidales según las imágenes generadas, montada en la torre, con el mecanismo elegido: dos sinfines en relevo (S). Incluye la animación del menú de máquinas. Ver [esfera/README.md](esfera/README.md).
 - `propuestas/`: A (cardán dentado, 25 mm adicionales de descenso) y B (tres ruedas omni, 50 mm adicionales), con fuentes independientes, comparación y clips de 13 s.
 - Cada fuente contiene documentación interna. Los LEEME describen controles, alturas y límites de cada alternativa.
 
