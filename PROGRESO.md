@@ -1,3 +1,30 @@
+## Arte · vehículo tubular: modelo, rig, animación con VFX y GLB de juego · 19 de noviembre de 2026
+
+Rama `vfx-vehiculo-tubular` (desde `vfx-explosiones-singularidad`). Vive en `arte/blender/vehiculo-tubular/` ([README](arte/blender/vehiculo-tubular/README.md)). Sustituye al carro lanzamisiles, que era pequeño para su arma. Los juegos no cambian.
+
+- **Origen.** Pedido del usuario: vehículo tubular del tamaño de un coche, con aro central, motor colgado y torreta ligera. La estética es la de un buggy de dunas, con complejidad en ruedas y amortiguadores y minimalismo en el centro. Lo escribió Astra (`gpt-6.2-astra` vía Codex, cuenta aparte con `CODEX_HOME`) en 8 tareas (`prompts/`); Claude orquestó, renderizó y corrigió.
+- **Modelo.** 2,07 × 3,70 × 2,16 m y 189.708 triángulos. Lleva doble trapecio, coilover con depósito, bypass, tope hidráulico y puntales telescópicos del aro a 45°. El motor va sobre soportes de goma y la corona de giro tiene dentado y piñón. Los materiales son PBR procedurales con desgaste en los cantos del bisel y polvo de arena que sube desde el suelo.
+- **Rig.** Funciona con drivers y restricciones, sin keyframes en la base. Las ruedas pisan el terreno: el cuerpo es lo que se mueve y `apoyar()` resuelve el recorrido de cada esquina.
+- **Animación con VFX** (240 cuadros a 24 fps). La secuencia:
+  - avance a 10 m/s con baches y estelas de arena;
+  - frenada de ~0,9 g con morro abajo 4,4°, bloqueo, discos al rojo, derrape y nube de arena, y rebote amortiguado del cuerpo, el aro y el motor;
+  - giro de torreta de ~110°;
+  - tres ráfagas con fogonazo, humo, casquillos y eslabones balísticos con rebote, trazadoras, chispas y marcas en un blanco a 14 m, y arena en los fallos.
+- **GLB de juego** (`Prototypes/Rocket Launcher/modelos/vehiculo_tubular.glb`, 5,4 MB, 1,0 MB con gzip). Tiene **LOD0 56.592**, **LOD1 19.356** y **LOD2 3.454** triángulos y 181 pivotes por nivel. Cada pieza se decima por separado y se quitan familias de detalle por nivel; decimar la malla unida deformaba ruedas y motor. Los pivotes que siguen a otros llevan sus reglas en los extras de glTF (`rig`).
+- **Verificado:**
+  - contacto con el terreno de menos de 7 mm en los 240 cuadros;
+  - anclajes del rig de menos de 1 µm;
+  - ningún casquillo atraviesa el terreno;
+  - encuadre con margen de al menos 5 % y puntería con error máximo de 1,3°;
+  - el GLB se reimporta en Blender con los pivotes clave en los tres niveles, y se revisó un render de los tres LOD.
+
+  **No verificado:** el GLB en three.js, el rendimiento en el juego ni el solucionador del rig en JS.
+- **Pendiente:**
+  - cargarlo en War en lugar del carro lanzamisiles;
+  - el solucionador del rig en el juego;
+  - plano de disparos más cerrado, si se pide.
+  - El GLB entra en el paquete de Netlify aunque aún no se use (se copia la carpeta entera).
+
 ## VFX · rayo láser con textura, prueba de concepto en Blender · 17 de noviembre de 2026
 
 Rama `vfx-explosiones-singularidad`. Vive en `arte/blender/vfx/` ([README](arte/blender/vfx/README.md)); los juegos no cambian y nada entra en el paquete de Netlify.

@@ -42,6 +42,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 | `js/war-retos.js`, `js/factory-retos.js` | Retos y normalización de escenarios. |
 | `js/vistas.js`, `js/factory-vista.js` | Mapa 3D/plano y dibujo de logística. |
 | `js/factory-3d.js`, `modelos/t1.glb` | Escenario 3D de Factory: edificios y transporte T1 con tres LOD (generado por `arte/blender/exportar_t1.py`). |
+| `modelos/vehiculo_tubular.glb` | Vehículo tubular con tres LOD y pivotes para el rig (generado por `arte/blender/vehiculo-tubular/exportar_tubular.py`). Aún no lo carga ningún juego. |
 | `js/factory-form.js` | Formulario de enunciado, metas y mapa de «Tu reto». |
 | `js/layout.js` | Distribución, divisor, preferencias, teclado móvil y tooltips. |
 | `shared/editor/` (desde la raíz) | Instancia reutilizable, adaptador JS, paletas, símbolos, fichas, historial y vistas Seudo/Bloques. |
