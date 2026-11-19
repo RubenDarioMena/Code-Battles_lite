@@ -1,0 +1,208 @@
+{
+ "fps": 30,
+ "duracion_s": 12.0,
+ "segundos_composicion": 195.5,
+ "atlas": {
+  "aerea_p1": {
+   "variante": "aerea",
+   "poder": 1,
+   "encuadre_m": 4.4,
+   "fps": 24,
+   "capas": {
+    "destello": 0.9,
+    "luz": 0.25,
+    "chispas": 26,
+    "quemadura": 0.0,
+    "onda": 0.0,
+    "radio_onda": 3.0,
+    "duracion_onda": 0.28,
+    "sombra": 0.3
+   }
+  },
+  "aerea_p2": {
+   "variante": "aerea",
+   "poder": 2,
+   "encuadre_m": 8.0,
+   "fps": 20,
+   "capas": {
+    "destello": 1.1,
+    "luz": 0.35,
+    "chispas": 40,
+    "quemadura": 0.0,
+    "onda": 0.35,
+    "radio_onda": 3.0,
+    "duracion_onda": 0.28,
+    "sombra": 0.35
+   }
+  },
+  "bocanada": {
+   "variante": "bocanada",
+   "poder": 2,
+   "encuadre_m": 8.0,
+   "fps": 16,
+   "capas": {}
+  },
+  "incendio_p2": {
+   "variante": "incendio",
+   "poder": 2,
+   "encuadre_m": 4.4,
+   "fps": 16,
+   "capas": {
+    "destello": 0.0,
+    "luz": 0.0,
+    "chispas": 0,
+    "quemadura": 0.0,
+    "onda": 0.0,
+    "radio_onda": 4.0,
+    "duracion_onda": 0.35,
+    "sombra": 0.4
+   }
+  },
+  "tierra_p1": {
+   "variante": "tierra",
+   "poder": 1,
+   "encuadre_m": 4.96,
+   "fps": 24,
+   "capas": {
+    "destello": 0.8,
+    "luz": 0.7,
+    "chispas": 22,
+    "quemadura": 0.75,
+    "onda": 0.0,
+    "radio_onda": 4.0,
+    "duracion_onda": 0.35,
+    "sombra": 0.4
+   }
+  },
+  "tierra_p2": {
+   "variante": "tierra",
+   "poder": 2,
+   "encuadre_m": 8.0,
+   "fps": 20,
+   "capas": {
+    "destello": 1.0,
+    "luz": 1.0,
+    "chispas": 46,
+    "quemadura": 1.2,
+    "onda": 0.55,
+    "radio_onda": 4.2,
+    "duracion_onda": 0.34,
+    "sombra": 0.45
+   }
+  },
+  "tierra_p3": {
+   "variante": "tierra",
+   "poder": 3,
+   "encuadre_m": 12.8,
+   "fps": 16,
+   "capas": {
+    "destello": 1.4,
+    "luz": 1.5,
+    "chispas": 90,
+    "quemadura": 2.1,
+    "onda": 1.0,
+    "radio_onda": 9.5,
+    "duracion_onda": 0.55,
+    "sombra": 0.5
+   }
+  }
+ },
+ "eventos": [
+  {
+   "t": 0.4,
+   "tipo": "disparo",
+   "desde": "L1"
+  },
+  {
+   "t": 1.0,
+   "tipo": "disparo",
+   "desde": "L2"
+  },
+  {
+   "t": 1.291,
+   "tipo": "explosion",
+   "atlas": "aerea_p1",
+   "pos": [
+    -1.0,
+    12.0,
+    2.5
+   ],
+   "dron": "D1"
+  },
+  {
+   "t": 1.7,
+   "tipo": "disparo",
+   "desde": "L1"
+  },
+  {
+   "t": 2.689,
+   "tipo": "explosion",
+   "atlas": "aerea_p1",
+   "pos": [
+    8.5,
+    11.0,
+    2.5
+   ],
+   "dron": "D2"
+  },
+  {
+   "t": 2.811,
+   "tipo": "explosion",
+   "atlas": "tierra_p1",
+   "pos": [
+    2.5,
+    8.0,
+    0.0
+   ],
+   "dron": null
+  },
+  {
+   "t": 3.1,
+   "tipo": "disparo",
+   "desde": "L2"
+  },
+  {
+   "t": 4.3,
+   "tipo": "disparo",
+   "desde": "L1"
+  },
+  {
+   "t": 4.674,
+   "tipo": "explosion",
+   "atlas": "tierra_p2",
+   "pos": [
+    8.5,
+    1.5,
+    0.0
+   ],
+   "dron": null
+  },
+  {
+   "t": 5.4,
+   "tipo": "disparo",
+   "desde": "L3"
+  },
+  {
+   "t": 6.107,
+   "tipo": "explosion",
+   "atlas": "aerea_p2",
+   "pos": [
+    12.0,
+    5.5,
+    2.5
+   ],
+   "dron": "D3"
+  },
+  {
+   "t": 6.875,
+   "tipo": "explosion",
+   "atlas": "tierra_p3",
+   "pos": [
+    2.0,
+    -1.0,
+    0.0
+   ],
+   "dron": null
+  }
+ ]
+}

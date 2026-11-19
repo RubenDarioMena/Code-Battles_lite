@@ -1,0 +1,51 @@
+{
+ "nombre": "fuego_p2",
+ "variante": "fuego",
+ "poder": 2,
+ "semillas": [
+  1
+ ],
+ "columnas": 8,
+ "filas": 8,
+ "cuadros": 64,
+ "px": 256,
+ "fps": 20,
+ "duracion_s": 3.2,
+ "encuadre_m": 8.0,
+ "escala": 1.0,
+ "suelo": true,
+ "bucle": false,
+ "ancla": [
+  0.5,
+  0.2
+ ],
+ "elevacion_grados": 53.0,
+ "alfa": "premultiplicado",
+ "espacio": "sRGB",
+ "mezcla": "ONE, ONE_MINUS_SRC_ALPHA",
+ "orden": "izquierda→derecha, arriba→abajo",
+ "capas": {
+  "destello": 1.0,
+  "luz": 1.3,
+  "chispas": 30,
+  "quemadura": 1.3,
+  "onda": 0.3,
+  "radio_onda": 3.6,
+  "duracion_onda": 0.36,
+  "sombra": 0.45
+ },
+ "uso_cuadro_px": [
+  14,
+  9,
+  252,
+  253
+ ],
+ "kb": 3049,
+ "calidad": "media",
+ "blender": "5.2.4 LTS",
+ "segundos": {
+  "sim": 156.7,
+  "render": 279.2,
+  "cuadro_max": 6.15
+ }
+}
