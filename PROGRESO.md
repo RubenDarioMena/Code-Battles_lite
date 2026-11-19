@@ -1,3 +1,14 @@
+## Muralla de vóxeles: núcleo, vista 3D, laboratorio y pruebas · 19 de noviembre de 2026
+
+Rama `vfx-vehiculo-tubular`. Pedido del usuario: vóxeles **solo para la muralla**, para ampliarla o ponerle capas construyendo paredes, con Campaign como destino. Diseño, API y plan de integración en [docs/MURALLA-VOXELES.md](docs/MURALLA-VOXELES.md). Ningún juego lo carga todavía; War, Factory y Campaign no cambian.
+
+- **Núcleo** `shared/muralla/voxeles.js`, sin DOM ni dependencias. Rejilla dispersa en trozos de 16³ (vóxel de 0,5 m por omisión). La muralla son paredes sobre ejes: banda lateral con signo, alto y tramo, con almenas opcionales. Capas contiguas, hiladas encima, ampliar el eje y paredes nuevas. Las obras ponen los vóxeles en orden (tramos de 2 m, de abajo arriba) con `avanzar(n)`, y lo que falta se ve como plano. Romper por poder y resistencia del material; reparar vuelve a planear lo vacío. También `altoEn` para las torretas, `huella` para el plano 2D y guardado de ida y vuelta.
+- **Vista** `shared/muralla/vista-three.js` para Three r128: una malla por trozo con caras ocultas y oclusión por vértice; solo rehace los trozos tocados. El plano va translúcido aparte.
+- **Laboratorio** `herramientas/muralla/` con el trazado del nivel 1 de Campaign y la torreta LAU-01 encima. Ofrece material, capa por fuera y por dentro, subir 1 m, ampliar, pared nueva, reparar, ritmo de obra, disparar, tamaño de vóxel y guardar y recargar. Funciona en PC y teléfono.
+- **Determinismo.** Sin `Math.random` ni reloj (la prueba lo vigila). El ritmo por segundos es solo del laboratorio; en el juego lo decidirá el paso fijo.
+- **Verificado (actual).** `node pruebas/muralla-voxeles.cjs`: 58 comprobaciones correctas. `node pruebas/interaccion.cjs`: 124 correctas. `node --check` de los scripts nuevos. En Chromium sin pantalla (SwiftShader), a 1280 × 760 y en teléfono de 390 px, el laboratorio construye la base, la capa de hormigón y la hilada de acero, dispara, levanta una pared nueva por toques, repara y guarda y recarga (29–37 KB según la obra pendiente), sin errores de consola. A 0,5 m, el boceto da 4.589 vóxeles y 4.998 caras, con malla completa en unos 20–30 ms y cambios en 1–3 ms. A 0,25 m, 36.290 vóxeles y 19.840 caras.
+- **Pendiente.** La revisión visual del usuario en el laboratorio y la medida en teléfono real. Los costes y resistencias son provisionales: Campaign aún no los fija. Faltan el derrumbe de lo que queda suelto, las puertas y la fusión de caras si la GPU lo pide. Integración en `campaign-nivel-1` en tres pasos: vista, estado del mundo y programas.
+
 ## Arte · vehículo tubular: modelo, rig, animación con VFX y GLB de juego · 19 de noviembre de 2026
 
 Rama `vfx-vehiculo-tubular` (desde `vfx-explosiones-singularidad`). Vive en `arte/blender/vehiculo-tubular/` ([README](arte/blender/vehiculo-tubular/README.md)). Sustituye al carro lanzamisiles, que era pequeño para su arma. Los juegos no cambian.
