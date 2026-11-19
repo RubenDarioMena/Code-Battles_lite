@@ -6,6 +6,8 @@ import { instalarMenuFicha } from './layout-menu.js';
  * @param {any} ctx */
 export function instalarLayout(ctx) {
   const { cmg, servicios } = ctx;
+  // Con CodeMirror el textarea es un puerto oculto: el foco real lo informa el motor.
+  function focoCodigo() { const c = cmg && cmg.codigo; return c?.cmgMotor ? c.cmgMotor.tieneFoco() : !!c && dom.activeElement === c; }
   const dom = /** @type {any} */ (document);
   /** @type {any} */
   const l = {};
@@ -102,13 +104,12 @@ export function instalarLayout(ctx) {
     app.dataset.eje = eje;
     app.dataset.primero = primero;
     // Reordena los mismos paneles: conserva estado, selección y orden de tabulación.
-    const activo = dom.activeElement;
-    const seleccion = activo === codigo() ? [activo.selectionStart, activo.selectionEnd, activo.selectionDirection] : null;
+    const seleccion = focoCodigo() ? [codigo().selectionStart, codigo().selectionEnd, codigo().selectionDirection] : null;
     const primerPanel = primero === "mapa" ? $("zona-mapa") : zonaCodigo;
     const segundoPanel = primero === "mapa" ? zonaCodigo : $("zona-mapa");
     app.insertBefore(primerPanel, app.firstChild);
     primerPanel.after(divisor, segundoPanel);
-    if (seleccion) { activo.focus({ preventScroll: true }); activo.setSelectionRange(...seleccion); }
+    if (seleccion) { codigo().focus({ preventScroll: true }); codigo().setSelectionRange(...seleccion); }
     app.dispatchEvent(new Event("cmg:forma"));
     divisor.setAttribute("aria-orientation", eje === "vertical" ? "horizontal" : "vertical");
     l.aplicarPantalla();
@@ -217,7 +218,7 @@ export function instalarLayout(ctx) {
   function actualizarTeclado() {
     const vv = window.visualViewport;
     const real = vv ? Math.max(0, innerHeight - vv.height - vv.offsetTop) : 0;
-    const enCodigo = dom.activeElement && dom.activeElement === codigo();
+    const enCodigo = focoCodigo();
     const teclado = enMarco ? simulado : real;
     const abierto = forma === "movil" && enCodigo && teclado > 100;
     if (abierto !== app.classList.contains("teclado")) expandidoTeclado = false;
@@ -249,7 +250,7 @@ export function instalarLayout(ctx) {
   });
   dom.addEventListener("focusout", /** @param {any} ev */ (ev) => {
     if (ev.target !== codigo()) return;
-    setTimeout(() => { if (dom.activeElement !== codigo()) { simulado = 0; actualizarTeclado(); } }, 60);
+    setTimeout(() => { if (!focoCodigo()) { simulado = 0; actualizarTeclado(); } }, 60);
   });
 
   // Teclado simulado (solo en probar.html): un dibujo para ver el reparto; se escribe con el teclado del PC.

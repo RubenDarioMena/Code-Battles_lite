@@ -2,12 +2,19 @@
 
 Este proyecto es autónomo. Antes de hacer cambios lee, en este orden: [`docs/PLAN-ARQUITECTURA.md`](docs/PLAN-ARQUITECTURA.md), `docs/VISION.md`, el `README.md` y las entradas recientes de `PROGRESO.md` (solo las primeras; el archivo es largo).
 
+## Línea canónica: `trunk` (decidido el 19 de noviembre de 2026)
+
+- **`trunk` es la única línea canónica.** Todo trabajo «terminado» (verificado y aceptado por el autor) se integra en `trunk` con merge. Las demás ramas son de trabajo y nacen de `trunk` actualizado.
+- Antes de empezar, actualiza tu rama desde `trunk`. No partas de `main`, `codemirror-mobile`, `arquitectura/fase-*` ni de copias antiguas: son historia y su contenido ya está en `trunk`.
+- Una rama de trabajo no integra otras ramas de trabajo entre sí; todo pasa por `trunk`.
+- Integra en `trunk` solo con `npm test` y la suite de navegador pertinente en verde, y lo indicas en `PROGRESO.md`.
+
 ## Dirección (decidida el 15 de noviembre de 2026)
 
 - **Steam primero, Android después.** El navegador es el canal de QA, no el producto. Tecnología web, con Electron para Steam y Capacitor para Android.
 - **El plan vigente es `docs/PLAN-ARQUITECTURA.md`**: núcleo de simulación sin pantalla, reglamentos por serie, vistas 2D y 3D intercambiables, editor reutilizable y anfitrión de programas. Sigue sus fases y sus criterios de «hecho». `docs/PLAN-UNIFICACION.md` está cerrado y es historia.
 - **El punto de partida del código** es la aplicación común de `Prototypes/Rocket Launcher/` (War, Factory con `?serie=factory` y Campaign con `?serie=campaign`) y `shared/`. El Factory original (`Prototypes/Tres vistas/`) está retirado; su comportamiento queda en `pruebas/factory-oraculo.json` y su código en el historial (`b76411b`).
-- **Editor reutilizable.** Vive en `paquetes/editor/` (contrato en `README.md`, demo en `demo/demo.html`). Solo importa `lenguaje`; los servicios externos se inyectan con `configurar`. Los puentes de juego y demo conservan los consumidores clásicos.
+- **Editor reutilizable.** Vive en `paquetes/editor/` (contrato en `README.md`, demo en `demo/demo.html`). Solo importa `lenguaje`; los servicios externos (acorn, lezer, CodeMirror, i18n) se inyectan con `configurar`. La superficie de escritura es CodeMirror (`paquetes/editor/codemirror.js`); `?editor=textarea` usa el motor anterior para comparar. Los puentes de juego y demo conservan los consumidores clásicos.
 - **El diseño no es definitivo.** El estilo gráfico, la interfaz y el combate de War, Factory y Campaign pueden cambiar mucho (control manual de unidades, muchas más unidades). No construyas suponiendo que se quedan como están, y no los rediseñes sin que se pida.
 - **JavaScript y Python reales** siguen siendo el lenguaje del jugador ([plan](docs/PLAN-EDITOR-LENGUAJES.md)). Python se traduce a JS con las mismas líneas (`paquetes/lenguaje/python.js`). Si cambias su semántica, compárala con CPython y añádela a `pruebas/python-traductor.cjs`. No se añaden otros lenguajes.
 
@@ -35,3 +42,7 @@ Este proyecto es autónomo. Antes de hacer cambios lee, en este orden: [`docs/PL
 - **Al terminar una tarea con push, entrega siempre el enlace raw.githack** de lo publicado: `https://raw.githack.com/RubenDarioMena/Code-Battles_lite/<rama>/<ruta>` (por ejemplo `Prototypes/Rocket%20Launcher/index.html`). Da también el mismo enlace fijado al commit nuevo (`/<hash completo>/…`, que no depende de la caché) y, si sirve para comparar, el del commit anterior. Comprueba que responden 200 antes de pasarlos.
 - No hagas commits, push ni publicación sin instrucciones del usuario. No crees tareas paralelas ni delegues salvo petición explícita.
 - En el resumen indica qué cambió, cómo se verificó, qué fase y paso del plan queda hecho y cualquier límite material.
+
+## Harness: reglas, specs, bugs y revisión
+
+Lee [harness/REGLAS.md](harness/REGLAS.md) al empezar cualquier tarea. Antes de tocar una pantalla, abre su spec en `docs/pantallas/` (primera: [editor](docs/pantallas/editor.md)) y busca en [docs/bugs/INDICE.md](docs/bugs/INDICE.md). Las salidas HTML van en `docs/salidas/`. No uses memoria automática: lo que deba recordarse va a esos archivos. Flujo, roles y scripts: [harness/README.md](harness/README.md).

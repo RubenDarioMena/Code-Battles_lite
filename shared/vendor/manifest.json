@@ -2,5 +2,8 @@
   "acorn-8.11.3.js": "48160affc321e9f010fc732711a480cd82899bddf46d586431960689c868bdd6",
   "LICENSE-acorn": "4b9f7d83102c222dbd662f3a84a72c44abc7814d044ed092e8325bc614400596",
   "lezer-python-1.1.19.js": "b62fd81655cc1cbbf4801b1fbbb8891bedea48e8db5064e248137949bec129f7",
-  "LICENSE-lezer": "54bd812a6d334e0c438b78a43cea74b67e882739fd3450115ddc7c52be5706c1"
+  "LICENSE-lezer": "54bd812a6d334e0c438b78a43cea74b67e882739fd3450115ddc7c52be5706c1",
+  "codemirror/codemirror.min.js": "52e15e60f5b6933c74ac4ac06cced1c1f3cae612c17e979066fa1fa0c998527e",
+  "codemirror/LICENSES.txt": "6f6793f3d3e6c32d40d8d59fe77f8985223b5e520ddd1ca2e46f1300b325e623",
+  "codemirror/manifest.json": "9684848ad8779064e3fab052b602c68c7fb09c0b8ef0bfb43b5016ffbe5fb832"
 }

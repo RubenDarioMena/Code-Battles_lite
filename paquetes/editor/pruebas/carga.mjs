@@ -30,6 +30,7 @@ for (const pagina of ['index.html', 'Prototypes/Rocket Launcher/index.html', 'pa
     .map(([, href]) => href.split('?')[0]).filter(href => href.includes('/estilos/'))
     .map(href => href.split('/').at(-1));
   assert.deepEqual(estilos, pagina.startsWith('Prototypes/')
-    ? ['tema.css', 'editor.css', 'edicion.css'] : ['tema.css', 'editor.css', 'edicion.css', 'autonomo.css']);
+    ? ['tema.css', 'editor.css', 'edicion.css', 'codemirror.css']
+    : ['tema.css', 'editor.css', 'edicion.css', 'autonomo.css', 'codemirror.css']);  // CodeMirror, siempre al final de la cascada
 }
 console.log(`editor: ${rutas} rutas de script/link existentes; puente anterior a consumidores e iconos y orden CSS conservados.`);

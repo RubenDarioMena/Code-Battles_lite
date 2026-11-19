@@ -6,7 +6,7 @@ export async function probarFactoryEditorComun(page) {
   await page.cdp('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:1,mobile:false});
   await page.goto(url);await page.waitForFunction(()=>!!window.cmg?.seudo);
   await page.evaluate(()=>{__banco.elegirReto(0);cmg.seudo.aplicarModo('js');cmg.edicion.activar(false);});
-  await page.fill('#codigo','await deliver(FUN);');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo','await deliver(FUN);');
   await page.selectOption('#sel-lenguaje', 'bloques');
   eq(await page.evaluate(()=>[...document.querySelectorAll('#paleta-seudo [data-ladrillo]')].map(x=>x.dataset.ladrillo)),['recoger','entregar','repetir'],'ladrillos por reto');
   await page.click('#paleta-seudo [data-ladrillo="recoger"]');
@@ -27,7 +27,7 @@ export async function probarFactoryEditorComun(page) {
   await page.click('.sugerencias:not([hidden]) [data-i="0"]');
   eq(await page.evaluate(()=>cmg.codigo.value.includes('deliver(ENT_1)')),true,'editar destino desde sus opciones');
   await page.selectOption('#sel-lenguaje', 'js');
-  await page.fill('#codigo','');await page.click('#b-teclado');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo','');await page.click('#b-teclado');
   await page.click('#paleta .atajo[data-tip="Recoger"]');
   await page.waitForSelector('.sugerencias:not([hidden]) .sug[data-i]');
   eq(await page.evaluate(()=>document.querySelector('.sugerencias:not([hidden])').textContent.includes('ENT_1')),true,'sugerencias del robot sin teclado');
@@ -39,7 +39,7 @@ export async function probarFactoryEditorComun(page) {
   await page.click('#edicion [data-accion="deshacer"]');await page.click('#edicion [data-accion="rehacer"]');
   eq(await page.evaluate(()=>cmg.codigo.value),'await pickUp(ENT_1, "cobre");','historial de edición sin teclado');
   await page.evaluate(()=>cmg.edicion.activar(false));
-  await page.fill('#codigo','await wait(2);');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo','await wait(2);');
   await page.evaluate(()=>{__banco.elegirReto(1);__banco.elegirReto(0);});
   eq(await page.evaluate(()=>cmg.codigo.value),'await wait(2);','cambio inmediato de reto conserva texto');
   await page.selectOption('#sel-lenguaje', 'bloques');

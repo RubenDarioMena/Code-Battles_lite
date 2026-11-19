@@ -14,12 +14,12 @@ export function preparar(ctx) {
     ctx.app.dataset.sinTeclado = String(ctx.activo);
     ctx.$vista.hidden = !ctx.activo;
     ctx.$asas.hidden = !(ctx.activo && ctx.asa === "borde");
-    ctx.$codigo.tabIndex = ctx.activo ? -1 : 0;
+    ctx.$codigo.tabIndex = ctx.cmg.motorTexto ? -1 : ctx.activo ? -1 : 0;
     if (ctx.activo) ctx.$codigo.setAttribute("inputmode", "none"); else ctx.$codigo.removeAttribute("inputmode");
     ctx.cerrarSugerencias();
     ctx.pintarBarra();
     if (ctx.activo) {
-      if (document.activeElement === ctx.$codigo) ctx.$codigo.blur();   // cierra el teclado del teléfono
+      if (ctx.cmg.tieneFoco()) ctx.$codigo.blur();   // cierra el teclado del teléfono
       ctx.pintarVista();
       ctx.$vista.scrollTop = ctx.$codigo.scrollTop;
       ctx.cmg.medirEditor();

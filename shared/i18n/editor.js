@@ -1,5 +1,9 @@
 /* Textos de la barra de edición compartida. */
 window.CMGI18n.registrar('es', {
+  'editor.codemirror.python_sintaxis': 'Sintaxis de Python incompleta o inválida',
+  'editor.codemirror.plegar': 'Contraer bloque',
+  'editor.codemirror.expandir': 'Expandir bloque',
+  'editor.codemirror.plegado': 'Código contraído',
   'editor.accion.teclado': 'Modo sin teclado',
   'editor.accion.deshacer': 'Deshacer',
   'editor.accion.rehacer': 'Rehacer',
@@ -45,6 +49,10 @@ window.CMGI18n.registrar('es', {
 });
 
 window.CMGI18n.registrar('en', {
+  'editor.codemirror.python_sintaxis': 'Incomplete or invalid Python syntax',
+  'editor.codemirror.plegar': 'Fold block',
+  'editor.codemirror.expandir': 'Unfold block',
+  'editor.codemirror.plegado': 'Folded code',
   'editor.accion.teclado': 'Keyboard-free mode',
   'editor.accion.deshacer': 'Undo',
   'editor.accion.rehacer': 'Redo',

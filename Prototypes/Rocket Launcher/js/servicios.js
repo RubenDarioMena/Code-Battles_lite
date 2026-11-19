@@ -9,6 +9,8 @@ export const servicios = {
   CMGTerreno: window.CMGTerreno, CMGTrazador: window.CMGTrazador,
   CMGFlujo: window.CMGFlujo, CMGPythonRevision: window.CMGPythonRevision,
   THREE, cargarGLTFLoader, acorn: window.acorn, LezerPython: window.LezerPython,
+  // ?editor=textarea deja el motor anterior para comparar; si no, el editor usa CodeMirror local.
+  CMGCodeMirror: /[?&]editor=textarea(&|$)/.test(window.location?.search || '') ? null : window.CMGCodeMirror,
   cargarRevision,
 };
 let cargaRevision = null;

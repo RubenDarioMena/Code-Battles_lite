@@ -28,6 +28,7 @@ export function arrancarJuego(opciones = {}) {
   const servicios = opciones.servicios || {};
   const plataforma = opciones.plataforma || crearPlataformaMemoria();
   configurar({ sesion: plataforma.sesion, acorn: servicios.acorn, vistas: true, i18n: servicios.CMGI18n, lezer: servicios.LezerPython,
+    codemirror: servicios.CMGCodeMirror || undefined,
     presentacion: {
       html: texto => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(texto) : texto,
       texto: texto => servicios.CMGPresentacion ? servicios.CMGPresentacion.texto(texto) : texto,

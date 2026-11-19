@@ -15,6 +15,8 @@ export function preparar(ctx) {
     return t && t.nodeType === 3 ? [t, Math.min(pos - inicio, t.length)] : [d, 0];
   };
   ctx.rectTexto = function(pos) {
+    const motor = ctx.cmg.motorTexto;
+    if (motor) { const r = motor.rect(pos); return r ? { ...r, height: r.bottom - r.top } : null; }
     const p = ctx.puntoEspejo(pos);
     if (!p) return null;
     const r = /** @type {any} */ (document.createRange());
@@ -23,6 +25,7 @@ export function preparar(ctx) {
     return { left: c.left - ctx.$codigo.scrollLeft, top: c.top - ctx.$codigo.scrollTop, height: alto, bottom: c.top - ctx.$codigo.scrollTop + alto };
   };
   ctx.rectsTexto = function(a, b) {
+    if (ctx.cmg.motorTexto) return ctx.cmg.motorTexto.rects(a, b);
     const p = ctx.puntoEspejo(a), q = ctx.puntoEspejo(b);
     if (!p || !q) return [];
     const r = /** @type {any} */ (document.createRange()), sl = ctx.$codigo.scrollLeft, st = ctx.$codigo.scrollTop;
@@ -30,6 +33,7 @@ export function preparar(ctx) {
     return [...r.getClientRects()].filter(x => x.width > 0 || x.height > 0).map(x => ({ left: x.left - sl, right: x.right - sl, top: x.top - st, bottom: x.bottom - st }));
   };
   ctx.posTexto = function(x, y) {
+    if (ctx.cmg.motorTexto) return ctx.cmg.motorTexto.posicion(x, y);
     const divs = ctx.$espejo ? ctx.$espejo.children : [];
     if (!divs.length) return 0;
     const ey = y + ctx.$codigo.scrollTop, ex = x + ctx.$codigo.scrollLeft;
@@ -41,13 +45,14 @@ export function preparar(ctx) {
     return inicio + Math.min((lineas[lo] || "").length, ctx.enPieza(divs[lo], ex, ey, false));
   };
   ctx.cajaVisible = function() {
-    const s = ctx.activo ? ctx.$vista : ctx.$codigo, r = s.getBoundingClientRect(), cs = getComputedStyle(ctx.activo ? ctx.$texto : ctx.$codigo);
+    const motor = ctx.cmg.motorTexto;
+    const s = ctx.activo ? ctx.$vista : motor?.scroll || ctx.$codigo, r = s.getBoundingClientRect(), cs = getComputedStyle(ctx.activo ? ctx.$texto : motor?.elemento || ctx.$codigo);
     return { s, left: r.left + (parseFloat(cs.paddingLeft) || 0) - 2, right: r.right - (parseFloat(cs.paddingRight) || 0), top: r.top + 3, bottom: r.bottom - 3 };
   };
   // Cursor y selección propios mientras el textarea no tiene el foco (el navegador no los pinta).
   ctx.pintarPM = function() {
     ctx.$pmSel.replaceChildren(); ctx.$pmCursor.hidden = true;
-    if (!ctx.$area || !ctx.pmMarca || ctx.activo || document.activeElement === ctx.$codigo || !ctx.$codigo.getClientRects().length) return;
+    if (!ctx.$area || !ctx.pmMarca || ctx.activo || ctx.cmg.tieneFoco() || !(ctx.cmg.motorTexto?.elemento || ctx.$codigo).getClientRects().length) return;
     const base = ctx.$area.getBoundingClientRect(), [a, b] = ctx.sel();
     if (a === b) {
       const r = ctx.rectTexto(a); if (!r) return;
@@ -75,7 +80,7 @@ export function preparar(ctx) {
     let movil = b;
     if (a !== b) movil = ctx.pmUltimo && ctx.pmUltimo.a === a && ctx.pmUltimo.b === b ? ctx.pmUltimo.movil : ctx.$codigo.selectionDirection === "backward" ? a : b;
     const ancla = ctx.seleccionando ? (a === b ? a : movil === a ? b : a) : null;
-    if (!ctx.activo && document.activeElement !== ctx.$codigo) ctx.pmMarca = true;
+    if (!ctx.activo && !ctx.cmg.tieneFoco()) ctx.pmMarca = true;
     // Si el cursor quedó fuera de la vista, primero se trae: el arrastre sigue desde donde estaba.
     let r = ctx.caretEn(movil), c = ctx.cajaVisible();
     if (r && (r.top < c.top || r.bottom > c.bottom)) {

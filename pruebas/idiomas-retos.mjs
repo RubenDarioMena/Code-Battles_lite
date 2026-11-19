@@ -25,7 +25,7 @@ export async function probarIdiomasRetos(page, origen = 'http://127.0.0.1:8771')
           CMGI18n.cambiarIdioma('en'); const r = __qaReto;
           return { textos: ['titulo', 'objetivo-corto', 'leccion'].map(id => document.getElementById(id).textContent),
             estable: r.mundo === __banco.mundo && r.def === JSON.stringify(__banco.def) && r.codigo === cmg.codigo.value
-              && r.fuentes === JSON.stringify(__banco.fuentes) && document.activeElement === cmg.codigo,
+              && r.fuentes === JSON.stringify(__banco.fuentes) && (cmg.tieneFoco ? cmg.tieneFoco() : document.activeElement === cmg.codigo),
             seleccion: [cmg.codigo.selectionStart, cmg.codigo.selectionEnd],
             storage: Object.fromEntries(Object.entries(localStorage).filter(([k]) => k !== 'cmg-interfaz-idioma')),
             esperadoStorage: r.storage, esperadoSeleccion: r.seleccion };

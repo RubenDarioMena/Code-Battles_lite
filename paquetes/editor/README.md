@@ -55,6 +55,12 @@ frontera 4 sigue en `pruebas/editor-demo.mjs`, ejecutada por
 La referencia E0 de abajo es histórica; sus cifras de navegador y capturas no
 son una verificación actual del traslado del paso 10.
 
+## Superficie CodeMirror
+
+Si el anfitrión inyecta `configurar({ codemirror })` (el bundle local `shared/vendor/codemirror/codemirror.min.js`, global `CMGCodeMirror` que solo lee la página), cada instancia escribe en CodeMirror (`codemirror.js`). Sin ese servicio, o con `?editor=textarea` en el juego y la demo, sigue el textarea anterior. La superficie editable es `.cm-content`; `codigo` sigue siendo el textarea real, oculto y fuera de tabulación, como puerto para `value`, `readOnly`, `setSelectionRange`, `focus`, `blur`, desplazamiento y eventos del anfitrión. El puente cambia solo propiedades de esa instancia y las restaura al destruirse.
+
+No consultes la geometría ni el foco en el puerto oculto: la fachada ofrece `tieneFoco()` y `motorTexto` (`rect`, `rects`, `posicion`, `scroll`, `mostrar`); el juego los reexpone en `window.cmg`. El historial sigue siendo el de la edición (no hay un segundo historial CodeMirror). Los diagnósticos son de sintaxis: Acorn para JS y Lezer para Python (excepción conocida: `yield` sin valor). El plegado nunca elimina texto e `irALinea` expande el rango oculto. El bundle se regenera con `npm ci && npm run build` en `herramientas/codemirror/`; jugar no necesita npm ni red. Pruebas: `node pruebas/codemirror.cjs` (servidor 8771). QA histórica: `docs/CODEMIRROR-QA.md`.
+
 ## Instancia vigente (E1)
 
 `CMGEditor.crear({ raiz, documento, adaptadores, proveedor?, preferencias?, alCambiar?, alAviso?, soloLectura? })` crea el marcado dentro de una raíz libre. Devuelve `abrir`, `documento`, `insertar`, `marcas`, `irALinea`, `modoSinTeclado`, `refrescar` y `destruir`. `documento()` entrega una copia; texto original y revisión son la fuente de verdad. La revisión crece al editar y al cambiar de documento, para que `marcas(revision, lista)` no acepte diagnósticos de otro documento con la misma revisión antigua.

@@ -3,6 +3,7 @@ export {};
 declare global {
   interface Window {
     LezerPython: any;
+    CMGCodeMirror: any;
     acorn: any;
     CMGTrazador: any;
     CMGFlujo: any;

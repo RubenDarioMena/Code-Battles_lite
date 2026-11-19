@@ -5,7 +5,9 @@ import { CMGEditorJS, ESTRUCTURA, crearPython, crearJSaPython } from '../../leng
 
 const globales = /** @type {any} */ (window);
 const lezer = globales.LezerPython, acorn = globales.acorn;
-configurar({ lezer, acorn, sesion: {
+// ?editor=textarea compara con el motor anterior; si no, CodeMirror local.
+const codemirror = new URLSearchParams(location.search).get('editor') === 'textarea' ? undefined : globales.CMGCodeMirror;
+configurar({ lezer, acorn, codemirror, sesion: {
   leer(clave) { try { return sessionStorage.getItem(clave); } catch { return null; } },
   escribir(clave, texto) { try { sessionStorage.setItem(clave, texto); } catch { /* solo en memoria */ } },
   borrar(clave) { try { sessionStorage.removeItem(clave); } catch { /* solo en memoria */ } },

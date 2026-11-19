@@ -1,0 +1,2 @@
+# Bundle de terceros: contiene tabulaciones significativas dentro de plantillas JS.
+shared/vendor/codemirror/codemirror.min.js -whitespace

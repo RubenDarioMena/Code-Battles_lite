@@ -56,6 +56,8 @@ export interface ServiciosEditor {
   sesion?: AlmacenSesion;
   lezer?: import('../lenguaje/index.js').AnalizadorPython;
   acorn?: import('../lenguaje/index.js').AnalizadorJS;
+  /** Paquete local de CodeMirror (shared/vendor/codemirror). Sin él, el editor usa el textarea. */
+  codemirror?: any;
   i18n?: { t(clave: string, parametros?: any): string };
   presentacion?: {
     html(texto: string): string; texto(texto: string): string;

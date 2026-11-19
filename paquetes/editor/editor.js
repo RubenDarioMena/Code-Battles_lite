@@ -7,6 +7,7 @@ import { CMGSeudo } from './seudo.js';
 import { CMGEditorUI } from './nucleo-ui.js';
 import { CMGTips } from './tips.js';
 import { ICONOS } from './iconos.js';
+import { crearMotorCodeMirror, hayCodeMirror } from './codemirror.js';
 /* Instancia reutilizable. El anfitrión aporta documentos y datos, nunca ejecución. */
   let secuencia = 0;
   const ICONO_PANTALLA = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>';
@@ -116,6 +117,11 @@ import { ICONOS } from './iconos.js';
       alternarEjecucion: () => opciones.alEjecutar?.(),
       alDesplazar: () => ui.pintarBanda(),
     };
+    // El puerto público se conserva para los anfitriones; la escritura y su geometría son del motor.
+    // El anfitrión decide el motor (`motorTexto: "textarea"` o ?editor=textarea en su página).
+    const usarCodeMirror = opciones.motorTexto !== "textarea" && hayCodeMirror();
+    cmg.motorTexto = usarCodeMirror ? crearMotorCodeMirror({ codigo, contenedor: $("area"), editor: $("editor"), cmg, adaptador, vida }) : null;
+    cmg.tieneFoco = () => cmg.motorTexto ? cmg.motorTexto.tieneFoco() : document.activeElement === codigo;
     // Vistas derivadas del árbol (Seudo y, en Factory, Bloques). Las pide el juego; una instancia autónoma
     // solo las tiene con opciones.vistas. Hoy el árbol solo entra y sale como JS.
     const vistas = new Set(opciones.vistas || (opciones.adoptar ? ["pseudo"] : []));
@@ -313,11 +319,12 @@ import { ICONOS } from './iconos.js';
         codigo.value = doc.texto; marcasActuales.corre = marcasActuales.err = null;
         if (otro) {
           adaptador = adaptadores[lenguaje];
+          cmg.motorTexto?.documento(adaptador);
           montarInterior(); ui.atajos(atajosActuales());
           codigo.dispatchEvent(new CustomEvent("cmg:estado"));
           if (antes.sinTeclado) cmg.edicion.activar(true);
           raiz.dispatchEvent(new CustomEvent("cmg:lenguaje", { detail: { lenguaje } }));
-        } else codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } }));
+        } else { cmg.motorTexto?.documento(adaptador); codigo.dispatchEvent(new CustomEvent("cmg:documento", { detail: { clave: doc.id } })); }
         ui.medirEditor();
       },
       lenguajes: () => CMGLenguajes.disponibles(adaptadores, opciones.lenguajes),
@@ -333,6 +340,7 @@ import { ICONOS } from './iconos.js';
         const lineas = codigo.value.split("\n"), pos = lineas.slice(0, n - 1).reduce((s,l) => s + l.length + 1, 0);
         codigo.setSelectionRange(pos, pos + (lineas[n - 1] || "").length);
         codigo.dispatchEvent(new CustomEvent("cmg:seleccion"));
+        cmg.motorTexto?.mostrar(pos);
         if (!cmg.edicion.activo) codigo.focus();
       },
       modoSinTeclado(si) { if (!vida.destruida) cmg.edicion.activar(si); },
@@ -342,6 +350,7 @@ import { ICONOS } from './iconos.js';
       destruir() {
         if (vida.destruida) return;
         autonomo?.destruir();
+        cmg.motorTexto?.destruir();
         vida.destruir(); for (const n of propios) n.remove();
         if (anfitrionNuevo) anfitrion.classList.remove("cmg-anfitrion");
         for (const [viejo, nuevo] of reemplazos.reverse()) nuevo.replaceWith(viejo);

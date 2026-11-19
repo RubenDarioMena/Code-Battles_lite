@@ -93,7 +93,7 @@ export async function probarIdiomas(page, origen = 'http://127.0.0.1:8771') {
       await page.click('#ajustes-cerrar');
       // Cambiar por API no debe quitar el foco ni alterar selección o scroll del editor.
       await page.evaluate(() => { cmg.codigo.focus(); cmg.codigo.setSelectionRange(3, 9); CMGI18n.cambiarIdioma('en'); });
-      eq(await page.evaluate(() => [document.activeElement === cmg.codigo, cmg.codigo.selectionStart, cmg.codigo.selectionEnd]), [true, 3, 9], `${nombre}: selección y foco conservados`);
+      eq(await page.evaluate(() => [cmg.tieneFoco ? cmg.tieneFoco() : document.activeElement === cmg.codigo, cmg.codigo.selectionStart, cmg.codigo.selectionEnd]), [true, 3, 9], `${nombre}: selección y foco conservados`);
       await page.reload();
       await page.waitForFunction(() => window.__juegoListo);
       eq(await idioma(), ['en', 'en'], `${nombre}: recarga del juego conserva interfaz inglesa`);

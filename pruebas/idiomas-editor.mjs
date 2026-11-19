@@ -40,7 +40,7 @@ export async function probarIdiomasEditor(page, origen = 'http://127.0.0.1:8771'
     // El selector de cabecera está oculto en móvil; aquí solo prepara el documento de prueba.
     await page.selectOption('#sel-lenguaje', 'js', { force: true });
     textoInicial = await page.evaluate(() => cmg.codigo.value);
-    await page.fill('#codigo', texto);
+    await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', texto);
     await page.evaluate(() => {
       cmg.codigo.setSelectionRange(4, 16);
       cmg.codigo.dispatchEvent(new CustomEvent('cmg:seleccion'));

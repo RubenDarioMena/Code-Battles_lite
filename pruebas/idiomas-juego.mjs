@@ -222,7 +222,7 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
       __banco.abrirPrograma('LAU-01');
       __banco.seleccionar(['LAU-01', 'LAU-02']);
     });
-    await page.fill('#codigo', 'console.log("borrador de QA");');
+    await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'console.log("borrador de QA");');
     const fuentesAntesReplace = await page.evaluate(() => ({
       seleccion: __banco.seleccionadas,
       programas: { ...__banco.programas },
@@ -265,7 +265,7 @@ export async function probarIdiomasJuego(page, origen = 'http://127.0.0.1:8771')
     await page.evaluate(() => { __banco.elegirReto(0); __banco.abrirPrograma('LAU-01'); });
     await page.click('#pie [data-pie-modo="consola"]');
     const inicial = await page.evaluate(() => cmg.inicial().texto);
-    await page.fill('#codigo', 'const qaIdioma = "guardar hasta confirmar";\n');
+    await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'const qaIdioma = "guardar hasta confirmar";\n');
     await page.waitForTimeout(400);
     const fuenteTemporal = await page.evaluate(() => cmg.codigo.value);
     await page.click('#b-restaurar');

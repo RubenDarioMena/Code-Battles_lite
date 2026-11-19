@@ -75,7 +75,7 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   await evaluar(() => { const c = window.cmg.codigo; c.focus(); c.setSelectionRange(0, 0); });
   await page.waitForFunction(() => document.querySelector('#app').classList.contains('teclado'));
   await caracteres(5);
-  eq(await evaluar(() => [document.activeElement === window.cmg.codigo, document.querySelector('#app').classList.contains('teclado'), window.cmg.codigo.selectionStart]),
+  eq(await evaluar(() => [(window.cmg.tieneFoco ? window.cmg.tieneFoco() : document.activeElement === window.cmg.codigo), document.querySelector('#app').classList.contains('teclado'), window.cmg.codigo.selectionStart]),
     [true, true, 5], 'con el teclado abierto, el ProtoMouse mueve el cursor y el teclado sigue');
   await evaluar(() => window.cmg.codigo.blur());
   await page.waitForFunction(() => !document.querySelector('#app').classList.contains('teclado'));
@@ -242,7 +242,7 @@ export async function probarEditorMovil(page, origen = 'http://127.0.0.1:8771') 
   eq([sinTec[0], sinTec.slice(sinTec.indexOf('|'))], ['whileTrue', ['|', 'lineaNueva', 'tabular', 'comentar', 'borrar', 'parentesis', 'punto']],
     'sin teclado, los bloques van primero y edición y signos pasan al final');
   await page.click('#b-teclado-movil');
-  eq(await evaluar(() => [window.cmg.edicion.activo, document.activeElement === window.cmg.codigo]), [false, true], 'apagarlo vuelve al teclado con el código enfocado');
+  eq(await evaluar(() => [window.cmg.edicion.activo, (window.cmg.tieneFoco ? window.cmg.tieneFoco() : document.activeElement === window.cmg.codigo)]), [false, true], 'apagarlo vuelve al teclado con el código enfocado');
   eq((await ordenPaleta())[0], 'lineaNueva', 'y la barra de inserción vuelve a empezar por línea nueva');
   await evaluar(() => window.cmg.codigo.blur());
 

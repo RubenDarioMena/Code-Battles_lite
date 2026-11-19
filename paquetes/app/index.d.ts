@@ -85,7 +85,7 @@ export interface OpcionesArranqueJuego {
   servicios?: {
     CMGI18n?: any; CMGPresentacion?: any; CMGTerreno?: any;
     CMGTrazador?: any; CMGFlujo?: any; CMGPythonRevision?: any;
-    THREE?: any; acorn?: any; LezerPython?: any;
+    THREE?: any; acorn?: any; LezerPython?: any; CMGCodeMirror?: any;
     cargarRevision?: () => Promise<{ catalogo: any; revision: any; trazador: any; python: any }>;
   };
 }

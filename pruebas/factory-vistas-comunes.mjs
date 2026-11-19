@@ -44,7 +44,7 @@ export async function probarFactoryVistas(page) {
     await page.goto(url);await page.waitForFunction(()=>!!window.cmg?.seudo);
     eq(await page.evaluate(()=>cmg.codigo.value.includes('for (let i')),true,'la importación es única; no pisa el programa común');
     await page.evaluate(()=>{__banco.elegirReto(0);cmg.seudo.aplicarModo('js');});
-    await page.fill('#codigo','const custom = () => 42;\nconsole.log(custom());');
+    await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo','const custom = () => 42;\nconsole.log(custom());');
     await page.selectOption('#sel-lenguaje', 'bloques');
     eq(await page.evaluate(()=>[document.querySelector('#app').dataset.modo,cmg.codigo.value]),['js','const custom = () => 42;\nconsole.log(custom());'],'programa no traducible conserva JS y vuelve a su vista');
     await page.click('#t-escenario');await page.click('#reto-copiar');

@@ -123,7 +123,7 @@ export function preparar(ctx) {
     ctx.$paleta.hidden = ctx.modo === "js";
     ctx.$editor.hidden = ctx.modo !== "js";
     ctx.$("paleta").hidden = ctx.modo !== "js";
-    if (ctx.modo !== "js" && document.activeElement === ctx.$codigo) ctx.$codigo.blur();
+    if (ctx.modo !== "js" && ctx.cmg.tieneFoco()) ctx.$codigo.blur();
     for (const b of ctx.ambito.querySelectorAll("[data-modo-codigo]")) b.setAttribute("aria-pressed", String(b.dataset.modoCodigo === ctx.modo));
     if (ctx.modo !== "js") { ctx.pintarPaleta(); ctx.pintar(); }
     else ctx.cmg.medirEditor();

@@ -289,7 +289,7 @@ export function preparar(ctx) {
   ctx.guardarCopia = function(t) { ctx.portapapeles = t; try { dependencias.sesion.escribir("cmg-portapapeles", t); } catch { /* solo en memoria */ } };
   ctx.aSistema = function(t) {
     if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).catch(() => {}); return; }
-    if (document.activeElement === ctx.$codigo && ctx.$codigo.value.slice(ctx.$codigo.selectionStart, ctx.$codigo.selectionEnd) === t) { try { document.execCommand("copy"); } catch { /* queda la copia interna */ } return; }
+    if (ctx.cmg.tieneFoco() && ctx.$codigo.value.slice(ctx.$codigo.selectionStart, ctx.$codigo.selectionEnd) === t) { try { document.execCommand("copy"); } catch { /* queda la copia interna */ } return; }
     // Textarea de solo lectura: no abre el teclado del teléfono.
     const antes = /** @type {HTMLElement} */ (document.activeElement), tmp = document.createElement("textarea");
     tmp.value = t; tmp.readOnly = true;

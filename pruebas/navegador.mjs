@@ -31,7 +31,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
     b.seleccionar(['LAU-01', 'LAU-02']);
     window.cmg.confirmarReplace = true;
   });
-  await page.fill('#codigo', 'console.log("borrador");');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'console.log("borrador");');
   await page.click('[aria-label="Cerrar el inspector"]');
   eq(await evaluar(() => window.__banco.seleccionadas), ['LAU-01', 'LAU-02'], 'cerrar inspector conserva selección');
   await evaluar(() => {
@@ -48,7 +48,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
     'LAU-02': '// dos\nconsole.log("borrador");',
   }, 'Add conserva cada programa anterior');
   eq(await evaluar(() => window.cmg.codigo.value), '', 'Add consume el borrador');
-  await page.fill('#codigo', 'console.log("programa aplicado"); await esperar(1);');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'console.log("programa aplicado"); await esperar(1);');
   await page.click('#b-replace');
   eq(await evaluar(() => document.querySelector('#confirmar-replace').open), true, 'Replace abre confirmación');
   await page.keyboard.press('Escape');
@@ -68,7 +68,7 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   await page.click('#b-ejecutar');
   eq(await evaluar(() => window.cmg.codigo.readOnly), false, 'detener permite editar otra vez');
 
-  await page.fill('#codigo', 'foo("crawler")');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'foo("crawler")');
   const caracter = async pos => page.evaluate(pos => {
     const c = window.cmg.codigo, r = c.getBoundingClientRect(), s = getComputedStyle(c);
     const ctx = document.createElement('canvas').getContext('2d');
@@ -80,12 +80,12 @@ export async function probar(page, url = 'http://127.0.0.1:8771/Prototypes/Rocke
   let p = await caracter(7);
   await page.mouse.click(p.x, p.y, { clickCount: 2 });
   eq(await evaluar(() => window.cmg.codigo.value.slice(window.cmg.codigo.selectionStart, window.cmg.codigo.selectionEnd)), '"crawler"', 'doble clic selecciona texto con comillas');
-  await page.fill('#codigo', '(abc[1])');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', '(abc[1])');
   p = await caracter(0);
   await page.mouse.click(p.x, p.y, { clickCount: 3 });
   eq(await evaluar(() => window.cmg.codigo.value.slice(window.cmg.codigo.selectionStart, window.cmg.codigo.selectionEnd)), 'abc[1]', 'triple clic selecciona interior del delimitador');
   // Regresión: con dos argumentos, el doble clic en el primero elegía el segundo (el espejo usaba otra letra).
-  await page.fill('#codigo', 'fn("ab", "cd")');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'fn("ab", "cd")');
   p = await caracter(4);
   await page.mouse.click(p.x, p.y, { clickCount: 2 });
   eq(await evaluar(() => window.cmg.codigo.value.slice(window.cmg.codigo.selectionStart, window.cmg.codigo.selectionEnd)), '"ab"', 'doble clic en el primer argumento lo elige a él');
@@ -343,7 +343,7 @@ async function probarSinTeclado(page, eq) {
   const poner = (texto, a = 0, b = a) => page.evaluate(([t, x, y]) => { const c = window.cmg.codigo; c.value = t; c.dispatchEvent(new Event('input')); window.cmg.edicion.elegir(x, y); }, [texto, a, b]);
   const arrastrar = async (de, a) => { await page.mouse.move(de.x, de.y); await page.mouse.down(); await page.mouse.move(a.x, a.y, { steps: 8 }); await page.mouse.up(); };
 
-  await page.fill('#codigo', 'if (true){\nyo.entregar("oro")\n}');
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', 'if (true){\nyo.entregar("oro")\n}');
   await page.keyboard.press('Control+Alt+A');
   eq(await evaluar(() => window.cmg.edicion.activo), true, 'Ctrl+Alt+A activa el modo sin teclado');
   await page.keyboard.press('Control+Alt+A');
@@ -397,7 +397,7 @@ async function probarSinTeclado(page, eq) {
   await probarRegresiones(page, eq, { evaluar, elegido, ficha, poner });
 
   await page.click('#b-teclado');
-  eq(await evaluar(() => !window.cmg.edicion.activo && document.querySelector('#bloques').hidden && document.activeElement === window.cmg.codigo), true, 'el mismo botón vuelve al teclado');
+  eq(await evaluar(() => !window.cmg.edicion.activo && document.querySelector('#bloques').hidden && (window.cmg.tieneFoco ? window.cmg.tieneFoco() : document.activeElement === window.cmg.codigo)), true, 'el mismo botón vuelve al teclado');
 }
 
 // Regresiones del QA del editor sin teclado (docs/qa/editor-2026-10-30/REPORTE.md), con ratón real.
@@ -463,7 +463,7 @@ async function probarSeudo(page, eq) {
   await evaluar(() => window.__banco.elegirReto(3));
   // El reto puede tener un programa guardado de una ejecución anterior de QA.
   const partida = await evaluar(() => window.cmg.inicial().texto);
-  await page.fill('#codigo', partida);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', partida);
   await page.selectOption('#sel-lenguaje', 'pseudo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.modo, document.querySelector('#editor').hidden, [...document.querySelectorAll('#prog .fila')].slice(0, 2).map(f => f.textContent.replace(/\s+/g, ' ').trim())]),
     ['pseudo', true, ['repite siempre', 'pos ← apunta a drone con visual · si no hay: crawler']], 'el programa de partida se lee en seudocódigo');
@@ -486,7 +486,7 @@ async function probarSeudo(page, eq) {
   await page.click('#b-ejecutar');
   await page.selectOption('#sel-lenguaje', 'js');
   const raro = 'let x = 1;\nwhile (x < 3) { x++; }\n';
-  await page.fill('#codigo', raro);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', raro);
   await page.selectOption('#sel-lenguaje', 'pseudo');
   eq(await evaluar(() => [document.querySelector('#app').dataset.modo, window.cmg.codigo.value]), ['js', raro], 'lo que no tiene seudocódigo se queda intacto en JavaScript');
 

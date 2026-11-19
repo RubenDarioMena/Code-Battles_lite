@@ -11,7 +11,7 @@ export function preparar(ctx) {
     const v = ++ctx.versionSug;
     ctx.vida.queueMicrotask(() => {
       if (v !== ctx.versionSug || (ctx.gesto && ctx.gesto.arrastre)) return;
-      if (ctx.$codigo.readOnly || !ctx.editorVisible() || (!ctx.activo && document.activeElement !== ctx.$codigo)) return ctx.cerrarSugerencias();
+      if (ctx.$codigo.readOnly || !ctx.editorVisible() || (!ctx.activo && !ctx.cmg.tieneFoco())) return ctx.cerrarSugerencias();
       if (ctx.sinSugerir === ctx.claveSel()) return;
       const [a, b] = ctx.sel(), e = ctx.estructura(), c = ctx.E.contexto(e, a, b);
       if (!c || !(c.hueco || c.vacio || (ctx.activo && c.hoja && c.tipo))) return ctx.cerrarSugerencias();
@@ -48,6 +48,8 @@ export function preparar(ctx) {
       const rs = ctx.renglones(a === b ? [ctx.rectCaret(a)].filter(Boolean).map(r => ({ ...r, width: 1, right: r.left + 1 })) : ctx.rectsDe(a, b));
       return rs.length ? { left: rs[0].left, top: rs[0].top, bottom: rs[rs.length - 1].bottom } : null;
     }
+    const motor = ctx.cmg.motorTexto;
+    if (motor) { const ra = motor.rect(a), rb = motor.rect(b); return ra && rb ? { left: ra.left, top: ra.top, bottom: rb.bottom } : null; }
     const cs = getComputedStyle(ctx.$codigo), r = ctx.$codigo.getBoundingClientRect(), espejo = document.createElement("div"), v = ctx.$codigo.value, marca = document.createElement("span");
     for (const k of ctx.METRICAS) espejo.style[k] = cs[k];
     Object.assign(espejo.style, { position: "fixed", left: `${r.left}px`, top: `${r.top}px`, width: `${ctx.$codigo.clientWidth}px`, height: `${ctx.$codigo.clientHeight}px`, overflow: "hidden", visibility: "hidden", pointerEvents: "none" });
@@ -284,8 +286,8 @@ export function preparar(ctx) {
     if (!ctx.$sug.hidden && !ctx.$sug.contains(ev.target) && !ctx.$vista.contains(ev.target) && ev.target !== ctx.$codigo) ctx.cerrarSugerencias();
   }, true);
   for (const tipo of ["select", "keyup", "pointerup", "focus"]) ctx.vida.escuchar(ctx.$codigo, tipo, () => { if (!ctx.activo) ctx.actualizarSugerencias(); });
-  ctx.vida.escuchar(document, "selectionchange", () => { if (!ctx.activo && document.activeElement === ctx.$codigo) ctx.actualizarSugerencias(); });
-  ctx.vida.escuchar(ctx.$codigo, "blur", () => ctx.vida.setTimeout(() => { if (!ctx.activo && document.activeElement !== ctx.$codigo && !ctx.$sug.contains(document.activeElement)) ctx.cerrarSugerencias(); }, 120));
+  ctx.vida.escuchar(document, "selectionchange", () => { if (!ctx.activo && ctx.cmg.tieneFoco()) ctx.actualizarSugerencias(); });
+  ctx.vida.escuchar(ctx.$codigo, "blur", () => ctx.vida.setTimeout(() => { if (!ctx.activo && !ctx.cmg.tieneFoco() && !ctx.$sug.contains(document.activeElement)) ctx.cerrarSugerencias(); }, 120));
   ctx.vida.escuchar(window, "resize", () => { if (ctx.sugerido) ctx.colocarSugerencias(); });
   if (window.visualViewport) ctx.vida.escuchar(visualViewport, "resize", () => { if (ctx.sugerido) ctx.colocarSugerencias(); });
 

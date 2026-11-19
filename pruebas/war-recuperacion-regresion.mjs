@@ -17,7 +17,7 @@ export async function diagnosticarSeleccion(page, directorio, caso) {
   const resultados = [];
   for (const [id, espera] of [['rapido-1', 0], ['rapido-2', 0], ['pausado', 450]]) {
     await abrir(page);
-    await page.fill('#codigo', fuente.objetivo.codigo);
+    await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', fuente.objetivo.codigo);
     await page.click('#b-teclado');
     await page.click('#bloques-texto span[data-a="0"]');
     await page.waitForTimeout(450);

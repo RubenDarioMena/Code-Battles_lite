@@ -14,7 +14,7 @@ export async function probarArnes(page) {
   await page.goto('http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=escritorio');
   await page.waitForFunction(() => !!window.cmg);
   const original = 'const pos = autoTarget("crawler", "visual");\nregularShoot(pos);';
-  await page.fill('#codigo', original);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', original);
   const config = { modalidad: 'calibracion', intentos: 4 };
   const ciclo = await conectarCiclo(page, { directorio, config });
   await page.evaluate(() => {
@@ -36,7 +36,7 @@ export async function probarArnes(page) {
   await ciclo.click('#codigo');
   eq((await ciclo.estado()).intento.perturbacion, estado.intento.perturbacion); // No vuelve a inyectar al reparar.
   // Restauración de fixture para probar el verificador. Está prohibida en el piloto real.
-  await page.fill('#codigo', original);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', original);
   const sano = await ciclo.cerrar({ nota: 'Restauración sintética de fixture; no demuestra recuperación por UI.' });
   eq(sano.resultado, 'recuperado'); eq(sano.recompensa, null); eq(sano.detalle, null);
   eq(await readdir(directorio), ['resumen.json']);
@@ -50,7 +50,7 @@ export async function probarArnes(page) {
   eq(caso.objetivo.codigo, original);
   eq(caso.trasPerturbacion.codigo, caso.final.codigo);
   assert.ok(caso.traza.some(e => e.tipo === 'tras-caracter')); checks++;
-  await page.fill('#codigo', caso.objetivo.codigo);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', caso.objetivo.codigo);
   await page.evaluate(objetivo => {
     const e = document.querySelector('#codigo');
     e.setSelectionRange(...objetivo.seleccion, objetivo.direccion);
@@ -58,7 +58,7 @@ export async function probarArnes(page) {
   }, caso.objetivo);
   eq((await reproducirCaso(page, rutaCaso)).reproduceTexto, true);
 
-  await page.fill('#codigo', original);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', original);
   // Simular un botón que no tiene efecto para comprobar que no se premia como reparación.
   await page.evaluate(() => document.querySelector('#paleta').addEventListener('click', ev => {
     if (window.__qaRecuperacion.actual?.fase === 'inyeccion') ev.stopImmediatePropagation();
@@ -77,7 +77,7 @@ export async function probarArnes(page) {
   await page.goto('http://127.0.0.1:8771/Prototypes/Rocket%20Launcher/?forma=movil');
   await page.waitForFunction(() => !!window.cmg);
   const largo = 'const pos = autoTarget("drone", "visual") ?? autoTarget("crawler", "visual");\nregularShoot(pos);';
-  await page.fill('#codigo', largo);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', largo);
   await page.evaluate(() => document.querySelector('#codigo').blur());
   await assert.rejects(conectarCiclo(page, { directorio, config }), /otra sesión/); checks++;
   const movil = await conectarCiclo(page, { directorio, config, reanudar: true });
@@ -90,7 +90,7 @@ export async function probarArnes(page) {
   const movilEstado = await movil.estado();
   eq(movilEstado.intento.numero, 4); eq(movilEstado.intento.fase, 'reparacion');
   const objetivoMovil = await page.evaluate(() => window.__qaRecuperacion.actual.objetivo.codigo);
-  await page.fill('#codigo', objetivoMovil);
+  await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', objetivoMovil);
   await page.keyboard.press('ArrowLeft');
   const conTeclado = await movil.cerrar();
   eq(conTeclado.usoTeclado, true); eq(conTeclado.resultado, 'inconcluso'); eq(conTeclado.recompensa, null);

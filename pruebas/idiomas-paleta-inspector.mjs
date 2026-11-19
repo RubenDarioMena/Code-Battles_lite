@@ -92,7 +92,7 @@ export async function probarIdiomasPaletaInspector(page, origen = 'http://127.0.
 
         // Ejecutar el atajo tras traducir comprueba el texto insertado, además del tooltip.
         await page.evaluate(() => CMGI18n.cambiarIdioma('en'));
-        await page.fill('#codigo', '');
+        await page.fill(await page.locator('#app .cm-content').count() ? '#app .cm-content' : '#codigo', '');
         await page.click('#paleta [data-ico="esperar"]');
         const esperado = lenguaje === 'python' ? `await wait(${serie === 'war' ? '0.5' : '1'})`
           : serie === 'war' ? 'await esperar(0.5);' : 'await wait(1);';
