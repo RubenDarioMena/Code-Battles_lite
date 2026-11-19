@@ -1,3 +1,9 @@
+## Plan de peer review y futuro harness · 18 de noviembre de 2026
+
+- Plan en `docs/review/PLAN.md` e historial en `docs/review/REVIEW_BENCHMARK_PROGRESS.md`, con referencias de lectura por demanda en AGENTS/CLAUDE.
+- Base: `codemirror-mobile@567f7d6d54bb786e4da20a9cf48245e3d5e7ab45`; primer diff congelado contra `8c110b879a28fbe79fd95b3f9a035bc339b3da50`. Se separan recuperación UI, benchmark de revisores, scoring privado e historial de regresiones.
+- Solo documentación. No se implementó el harness ni se ejecutaron pruebas o ciclos. Spec, oráculo, configuraciones, runner y comando quedan pendientes antes de correr.
+
 ## Revisión · ciclo 05 con Astra (xhigh): forEach con cuerpo expresión · 8 de noviembre de 2026
 
 - **Proceso.** Quinto ciclo. Astra en Codex CLI con esfuerzo xhigh y solo lectura. Hubo 3 turnos: diagnóstico, un rechazo y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/05-foreach-expresion/`.

@@ -17,3 +17,7 @@ Este proyecto es autónomo. Lee `README.md`, `docs/VISION.md` y el estado recien
 - No hagas commits, push ni publicación sin instrucciones del usuario. No crees tareas paralelas ni delegues salvo petición explícita.
 
 En el resumen indica qué cambió, cómo se verificó y cualquier límite material. No conviertas una migración de carpetas en una reescritura del juego.
+
+## Plan de peer review y seguimiento de bugs
+
+El plan está en [docs/review/PLAN.md](docs/review/PLAN.md). Consúltalo solo al preparar revisiones, comparar revisores o investigar regresiones; no es necesario cargarlo para otras tareas. El documento describe el futuro harness y no autoriza ejecutar ciclos. El oráculo de bugs y el scoring deben quedar fuera del entorno del revisor del benchmark.
