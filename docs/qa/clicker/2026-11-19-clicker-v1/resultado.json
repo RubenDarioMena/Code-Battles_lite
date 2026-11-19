@@ -1,0 +1,2029 @@
+{
+  "meta": {
+    "semilla": "clicker-v1",
+    "pasos": 200,
+    "commit": "a39c03b",
+    "fecha": "2026-11-19-15-55",
+    "formaArg": "ambas"
+  },
+  "resultados": [
+    {
+      "semilla": "clicker-v1",
+      "forma": "escritorio",
+      "pasos": 200,
+      "fallos": [],
+      "registro": [
+        {
+          "paso": 1,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 2,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 3,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 4,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 5,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 6,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 7,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 8,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 9,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 10,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 11,
+          "accion": "clic «While True · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 12,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 13,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 14,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 15,
+          "accion": "editor 0: escribir «def f(n):»",
+          "fallos": 0
+        },
+        {
+          "paso": 16,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 17,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 18,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 19,
+          "accion": "editor 1: tecla ArrowUp",
+          "fallos": 0
+        },
+        {
+          "paso": 20,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 21,
+          "accion": "elegir numero en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 22,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 23,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 24,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 25,
+          "accion": "clic «Desenvolver: quita el if» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 26,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 27,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 28,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 29,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 30,
+          "accion": "clic «Bajar línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 31,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 32,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 33,
+          "accion": "clic «Subir línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 34,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 35,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 36,
+          "accion": "clic «Desenvolver: quita el if» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 37,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 38,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 39,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 40,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 41,
+          "accion": "clic «Reducir selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 42,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 43,
+          "accion": "clic «Borrar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 44,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 45,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 46,
+          "accion": "clic «Subir línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 47,
+          "accion": "clic «Desenvolver: quita el if» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 48,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 49,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 50,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 51,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 52,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 53,
+          "accion": "clic «Subir línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 54,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 55,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 56,
+          "accion": "clic «Reducir selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 57,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 58,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 59,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 60,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 61,
+          "accion": "elegir borde en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 62,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 63,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 64,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 65,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 66,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 67,
+          "accion": "clic «Desenvolver: quita el if» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 68,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 69,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 70,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 71,
+          "accion": "clic «Reducir selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 72,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 73,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 74,
+          "accion": "clic «Subir línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 75,
+          "accion": "clic «Desenvolver: quita el if» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 76,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 77,
+          "accion": "clic «Borrar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 78,
+          "accion": "clic «Bajar línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 79,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 80,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 81,
+          "accion": "clic «Borrar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 82,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 83,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 84,
+          "accion": "clic «Reducir selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 85,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 86,
+          "accion": "elegir borde en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 87,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 88,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 89,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 90,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 91,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 92,
+          "accion": "elegir borrador en «PrincipalBorrador»",
+          "fallos": 0
+        },
+        {
+          "paso": 93,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 94,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 95,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 96,
+          "accion": "editor 0: tecla Backspace",
+          "fallos": 0
+        },
+        {
+          "paso": 97,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 98,
+          "accion": "clic «✎ Escribir otro valor…» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 99,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 100,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 101,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 102,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 103,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 104,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 105,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 106,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 107,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 108,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 109,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 110,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 111,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 112,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 113,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 114,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 115,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 116,
+          "accion": "clic «Modo sin teclado» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 117,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 118,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 119,
+          "accion": "elegir js en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 120,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 121,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 122,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 123,
+          "accion": "clic «Modo sin teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 124,
+          "accion": "clic «Salir de pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 125,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 126,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 127,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 128,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 129,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 130,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 131,
+          "accion": "clic «Deshacer» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 132,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 133,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 134,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 135,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 136,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 137,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 138,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 139,
+          "accion": "clic «Reducir selección» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" aria-readonly=\"true\" data-clicker-id=\"41\" aria-multilin"
+        },
+        {
+          "paso": 140,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "omitido": "\u001b[2m    - <div class=\"aviso\" role=\"status\" data-editor=\"aviso\" id=\"cmg-editor-8-aviso\">Detén el programa para editarlo.</div> from <section data-demo=\"1\" class="
+        },
+        {
+          "paso": 141,
+          "accion": "clic «Desenvolver: quita el if/while que lo rodea» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" aria-readonly=\"true\" data-clicker-id=\"41\" aria-multilin"
+        },
+        {
+          "paso": 142,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 143,
+          "accion": "elegir js en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 144,
+          "accion": "clic «Aviso · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 145,
+          "accion": "clic «\"Hola\"» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 146,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 147,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 148,
+          "accion": "clic «Duplicar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 149,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 150,
+          "accion": "clic «Pegar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 151,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 152,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 153,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 154,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 155,
+          "accion": "clic «Duplicar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 156,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 157,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 158,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 159,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 160,
+          "accion": "elegir principal en «PrincipalBorrador»",
+          "fallos": 0
+        },
+        {
+          "paso": 161,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 162,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 163,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 164,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 165,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 166,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 167,
+          "accion": "clic «Desenvolver: quita el if/while que lo rodea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 168,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 169,
+          "accion": "elegir borde en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 170,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 171,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 172,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 173,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 174,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 175,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 176,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 177,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 178,
+          "accion": "clic «Desenvolver: quita el if» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 179,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 180,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 181,
+          "accion": "clic «Borrar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 182,
+          "accion": "clic «Bajar línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 183,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 184,
+          "accion": "clic «Subir línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 185,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 186,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 187,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 188,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 189,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 190,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 191,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 192,
+          "accion": "clic «Aviso · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 193,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 194,
+          "accion": "clic «Pegar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 195,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 196,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 197,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 198,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 199,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 200,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        }
+      ],
+      "omitidos": 3
+    },
+    {
+      "semilla": "clicker-v1",
+      "forma": "movil",
+      "pasos": 200,
+      "fallos": [],
+      "registro": [
+        {
+          "paso": 1,
+          "accion": "clic «Bajar línea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 2,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 3,
+          "accion": "clic «Variable · mantén para 1 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 4,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 5,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 6,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 7,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 8,
+          "accion": "clic «Variable · mantén para 1 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 9,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 10,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 11,
+          "accion": "clic «Modo sin teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 12,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 13,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 14,
+          "accion": "clic «While True · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 15,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 16,
+          "accion": "clic «Línea nueva» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 17,
+          "accion": "clic «Variable · mantén para 1 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 18,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 19,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 20,
+          "accion": "clic «Duplicar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 21,
+          "accion": "elegir js en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 22,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 23,
+          "accion": "clic «Línea nueva» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 24,
+          "accion": "clic «Pegar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 25,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 26,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 27,
+          "accion": "clic «Borrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 28,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 29,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 30,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 31,
+          "accion": "elegir numero en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 32,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 33,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 34,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 35,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 36,
+          "accion": "clic «Borrar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 37,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 38,
+          "accion": "clic «Línea nueva» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 39,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 40,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 41,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 42,
+          "accion": "clic «Cortar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 43,
+          "accion": "clic «Bajar línea» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 44,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 45,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 46,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 47,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 48,
+          "accion": "clic «Deshacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 49,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 50,
+          "accion": "clic «Ampliar selección» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 51,
+          "accion": "clic «Pegar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 52,
+          "accion": "clic «orden-restaurar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 53,
+          "accion": "clic «Rehacer» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 54,
+          "accion": "clic «Copiar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 55,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 56,
+          "accion": "elegir numero en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 57,
+          "accion": "elegir numero en «ajustes-asa»",
+          "fallos": 0
+        },
+        {
+          "paso": 58,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 59,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 60,
+          "accion": "clic «Mostrar (print)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 61,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 62,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 63,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 64,
+          "accion": "clic «Letra más grande» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" aria-readonly=\"true\" data-clicker-id=\"18\" aria-multilin"
+        },
+        {
+          "paso": 65,
+          "accion": "clic «Ajustes del editor» (button)",
+          "omitido": "\u001b[2m    - <div class=\"paleta\" role=\"toolbar\" data-editor=\"paleta\" id=\"cmg-editor-1-paleta\" aria-label=\"Insertar código\">…</div> from <section data-demo=\"0\" clas"
+        },
+        {
+          "paso": 66,
+          "accion": "clic «Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)» (button)",
+          "omitido": "\u001b[2m      - <div class=\"cm-gutter cm-gutter-lint\"></div> from <section data-demo=\"0\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 67,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 68,
+          "accion": "clic «Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 69,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 70,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 71,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 72,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 73,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 74,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 75,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 76,
+          "accion": "clic «Bajar línea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 77,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 78,
+          "accion": "clic «Desenvolver: quita el if/while que lo rodea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 79,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 80,
+          "accion": "clic «Reducir selección» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" data-clicker-id=\"26\" aria-multiline=\"true\" contentedita"
+        },
+        {
+          "paso": 81,
+          "accion": "clic «INPUT» (input)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" data-clicker-id=\"26\" aria-multiline=\"true\" contentedita"
+        },
+        {
+          "paso": 82,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "omitido": "\u001b[2m    - <div id=\"demo-uno\" data-forma=\"movil\" data-autonomo=\"true\" data-lenguaje=\"python\" data-pantalla-completa=\"true\" data-cmg-editor=\"cmg-editor-1\" class=\""
+        },
+        {
+          "paso": 83,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 84,
+          "accion": "editor 1: escribir «for (const v of l) »",
+          "fallos": 0
+        },
+        {
+          "paso": 85,
+          "accion": "clic «Desenvolver: quita el if/while que lo rodea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 86,
+          "accion": "clic «Duplicar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 87,
+          "accion": "clic «Subir línea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 88,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 89,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 90,
+          "accion": "clic «Subir línea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 91,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 92,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 93,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 94,
+          "accion": "clic «Variable · mantén para 1 variantes» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" aria-readonly=\"true\" data-clicker-id=\"46\" aria-multilin"
+        },
+        {
+          "paso": 95,
+          "accion": "clic «Letra más pequeña» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" aria-readonly=\"true\" data-clicker-id=\"46\" aria-multilin"
+        },
+        {
+          "paso": 96,
+          "accion": "clic «Ajustes del editor» (button)",
+          "omitido": "\u001b[2m    - <div class=\"editor-herramientas\">…</div> from <section data-demo=\"1\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 97,
+          "accion": "editor 0: atajo Escape",
+          "fallos": 0
+        },
+        {
+          "paso": 98,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 99,
+          "accion": "elegir js en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 100,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 101,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 102,
+          "accion": "clic «Modo sin teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 103,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 104,
+          "accion": "elegir principal en «PrincipalBorrador»",
+          "fallos": 0
+        },
+        {
+          "paso": 105,
+          "accion": "clic «Letra más pequeña» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 106,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 107,
+          "accion": "clic «Borrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 108,
+          "accion": "clic «Borrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 109,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 110,
+          "accion": "elegir js en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 111,
+          "accion": "elegir borrador en «PrincipalBorrador»",
+          "fallos": 0
+        },
+        {
+          "paso": 112,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 113,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 114,
+          "accion": "clic «Cortar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 115,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 116,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 117,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 118,
+          "accion": "clic «Si no hay (??) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 119,
+          "accion": "clic «Aviso · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 120,
+          "accion": "clic «Línea nueva» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 121,
+          "accion": "clic «Aviso · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 122,
+          "accion": "clic «Línea nueva» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 123,
+          "accion": "clic «Aviso · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 124,
+          "accion": "clic «Cortar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 125,
+          "accion": "clic «Deshacer» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 126,
+          "accion": "clic «Deshacer» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 127,
+          "accion": "clic «Modo sin teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 128,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 129,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 130,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 131,
+          "accion": "elegir borrador en «PrincipalBorrador»",
+          "fallos": 0
+        },
+        {
+          "paso": 132,
+          "accion": "clic «Borrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 133,
+          "accion": "elegir js en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 134,
+          "accion": "clic «Variable · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 135,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 136,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 137,
+          "accion": "clic «Duplicar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 138,
+          "accion": "clic «Duplicar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 139,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 140,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 141,
+          "accion": "elegir borrador en «PrincipalBorrador»",
+          "fallos": 0
+        },
+        {
+          "paso": 142,
+          "accion": "clic «Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 143,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 144,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "omitido": "\u001b[2m      - <div translate=\"no\" role=\"textbox\" autocorrect=\"off\" spellcheck=\"false\" autocapitalize=\"off\" data-clicker-id=\"27\" aria-multiline=\"true\" contentedita"
+        },
+        {
+          "paso": 145,
+          "accion": "clic «Deshacer» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 146,
+          "accion": "clic «Línea nueva» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 147,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 148,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 149,
+          "accion": "clic «Bajar línea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 150,
+          "accion": "clic «While true · mantén para 4 variantes» (button)",
+          "omitido": "\u001b[2m    - <button type=\"button\" data-clicker-id=\"19\" data-accion=\"ampliar\" data-tip=\"Ampliar selección\" aria-label=\"Ampliar selección\">…</button> from <section "
+        },
+        {
+          "paso": 151,
+          "accion": "editor 0: tecla ;",
+          "fallos": 0
+        },
+        {
+          "paso": 152,
+          "accion": "clic «.» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 153,
+          "accion": "clic «or» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 154,
+          "accion": "clic «Comentar» (button)",
+          "omitido": "\u001b[2m    - <button type=\"button\" data-tip=\"Borrar\" aria-label=\"Borrar\" data-accion=\"borrar\" data-clicker-id=\"19\">…</button> from <section data-demo=\"0\" class=\"ta"
+        },
+        {
+          "paso": 155,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 156,
+          "accion": "clic «Cortar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 157,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "omitido": "\u001b[2m    - <span class=\"grupo-ed\">…</span> from <section data-demo=\"0\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 158,
+          "accion": "clic «Línea nueva» (button)",
+          "omitido": "\u001b[2m    - <div class=\"cm-line\">…</div> from <section data-demo=\"0\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 159,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 160,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 161,
+          "accion": "clic «ajustes-cerrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 162,
+          "accion": "clic «Cortar» (button)",
+          "omitido": "\u001b[2m    - <div class=\"cm-line\">…</div> from <section data-demo=\"0\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 163,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 164,
+          "accion": "clic «Línea nueva» (button)",
+          "omitido": "\u001b[2m    - <div class=\"cm-line\">…</div> from <section data-demo=\"0\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 165,
+          "accion": "clic «Pantalla completa» (button)",
+          "omitido": "\u001b[2m    - <div class=\"paleta\" role=\"toolbar\" data-editor=\"paleta\" id=\"cmg-editor-5-paleta\" aria-label=\"Insertar código\">…</div> from <section data-demo=\"0\" clas"
+        },
+        {
+          "paso": 166,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 167,
+          "accion": "clic «Duplicar» (button)",
+          "omitido": "\u001b[2m    - <span class=\"com\"># Tu borrador</span> from <section data-demo=\"0\" class=\"tarjeta\">…</section> subtree intercepts pointer events\u001b[22m"
+        },
+        {
+          "paso": 168,
+          "accion": "clic «Salir de pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 169,
+          "accion": "clic «Desenvolver: quita el if/while que lo rodea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 170,
+          "accion": "clic «While True · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 171,
+          "accion": "clic «Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 172,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 173,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 174,
+          "accion": "clic «Recrear editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 175,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 176,
+          "accion": "clic «Variable · mantén para 1 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 177,
+          "accion": "clic «Copiar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 178,
+          "accion": "clic «Reducir selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 179,
+          "accion": "clic «Letra más grande» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 180,
+          "accion": "clic «Cortar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 181,
+          "accion": "clic «Modo sin teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 182,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 183,
+          "accion": "clic «Y (and) · mantén para 7 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 184,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 185,
+          "accion": "clic «Comentar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 186,
+          "accion": "clic «Borrar» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 187,
+          "accion": "clic «Modo sin teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 188,
+          "accion": "clic «Ampliar selección» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 189,
+          "accion": "clic «Subir línea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 190,
+          "accion": "clic «If / else · mantén para 2 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 191,
+          "accion": "clic «While True · mantén para 3 variantes» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 192,
+          "accion": "clic «INPUT» (input)",
+          "fallos": 0
+        },
+        {
+          "paso": 193,
+          "accion": "clic «Desenvolver: quita el if/while que lo rodea» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 194,
+          "accion": "clic «Pantalla completa» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 195,
+          "accion": "elegir python en «Lenguaje del documento»",
+          "fallos": 0
+        },
+        {
+          "paso": 196,
+          "accion": "clic «Modo sin teclado activo: toca para escribir con teclado (Ctrl+Alt+A)» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 197,
+          "accion": "clic «Ajustes del editor» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 198,
+          "accion": "clic «ajustes-orden-barra» (button)",
+          "fallos": 0
+        },
+        {
+          "paso": 199,
+          "accion": "clic «Duplicar» (span)",
+          "fallos": 0
+        },
+        {
+          "paso": 200,
+          "accion": "clic «orden-cerrar» (button)",
+          "fallos": 0
+        }
+      ],
+      "omitidos": 18
+    }
+  ]
+}

@@ -17,3 +17,7 @@ Este proyecto es autónomo. Lee `README.md`, `docs/VISION.md` y el estado recien
 - No hagas commits, push ni publicación sin instrucciones del usuario. No crees tareas paralelas ni delegues salvo petición explícita.
 
 En el resumen indica qué cambió, cómo se verificó y cualquier límite material. No conviertas una migración de carpetas en una reescritura del juego.
+
+## Harness: reglas, specs, bugs y revisión
+
+Lee [harness/REGLAS.md](harness/REGLAS.md) al empezar cualquier tarea. Antes de tocar una pantalla, abre su spec en `docs/pantallas/` (primera: [editor](docs/pantallas/editor.md)) y busca en [docs/bugs/INDICE.md](docs/bugs/INDICE.md). Las salidas HTML van en `docs/salidas/`. No uses memoria automática: lo que deba recordarse va a esos archivos. Flujo, roles y scripts: [harness/README.md](harness/README.md).

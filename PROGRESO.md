@@ -1,3 +1,10 @@
+## Harness v0 + v1 · 19 de noviembre de 2026
+
+- Sustituye el plan de benchmark de revisores (oráculo, scorer, 50–80 ciclos), que queda en el historial (`a39c03b`). Ahora: reglas comunes (`harness/REGLAS.md`), plantillas de design doc, spec de pantalla y bug, instrucciones del revisor, registro de bugs (`docs/bugs/`), carpeta de salidas HTML (`docs/salidas/`) y la primera spec: `docs/pantallas/editor.md` (borrador por aprobar).
+- v1: `pruebas/clicker-editor.mjs` (random clicker de la demo con semilla, escritorio y móvil, 5 invariantes, informe HTML), `harness/scripts/pedir-revision.sh` (revisión con Codex CLI en solo lectura, sesión efímera y sin memoria) y `harness/scripts/nuevo-bug.mjs` (detecta duplicados y asigna ID).
+- Memoria automática de Claude Code desactivada en `.claude/settings.json` (`autoMemoryEnabled: false`).
+- Verificado en este entorno: `interaccion.cjs`, `editor-contrato.cjs`, `editor-lenguajes.cjs`, `editor-python.cjs`, `codemirror.cjs` y `editor-demo.mjs` pasan. El clicker corrió 200 pasos (semilla `clicker-v1`) y 300 (`prueba-2`) en ambas formas, sin fallos. `nuevo-bug.mjs` se probó en una copia temporal. `pedir-revision.sh` se probó con un Codex simulado: el comando real necesita la sesión de Codex de tu máquina y no se ejecutó.
+
 ## Revisión · ciclo 05 con Astra (xhigh): forEach con cuerpo expresión · 8 de noviembre de 2026
 
 - **Proceso.** Quinto ciclo. Astra en Codex CLI con esfuerzo xhigh y solo lectura. Hubo 3 turnos: diagnóstico, un rechazo y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/05-foreach-expresion/`.
