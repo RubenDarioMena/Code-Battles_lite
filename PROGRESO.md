@@ -1,8 +1,9 @@
-## Plan de peer review y futuro harness · 18 de noviembre de 2026
+## Harness v0 + v1 · 19 de noviembre de 2026
 
-- Plan en `docs/review/PLAN.md` e historial en `docs/review/REVIEW_BENCHMARK_PROGRESS.md`, con referencias de lectura por demanda en AGENTS/CLAUDE.
-- Base: `codemirror-mobile@567f7d6d54bb786e4da20a9cf48245e3d5e7ab45`; primer diff congelado contra `8c110b879a28fbe79fd95b3f9a035bc339b3da50`. Se separan recuperación UI, benchmark de revisores, scoring privado e historial de regresiones.
-- Solo documentación. No se implementó el harness ni se ejecutaron pruebas o ciclos. Spec, oráculo, configuraciones, runner y comando quedan pendientes antes de correr.
+- Sustituye el plan de benchmark de revisores (oráculo, scorer, 50–80 ciclos), que queda en el historial (`a39c03b`). Ahora: reglas comunes (`harness/REGLAS.md`), plantillas de design doc, spec de pantalla y bug, instrucciones del revisor, registro de bugs (`docs/bugs/`), carpeta de salidas HTML (`docs/salidas/`) y la primera spec: `docs/pantallas/editor.md` (borrador por aprobar).
+- v1: `pruebas/clicker-editor.mjs` (random clicker de la demo con semilla, escritorio y móvil, 5 invariantes, informe HTML), `harness/scripts/pedir-revision.sh` (revisión con Codex CLI en solo lectura, sesión efímera y sin memoria) y `harness/scripts/nuevo-bug.mjs` (detecta duplicados y asigna ID).
+- Memoria automática de Claude Code desactivada en `.claude/settings.json` (`autoMemoryEnabled: false`).
+- Verificado en este entorno: `interaccion.cjs`, `editor-contrato.cjs`, `editor-lenguajes.cjs`, `editor-python.cjs`, `codemirror.cjs` y `editor-demo.mjs` pasan. El clicker corrió 200 pasos (semilla `clicker-v1`) y 300 (`prueba-2`) en ambas formas, sin fallos. `nuevo-bug.mjs` se probó en una copia temporal. `pedir-revision.sh` se probó con un Codex simulado: el comando real necesita la sesión de Codex de tu máquina y no se ejecutó.
 
 ## Revisión · ciclo 05 con Astra (xhigh): forEach con cuerpo expresión · 8 de noviembre de 2026
 
