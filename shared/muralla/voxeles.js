@@ -12,24 +12,41 @@
  *   Una capa nueva es otra pared sobre el mismo eje con la banda contigua; subir es otra pared encima.
  * - Obra: los vóxeles de una pared que faltan, en orden de construcción (tramos de 2 m, de abajo arriba).
  *   `avanzar(n)` coloca los n siguientes. Lo que falta se ve como «plano».
- * - Romper: quita los vóxeles de una esfera según el poder del golpe y la resistencia del material.
- *   Reparar es volver a planear las paredes: solo entran los vóxeles vacíos. */
+ * - Romper: quita los vóxeles de una esfera según el poder del golpe y la resistencia del material. Después,
+ *   integridad (camino hasta el suelo con voladizo), piezas que cuelgan de una bisagra o caen, y escombro.
+ *   Reparar es volver a planear las paredes: entran los vóxeles vacíos y los de escombro. */
 (() => {
   "use strict";
   const LADO = 16, MASC = 15, L3 = LADO * LADO * LADO;
   const TRAMO_OBRA = 2; // metros por tramo de obra
 
-  // Materiales provisionales del laboratorio: color, variación de tono y resistencia (0–1) frente a `romper`.
+  // Materiales provisionales del laboratorio: color, variación de tono, resistencia (0–1) frente a `romper`
+  // y voladizo: cuántos metros en horizontal aguanta un vóxel lejos de una columna apoyada en el suelo.
   // No son valores de juego: costes, resistencias y reparación de Campaign siguen pendientes (VISION-CAMPANA §7).
-  const MATERIALES = [
-    null,
-    { id: "piedra", nombre: "Piedra", color: 0x85887f, variacion: .09, resistencia: .25 },
-    { id: "hormigon", nombre: "Hormigón", color: 0xaaa79c, variacion: .04, resistencia: .5 },
-    { id: "acero", nombre: "Acero", color: 0x5f6d78, variacion: .03, resistencia: .8 },
+  // Cada material tiene su escombro (ids 4–6): más débil, sin voladizo y algo más oscuro.
+  const BASE = [
+    { id: "piedra", nombre: "Piedra", color: 0x85887f, variacion: .09, resistencia: .25, voladizo: 1.5 },
+    { id: "hormigon", nombre: "Hormigón", color: 0xaaa79c, variacion: .04, resistencia: .5, voladizo: 3 },
+    { id: "acero", nombre: "Acero", color: 0x5f6d78, variacion: .03, resistencia: .8, voladizo: 6 },
   ];
+  const oscuro = (hex, f) => (Math.round((hex >> 16 & 255) * f) << 16) | (Math.round((hex >> 8 & 255) * f) << 8) | Math.round((hex & 255) * f);
+  const MATERIALES = [null, ...BASE, ...BASE.map((m, n) => ({
+    id: `${m.id}-escombro`, nombre: `Escombro de ${m.nombre.toLowerCase()}`, color: oscuro(m.color, .74), variacion: m.variacion * 1.8,
+    resistencia: m.resistencia * .5, voladizo: 0, escombro: true, de: n + 1,
+  }))];
+  BASE.forEach((m, n) => { m.aEscombro = n + 1 + BASE.length; });
   const MAT = {};
   MATERIALES.forEach((m, n) => { if (m) MAT[m.id] = n; });
   const idMaterial = (m) => typeof m === "number" ? m : (MAT[m] || 1);
+  const aEscombro = (m) => MATERIALES[m].escombro ? m : MATERIALES[m].aEscombro;
+  const esEscombro = (m) => !!(m && MATERIALES[m].escombro);
+  const solidoReal = (m) => !!m && !MATERIALES[m].escombro;
+  const GRAVEDAD = 9.8;
+
+  // Clave de un vóxel (±32768 por eje) para mapas de apoyo e islas.
+  const K = (i, j, k) => ((i + 32768) * 65536 + (j + 32768)) * 65536 + (k + 32768);
+  const deK = (c) => [Math.floor(c / 4294967296) - 32768, Math.floor(c / 65536) % 65536 - 32768, c % 65536 - 32768];
+  const VECINOS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
 
   function hash3(i, j, k) {
     let h = Math.imul(i | 0, 73856093) ^ Math.imul(j | 0, 19349663) ^ Math.imul(k | 0, 83492791);
@@ -192,7 +209,8 @@
       if (!p) throw new Error(`No existe la pared ${def}.`);
       if (typeof def !== "number") paredes.push(p);
       const todos = voxelesDe(p, filtro), faltan = [];
-      for (let n = 0; n < todos.length; n += 3) if (!rejilla.get(todos[n], todos[n + 1], todos[n + 2])) faltan.push(todos[n], todos[n + 1], todos[n + 2]);
+      // El escombro que quedó dentro de la pared cuenta como hueco: la obra lo sustituye.
+      for (let n = 0; n < todos.length; n += 3) { const v = rejilla.get(todos[n], todos[n + 1], todos[n + 2]); if (!v || esEscombro(v)) faltan.push(todos[n], todos[n + 1], todos[n + 2]); }
       const obra = { id: sigId++, pared: p.id, material: p.material, lista: Int32Array.from(faltan), sig: 0, hechos: 0 };
       for (let n = 0; n < obra.lista.length; n += 3) if (!plano.get(obra.lista[n], obra.lista[n + 1], obra.lista[n + 2])) plano.set(obra.lista[n], obra.lista[n + 1], obra.lista[n + 2], p.material);
       if (obra.lista.length) obras.push(obra);
@@ -208,7 +226,8 @@
         const i = obra.lista[obra.sig], j = obra.lista[obra.sig + 1], k = obra.lista[obra.sig + 2];
         obra.sig += 3;
         if (plano.get(i, j, k)) plano.set(i, j, k, 0);
-        if (rejilla.get(i, j, k)) continue;
+        const ya = rejilla.get(i, j, k);
+        if (ya && !esEscombro(ya)) continue;
         rejilla.set(i, j, k, obra.material); obra.hechos++; puestos++;
         if (colocados) colocados.push(i, j, k);
       }
@@ -238,13 +257,210 @@
       if (n < 0) return false;
       obras.splice(n, 1);
       plano.vaciar();
-      for (const o of obras) for (let q = o.sig; q < o.lista.length; q += 3) if (!rejilla.get(o.lista[q], o.lista[q + 1], o.lista[q + 2])) plano.set(o.lista[q], o.lista[q + 1], o.lista[q + 2], o.material);
+      for (const o of obras) for (let q = o.sig; q < o.lista.length; q += 3) if (!solidoReal(rejilla.get(o.lista[q], o.lista[q + 1], o.lista[q + 2]))) plano.set(o.lista[q], o.lista[q + 1], o.lista[q + 2], o.material);
       version++;
       return true;
     }
 
+    // ---------- Destrucción en tres capas (idea tomada de THE FINALS, temporada 12; ver docs/MURALLA-VOXELES.md) ----------
+    // 1. Integridad: cada vóxel necesita un camino hasta el suelo; cada paso en horizontal gasta voladizo del material.
+    // 2. Destrucción gradual: lo que pierde el apoyo no desaparece. Si queda colgado de un solo lado gira sobre una
+    //    bisagra; con una unión ancha se queda colgando (se mece) hasta el próximo golpe. Sujeto por los dos lados, se hunde.
+    // 3. Escombro: al asentarse, la pieza vuelve a la rejilla como escombro, que no se recalcula. La onda del golpe
+    //    lanza parte de lo roto lejos del centro y forma montones al pie de la muralla.
+    // Todo se calcula al golpear (no en cada fotograma). Las piezas en movimiento son una pose en función del tiempo.
+    const piezas = [];
+    const kSuelo = Math.round(-origen[2] / tam);                       // primera celda con la cara de abajo en z = 0
+    const enSuelo = (k) => origen[2] + k * tam <= 1e-9;
+    const limite = (m) => Math.floor(MATERIALES[m].voladizo / tam + 1e-9);
+    const BISAGRA = 10;                                               // vóxeles que sostiene cada cara de unión
+
+    // Coste de apoyo: metros horizontales (en vóxeles) desde la columna apoyada más cercana. El escombro no entra.
+    function apoyo() {
+      const coste = new Map();
+      let nivel = [];
+      rejilla.recorrer((i, j, k, m) => { if (enSuelo(k) && !esEscombro(m)) { const c = K(i, j, k); coste.set(c, 0); nivel.push(c); } });
+      for (let c = 0; nivel.length; c++) {
+        const sig = [];
+        for (let n = 0; n < nivel.length; n++) {
+          const key = nivel[n];
+          if (coste.get(key) !== c) continue;
+          const [i, j, k] = deK(key);
+          for (const [di, dj, dk] of VECINOS) {
+            const m = rejilla.get(i + di, j + dj, k + dk);
+            if (!m || esEscombro(m)) continue;
+            const h = dk ? 0 : 1, nc = c + h;
+            if (nc > limite(m)) continue;
+            const nk = K(i + di, j + dj, k + dk), prev = coste.get(nk);
+            if (prev !== undefined && prev <= nc) continue;
+            coste.set(nk, nc); (h ? sig : nivel).push(nk);
+          }
+        }
+        nivel = sig;
+      }
+      return coste;
+    }
+
+    function rotar(P, piv, eje, ang) {
+      const [ax, ay, az] = eje, c = Math.cos(ang), s = Math.sin(ang), C = 1 - c, x = P[0] - piv[0], y = P[1] - piv[1], z = P[2] - piv[2];
+      return [piv[0] + (c + ax * ax * C) * x + (ax * ay * C - az * s) * y + (ax * az * C + ay * s) * z,
+        piv[1] + (ay * ax * C + az * s) * x + (c + ay * ay * C) * y + (ay * az * C - ax * s) * z,
+        piv[2] + (az * ax * C - ay * s) * x + (az * ay * C + ax * s) * y + (c + az * az * C) * z];
+    }
+    // Hasta dónde gira una pieza antes de tocar el suelo o la muralla (pasos de 3°, como mucho 90°).
+    function anguloFinal(vox, piv, eje, desde, soportes) {
+      const paso = Math.PI / 60;
+      let ok = desde;
+      for (let a = desde + paso; a <= Math.PI / 2 + 1e-9; a += paso) {
+        for (let n = 0; n < vox.length; n += 4) {
+          const P = rotar(centro(vox[n], vox[n + 1], vox[n + 2]), piv, eje, a);
+          if (P[2] < tam * .25) return ok;
+          if (Math.hypot(P[0] - piv[0], P[1] - piv[1], P[2] - piv[2]) < tam * 1.2) continue;
+          const [i, j, k] = indice(P[0], P[1], P[2]);
+          if (rejilla.get(i, j, k) && !soportes.has(K(i, j, k))) return ok;
+        }
+        ok = a;
+      }
+      return ok;
+    }
+    const duracion = (delta, brazo) => Math.min(2, Math.max(.25, Math.sqrt(2 * Math.abs(delta) / (1.2 * GRAVEDAD / Math.max(brazo, tam))))) ;
+
+    function crearPieza(isla, pares, t, golpe) {
+      const vox = new Int32Array(isla.length * 4);
+      let cx = 0, cy = 0, cz = 0;
+      isla.forEach((key, n) => {
+        const [i, j, k] = deK(key), c = centro(i, j, k);
+        vox.set([i, j, k, rejilla.get(i, j, k)], n * 4); cx += c[0]; cy += c[1]; cz += c[2];
+      });
+      cx /= isla.length; cy /= isla.length; cz /= isla.length;
+      for (let n = 0; n < vox.length; n += 4) rejilla.set(vox[n], vox[n + 1], vox[n + 2], 0);
+      const p = { id: sigId++, t0: t, dur: 0, vox, pivote: [cx, cy, cz], eje: [1, 0, 0], a0: 0, a1: 0, caida: 0, estado: "cae", soportes: [], centro: [cx, cy, cz] };
+      p.radio = 0;
+      for (let n = 0; n < vox.length; n += 4) { const c = centro(vox[n], vox[n + 1], vox[n + 2]); p.radio = Math.max(p.radio, Math.hypot(c[0] - cx, c[1] - cy, c[2] - cz)); }
+      // Puntos de unión: entre el centro del vóxel suelto y el del apoyado.
+      let mx = 0, my = 0, mz = Infinity, dm = 0;
+      for (const [a, b] of pares) {
+        const A = centro(...deK(a)), B = centro(...deK(b)), u = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, (A[2] + B[2]) / 2];
+        mx += u[0]; my += u[1]; mz = Math.min(mz, u[2]); dm += Math.hypot(u[0] - cx, u[1] - cy);
+      }
+      const dx = cx - mx / (pares.length || 1), dy = cy - my / (pares.length || 1), dh = Math.hypot(dx, dy);
+      dm /= pares.length || 1;
+      if (pares.length && dh >= .35 * dm && dh >= tam * .5) {
+        // Bisagra en el canto de abajo de la unión; el giro baja el centro de la pieza.
+        p.soportes = [...new Set(pares.map(q => q[1]))];
+        p.pivote = [mx / pares.length, my / pares.length, mz - tam / 2];
+        p.eje = [-dy / dh, dx / dh, 0];
+        const fin = anguloFinal(vox, p.pivote, p.eje, 0, new Set(p.soportes));
+        if (pares.length * BISAGRA >= isla.length) { p.estado = "cuelga"; p.a1 = Math.min(fin, (8 + 22 * isla.length / (pares.length * BISAGRA)) * Math.PI / 180); }
+        else p.a1 = fin;
+        p.dur = duracion(p.a1, dh);
+      } else {
+        // Sin bisagra (suelto, o sujeto por los dos lados): cae recto hasta lo que tenga debajo.
+        let caer = Infinity;
+        for (let n = 0; n < vox.length && caer > 0; n += 4) {
+          let k = vox[n + 2], c = 0;
+          while (k - 1 >= kSuelo && !rejilla.get(vox[n], vox[n + 1], k - 1)) { k--; c++; }
+          caer = Math.min(caer, c);
+        }
+        p.caida = (caer === Infinity ? 0 : caer) * tam;
+        p.dur = p.caida ? Math.sqrt(2 * p.caida / GRAVEDAD) : 0;
+      }
+      if (golpe) p.golpe = golpe.slice();
+      piezas.push(p);
+      return p;
+    }
+
+    // Islas sin apoyo y sus caras de unión con lo que sí está apoyado.
+    function derrumbar(t = 0, golpe = null) {
+      const coste = apoyo(), sueltos = [];
+      rejilla.recorrer((i, j, k, m) => { if (!esEscombro(m) && !coste.has(K(i, j, k))) sueltos.push(K(i, j, k)); });
+      if (!sueltos.length) return [];
+      sueltos.sort((a, b) => a - b);
+      const libres = new Set(sueltos), nuevas = [];
+      for (const s0 of sueltos) {
+        if (!libres.has(s0)) continue;
+        libres.delete(s0);
+        const isla = [s0], pares = [];
+        for (let n = 0; n < isla.length; n++) {
+          const [i, j, k] = deK(isla[n]);
+          for (const [di, dj, dk] of VECINOS) {
+            const nk = K(i + di, j + dj, k + dk);
+            if (libres.has(nk)) { libres.delete(nk); isla.push(nk); }
+            else if (coste.has(nk)) pares.push([isla[n], nk]);
+          }
+        }
+        nuevas.push(crearPieza(isla, pares, t, golpe).id);
+      }
+      version++;
+      return nuevas;
+    }
+
+    // Pose de una pieza en el instante t: ángulo de la bisagra y caída. Cae con aceleración; colgada, se mece y se calma.
+    function pose(p, t) {
+      const tau = p.dur ? Math.min(1, Math.max(0, (t - p.t0) / p.dur)) : 1, e = tau * tau;
+      let angulo = p.a0 + (p.a1 - p.a0) * e;
+      if (p.estado === "cuelga" && t > p.t0 + p.dur) { const s = t - p.t0 - p.dur; angulo = p.a1 * (1 + .22 * Math.exp(-2.5 * s) * Math.sin(8 * s)); }
+      return { angulo, caida: p.caida * e };
+    }
+    // Matriz 4 × 4 (orden de columnas, coordenadas de Three) para dibujar la pieza en su pose.
+    function matrizPieza(p, t) {
+      const { angulo, caida } = pose(p, t), piv = p.pivote;
+      const o = [0, 0, 0], ex = rotar([piv[0] + 1, piv[1], piv[2]], piv, p.eje, angulo), ey = rotar([piv[0], piv[1] + 1, piv[2]], piv, p.eje, angulo), ez = rotar([piv[0], piv[1], piv[2] + 1], piv, p.eje, angulo);
+      const R = [ex, ey, ez].map(v => [v[0] - piv[0], v[1] - piv[1], v[2] - piv[2]]);   // columnas de la rotación (mapa)
+      const T = rotar(o, piv, p.eje, angulo); T[2] -= caida;                          // a dónde va el origen
+      const sw = [0, 2, 1], e = new Array(16).fill(0);
+      for (let col = 0; col < 3; col++) for (let fila = 0; fila < 3; fila++) e[col * 4 + fila] = R[sw[col]][sw[fila]];
+      e[12] = T[0]; e[13] = T[2]; e[14] = T[1]; e[15] = 1;
+      return e;
+    }
+    // Una pieza que termina de caer vuelve a la rejilla como escombro, en la celda de su pose final (sin hundirse).
+    function asentar(p) {
+      const piv = p.pivote, celdas = [];
+      for (let n = 0; n < p.vox.length; n += 4) {
+        const c = centro(p.vox[n], p.vox[n + 1], p.vox[n + 2]), P = p.a1 ? rotar(c, piv, p.eje, p.a1) : c;
+        const [i, j, k] = indice(P[0], P[1], P[2] - p.caida);
+        celdas.push([i, j, k, p.vox[n + 3]]);
+      }
+      celdas.sort((a, b) => a[2] - b[2] || a[0] - b[0] || a[1] - b[1]);
+      for (const [i, j, k0, m] of celdas) { let k = Math.max(k0, kSuelo); while (rejilla.get(i, j, k)) k++; rejilla.set(i, j, k, aEscombro(m)); }
+      piezas.splice(piezas.indexOf(p), 1);
+      version++;
+    }
+    // Avanza el tiempo de la destrucción: asienta lo que ya terminó de caer. Devuelve los ids asentados.
+    function paso(t) {
+      const listas = piezas.filter(p => p.estado === "cae" && t >= p.t0 + p.dur).map(p => p.id);
+      for (const id of listas) asentar(piezas.find(p => p.id === id));
+      return listas;
+    }
+    // Suelta una pieza colgada: sigue girando sobre su bisagra hasta tocar algo.
+    function soltar(p, t) {
+      const a = pose(p, t).angulo;
+      p.estado = "cae"; p.t0 = t; p.a0 = a;
+      p.a1 = anguloFinal(p.vox, p.pivote, p.eje, a, new Set());
+      p.dur = duracion(p.a1 - a, p.radio);
+    }
+    // Restos que lanza la onda: una parte de lo roto cae lejos del centro y se amontona.
+    function lanzar(lista, golpe, radio, poder, fraccion) {
+      let n = 0;
+      for (let q = 0; q < lista.length; q += 4) {
+        const i = lista[q], j = lista[q + 1], k = lista[q + 2], m = lista[q + 3];
+        if (hash3(i, j, k) >= fraccion) continue;
+        const c = centro(i, j, k), h = hash3(i + 7, j - 3, k + 11);
+        let dx = c[0] - golpe[0], dy = c[1] - golpe[1], L = Math.hypot(dx, dy);
+        if (L < 1e-6) { const a = hash3(j, k, i) * Math.PI * 2; dx = Math.cos(a); dy = Math.sin(a); L = 1; }
+        const d = poder * radio * (.6 + 1.6 * h), [ti, tj] = indice(c[0] + dx / L * d, c[1] + dy / L * d, 0);
+        let kk = Math.max(k, kSuelo);
+        while (rejilla.get(ti, tj, kk)) kk++;
+        while (kk > kSuelo && !rejilla.get(ti, tj, kk - 1)) kk--;
+        rejilla.set(ti, tj, kk, aEscombro(m)); n++;
+      }
+      return n;
+    }
+
     // Golpe: energía = poder · (1 − d/radio) en el centro de cada vóxel; cae si supera la resistencia de su material.
-    function romper(x, y, z, radio, poder = 1) {
+    // op: t (tiempo de la simulación), escombros (fracción de lo roto que lanza la onda), derrumbe (calcular apoyos).
+    function romper(x, y, z, radio, poder = 1, op = {}) {
+      const t = op.t ?? 0, fraccion = op.escombros ?? .35, golpe = [x, y, z];
       const [i0, i1] = rango(x - radio, x + radio, origen[0]), [j0, j1] = rango(y - radio, y + radio, origen[1]), [k0, k1] = rango(z - radio, z + radio, origen[2]);
       const quitados = [];
       for (let k = k0; k < k1; k++) for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) {
@@ -254,8 +470,18 @@
         if (d >= radio || poder * (1 - d / radio) <= MATERIALES[m].resistencia) continue;
         rejilla.set(i, j, k, 0); quitados.push(i, j, k, m);
       }
-      if (quitados.length) version++;
-      return { quitados: quitados.length / 4, lista: quitados };
+      const escombros = fraccion > 0 ? lanzar(quitados, golpe, radio, poder, fraccion) : 0;
+      // Las piezas colgadas caen si el golpe las alcanza o si pierden su unión (también si la unión acaba de soltarse).
+      const previas = new Set(piezas.map(p => p.id)), sueltas = [];
+      const nuevas = op.derrumbe === false ? [] : derrumbar(t, golpe);
+      for (const p of piezas) {
+        if (p.estado !== "cuelga" || !previas.has(p.id)) continue;
+        const alcanzada = Math.hypot(p.centro[0] - x, p.centro[1] - y, p.centro[2] - z) < radio + p.radio;
+        const sinUnion = p.soportes.some(c => !rejilla.get(...deK(c)));
+        if (alcanzada || sinUnion) { soltar(p, t); sueltas.push(p.id); }
+      }
+      if (quitados.length || escombros || sueltas.length) version++;
+      return { quitados: quitados.length / 4, lista: quitados, escombros, piezas: nuevas, sueltas };
     }
     // Reparar: volver a planear las paredes (todas o una); solo entran los vóxeles vacíos.
     function reparar(idPared) {
@@ -306,17 +532,19 @@
     function serializar() {
       const enc = (a) => Array.from(a);
       return {
-        formato: "cmg-muralla", v: 1, tam, origen: origen.slice(), sigId,
+        formato: "cmg-muralla", v: 2, tam, origen: origen.slice(), sigId,
         ejes: JSON.parse(JSON.stringify(ejes)), paredes: JSON.parse(JSON.stringify(paredes)),
         obras: obras.map(o => ({ id: o.id, pared: o.pared, material: o.material, hechos: o.hechos, lista: enc(o.lista.subarray(o.sig)) })),
         trozos: rejilla.exportar(),
+        piezas: piezas.map(q => ({ ...q, vox: Array.from(q.vox) })),
       };
     }
-    function estadisticas() { return { voxeles: rejilla.total, planeados: plano.total, trozos: rejilla.numTrozos, obras: obras.length, paredes: paredes.length, version }; }
+    function estadisticas() { return { voxeles: rejilla.total, planeados: plano.total, trozos: rejilla.numTrozos, obras: obras.length, paredes: paredes.length, piezas: piezas.length, version }; }
 
     const m = {
-      tam, origen, rejilla, plano, ejes, paredes, obras,
+      tam, origen, rejilla, plano, ejes, paredes, obras, piezas,
       eje, pared, planear, avanzar, completar, construir, cancelar, romper, reparar, capa, hilada, ampliar,
+      apoyo, derrumbar, paso, pose, matrizPieza,
       indice, centro, solido, altoEn, huella, serializar, estadisticas,
       largo: (nombre) => largoDe(ejes[nombre]),
       obrasResumen: () => obras.map(resumenObra),
@@ -324,10 +552,11 @@
       _cargar(d) {
         Object.assign(ejes, d.ejes); paredes.push(...d.paredes); sigId = d.sigId;
         rejilla.importar(d.trozos);
+        for (const q of d.piezas || []) piezas.push({ ...q, vox: Int32Array.from(q.vox) });
         for (const o of d.obras) {
           const ob = { id: o.id, pared: o.pared, material: o.material, hechos: o.hechos, lista: Int32Array.from(o.lista), sig: 0 };
           obras.push(ob);
-          for (let n = 0; n < ob.lista.length; n += 3) if (!rejilla.get(ob.lista[n], ob.lista[n + 1], ob.lista[n + 2])) plano.set(ob.lista[n], ob.lista[n + 1], ob.lista[n + 2], ob.material);
+          for (let n = 0; n < ob.lista.length; n += 3) if (!solidoReal(rejilla.get(ob.lista[n], ob.lista[n + 1], ob.lista[n + 2]))) plano.set(ob.lista[n], ob.lista[n + 1], ob.lista[n + 2], ob.material);
         }
         version++;
       },
@@ -335,7 +564,7 @@
     return m;
   }
   function cargar(datos) {
-    if (!datos || datos.formato !== "cmg-muralla" || datos.v !== 1) throw new Error("Formato de muralla desconocido.");
+    if (!datos || datos.formato !== "cmg-muralla" || (datos.v !== 1 && datos.v !== 2)) throw new Error("Formato de muralla desconocido.");
     const m = crear({ tam: datos.tam, origen: datos.origen });
     m._cargar(datos);
     return m;
@@ -404,7 +633,7 @@
     return { posiciones: new Float32Array(pos), normales: new Float32Array(nor), colores: new Float32Array(col), indices: new Uint32Array(ind), caras: ind.length / 6 };
   }
 
-  const api = { crear, cargar, crearRejilla, mallar, proyectar, largoDe, hash3, claveDe, deClave, MATERIALES, MAT, LADO, TRAMO_OBRA, paletaBase, colorDe };
+  const api = { crear, cargar, crearRejilla, mallar, proyectar, largoDe, hash3, claveDe, deClave, K, deK, esEscombro, aEscombro, MATERIALES, MAT, LADO, TRAMO_OBRA, paletaBase, colorDe };
   if (typeof window !== "undefined") window.CMGMuralla = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

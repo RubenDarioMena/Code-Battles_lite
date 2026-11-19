@@ -1,3 +1,14 @@
+## Muralla de vóxeles: destrucción en tres capas inspirada en THE FINALS · 19 de noviembre de 2026
+
+Rama nueva `muralla-voxeles` (desde `vfx-vehiculo-tubular` en `a2b2333`), para no mezclarse con el modelado. Pedido del usuario: tomar del sistema de destrucción de la temporada 12 de THE FINALS lo que sirva a la muralla y sea barato. Análisis, fuentes y lo descartado en [docs/MURALLA-VOXELES.md](docs/MURALLA-VOXELES.md#inspiración-the-finals-temporada-12). Los juegos no cambian.
+
+- **Integridad.** Cada vóxel necesita un camino al suelo; lo horizontal gasta voladizo del material (piedra 1,5 m, hormigón 3 m, acero 6 m, provisionales). Se calcula al golpear.
+- **Destrucción gradual.** Lo que pierde apoyo forma piezas. Un voladizo gira sobre una bisagra y, si la unión es ancha, cuelga a 8–30° y se mece; el siguiente golpe cerca (o perder la unión) lo suelta. Un dintel sujeto por los dos lados se hunde. La pose es una fórmula del tiempo de la simulación, y la vista solo mueve una matriz por pieza.
+- **Escombro.** Al asentarse, la pieza vuelve a la rejilla como escombro (ids 4–6, más oscuro y débil, estático). La onda lanza parte de lo roto lejos del golpe y forma montones. Reparar reconstruye también sobre el escombro que quedó dentro de la pared. El guardado pasa a `v: 2` con las piezas, y carga la `v: 1`.
+- **Laboratorio.** Nuevos el escombro lanzado, el interruptor de derrumbe y las demostraciones «Socavar el extremo» y «Túnel».
+- **Verificado (actual).** `node pruebas/muralla-voxeles.cjs`: 94 comprobaciones correctas (antes 58). Entre ellas: túnel que se hunde sin perder vóxeles, acero que aguanta, pieza colgada con su matriz comparada con Rodrigues, golpes reales sin piezas colgadas de nada, restos que no flotan, guardado con la pieza colgada y determinismo. `node pruebas/interaccion.cjs`: 124 correctas. En Chromium sin pantalla, las dos demostraciones cuelgan, sueltan, tumban y hunden sin errores de consola, y el guardado conserva la pieza colgada. Apoyos: 3,5 ms a 0,5 m y 30 ms a 0,25 m por golpe.
+- **Pendiente.** La revisión visual del usuario. El vuelo animado de los restos y el polvo del derrumbe (VFX). Decidir si el escombro es rampa para enemigos y si se limpia.
+
 ## Muralla de vóxeles: núcleo, vista 3D, laboratorio y pruebas · 19 de noviembre de 2026
 
 Rama `vfx-vehiculo-tubular`. Pedido del usuario: vóxeles **solo para la muralla**, para ampliarla o ponerle capas construyendo paredes, con Campaign como destino. Diseño, API y plan de integración en [docs/MURALLA-VOXELES.md](docs/MURALLA-VOXELES.md). Ningún juego lo carga todavía; War, Factory y Campaign no cambian.

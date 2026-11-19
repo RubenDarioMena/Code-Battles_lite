@@ -53,7 +53,7 @@ La aplicación común vive en `Prototypes/Rocket Launcher/`. Las rutas siguiente
 
 Los módulos `shared/js/iconos.js`, `shared/js/estructura.js` y `shared/js/edicion.js`, y el estilo `shared/css/edicion.css`, sirven a ambos juegos. La estructura analiza código incompleto; edición mantiene fichas, sugerencias, asas, barra reordenable e historial por documento. Las dos series usan el mismo editor y layout. El modo de programa y su idioma se recuerdan por serie; la distribución de pantalla es común.
 
-`shared/muralla/` es la muralla de vóxeles (capas, hiladas, ampliaciones, obras, daño y guardado) pensada para Campaign; aún no la carga ningún juego. Su laboratorio está en `herramientas/muralla/` ([diseño](docs/MURALLA-VOXELES.md)).
+`shared/muralla/` es la muralla de vóxeles (capas, hiladas, ampliaciones, obras, daño con apoyos, piezas colgadas y escombro, y guardado) pensada para Campaign; aún no la carga ningún juego. Su laboratorio está en `herramientas/muralla/` ([diseño](docs/MURALLA-VOXELES.md)).
 
 En la raíz: `index.html` es la entrada; `campaign/` muestra el anuncio; `server.ps1` es el servidor opcional y `pruebas/` contiene las pruebas. `02_tres_vistas.html` en la raíz es la referencia histórica sin adaptar; la entrada vigente está en `Prototypes/`.
 

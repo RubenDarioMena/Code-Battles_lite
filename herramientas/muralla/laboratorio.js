@@ -77,10 +77,11 @@
   }
 
   // ---------- Interfaz ----------
-  let material = "piedra", modo = null, puntoA = null, pausa = false, nota = "";
+  let material = "piedra", modo = null, puntoA = null, pausa = false, nota = "", tSim = 0;
+  const cola = [];   // golpes programados de las demostraciones: { t, x, y, z, radio, poder }
   const mats = $("#materiales");
   for (const mt of V.MATERIALES) {
-    if (!mt) continue;
+    if (!mt || mt.escombro) continue;
     const b = document.createElement("button");
     b.innerHTML = `<span class="muestra" style="background:#${mt.color.toString(16).padStart(6, "0")}"></span>${mt.nombre}`;
     b.dataset.material = mt.id;
@@ -95,6 +96,7 @@
     $("#vRitmo").textContent = `${ritmo()} vóxeles/s`;
     $("#vRadio").textContent = `${(+$("#radio").value).toLocaleString("es")} m`;
     $("#vPoder").textContent = (+$("#poder").value).toLocaleString("es");
+    $("#vEscombro").textContent = `${Math.round(100 * +$("#escombro").value)} %`;
     $("#pausa").textContent = pausa ? "Seguir" : "Pausar";
     $("#pausa").setAttribute("aria-pressed", pausa);
     const textos = {
@@ -118,6 +120,16 @@
     terminar: () => { m.avanzar(1e9); avisar("Obras terminadas."); },
     cancelar: () => { while (m.obras.length) m.cancelar(m.obras[0].id); avisar("Obras canceladas."); },
     reiniciar: () => { nueva(+$("#tam").value); avisar(""); },
+    socavar: () => {
+      [27, 28, 29.2, 30.2].forEach((y, n) => cola.push({ t: tSim + .2 + n * .9, x: 104.5, y, z: .3, radio: 1.4, poder: 1.3 }));
+      orb.objetivo.set(104.5, 1.5, 31); orb.r = 24; orb.theta = .35; orb.phi = 1.05; colocarCamara();
+      avisar("Socavando la base del extremo norte: el voladizo cuelga y el siguiente golpe lo suelta.");
+    },
+    tunel: () => {
+      [45, 47.2].forEach((y, n) => cola.push({ t: tSim + .2 + n * .6, x: 104.5, y, z: .3, radio: 1.6, poder: 1.4 }));
+      orb.objetivo.set(104.5, 1.5, 46); orb.r = 22; orb.theta = .2; orb.phi = 1.1; colocarCamara();
+      avisar("Túnel en la base: el dintel, sujeto por los dos lados, se hunde.");
+    },
     guardado: () => {
       const json = JSON.stringify(m.serializar());
       escena.remove(vista.grupo); vista.liberar();
@@ -128,7 +140,7 @@
   document.querySelectorAll("[data-accion]").forEach(b => b.onclick = () => acciones[b.dataset.accion]());
   document.querySelectorAll("[data-modo]").forEach(b => b.onclick = () => { modo = modo === b.dataset.modo ? null : b.dataset.modo; puntoA = null; marca.visible = false; nota = ""; pintar(); });
   $("#pausa").onclick = () => { pausa = !pausa; pintar(); };
-  ["grosor", "ritmo", "radio", "poder"].forEach(id => $("#" + id).oninput = pintar);
+  ["grosor", "ritmo", "radio", "poder", "escombro"].forEach(id => $("#" + id).oninput = pintar);
   $("#verPlano").onchange = (e) => vista.verPlano(e.target.checked);
   $("#tam").onchange = () => acciones.reiniciar();
   if (parametros.get("tam")) $("#tam").value = parametros.get("tam");
@@ -207,9 +219,8 @@
       lanzar(cx, cy);
       const hit = rayo.intersectObjects(vista.mallas(), false)[0];
       if (!hit) return avisar("Ese toque no dio en la muralla.");
-      const r = +$("#radio").value, v = vista.voxelDe(hit), g = m.romper(v.x, v.y, v.z, r, +$("#poder").value);
-      fogonazo.position.copy(hit.point); fogonazo.scale.setScalar(r); fogonazo.visible = true; fogonazoT = performance.now();
-      return avisar(g.quitados ? `Impacto: cayeron ${g.quitados} vóxeles.` : "Impacto sin daño: el material aguantó.");
+      const v = vista.voxelDe(hit);
+      return golpear(v.x, v.y, v.z, +$("#radio").value, +$("#poder").value);
     }
     const p = enSuelo(cx, cy);
     if (!p) return;
@@ -226,6 +237,17 @@
     }
   }
 
+  function golpear(x, y, z, radio, poder) {
+    const g = m.romper(x, y, z, radio, poder, { t: tSim, escombros: +$("#escombro").value, derrumbe: $("#derrumbe").checked });
+    fogonazo.position.set(x, z, y); fogonazo.scale.setScalar(radio); fogonazo.visible = true; fogonazoT = performance.now();
+    const partes = [g.quitados ? `cayeron ${g.quitados} vóxeles` : "el material aguantó"];
+    if (g.escombros) partes.push(`${g.escombros} salen despedidos`);
+    const cuelgan = g.piezas.filter(id => (m.piezas.find(p => p.id === id) || {}).estado === "cuelga").length;
+    if (g.piezas.length) partes.push(`${g.piezas.length} piezas sin apoyo${cuelgan ? ` (${cuelgan} cuelgan)` : ""}`);
+    if (g.sueltas.length) partes.push(`${g.sueltas.length} piezas colgadas se sueltan`);
+    avisar(`Impacto: ${partes.join(", ")}.`);
+  }
+
   // ---------- Bucle ----------
   let anterior = performance.now(), acumulado = 0, fps = 0, cuadros = 0, tFps = anterior, tLista = 0;
   function ajustar() {
@@ -235,8 +257,11 @@
   window.addEventListener("resize", ajustar);
   function cuadro(ahora) {
     const dt = Math.min(.1, (ahora - anterior) / 1000); anterior = ahora;
+    if (!pausa) tSim += dt;
     if (!pausa && m.obras.length) { acumulado += dt * ritmo(); const n = Math.floor(acumulado); acumulado -= n; if (n) m.avanzar(n); } else acumulado = 0;
-    const r = vista.actualizar();
+    while (cola.length && cola[0].t <= tSim) { const g = cola.shift(); golpear(g.x, g.y, g.z, g.radio, g.poder); }
+    m.paso(tSim);
+    const r = vista.actualizar(tSim);
     if (r.trozos) ultimaMalla = r;
     const alto = m.altoEn(TORRETA.x, TORRETA.y);
     torreta.visible = alto != null; if (alto != null) torreta.position.set(TORRETA.x, alto, TORRETA.y);
@@ -247,7 +272,7 @@
     if (ahora - tLista > 200) {
       tLista = ahora; listarObras();
       const e = m.estadisticas();
-      $("#stats").textContent = `${e.voxeles} vóxeles · ${e.planeados} en plano · ${e.trozos} trozos · ${vista.caras} caras · malla ${ultimaMalla.ms.toFixed(1)} ms (${ultimaMalla.trozos} trozos) · ${fps.toFixed(0)} fps`;
+      $("#stats").textContent = `${e.voxeles} vóxeles · ${e.planeados} en plano · ${e.trozos} trozos · ${vista.caras} caras · ${e.piezas} piezas · malla ${ultimaMalla.ms.toFixed(1)} ms (${ultimaMalla.trozos} trozos) · ${fps.toFixed(0)} fps`;
     }
     requestAnimationFrame(cuadro);
   }
@@ -255,5 +280,5 @@
   nueva(+$("#tam").value);
   pintar(); ajustar(); colocarCamara();
   requestAnimationFrame(cuadro);
-  window.__muralla = { get m() { return m; }, get vista() { return vista; }, escena, camara, render, orb, colocarCamara, acciones, tocar, enSuelo, ponerModo: (x) => { modo = x; puntoA = null; pintar(); }, ponerMaterial: (x) => { material = x; pintar(); }, ponerPausa: (x) => { pausa = x; pintar(); } };
+  window.__muralla = { get m() { return m; }, get vista() { return vista; }, escena, camara, render, orb, colocarCamara, acciones, tocar, enSuelo, ponerModo: (x) => { modo = x; puntoA = null; pintar(); }, ponerMaterial: (x) => { material = x; pintar(); }, ponerPausa: (x) => { pausa = x; pintar(); }, golpear, get tSim() { return tSim; } };
 })();
