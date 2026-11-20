@@ -1,0 +1,57 @@
+{
+  "nombre": "RobotTransporte",
+  "medidas": [
+    0.747,
+    1.7535,
+    0.9683
+  ],
+  "paleta": [
+    "goma",
+    "crema",
+    "rol",
+    "grafito",
+    "ambar_luz",
+    "lente",
+    "luz_calida",
+    "amarillo",
+    "acero",
+    "naranja_oscuro",
+    "naranja",
+    "hueso"
+  ],
+  "emisivos": [
+    "ambar_luz",
+    "luz_calida"
+  ],
+  "niveles": {
+    "L0": {
+      "pivotes": 9,
+      "mallas": 9,
+      "primitivas": 30,
+      "triangulos": 11016,
+      "triangulos_max": 11126
+    },
+    "L1": {
+      "pivotes": 9,
+      "mallas": 9,
+      "primitivas": 30,
+      "triangulos": 4430,
+      "triangulos_max": 4474
+    },
+    "L2": {
+      "pivotes": 9,
+      "mallas": 9,
+      "primitivas": 25,
+      "triangulos": 1018,
+      "triangulos_max": 1028
+    }
+  },
+  "jerarquia_sha256": "edcdff50bfb83bcea86036a975afcb5290d35edfa0ccf9e81fb1d1d9b4a26a2b",
+  "controles": [
+    "codo.giro",
+    "hombro.giro",
+    "muneca.giro",
+    "pinza.apertura",
+    "torreta.giro"
+  ]
+}

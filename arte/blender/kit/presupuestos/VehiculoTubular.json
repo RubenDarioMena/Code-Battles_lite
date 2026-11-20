@@ -1,0 +1,72 @@
+{
+  "nombre": "VehiculoTubular",
+  "medidas": [
+    2.068,
+    2.162,
+    3.7
+  ],
+  "paleta": [
+    "goma",
+    "rol",
+    "grafito",
+    "naranja",
+    "acero",
+    "cromo",
+    "bloque_motor",
+    "aluminio_fundido",
+    "aro_satinado",
+    "pavonado",
+    "crema",
+    "laton",
+    "led",
+    "piloto"
+  ],
+  "emisivos": [
+    "led",
+    "piloto"
+  ],
+  "niveles": {
+    "L0": {
+      "pivotes": 181,
+      "mallas": 134,
+      "primitivas": 275,
+      "triangulos": 56592,
+      "triangulos_max": 57157
+    },
+    "L1": {
+      "pivotes": 181,
+      "mallas": 126,
+      "primitivas": 240,
+      "triangulos": 19356,
+      "triangulos_max": 19549
+    },
+    "L2": {
+      "pivotes": 181,
+      "mallas": 61,
+      "primitivas": 84,
+      "triangulos": 3454,
+      "triangulos_max": 3488
+    }
+  },
+  "jerarquia_sha256": "ff4f7347e573d8ad3728bef5c87bfef754d3c22bba0d98c95ca917e93390e18b",
+  "controles": [
+    "arma.elevacion",
+    "boca.recorrido",
+    "direccion_d.direccion",
+    "direccion_i.direccion",
+    "esquina_dd.recorrido",
+    "esquina_di.recorrido",
+    "esquina_td.recorrido",
+    "esquina_ti.recorrido",
+    "motor.oscilacion",
+    "raiz.balanceo",
+    "raiz.cabeceo",
+    "raiz.flotacion_aro",
+    "raiz.giro",
+    "rueda_dd.giro",
+    "rueda_di.giro",
+    "rueda_td.giro",
+    "rueda_ti.giro",
+    "torreta.giro"
+  ]
+}

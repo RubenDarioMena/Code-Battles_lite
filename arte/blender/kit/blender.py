@@ -11,7 +11,8 @@ def materiales(paleta):
     for clave, (rgb, metal, rugosidad, emision) in paleta.items():
         mat = bpy.data.materials.new(clave)
         mat.diffuse_color = (*rgb,1)
-        mat.use_nodes = True
+        if not mat.node_tree:
+            mat.use_nodes = True
         bsdf = next(n for n in mat.node_tree.nodes if n.type=="BSDF_PRINCIPLED")
         for entrada, valor in (("Base Color",(*rgb,1)),("Metallic",metal),
                                ("Roughness",rugosidad),("Emission Color",(*rgb,1)),

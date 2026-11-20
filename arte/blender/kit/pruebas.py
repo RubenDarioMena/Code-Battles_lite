@@ -333,5 +333,11 @@ class Kit(unittest.TestCase):
         self.assertGreater(PALETA[kit.led().materiales[-1]][-1],0)
 
 
+def load_tests(loader, tests, pattern):
+    from kit import pruebas_exportar
+    tests.addTests(loader.loadTestsFromModule(pruebas_exportar))
+    return tests
+
+
 if __name__=="__main__":
     unittest.main(verbosity=2)

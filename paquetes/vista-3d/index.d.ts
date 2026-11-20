@@ -111,3 +111,7 @@ export interface VistaCreada3D extends Omit<Vista3D, 'elegir' | 'proyectar' | 's
 export function crearVista(contenedor: HTMLElement, opciones: OpcionesVista3D): VistaCreada3D | null;
 
 export { crearDibujanteEfectos } from './efectos.js';
+import type { Rig, Control, Pose } from '../rig/index.js';
+export function conectarRig(THREE: any, raizObject3D: any, rig: Rig, nivel: number): {
+  controles: Control[]; aplicar(valores?: Record<string,number>): Pose;
+};

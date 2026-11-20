@@ -1,3 +1,34 @@
+## Kit de Blender: exportador y validador compartidos, y solver del rig en three.js · 20 de noviembre de 2026
+
+- **Exportador y validador (tarea 02, con Astra).**
+  - Las tres máquinas (T1, vehículo tubular y torreta de observación) se exportan desde descriptores con
+    `arte/blender/kit/exportar.py`, que valida cada GLB (`validar_glb.py` y `validar_rig.py`) antes de sustituirlo.
+  - Rig `cbl-rig` v2 en los `extras`: reglas `LOCAL` con expresiones y las restricciones COPIAR_POSICION, APUNTAR,
+    APUNTAR_BLOQUEADO y ESTIRAR.
+  - Poses de referencia de Blender en `pruebas/rig/` (57 del vehículo y 21 de la torreta).
+  - El orquestador admitió la FCurve identidad que Blender 5 crea en cada driver (`curva_identidad`).
+  - Los GLB nuevos sustituyen a los del juego. Las triangulaciones coinciden con las históricas; el T1 y la torreta
+    se apoyan ahora en el suelo (sus orígenes se movieron +12,5 mm y −55 mm).
+- **Solver (tarea 03).** Paquete puro `paquetes/rig/` y adaptador `conectarRig` en `vista-3d`.
+  - Factory mueve el T1 con sus controles, en lugar de escribir `rotation.*` a mano.
+  - Visor en `herramientas/visor-rig/`: deslizadores, reproducción del bucle y muestras de referencia con su
+    error.
+  - Astra lo dejó funcionando y con pruebas antes de agotar las dos cuentas; el orquestador escribió el README y
+    verificó.
+- **Verificación actual.**
+  - Error máximo frente a Blender: **1,3e−6** en el vehículo (todos los niveles) y **2,3e−7** en la torreta;
+    tolerancia 1e−4.
+  - La prueba detecta cuatro mutaciones (eje de APUNTAR, volumen de ESTIRAR, orden topológico y desplazamiento).
+  - Factory frente al código anterior: 6,5e−8. Adaptador r180 frente al solver puro: ≤ 2e−15.
+  - `evaluar` del vehículo (181 pivotes): ≈ 0,04 ms.
+  - `npm test` **71 ok**; tipos, fronteras y las dos suites Python del kit correctos.
+  - Visor y Factory revisados en WebGL sin errores de consola; capturas en `docs/qa/visor-rig-2026-11-20/`.
+- **Límites.**
+  - Ningún GLB usa todavía APUNTAR_BLOQUEADO ni influencias menores que 1: esos casos se prueban solo con escenas
+    sintéticas.
+  - War aún no usa el vehículo ni la torreta.
+  - Sin commits, push ni publicación.
+
 ## Arte · kit de piezas común para las máquinas · 20 de noviembre de 2026 · rama `kit-piezas`
 
 - **Qué es.** [arte/blender/kit/](arte/blender/kit/README.md): 25 piezas reutilizables para modelar máquinas nuevas, sacadas de lo que repetían el buggy tubular, la esfera de la torreta y `robots.py`. Incluye estructura, chapa, tornillería, engranajes evolventes, corona, cremallera, sinfín, rodamiento, cardán, rótula, resorte, amortiguador, rueda, oruga y LED. La rama nace de `trunk` (`6330c0e`). Solo arte: no toca el juego.

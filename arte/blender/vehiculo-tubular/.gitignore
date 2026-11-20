@@ -1,0 +1,10 @@
+# Solo se versiona la selección de previas (JPG, MP4 finales y reportes finales).
+# Los .blend, las carpetas de cuadros, los PNG y los borradores se regeneran con tubular.py.
+previas/**
+!previas/*/
+!previas/*/*.jpg
+!previas/04-amortiguacion/demo_suspension.mp4
+!previas/07-materiales/turntable.mp4
+!previas/07-materiales/reporte.json
+!previas/10-animacion-final/vehiculo_accion.mp4
+!previas/10-animacion-final/animacion.json

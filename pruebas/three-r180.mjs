@@ -1,5 +1,6 @@
 // Grafo ESM real, glTF y protocolo local; sin red, DOM, navegador ni GPU.
 import assert from 'node:assert/strict';
+import { comprobarAdaptador, equivalenciaFactory } from './rig-three.mjs';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -10,7 +11,7 @@ import { factory3d } from '../paquetes/vista-3d/index.js';
 
 if (!vm.SourceTextModule) {
   const hijo = spawnSync(process.execPath, ['--experimental-vm-modules', '--disable-warning=ExperimentalWarning',
-    fileURLToPath(import.meta.url)], { stdio: 'inherit' });
+    fileURLToPath(import.meta.url), ...process.argv.slice(2)], { stdio: 'inherit' });
   process.exit(hijo.status ?? 1);
 }
 const raiz = new URL('../', import.meta.url);
@@ -96,6 +97,10 @@ contenido.robot.grupo.traverse(o => {
   materiales++;
 });
 assert(materiales > 10);
+if (process.argv.includes('--rig')) {
+  equivalenciaFactory(THREE, gltf, contenido);
+  await comprobarAdaptador(THREE, GLTFLoader, gltf);
+}
 
 // El protocolo real de escritorio sirve el mismo grafo con MIME de módulos JS.
 const require = createRequire(import.meta.url);
