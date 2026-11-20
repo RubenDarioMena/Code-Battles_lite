@@ -1,3 +1,11 @@
+## Arte · kit de piezas común para las máquinas · 20 de noviembre de 2026 · rama `kit-piezas`
+
+- **Qué es.** [arte/blender/kit/](arte/blender/kit/README.md): 25 piezas reutilizables para modelar máquinas nuevas, sacadas de lo que repetían el buggy tubular, la esfera de la torreta y `robots.py`. Incluye estructura, chapa, tornillería, engranajes evolventes, corona, cremallera, sinfín, rodamiento, cardán, rótula, resorte, amortiguador, rueda, oruga y LED. La rama nace de `trunk` (`6330c0e`). Solo arte: no toca el juego.
+- **Cómo se hizo.** Astra (`gpt-6.2-astra`, esfuerzo alto, unos 115k tokens) escribió el kit con el [prompt 01](arte/blender/kit/prompts/01-kit-base.md). La geometría es Python puro (`geometria.py`), con un adaptador fino de `bpy` (`blender.py`), para que el kit se pueda probar sin Blender. Cada pieza se construye en L0, L1 o L2 (detalle por construcción, sin decimar) y declara el último nivel en que existe. Las reglas de rig usan el formato `MANDO` de la torreta.
+- **Verificación.** `python3 arte/blender/kit/pruebas.py`: 8/8 (mallas cerradas y bien orientadas, medidas a 0,5 mm, triángulos decrecientes, engrane sin interpenetración, paso y avance del sinfín). Claude renderizó el catálogo en Blender 5.2 sin errores ([previas](arte/blender/kit/previas/01/)) y comprobó que su GLB carga en three.js r180 (L0/L1/L2: 31,7k/14,2k/7,5k triángulos).
+- **Límites.** La rueda del sinfín tiene dientes rectos y el filete del sinfín es fino. Se aceptan: las piezas pequeñas apenas se verán con la cámara del juego. Ninguna máquina usa el kit todavía.
+- **Siguiente paso exacto.** Del autor: elegir la primera máquina que se haga con el kit.
+
 ## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026
 
 - **Qué es.** `trunk` pasa a ser la única línea canónica (regla nueva en `AGENTS.md` y `CLAUDE.md`). Rama de integración `unificacion/canonica`: nace de `arquitectura/fase-5` (fases 0–5), incorpora el único commit de `trunk` que le faltaba (`ba48661`, VFX de singularidad y artillería; conflicto solo en este archivo, se conservaron las dos entradas), porta CodeMirror desde `codemirror-mobile` (`567f7d6`) al paquete y añade el harness de `peer-review-harness-plan` (`47bb23d`). `trunk` avanza a esta rama sin reescribir historia.
