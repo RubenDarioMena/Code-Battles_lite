@@ -45,6 +45,14 @@ Siempre escribe `reporte.json` con medidas, relaciones de transmisión y holgura
 - `prompts/`: tareas de Astra, ronda por ronda.
 - `previas/`: renders por ronda. Solo se versionan JPG, MP4 y reportes.
 
-## Pendiente para el juego
+## GLB de juego
 
-Exportar el GLB por LOD con la convención de `vehiculo-tubular/exportar_tubular.py` (pivotes rígidos y reglas del rig en extras).
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python arte/blender/torreta_observacion/esfera/exportar_torreta.py -- "Prototypes/Rocket Launcher/modelos/torreta_observacion.glb"
+```
+
+- Tres raíces, `L0_/L1_/L2_TorretaObservacion`, con 51,4k / 15,7k / 4,5k triángulos y 1,9 MB. Es la convención de `t1.glb` y del vehículo tubular: una malla rígida por pivote, materiales planos y sin animaciones.
+- Solo el exterior, como el bucle: la esfera 10 cm más baja y sin el mecanismo.
+- Pivotes: `base_giro`, `munon`, `hoja_i`, `hoja_d` y `telescopio_1…4`. Cada uno lleva en `rig` reglas `MANDO` en ejes de glTF y en su marco local: `q = q_reposo · eje_ángulo(eje, factor·mando)` y `p = p_reposo + q_reposo · eje · factor·mando`.
+- La raíz lleva `controles` (`azimut`, `inclinacion`, `hojas`, `extension`) y `bucle`, las claves del bucle de presentación a 24 fps, para reproducirlo en el menú sin clip.
+- Comprobado en three.js r180: aplicar las reglas reproduce la pose del modelo de Blender con un error de 6·10⁻⁸ m en los tres niveles.
