@@ -1,6 +1,7 @@
 """Control en metros de las envolventes del montaje y de sus contactos."""
 from math import cos, hypot, pi
 from geometria_esfera import R
+import transmision_esfera as tr
 from transmision_esfera import Z, state
 
 
@@ -17,7 +18,7 @@ def revisar(m,variant,pose,rotate):
     contact={}
     surface=contacto_gajos(m) if variant=="S" else None
     active_min=4
-    for frame in range(1,289):
+    for frame in range(1,tr.FRAMES+1):
         st=state(frame,variant)
         frames={}
         for p in m.parts.values():
@@ -72,7 +73,7 @@ def revisar(m,variant,pose,rotate):
                 clearance=surface(direction)+shell
                 if n.startswith('Bola') and clearance<=.001:
                     active+=1
-                if frame in (1,132):
+                if frame in (1,tr.KEYS[4][0]):  # reposo y primer cuadro en uso
                     assert abs(clearance)<.001,(n,frame,clearance)
                     contact[n]=round(1000*max(clearance,contact.get(n,0)/1000),4)
                 gap=cap

@@ -18,6 +18,7 @@ Blender 5.2 sin ventana, desde esta carpeta:
 | `--animacion` | `anim_<X>/####.png`: torre y media carcasa cortadas (1280×720, 288 cuadros a 24 fps) |
 | `--animacion-exterior` | `anim_<X>_exterior/`: torre entera |
 | `--animacion-menu` | `anim_<X>_menu/`: torre cortada con la esfera entera (menú de máquinas de Campaign) |
+| `--animacion-bucle` | `anim_<X>_bucle/`: bucle de presentación de 15 s (apagada → activa mirando en tres direcciones → guardada). Torre entera, esfera 10 cm más baja para ocultar la banda en reposo y mecanismo sin dibujar; cierra mientras gira hacia 360°, con holguras comprobadas |
 | `--cuadros A-B` | intervalo de cuadros (por defecto 1-288) |
 
 Siempre escribe `reporte.json` con medidas, relaciones de transmisión y holguras.

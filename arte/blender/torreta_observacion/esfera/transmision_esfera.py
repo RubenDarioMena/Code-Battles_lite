@@ -12,19 +12,36 @@ LIP_C = .616
 KEYS = [(1,0,0,0,0),(21,0,0,0,0),(88,180,0,0,0),(108,180,0,1,0),
         (132,180,0,1,1),(165,215,42,1,1),(201,145,-28,1,1),
         (224,180,0,1,1),(249,180,0,1,.12),(276,180,0,.52,.12),(288,180,0,.52,.12)]
+FRAMES = 288
+# Bucle de presentación: apagada -> activa mirando en varias direcciones -> guardada.
+# Termina en la misma pose y con los motores en el mismo ángulo que el cuadro 1.
+KEYS_BUCLE = [(1,0,0,0,0),(24,0,0,0,0),(84,180,0,0,0),(102,180,0,1,0),(124,180,0,1,1),
+              (156,205,60,1,1),(188,165,-35,1,1),(216,212,-110,1,1),(244,180,0,1,1),
+              (324,360,0,0,0),(360,360,0,0,0)]  # sigue girando: 360° = reposo
+# En el cierre del bucle, telescopio y hojas se recogen mientras la esfera ya gira de vuelta.
+
+
+def usar_bucle():
+    global KEYS, FRAMES
+    KEYS, FRAMES = KEYS_BUCLE, 360
 
 
 def state(frame, variant):
     for i,(a,b) in enumerate(zip(KEYS,KEYS[1:])):
         if frame <= b[0]:
             t=max(0,(frame-a[0])/(b[0]-a[0]))
+            raw=t
             t=t*t*(3-2*t)
             pitch,yaw,doors,extension=[mix(x,y,t) for x,y in zip(a[1:],b[1:])]
+            if KEYS is KEYS_BUCLE and b[1]>a[1] and b[3]<a[3]:
+                ease=lambda u:(lambda c:c*c*(3-2*c))(min(1,max(0,u)))
+                extension=mix(a[4],b[4],ease(raw/.30))      # telescopio: 0-30 % del giro
+                doors=mix(a[3],b[3],ease((raw-.25)/.25))  # hojas: 25-50 %, casi recogido
             banks=(0,0,0,0,0,5,-6,0,0,0,0)
-            bank=radians(mix(banks[i],banks[i+1],t)) if variant=='C' else 0.
+            bank=radians(mix(banks[i],banks[i+1],t)) if variant=='C' and len(KEYS)==len(banks) else 0.
             return (-radians(yaw)*(AZ if variant=="S" else AZ/PIN),-radians(pitch)*(N if variant=="S" else WHEEL/SAT),
                     doors,extension,bank)
-    return state(288,variant)
+    return state(FRAMES,variant)
 
 
 def wheel(m,name,parent,teeth,module,width,bore,phase=0,helix=0,**kw):

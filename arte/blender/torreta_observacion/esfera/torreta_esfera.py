@@ -136,7 +136,7 @@ def verify(m,v):
                 if root.name=='base_giro':
                     supports.append(p.name)
     observer=[n for n in mobile if m.parts[n].group=='compuerta y telescopio']
-    frames=range(1,289)
+    frames=range(1,tr.FRAMES+1)
     lip=(.630 if v=='S' else tr.LIP_C)*cos(pi/192)
     for frame in frames:
         st=tr.state(frame,v)
@@ -261,7 +261,7 @@ def audit():
         altura_sobre_asiento=round(1000*(max(z for x,y,z in screw)-max(z for x,y,z in studio.parts['Junta polar 1'].verts)),3),radio_vertices=round(1000*max(lip),3),profundidad=round(1000*(max(well)-min(well)),3))
     report['tapon_sobre_asiento_mm']=round(1000*(max(q[2] for q in studio.parts['Tapón'].verts)
         -max(q[2] for q in studio.parts['Junta polar -1'].verts)),3)
-    report['animacion']=dict(cuadros=288,fps=24,cierre_final=dict(hojas=.52,telescopio=.12))
+    report['animacion']=dict(cuadros=tr.FRAMES,fps=24,cierre_final=dict(hojas=.52,telescopio=.12))
     report['pared_medida_mm']=round((max(radii)-min(radii))*1000,6)
     report['triangulos_comparativa']=2*count(studio)+2
     assert report['triangulos_comparativa']<400000
@@ -330,7 +330,7 @@ def scene(bpy,m,v,studio):
         sc.render.engine='BLENDER_EEVEE_NEXT'
     sc.view_settings.view_transform='AgX'
     sc.render.fps=24
-    sc.frame_end=288
+    sc.frame_end=tr.FRAMES
     mats=materials(bpy)
     def cut_material(key):
         # El plano de corte en coordenadas de mundo permanece fijo durante el giro.
@@ -386,7 +386,7 @@ def scene(bpy,m,v,studio):
         obj.rotation_euler=p.rot
     if not studio:
         for p in m.parts.values():
-            samples=[pose(p,tr.state(f,v),v) for f in range(1,289)]
+            samples=[pose(p,tr.state(f,v),v) for f in range(1,tr.FRAMES+1)]
             obj=objects[p.name]
             for index,(path,rest) in enumerate((('location',p.loc),('rotation_euler',p.rot))):
                 if any(sample[index]!=rest for sample in samples):
@@ -430,6 +430,9 @@ def camera(sc,target,direction,width,res):
 def render(bpy,sc,dest):
     sc.render.filepath=str(dest)
     bpy.ops.render.render(write_still=True)
+
+
+BAJADA_BUCLE=.10
 
 
 def pictures(bpy,args,report):
@@ -489,6 +492,24 @@ def pictures(bpy,args,report):
             for f in range(args.cuadros[0],args.cuadros[1]+1):
                 sc.frame_set(f)
                 render(bpy,sc,folder/f'{f:04}.png')
+    if args.animacion_bucle:
+        # Bucle de presentación: torre entera, sin cortes ni transparencias.
+        m=build(v)
+        sc,objects=scene(bpy,m,v,False)
+        # Presentación: la esfera baja para que la banda ecuatorial quede oculta tras el labio en reposo,
+        # y el mecanismo no se dibuja (se intuye, no se ve). Solo afecta a este render, no al control.
+        for name,obj in objects.items():
+            group=m.parts[name].group
+            if group=='mecanismo_'+v:
+                obj.hide_render=True
+            if obj.parent is None and group!='torre':
+                obj.delta_location.z=-BAJADA_BUCLE
+        camera(sc,(0,0,.74),(1,.54,.18),2.75,(1280,720))
+        folder=d/f'anim_{v}_bucle'
+        folder.mkdir(exist_ok=True)
+        for f in range(args.cuadros[0],args.cuadros[1]+1):
+            sc.frame_set(f)
+            render(bpy,sc,folder/f'{f:04}.png')
     if args.animacion_menu:
         # Menú de máquinas: solo la torre va cortada; la esfera se ve entera moviéndose sobre el mecanismo.
         sc,_=scene(bpy,build(v,cut=True,sphere_cut=False),v,False)
@@ -504,21 +525,25 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--salida',required=True,type=Path)
     parser.add_argument('--mecanismo',choices=['S','C'],default='S')
-    for opt in ('estudio','torre','corte','animacion','animacion-exterior','animacion-menu'):
+    for opt in ('estudio','torre','corte','animacion','animacion-exterior','animacion-menu','animacion-bucle'):
         parser.add_argument('--'+opt,action='store_true')
     parser.add_argument('--cuadros',default='1-288')
     args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else None)
     if not re.fullmatch(r'\d+-\d+',args.cuadros):
         parser.error('Se espera --cuadros A-B')
     args.cuadros=tuple(map(int,args.cuadros.split('-')))
-    if not 1<=args.cuadros[0]<=args.cuadros[1]<=288:
-        parser.error('Intervalo fuera de 1-288')
+    if args.animacion_bucle:
+        tr.usar_bucle()
+        if args.cuadros==(1,288):
+            args.cuadros=(1,tr.FRAMES-1)  # el último cuadro repite el primero
+    if not 1<=args.cuadros[0]<=args.cuadros[1]<=tr.FRAMES:
+        parser.error(f'Intervalo fuera de 1-{tr.FRAMES}')
     args.salida=args.salida.resolve()
     args.salida.mkdir(parents=True,exist_ok=True)
-    if 'bpy' in sys.modules and not any((args.estudio,args.torre,args.corte,args.animacion,args.animacion_exterior,args.animacion_menu)):
+    if 'bpy' in sys.modules and not any((args.estudio,args.torre,args.corte,args.animacion,args.animacion_exterior,args.animacion_menu,args.animacion_bucle)):
         args.torre=True
     report=audit()
-    if any([args.estudio,args.torre,args.corte,args.animacion,args.animacion_exterior,args.animacion_menu]):
+    if any([args.estudio,args.torre,args.corte,args.animacion,args.animacion_exterior,args.animacion_menu,args.animacion_bucle]):
         import bpy
         pictures(bpy,args,report)
     (args.salida/'reporte.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
