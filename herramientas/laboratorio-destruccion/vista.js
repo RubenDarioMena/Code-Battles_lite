@@ -1,3 +1,5 @@
+import { crearAcidoVista } from './acido-vista.js';
+import { crearBisagra } from './bisagra.js';
 import { superficie } from './superficie.js';
 export function crearVista(T, canvas) {
   const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -13,7 +15,8 @@ export function crearVista(T, canvas) {
   const sol = new T.DirectionalLight(0xffebc7, 1.6); sol.position.set(-2, 5, 4);
   const destello = new T.PointLight(0xffaf60, 0, 5);
   scene.add(ambiente, sol, destello);
-  const dibujadas = new Map(), trazos = [];
+  const acido = crearAcidoVista(T, grupo);
+  const dibujadas = new Map(), bisagras = new Map(), trazos = [];
   let objetivo = new T.Vector3(), distancia = 4, azimut = .27, altura = .30, aspectoMinimo = 1.85;
   function colocar() {
     const escala = Math.max(1, aspectoMinimo / cam.aspect);
@@ -23,14 +26,18 @@ export function crearVista(T, canvas) {
   }
   function encuadrar(demo) {
     const tomas = {
+      granada: { centro: [0, .39, .05], radio: 3.35, giro: .25, elevacion: .34, aspecto: 1.5 },
+      chorro: { centro: [0, .62, 3.37], radio: 6.55, giro: 1.28, elevacion: .16, aspecto: 1.9 },
       general: { centro: [0, .51, 0], radio: 4.15, giro: .27, elevacion: .26, aspecto: 1.85 },
       laser: { centro: [0, .78, -.35], radio: 1.9, giro: .85, elevacion: .16, aspecto: 1 },
       cinetico: { centro: [0, .52, -1.05], radio: 3.25, giro: 1.05, elevacion: .26, aspecto: 1.65 },
       acido: { centro: [0, .52, 0], radio: 2.05, giro: .44, elevacion: .26, aspecto: 1.25 },
       corte: { centro: [.25, .5, -.2], radio: 2.3, giro: .62, elevacion: .3, aspecto: 1.25 },
+      puente: { centro: [.26, .52, 0], radio: 1.95, giro: .28, elevacion: .20, aspecto: 1.2 },
+      tanque: { centro: [.04, .21, 0], radio: 1.95, giro: .46, elevacion: .32, aspecto: 1.45 },
       comparar: { centro: [0, .45, -.9], radio: 5.2, giro: .42, elevacion: .4, aspecto: 1.85 },
     };
-    const toma = tomas[demo] ?? tomas.general;
+    const toma = tomas[demo === 'chorro-caotico' ? 'chorro' : demo] ?? tomas.general;
     objetivo.fromArray(toma.centro);
     distancia = toma.radio; azimut = toma.giro; altura = toma.elevacion; aspectoMinimo = toma.aspecto;
     colocar();
@@ -42,11 +49,16 @@ export function crearVista(T, canvas) {
     }
   }
   function limpiar() {
+    acido.limpiar();
     for (const o of dibujadas.values()) { grupo.remove(o.mesh); o.destruir(); }
     dibujadas.clear();
+    for (const b of bisagras.values()) { grupo.remove(b.mesh); b.destruir(); }
+    bisagras.clear();
     trazos.splice(0).forEach(retirar);
   }
   function trazo(orden, informe, t) {
+    if (informe.emisor) { acido.montarEmisor(informe.emisor); return; }
+    if (informe.proyectil) return;
     const a = new T.Vector3(...orden.origen), b = informe.impacto ? new T.Vector3(...informe.impacto.pos) :
       a.clone().addScaledVector(new T.Vector3(...orden.direccion).normalize(), 9);
     const color = { laser: 0xff672b, acido: 0xa5f156, cinetico: 0xffdc83, explosivo: 0xff983e }[orden.arma];
@@ -71,7 +83,8 @@ export function crearVista(T, canvas) {
     emisor.position.copy(a); emisor.quaternion.copy(mesh.quaternion); grupo.add(emisor);
     trazos.push({ a, b, mesh, emisor, dir, largo, t, arma: orden.arma });
   }
-  function dibujar(e) {
+  function dibujar(e, sucesos = []) {
+    acido.dibujar(e, sucesos);
     const w = Math.max(1, canvas.clientWidth), h = Math.max(1, canvas.clientHeight);
     if (cam.aspect !== w / h || renderer.domElement.width !== Math.floor(w * renderer.getPixelRatio())
       || renderer.domElement.height !== Math.floor(h * renderer.getPixelRatio())) {
@@ -102,6 +115,16 @@ export function crearVista(T, canvas) {
     }
     for (const [uid, o] of dibujadas) if (!presentes.has(uid)) {
       grupo.remove(o.mesh); o.destruir(); dibujadas.delete(uid);
+    }
+    const colgadas = new Set();
+    for (const h of e.piezas) if (h.puente) {
+      colgadas.add(h.uid);
+      let b = bisagras.get(h.uid);
+      if (!b) { b = crearBisagra(T, h.color); bisagras.set(h.uid, b); grupo.add(b.mesh); }
+      b.actualizar(h, e.piezas.find(p => p.uid === h.padre));
+    }
+    for (const [uid, b] of bisagras) if (!colgadas.has(uid)) {
+      grupo.remove(b.mesh); b.destruir(); bisagras.delete(uid);
     }
     renderer.render(scene, cam);
   }

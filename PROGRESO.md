@@ -1,3 +1,27 @@
+## Destrucción por piezas · segunda ronda: puente, interiores, granada y chorro ácidos · 20 de noviembre de 2026
+
+- **Qué es.** Segunda ronda sobre `destruccion-piezas`, con tres tareas de Astra (03 a 05) revisadas por el orquestador.
+  - **Puente que cede.** Si el ácido deja un cuello fino, la parte colgante se comba alrededor del puente y se parte cuando el peso supera su sección (flexión ∝ n^1,5, tracción ∝ n; a compresión no se parte). El ángulo solo crece. En `?demo=puente` el cañón cede con 11 celdas, llega a 10,4° y cae con 5.
+  - **Cascos huecos e interiores.** `forma.hueco` vacía el interior de cajas y cilindros. Las piezas de dentro se apoyan en el suelo de la cavidad y siguen a la mitad que conserva su apoyo. El robot `Tanque` (casco con motor, munición y batería) se parte en dos en `?demo=tanque` y enseña la cavidad en imprimación.
+  - **Granada ácida.** Vuela en parábola. En una unidad deja un ácido principal y diez salpicaduras separadas (once manchas a 20,9 cm de media). En el suelo deja un charco que corroe hasta 10 cm de altura durante 6 s, también a los restos que caen dentro.
+  - **Chorro ácido.** Unas 60 gotas por segundo durante 1,2 s. El modo directo se dibuja como un tubo continuo y se rompe en gotas al caer la presión en el último tercio. El caótico se abre con turbulencia y viento. Las gotas cercanas alimentan el mismo ácido, con un tope de 6 manchas por pieza.
+  - Guardado `v: 2` (carga `v: 1`).
+- **Corrección del orquestador.** Las franjas oscuras que aparecían en los cilindros dañados ya estaban en la primera ronda. Venían de filtrar la máscara junto a la superficie curva. Ahora una celda solo cuenta como quitada si tuvo material y ya no lo tiene. También engrosó el tubo del chorro directo para que se lea a distancia.
+- **Verificación.**
+  - `destruccion.mjs`: **21** grupos.
+  - Las pruebas del laboratorio recorren los diez guiones.
+  - `fronteras.mjs` sin infracciones y `npm run tipos` correcto.
+  - Diez demos revisadas en el navegador sin errores de consola, con once tomas en `docs/qa/destruccion-ronda2-2026-11-20/`.
+  - Costes:
+    - **0,22 ms** por paso con un puente activo;
+    - unos **3–4 ms** en el único tick que parte el tanque;
+    - **0,10 ms** por paso con chorro y charco activos.
+- **Límites.**
+  - El cocinado de la malla definitiva con un booleano al terminar sigue pendiente.
+  - Dos grupos que vuelan rápido no chocan entre sí.
+  - Sin integración con War, Factory ni Campaign.
+  - La cuarta corrección de Astra la cortó su límite de uso al volver a pasar las pruebas. El orquestador las pasó después.
+
 ## Destrucción por piezas · núcleo determinista y laboratorio WebGL · 20 de noviembre de 2026
 
 - **Qué es.** Paquete puro `paquetes/destruccion/` y laboratorio en `herramientas/laboratorio-destruccion/` (diseño en `docs/DESTRUCCION-PIEZAS.md`). Cada pieza es una primitiva con una máscara de celdas de 4 cm; cinético, explosivo, láser y ácido quitan o empujan celdas. Las componentes que se separan vuelan, reposan y guardan su resto (pose, máscara y etiqueta `material-cantidad-función-estado`). A los 3 s se hunden o desvanecen y `terminarBatalla` los expone en su pose para recolectar.
@@ -17,7 +41,6 @@
 - **Límites.**
   - Dos grupos que vuelan rápido no chocan entre sí.
   - Sin integración aún con War, Factory ni Campaign, ni inventario.
-  - El puente y los interiores quedan para una segunda ronda.
   - Sin commits, push ni publicación.
 
 ## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026

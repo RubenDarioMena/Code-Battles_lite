@@ -6,6 +6,7 @@
 <div class="banco"><section class="visor"><canvas id="escena" aria-label="Escena de simulación"></canvas><output id="mensaje" role="status"></output></section>
 <aside><label><span data-i="escena">Escena</span><select id="demo"></select></label>
 <label><span data-i="arma">Arma</span><select id="arma"></select></label>
+<label id="controlViento" hidden><span data-i="viento">Viento lateral</span><output id="valorViento"></output><input type="range" id="viento" min="-6" max="6" step=".25" value="2"></label>
 <label><span data-i="potencia">Potencia</span><output id="valor">1×</output><input type="range" id="potencia" min=".25" max="4" step=".05" value="1"></label>
 <div class="par"><button id="pausa">Pausa</button><select id="ritmo" aria-label="Velocidad"><option>1×</option><option>0,25×</option></select></div>
 <label><span data-i="salida">Salida de los restos</span><select id="salida"></select></label>

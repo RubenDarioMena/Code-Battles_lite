@@ -29,7 +29,7 @@ const botin = enFin.botin(); assert.equal(botin.restos.length, 9);
 const torsos = botin.restos.filter(r => r.pieza === 'torso').map(r => r.materiales[0].cantidad);
 assert(torsos[0] > torsos[1] && torsos[1] > torsos[2]); assert.equal(botin.total.funciones.energia, 1);
 
-let cuadros = 0, mallas = [], camara;
+let cuadros = 0, mallas = [], uniones = [], charcos = [], instancias, camara, tramos, emisor;
 const T = {
   ...Three, WebGLRenderer: class {
     constructor({ canvas }) { this.domElement = canvas; }
@@ -37,8 +37,13 @@ const T = {
     getPixelRatio() { return this.dpr; }
     setSize(w, h) { this.domElement.width = w * this.dpr; this.domElement.height = h * this.dpr; }
     render(scene, cam) {
-      cuadros++; camara = cam; scene.updateMatrixWorld(); mallas = [];
+      cuadros++; camara = cam; emisor = null; scene.updateMatrixWorld(); mallas = []; uniones = []; charcos = [];
       scene.traverse(o => {
+        if (o.name === 'charco') { charcos.push(o); return; }
+        if (o.name === 'acido-en-vuelo') instancias = o;
+        if (o.name === 'puente') uniones.push(o);
+        if (o.name === 'tramos-chorro') tramos = o;
+        if (o.name === 'emisor-chorro') emisor = o;
         if (!o.material?.isShaderMaterial) return;
         o.onBeforeRender(this, scene, cam); mallas.push(o);
         assert(o.material.uniforms.mascara.value.isData3DTexture);
@@ -102,5 +107,72 @@ for (const demo of ['libre', 'cinetico']) for (const [ancho, alto] of [[960, 520
     }
   }
 }
+abrir('?demo=puente&t=10.5');
+assert.equal(uniones.length, 1);
+const vertices = uniones[0].geometry.getAttribute('position');
+assert(vertices.count >= 24 && vertices.array.every(Number.isFinite));
+abrir('?demo=puente&t=12');
+assert.equal(uniones.length, 0);
+const tanque = abrir('?demo=tanque&fin');
+assert.equal(tanque.cuerpo.filas.length, 7);
+const texturaCasco = mallas[0].material.uniforms.mascara.value, datos = texturaCasco.image.data;
+assert.equal(texturaCasco.format, Three.RGFormat);
+const pares = new Set();
+for (let i = 0; i < datos.length; i += 2) pares.add(datos[i] + '/' + datos[i + 1]);
+assert.deepEqual(pares, new Set(['255/255', '0/255', '0/0']));
+// Misma cámara que dibuja el laboratorio, mismo DDA que recibe los clics.
+const origen = [camara.position.x, -camara.position.z, camara.position.y];
+for (const segundo of [0, 3.33]) {
+  const m = simular('tanque', segundo);
+  for (const h of m.estado().piezas.filter(p => ['motor', 'municion', 'bateria'].includes(p.id))) {
+    const impacto = m.raycast({ origen, direccion: h.pos.map((v, k) => v - origen[k]) });
+    assert.equal(impacto?.pieza, segundo ? h.id : 'casco');
+  }
+}
+const granada = abrir('?demo=granada&t=.4&captura');
+assert.equal(granada.nodos.arma.value, 'granada'); assert(instancias.count >= 2);
+abrir('?demo=granada&t=2.6&captura');
+assert(charcos.some(c => c.material.uniforms.activo.value === 1));
+assert(mallas.some(m => m.material.uniforms.meta.value.some(v => v.x === 3)));
+abrir('?demo=granada&t=8.3&captura');
+assert(charcos.some(c => c.material.uniforms.activo.value === 0 && c.material.uniforms.secado.value > 0));
+for (const modo of ['chorro','chorro-caotico']) {
+  const lab = abrir('?demo='+modo+'&t=.67&captura');
+  assert.equal(lab.nodos.controlViento.hidden, modo === 'chorro');
+  assert(instancias.isInstancedMesh && instancias.count > 10);
+  assert(instancias.instanceMatrix.array.every(Number.isFinite));
+  lab.cuadro(100); lab.cuadro(200); assert.equal(lab.nodos.reloj.textContent,'Batalla · 0.67 s');
+}
+for (const [ancho, alto] of [[960, 520], [340, 390]]) {
+  for (const [demo, tiempo] of [['chorro', .88], ['chorro', .9], ['chorro', 1.45], ['chorro-caotico', .88]]) {
+    abrir('?demo=' + demo + '&t=' + tiempo + '&captura', ancho, alto);
+    const plena = demo === 'chorro' && tiempo <= .9;
+    const e = simular(demo, tiempo).estado();
+    const longitudes = [];
+    for (let i = 0; i < tramos.count; i++) {
+      const matriz = new T.Matrix4(); tramos.getMatrixAt(i, matriz);
+      const escala = new T.Vector3().setFromMatrixScale(matriz);
+      assert(escala.x * 2 >= .025 && escala.x * 2 <= .045); // Tubo de 2,6–4 cm: se lee a la distancia de la toma.
+      longitudes.push(escala.y);
+    }
+    if (plena) {
+      // Una unión por cada par de gotas, otra a la boca y otra al impacto.
+      assert.equal(tramos.count, e.proyectiles.length + 1);
+      const longitud = longitudes.reduce((s, x) => s + x, 0);
+      assert(longitud >= 6 && longitud < 6.3);
+    } else {
+      assert(tramos.count > 0 && tramos.count < e.proyectiles.length / 2);
+      if (demo === 'chorro-caotico') assert(Math.max(...longitudes) < .091);
+    }
+    for (const mesh of [emisor, ...mallas]) {
+      mesh.geometry.computeBoundingBox();
+      const { min, max } = mesh.geometry.boundingBox;
+      for (const x of [min.x, max.x]) for (const y of [min.y, max.y]) for (const z of [min.z, max.z]) {
+        const v = mesh.localToWorld(new T.Vector3(x, y, z)).project(camara);
+        assert(Math.abs(v.x) < .99 && Math.abs(v.y) < .99, 'emisor y blanco dentro del encuadre');
+      }
+    }
+  }
+}
 assert(cuadros >= 5);
-console.log('Laboratorio · cinco guiones, disparo desde cámara, pausa, velocidad, reinicio, texturas 3D y tabla final en Node, sin rasterizar.');
+console.log('Laboratorio · diez guiones, gotas instanciadas, charco y secado, bisagra, visibilidad de interiores, disparo desde cámara, pausa, velocidad, reinicio, texturas 3D y tabla final en Node, sin rasterizar.');

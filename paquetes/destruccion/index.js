@@ -4,13 +4,17 @@ import { suma, rotar, producto, vector, norma, unidad } from './geometria.js';
 import { buscar, disparo, pasoAcido } from './danio.js';
 import { emitir, pasoVuelo, reposar } from './vuelo.js';
 import { actualizarMascara, instantanea, resto, botin } from './estado.js';
+import { pasoProyectiles, lanzar } from './proyectiles.js';
+import { pasoCharcos } from './charcos.js';
+import { actualizarPuentes } from './puente.js';
 export { definirRobot };
-export { ARMAS, MATERIALES, FISICA, RESTOS, RENDIMIENTO } from './tablas.js';
+export { radioDelCharco } from './charcos.js';
+export { ARMAS, MATERIALES, FISICA, CHARCO, PROYECTIL, PUENTE, RESTOS, RENDIMIENTO } from './tablas.js';
 export { etiqueta } from './estado.js';
 
 function nuevo(semilla) {
   if (!Number.isSafeInteger(semilla)) throw TypeError('Semilla entera requerida');
-  return { semilla, paso: 0, fraccion: 0, disparos: 0, fragmentos: 0, terminada: false, modo: 'hundiendose', robots: [], piezas: [], eventos: [] };
+  return { semilla, paso: 0, fraccion: 0, disparos: 0, fragmentos: 0, terminada: false, modo: 'hundiendose', robots: [], piezas: [], eventos: [], proyectiles: [], emisores: [], charcos: [] };
 }
 function rayo(origen, direccion) {
   if (!vector(origen, 3) || !vector(direccion, 3) || !norma(direccion)) throw TypeError('Rayo inválido');
@@ -29,7 +33,7 @@ function agregar(w, def, pos, rumbo) {
       uid: w.piezas.length, robot: id, id: d.id, d, g, pos: suma(pos, rotar(rot, d.pos)), rot: producto(rot, d.rot),
       padre: padre ? offset + indice : null, contacto: padre ? contacto(d, padre) : [], contactoPadre: padre ? contacto(padre, d) : [],
       fragmento: 0, mask: g.base.slice(), version: 0, estado: 'intacta', funcion: d.funcion, salida: 'en-pie',
-      mov: null, reposo: null, volumenes: [], acidos: [], laser: 0
+      puente: null, mov: null, reposo: null, volumenes: [], acidos: [], laser: 0
     };
     actualizarMascara(p); w.piezas.push(p);
   }
@@ -38,7 +42,10 @@ function agregar(w, def, pos, rumbo) {
 }
 function tick(w) {
   w.paso++;
+  if (w.proyectiles.length || w.emisores.length) pasoProyectiles(w);
+  if (w.charcos.length) pasoCharcos(w);
   pasoAcido(w);
+  actualizarPuentes(w, true);
   pasoVuelo(w, p => reposar(w, p));
   for (const p of w.piezas) if (p.reposo && p.salida !== 'oculto') {
     const edad = w.paso * FISICA.dt - p.reposo.instante;
@@ -49,11 +56,12 @@ function tick(w) {
 }
 function guardar(w) {
   const piezas = w.piezas.map(({ d, g, mask, rle, vivas, fundidas, centro, extremos, ...p }) => ({ ...p, mascara: rle }));
-  return JSON.stringify({ formato: 'cbl-destruccion', v: 1, ...w, piezas });
+  return JSON.stringify({ formato: 'cbl-destruccion', v: 2, ...w, piezas });
 }
 function restaurar(texto) {
   const { formato, v, ...w } = JSON.parse(texto);
-  if (formato !== 'cbl-destruccion' || v !== 1) throw Error('Formato de destrucción incompatible');
+  if (formato !== 'cbl-destruccion' || ![1, 2].includes(v)) throw Error('Formato de destrucción incompatible');
+  if (v === 1) Object.assign(w, { proyectiles: [], emisores: [], charcos: [] });
   for (const r of w.robots) r.def = definirRobot(r.def);
   w.piezas = w.piezas.map(({ mascara, ...p }) => {
     p.d = w.robots.find(r => r.id === p.robot).def.piezas.find(d => d.id === p.id);
@@ -70,10 +78,13 @@ export function crearMundo({ semilla }) {
   return {
     agregarRobot(def, { pos = [0, 0, 0], rumbo = 0 } = {}) { abierto(); return agregar(w, def, pos, rumbo); },
     raycast({ origen, direccion }) { return buscar(w, origen, rayo(origen, direccion)); },
-    disparar({ arma, origen, direccion, potencia = 1 }) {
+    disparar({ arma, origen, direccion, potencia = 1, duracionAcido = undefined, ...opciones }) {
       abierto();
       if (!Object.hasOwn(ARMAS, arma) || !Number.isFinite(potencia) || potencia <= 0) throw TypeError('Arma o potencia inválida');
-      return disparo(w, { arma, origen: [...origen], direccion: rayo(origen, direccion), potencia });
+      if (duracionAcido !== undefined && (arma !== 'acido' || !Number.isFinite(duracionAcido) || duracionAcido <= 0)) throw TypeError('Duración de ácido inválida');
+      const dir = rayo(origen, direccion);
+      const orden = { ...opciones, arma, duracionAcido, origen: [...origen], direccion: dir, potencia };
+      return arma === 'granada' || arma === 'chorro' ? lanzar(w, orden) : disparo(w, orden);
     },
     avanzar(segundos) {
       if (!Number.isFinite(segundos) || segundos < 0) throw TypeError('Tiempo inválido');
@@ -92,17 +103,21 @@ export function crearMundo({ semilla }) {
       if (!['hundiendose', 'desvaneciendose'].includes(modo)) throw TypeError('Salida inválida');
       w.modo = modo;
     },
-    estado: () => instantanea(w), sucesos: () => structuredClone(w.eventos),
+    estado: () => instantanea(w), sucesos: (desde = 0) => structuredClone(w.eventos.slice(desde)),
     terminarBatalla() {
       if (w.terminada) return;
       // Completar el vuelo y la corrosión pendientes antes de fijar la pose de recolección.
       // Con tope: un minuto simulado. Si algo no llega a reposar (no debería), se fija donde está.
-      for (let n = 0; n < 3600 && w.piezas.some(p => p.vivas && (p.salida === 'vuelo' || p.acidos.length)); n++) tick(w);
+      for (let n = 0; n < 3600 && (w.emisores.length || w.proyectiles.length || w.charcos.some(c => c.activo) ||
+        w.piezas.some(p => p.vivas && (p.salida === 'vuelo' || p.acidos.length))); n++) tick(w);
       for (const p of w.piezas) if (p.vivas && p.salida === 'vuelo') {
         p.mov = null; p.acidos = []; p.salida = 'reposo'; p.reposo = resto(w, p);
         emitir(w, p, 'reposo', { pos: [...p.pos], rot: [...p.rot], forzado: true });
       }
       for (const p of w.piezas) if (p.reposo) p.salida = 'expuesto';
+      w.emisores = []; w.proyectiles = [];
+      for (const c of w.charcos) c.activo = false;
+      for (const p of w.piezas) p.acidos = [];
       w.terminada = true;
     },
     botin: () => botin(w), serializar: () => guardar(w), cargar(texto) { w = restaurar(texto); },

@@ -1,5 +1,5 @@
 import { FISICA } from './tablas.js';
-import { resolverContacto } from './contacto.js';
+import { penetracion, resolverContacto } from './contacto.js';
 import { resto } from './estado.js';
 import { suma, resta, punto, escalar, norma, unidad, rotar, conj, producto, cruz, eje, muestra, hash, global } from './geometria.js';
 
@@ -14,10 +14,10 @@ export function emitir(w, p, tipo, datos = {}) {
   w.eventos.push({ paso: w.paso, tipo, unidad: p.robot, datos: { pieza: p.id, fragmento: p.fragmento, ...structuredClone(datos) } });
 }
 // Centro de masa de la máscara. La suma de cantidades da la masa provisional.
-function masa(p) {
-  return p.d.materiales.reduce((s, m) => s + m.cantidad, 0) * p.vivas / p.g.total;
+export function masa(p, vivas = p.vivas) {
+  return p.d.materiales.reduce((s, m) => s + m.cantidad, 0) * vivas / p.g.total;
 }
-function centroGrupo(grupo) {
+export function centroGrupo(grupo) {
   let m = 0, sum = [0, 0, 0];
   for (const p of grupo) {
     const k = masa(p); m += k;
@@ -33,15 +33,24 @@ function raiz(w, p) {
 // v + ω × (punto - centro), incluso si se separa a mitad del vuelo.
 export function campoVelocidad(w, p) {
   const r = raiz(w, p);
-  if (!r.mov) return null;
-  return { v: [...r.mov.v], w: [...r.mov.w], centro: centroGrupo(familia(w, r)) };
+  if (r.mov) return { v: [...r.mov.v], w: [...r.mov.w], centro: centroGrupo(familia(w, r)) };
+  let campo = null;
+  for (let q = p; q.padre !== null; q = w.piezas[q.padre]) {
+    const b = q.puente;
+    if (!b?.omega) continue;
+    const padre = w.piezas[q.padre], omega = escalar(rotar(padre.rot, b.eje), b.omega);
+    campo ??= { centro: [...p.pos], v: [0, 0, 0], w: [0, 0, 0] };
+    campo.w = suma(campo.w, omega);
+    campo.v = suma(campo.v, cruz(omega, resta(campo.centro, global(padre, b.local))));
+  }
+  return campo;
 }
 export function soltar(w, p, motivo, impulso = [0, 0, 0], impacto = p.pos, campo = campoVelocidad(w, p)) {
   const grupo = familia(w, p);
   const mov = campo ? { v: suma(campo.v, cruz(campo.w, resta(centroGrupo(grupo), campo.centro))), w: [...campo.w], quietos: 0 }
     : { v: [0, 0, 0], w: [0, 0, 0], quietos: 0 };
   if (p.padre !== null) emitir(w, p, 'union-rota', { padre: p.padre, motivo });
-  p.padre = null; p.mov = mov;
+  p.puente = null; p.padre = null; p.mov = mov;
   if (norma(impulso) > 0) {
     const m = grupo.reduce((s, q) => s + masa(q), 0);
     const h = hash(w.semilla, p.robot, p.id, p.fragmento, w.disparos);
@@ -61,6 +70,17 @@ export function soltar(w, p, motivo, impulso = [0, 0, 0], impacto = p.pos, campo
 export function reposar(w, p) {
   p.salida = 'reposo'; p.reposo = resto(w, p);
   emitir(w, p, 'reposo', { pos: [...p.pos], rot: [...p.rot] });
+}
+
+// Tras un corte, una pieza en reposo conserva el apoyo si aún toca suelo u otro grupo.
+export function revisarReposo(w, p) {
+  if (!p.vivas || p.salida !== 'reposo') return;
+  const r = raiz(w, p), grupo = familia(w, r), margen = FISICA.contactoReposo;
+  if (!grupo.some(q => suelo(q) <= margen) && !penetracion(w, grupo, margen)) {
+    soltar(w, r, 'apoyo perdido');
+    return;
+  }
+  for (const q of grupo) q.reposo = resto(w, q);
 }
 
 export function actualizarRobot(w, robot) {
@@ -101,6 +121,7 @@ export function pasoVuelo(w, registrar) {
     const omega = norma(mov.w), medio = omega * dt / 2;
     const giro = [...escalar(mov.w, omega ? Math.sin(medio) / omega : 0), Math.cos(medio)];
     const destino = suma(centro, escalar(mov.v, dt));
+    const anteriores = grupo.map(q => ({ pos: q.pos, rot: q.rot }));
     let fondo = Infinity;
     for (const q of grupo) {
       q.rot = unidad(producto(giro, q.rot));
@@ -112,7 +133,7 @@ export function pasoVuelo(w, registrar) {
       mov.v = [mov.v[0] * FISICA.friccion, mov.v[1] * FISICA.friccion, Math.abs(mov.v[2]) * FISICA.restitucion];
       mov.w = escalar(mov.w, FISICA.amortiguacion);
     }
-    const apoyo = resolverContacto(w, grupo, mov);
+    const apoyo = resolverContacto(w, grupo, mov, anteriores);
     // Apoyado y casi quieto: sirve de obstáculo a los demás grupos aunque aún no sea un resto (por ejemplo,
     // un robot caído al que el ácido todavía corroe).
     mov.apoyado = (fondo <= 0 || apoyo) && norma(mov.v) < FISICA.umbral && norma(mov.w) < FISICA.umbral;

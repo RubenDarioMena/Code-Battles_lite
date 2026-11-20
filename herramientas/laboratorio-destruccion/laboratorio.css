@@ -14,3 +14,4 @@ button:disabled{opacity:.45;cursor:default}.par>*{flex:1}.ayuda,.medidas{color:#
 .medidas,#botin{padding:20px 0}.medidas output{display:block}.tabla{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
 td,th{text-align:left;padding:8px;border-bottom:1px solid #47585d}th,tfoot{color:#f0c371}
 @media(max-width:760px){.banco{grid-template-columns:1fr}.visor{height:48vh;min-height:270px}aside{grid-template-columns:1fr 1fr;padding:14px}.ayuda{grid-column:1/-1}header{align-items:end}}
+label[hidden]{display:none}

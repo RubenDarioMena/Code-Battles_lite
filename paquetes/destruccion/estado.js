@@ -1,6 +1,6 @@
 import { FISICA, RESTOS, RENDIMIENTO } from './tablas.js';
 import { compactar } from './celdas.js';
-import { suma, escalar } from './geometria.js';
+import { suma, escalar, global } from './geometria.js';
 
 export function actualizarMascara(p) {
   const { centros, dim } = p.g, plano = dim[0] * dim[1];
@@ -46,8 +46,20 @@ export function botin(w) {
   }
   return structuredClone({ restos, total: { materiales: Object.fromEntries(materialesTotal), funciones: Object.fromEntries(funciones) } });
 }
+function carasUnion(w, h) {
+  if (!h.puente) return [];
+  const p = w.piezas[h.padre], centros = p.g.centros;
+  return h.puente.enlaces.flatMap(e => {
+    if (!p.mask[e.i] || !e.apoyo.some(i => p.mask[i])) return [];
+    return e.carga.filter(j => h.mask[j]).map(j => {
+      const a = centros[e.i], b = centros[j], eje = a.findIndex((x, i) => x !== b[i]);
+      return { centro: escalar(suma(a, b), .5), eje, signo: Math.sign(b[eje] - a[eje]) };
+    });
+  });
+}
 export function instantanea(w) {
   return {
+    proyectiles: structuredClone(w.proyectiles), emisores: structuredClone(w.emisores), charcos: structuredClone(w.charcos),
     paso: w.paso, tiempo: w.paso * FISICA.dt, terminada: w.terminada, robots: w.robots.map(r => ({
       id: r.id, caido: r.caido,
       piezas: r.def.piezas.map(d => w.piezas.find(p => p.robot === r.id && p.id === d.id && !p.fragmento && p.vivas)?.uid ?? null)
@@ -59,9 +71,12 @@ export function instantanea(w) {
       const fraccion = Math.min(1, Math.max(0, (edad - RESTOS.visible) / RESTOS.salida));
       return {
         uid: p.uid, robot: p.robot, id: p.id, fragmento: p.fragmento, padre: p.padre, forma: p.d.forma, color: p.d.color,
-        pos: [...p.pos], rot: [...p.rot], funcion: p.funcion, funcionOriginal: p.d.funcion, zonaFuncion: p.d.zonaFuncion ?? null,
+        puente: p.puente ? { seccion: p.puente.seccion, razon: p.puente.razon, angulo: p.puente.angulo,
+          pivote: global(w.piezas[p.padre], p.puente.local) } : null,
+        carasUnion: carasUnion(w, p), mascaraBase: p.g.baseRle, pos: [...p.pos], rot: [...p.rot], funcion: p.funcion, funcionOriginal: p.d.funcion, zonaFuncion: p.d.zonaFuncion ?? null,
         estado: p.estado, materiales: materiales(p), version: p.version, mascara: p.rle, dim: [...p.g.dim], celda: FISICA.celda,
         celdas: p.vivas, celdasIniciales: p.g.total, fundidas: p.fundidas, volumenes: structuredClone(p.volumenes),
+        ...(p.pelicula && { pelicula: structuredClone(p.pelicula) }),
         salida, opacidad: salida === 'oculto' ? 0 : salida === 'desvaneciendose' ? 1 - fraccion : 1,
         hundimiento: salida === 'hundiendose' ? fraccion * (Math.hypot(...p.g.dim) * FISICA.celda + Math.abs(p.pos[2])) : 0
       };

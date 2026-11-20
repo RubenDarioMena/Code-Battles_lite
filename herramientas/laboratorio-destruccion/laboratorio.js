@@ -1,4 +1,5 @@
-import { escenario, demos } from './escenas.js';
+import { escenario, demos, vientoDemo } from './escenas.js';
+import { apuntar } from './punteria.js';
 import { crearVista } from './vista.js';
 import { es, en } from './textos.js';
 export function iniciarLaboratorio(THREE) {
@@ -9,13 +10,20 @@ export function iniciarLaboratorio(THREE) {
   for (const el of document.querySelectorAll('[data-i]')) el.textContent = tr[el.getAttribute('data-i')];
   $('escena').setAttribute('aria-label', tr.escena); $('ritmo').setAttribute('aria-label', tr.velocidad);
   function opciones(id, claves) { for (const k of claves) $(id).add(new Option(tr[k], k)); }
-  opciones('demo', ['libre', ...demos]); opciones('arma', ['cinetico', 'explosivo', 'laser', 'acido']);
+  opciones('demo', ['libre', ...demos]); opciones('arma', ['cinetico', 'explosivo', 'laser', 'acido', 'granada', 'chorro', 'chorro-caotico']);
   opciones('salida', ['hundiendose', 'desvaneciendose']);
   $('demo').value = demos.includes(params.get('demo')) ? params.get('demo') : 'libre';
   const canvas = $('escena');
   let vista;
   try { vista = crearVista(THREE, canvas); } catch (error) { $('mensaje').textContent = String(error); throw error; }
   let sesion, pausa = false, ultimo = 0, acumulado = 0, msRayo = 0, msPaso = 0, tablaHecha = false;
+  let indiceEvento = 0;
+  function actualizarViento() {
+    $('controlViento').hidden = $('arma').value !== 'chorro-caotico';
+    $('valorViento').textContent = $('viento').value + ' m/s';
+  }
+  $('viento').value = String(vientoDemo);
+  $('arma').onchange = actualizarViento; $('viento').oninput = actualizarViento;
   function fila(contenedor, valores) {
     const fila = contenedor.insertRow();
     for (const v of valores) fila.insertCell().textContent = v;
@@ -53,23 +61,29 @@ export function iniciarLaboratorio(THREE) {
   }
   function dibujar() {
     const e = sesion.mundo.estado();
-    vista.dibujar(e);
+    const eventos = sesion.mundo.sucesos(indiceEvento);
+    indiceEvento += eventos.length;
+    vista.dibujar(e, eventos);
     $('reloj').textContent = (e.terminada ? tr.normal : tr.batalla) + ' · ' + e.tiempo.toFixed(2) + ' s';
     $('coste').textContent = 'Raycast ' + msRayo.toFixed(3) + ' ms · ' + tr.paso + ' ' + msPaso.toFixed(3) + ' ms';
     const cuentas = new Map();
     for (const p of e.piezas) if (!['vuelo', 'en-pie'].includes(p.salida)) cuentas.set(p.salida, (cuentas.get(p.salida) ?? 0) + 1);
     $('restos').textContent = tr.restos + ' · ' + (Array.from(cuentas, ([s, n]) => s + ' ' + n).join(' / ') || '0');
-    $('celdas').textContent = tr.celdas + ' · ' + e.piezas.map(p => p.robot + ' ' + p.id + (p.fragmento ? ' #' + p.fragmento : '') + ' ' + p.celdas + '/' + p.celdasIniciales).join(' · ');
+    $('celdas').textContent = tr.celdas + ' · ' + e.piezas.map(p => p.robot + ' ' + p.id + (p.fragmento ? ' #' + p.fragmento : '') + ' ' + p.celdas + '/' + p.celdasIniciales
+      + (p.puente ? ' (' + tr.seccion + ' ' + p.puente.seccion + ', ' + tr.razon + ' ' + p.puente.razon.toFixed(2)
+        + ', ' + (p.puente.angulo * 180 / Math.PI).toFixed(1) + '°)' : '')).join(' · ');
     $('fin').disabled = $('pausa').disabled = e.terminada;
     $('pausa').textContent = pausa ? tr.seguir : tr.pausa;
     if (e.terminada) { pausa = true; if (!tablaHecha) tabla(); }
   }
   function reiniciar(captura = false) {
     const demo = $('demo').value;
-    sesion = escenario(demo); vista.limpiar(); vista.encuadrar(demo);
+    indiceEvento = 0; sesion = escenario(demo, () => Number($('viento').value)); vista.limpiar(); vista.encuadrar(demo);
     sesion.mundo.desaparicion($('salida').value);
     $('botin').hidden = true; tablaHecha = false; pausa = false; acumulado = 0; ultimo = 0; msPaso = msRayo = 0; $('mensaje').textContent = '';
-    $('arma').value = demo === 'acido' ? 'acido' : ['laser', 'corte'].includes(demo) ? 'laser' : 'cinetico';
+    $('arma').value = ['acido', 'puente', 'tanque'].includes(demo) ? 'acido' : ['laser', 'corte'].includes(demo) ? 'laser' : 'cinetico';
+    if (['granada', 'chorro', 'chorro-caotico'].includes(demo)) $('arma').value = demo;
+    actualizarViento();
     if (captura && (params.has('t') || params.has('fin'))) {
       const t = Number(params.get('t'));
       const limite = params.has('fin') ? Math.max(sesion.finSecuencia, Math.floor(t * 60) || 0) : Math.floor(t * 60);
@@ -96,18 +110,26 @@ export function iniciarLaboratorio(THREE) {
     if (gesto && gesto.dist <= 4 && !tablaHecha) {
       // El clic solo elige el punto. El disparo sale de un emisor a 6 m, a 1 m de altura, girado 35° respecto
       // a la cámara, para que el haz cruce la imagen en lugar de nacer en el ojo.
-      const mira = vista.rayo(e.clientX, e.clientY), blanco = sesion.mundo.raycast(mira);
+      const mira = vista.rayo(e.clientX, e.clientY), arma = $('arma').value;
+      const balistica = ['granada', 'chorro', 'chorro-caotico'].includes(arma);
+      let blanco = sesion.mundo.raycast(mira);
+      if (balistica && mira.direccion[2] < 0) {
+        const t = -mira.origen[2] / mira.direccion[2];
+        if (t >= 0 && (!blanco || t < blanco.distancia)) blanco = { pos: mira.origen.map((v, i) => v + t * mira.direccion[i]) };
+      }
       if (!blanco) { $('mensaje').textContent = tr.fallo; gesto = null; return; }
       const hacia = [mira.origen[0] - blanco.pos[0], mira.origen[1] - blanco.pos[1]], largo = Math.hypot(...hacia) || 1;
       const giro = .61, [c, s] = [Math.cos(giro), Math.sin(giro)];
       const lado = [(hacia[0] * c - hacia[1] * s) / largo, (hacia[0] * s + hacia[1] * c) / largo];
       const origen = [blanco.pos[0] + lado[0] * 6, blanco.pos[1] + lado[1] * 6, 1];
       const direccion = blanco.pos.map((v, i) => v - origen[i]);
-      const orden = { origen, direccion, arma: $('arma').value, potencia: Number($('potencia').value) };
+      const potencia = Number($('potencia').value);
+      const orden = balistica ? apuntar(arma, origen, blanco.pos, potencia, arma === 'chorro-caotico' ? Number($('viento').value) : 0)
+        : { origen, direccion, arma, potencia };
       medirRayo(orden);
       const informe = sesion.mundo.disparar(orden);
       vista.trazo(orden, informe, sesion.paso() / 60);
-      $('mensaje').textContent = informe.impacto ? informe.impacto.robot + ' / ' + informe.impacto.pieza : tr.fallo;
+      $('mensaje').textContent = informe.impacto ? informe.impacto.robot + ' / ' + informe.impacto.pieza : balistica ? tr[arma] : tr.fallo;
       dibujar();
     }
     gesto = null;

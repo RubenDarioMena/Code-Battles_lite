@@ -22,6 +22,22 @@ export function medidas(f) {
   if (f.tipo === 'caja') return f.medidas;
   return [0, 1, 2].map(i => i === eje(f) ? f.alto : 2 * f.radio);
 }
+export function sdfSolido(f, v) {
+  if (f.tipo === 'esfera') return norma(v) - f.radio;
+  if (f.tipo === 'caja') {
+    const q = v.map((x, i) => Math.abs(x) - f.medidas[i] / 2);
+    return norma(q.map(x => Math.max(x, 0))) + Math.min(Math.max(...q), 0);
+  }
+  const k = eje(f), radial = Math.hypot(...v.filter((_, i) => i !== k));
+  const d = [radial - f.radio, Math.abs(v[k]) - f.alto / 2];
+  return Math.min(Math.max(d[0], d[1]), 0) + Math.hypot(Math.max(d[0], 0), Math.max(d[1], 0));
+}
+export function cavidad(f) {
+  if (!f.hueco) return null;
+  const pared = 2 * f.hueco;
+  return f.tipo === 'caja' ? { tipo: 'caja', medidas: f.medidas.map(x => x - pared) }
+    : { tipo: 'cilindro', eje: f.eje, radio: f.radio - f.hueco, alto: f.alto - pared };
+}
 export function dentro(f, v) {
   if (f.tipo === 'caja') return v.every((x, i) => Math.abs(x) <= f.medidas[i] / 2 + 1e-10);
   const k = eje(f);

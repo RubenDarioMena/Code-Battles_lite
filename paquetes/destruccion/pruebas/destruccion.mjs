@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
-import { crearMundo, cargar, definirRobot, etiqueta, ARMAS, RESTOS, FISICA, RENDIMIENTO } from '../index.js';
-import { normal as normalContacto } from '../contacto.js';
+import { crearMundo, cargar, definirRobot, etiqueta, ARMAS, PUENTE, RESTOS, FISICA, RENDIMIENTO } from '../index.js';
+import { compactar } from '../celdas.js';
+import { global, cruz, resta } from '../geometria.js';
+import { razonCarga } from '../puente.js';
+import { normal as normalContacto, sdf } from '../contacto.js';
 
 let casos = 0;
 function prueba(nombre, f) { f(); casos++; console.log('✓ ' + nombre); }
@@ -271,7 +276,7 @@ prueba('Botín de la misma víctima, factores, borde fundido y módulos', () => 
 prueba('Repetición binaria, resto de subpaso, guardado intermedio y continuación', () => {
   function iniciar() { const m = mundo(); m.disparar(orden('acido', .72)); m.avanzar(.253); m.disparar(orden('cinetico', 1.12)); return m; }
   const m = iniciar(), b = iniciar(), c = cargar(m.serializar()); assert.equal(b.serializar(), c.serializar());
-  const datos = JSON.parse(m.serializar()); assert.equal(datos.formato, 'cbl-destruccion'); assert.equal(datos.v, 1);
+  const datos = JSON.parse(m.serializar()); assert.equal(datos.formato, 'cbl-destruccion'); assert.equal(datos.v, 2);
   for (const x of [m, b, c]) { x.avanzar(.758); x.disparar(orden('explosivo', .24)); x.avanzar(5); }
   assert.equal(b.serializar(), m.serializar()); assert.equal(c.serializar(), m.serializar());
   for (const x of [m, b, c]) x.terminarBatalla();
@@ -285,6 +290,159 @@ prueba('Repetición binaria, resto de subpaso, guardado intermedio y continuaci�
     for (let i = 0; i < n; i++) b.avanzar(dt);
     assert.equal(a.serializar(), b.serializar());
   }
+});
+
+function barraConMuesca(ancho, masaTotal = 1.3, longitud = .84) {
+  const base = pieza('soporte', .50, null, caja(.12, .24, .40));
+  base.pos[0] = -longitud / 2 + .04;
+  const barra = pieza('barra', .82, 'soporte', caja(longitud, .24, .24));
+  barra.materiales = [{ material: 'acero', cantidad: masaTotal }];
+  const original = mundo({ id: 'Voladizo', piezas: [base, barra] });
+  const q = porId(original, 'barra'), datos = JSON.parse(original.serializar());
+  // Una capa transversal: las dos filas superiores del ligamento y un último
+  // testigo delante. El láser elimina el testigo y dispara la detección real.
+  const celdas = mask(q).map((v, i) => {
+    const [x, y, z] = centro(q, i);
+    if (Math.abs(x) > .001) return v;
+    return Number(z > .05 && Math.abs(y) < ancho * q.celda / 2 || y < -.09 && z < 0 && z > -.04);
+  });
+  datos.piezas[1].mascara = compactar(celdas);
+  const m = cargar(JSON.stringify(datos)), antes = porId(m, 'barra');
+  const informe = m.disparar(orden('laser', .80));
+  return { m, antes, informe, preparada: JSON.stringify(datos) };
+}
+prueba('Sección 2 × 2, monotonía, giro en carga y rotura sin perder material', () => {
+  assert(Object.isFrozen(PUENTE));
+  const { m } = barraConMuesca(2), inicial = piezas(m).find(q => q.puente);
+  assert(inicial); assert.equal(inicial.puente.seccion, 4);
+  assert(inicial.puente.razon >= PUENTE.ceder && inicial.puente.razon < 1);
+  const razon = (ancho, masa, largo) => barraConMuesca(ancho, masa, largo).m.sucesos()
+    .find(e => e.tipo === 'puente-cede' || e.tipo === 'puente-roto')?.datos.razon;
+  assert(razon(2, 1.6, .84) > inicial.puente.razon);
+  assert(razon(2, 1.3, 1.32) > inicial.puente.razon);
+  assert(razon(4, 3.4, .84) < razon(2, 3.4, .84));
+  const cm = q => {
+    const indices = mask(q).flatMap((v, i) => v ? [i] : []);
+    return global(q, [0, 1, 2].map(k => indices.reduce((s, i) => s + centro(q, i)[k], 0) / indices.length));
+  };
+  const oscilando = cargar(m.serializar());
+  oscilando.avanzar(FISICA.dt);
+  const h = porId(oscilando, 'barra', inicial.fragmento), omega = JSON.parse(oscilando.serializar()).piezas[h.uid].puente.omega;
+  assert(omega > 0);
+  const incidir = oscilando.disparar({ arma: 'laser', origen: [0, 0, 2], direccion: [0, 0, -1] });
+  assert(incidir.sucesos.some(e => e.tipo === 'puente-roto'));
+  const libre = porId(oscilando, 'barra', h.fragmento), mov = JSON.parse(oscilando.serializar()).piezas[h.uid].mov;
+  casi(Math.hypot(...mov.w), omega);
+  cruz(mov.w, resta(cm(libre), h.puente.pivote)).forEach((v, i) => casi(mov.v[i], v));
+  let angulo = 0;
+  for (let i = 0; i < 30; i++) {
+    m.avanzar(FISICA.dt);
+    const q = porId(m, 'barra', inicial.fragmento);
+    assert.equal(q.padre, porId(m, 'barra').uid);
+    assert(q.puente.angulo >= angulo && q.puente.angulo - angulo <= PUENTE.giroPorPaso + 1e-10);
+    assert(q.puente.angulo > 0 && cm(q)[2] < cm(inicial)[2]);
+    angulo = q.puente.angulo;
+  }
+  assert.equal(contar(m, 'puente-cede'), 1);
+  for (const potencia of [.20, .40]) {
+    const copia = cargar(m.serializar());
+    const inf = copia.disparar(orden('cinetico', .80, .24, potencia));
+    assert.equal(inf.impacto.fragmento, inicial.fragmento);
+    assert.equal(contar(copia, 'puente-roto'), Number(potencia === .40));
+  }
+  const { m: pesado, antes, informe } = barraConMuesca(2, 4);
+  assert(informe.sucesos.some(e => e.tipo === 'puente-roto' && e.datos.razon >= 1));
+  const par = piezas(pesado).filter(p => p.id === 'barra');
+  assert.equal(par.length, 2); assert.equal(par[1].salida, 'vuelo');
+  const altura = cm(par[1])[2];
+  pesado.avanzar(.12);
+  assert(cm(porId(pesado, 'barra', par[1].fragmento))[2] < altura);
+  pesado.avanzar(2);
+  assert.equal(porId(pesado, 'barra', par[1].fragmento).salida, 'reposo');
+  casi(par.reduce((s, q) => s + q.materiales[0].cantidad, informe.quitadas[0].cantidad), antes.materiales[0].cantidad);
+});
+prueba('La misma muesca vuela rígida y admite un puente al quedar en reposo', () => {
+  const { preparada } = barraConMuesca(2);
+  const m = cargar(preparada);
+  const impacto = m.disparar(orden('cinetico', .50, -.38, .8));
+  assert.equal(impacto.impacto.pieza, 'soporte');
+  const enVuelo = cargar(m.serializar());
+  enVuelo.disparar(orden('laser', .80));
+  assert.equal(piezas(enVuelo).length, 2);
+  assert.equal(porId(enVuelo, 'barra').salida, 'vuelo');
+  // El conjunto termina de rodar antes de repetir el disparo en la pose de reposo.
+  while (porId(m, 'barra').salida === 'vuelo' && m.estado().paso < 600) m.avanzar(FISICA.dt);
+  const barra = porId(m, 'barra');
+  assert.equal(barra.salida, 'reposo');
+  const origen = global(barra, [0, -2, -.02]), fin = global(barra, [0, 0, -.02]);
+  m.disparar({ arma: 'laser', origen, direccion: fin.map((v, i) => v - origen[i]) });
+  assert(m.sucesos().some(e => e.tipo === 'puente-cede' || e.tipo === 'puente-roto'));
+});
+prueba('Sin falso puente en bloque perforado y torso a compresión', () => {
+  const grande = mundo({ id: 'Bloque', piezas: [pieza('bloque', .5, null, caja(.88, .88, .88))] });
+  grande.disparar({ arma: 'acido', origen: [0, 0, .5], direccion: [0, 1, 0], potencia: 1 });
+  grande.avanzar(3);
+  assert.equal(piezas(grande).length, 1); assert(piezas(grande)[0].celdas < piezas(grande)[0].celdasIniciales);
+  const base = pieza('base', .2, null, caja(.4, .4, .4)), torso = pieza('torso', .82, 'base', caja(.24, .24, .84));
+  torso.materiales = [{ material: 'acero', cantidad: 12 }];
+  const m = mundo({ id: 'Vertical', piezas: [base, torso] });
+  const q = porId(m, 'torso'), datos = JSON.parse(m.serializar());
+  datos.piezas[1].mascara = compactar(mask(q).map((v, i) => {
+    const [x, y, z] = centro(q, i);
+    return Math.abs(z) > .001 ? v : Number(Math.abs(x) < .061 && Math.abs(y) < .061 || x > .09 && y < -.09);
+  }));
+  m.cargar(JSON.stringify(datos));
+  const inf = m.disparar(orden('laser', .82, .10));
+  assert(inf.quitadas.length && contar(m, 'fragmento') === 0);
+  const seccion = mask(porId(m, 'torso')).filter((v, i) => v && Math.abs(centro(q, i)[2]) < .001);
+  assert.equal(seccion.length, 12);
+  assert.equal(porId(m, 'torso').salida, 'en-pie');
+  assert.equal(razonCarga(5, [0, 0, 1], [0, 0, .5], 4, 1), 0);
+  assert(razonCarga(5, [0, 0, 0], [0, 0, .5], 4, 1) > 1);
+});
+prueba('Pared y cavidad discretas, raycast al interior y apoyo sobre el suelo', () => {
+  const casco = pieza('casco', .3, null, { ...caja(.48, .48, .48), hueco: .04 });
+  const interior = pieza('modulo', .28, 'casco', caja(.12, .12, .12));
+  const def = { id: 'Casco', piezas: [casco, interior] }, m = mundo(def);
+  assert.equal(piezas(m)[0].celdas, 12 ** 3 - 10 ** 3);
+  const tiro = orden('laser', .28, 0, .09);
+  assert.equal(m.raycast(tiro).pieza, 'casco'); m.disparar(tiro);
+  assert.equal(m.raycast(tiro).pieza, 'modulo');
+  assert(JSON.parse(m.serializar()).piezas[1].contactoPadre.every(i => centro(piezas(m)[0], i)[2] < -.19));
+  // Quitar desde abajo todo el parche sin tocar la hija: pierde apoyo y cae.
+  const t = mundo(def);
+  for (const x of [-.045, .025]) for (const y of [-.045, .025])
+    t.disparar({ arma: 'laser', origen: [x, y, -1], direccion: [0, 0, 1], potencia: .075 });
+  assert.equal(porId(t, 'modulo').padre, null);
+  t.avanzar(1); assert(porId(t, 'modulo').pos[2] < interior.pos[2]);
+  const dentro = mundo(def);
+  dentro.disparar({ arma: 'laser', origen: [0, -.16, .24], direccion: [0, 1, 0], potencia: .20 });
+  dentro.avanzar(1);
+  const suelta = porId(dentro, 'modulo');
+  assert.equal(suelta.padre, null); assert.equal(suelta.salida, 'reposo');
+  const bajo = Math.min(...mask(suelta).flatMap((v, i) => v ? [global(suelta, centro(suelta, i))[2] - suelta.celda / 2] : []));
+  casi(bajo, .10, .0001);
+  assert.throws(() => mundo({ ...def, piezas: [casco, { ...interior, pos: [.17, 0, .3] }] }), /solapa.*pared/);
+  for (const hueco of [.02, .24, .239]) assert.throws(() => mundo({ id: 'f', piezas: [{ ...casco, forma: { ...casco.forma, hueco } }] }), /hueco/);
+  for (const eje of ['x', 'y', 'z']) {
+    const f = { tipo: 'cilindro', eje, radio: .18, alto: .48, hueco: .04 };
+    const p = piezas(mundo({ id: 'tubo', piezas: [{ ...casco, forma: f }] }))[0], k = 'xyz'.indexOf(eje);
+    mask(p).forEach((valor, i) => {
+      const v = centro(p, i), r = Math.hypot(...v.filter((_, j) => j !== k));
+      assert.equal(!!valor, r <= .18 + 1e-10 && (r >= .14 - 1e-10 || Math.abs(v[k]) >= .20 - 1e-10));
+    });
+  }
+  assert(sdf(casco.forma, [0, 0, 0]) > 0 && sdf(casco.forma, [0, 0, -.21]) < 0);
+  assert(normalContacto(casco.forma, [0, 0, -.205])[2] > .99);
+});
+
+prueba('Guiones reales: continuación del puente, interiores, botín y coste del paso', () => {
+  const guiones = new URL('../../../herramientas/laboratorio-destruccion/pruebas-escenas.mjs', import.meta.url);
+  execFileSync(process.execPath, [fileURLToPath(guiones)], { stdio: 'inherit' });
+});
+
+prueba('Granada, chorro y charco', () => {
+  execFileSync(process.execPath, [fileURLToPath(new URL('./acido-balistica.mjs', import.meta.url))], { stdio: 'inherit' });
 });
 
 const duraciones = [], rayos = [];

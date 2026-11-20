@@ -1,7 +1,9 @@
 // Contacto barato de un grupo que vuela contra las piezas quietas (fijas en un robot o restos en reposo).
 // No hay choques entre dos grupos que vuelan a la vez. Determinista: mismo orden, mismas cuentas.
 import { FISICA } from './tablas.js';
-import { suma, resta, escalar, punto, norma, unidad, rotar, local, global, eje, medidas } from './geometria.js';
+import { suma, resta, escalar, punto, norma, unidad, rotar, local, global, eje, medidas, cavidad, sdfSolido, dentro } from './geometria.js';
+
+import { entradaRayo, vecinosDe6 } from './celdas.js';
 
 const lado = FISICA.celda;
 const muestras = new WeakMap();
@@ -52,15 +54,12 @@ function puntosVivos(p) {
 const vivos = new WeakMap();
 
 // Distancia con signo a la forma, en el marco local de la pieza.
-function sdf(f, v) {
-  if (f.tipo === 'esfera') return norma(v) - f.radio;
-  if (f.tipo === 'caja') {
-    const q = v.map((x, i) => Math.abs(x) - f.medidas[i] / 2);
-    return norma(q.map(x => Math.max(x, 0))) + Math.min(Math.max(...q), 0);
-  }
-  const k = eje(f), radial = Math.hypot(...v.filter((_, i) => i !== k));
-  const d = [radial - f.radio, Math.abs(v[k]) - f.alto / 2];
-  return Math.min(Math.max(d[0], d[1]), 0) + Math.hypot(Math.max(d[0], 0), Math.max(d[1], 0));
+const cavidades = new WeakMap();
+export function sdf(f, v) {
+  const exterior = sdfSolido(f, v);
+  if (!f.hueco) return exterior;
+  if (!cavidades.has(f)) cavidades.set(f, cavidad(f));
+  return Math.max(exterior, -sdfSolido(cavidades.get(f), v));
 }
 // Gradiente del SDF en el marco local. En un eje de simetría (el centro de una caja, por ejemplo) el
 // gradiente se anula: entonces no hay normal y quien llama empuja hacia arriba, contra la gravedad.
@@ -93,7 +92,7 @@ export function quieta(w, p) {
 }
 
 // La penetración más honda del grupo contra cualquier pieza quieta: { hondo, n } en mundo, o null.
-export function penetracion(w, grupo) {
+export function penetracion(w, grupo, descenso = 0) {
   const propios = new Set(grupo);
   // Los obstáculos se eligen una vez por llamada; cada uno con el radio de su esfera envolvente.
   const obstaculos = w.piezas.filter(o => !propios.has(o) && quieta(w, o)).map(o => [o, radio(o.d)]);
@@ -103,7 +102,9 @@ export function penetracion(w, grupo) {
     const cerca = obstaculos.filter(([o, r]) => norma(resta(o.pos, q.pos)) <= r + radio(q.d));
     if (!cerca.length) continue;
     // Los puntos se llevan al mundo solo si hay algo cerca.
-    const puntos = puntosVivos(q).map(v => global(q, v));
+    const puntos = puntosVivos(q).map(v => {
+      const s = global(q, v); s[2] -= descenso; return s;
+    });
     for (const [o, r] of cerca) {
       for (const s of puntos) {
         // Un punto fuera de la esfera envolvente no puede estar dentro: se descarta sin cambiar de marco.
@@ -120,11 +121,61 @@ export function penetracion(w, grupo) {
   return peor;
 }
 
+// Una hija desprendida puede recorrer más de media pared en un tick. Se resuelve
+// la primera cara de pared que cruzó desde la cavidad, antes del contacto discreto.
+const contornos = new WeakMap();
+function contornoInterior(h) {
+  const cache = contornos.get(h);
+  if (cache?.llave === h.rle) return cache.puntos;
+  const [nx, ny] = h.g.dim, vertices = new Map();
+  h.mask.forEach((v, i) => {
+    if (!v || vecinosDe6(i, nx, ny).every(j => h.mask[j])) return;
+    const x = i % nx, y = Math.floor(i / nx) % ny, z = Math.floor(i / (nx * ny));
+    for (const a of [x, x + 1]) for (const b of [y, y + 1]) for (const c of [z, z + 1]) {
+      const clave = a + (nx + 1) * (b + (ny + 1) * c);
+      if (!vertices.has(clave)) vertices.set(clave, [a, b, c].map((n, k) => h.g.min[k] + n * lado));
+    }
+  });
+  const puntos = [...vertices.values()];
+  contornos.set(h, { llave: h.rle, puntos });
+  return puntos;
+}
+function barrerInterior(h, anterior, casco) {
+  const f = casco.d.forma;
+  if (!cavidades.has(f)) cavidades.set(f, cavidad(f));
+  const interior = cavidades.get(f);
+  let peor = null;
+  for (const v of contornoInterior(h)) {
+    const destino = global(h, v), b = local(casco, destino);
+    if (sdfSolido(interior, b) <= 0) continue;
+    const origen = global(anterior, v), a = local(casco, origen);
+    if (sdfSolido(interior, a) > FISICA.contactoReposo && (!dentro(f, a) || casco.g.base[celda(casco, a)])) continue;
+    const trayecto = resta(destino, origen), largo = norma(trayecto);
+    if (!largo) continue;
+    const dir = escalar(trayecto, 1 / largo), golpe = entradaRayo(casco, origen, dir);
+    if (!golpe || golpe.t >= largo) continue;
+    const entrada = suma(origen, escalar(dir, golpe.t));
+    const exterior = normal(interior, local(casco, entrada));
+    if (!exterior) continue;
+    const n = rotar(casco.rot, escalar(exterior, -1)), hondo = punto(resta(entrada, destino), n);
+    if (hondo > 0 && (!peor || hondo > peor.hondo)) peor = { n, hondo };
+  }
+  return peor;
+}
+
 // Saca el grupo de las piezas quietas y rebota su velocidad contra la normal. Devuelve si hubo contacto.
-export function resolverContacto(w, grupo, mov) {
+export function resolverContacto(w, grupo, mov, anteriores) {
+  const cascos = w.piezas.filter(o => o.d.forma.hueco && !grupo.includes(o) && quieta(w, o));
+  const interiores = grupo.flatMap((h, i) => cascos.filter(o => h.robot === o.robot && h.d.padre === o.id
+    && dentro(o.d.forma, local(o.d, h.d.pos))).map(casco => ({ h, anterior: anteriores[i], casco })));
   let toca = false;
   for (let vuelta = 0; vuelta < 3; vuelta++) {
-    const c = penetracion(w, grupo);
+    let c = null;
+    for (const { h, anterior, casco } of interiores) {
+      const cruce = barrerInterior(h, anterior, casco);
+      if (cruce && (!c || cruce.hondo > c.hondo)) c = cruce;
+    }
+    c ??= penetracion(w, grupo);
     if (!c) break;
     toca = true;
     for (const q of grupo) q.pos = suma(q.pos, escalar(c.n, c.hondo + 1e-5));
