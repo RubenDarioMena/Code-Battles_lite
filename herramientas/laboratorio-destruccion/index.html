@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Destrucción por piezas · Code Battle Lite</title><link rel="stylesheet" href="laboratorio.css"></head>
+<body><main>
+<header><div><p>Code Battle Lite</p><h1 data-i="titulo">Destrucción por piezas</h1></div><output id="reloj"></output></header>
+<div class="banco"><section class="visor"><canvas id="escena" aria-label="Escena de simulación"></canvas><output id="mensaje" role="status"></output></section>
+<aside><label><span data-i="escena">Escena</span><select id="demo"></select></label>
+<label><span data-i="arma">Arma</span><select id="arma"></select></label>
+<label><span data-i="potencia">Potencia</span><output id="valor">1×</output><input type="range" id="potencia" min=".25" max="4" step=".05" value="1"></label>
+<div class="par"><button id="pausa">Pausa</button><select id="ritmo" aria-label="Velocidad"><option>1×</option><option>0,25×</option></select></div>
+<label><span data-i="salida">Salida de los restos</span><select id="salida"></select></label>
+<button id="fin" class="primario" data-i="fin">Terminar batalla</button><button id="reiniciar" data-i="reiniciar">Reiniciar</button>
+<p class="ayuda" data-i="ayuda">Clic para disparar. Arrastra para girar y usa la rueda para acercarte.</p>
+</aside></div>
+<section id="botin" hidden><h2 data-i="botin">Botín recuperable</h2><div class="tabla"><table><thead><tr>
+<th data-i="resto">Resto</th><th data-i="etiqueta">Etiqueta</th><th data-i="estado">Estado</th>
+<th data-i="materiales">Materiales</th><th data-i="funcion">Función</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div></section>
+<section class="medidas"><h2 data-i="medidas">Medidas</h2><output id="coste"></output><output id="restos"></output><output id="celdas"></output></section>
+</main><script type="module" src="entrada.js"></script></body></html>

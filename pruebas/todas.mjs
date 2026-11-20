@@ -20,6 +20,8 @@ const logica = [
   'paquetes/interprete/pruebas/motor.mjs',
   'paquetes/interprete/pruebas/reales.mjs',
   'paquetes/vfx/pruebas/vfx.mjs',
+  'paquetes/destruccion/pruebas/destruccion.mjs',
+  'herramientas/laboratorio-destruccion/pruebas.mjs',
   'pruebas/three-r180.mjs',
   'pruebas/vfx-dibujantes.mjs',
   'pruebas/vfx-laboratorio.mjs',

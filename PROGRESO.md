@@ -1,3 +1,25 @@
+## Destrucción por piezas · núcleo determinista y laboratorio WebGL · 20 de noviembre de 2026
+
+- **Qué es.** Paquete puro `paquetes/destruccion/` y laboratorio en `herramientas/laboratorio-destruccion/` (diseño en `docs/DESTRUCCION-PIEZAS.md`). Cada pieza es una primitiva con una máscara de celdas de 4 cm; cinético, explosivo, láser y ácido quitan o empujan celdas. Las componentes que se separan vuelan, reposan y guardan su resto (pose, máscara y etiqueta `material-cantidad-función-estado`). A los 3 s se hunden o desvanecen y `terminarBatalla` los expone en su pose para recolectar.
+- **Proceso.** Tarea 01 con Astra (Codex). La tarea 02 la cortó el límite de uso y la hizo el orquestador:
+  - contacto contra piezas quietas, incluidos los grupos ya apoyados;
+  - ruido suave 3D compartido entre el radio del ácido y su sombreado;
+  - aureola, filo verde con espuma y costra parda;
+  - anillo del láser estrecho;
+  - emisor visible a 6 m;
+  - encuadres nuevos;
+  - guarda contra normales nulas (antes había NaN y un bucle sin fin en `terminarBatalla`).
+- **Verificación actual.**
+  - `destruccion.mjs`: **15** casos, incluidas pruebas nuevas de reposo fuera de las piezas fijas (falla sin contacto), normal nula y ácido fuerte sin NaN.
+  - `fronteras.mjs` sin infracciones; `npm run tipos` correcto.
+  - Ocho demos capturadas en WebGL (`docs/qa/destruccion-2026-11-20/`), sin errores de consola.
+  - Coste del paso: **0,51 ms** con nueve piezas en vuelo; antes del contacto era 0,063 ms.
+- **Límites.**
+  - Dos grupos que vuelan rápido no chocan entre sí.
+  - Sin integración aún con War, Factory ni Campaign, ni inventario.
+  - El puente y los interiores quedan para una segunda ronda.
+  - Sin commits, push ni publicación.
+
 ## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026
 
 - **Qué es.** `trunk` pasa a ser la única línea canónica (regla nueva en `AGENTS.md` y `CLAUDE.md`). Rama de integración `unificacion/canonica`: nace de `arquitectura/fase-5` (fases 0–5), incorpora el único commit de `trunk` que le faltaba (`ba48661`, VFX de singularidad y artillería; conflicto solo en este archivo, se conservaron las dos entradas), porta CodeMirror desde `codemirror-mobile` (`567f7d6`) al paquete y añade el harness de `peer-review-harness-plan` (`47bb23d`). `trunk` avanza a esta rama sin reescribir historia.

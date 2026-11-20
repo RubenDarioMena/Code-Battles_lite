@@ -22,6 +22,7 @@ Los contratos son orientativos: los nombres definitivos los fija la fase 2.
 | `anfitrion` | `nucleo`, `protocolo`, `lenguaje`, `interprete` |
 | `editor` | `lenguaje` |
 | `vfx` | `protocolo` |
+| `destruccion` | Nada |
 | `vista-2d` | `protocolo`, `vfx` |
 | `vista-3d` | `protocolo`, `vfx` |
 | `interfaz` | `protocolo`, `editor` |
@@ -43,7 +44,7 @@ la carpeta `pruebas/` de cada paquete.
 
 ## Entorno y determinismo
 
-En `protocolo`, `nucleo`, `reglas-*`, `lenguaje`, `interprete` y `vfx` no se permiten APIs de
+En `protocolo`, `nucleo`, `reglas-*`, `lenguaje`, `interprete`, `vfx` y `destruccion` no se permiten APIs de
 navegador ni Three.js. Deben funcionar en Node sin simulación del navegador.
 La comprobación detecta APIs de navegador: `window`, `document`, almacenamiento web,
 `requestAnimationFrame`, `THREE`, `setTimeout`, `setInterval`, y accesos a
