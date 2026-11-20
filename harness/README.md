@@ -2,6 +2,16 @@
 
 Capa de orquestación sobre Claude Code y Codex CLI. **No es un programa nuevo:** son reglas, plantillas y unos pocos scripts que cualquier agente lee y usa igual, en cualquier sesión y dispositivo. Vive aquí para probarlo con Code Battle Lite; cuando funcione se mueve a su propio repo y los demás proyectos lo enlazan.
 
+## Las 5 capas (pizarra del 19-11-2026)
+
+| Capa | Idea | Estado | Siguiente paso |
+| --- | --- | --- | --- |
+| 1 · Entrada | Hyper-marker como puerta de ideas y feedback (cualquier formato: texto, voz transcrita, flows, HTML anotado) | Pendiente. Las salidas HTML ya van a `docs/salidas/` para abrirlas en él | Fijar el formato de bug y de salidas; después, botón «feedback → bug o tarea» |
+| 2 · Fuente de verdad | Sin servidor ni base de datos: un repo de harness con reglas, plantillas y scripts | v0 dentro de Code Battle Lite (`harness/`) | Moverlo a su propio repo tras 1–2 semanas de uso |
+| 3 · Revisión y reglas | PR agéntico revisado por otro modelo; enrutador después. Sin memoria automática: todo en `AGENTS.md`, `CLAUDE.md` y `REGLAS.md` | `pedir-revision.sh` (Codex local, solo lectura). `autoMemoryEnabled: false` | Revisión en la nube con PRs; enrutador cuando haya datos de consumo |
+| 4 · Historial de bugs | Registro con ID estable y recurrencias, buscable antes de arreglar | `docs/bugs/INDICE.md` + `nuevo-bug.mjs` (detecta duplicados) | Primer uso real |
+| 5 · Docs por pantalla | Lista de features, partes conectadas, índice por palabras clave y método de QA muy concreto | Spec del editor (borrador) + clicker del editor | Inventario de features de `trunk` y `campaign` con Haiku; luego HTML de inconsistencias con Sonnet; aprobar la spec |
+
 ## Qué hay
 
 | Pieza | Para qué |

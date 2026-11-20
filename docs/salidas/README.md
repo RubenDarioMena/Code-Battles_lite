@@ -8,3 +8,4 @@ Nombre: `AAAA-MM-DD-tema.html`. Añade una línea por archivo, la más reciente 
 
 | Fecha | Archivo | Para qué |
 | --- | --- | --- |
+| 2026-11-20 | [2026-11-20-editor-trunk-vs-campaign.html](2026-11-20-editor-trunk-vs-campaign.html) | Editor en `trunk` vs `campaign-nivel-1`: F01–F20 lado a lado, qué ve el jugador por serie y 8 decisiones pendientes. Hecho por Sonnet con la skill visual-explainer a partir de `docs/pantallas/inventario-editor/` |
