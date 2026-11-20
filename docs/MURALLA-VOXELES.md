@@ -7,7 +7,7 @@ Sistema de vóxeles **solo para la muralla**: el terreno sigue siendo el relieve
 | `shared/muralla/voxeles.js` | Núcleo sin DOM ni dependencias: rejilla, ejes, paredes, obras, romper/reparar, apoyos, piezas y escombro, consultas, guardado y malla. `window.CMGMuralla` (y `module.exports` en node). |
 | `shared/muralla/vista-three.js` | Adaptador para Three r128: una malla por trozo, solo rehace los que cambian; el plano translúcido aparte; una malla por pieza en movimiento. `window.CMGMurallaVista`. |
 | `herramientas/muralla/` | Laboratorio con el trazado del nivel 1 de Campaign. Fuera del juego y del paquete de Netlify. |
-| `pruebas/muralla-voxeles.cjs` | 94 comprobaciones de node. |
+| `pruebas/muralla-voxeles.cjs` | Pruebas de reglas, guardado, geometría y raycast en Node. |
 
 Abrir el laboratorio con el servidor del README: `http://localhost:8770/herramientas/muralla/` (`?tam=0.25` cambia el tamaño del vóxel).
 
@@ -75,6 +75,76 @@ Otras: `apoyo()`, `derrumbar(t, golpe)`, `piezas`, `pose(p, t)`, `matrizPieza(p,
 | 0,25 m | 36 290 vóxeles | 50 | 19 840 | ~60 ms (Chromium) |
 
 Al construir o romper solo se rehacen los trozos tocados: 1–3 ms por cambio a 0,5 m. El cálculo de apoyos de la muralla con dos capas cuesta 3,5 ms a 0,5 m (7.564 vóxeles) y 30 ms a 0,25 m (60.328), una vez por golpe. Las piezas en movimiento cuestan una matriz por fotograma. Los fotogramas por segundo de SwiftShader no representan un teléfono; falta medir en los dispositivos reales.
+
+## Tensión visible
+
+El tinte indica cuánto voladizo ha consumido cada vóxel sólido. La proporción es el coste del camino al suelo en pasos horizontales dividido por el límite de su material en pasos. Una columna continua hasta el suelo queda a nivel 0. Al agotar el voladizo, o si la obra aún carece de camino al suelo, llega a nivel 4. Con un límite de cero pasos solo queda sin teñir el coste cero.
+
+| Nivel | Proporción | Mezcla de rojo | Oscurecimiento |
+| --- | --- | ---: | ---: |
+| 0 | Menor que 1/2 | 0 % | 0 % |
+| 1 | Desde 1/2 hasta antes de 2/3 | 16 % | 3 % |
+| 2 | Desde 2/3 hasta antes de 5/6 | 30 % | 6 % |
+| 3 | Desde 5/6 hasta antes de 1 | 45 % | 9 % |
+| 4 | Límite alcanzado | 60 % | 12 % |
+
+La piedra de 0,5 m usa la escala discreta indicada para ese caso. Sus costes 0, 1, 2 y 3 dan los niveles **0, 1, 3 y 4**. La pieza que cuelga toma nivel 4 y su bisagra eleva cada soporte al menos a 3. El escombro y el plano conservan su color. La mezcla con `0xd8452f` y el oscurecimiento se aplican antes de la oclusión, en los colores de vértice existentes. Cada piel puede elegir el rojo con `paleta.colorTension` al llamar a `ponerPaleta`.
+
+| Vóxel | Celdas ocupadas tras el golpe, dos capas | Tensión con apoyos reutilizados | Tensión incluida la búsqueda |
+| --- | ---: | ---: | ---: |
+| 0,5 m | 7 412 | 0,7 ms | 4,0 ms |
+| 0,25 m | 59 202 | 4,1 ms | 31,3 ms |
+
+Medianas de nueve cálculos en Node 22 en CPU, sin mallado. Tras un golpe se reutilizan los apoyos del derrumbe. Las lecturas sucesivas de `tension()` devuelven el mismo mapa hasta que cambia la rejilla o se suelta una bisagra. Un cambio de nivel solo ensucia el trozo que contiene el vóxel.
+
+En el laboratorio, `?demo=tension` abre los tres daños con la cámara encuadrada y la simulación en pausa. La casilla **Ver tensión** o `?tension=0` permiten comparar la misma escena. El recuento incluye los sólidos de la rejilla y las piezas colgadas. El guardado conserva el formato v2. Para la fase 2 queda calcular el peso sostenido por cada columna y combinar su nivel con el actual tomando el máximo.
+
+En CPU pasaron 153 comprobaciones de muralla y 124 de interacción. Se comprobaron los colores de vértice de paisaje y batalla y el encuadre de la demo a los tres tamaños de vóxel. Queda pendiente la inspección visual en WebGL.
+
+## Material procedural
+
+La casilla **Textura procedural** arranca activada. `?textura=0` muestra los colores de vértice originales y se puede combinar con `?demo=tension` para comparar el mismo daño en pausa.
+
+| Material | Acabado |
+| --- | --- |
+| Piedra | Sillares de 0,86 × 0,38 m a media pieza, mortero de 18 mm, bisel, tono por sillar y manchas suaves. La coronación usa piezas de 1,1 × 0,55 m para distinguir la hilada que remata el muro. |
+| Hormigón | Paneles de 1,2 × 0,6 m con junta fina, cuatro huellas de latiguillo por panel y vetas verticales. |
+| Acero | Las chapas de blindaje llevan la costura en el perímetro del módulo de 1 × 1 m y cuatro remaches por canto. El acero en vóxeles de partidas antiguas conserva el patrón de 1 × 2 m. |
+| Escombro | Grano de mayor contraste, con un tono medio más oscuro y sin juntas. Conserva la paleta del material del que procede. |
+
+Con textura, el laboratorio baja al 20 % la variación de tono por vóxel (`paletaPara`): el tono lo pone cada sillar, y la variación completa dibujaba la rejilla de 0,5 m debajo del aparejo.
+
+Cada cara elige un plano según su normal y usa la posición de objeto en metros. Así las hiladas cruzan los límites de los vóxeles y los trozos, y viajan con la matriz de una pieza que cuelga o cae. El fragmento usa la precisión `highp` que selecciona Three r128. En equipos limitados a `mediump` o `lowp` se usa el color Lambert de vértice para conservar el tinte de tensión y evitar juntas inestables a 200 m.
+
+**Caras de rotura.** Una cara expuesta que mira a una celda prevista por alguna pared lleva el atributo de vértice `rotura = 1`. La piedra muestra un corte más claro, grano de 55 mm y grietas discontinuas de 7 mm. En el hormigón asoma árido de unos 45 mm. El exterior previsto, incluidos los entrantes de las almenas, conserva su aparejo. La consulta `enPared(i, j, k)` reúne las paredes en una caché con el mismo recorrido que las obras. Se reconstruye en la primera consulta tras añadir una pared, modificar su eje, encargar blindaje o cargar la partida. Un golpe puede reutilizarla.
+
+**Bordes y cascajo.** Cada vértice consulta las ocho celdas que lo tocan. Si entre ellas hay pared sólida y un vacío previsto, se desplaza hasta **0,18 vóxeles por eje** (`BORDE_ROTURA`). En el cascajo libre se permiten **0,22** (`BORDE_CASCAJO`; con 0,30 parecía cristal oscuro). En el contacto manda la pared. El cascajo adopta la posición plana de la pared sana o su mismo desplazamiento si ya estaba rota. Los tres componentes proceden de un hash entero del vértice en la red global. Cada trozo puede reconstruir su lado de la unión por separado. Un cambio en una esquina ensucia hasta ocho trozos. La normal de una cara desplazada suma las normales de sus dos triángulos ponderadas por área. Las demás conservan su normal axial.
+
+**Chapa abollada.** La cara visible tiene 8 × 8 divisiones y alcanza **12 cm** en el centro de un golpe de intensidad máxima. La vista usa la marca que ya guardaba el panel, vuelve a calcular sus normales y oscurece el centro hasta un 26 %. En la cara frontal falta el remache más cercano al impacto. El id del panel desempata a igualdad de distancia. Las UV locales sitúan la costura en los cuatro bordes, también al colgar o caer. La selección de trozos deformados y chapas abolladas usa su superficie lógica anterior.
+
+**Comparación en el laboratorio.** `?demo=rotura` abre en pausa un encuadre de tres cuartos con túnel, montón y chapa. **Bordes de rotura** está activado por omisión. La casilla o `?rotura=0` permiten comparar el túnel y el cascajo. Al alternar la casilla, «Malla sólida completa» conserva los dos tiempos de reconstrucción de los trozos de la misma escena, incluidos los buffers de Three. El tiempo de la última actualización parcial sigue en las estadísticas generales.
+
+**Coste en CPU.** En Node 22.19, el boceto a 0,5 m tenía 4 589 vóxeles y 4 998 caras intactas. Antes del cambio la mediana de mallarlo era 3,6 ms. Con un túnel y escombro, la mediana de nueve mallados completos fue **3,9 ms con bordes apagados y 6,2 ms con bordes activos**. La primera consulta del volumen intacto costó unos 20 ms aparte. Estas medidas corresponden al núcleo con la caché caliente durante el mallado. La vista añade un byte de rotura por vértice de vóxel y conserva una sola llamada de dibujo por trozo. Queda pendiente medir el sombreado en GPU y en teléfono.
+
+**Superficie suave.** Surface Nets exigiría extraer una superficie nueva de un campo de densidad. Habría que definir ese campo, compartir muestras y normales entre trozos, decidir cómo rematar las uniones entre materiales y mantener la correspondencia con el vóxel seleccionado. El acabado actual conserva las caras y sus índices, lo que permite preservar exactamente la malla de la sillería intacta.
+
+## Blindaje de acero
+
+En el laboratorio, **Blindaje → Capa por fuera / por dentro** encarga chapas sobre el eje activo. La demo `?demo=blindaje` abre en pausa con un golpe sobre chapa y otro idéntico sobre piedra expuesta. **Seguir** reanuda el balanceo.
+
+`blindar({ eje, lado, u0, u1, z0, z1, panel, grosor })` llena el tramo con módulos completos. Conserva el tamaño pedido y deja libres las franjas finales donde ya no cabe un módulo. En el boceto caben 106 por hilada y tres hiladas de 1 m. Cada panel sigue la cuerda de la guía desplazada. Si un anclaje sobresale de la banda por la forma escalonada de los vóxeles, el montaje adelanta la chapa para mantener la holgura. Al ampliar el eje, se puede encargar el tramo nuevo con el mismo botón.
+
+Las constantes provisionales están en `BLINDAJE`. El módulo mide **1 × 1 m**, tiene **8 cm de grosor**, deja **4 cm de holgura** y consume **4 unidades de obra**. Al colocarlo se buscan centros de vóxel sólido dentro de su huella y a menos de **1,5 vóxeles** de la cara interior. La obra informa de los módulos omitidos por falta de anclajes. Cada impacto que supera **0,3** de resistencia acumula su energía local. La chapa absorbe el **70 %** en los trayectos del golpe que cruzan su cara desde fuera. Se usa la posición que tenía al llegar el golpe, incluido el que la suelta.
+
+| Estado | Comportamiento |
+| --- | --- |
+| Fijo | Permanece atornillado con al menos la mitad de los anclajes originales. |
+| Abollado | Desde 0,8 de daño conserva el centro y la profundidad de la marca. La vista aplica la marca sobre 8 × 8 divisiones, con tinte de tensión 2. |
+| Cuelga | Con menos de la mitad de los anclajes y todos en el lado izquierdo, derecho o superior, gira sobre ese borde con tinte 4. Los apoyos repartidos aún lo sujetan. |
+| Cae | Al sumar 1,6 de daño, perder el último anclaje o recibir otro golpe mientras cuelga, gira y baja desde la pose actual. |
+| Suelo | La chapa descansa entera sobre su cara posterior y conserva su matriz final. |
+
+El guardado **cmg-muralla v3** conserva la definición de cada chapa, anclajes iniciales (cantidad) y restantes (celdas), daño, abolladura, estado y parámetros de pose. Una obra pendiente conserva sus paneles y el crédito del módulo a medio montar. Las versiones 1 y 2 siguen cargando paredes y obras de acero en vóxeles con sus reglas originales. Para las paredes nuevas, el laboratorio ofrece piedra y hormigón.
 
 ## Inspiración: THE FINALS, temporada 12
 

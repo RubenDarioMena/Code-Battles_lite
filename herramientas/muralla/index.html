@@ -54,6 +54,9 @@
 
     <h2>Material</h2>
     <div class="seg" id="materiales"></div>
+    <label class="check"><input id="textura" type="checkbox" checked> Textura procedural</label>
+
+    <label class="check"><input id="rotura" type="checkbox" checked> Bordes de rotura</label>
 
     <h2>Obras</h2>
     <div class="fila">
@@ -77,6 +80,10 @@
     <label class="check"><input id="verPlano" type="checkbox" checked> Ver el plano de lo que falta</label>
 
     <h2>Daño</h2>
+    <label class="check"><input id="verTension" type="checkbox" checked> Ver tensión</label>
+    <p id="statsMallado" class="nota"></p>
+    <p id="statsPaneles" class="nota"></p>
+    <p id="statsTension" class="nota"></p>
     <div class="fila">
       <button data-modo="disparar">Disparar…</button>
       <button data-accion="socavar" title="Cuatro golpes en la base del extremo norte: el voladizo cuelga y luego cae">Socavar el extremo</button>
@@ -97,8 +104,9 @@
   </aside>
 </div>
 <script src="../../shared/vendor/three-r128.min.js"></script>
-<script src="../../shared/muralla/voxeles.js?v=2"></script>
-<script src="../../shared/muralla/vista-three.js?v=2"></script>
-<script src="laboratorio.js?v=2"></script>
+<script src="../../shared/muralla/voxeles.js?v=6"></script>
+<script src="../../shared/muralla/material-three.js?v=3"></script>
+<script src="../../shared/muralla/vista-three.js?v=6"></script>
+<script src="laboratorio.js?v=6"></script>
 </body>
 </html>

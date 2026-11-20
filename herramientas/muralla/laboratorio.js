@@ -61,7 +61,17 @@
   let fogonazoT = 0;
 
   // ---------- Muralla ----------
+  const rotura = $("#rotura");
+  rotura.checked = parametros.get("rotura") !== "0";
+  rotura.onchange = () => vista.verRotura(rotura.checked);
+  const textura = $("#textura");
+  textura.checked = parametros.get("textura") !== "0";
+  const crearAcabado = () => window.CMGMurallaMaterial.crear(THREE, { textura: textura.checked });
+  let acabado = crearAcabado();
+  // Con textura, el tono lo pone cada sillar: la variación por vóxel baja para que no asome la rejilla de 0,5 m.
+  const paletaPara = (conTextura) => V.paletaBase().map(p => p && { ...p, variacion: p.variacion * (conTextura ? .2 : 1) });
   let m, vista, ejeActivo = "principal", numPared = 0, ultimaMalla = { ms: 0, trozos: 0 };
+  let versionMedida = -1, escenaMedida, tiemposMalla;
   function nueva(tam) {
     if (vista) { escena.remove(vista.grupo); vista.liberar(); }
     m = V.crear({ tam });
@@ -71,7 +81,8 @@
     montar();
   }
   function montar() {
-    vista = VV.crear(THREE, m, {});
+    versionMedida = -1; escenaMedida = null;
+    vista = VV.crear(THREE, m, { material: acabado, rotura: rotura.checked, paleta: paletaPara(textura.checked), tension: $("#verTension").checked });
     vista.verPlano($("#verPlano").checked);
     escena.add(vista.grupo);
   }
@@ -83,17 +94,19 @@
   for (const mt of V.MATERIALES) {
     if (!mt || mt.escombro) continue;
     const b = document.createElement("button");
-    b.innerHTML = `<span class="muestra" style="background:#${mt.color.toString(16).padStart(6, "0")}"></span>${mt.nombre}`;
-    b.dataset.material = mt.id;
-    b.onclick = () => { material = mt.id; pintar(); };
+    const blindaje = mt.id === "acero";
+    b.innerHTML = `<span class="muestra" style="background:#${mt.color.toString(16).padStart(6, "0")}"></span>${blindaje ? "Blindaje" : mt.nombre}`;
+    b.dataset.material = blindaje ? "blindaje" : mt.id;
+    b.onclick = () => { material = b.dataset.material; pintar(); };
     mats.appendChild(b);
   }
   const grosor = () => +$("#grosor").value, ritmo = () => Math.round(10 ** +$("#ritmo").value);
   function pintar() {
     mats.querySelectorAll("button").forEach(b => b.classList.toggle("activo", b.dataset.material === material));
     document.querySelectorAll("[data-modo]").forEach(b => b.classList.toggle("activo", b.dataset.modo === modo));
-    $("#vGrosor").textContent = `${grosor().toLocaleString("es")} m`;
-    $("#vRitmo").textContent = `${ritmo()} vóxeles/s`;
+    $("#grosor").disabled = material === "blindaje";
+    $("#vGrosor").textContent = material === "blindaje" ? `${V.BLINDAJE.grosor * 100} cm` : `${grosor().toLocaleString("es")} m`;
+    $("#vRitmo").textContent = `${ritmo()} unidades/s`;
     $("#vRadio").textContent = `${(+$("#radio").value).toLocaleString("es")} m`;
     $("#vPoder").textContent = (+$("#poder").value).toLocaleString("es");
     $("#vEscombro").textContent = `${Math.round(100 * +$("#escombro").value)} %`;
@@ -103,7 +116,7 @@
       null: `Eje activo: <b>${ejeActivo}</b>. Elige una obra; las capas y la subida van sobre el eje activo.`,
       ampliar: `<b>Ampliar</b>: toca el suelo para alargar <b>${ejeActivo}</b> desde su extremo. Cada capa sigue al tramo nuevo.`,
       pared: puntoA ? "<b>Pared nueva</b>: toca el punto final." : "<b>Pared nueva</b>: toca el punto de inicio en el suelo.",
-      disparar: "<b>Disparar</b>: toca la muralla. El acero aguanta más que el hormigón y este más que la piedra.",
+      disparar: "<b>Disparar</b>: toca la muralla. Toca una chapa para abollarla o soltarla de sus anclajes.",
     };
     $("#modo").innerHTML = textos[modo] + (nota ? `<br>${nota}` : "");
   }
@@ -112,12 +125,25 @@
     const o = m.planear({ ...def, material });
     avisar(o.total ? `Obra ${o.id}: ${o.total} vóxeles de ${V.MATERIALES[V.MAT[material]].nombre.toLowerCase()}.` : "No falta nada: esa obra ya está hecha.");
   }
+  function capa(lado) {
+    if (material === "blindaje") {
+      const o = m.blindar({ eje: ejeActivo, lado });
+      return avisar(o.total ? `Obra ${o.id} · ${o.total} paneles de blindaje.` : "No caben más paneles en esa cara.");
+    }
+    const banda = m.capa(ejeActivo, lado, grosor());
+    obra(lado === "fuera" ? { ...banda, almenas: ALMENAS } : banda);
+  }
+  function avance(n) {
+    const r = m.avanzar(n);
+    if (r.omitidos) avisar(`Se omitieron ${r.omitidos} paneles sin anclajes.`);
+    return r;
+  }
   const acciones = {
-    fuera: () => obra({ ...m.capa(ejeActivo, "fuera", grosor()), almenas: ALMENAS }),
-    dentro: () => obra(m.capa(ejeActivo, "dentro", grosor())),
-    subir: () => obra({ ...m.hilada(ejeActivo, 1), almenas: ALMENAS }),
+    fuera: () => capa("fuera"),
+    dentro: () => capa("dentro"),
+    subir: () => material === "blindaje" ? avisar("El blindaje necesita una cara de pared. Usa Capa por fuera o por dentro.") : obra({ ...m.hilada(ejeActivo, 1), almenas: ALMENAS }),
     reparar: () => { const os = m.reparar(); avisar(os.length ? `Reparación: ${os.reduce((s, o) => s + o.total, 0)} vóxeles en ${os.length} obras.` : "No hay nada que reparar."); },
-    terminar: () => { m.avanzar(1e9); avisar("Obras terminadas."); },
+    terminar: () => { if (!avance(Infinity).omitidos) avisar("Obras terminadas."); },
     cancelar: () => { while (m.obras.length) m.cancelar(m.obras[0].id); avisar("Obras canceladas."); },
     reiniciar: () => { nueva(+$("#tam").value); avisar(""); },
     socavar: () => {
@@ -142,6 +168,15 @@
   $("#pausa").onclick = () => { pausa = !pausa; pintar(); };
   ["grosor", "ritmo", "radio", "poder", "escombro"].forEach(id => $("#" + id).oninput = pintar);
   $("#verPlano").onchange = (e) => vista.verPlano(e.target.checked);
+  textura.onchange = () => {
+    const anterior = acabado;
+    acabado = crearAcabado();
+    vista.ponerMaterial(acabado);
+    vista.ponerPaleta(paletaPara(textura.checked));
+    anterior.dispose();
+  };
+  $("#verTension").checked = parametros.get("tension") !== "0";
+  $("#verTension").onchange = (e) => vista.verTension(e.target.checked);
   $("#tam").onchange = () => acciones.reiniciar();
   if (parametros.get("tam")) $("#tam").value = parametros.get("tam");
 
@@ -149,8 +184,21 @@
     const os = m.obrasResumen();
     $("#obras").innerHTML = os.length ? os.slice(0, 5).map(o => {
       const p = m.pared(o.pared), pct = Math.round(100 * (o.total - o.pendientes) / o.total);
-      return `<div>Obra ${o.id} · ${p.eje} · ${V.MATERIALES[p.material].nombre} · ${pct} %</div><div class="barra"><i style="width:${pct}%"></i></div>`;
+      const nombre = o.tipo === "blindaje" ? `${o.eje} · Blindaje` : `${p.eje} · ${V.MATERIALES[p.material].nombre}`;
+      return `<div>Obra ${o.id} · ${nombre} · ${pct} %</div><div class="barra"><i style="width:${pct}%"></i></div>`;
     }).join("") + (os.length > 5 ? `<div>y ${os.length - 5} más</div>` : "") : "Sin obras en curso.";
+  }
+
+  function medirTension() {
+    if (versionMedida === m.versionTension) return;
+    const inicio = performance.now(), mapa = m.tension(), ms = performance.now() - inicio;
+    versionMedida = m.versionTension;
+    const cuentas = [0, 0, 0, 0, 0];
+    m.rejilla.recorrer((i, j, k, material) => {
+      if (!V.esEscombro(material)) cuentas[mapa.get(V.K(i, j, k)) || 0]++;
+    });
+    for (const p of m.piezas) if (p.estado === "cuelga") cuentas[4] += p.vox.length / 4;
+    $("#statsTension").textContent = `Vóxeles por nivel · ${cuentas.map((n, nivel) => `N${nivel} ${n}`).join(" · ")} · Cálculo ${ms.toFixed(2)} ms`;
   }
 
   // ---------- Cámara orbital (ratón y tacto) ----------
@@ -229,6 +277,7 @@
       return avisar(`Tramo nuevo de ${ejeActivo}: ${os.reduce((s, o) => s + o.total, 0)} vóxeles en ${os.length} obras.`);
     }
     if (modo === "pared") {
+      if (material === "blindaje") return avisar("Elige piedra u hormigón para levantar la pared que sostendrá el blindaje.");
       if (!puntoA) { puntoA = p; marca.position.set(p[0], .2, p[1]); marca.visible = true; return pintar(); }
       if (Math.hypot(p[0] - puntoA[0], p[1] - puntoA[1]) < 1) return avisar("Elige un punto final más lejos.");
       const nombre = `pared-${++numPared}`;
@@ -240,12 +289,85 @@
   function golpear(x, y, z, radio, poder) {
     const g = m.romper(x, y, z, radio, poder, { t: tSim, escombros: +$("#escombro").value, derrumbe: $("#derrumbe").checked });
     fogonazo.position.set(x, z, y); fogonazo.scale.setScalar(radio); fogonazo.visible = true; fogonazoT = performance.now();
-    const partes = [g.quitados ? `cayeron ${g.quitados} vóxeles` : "el material aguantó"];
+    const partes = [];
+    if (g.quitados) partes.push(`cayeron ${g.quitados} vóxeles`);
+    if (g.paneles.length) partes.push(`${g.paneles.length} paneles alcanzados`);
+    if (!partes.length) partes.push("el material aguantó");
     if (g.escombros) partes.push(`${g.escombros} salen despedidos`);
     const cuelgan = g.piezas.filter(id => (m.piezas.find(p => p.id === id) || {}).estado === "cuelga").length;
     if (g.piezas.length) partes.push(`${g.piezas.length} piezas sin apoyo${cuelgan ? ` (${cuelgan} cuelgan)` : ""}`);
     if (g.sueltas.length) partes.push(`${g.sueltas.length} piezas colgadas se sueltan`);
     avisar(`Impacto: ${partes.join(", ")}.`);
+  }
+
+  function demoTension() {
+    // Las medidas de la máquina quedan en el panel para que la captura de la escena sea reproducible.
+    $("#statsTension").after($("#stats"));
+    m.construir({ ...m.capa("principal", "fuera", 1), u0: 11, u1: 18, material: "hormigon" });
+    // Dos túneles y un mordisco en el extremo libre. Un segundo simulado entre golpes.
+    const golpes = [[104.5, 34, 1.7, 1.8], [104.5, 41, 1.7, 1.8], [105.75, 41, 2.1, 2],
+      [104.5, 27, 1.4, 1.3], [104.5, 28, 1.4, 1.3]];
+    for (const [x, y, radio, poder] of golpes) {
+      m.romper(x, y, .45, radio, poder, { t: tSim, escombros: 0 });
+      m.paso(++tSim);
+    }
+    pausa = true;
+    orb.objetivo.set(104.5, 1.5, 35);
+    orb.theta = -.18; orb.phi = 1.32;
+    orb.r = Math.max(15, 25 / camara.aspect);
+  }
+
+  function demoRotura() {
+    const y = 40;
+    // El túnel queda abierto para la captura. La chapa recibe un golpe real, justo bajo su umbral de caída.
+    m.romper(104.5, y, .9, 1.65, 1.5, { t: 0, derrumbe: false, escombros: 0 });
+    const o = m.blindar({ eje: "principal", u0: 15, u1: 17, z0: 1, z1: 2 });
+    m.completar(o.id);
+    const p = m.paneles[0];
+    m.romper(...V.puntoPanel(p, .5, .5, p.grosor), .25, 1.55, { t: 0, derrumbe: false, escombros: 0 });
+    // Montón compacto a un lado de la boca. Las columnas se apoyan desde el suelo.
+    const [i, j, k] = m.indice(106, y - 2, 0);
+    const radio = Math.max(1, Math.round(.8 / m.tam));
+    for (let dx = -radio; dx <= radio; dx++) for (let dy = -radio; dy <= radio; dy++) {
+      const alto = radio + 1 - Math.ceil(Math.hypot(dx, dy));
+      for (let dz = 0; dz < alto; dz++)
+        if (!m.rejilla.get(i + dx, j + dy, k + dz)) m.rejilla.set(i + dx, j + dy, k + dz, V.aEscombro(V.MAT.piedra));
+    }
+    pausa = true;
+    $("#statsTension").after($("#stats"));
+    orb.objetivo.set(105.45, 1.2, y + .35);
+    orb.theta = .48; orb.phi = 1.37;
+    orb.r = Math.max(6.4, (9.4 + 1.6 * m.tam) / camara.aspect);
+    nota = "Túnel, cascajo y chapa abollada.";
+  }
+
+  function demoBlindaje() {
+    // Paneles de dos vóxeles o más por lado para poder socavar solo una esquina a cualquier resolución.
+    const lado = Math.max(1, 2 * m.tam), u0 = 6;
+    const o = m.blindar({ eje: "principal", u0, u1: u0 + 5 * lado, z0: 0, z1: lado, panel: [lado, lado] });
+    m.completar(o.id);
+    const [abollado, , colgado, , caido] = m.paneles;
+    const golpearPanel = (p, desplazamiento, radio, poder) => {
+      const q = V.puntoPanel(p, p.ancho / 2, p.alto / 2, p.grosor + .01);
+      q[1] += desplazamiento;
+      m.romper(...q, radio, poder, { t: tSim, escombros: 0 });
+    };
+    golpearPanel(abollado, 0, 1.35 * lado, 1);
+    golpearPanel(abollado, 7 * lado, 1.35 * lado, 1);
+    golpearPanel(caido, 0, .4 * lado, 2);
+    // Golpes en el centro de cada anclaje salvo la esquina izquierda superior.
+    const anclajes = colgado.anclajes.map(c => m.centro(...V.deK(c))).sort((a, b) => b[1] - a[1]);
+    for (const q of anclajes) {
+      if (q[1] < colgado.origen[1] + colgado.ancho / 2 && q[2] >= colgado.alto / 2) continue;
+      m.romper(...q, .35 * m.tam, 1, { t: tSim, escombros: 0 });
+    }
+    tSim += 2;
+    m.paso(tSim);
+    pausa = true;
+    orb.objetivo.set(abollado.origen[0], lado * .8, abollado.origen[1] + 3.7 * lado);
+    orb.theta = -.16; orb.phi = 1.17;
+    orb.r = Math.max(8, 13 / camara.aspect) * lado;
+    nota = "El tramo blindado recibió el mismo golpe que la piedra descubierta a su lado.";
   }
 
   // ---------- Bucle ----------
@@ -258,11 +380,18 @@
   function cuadro(ahora) {
     const dt = Math.min(.1, (ahora - anterior) / 1000); anterior = ahora;
     if (!pausa) tSim += dt;
-    if (!pausa && m.obras.length) { acumulado += dt * ritmo(); const n = Math.floor(acumulado); acumulado -= n; if (n) m.avanzar(n); } else acumulado = 0;
+    if (!pausa && m.obras.length) { acumulado += dt * ritmo(); const n = Math.floor(acumulado); acumulado -= n; if (n) avance(n); } else acumulado = 0;
     while (cola.length && cola[0].t <= tSim) { const g = cola.shift(); golpear(g.x, g.y, g.z, g.radio, g.poder); }
     m.paso(tSim);
+    medirTension();
     const r = vista.actualizar(tSim);
-    if (r.trozos) ultimaMalla = r;
+    if (r.trozos) {
+      ultimaMalla = r;
+      const estado = [m.version, m.rejilla.version, textura.checked, $("#verTension").checked].join("/");
+      if (estado !== escenaMedida) { tiemposMalla = ["—", "—"]; escenaMedida = estado; }
+      if (r.trozosSolidos === m.rejilla.numTrozos) tiemposMalla[Number(rotura.checked)] = r.msSolida.toFixed(1) + " ms";
+      $("#statsMallado").textContent = `Malla sólida completa · con bordes ${tiemposMalla[1]} · sin bordes ${tiemposMalla[0]}`;
+    }
     const alto = m.altoEn(TORRETA.x, TORRETA.y);
     torreta.visible = alto != null; if (alto != null) torreta.position.set(TORRETA.x, alto, TORRETA.y);
     if (fogonazo.visible) { const t = (ahora - fogonazoT) / 260; fogonazo.material.opacity = Math.max(0, .85 * (1 - t)); fogonazo.visible = t < 1; }
@@ -272,13 +401,18 @@
     if (ahora - tLista > 200) {
       tLista = ahora; listarObras();
       const e = m.estadisticas();
+      $("#statsPaneles").textContent = `Paneles · ${e.paneles.fijo} fijos · ${e.paneles.abollado} abollados · ${e.paneles.cuelga} colgados · ${e.paneles.cae} cayendo · ${e.paneles.suelo} en el suelo`;
       $("#stats").textContent = `${e.voxeles} vóxeles · ${e.planeados} en plano · ${e.trozos} trozos · ${vista.caras} caras · ${e.piezas} piezas · malla ${ultimaMalla.ms.toFixed(1)} ms (${ultimaMalla.trozos} trozos) · ${fps.toFixed(0)} fps`;
     }
     requestAnimationFrame(cuadro);
   }
 
   nueva(+$("#tam").value);
-  pintar(); ajustar(); colocarCamara();
+  ajustar();
+  if (parametros.get("demo") === "tension") demoTension();
+  if (parametros.get("demo") === "rotura") demoRotura();
+  if (parametros.get("demo") === "blindaje") demoBlindaje();
+  pintar(); colocarCamara();
   requestAnimationFrame(cuadro);
-  window.__muralla = { get m() { return m; }, get vista() { return vista; }, escena, camara, render, orb, colocarCamara, acciones, tocar, enSuelo, ponerModo: (x) => { modo = x; puntoA = null; pintar(); }, ponerMaterial: (x) => { material = x; pintar(); }, ponerPausa: (x) => { pausa = x; pintar(); }, golpear, get tSim() { return tSim; } };
+  window.__muralla = { get m() { return m; }, get vista() { return vista; }, escena, camara, render, orb, colocarCamara, acciones, tocar, enSuelo, ponerModo: (x) => { modo = x; puntoA = null; pintar(); }, ponerMaterial: (x) => { material = x === "acero" ? "blindaje" : x; pintar(); }, ponerPausa: (x) => { pausa = x; pintar(); }, golpear, get tSim() { return tSim; } };
 })();
