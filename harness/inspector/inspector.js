@@ -3,17 +3,20 @@
   const $ = (s, r = raiz) => r.querySelector(s);
   const h = (tag, props = {}, ...hijos) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(props)) { if (k === 'class') e.className = v; else if (k === 'style') e.style.cssText = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v != null && v !== false) e.setAttribute(k, v === true ? '' : v); } for (const c of hijos.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
   const ramas = Object.keys(D.ramas);
-  const st = { pant: D.pantallas[0].id, plat: D.plataformas[0].id, a: ramas[0], comparar: false, inspeccionar: true, grupos: {}, detalle: new Set(), fija: null };
+  const st = { pant: D.bloques[0].id, plat: D.plataformas[0].id, a: ramas[0], comparar: false, inspeccionar: true, grupos: {}, detalle: new Set(), fija: null };
   const otra = () => ramas.find(r => r !== st.a) || st.a;
-  const cap = lado => (D.capturas[st.pant]?.[st.plat] || {})[lado === 'a' ? st.a : otra()] || null;
-  const arbol = () => D.elementos[D.pantallas.find(p => p.id === st.pant).elementos];
+  const capT = lado => (D.capturas[st.pant]?.[st.plat] || {})[lado === 'a' ? st.a : otra()] || null;
+  const cap = lado => { const c = capT(lado); return c && !c.falta ? c : null; };
+  const esta = (c, id) => !!c && (c.presentes ? c.presentes.includes(id) : !!c.cajas[id]);
+  const bloque = () => D.bloques.find(b => b.id === st.pant);
+  const arbol = () => bloque().elementos.flatMap(n => D.elementos[n]);
   const plano = () => { const out = []; const rec = (l, g) => l.forEach(e => { out.push({ ...e, grupo: g }); if (e.hijos) rec(e.hijos, e.id); }); rec(arbol(), null); return out; };
   const esGrupo = id => !!arbol().find(e => e.id === id && e.hijos);
 
   // Presencia y color: izquierda azul, derecha rojo, ambas morado.
   const pres = (cajaA, cajaB) => ({ a: !!cajaA, b: st.comparar && !!cajaB });
   const color = p => st.comparar ? (p.a && p.b ? 'var(--ab)' : p.a ? 'var(--a)' : p.b ? 'var(--b)' : '') : (p.a ? 'var(--a)' : '');
-  const presId = id => pres(cap('a')?.cajas[id], cap('b')?.cajas[id]);
+  const presId = id => ({ a: esta(cap('a'), id), b: st.comparar && esta(cap('b'), id) });
   const piezas = () => { // controles sin describir, unidos por referencia y texto
     const m = new Map();
     for (const lado of st.comparar ? ['a', 'b'] : ['a']) for (const s of cap(lado)?.sin || []) {
@@ -26,7 +29,7 @@
 
   // ---------- barra ----------
   const selPant = $('#insp-pant'), segPlat = $('#insp-plat'), selRama = $('#insp-rama'), bComp = $('#insp-comparar'), bInsp = $('#insp-inspeccionar');
-  D.pantallas.forEach(p => selPant.append(h('option', { value: p.id }, p.titulo)));
+  [...new Set(D.bloques.map(b => b.grupo))].forEach(g => selPant.append(h('optgroup', { label: g }, D.bloques.filter(b => b.grupo === g).map(b => h('option', { value: b.id }, b.titulo)))));
   ramas.forEach(r => selRama.append(h('option', { value: r }, `${r} · ${D.ramas[r].commit}`)));
   D.plataformas.forEach(p => segPlat.append(h('button', { type: 'button', 'data-id': p.id, 'aria-pressed': String(p.id === st.plat), onclick: () => { st.plat = p.id; todo(); } }, p.titulo)));
   selPant.onchange = () => { st.pant = selPant.value; st.grupos = {}; st.detalle.clear(); st.fija = null; todo(); };
@@ -39,13 +42,14 @@
   function pintarPantallas() {
     raiz.classList.toggle('comparando', st.comparar);
     for (const lado of ['a', 'b']) {
-      const fig = $(`.i-p[data-lado=${lado}]`), c = cap(lado); cajasDom[lado] = new Map();
+      const fig = $(`.i-p[data-lado=${lado}]`), c = cap(lado), cT = capT(lado); cajasDom[lado] = new Map();
       fig.hidden = lado === 'b' && !st.comparar;
       const lienzo = $('.i-lienzo', fig), pie = $('figcaption', fig);
       const rama = lado === 'a' ? st.a : otra();
       pie.replaceChildren(h('i'), h('b', {}, rama), `${D.ramas[rama].commit}`);
-      if (!c) { lienzo.replaceChildren(h('p', { style: 'line-height:1.4;color:var(--tenue);padding:2rem' }, 'Esta pantalla no existe en esta rama.')); continue; }
-      const img = h('img', { src: D.imagenes[c.img], alt: `Captura de ${selPant.selectedOptions[0].text} en ${rama}`, width: c.w, height: c.h, draggable: 'false' });
+      lienzo.classList.toggle('vacio', !c);
+      if (!c) { const plat = D.plataformas.find(p => p.id === st.plat).titulo; lienzo.replaceChildren(h('div', { class: 'i-falta' }, h('b', {}, `${bloque().titulo} no existe en ${rama} · ${plat}`), h('p', {}, cT?.falta || 'Sin captura.'))); continue; }
+      const img = h('img', { src: D.imagenes[c.img], alt: `Captura del bloque ${bloque().titulo} en ${rama}`, width: c.w, height: c.h, draggable: 'false' });
       const capa = [img];
       const pon = (k, caja) => { const d = h('div', { class: 'i-caja', style: `left:${caja[0] / c.w * 100}%;top:${caja[1] / c.h * 100}%;width:${caja[2] / c.w * 100}%;height:${caja[3] / c.h * 100}%` }); cajasDom[lado].set(k, d); capa.push(d); };
       for (const [id, caja] of Object.entries(c.cajas)) pon(id, caja);
@@ -109,17 +113,18 @@
   function fijar() { raiz.querySelectorAll('.i-caja.fija').forEach(d => d.classList.remove('fija')); if (!st.fija) return; for (const lado of ['a', 'b']) cajasDom[lado].get(st.fija)?.classList.add('fija'); }
 
   // ---------- lista ----------
-  const medida = (c, id) => c?.cajas[id] ? `${c.cajas[id][2]}×${c.cajas[id][3]}` : 'no visible';
+  const medida = (c, id) => !c ? 'no existe el bloque' : c.cajas[id] ? `${c.cajas[id][2]}×${c.cajas[id][3]}` : esta(c, id) ? 'fuera de la vista (hay que desplazar)' : 'no está';
   function tarjeta(e, foco) {
     const p = presId(e.id), c = color(p), abierta = st.detalle.has(e.id);
     const det = h('div', { class: 'i-det', hidden: !abierta },
-      h('p', {}, h('b', {}, 'Pantalla'), e.ui), h('p', {}, h('b', {}, 'Juego'), e.juego),
+      h('p', {}, h('b', {}, 'Interfaz'), e.ui), h('p', {}, h('b', {}, 'Juego'), e.juego),
       h('p', { style: 'font-family:var(--mono);font-size:.74rem;color:var(--tenue)' }, `${st.a}: ${medida(cap('a'), e.id)}`, st.comparar ? ` · ${otra()}: ${medida(cap('b'), e.id)}` : ''));
     const mias = piezas().filter(v => hojaDe(v) === e.id);
     if (mias.length) det.append(h('div', { class: 'i-piezas' }, mias.map(v => h('span', { class: 'i-pieza', 'data-k': v.k, style: `--c:${color(pres(v.cajas.a, v.cajas.b)) || 'var(--tenue)'}`, title: v.ref, onpointerenter: () => encender(v.k), onpointerleave: apagar }, v.t || v.ref, ' ', h('code', {}, v.ref)))));
     const cab = h('button', { type: 'button', class: 'i-cab', 'aria-expanded': String(abierta), onclick: () => { abierta ? st.detalle.delete(e.id) : st.detalle.add(e.id); pintarLista(); }, onpointerenter: () => encender(e.id), onpointerleave: apagar },
       h('span', { class: 'i-llave' }, abierta ? '▾' : '▸'), h('span', { class: 'i-t' }, e.t), mias.length ? h('span', { class: 'i-cuenta' }, `${mias.length} piezas`) : h('span'), h('span', { class: 'i-ref' }, e.sel.join(', ')));
-    const card = h('li', { class: 'i-tarjeta' + (p.a || p.b ? '' : ' ausente'), 'data-k': e.id, style: c ? `--c:${c}` : '' }, cab, det);
+    const fuera = (p.a || p.b) && !['a', 'b'].some(l => (l === 'a' || st.comparar) && cap(l)?.cajas[e.id]);
+    const card = h('li', { class: 'i-tarjeta' + (p.a || p.b ? '' : ' ausente') + (fuera ? ' fuera' : ''), 'data-k': e.id, style: c ? `--c:${c}` : '' }, cab, det);
     if (foco) card.append(h('div', { style: 'padding:0 .6rem .5rem 2.3rem' }, h('button', { type: 'button', class: 'i-cerrar', onclick: () => { st.detalle.delete(e.id); st.grupos[e.grupo] = 'cerrado'; st.fija = null; fijar(); pintarLista(); } }, 'Colapsar este elemento')));
     return card;
   }
@@ -132,7 +137,7 @@
     let ocultos = 0;
     for (const [id, li] of hijosLi) { if (foco && id !== foco) { li.hidden = true; ocultos++; } ul.append(li); }
     if (foco && ocultos) ul.append(h('li', {}, h('button', { type: 'button', class: 'i-mas', onclick: () => { st.grupos[e.id] = 'abierto'; pintarLista(); } }, `Mostrar los otros ${ocultos}`)));
-    if (e.ui && abierto && !foco) ul.prepend(h('li', { class: 'i-det', style: 'padding:.2rem .5rem .3rem' }, h('p', {}, h('b', {}, 'Pantalla'), e.ui), h('p', {}, h('b', {}, 'Juego'), e.juego)));
+    if (e.ui && abierto && !foco) ul.prepend(h('li', { class: 'i-det', style: 'padding:.2rem .5rem .3rem' }, h('p', {}, h('b', {}, 'Interfaz'), e.ui), h('p', {}, h('b', {}, 'Juego'), e.juego)));
     return h('li', { class: 'i-grupo', style: c ? `--c:${c}` : '' }, cab, ul, h('div', { class: 'i-cierre', hidden: !abierto }, '}'));
   }
   function pintarLista() {
@@ -152,6 +157,7 @@
           foco === v.k ? h('div', { style: 'padding:0 .6rem .5rem 2.3rem' }, h('button', { type: 'button', class: 'i-cerrar', onclick: () => { st.grupos.sin = 'cerrado'; st.fija = null; fijar(); pintarLista(); } }, 'Colapsar este elemento')) : null)]; }),
         `${sueltas.length}`, 'Sin describir en el manifiesto'));
     }
+    const b = bloque(); $('.i-bloque').replaceChildren(h('b', {}, `${b.grupo} · ${b.titulo}`), h('p', {}, b.que));
     const ley = $('.i-leyenda');
     ley.replaceChildren(...(st.comparar
       ? [h('span', { style: '--c:var(--a)' }, h('i'), `solo ${st.a}`), h('span', { style: '--c:var(--b)' }, h('i'), `solo ${otra()}`), h('span', { style: '--c:var(--ab)' }, h('i'), 'en ambas'), h('span', { style: '--c:var(--linea)' }, h('i'), 'en ninguna')]
@@ -161,7 +167,7 @@
     selPant.value = st.pant; selRama.value = st.a;
     segPlat.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === st.plat)));
     bComp.setAttribute('aria-pressed', String(st.comparar)); $('span', bComp).textContent = `Comparar con ${otra()}`;
-    const errs = ['a', 'b'].flatMap(l => (l === 'b' && !st.comparar) ? [] : (cap(l)?.errores || []).map(e => `${l === 'a' ? st.a : otra()}: ${e}`));
+    const errs = ['a', 'b'].flatMap(l => (l === 'b' && !st.comparar) ? [] : (capT(l)?.errores || []).map(e => `${l === 'a' ? st.a : otra()}: ${e}`));
     $('.i-errores').textContent = errs.length ? `Errores JS al capturar: ${errs.join(' · ')}` : '';
     pintarPantallas(); pintarLista(); fijar();
   }

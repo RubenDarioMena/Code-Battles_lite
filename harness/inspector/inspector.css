@@ -64,6 +64,14 @@
 #insp .i-pieza code{font-family:var(--mono);color:var(--tenue);font-size:.7rem}
 #insp .i-cerrar{grid-row:1;grid-column:3;font:inherit;font-size:.75rem;color:var(--tenue);background:none;border:1px solid var(--linea);border-radius:4px;padding:.1rem .45rem;cursor:pointer}
 #insp .i-mas{font:inherit;font-size:.78rem;color:var(--tenue);background:none;border:0;padding:.2rem .5rem;cursor:pointer;text-decoration:underline}
+#insp .i-bloque{padding:.7rem .8rem .6rem;border-bottom:1px solid var(--linea)}
+#insp .i-bloque b{font-size:.95rem}
+#insp .i-bloque p{margin:.25rem 0 0;font-size:.82rem;color:var(--tenue);max-width:none}
+#insp .i-falta{line-height:1.4;padding:2rem 1.5rem;min-width:260px;max-width:420px;border:1px dashed var(--linea);border-radius:6px}
+#insp .i-falta b{display:block;margin-bottom:.4rem}
+#insp .i-falta p{margin:0;color:var(--tenue);font-size:.85rem}
+#insp .i-lienzo.vacio{cursor:default}
+#insp .i-tarjeta.fuera>.i-cab .i-t::after{content:' ↓';color:var(--tenue);font-weight:400}
 #insp .i-nota{font-size:.78rem;color:var(--tenue);margin:.6rem 0 0}
 @media (max-width:960px){#insp .i-cuerpo{grid-template-columns:1fr}#insp .i-lista{position:static;max-height:none}#insp .i-lienzo img{max-height:70vh}}
 @media (max-width:560px){#insp{font-size:14px}#insp.comparando .i-pantallas{gap:.5rem}#insp .i-barra{gap:.5rem}#insp label.i-campo{flex:1 1 45%}#insp select{width:100%}}

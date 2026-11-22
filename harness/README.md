@@ -10,7 +10,7 @@ Capa de orquestación sobre Claude Code y Codex CLI. **No es un programa nuevo:*
 | 2 · Fuente de verdad | Sin servidor ni base de datos: un repo de harness con reglas, plantillas y scripts | v0 dentro de Code Battle Lite (`harness/`) | Moverlo a su propio repo tras 1–2 semanas de uso |
 | 3 · Revisión y reglas | PR agéntico revisado por otro modelo; enrutador después. Sin memoria automática: todo en `AGENTS.md`, `CLAUDE.md` y `REGLAS.md` | `pedir-revision.sh` (Codex local, solo lectura). `autoMemoryEnabled: false` | Revisión en la nube con PRs; enrutador cuando haya datos de consumo |
 | 4 · Historial de bugs | Registro con ID estable y recurrencias, buscable antes de arreglar | `docs/bugs/INDICE.md` + `nuevo-bug.mjs` (detecta duplicados) | Primer uso real |
-| 5 · Docs por pantalla | Lista de features, partes conectadas, índice por palabras clave y método de QA muy concreto | Spec del editor (borrador) + clicker del editor + inspector de pantallas (manifiesto del juego) | Inventario de features de `trunk` y `campaign` con Haiku; luego HTML de inconsistencias con Sonnet; aprobar la spec |
+| 5 · Docs por pantalla | Lista de features, partes conectadas, índice por palabras clave y método de QA muy concreto | Spec del editor (borrador) + clicker del editor + inspector de bloques (Mapa, Código, Misión… con su manifiesto) | Inventario de features de `trunk` y `campaign` con Haiku; luego HTML de inconsistencias con Sonnet; aprobar la spec |
 
 ## Qué hay
 
@@ -22,7 +22,7 @@ Capa de orquestación sobre Claude Code y Codex CLI. **No es un programa nuevo:*
 | [scripts/pedir-revision.sh](scripts/pedir-revision.sh) | Pide una revisión a Codex CLI del rango de la rama y la guarda en `docs/revisiones/`. |
 | [scripts/nuevo-bug.mjs](scripts/nuevo-bug.mjs) | Busca duplicados en el registro y crea el bug con ID estable. |
 | `pruebas/clicker-editor.mjs` | Random clicker del editor (QA nivel 1, sin modelos). |
-| [inspector/](inspector/) | Inspector de pantallas: capturas reales con su lista de elementos y comparación entre ramas. |
+| [inspector/](inspector/) | Inspector de bloques (Mapa, Código, Misión…): capturas reales con su lista de elementos y comparación entre ramas. |
 
 En el proyecto:
 

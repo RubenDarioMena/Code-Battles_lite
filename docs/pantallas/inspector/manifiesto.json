@@ -1,88 +1,275 @@
 {
-  "nota": "Manifiesto del inspector de pantallas. Cada elemento se localiza por selector CSS en el HTML real del juego; la presencia por rama y plataforma la decide la captura, no este archivo. Los grupos de primer nivel son los elementos grandes; 'hijos' son los pequeños.",
+  "nota": "Manifiesto del inspector de bloques. Un bloque es una parte funcional del juego (mapa, código, misión, ajustes…), no la pantalla completa. Cada bloque dice cómo abrirlo (panel, entrada del menú ⋯ y clics) y qué elemento lo contiene (raiz). Sus elementos se localizan por selector CSS en el HTML real; la presencia por rama y plataforma la decide la captura, no este archivo. Los elementos con 'hijos' son los grandes; los hijos, los pequeños. 'ui' = qué hace en la interfaz; 'juego' = para qué sirve al jugar.",
   "plataformas": [
     { "id": "escritorio", "titulo": "PC", "w": 1280, "h": 800 },
-    { "id": "tablet", "titulo": "Tablet", "w": 820, "h": 1180, "tactil": true },
+    { "id": "tablet", "titulo": "Tablet", "w": 1180, "h": 820, "tactil": true },
     { "id": "movil", "titulo": "Teléfono", "w": 390, "h": 844, "tactil": true }
   ],
-  "pantallas": [
-    { "id": "war", "titulo": "Juego · War", "ruta": "Prototypes/Rocket Launcher/index.html", "elementos": "juego" },
-    { "id": "factory", "titulo": "Juego · Factory", "ruta": "Prototypes/Rocket Launcher/index.html?serie=factory", "elementos": "juego" },
-    { "id": "campaign", "titulo": "Juego · Campaign", "ruta": "Prototypes/Rocket Launcher/index.html?serie=campaign", "elementos": "juego" },
-    { "id": "demo", "titulo": "Editor · demo autónoma", "ruta": { "trunk": "paquetes/editor/demo/demo.html", "campaign-nivel-1": "shared/editor/demo.html" }, "raiz": "#demo-uno", "elementos": "demo" }
+  "series": {
+    "campaign": "Prototypes/Rocket Launcher/index.html?serie=campaign",
+    "war": "Prototypes/Rocket Launcher/index.html"
+  },
+  "bloques": [
+    { "id": "mapa", "titulo": "Mapa", "grupo": "Campaign", "serie": "campaign", "panel": "mapa", "raiz": "#zona-mapa", "elementos": ["mapa"],
+      "que": "La planta o el campo de batalla con sus indicadores y los controles para ejecutar." },
+    { "id": "codigo", "titulo": "Código", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "programa", "raiz": "#zona-codigo", "elementos": ["codigo"],
+      "que": "El editor del programa de cada unidad, con su barra, la paleta de fichas y el panel inferior." },
+    { "id": "mision", "titulo": "Misión", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "mision", "raiz": "#zona-codigo", "elementos": ["panel", "mision"],
+      "que": "El hito en curso explicado, los anteriores y los que vienen. Ocupa el sitio del código." },
+    { "id": "maquinas", "titulo": "Máquinas", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "maquinas", "raiz": "#zona-codigo", "elementos": ["panel", "maquinas"],
+      "que": "Las unidades propias por clase y las enemigas vistas. Sustituye a Checkpoint." },
+    { "id": "ficha", "titulo": "Ficha de máquina", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "maquinas", "clic": ["[data-ficha='FRK-01']"], "raiz": "#zona-codigo", "elementos": ["panel", "ficha"],
+      "que": "Todo sobre una unidad: dibujo, modelo 3D, qué hace, sus órdenes y datos, y sus signos vitales. Capturada con FRK-01." },
+    { "id": "historial", "titulo": "Historial", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "escenario", "raiz": "#zona-codigo", "elementos": ["panel", "historial"],
+      "que": "Checkpoints automáticos de cada hito para volver atrás." },
+    { "id": "registro", "titulo": "Registro", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "registro", "raiz": "#zona-codigo", "elementos": ["panel", "registro"],
+      "que": "Resumen y eventos del intento, con la telemetría en JSON." },
+    { "id": "ordenes", "titulo": "Órdenes", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "ayuda", "raiz": "#zona-codigo", "elementos": ["panel", "ordenes"],
+      "que": "Referencia de todo lo que el programa puede ordenar y leer." },
+    { "id": "investigacion", "titulo": "Investigación", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "investigacion", "raiz": "#zona-codigo", "elementos": ["panel", "investigacion"],
+      "que": "Lo que cada hito ha desbloqueado. El árbol con energía para I+D llega en otro nivel." },
+    { "id": "mundo", "titulo": "Mundo", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "mundo", "raiz": "#zona-codigo", "elementos": ["panel", "mundo"],
+      "que": "Marcador de posición: aquí irá la interacción con el mundo." },
+    { "id": "guardado", "titulo": "Guardado", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "guardado", "raiz": "#zona-codigo", "elementos": ["panel", "guardado"],
+      "que": "Ranuras manuales con la planta y los programas." },
+    { "id": "biblioteca", "titulo": "Biblioteca", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "biblioteca", "raiz": "#zona-codigo", "elementos": ["panel", "biblioteca"],
+      "que": "Programas guardados por carpetas para cargarlos en cualquier unidad." },
+    { "id": "revision", "titulo": "Revisión", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "revisar", "raiz": "#revision-juego", "elementos": ["revision"],
+      "que": "Recorrido del programa paso a paso: código, diagrama y narración. Cubre toda la pantalla." },
+    { "id": "ajustes", "titulo": "Ajustes", "grupo": "Campaign", "serie": "campaign", "panel": "codigo", "menu": "ajustes", "raiz": "#ajustes", "elementos": ["ajustes"],
+      "que": "Idioma, lenguaje, editor, edición sin teclado y pantalla." },
+    { "id": "war-mapa", "titulo": "Mapa", "grupo": "War", "serie": "war", "panel": "mapa", "raiz": "#zona-mapa", "elementos": ["mapa"],
+      "que": "El campo de batalla de War, con cabecera del reto y controles." },
+    { "id": "war-codigo", "titulo": "Código", "grupo": "War", "serie": "war", "panel": "codigo", "menu": "programa", "raiz": "#zona-codigo", "elementos": ["codigo"],
+      "que": "El editor de War, con pestañas y panel Inspector · Consola." }
   ],
   "elementos": {
-    "juego": [
-      { "id": "zona-mapa", "t": "Zona del mapa", "sel": ["#zona-mapa"], "ui": "Mitad del escenario: cabecera del reto, vista 3D y controles de ejecución.", "juego": "Donde se ve el resultado del programa.", "hijos": [
-        { "id": "cabeza", "t": "Cabecera del reto", "sel": ["#zona-mapa > .cabeza"], "ui": "Barra superior del mapa con el reto y los botones generales.", "juego": "Recuerda qué reto se juega." },
-        { "id": "b-reto", "t": "Reto actual", "sel": ["#b-reto"], "ui": "Número y título del reto; al pulsar abre la hoja del reto.", "juego": "Muestra el objetivo corto y permite cambiar de reto." },
-        { "id": "b-probar", "t": "Probar en teléfono y PC", "sel": ["#b-probar"], "ui": "Enlace que abre el juego en las dos formas a la vez.", "juego": "Herramienta de desarrollo, no del jugador." },
-        { "id": "b-ver-codigo", "t": "Código a pantalla completa", "sel": ["#b-ver-codigo"], "ui": "En teléfono, salta del mapa al código.", "juego": "Cambia entre ver la partida y programar." },
-        { "id": "b-pantalla", "t": "Pantalla completa", "sel": ["#b-pantalla"], "ui": "Mantener 2 s activa el modo de un solo panel.", "juego": "Da todo el espacio al mapa o al código." },
-        { "id": "b-revisar", "t": "Revisar paso a paso", "sel": ["#b-revisar"], "ui": "Abre el modo revisión (binoculares).", "juego": "Recorre el programa línea a línea para entender qué hizo." },
-        { "id": "b-ajustes", "t": "Ajustes", "sel": ["#b-ajustes"], "ui": "Abre el diálogo de ajustes (idioma, editor, barra).", "juego": "Preferencias del jugador." },
-        { "id": "escena", "t": "Escena 3D", "sel": ["#escena"], "ui": "Lienzo del campo con su capa de controles flotantes.", "juego": "La partida: unidades, enemigos y máquinas." },
-        { "id": "c3d", "t": "Lienzo 3D", "sel": ["#c3d"], "ui": "Canvas WebGL del campo.", "juego": "Render del escenario." },
-        { "id": "b-centrar", "t": "Recentrar cámara", "sel": ["#b-centrar"], "ui": "Devuelve la cámara a su posición inicial.", "juego": "Recupera la vista tras moverla." },
-        { "id": "reloj", "t": "Reloj", "sel": ["#reloj"], "ui": "Tiempo de partida.", "juego": "Cuenta el tiempo del intento." },
-        { "id": "metas", "t": "Metas", "sel": ["#metas"], "ui": "Fila de objetivos del reto.", "juego": "Indica qué falta para ganar." },
-        { "id": "cmp-esquina", "t": "Esquina de Campaign", "sel": ["#cmp-esquina"], "ui": "Misión, revisión y ajustes agrupados en la esquina del mapa.", "juego": "Sustituye a la cabecera en Campaign escritorio." },
-        { "id": "cmp-b-mision", "t": "Misión", "sel": ["#cmp-b-mision"], "ui": "Abre la pantalla de misión en el sitio del código.", "juego": "Explica el nivel de Campaign." },
-        { "id": "cmp-recursos", "t": "Recursos", "sel": ["#cmp-recursos"], "ui": "Contadores de materiales.", "juego": "Lo que la fábrica ha producido o tiene." },
-        { "id": "cmp-mini", "t": "Minimapa", "sel": ["#cmp-mini"], "ui": "Plano pequeño de la planta.", "juego": "Orientación en el nivel de Campaign." },
-        { "id": "controles", "t": "Controles de ejecución", "sel": ["#zona-mapa > .controles"], "ui": "Fila de botones grandes bajo el mapa.", "juego": "Arranca, pausa y reinicia el programa." },
-        { "id": "b-ejecutar", "t": "Ejecutar", "sel": ["#b-ejecutar"], "ui": "Botón principal.", "juego": "Corre el programa de todas las unidades." },
-        { "id": "b-pausa", "t": "Pausa", "sel": ["#b-pausa"], "ui": "Detiene el tiempo sin perder el estado.", "juego": "Permite mirar la partida congelada." },
-        { "id": "b-vel", "t": "Velocidad", "sel": ["#b-vel"], "ui": "Cambia la velocidad de simulación.", "juego": "Acelera intentos largos." },
-        { "id": "b-reiniciar", "t": "Reiniciar", "sel": ["#b-reiniciar"], "ui": "Vuelve al inicio del reto.", "juego": "Nuevo intento desde cero." },
-        { "id": "b-maquinas", "t": "Máquinas", "sel": ["#b-maquinas"], "ui": "Abre la pantalla de máquinas (Campaign).", "juego": "Ocupa el lugar de Reiniciar en Campaign escritorio." }
+    "mapa": [
+      { "id": "m-cabeza", "t": "Cabecera del mapa", "sel": ["#zona-mapa > .cabeza"], "ui": "Barra superior del mapa. Campaign en PC la quita y reparte sus botones.", "juego": "Recuerda qué reto se juega y da acceso a las opciones generales.", "hijos": [
+        { "id": "marca", "t": "Volver al inicio", "sel": ["#zona-mapa .cabeza a.marca"], "ui": "Logo que vuelve a la portada.", "juego": "Salir para elegir otro juego." },
+        { "id": "b-reto", "t": "Reto actual", "sel": ["#b-reto"], "ui": "Número, título y objetivo corto; al pulsar abre la hoja del reto.", "juego": "Recuerda la meta y permite cambiar de reto." },
+        { "id": "b-probar", "t": "Probar en teléfono y PC", "sel": ["#b-probar"], "ui": "Enlace a la vista doble.", "juego": "Herramienta de desarrollo, no del jugador." },
+        { "id": "b-paisaje", "t": "Preparar un paisaje", "sel": ["#zona-mapa .cabeza a.probar:not(#b-probar)"], "ui": "Enlace al editor de paisajes.", "juego": "Herramienta de desarrollo." },
+        { "id": "b-ver-codigo", "t": "Ir al código", "sel": ["#b-ver-codigo"], "ui": "En teléfono, salta del mapa al panel del código.", "juego": "Pasar de mirar a programar." },
+        { "id": "b-pantalla", "t": "Pantalla completa", "sel": ["#b-pantalla"], "ui": "Mantener 2 s deja solo este panel.", "juego": "Todo el espacio para el mapa." }
       ]},
-      { "id": "divisor", "t": "Divisor", "sel": ["#divisor"], "ui": "Asa entre mapa y código; se arrastra.", "juego": "Reparte el espacio entre ver y programar." },
-      { "id": "zona-codigo", "t": "Zona del código", "sel": ["#zona-codigo"], "ui": "Mitad del programa: cabecera, paleta, editor y panel inferior.", "juego": "Donde el jugador escribe el programa.", "hijos": [
-        { "id": "t-programa", "t": "Pestaña Programa", "sel": ["#t-programa"], "ui": "Muestra el editor.", "juego": "Vista principal de trabajo." },
-        { "id": "t-registro", "t": "Pestaña Registro", "sel": ["#t-registro"], "ui": "Muestra la consola del programa.", "juego": "Mensajes y errores de la ejecución." },
-        { "id": "t-ayuda", "t": "Pestaña Ayuda", "sel": ["#t-ayuda"], "ui": "Lista de órdenes disponibles.", "juego": "Referencia del lenguaje del juego." },
-        { "id": "t-escenario", "t": "Pestaña Escenario", "sel": ["#t-escenario"], "ui": "Datos del escenario.", "juego": "Qué hay en el mapa." },
-        { "id": "b-barras", "t": "Plegar herramientas", "sel": ["#b-barras"], "ui": "Oculta o muestra la fila de herramientas.", "juego": "Más espacio para el código." },
-        { "id": "cmp-b-unidades", "t": "Elegir unidades", "sel": ["#cmp-b-unidades"], "ui": "Árbol de unidades con casillas (Campaign).", "juego": "Qué robots o máquinas reciben el programa." },
-        { "id": "cmp-b-mas", "t": "Biblioteca de programas", "sel": ["#cmp-b-mas"], "ui": "Botón «+» que abre la biblioteca.", "juego": "Guarda y reutiliza programas, con su lenguaje." },
-        { "id": "progs", "t": "Programa por unidad", "sel": ["#progs"], "ui": "Fichas para cambiar de programa (una por lanzador o robot).", "juego": "Cada unidad corre su propio código." },
-        { "id": "sel-lenguaje", "t": "Lenguaje", "sel": ["#sel-lenguaje"], "ui": "Selector JavaScript, Python y vistas Seudo o Bloques.", "juego": "Cambia el lenguaje; el juego convierte JS a Python." },
-        { "id": "b-teclado", "t": "Sin teclado", "sel": ["#b-teclado", "#b-teclado-movil"], "ui": "Modo sin teclado (Ctrl+Alt+A).", "juego": "Programar solo con fichas y la barra de edición." },
-        { "id": "b-colores", "t": "Colores del código", "sel": ["#b-colores"], "ui": "Activa o quita el resaltado de sintaxis.", "juego": "Legibilidad del programa." },
-        { "id": "b-letra", "t": "Letra A− / A+", "sel": ["#b-menos", "#b-mas"], "ui": "Cinco tamaños de letra.", "juego": "Ajuste de lectura." },
-        { "id": "b-ejecutar-movil", "t": "Ejecutar (teléfono)", "sel": ["#b-ejecutar-movil"], "ui": "Copia del botón Ejecutar junto al código.", "juego": "Ejecutar sin volver al mapa." },
-        { "id": "b-menu-cod", "t": "Más opciones", "sel": ["#b-menu-cod"], "ui": "Menú ⋯: registro, órdenes, escenario, revisión.", "juego": "Sustituye a las pestañas en pantallas pequeñas." },
-        { "id": "b-pantalla-cod", "t": "Pantalla completa del código", "sel": ["#b-pantalla-cod"], "ui": "Mantener 2 s para dejar solo el código.", "juego": "Modo de un solo panel desde el editor." },
-        { "id": "paleta", "t": "Paleta de fichas", "sel": ["#paleta"], "ui": "Fichas que insertan plantillas; mantener pulsado abre variantes.", "juego": "Órdenes propias de cada serie (disparar, recoger…)." },
-        { "id": "editor", "t": "Editor", "sel": ["#area-programa"], "ui": "Área del programa.", "juego": "El código que ejecutan las unidades." },
-        { "id": "cm", "t": "Superficie CodeMirror", "sel": ["#area-programa .cm-content"], "ui": "Donde se escribe cuando CodeMirror está activo.", "juego": "Diagnósticos en vivo, plegado y foco real." },
-        { "id": "codigo", "t": "Textarea visible", "sel": ["#codigo"], "ui": "Superficie antigua: textarea transparente sobre una capa de colores.", "juego": "Sin diagnósticos en vivo ni plegado." },
-        { "id": "margen", "t": "Números de línea", "sel": ["#area-programa .cm-gutters", "#gutter"], "ui": "Margen con números (y plegado con CodeMirror).", "juego": "Ubica errores y la línea que corre." },
-        { "id": "b-info-reto", "t": "Información del reto", "sel": ["#b-info-reto"], "ui": "Botón «i» sobre el editor.", "juego": "Recuerda el objetivo sin salir del código." },
-        { "id": "edicion", "t": "Barra de edición", "sel": ["#edicion"], "ui": "Deshacer, cortar, copiar, pegar, mover líneas…", "juego": "Editar con el dedo en pantallas táctiles." },
-        { "id": "simbolos", "t": "Barra de símbolos", "sel": ["#simbolos", "#cmp-tipografia"], "ui": "Signos y palabras clave para el teclado del teléfono.", "juego": "Escribir llaves, comillas y operadores rápido." },
-        { "id": "pie", "t": "Panel inferior", "sel": ["#pie"], "ui": "Panel plegable bajo el editor.", "juego": "Información de apoyo mientras se programa." },
-        { "id": "pie-barra", "t": "Asa del panel", "sel": ["#pie-barra"], "ui": "Arrastra para cambiar su alto; el botón lo cierra.", "juego": "Más o menos espacio para el código." },
-        { "id": "pie-ins", "t": "Inspector de órdenes", "sel": ["#pie-ins"], "ui": "Lo que el programa puede usar.", "juego": "Órdenes y valores disponibles en el reto." },
-        { "id": "pie-obj", "t": "Objetivo · Specs · Consola", "sel": ["#pie-obj"], "ui": "Panel inferior propio de Campaign.", "juego": "Objetivo del nivel, datos de máquinas y consola." }
+      { "id": "m-accesos", "t": "Accesos rápidos", "sel": ["#cmp-esquina", "#b-revisar", "#b-ajustes"], "ui": "Botones redondos. En Campaign PC van juntos en la esquina superior derecha; en el resto, en la cabecera.", "juego": "Lo que se consulta a menudo sin dejar el mapa.", "hijos": [
+        { "id": "cmp-b-mision", "t": "Misión (!)", "sel": ["#cmp-b-mision"], "ui": "Abre la ventana mínima de la misión; el punto naranja avisa de un hito sin ver.", "juego": "Qué pide el hito en curso." },
+        { "id": "cmp-b-vida", "t": "Vida de la base", "sel": ["#cmp-b-vida"], "ui": "Solo en batalla: estado de la muralla.", "juego": "Cuánto aguanta la defensa." },
+        { "id": "b-revisar", "t": "Revisar paso a paso", "sel": ["#b-revisar"], "ui": "Binoculares: abren el bloque Revisión.", "juego": "Ver qué hizo el programa, orden a orden." },
+        { "id": "b-ajustes", "t": "Ajustes", "sel": ["#b-ajustes"], "ui": "Engranaje: abre el bloque Ajustes.", "juego": "Idioma, editor y pantalla." }
+      ]},
+      { "id": "m-escena", "t": "Escena", "sel": ["#escena"], "ui": "El campo con sus controles flotantes.", "juego": "La planta o la batalla: donde se ve el resultado del programa.", "hijos": [
+        { "id": "c3d", "t": "Campo 3D", "sel": ["#c3d"], "ui": "Lienzo WebGL; se arrastra para mover la cámara.", "juego": "Unidades, máquinas y piezas en movimiento." },
+        { "id": "c2d", "t": "Plano 2D", "sel": ["#c2d"], "ui": "Vista cenital dibujada en 2D.", "juego": "Leer posiciones y rutas sin perspectiva." },
+        { "id": "vistas", "t": "Vista 3D / 2D", "sel": ["#zona-mapa .vistas"], "ui": "Interruptor de la vista del campo, con recentrar.", "juego": "Elegir la vista que mejor se lee." },
+        { "id": "b-piel", "t": "Paisaje / batalla", "sel": ["#b-piel"], "ui": "Alterna entre el paisaje y el modo batalla.", "juego": "Ver la planta o la defensa." },
+        { "id": "b-centrar", "t": "Recentrar cámara", "sel": ["#b-centrar"], "ui": "Devuelve la cámara a su sitio.", "juego": "Recuperar la vista tras moverla." },
+        { "id": "reloj", "t": "Reloj", "sel": ["#reloj"], "ui": "Tiempo del intento sobre el campo.", "juego": "Cuánto lleva la partida." },
+        { "id": "etiquetas", "t": "Etiquetas de unidades", "sel": ["#capa .etq", "#capa [data-u]"], "ui": "Placas con el ID sobre cada unidad o carga.", "juego": "Saber qué nombre usar en el código." }
+      ]},
+      { "id": "m-metas", "t": "Metas y recursos", "sel": ["#metas", "#cmp-recursos"], "ui": "Contadores del reto: en fila bajo el campo o en columna a la derecha (Campaign PC).", "juego": "Qué falta para ganar y con qué se cuenta.", "hijos": [
+        { "id": "metas", "t": "Metas en fila", "sel": ["#metas"], "ui": "Fila de metas y recursos bajo el campo.", "juego": "Progreso del reto." },
+        { "id": "cmp-metas", "t": "Metas en columna", "sel": ["#cmp-recursos .cmp-metas-col"], "ui": "Cada meta con la silueta de su pieza y su cuenta (0/12).", "juego": "Progreso del hito." },
+        { "id": "cmp-rec", "t": "Recursos", "sel": ["#cmp-recursos .cmp-rec-col"], "ui": "Créditos, energía y tiempo.", "juego": "Con qué cuenta la planta." }
+      ]},
+      { "id": "m-ficha", "t": "Ficha de la unidad elegida", "sel": ["#cmp-mini", "#inspector"], "ui": "Tarjeta compacta al elegir una unidad en el mapa.", "juego": "Estado y órdenes de la unidad sin abrir nada.", "hijos": [
+        { "id": "inspector-war", "t": "Inspector de War", "sel": ["#inspector"], "ui": "Tarjeta de War y trunk con pestañas de la unidad.", "juego": "Datos de la unidad elegida." },
+        { "id": "mini-cab", "t": "Nombre y estado", "sel": ["#cmp-mini .cmp-mini-cab"], "ui": "ID, clase, estado (LIBRE…) y cerrar.", "juego": "Qué unidad es y si está ocupada." },
+        { "id": "mini-props", "t": "Datos en vivo", "sel": ["#cmp-mini .cmp-mini-props"], "ui": "Propiedades (cargo, busy…); tocarlas las inserta en el código.", "juego": "Lo que el programa puede leer de esa unidad." },
+        { "id": "mini-ord", "t": "Órdenes", "sel": ["#cmp-mini .cmp-mini-ord"], "ui": "Fichas de sus órdenes; insertan la llamada.", "juego": "Qué puede hacer." },
+        { "id": "mini-pie", "t": "Abrir la ficha completa", "sel": ["#cmp-mini .cmp-mini-pie"], "ui": "Mantener pulsado abre la ficha en el panel del código.", "juego": "Ir al bloque Ficha de máquina." }
+      ]},
+      { "id": "m-controles", "t": "Controles de ejecución", "sel": ["#zona-mapa > .controles"], "ui": "Fila de botones grandes bajo el campo.", "juego": "Arrancar, pausar y repetir el programa.", "hijos": [
+        { "id": "b-ejecutar", "t": "Ejecutar", "sel": ["#b-ejecutar"], "ui": "Botón principal.", "juego": "Corre el programa de todas las unidades." },
+        { "id": "b-pausa", "t": "Pausa", "sel": ["#b-pausa"], "ui": "Congela el tiempo sin perder el estado.", "juego": "Mirar la partida detenida." },
+        { "id": "b-vel", "t": "Velocidad", "sel": ["#b-vel"], "ui": "1×, 2×, 4×…", "juego": "Acelerar intentos largos." },
+        { "id": "b-reiniciar", "t": "Checkpoint", "sel": ["#b-reiniciar"], "ui": "Vuelve al último checkpoint.", "juego": "Nuevo intento sin empezar de cero." },
+        { "id": "b-maquinas", "t": "Máquinas", "sel": ["#b-maquinas"], "ui": "Abre el bloque Máquinas, con la cuenta de unidades activas.", "juego": "Sustituye a Checkpoint en Campaign PC." }
       ]}
     ],
-    "demo": [
-      { "id": "herramientas", "t": "Herramientas del editor", "sel": [".editor-herramientas"], "ui": "Fila superior del editor autónomo.", "juego": "Fuera del juego: el editor es un paquete reutilizable.", "hijos": [
-        { "id": "d-lenguaje", "t": "Lenguaje", "sel": ["[id$='-lenguaje']"], "ui": "JavaScript o Python; cada uno abre su propio documento.", "juego": "No convierte el texto." },
-        { "id": "d-teclado", "t": "Sin teclado", "sel": ["[id$='-b-teclado']"], "ui": "Modo sin teclado de esta instancia.", "juego": "El atajo solo afecta al editor enfocado." },
-        { "id": "d-letra", "t": "Letra A− / A+", "sel": ["[id$='-b-menos']", "[id$='-b-mas']"], "ui": "Tamaño de letra por instancia.", "juego": "—" },
-        { "id": "d-ajustes", "t": "Ajustes del editor", "sel": ["[id$='-b-ajustes']"], "ui": "Asa y orden de la barra.", "juego": "—" },
-        { "id": "d-pantalla", "t": "Pantalla completa", "sel": ["[id$='-b-pantalla']"], "ui": "Pantalla completa de este editor; Esc la cierra.", "juego": "En el juego no existe: allí es la del panel." }
+    "codigo": [
+      { "id": "c-pestanas", "t": "Pestañas del panel", "sel": ["#cabecera-editor .tabs"], "ui": "Fila de pestañas. Campaign PC la sustituye por el menú ⋯.", "juego": "Cambiar entre programar y consultar.", "hijos": [
+        { "id": "t-programa", "t": "Programa", "sel": ["#t-programa"], "ui": "Muestra el editor.", "juego": "Vista principal de trabajo." },
+        { "id": "t-registro", "t": "Registro", "sel": ["#t-registro"], "ui": "Abre el bloque Registro.", "juego": "Qué pasó en el intento." },
+        { "id": "t-ayuda", "t": "Órdenes", "sel": ["#t-ayuda"], "ui": "Abre el bloque Órdenes.", "juego": "Referencia del lenguaje del juego." },
+        { "id": "t-escenario", "t": "Historial / Escenario", "sel": ["#t-escenario"], "ui": "Historial en Campaign; escenario en War.", "juego": "Volver atrás o preparar el campo." },
+        { "id": "b-barras", "t": "Plegar herramientas", "sel": ["#b-barras"], "ui": "Oculta o muestra la barra del programa.", "juego": "Más espacio para el código." }
       ]},
-      { "id": "d-paleta", "t": "Paleta de fichas", "sel": ["[id$='-paleta']"], "ui": "Plantillas del lenguaje activo con variantes.", "juego": "—" },
-      { "id": "d-editor", "t": "Editor", "sel": ["[id$='-editor']"], "ui": "Área de texto.", "juego": "—", "hijos": [
-        { "id": "d-cm", "t": "Superficie CodeMirror", "sel": [".cm-content"], "ui": "Superficie editable con diagnósticos y plegado.", "juego": "—" },
-        { "id": "d-codigo", "t": "Textarea visible", "sel": ["textarea[id$='-codigo']"], "ui": "Superficie antigua con capa de resaltado.", "juego": "—" },
-        { "id": "d-margen", "t": "Números de línea", "sel": [".cm-gutters", "[id$='-gutter']"], "ui": "Margen de líneas.", "juego": "—" }
+      { "id": "c-barra", "t": "Barra del programa", "sel": ["#detalles-editor"], "ui": "Qué programa se edita y cómo se ve.", "juego": "Cada unidad corre su propio programa.", "hijos": [
+        { "id": "cmp-b-unidades", "t": "Elegir unidades", "sel": ["#cmp-b-unidades"], "ui": "Árbol de unidades con casillas (Campaign PC).", "juego": "Qué robots o máquinas tienen pestaña abierta." },
+        { "id": "cmp-b-mas", "t": "Biblioteca (+)", "sel": ["#cmp-b-mas"], "ui": "Abre el bloque Biblioteca.", "juego": "Reutilizar programas guardados." },
+        { "id": "progs", "t": "Pestañas de programa", "sel": ["#progs"], "ui": "Una por unidad programable.", "juego": "Cambiar de unidad sin perder el texto." },
+        { "id": "sel-lenguaje", "t": "Lenguaje", "sel": ["#sel-lenguaje"], "ui": "JavaScript, Python y vistas Seudo o Bloques.", "juego": "El juego convierte entre JS y Python." },
+        { "id": "b-teclado", "t": "Sin teclado", "sel": ["#b-teclado", "#b-teclado-movil"], "ui": "Modo sin teclado (Ctrl+Alt+A).", "juego": "Programar solo con fichas y barras." },
+        { "id": "b-colores", "t": "Colores del código", "sel": ["#b-colores"], "ui": "Activa o quita el resaltado.", "juego": "Legibilidad." },
+        { "id": "b-letra", "t": "Letra A− / A+", "sel": ["#b-menos", "#b-mas"], "ui": "Cinco tamaños de letra.", "juego": "Ajuste de lectura." },
+        { "id": "b-ejecutar-cod", "t": "Ejecutar (junto al código)", "sel": ["#b-ejecutar-cod", "#b-ejecutar-movil"], "ui": "Copia del botón Ejecutar en el panel del código.", "juego": "Ejecutar sin volver al mapa." },
+        { "id": "b-ver-mapa", "t": "Ir al mapa", "sel": ["#b-ver-mapa", "#b-mapa-movil"], "ui": "En teléfono, vuelve al panel del mapa.", "juego": "Mirar el resultado." },
+        { "id": "b-pantalla-cod", "t": "Pantalla completa", "sel": ["#b-pantalla-cod", "#b-pantalla-movil"], "ui": "Mantener 2 s deja solo el código.", "juego": "Todo el espacio para programar." },
+        { "id": "b-menu-cod", "t": "Menú ⋯", "sel": ["#b-menu-cod"], "ui": "Abre la rejilla de bloques (Campaign PC) o las pestañas ocultas.", "juego": "Llegar a Misión, Máquinas, Historial, Ajustes…" }
       ]},
-      { "id": "d-edicion", "t": "Barra de edición", "sel": ["[id$='-edicion']", ".barra-edicion"], "ui": "Acciones de edición táctil.", "juego": "—" }
+      { "id": "c-editor", "t": "Editor", "sel": ["#paleta", "#area-programa", "#edicion", "#simbolos", "#cmp-tipografia"], "ui": "Paleta, área de texto y barras de edición.", "juego": "Donde se escribe el programa.", "hijos": [
+        { "id": "paleta", "t": "Paleta de fichas", "sel": ["#paleta"], "ui": "Fichas que insertan plantillas; mantener pulsado abre variantes.", "juego": "Órdenes de la serie (recoger, entregar…)." },
+        { "id": "area", "t": "Área del programa", "sel": ["#area-programa"], "ui": "Superficie del texto.", "juego": "El código que ejecuta la unidad." },
+        { "id": "cm", "t": "CodeMirror", "sel": ["#area-programa .cm-content"], "ui": "Superficie con diagnósticos en vivo y plegado.", "juego": "Errores marcados al escribir." },
+        { "id": "textarea", "t": "Textarea con capa de colores", "sel": ["#codigo"], "ui": "Superficie antigua: textarea transparente sobre el resaltado.", "juego": "Sin diagnósticos en vivo ni plegado." },
+        { "id": "margen", "t": "Números de línea", "sel": ["#area-programa .cm-gutters", "#gutter"], "ui": "Margen con números (y plegado con CodeMirror).", "juego": "Ubicar errores y la línea que corre." },
+        { "id": "b-info-reto", "t": "Información del reto", "sel": ["#b-info-reto"], "ui": "Botón «i» sobre el editor.", "juego": "Recordar el objetivo sin salir del código." },
+        { "id": "edicion", "t": "Barra de edición", "sel": ["#edicion"], "ui": "Deshacer, copiar, pegar, mover líneas…", "juego": "Editar con el dedo." },
+        { "id": "simbolos", "t": "Barra de símbolos", "sel": ["#simbolos", "#cmp-tipografia"], "ui": "Signos y palabras clave; en Campaign PC, fila fija bajo el editor.", "juego": "Escribir llaves, comillas y operadores rápido." }
+      ]},
+      { "id": "c-pie", "t": "Panel inferior", "sel": ["#pie"], "ui": "Panel plegable bajo el editor.", "juego": "Información de apoyo mientras se programa.", "hijos": [
+        { "id": "pie-modos", "t": "Pestañas del panel inferior", "sel": ["#pie .pie-modos"], "ui": "Objetivo · Specs · Consola en Campaign; Inspector · Consola en War.", "juego": "Qué consultar sin tapar el código." },
+        { "id": "pie-agarre", "t": "Asa", "sel": ["#pie-agarre"], "ui": "Arrastrar cambia el alto del panel.", "juego": "Más o menos espacio para el código." },
+        { "id": "b-pie", "t": "Plegar el panel", "sel": ["#b-pie"], "ui": "Abre o cierra el panel inferior.", "juego": "Todo el alto para el código." },
+        { "id": "pie-obj", "t": "Objetivo", "sel": ["#pie-obj"], "ui": "Objetivo del hito, lo que se aprende, metas y pistas (Campaign).", "juego": "Qué hacer ahora." },
+        { "id": "pie-ins", "t": "Specs / Inspector", "sel": ["#pie-ins"], "ui": "Órdenes, datos, lugares y piezas que el programa puede usar.", "juego": "Vocabulario disponible en el reto." },
+        { "id": "pie-con", "t": "Consola", "sel": ["#pie-con"], "ui": "Mensajes y errores del programa.", "juego": "Qué dijo el programa al correr." }
+      ]}
+    ],
+    "panel": [
+      { "id": "cab-panel", "t": "Cabecera del panel", "sel": ["#cabecera-editor"], "ui": "La misma barra del bloque Código; sigue visible para cambiar de programa o de bloque.", "juego": "Volver al código o abrir otro bloque." },
+      { "id": "titulo-bloque", "t": "Título y volver", "sel": ["#cmp-titulo-pantalla"], "ui": "Nombre del bloque y flecha para volver al código.", "juego": "Saber dónde se está y regresar." }
+    ],
+    "mision": [
+      { "id": "mi-actual", "t": "Hito en curso", "sel": [".cmp-hito.actual"], "ui": "Tarjeta destacada del hito que se juega.", "juego": "Qué pide el nivel ahora.", "hijos": [
+        { "id": "mi-cab", "t": "Clave y título", "sel": [".cmp-hito.actual > header"], "ui": "Placa (H0, H1…), título y «En curso».", "juego": "En qué punto del nivel se está." },
+        { "id": "mi-obj", "t": "Objetivo", "sel": [".cmp-hito.actual .cmp-hito-obj"], "ui": "Texto con unidades coloreadas y cantidades en negrita; pasar sobre una unidad muestra su tarjeta.", "juego": "Qué hay que conseguir y con qué unidades." },
+        { "id": "mi-leccion", "t": "Lo que aprendes", "sel": [".cmp-hito.actual > .nota"], "ui": "Línea gris bajo el objetivo.", "juego": "El concepto de programación del hito." },
+        { "id": "mi-metas", "t": "Metas", "sel": [".cmp-hito.actual .cmp-metas-lista"], "ui": "Cada meta con barra de progreso.", "juego": "Cuánto falta." },
+        { "id": "mi-pistas", "t": "Pistas", "sel": [".cmp-hito.actual .cmp-pistas"], "ui": "Botón «Ver una pista (1/2)»; cada pista vista se queda.", "juego": "Ayuda gradual, solo si se pide." }
+      ]},
+      { "id": "mi-hechos", "t": "Hitos completados", "sel": [".cmp-hito.hecho"], "ui": "Plegables con su tiempo.", "juego": "Repasar lo ya hecho." },
+      { "id": "mi-bloqueados", "t": "Hitos por venir", "sel": [".cmp-hito.bloqueado"], "ui": "Con candado: solo clave y título.", "juego": "Ver hacia dónde va el nivel." },
+      { "id": "mi-fin", "t": "Fin del nivel", "sel": [".cmp-mision .cmp-fin"], "ui": "Mensaje final al completar todos los hitos.", "juego": "Cierre del nivel." }
+    ],
+    "maquinas": [
+      { "id": "mq-propias", "t": "Tus máquinas", "sel": [".cmp-maquinas .cmp-mq-grupo"], "ui": "Grupos por clase con su cuenta.", "juego": "Todo lo que tiene la planta.", "hijos": [
+        { "id": "mq-clase", "t": "Título de clase", "sel": [".cmp-mq-grupo > h5"], "ui": "Montacargas, Robot obrero, Prensa… y cuántas hay.", "juego": "Ordenar por tipo." },
+        { "id": "mq-tarjeta", "t": "Tarjeta de máquina", "sel": [".cmp-mq"], "ui": "Dibujo, ID, clase y estado (o desde qué hito llega); abre su ficha.", "juego": "Elegir una unidad para conocerla o programarla." },
+        { "id": "mq-asa", "t": "Mover al mapa (⠿)", "sel": [".cmp-mq-asa"], "ui": "Asa para arrastrar prensas y moldeadoras a otra plataforma.", "juego": "Reorganizar la planta." },
+        { "id": "mq-apagada", "t": "Máquina aún no disponible", "sel": [".cmp-mq-grupo li.apagada"], "ui": "Tarjeta atenuada con «desde H1».", "juego": "Lo que se desbloquea más adelante." }
+      ]},
+      { "id": "mq-enemigas", "t": "Máquinas enemigas", "sel": [".cmp-maquinas > .cmp-vacio"], "ui": "Lista de enemigas vistas; vacía al principio.", "juego": "Conocer al rival en batalla." },
+      { "id": "mq-notas", "t": "Notas", "sel": [".cmp-maquinas > .nota"], "ui": "Cómo mover máquinas y qué es ingeniería inversa.", "juego": "Instrucciones breves." }
+    ],
+    "ficha": [
+      { "id": "fi-hero", "t": "Cabecera de la ficha", "sel": [".cmp-fi-hero"], "ui": "Dibujo 2D, modelo 3D girando, ID, clase y estado.", "juego": "Reconocer la unidad.", "hijos": [
+        { "id": "fi-dibujo", "t": "Dibujo 2D", "sel": [".cmp-fi-hero .dibujo"], "ui": "Lámina o render de la clase.", "juego": "Cómo se ve en el mapa." },
+        { "id": "fi-3d", "t": "Modelo 3D", "sel": [".cmp-fi-3d"], "ui": "Retrato 3D en vivo (solo PC).", "juego": "Ver la máquina de cerca." },
+        { "id": "fi-id", "t": "ID y estado", "sel": [".cmp-fi-id"], "ui": "FRK-01 · Montacargas · libre.", "juego": "Nombre para el código y si está ocupada." }
+      ]},
+      { "id": "fi-que", "t": "Qué hace", "sel": [".cmp-ficha > section:first-of-type"], "ui": "Descripción con unidades y cantidades resaltadas.", "juego": "Para qué sirve en la planta." },
+      { "id": "fi-cols", "t": "Nombre, órdenes y datos", "sel": [".cmp-fi-cols"], "ui": "Las mismas fichas que Specs: tocarlas las inserta en el código.", "juego": "Vocabulario de esta unidad." },
+      { "id": "fi-botones", "t": "Acciones", "sel": [".cmp-ficha > .fila-botones"], "ui": "Botones propios de la clase (programar…).", "juego": "Ir directo a su programa." },
+      { "id": "fi-vitales", "t": "Ahora mismo", "sel": ["#fi-vitales"], "ui": "Encargos y metros en vivo.", "juego": "Qué está haciendo." },
+      { "id": "fi-metricas", "t": "Métricas del intento", "sel": [".cmp-ficha .metricas"], "ui": "Totales del intento.", "juego": "Rendimiento de la unidad." },
+      { "id": "fi-nota", "t": "Nota", "sel": [".cmp-fi-nota"], "ui": "Doble clic en una orden o dato lo inserta.", "juego": "Atajo." }
+    ],
+    "historial": [
+      { "id": "hi-aviso", "t": "Aviso", "sel": ["#esc-aviso"], "ui": "Mensaje sobre el estado de la planta.", "juego": "Contexto." },
+      { "id": "hi-form", "t": "Checkpoints", "sel": ["#esc-form"], "ui": "Lista de checkpoints del nivel.", "juego": "Volver a un punto anterior.", "hijos": [
+        { "id": "hi-lista", "t": "Lista de checkpoints", "sel": ["#esc-form .cp-lista"], "ui": "Uno por hito, con tiempo y créditos.", "juego": "Elegir desde dónde seguir." },
+        { "id": "hi-volver", "t": "Volver aquí", "sel": ["[data-cp-volver]:not([data-cp-programas])"], "ui": "Restaura la planta de ese punto.", "juego": "Repetir desde ahí con los programas actuales." },
+        { "id": "hi-volver-prog", "t": "Volver con sus programas", "sel": ["[data-cp-programas]"], "ui": "Restaura la planta y los programas de entonces.", "juego": "Deshacer cambios de código." },
+        { "id": "hi-nuevo", "t": "Empezar de nuevo", "sel": ["[data-cp-nuevo]"], "ui": "Reinicia el nivel.", "juego": "Partida limpia." }
+      ]}
+    ],
+    "registro": [
+      { "id": "re-resumen", "t": "Resumen", "sel": ["#resumen"], "ui": "Cifras del intento.", "juego": "Cómo fue." },
+      { "id": "re-eventos", "t": "Eventos", "sel": ["#v-registro table"], "ui": "Tabla de lo ocurrido, en orden.", "juego": "Qué pasó y cuándo." },
+      { "id": "re-acciones", "t": "Telemetría", "sel": ["#b-copiar", "#b-borrar", "#v-registro details"], "ui": "Copiar o borrar la telemetría y verla en JSON.", "juego": "Datos para depurar o compartir.", "hijos": [
+        { "id": "b-copiar", "t": "Copiar telemetría", "sel": ["#b-copiar"], "ui": "Copia el JSON.", "juego": "Pegarlo en un informe." },
+        { "id": "b-borrar", "t": "Borrar telemetría", "sel": ["#b-borrar"], "ui": "Vacía el registro.", "juego": "Empezar a medir de nuevo." },
+        { "id": "re-json", "t": "Ver JSON", "sel": ["#v-registro details"], "ui": "Plegable con el JSON.", "juego": "Leer los datos en bruto." }
+      ]}
+    ],
+    "ordenes": [
+      { "id": "or-ref", "t": "Referencia", "sel": ["#v-ayuda"], "ui": "Secciones: planta en vivo, encargos, máquinas, lecturas, control maestro, números y ejemplo.", "juego": "Qué puede ordenar y leer el programa.", "hijos": [
+        { "id": "or-titulos", "t": "Títulos de sección", "sel": ["#v-ayuda > h3"], "ui": "Encabezados de cada grupo.", "juego": "Encontrar rápido." },
+        { "id": "or-fichas", "t": "Fichas de orden", "sel": ["#v-ayuda .tk-fn"], "ui": "pickUp, deliver, start…; tocarlas las inserta.", "juego": "Escribir la orden sin teclear." },
+        { "id": "or-listas", "t": "Listas", "sel": ["#v-ayuda > ul"], "ui": "Datos de la planta y números.", "juego": "Cifras del reto." },
+        { "id": "or-ejemplo", "t": "Ejemplo", "sel": ["#v-ayuda pre"], "ui": "Programa de muestra.", "juego": "Punto de partida." }
+      ]}
+    ],
+    "investigacion": [
+      { "id": "in-arbol", "t": "Hitos y desbloqueos", "sel": [".cmp-arbol-inv ol"], "ui": "Un nodo por hito: hecho, actual o con candado.", "juego": "Progreso tecnológico.", "hijos": [
+        { "id": "in-hecho", "t": "Hito hecho", "sel": [".cmp-arbol-inv li.hecho"], "ui": "Con ✓.", "juego": "Ya disponible." },
+        { "id": "in-actual", "t": "Hito actual", "sel": [".cmp-arbol-inv li.actual"], "ui": "Candado abierto.", "juego": "Lo que se investiga ahora." },
+        { "id": "in-bloqueado", "t": "Hito bloqueado", "sel": [".cmp-arbol-inv li.bloqueado"], "ui": "Con candado.", "juego": "Por venir." },
+        { "id": "in-tec", "t": "Unidades desbloqueadas", "sel": [".cmp-arbol-inv .tec"], "ui": "Chips de color con clase e ID.", "juego": "Qué trae cada hito." }
+      ]},
+      { "id": "in-notas", "t": "Notas", "sel": [".cmp-arbol-inv > .nota"], "ui": "Introducción y lo que llegará (energía para I+D).", "juego": "Contexto." }
+    ],
+    "mundo": [
+      { "id": "mu-vacio", "t": "Marcador de posición", "sel": ["[data-pantalla='mundo'] .cmp-vacio"], "ui": "Icono y texto «Aquí estará la interacción con el mundo».", "juego": "Pendiente de diseñar." }
+    ],
+    "guardado": [
+      { "id": "gu-intro", "t": "Introducción", "sel": [".cmp-guardado > .nota:first-child"], "ui": "Qué guarda cada ranura.", "juego": "Contexto." },
+      { "id": "gu-ranuras", "t": "Ranuras", "sel": [".cmp-ranuras"], "ui": "Cinco ranuras numeradas.", "juego": "Guardar y cargar partidas a mano.", "hijos": [
+        { "id": "gu-ranura", "t": "Ranura", "sel": [".cmp-ranuras > li"], "ui": "Número, hito y fecha, o «vacía».", "juego": "Qué hay guardado." },
+        { "id": "gu-guardar", "t": "Guardar aquí", "sel": ["[data-ranura-guardar]"], "ui": "Guarda; si ya hay algo pide confirmar.", "juego": "Asegurar el progreso." },
+        { "id": "gu-cargar", "t": "Cargar", "sel": ["[data-ranura-cargar]"], "ui": "Carga con confirmación.", "juego": "Volver a esa partida." },
+        { "id": "gu-borrar", "t": "Borrar", "sel": ["[data-ranura-borrar]"], "ui": "Papelera con confirmación.", "juego": "Liberar la ranura." }
+      ]},
+      { "id": "gu-historial", "t": "Enlace a Historial", "sel": ["[data-ir-historial]"], "ui": "Lleva a los checkpoints automáticos.", "juego": "Volver atrás sin ranura." }
+    ],
+    "biblioteca": [
+      { "id": "bi-form", "t": "Guardar el programa", "sel": [".cmp-bib-nuevo"], "ui": "Formulario con nombre y carpeta para el programa abierto.", "juego": "Guardar una solución para reutilizarla.", "hijos": [
+        { "id": "bi-nombre", "t": "Nombre", "sel": [".cmp-bib-nuevo input[name='nombre']"], "ui": "Propone «FRK-01 · H0».", "juego": "Reconocerlo después." },
+        { "id": "bi-carpeta", "t": "Carpeta", "sel": [".cmp-bib-nuevo input[name='carpeta']"], "ui": "Propone la clase de la unidad.", "juego": "Ordenar por tipo de máquina." },
+        { "id": "bi-guardar", "t": "Guardar", "sel": [".cmp-bib-nuevo button[type='submit']"], "ui": "Añade el programa a la biblioteca.", "juego": "—" }
+      ]},
+      { "id": "bi-carpetas", "t": "Carpetas", "sel": [".cmp-bib-carpeta"], "ui": "Plegables con los programas, su lenguaje y las 3 primeras líneas; cargar o borrar.", "juego": "Cargar un programa en la unidad abierta." },
+      { "id": "bi-vacio", "t": "Biblioteca vacía", "sel": [".cmp-bib > .cmp-vacio"], "ui": "Mensaje cuando no hay nada guardado.", "juego": "—" }
+    ],
+    "revision": [
+      { "id": "rv-barra", "t": "Barra superior", "sel": [".rv-barra"], "ui": "Título del reto, programa a revisar y salidas.", "juego": "Qué se revisa.", "hijos": [
+        { "id": "rv-titulo", "t": "Título", "sel": [".rv-titulo"], "ui": "Reto o nivel revisado.", "juego": "—" },
+        { "id": "rv-progs", "t": "Programa de cada máquina", "sel": [".rv-progs"], "ui": "Cambia el programa revisado.", "juego": "Revisar otra unidad." },
+        { "id": "rv-mundo", "t": "Ver el mapa", "sel": [".rv-mundo"], "ui": "Muestra el mundo durante la revisión.", "juego": "Ver el efecto de cada paso." },
+        { "id": "rv-salir", "t": "Volver al editor", "sel": [".rv-mini-cod"], "ui": "Cierra la revisión.", "juego": "Volver a programar." }
+      ]},
+      { "id": "rv-codigo", "t": "Código revisado", "sel": [".rv-codigo"], "ui": "Programa de solo lectura con la línea en curso marcada.", "juego": "Dónde va la ejecución.", "hijos": [
+        { "id": "rv-margen", "t": "Margen con pasos", "sel": [".rv-margen"], "ui": "Números de línea e insignias de paso.", "juego": "Orden de los pasos." },
+        { "id": "rv-pre", "t": "Texto", "sel": [".rv-pre"], "ui": "Tocar un fragmento explica qué hace.", "juego": "Entender cada orden." }
+      ]},
+      { "id": "rv-asa", "t": "Asa", "sel": [".rv-asa"], "ui": "Reparte el espacio entre código y diagrama.", "juego": "—" },
+      { "id": "rv-diagrama", "t": "Diagrama", "sel": [".rv-diagrama"], "ui": "Flujo de pasos como nodos enlazados.", "juego": "Ver la forma del programa.", "hijos": [
+        { "id": "rv-nodo", "t": "Nodo de paso", "sel": [".rv-nodo"], "ui": "Cada orden ejecutada; el actual brilla.", "juego": "Seguir el recorrido." },
+        { "id": "rv-depurar", "t": "Depurar", "sel": [".rv-depurar"], "ui": "Cambia al modo de depuración.", "juego": "Buscar el fallo." }
+      ]},
+      { "id": "rv-narra", "t": "Narración", "sel": [".rv-narra"], "ui": "Frase que explica el paso actual; se puede ocultar.", "juego": "Lectura guiada del programa." },
+      { "id": "rv-pie", "t": "Reproductor", "sel": [".rv-pie"], "ui": "Controles y línea de tiempo.", "juego": "Avanzar, retroceder o reproducir los pasos.", "hijos": [
+        { "id": "rv-pasos", "t": "Anterior · reproducir · siguiente", "sel": [".rv-botones .rv-boton:not(.rv-vel):not(.rv-texto)"], "ui": "Paso a paso o continuo.", "juego": "Ritmo de la revisión." },
+        { "id": "rv-vel", "t": "Velocidad", "sel": [".rv-vel"], "ui": "1×, 2×…", "juego": "—" },
+        { "id": "rv-texto", "t": "Mostrar narración", "sel": [".rv-texto"], "ui": "Activa o quita la frase del paso.", "juego": "—" },
+        { "id": "rv-tiempo", "t": "Línea de tiempo", "sel": [".rv-tiempo"], "ui": "Tramos por paso y «paso 1 de 3».", "juego": "Saltar a un paso." }
+      ]}
+    ],
+    "ajustes": [
+      { "id": "aj-cab", "t": "Cabecera", "sel": ["#ajustes .hoja-cab"], "ui": "Título y cerrar (×).", "juego": "—" },
+      { "id": "aj-nav", "t": "Cambiar de juego", "sel": ["#ajustes nav"], "ui": "Enlace a la portada.", "juego": "Elegir War, Factory o Campaign." },
+      { "id": "aj-idioma", "t": "Idioma", "sel": ["#ajustes section:has([data-idioma-interfaz])"], "ui": "Español o English.", "juego": "Idioma de textos y órdenes." },
+      { "id": "aj-lenguaje", "t": "Lenguaje del programa", "sel": ["#ajustes section:has([data-modo-codigo])"], "ui": "JavaScript, Python (y vistas Seudo y Bloques).", "juego": "En qué se programa." },
+      { "id": "aj-editor", "t": "Editor", "sel": ["#ajustes section:has(#ajustes-letra)"], "ui": "Tamaño de letra y colores del código.", "juego": "Lectura del programa.", "hijos": [
+        { "id": "aj-letra", "t": "Tamaño de letra", "sel": ["#ajustes-letra"], "ui": "12 a 18 px.", "juego": "—" },
+        { "id": "aj-colores", "t": "Colores del código", "sel": ["label:has(#ajustes-colores)"], "ui": "Casilla.", "juego": "—" }
+      ]},
+      { "id": "aj-sin-teclado", "t": "Edición sin teclado", "sel": ["#ajustes section:has(#ajustes-asa)"], "ui": "Dónde va el asa y orden de los botones.", "juego": "Comodidad en táctil.", "hijos": [
+        { "id": "aj-asa", "t": "Asa", "sel": ["#ajustes-asa"], "ui": "En el número de línea o en el borde.", "juego": "—" },
+        { "id": "aj-orden", "t": "Ordenar botones y grupos", "sel": ["#ajustes-orden-barra"], "ui": "Abre el diálogo de orden de la barra.", "juego": "—" }
+      ]},
+      { "id": "aj-confirmar", "t": "Confirmaciones", "sel": ["#ajustes section:has(#ajustes-confirmar)"], "ui": "Confirmar antes de sustituir programas con Replace.", "juego": "Evitar perder código." },
+      { "id": "aj-pantalla", "t": "Pantalla", "sel": ["#ajustes section:has(#ajustes-orientacion)"], "ui": "Orientación, posición de los paneles y opciones de pantalla.", "juego": "Cómo se reparte la pantalla.", "hijos": [
+        { "id": "aj-orientacion", "t": "Orientación", "sel": ["#ajustes-orientacion"], "ui": "Automática, horizontal o vertical.", "juego": "—" },
+        { "id": "aj-posicion", "t": "Posición de los paneles", "sel": ["#ajustes-primero-horizontal", "#ajustes-previa-horizontal", "#ajustes-primero-vertical", "#ajustes-previa-vertical"], "ui": "Mapa a la izquierda o derecha, arriba o abajo, con vista previa.", "juego": "—" },
+        { "id": "aj-casillas", "t": "Coordenadas y telemetría", "sel": ["label:has(#ajustes-coordenadas)", "label:has(#ajustes-telemetria)"], "ui": "Casillas.", "juego": "—" },
+        { "id": "aj-completa", "t": "Pantalla completa", "sel": ["#ajustes-pantalla"], "ui": "Estado, girar el campo y «¿Cómo funciona?».", "juego": "—" },
+        { "id": "aj-reparto", "t": "Restaurar reparto", "sel": ["#ajustes-reparto"], "ui": "Vuelve al reparto mapa/código por defecto.", "juego": "—" }
+      ]},
+      { "id": "aj-info", "t": "Botones (i)", "sel": ["#ajustes .cmp-info"], "ui": "Explicación de cada sección al pasar o tocar.", "juego": "—" }
     ]
   }
 }
