@@ -1,0 +1,88 @@
+{
+  "nota": "Manifiesto del inspector de pantallas. Cada elemento se localiza por selector CSS en el HTML real del juego; la presencia por rama y plataforma la decide la captura, no este archivo. Los grupos de primer nivel son los elementos grandes; 'hijos' son los pequeños.",
+  "plataformas": [
+    { "id": "escritorio", "titulo": "PC", "w": 1280, "h": 800 },
+    { "id": "tablet", "titulo": "Tablet", "w": 820, "h": 1180, "tactil": true },
+    { "id": "movil", "titulo": "Teléfono", "w": 390, "h": 844, "tactil": true }
+  ],
+  "pantallas": [
+    { "id": "war", "titulo": "Juego · War", "ruta": "Prototypes/Rocket Launcher/index.html", "elementos": "juego" },
+    { "id": "factory", "titulo": "Juego · Factory", "ruta": "Prototypes/Rocket Launcher/index.html?serie=factory", "elementos": "juego" },
+    { "id": "campaign", "titulo": "Juego · Campaign", "ruta": "Prototypes/Rocket Launcher/index.html?serie=campaign", "elementos": "juego" },
+    { "id": "demo", "titulo": "Editor · demo autónoma", "ruta": { "trunk": "paquetes/editor/demo/demo.html", "campaign-nivel-1": "shared/editor/demo.html" }, "raiz": "#demo-uno", "elementos": "demo" }
+  ],
+  "elementos": {
+    "juego": [
+      { "id": "zona-mapa", "t": "Zona del mapa", "sel": ["#zona-mapa"], "ui": "Mitad del escenario: cabecera del reto, vista 3D y controles de ejecución.", "juego": "Donde se ve el resultado del programa.", "hijos": [
+        { "id": "cabeza", "t": "Cabecera del reto", "sel": ["#zona-mapa > .cabeza"], "ui": "Barra superior del mapa con el reto y los botones generales.", "juego": "Recuerda qué reto se juega." },
+        { "id": "b-reto", "t": "Reto actual", "sel": ["#b-reto"], "ui": "Número y título del reto; al pulsar abre la hoja del reto.", "juego": "Muestra el objetivo corto y permite cambiar de reto." },
+        { "id": "b-probar", "t": "Probar en teléfono y PC", "sel": ["#b-probar"], "ui": "Enlace que abre el juego en las dos formas a la vez.", "juego": "Herramienta de desarrollo, no del jugador." },
+        { "id": "b-ver-codigo", "t": "Código a pantalla completa", "sel": ["#b-ver-codigo"], "ui": "En teléfono, salta del mapa al código.", "juego": "Cambia entre ver la partida y programar." },
+        { "id": "b-pantalla", "t": "Pantalla completa", "sel": ["#b-pantalla"], "ui": "Mantener 2 s activa el modo de un solo panel.", "juego": "Da todo el espacio al mapa o al código." },
+        { "id": "b-revisar", "t": "Revisar paso a paso", "sel": ["#b-revisar"], "ui": "Abre el modo revisión (binoculares).", "juego": "Recorre el programa línea a línea para entender qué hizo." },
+        { "id": "b-ajustes", "t": "Ajustes", "sel": ["#b-ajustes"], "ui": "Abre el diálogo de ajustes (idioma, editor, barra).", "juego": "Preferencias del jugador." },
+        { "id": "escena", "t": "Escena 3D", "sel": ["#escena"], "ui": "Lienzo del campo con su capa de controles flotantes.", "juego": "La partida: unidades, enemigos y máquinas." },
+        { "id": "c3d", "t": "Lienzo 3D", "sel": ["#c3d"], "ui": "Canvas WebGL del campo.", "juego": "Render del escenario." },
+        { "id": "b-centrar", "t": "Recentrar cámara", "sel": ["#b-centrar"], "ui": "Devuelve la cámara a su posición inicial.", "juego": "Recupera la vista tras moverla." },
+        { "id": "reloj", "t": "Reloj", "sel": ["#reloj"], "ui": "Tiempo de partida.", "juego": "Cuenta el tiempo del intento." },
+        { "id": "metas", "t": "Metas", "sel": ["#metas"], "ui": "Fila de objetivos del reto.", "juego": "Indica qué falta para ganar." },
+        { "id": "cmp-esquina", "t": "Esquina de Campaign", "sel": ["#cmp-esquina"], "ui": "Misión, revisión y ajustes agrupados en la esquina del mapa.", "juego": "Sustituye a la cabecera en Campaign escritorio." },
+        { "id": "cmp-b-mision", "t": "Misión", "sel": ["#cmp-b-mision"], "ui": "Abre la pantalla de misión en el sitio del código.", "juego": "Explica el nivel de Campaign." },
+        { "id": "cmp-recursos", "t": "Recursos", "sel": ["#cmp-recursos"], "ui": "Contadores de materiales.", "juego": "Lo que la fábrica ha producido o tiene." },
+        { "id": "cmp-mini", "t": "Minimapa", "sel": ["#cmp-mini"], "ui": "Plano pequeño de la planta.", "juego": "Orientación en el nivel de Campaign." },
+        { "id": "controles", "t": "Controles de ejecución", "sel": ["#zona-mapa > .controles"], "ui": "Fila de botones grandes bajo el mapa.", "juego": "Arranca, pausa y reinicia el programa." },
+        { "id": "b-ejecutar", "t": "Ejecutar", "sel": ["#b-ejecutar"], "ui": "Botón principal.", "juego": "Corre el programa de todas las unidades." },
+        { "id": "b-pausa", "t": "Pausa", "sel": ["#b-pausa"], "ui": "Detiene el tiempo sin perder el estado.", "juego": "Permite mirar la partida congelada." },
+        { "id": "b-vel", "t": "Velocidad", "sel": ["#b-vel"], "ui": "Cambia la velocidad de simulación.", "juego": "Acelera intentos largos." },
+        { "id": "b-reiniciar", "t": "Reiniciar", "sel": ["#b-reiniciar"], "ui": "Vuelve al inicio del reto.", "juego": "Nuevo intento desde cero." },
+        { "id": "b-maquinas", "t": "Máquinas", "sel": ["#b-maquinas"], "ui": "Abre la pantalla de máquinas (Campaign).", "juego": "Ocupa el lugar de Reiniciar en Campaign escritorio." }
+      ]},
+      { "id": "divisor", "t": "Divisor", "sel": ["#divisor"], "ui": "Asa entre mapa y código; se arrastra.", "juego": "Reparte el espacio entre ver y programar." },
+      { "id": "zona-codigo", "t": "Zona del código", "sel": ["#zona-codigo"], "ui": "Mitad del programa: cabecera, paleta, editor y panel inferior.", "juego": "Donde el jugador escribe el programa.", "hijos": [
+        { "id": "t-programa", "t": "Pestaña Programa", "sel": ["#t-programa"], "ui": "Muestra el editor.", "juego": "Vista principal de trabajo." },
+        { "id": "t-registro", "t": "Pestaña Registro", "sel": ["#t-registro"], "ui": "Muestra la consola del programa.", "juego": "Mensajes y errores de la ejecución." },
+        { "id": "t-ayuda", "t": "Pestaña Ayuda", "sel": ["#t-ayuda"], "ui": "Lista de órdenes disponibles.", "juego": "Referencia del lenguaje del juego." },
+        { "id": "t-escenario", "t": "Pestaña Escenario", "sel": ["#t-escenario"], "ui": "Datos del escenario.", "juego": "Qué hay en el mapa." },
+        { "id": "b-barras", "t": "Plegar herramientas", "sel": ["#b-barras"], "ui": "Oculta o muestra la fila de herramientas.", "juego": "Más espacio para el código." },
+        { "id": "cmp-b-unidades", "t": "Elegir unidades", "sel": ["#cmp-b-unidades"], "ui": "Árbol de unidades con casillas (Campaign).", "juego": "Qué robots o máquinas reciben el programa." },
+        { "id": "cmp-b-mas", "t": "Biblioteca de programas", "sel": ["#cmp-b-mas"], "ui": "Botón «+» que abre la biblioteca.", "juego": "Guarda y reutiliza programas, con su lenguaje." },
+        { "id": "progs", "t": "Programa por unidad", "sel": ["#progs"], "ui": "Fichas para cambiar de programa (una por lanzador o robot).", "juego": "Cada unidad corre su propio código." },
+        { "id": "sel-lenguaje", "t": "Lenguaje", "sel": ["#sel-lenguaje"], "ui": "Selector JavaScript, Python y vistas Seudo o Bloques.", "juego": "Cambia el lenguaje; el juego convierte JS a Python." },
+        { "id": "b-teclado", "t": "Sin teclado", "sel": ["#b-teclado", "#b-teclado-movil"], "ui": "Modo sin teclado (Ctrl+Alt+A).", "juego": "Programar solo con fichas y la barra de edición." },
+        { "id": "b-colores", "t": "Colores del código", "sel": ["#b-colores"], "ui": "Activa o quita el resaltado de sintaxis.", "juego": "Legibilidad del programa." },
+        { "id": "b-letra", "t": "Letra A− / A+", "sel": ["#b-menos", "#b-mas"], "ui": "Cinco tamaños de letra.", "juego": "Ajuste de lectura." },
+        { "id": "b-ejecutar-movil", "t": "Ejecutar (teléfono)", "sel": ["#b-ejecutar-movil"], "ui": "Copia del botón Ejecutar junto al código.", "juego": "Ejecutar sin volver al mapa." },
+        { "id": "b-menu-cod", "t": "Más opciones", "sel": ["#b-menu-cod"], "ui": "Menú ⋯: registro, órdenes, escenario, revisión.", "juego": "Sustituye a las pestañas en pantallas pequeñas." },
+        { "id": "b-pantalla-cod", "t": "Pantalla completa del código", "sel": ["#b-pantalla-cod"], "ui": "Mantener 2 s para dejar solo el código.", "juego": "Modo de un solo panel desde el editor." },
+        { "id": "paleta", "t": "Paleta de fichas", "sel": ["#paleta"], "ui": "Fichas que insertan plantillas; mantener pulsado abre variantes.", "juego": "Órdenes propias de cada serie (disparar, recoger…)." },
+        { "id": "editor", "t": "Editor", "sel": ["#area-programa"], "ui": "Área del programa.", "juego": "El código que ejecutan las unidades." },
+        { "id": "cm", "t": "Superficie CodeMirror", "sel": ["#area-programa .cm-content"], "ui": "Donde se escribe cuando CodeMirror está activo.", "juego": "Diagnósticos en vivo, plegado y foco real." },
+        { "id": "codigo", "t": "Textarea visible", "sel": ["#codigo"], "ui": "Superficie antigua: textarea transparente sobre una capa de colores.", "juego": "Sin diagnósticos en vivo ni plegado." },
+        { "id": "margen", "t": "Números de línea", "sel": ["#area-programa .cm-gutters", "#gutter"], "ui": "Margen con números (y plegado con CodeMirror).", "juego": "Ubica errores y la línea que corre." },
+        { "id": "b-info-reto", "t": "Información del reto", "sel": ["#b-info-reto"], "ui": "Botón «i» sobre el editor.", "juego": "Recuerda el objetivo sin salir del código." },
+        { "id": "edicion", "t": "Barra de edición", "sel": ["#edicion"], "ui": "Deshacer, cortar, copiar, pegar, mover líneas…", "juego": "Editar con el dedo en pantallas táctiles." },
+        { "id": "simbolos", "t": "Barra de símbolos", "sel": ["#simbolos", "#cmp-tipografia"], "ui": "Signos y palabras clave para el teclado del teléfono.", "juego": "Escribir llaves, comillas y operadores rápido." },
+        { "id": "pie", "t": "Panel inferior", "sel": ["#pie"], "ui": "Panel plegable bajo el editor.", "juego": "Información de apoyo mientras se programa." },
+        { "id": "pie-barra", "t": "Asa del panel", "sel": ["#pie-barra"], "ui": "Arrastra para cambiar su alto; el botón lo cierra.", "juego": "Más o menos espacio para el código." },
+        { "id": "pie-ins", "t": "Inspector de órdenes", "sel": ["#pie-ins"], "ui": "Lo que el programa puede usar.", "juego": "Órdenes y valores disponibles en el reto." },
+        { "id": "pie-obj", "t": "Objetivo · Specs · Consola", "sel": ["#pie-obj"], "ui": "Panel inferior propio de Campaign.", "juego": "Objetivo del nivel, datos de máquinas y consola." }
+      ]}
+    ],
+    "demo": [
+      { "id": "herramientas", "t": "Herramientas del editor", "sel": [".editor-herramientas"], "ui": "Fila superior del editor autónomo.", "juego": "Fuera del juego: el editor es un paquete reutilizable.", "hijos": [
+        { "id": "d-lenguaje", "t": "Lenguaje", "sel": ["[id$='-lenguaje']"], "ui": "JavaScript o Python; cada uno abre su propio documento.", "juego": "No convierte el texto." },
+        { "id": "d-teclado", "t": "Sin teclado", "sel": ["[id$='-b-teclado']"], "ui": "Modo sin teclado de esta instancia.", "juego": "El atajo solo afecta al editor enfocado." },
+        { "id": "d-letra", "t": "Letra A− / A+", "sel": ["[id$='-b-menos']", "[id$='-b-mas']"], "ui": "Tamaño de letra por instancia.", "juego": "—" },
+        { "id": "d-ajustes", "t": "Ajustes del editor", "sel": ["[id$='-b-ajustes']"], "ui": "Asa y orden de la barra.", "juego": "—" },
+        { "id": "d-pantalla", "t": "Pantalla completa", "sel": ["[id$='-b-pantalla']"], "ui": "Pantalla completa de este editor; Esc la cierra.", "juego": "En el juego no existe: allí es la del panel." }
+      ]},
+      { "id": "d-paleta", "t": "Paleta de fichas", "sel": ["[id$='-paleta']"], "ui": "Plantillas del lenguaje activo con variantes.", "juego": "—" },
+      { "id": "d-editor", "t": "Editor", "sel": ["[id$='-editor']"], "ui": "Área de texto.", "juego": "—", "hijos": [
+        { "id": "d-cm", "t": "Superficie CodeMirror", "sel": [".cm-content"], "ui": "Superficie editable con diagnósticos y plegado.", "juego": "—" },
+        { "id": "d-codigo", "t": "Textarea visible", "sel": ["textarea[id$='-codigo']"], "ui": "Superficie antigua con capa de resaltado.", "juego": "—" },
+        { "id": "d-margen", "t": "Números de línea", "sel": [".cm-gutters", "[id$='-gutter']"], "ui": "Margen de líneas.", "juego": "—" }
+      ]},
+      { "id": "d-edicion", "t": "Barra de edición", "sel": ["[id$='-edicion']", ".barra-edicion"], "ui": "Acciones de edición táctil.", "juego": "—" }
+    ]
+  }
+}
