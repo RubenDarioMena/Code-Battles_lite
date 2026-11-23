@@ -1,0 +1,8 @@
+# Solo se versiona la selección de previas: las hojas de contacto y el último vídeo.
+# Los cuadros sueltos, variantes y borradores se regeneran con los scripts.
+previas/**
+!previas/*/
+!previas/*/hoja-*.jpg
+!previas/07/codemageddon.mp4
+!previas/07/escena.json
+!previas/var-lanzar.sh

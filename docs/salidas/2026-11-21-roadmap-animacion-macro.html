@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="es" data-register="paper">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap de animación macro</title>
+<meta name="description" content="Qué aprender, en qué orden y con qué recursos para hacer una animación macro de mecanizado en Blender, trabajando junto a una IA.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --sunk:#ecebe6; --text:#1c1e21; --text-dim:#5a5f66;
+  --border:#e2e0d9; --border-bright:#8c9097; --accent:#2b5b8c; --accent-dim:#e1eaf4;
+  --ok:#2b7a4b; --warn:#9a6200; --risk:#b02a20; --heat:#c8202b;
+  --steel-1:#d9dde2; --steel-2:#a9b0b8; --steel-3:#6f7780; --ink:#25282c; --hole:#2a2d31;
+  --f-head:"Fraunces",Georgia,serif; --f-body:"IBM Plex Sans","Helvetica Neue",sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --t-label:.78rem; --t-small:.88rem; --t-body:1.02rem; --t-h3:1.15rem; --t-h2:1.7rem; --t-h1:2.5rem;
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-7:48px; --s-8:72px;
+  --r-1:4px; --r-2:8px; --fast:120ms; --med:220ms; --ease:cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121416; --surface:#1a1d20; --sunk:#202428; --text:#e7e5e0; --text-dim:#a3a8ae;
+    --border:#2b3035; --border-bright:#6d737a; --accent:#82b2e2; --accent-dim:#1c2a39;
+    --ok:#6cc48f; --warn:#e2a742; --risk:#f0807a; --heat:#ff5a5f;
+    --steel-1:#5b636b; --steel-2:#454c53; --steel-3:#30353a; --ink:#0b0c0d; --hole:#050606;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121416; --surface:#1a1d20; --sunk:#202428; --text:#e7e5e0; --text-dim:#a3a8ae;
+  --border:#2b3035; --border-bright:#6d737a; --accent:#82b2e2; --accent-dim:#1c2a39;
+  --ok:#6cc48f; --warn:#e2a742; --risk:#f0807a; --heat:#ff5a5f;
+  --steel-1:#5b636b; --steel-2:#454c53; --steel-3:#30353a; --ink:#0b0c0d; --hole:#050606;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--text);font:400 var(--t-body)/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:3px}
+h1,h2,h3{font-family:var(--f-head);font-weight:600;line-height:1.2;margin:0}
+h1{font-size:var(--t-h1);letter-spacing:-.01em;max-width:24ch}
+h2{font-size:var(--t-h2);max-width:30ch;margin-bottom:var(--s-3)}
+h3{font-size:var(--t-h3);margin-bottom:var(--s-2)}
+p{margin:0 0 var(--s-3);max-width:65ch}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+.mono{font-family:var(--f-mono);font-size:var(--t-small)}
+.dim{color:var(--text-dim)}
+.lbl{font:500 var(--t-label)/1.3 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);margin:0 0 var(--s-2)}
+header.top{padding:var(--s-7) 0 var(--s-5)}
+header.top .lead{font-size:1.15rem;max-width:62ch;margin-top:var(--s-4)}
+nav.toc{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--border)}
+nav.toc ol{list-style:none;display:flex;gap:var(--s-1);margin:0 auto;padding:var(--s-2) 16px;max-width:1120px;overflow-x:auto;scrollbar-width:none}
+nav.toc a{display:block;white-space:nowrap;font:500 var(--t-small)/1 var(--f-mono);color:var(--text-dim);text-decoration:none;padding:6px 10px;border-radius:var(--r-1)}
+nav.toc a:hover,nav.toc a.on{color:var(--text);background:var(--sunk)}
+section{padding:var(--s-8) 0 0}
+section.fase{border-top:1px solid var(--border);margin-top:var(--s-8);padding-top:var(--s-7)}
+figure{margin:var(--s-5) 0 var(--s-6)}
+figcaption{font-size:var(--t-small);color:var(--text-dim);max-width:70ch;margin-top:var(--s-3)}
+figcaption b{color:var(--text);font-weight:600}
+.fig-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fig-scroll svg{min-width:640px}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--f-body);font-size:14px;fill:var(--text)}
+svg .m{font-family:var(--f-mono);font-size:13px}
+svg .d{fill:var(--text-dim)}
+svg .st{stroke:var(--border-bright);stroke-width:1;fill:none}
+svg .rule{stroke:var(--border);stroke-width:1;fill:none}
+svg .box{fill:var(--surface);stroke:var(--border-bright);stroke-width:1.5}
+svg .key{fill:var(--accent-dim);stroke:var(--accent);stroke-width:2.5}
+svg .hot{stroke:var(--accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg .edge{stroke:var(--border-bright);stroke-width:1.5;fill:none}
+svg .dash{stroke-dasharray:5 4}
+svg .halo{paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+svg .co circle{fill:var(--text);stroke:none}
+svg .co text{fill:var(--bg);font:600 13px var(--f-mono);text-anchor:middle;dominant-baseline:central}
+svg .ann{stroke:var(--text);stroke-width:1;fill:none}
+svg [data-ref]{transition:opacity var(--med) var(--ease)}
+svg.dimmed [data-ref]:not(.lit){opacity:.28}
+.tag{display:inline-block;font:500 var(--t-label)/1 var(--f-mono);padding:4px 7px;border-radius:var(--r-1);border:1px solid var(--border-bright);color:var(--text);background:var(--surface);vertical-align:middle}
+.tag.ok{border-color:var(--ok);color:var(--ok)} .tag.warn{border-color:var(--warn);color:var(--warn)} .tag.risk{border-color:var(--risk);color:var(--risk)} .tag.key{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.callouts{list-style:none;padding:0;margin:var(--s-3) 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--s-2) var(--s-5)}
+.callouts li{font-size:var(--t-small);display:grid;grid-template-columns:26px 1fr;gap:var(--s-2);align-items:start;padding:var(--s-1);border-radius:var(--r-1);cursor:default}
+.callouts li.lit{background:var(--accent-dim)}
+.callouts .n{font:600 12px/22px var(--f-mono);width:22px;height:22px;border-radius:50%;background:var(--text);color:var(--bg);text-align:center}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-6);margin-top:var(--s-5)}
+.cols h3{font-family:var(--f-mono);font-size:var(--t-label);letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);font-weight:500}
+.cols ul{margin:0;padding-left:1.1em}
+.cols li{margin-bottom:var(--s-2);max-width:60ch}
+.practica{margin-top:var(--s-5);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2);padding:var(--s-4)}
+.practica p{margin:var(--s-2) 0 0}
+.rec{margin-top:var(--s-5)}
+.rec ul{list-style:none;padding:0;margin:var(--s-2) 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--s-2) var(--s-5)}
+.rec li{font-size:var(--t-small);padding:var(--s-2) 0;border-top:1px solid var(--border)}
+.rec li .k{font:500 var(--t-label) var(--f-mono);color:var(--text-dim);display:block;margin-bottom:2px}
+a.t{color:inherit;text-decoration:underline dotted var(--accent);text-decoration-thickness:1.5px;text-underline-offset:3px}
+a.t::after{content:"g";font:600 .62em var(--f-mono);color:var(--accent);vertical-align:super;margin-left:1px}
+a.t:hover{background:var(--accent-dim)}
+.astra{margin-top:var(--s-5);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2);padding:var(--s-4)}
+.astra ol{margin:var(--s-3) 0 0;padding-left:1.3em}
+.astra li{margin-bottom:var(--s-2);max-width:70ch}
+.astra li .dim{font-size:var(--t-small)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-5);margin-top:var(--s-4)}
+.split > div{border-top:2px solid var(--border-bright);padding-top:var(--s-3)}
+.split > div.you{border-top-color:var(--accent)}
+.split ul{margin:var(--s-2) 0 0;padding-left:1.1em;font-size:var(--t-small)}
+.mult{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--s-4)}
+.mult svg{max-width:300px}
+.mult .case{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2);padding:var(--s-3)}
+.mult .case h4{margin:var(--s-2) 0 var(--s-2);font:600 var(--t-small) var(--f-body)}
+dl.glos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 var(--s-6);margin:var(--s-5) 0 0}
+dl.glos div{padding:var(--s-3) 0;border-top:1px solid var(--border)}
+dl.glos div:target{background:var(--accent-dim);outline:2px solid var(--accent);outline-offset:4px;border-radius:var(--r-1)}
+dl.glos dt{font-weight:600;display:flex;justify-content:space-between;gap:var(--s-2)}
+dl.glos dt button{font:500 var(--t-label) var(--f-mono);color:var(--accent);background:none;border:0;cursor:pointer;padding:0}
+dl.glos dd{margin:var(--s-1) 0 0;font-size:var(--t-small);color:var(--text-dim);max-width:52ch}
+.letras{display:flex;flex-wrap:wrap;gap:var(--s-1);margin-top:var(--s-3)}
+.letras a{font:500 var(--t-small) var(--f-mono);text-decoration:none;padding:3px 8px;border:1px solid var(--border);border-radius:var(--r-1)}
+footer{padding:var(--s-8) 0 var(--s-7);color:var(--text-dim);font-size:var(--t-small)}
+@media (max-width:760px){
+  :root{--t-h1:1.9rem;--t-h2:1.4rem}
+  .cols,.split{grid-template-columns:1fr;gap:var(--s-4)}
+  section{padding-top:var(--s-7)}
+  section.fase{margin-top:var(--s-7);padding-top:var(--s-6)}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}svg [data-ref]{transition:none}}
+</style>
+</head>
+<body>
+
+<nav class="toc" aria-label="Secciones">
+  <ol>
+    <li><a href="#mapa">Mapa</a></li>
+    <li><a href="#anatomia">El plano</a></li>
+    <li><a href="#f0">0 Equipo</a></li>
+    <li><a href="#f1">1 Mirada</a></li>
+    <li><a href="#f2">2 Escena</a></li>
+    <li><a href="#f3">3 Luz y metal</a></li>
+    <li><a href="#f4">4 Movimiento</a></li>
+    <li><a href="#f5">5 Entrega</a></li>
+    <li><a href="#f6">6 Scripts</a></li>
+    <li><a href="#astra">Astra</a></li>
+    <li><a href="#glosario">Glosario</a></li>
+  </ol>
+</nav>
+
+<main class="wrap">
+
+<header class="top" id="mapa">
+  <p class="lbl">Roadmap · animación macro de mecanizado en Blender</p>
+  <h1>Siete bloques, 54 horas de núcleo y una sola letra para practicar</h1>
+  <p class="lead">El núcleo son unas 54 horas: unas 22 semanas a 2,5 horas por semana. Cada fase deja lista una parte de la misma pieza: la letra O, del corte al encaje. Las palabras con un punteado y una <span class="mono" style="color:var(--accent)">g</span> te llevan al glosario.</p>
+
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 1100 230" role="img" aria-label="Barra de fases proporcional a las horas: 0 Equipo 2 h, 1 Mirada 6 h, 2 Escena 10 h, 3 Luz y metal 14 h, 4 Movimiento 16 h, 5 Entrega 6 h, 6 Scripts 10 h opcional.">
+      <defs>
+        <pattern id="rayado" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="7" height="7" fill="var(--surface)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--steel-2)" stroke-width="2.4"/>
+        </pattern>
+      </defs>
+      <g class="rotulos">
+        <text x="40" y="34" font-weight="600">0 · Equipo</text><text x="40" y="52" class="m d">2 h</text><path class="st" d="M41 58V130"/>
+        <text x="72" y="82" font-weight="600">1 · Mirada</text><text x="72" y="100" class="m d">6 h</text><path class="st" d="M73 106V130"/>
+        <text x="168" y="34" font-weight="600">2 · Escena</text><text x="168" y="52" class="m d">10 h</text><path class="st" d="M169 58V130"/>
+        <text x="327" y="82" font-weight="600">3 · Luz y metal</text><text x="327" y="100" class="m d">14 h</text><path class="st" d="M328 106V130"/>
+        <text x="550" y="34" font-weight="600">4 · Movimiento</text><text x="550" y="52" class="m d">16 h</text><path class="st" d="M551 58V130"/>
+        <text x="805" y="82" font-weight="600">5 · Entrega</text><text x="805" y="100" class="m d">6 h</text><path class="st" d="M806 106V130"/>
+        <text x="901" y="34" font-weight="600">6 · Scripts</text><text x="901" y="52" class="m d">10 h · opcional</text><path class="st" d="M902 58V130"/>
+      </g>
+      <a href="#f0"><rect x="40" y="130" width="32" height="30" fill="url(#rayado)" class="key"/></a>
+      <a href="#f1"><rect x="72" y="130" width="96" height="30" fill="url(#rayado)" stroke="var(--border-bright)"/></a>
+      <a href="#f2"><rect x="168" y="130" width="159" height="30" fill="var(--steel-2)" stroke="var(--border-bright)"/></a>
+      <a href="#f3"><rect x="327" y="130" width="223" height="15" fill="url(#rayado)" stroke="var(--border-bright)"/><rect x="327" y="145" width="223" height="15" fill="var(--steel-2)" stroke="var(--border-bright)"/></a>
+      <a href="#f4"><rect x="550" y="130" width="255" height="15" fill="url(#rayado)" stroke="var(--border-bright)"/><rect x="550" y="145" width="255" height="15" fill="var(--steel-2)" stroke="var(--border-bright)"/></a>
+      <a href="#f5"><rect x="805" y="130" width="96" height="30" fill="var(--steel-2)" stroke="var(--border-bright)"/></a>
+      <a href="#f6"><rect x="901" y="130" width="159" height="30" fill="none" stroke="var(--border-bright)" stroke-width="1.5" class="dash"/></a>
+      <rect x="40" y="130" width="32" height="30" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <g class="ve-dim">
+        <path class="st" d="M40 164V210M901 164V210M1060 164V210"/>
+        <path stroke="var(--accent)" stroke-width="2" fill="none" d="M40 204H901M36 208l8-8M897 208l8-8"/>
+        <text x="470" y="196" text-anchor="middle" class="halo" font-weight="600" fill="var(--accent)">54 h de núcleo ≈ 22 semanas a 2,5 h/semana</text>
+        <path class="st" d="M901 204H1060M1056 208l8-8"/>
+        <text x="980" y="196" text-anchor="middle" class="m d halo">+10 h</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption><b>Empieza por la fase 0 (marcada en azul) y avanza en orden.</b> El ancho de cada tramo es proporcional a sus horas. <span class="tag">rayado</span> conceptual · <span class="tag" style="background:var(--steel-2)">sólido</span> técnico en Blender · mitad y mitad: mixto · <span class="tag" style="border-style:dashed">discontinuo</span> opcional.</figcaption>
+  </figure>
+</header>
+
+<section id="anatomia">
+  <p class="lbl">El plano, pieza por pieza</p>
+  <h2>Cada elemento del plano sale de una fase</h2>
+  <p>Este esquema es el plano que hicimos con Astra, visto de lado. Pasa el cursor por un número para ver qué fase lo enseña.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg id="anat" viewBox="0 0 1000 440" role="img" aria-label="Esquema lateral: placa de acero con hueco, bloque galvanizado sobre soportes, haz láser, pieza que cae, desliza y se hunde, fresa que graba, cámara macro, softbox y tarjeta de reflexión.">
+      <defs>
+        <linearGradient id="acero" x1="0" x2="1"><stop offset="0" stop-color="var(--steel-3)"/><stop offset=".45" stop-color="var(--steel-1)"/><stop offset="1" stop-color="var(--steel-2)"/></linearGradient>
+        <marker id="flecha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>
+      </defs>
+      <g data-ref="f3">
+        <rect x="60" y="34" width="170" height="16" rx="2" fill="var(--surface)" stroke="var(--border-bright)" stroke-width="1.5"/>
+        <text x="60" y="24" class="d">softbox (luz de área)</text>
+        <path class="st dash" d="M100 50L300 330M180 50L420 330"/>
+        <rect x="770" y="34" width="190" height="14" rx="2" fill="none" stroke="var(--border-bright)" stroke-width="1.5" class="dash"/>
+        <text x="770" y="24" class="d">tarjeta de reflexión</text>
+        <text x="770" y="66" class="m d">solo en reflejos</text>
+      </g>
+      <g data-ref="f2">
+        <rect x="40" y="340" width="920" height="40" fill="url(#acero)" stroke="var(--border-bright)"/>
+        <rect x="560" y="340" width="60" height="26" fill="var(--hole)"/>
+        <path d="M170 340h120v5h-10v3h-100v-3h-10z" fill="var(--steel-3)"/>
+        <text x="40" y="404" class="d">placa de acero cepillado · z = 0</text>
+        <rect x="430" y="210" width="200" height="26" fill="var(--steel-1)" stroke="var(--border-bright)"/>
+        <rect x="670" y="210" width="90" height="26" fill="var(--steel-1)" stroke="var(--border-bright)"/>
+        <text x="430" y="200" class="d">bloque galvanizado</text>
+        <rect x="444" y="236" width="12" height="104" fill="var(--ink)" opacity=".55"/>
+        <rect x="738" y="236" width="12" height="104" fill="var(--ink)" opacity=".55"/>
+        <text x="464" y="300" class="m d">soporte</text>
+        <path class="ann" d="M560 344L520 420"/><text x="410" y="434" class="m">holgura 0,05 mm</text>
+      </g>
+      <g class="ve-dim" data-ref="f2">
+        <path class="st" d="M762 210H800M762 236H800M962 340H800"/>
+        <path class="st" d="M794 210V340M790 214l8-8M790 240l8-8M790 344l8-8" stroke="var(--text)"/>
+        <text x="804" y="228" class="m">2,5 cm</text>
+        <text x="804" y="294" class="m">6 cm</text>
+      </g>
+      <g data-ref="f4">
+        <line x1="650" y1="0" x2="650" y2="210" stroke="var(--heat)" stroke-width="2"/>
+        <text x="640" y="20" class="d" text-anchor="end">haz láser · cabezal fuera de cuadro</text>
+        <rect x="632" y="262" width="36" height="26" fill="var(--steel-1)" stroke="var(--heat)" stroke-width="2.5"/>
+        <path class="hot" d="M650 292V330H600V352" marker-end="url(#flecha)"/>
+        <text x="662" y="316" class="m" fill="var(--accent)">cae · g constante</text>
+        <text x="592" y="318" class="m halo" fill="var(--accent)" text-anchor="end">desliza</text>
+        <text x="612" y="402" class="m halo" fill="var(--accent)">se hunde a tirones</text>
+        <rect x="200" y="120" width="56" height="130" rx="4" fill="var(--ink)" opacity=".7"/>
+        <rect x="222" y="250" width="12" height="40" fill="var(--steel-1)" stroke="var(--border-bright)"/>
+        <line x1="228" y1="290" x2="228" y2="342" stroke="var(--steel-2)" stroke-width="5"/>
+        <text x="270" y="140" class="d">fresa CNC</text>
+        <text x="170" y="332" class="m d" text-anchor="end">grabado CODE</text>
+      </g>
+      <g data-ref="f5">
+        <circle cx="650" cy="210" r="7" fill="var(--heat)" opacity=".35"/><circle cx="650" cy="210" r="3" fill="var(--heat)"/>
+      </g>
+      <g data-ref="f1">
+        <rect x="868" y="150" width="76" height="46" rx="5" fill="var(--surface)" stroke="var(--text)" stroke-width="1.5"/>
+        <rect x="846" y="160" width="22" height="26" fill="var(--surface)" stroke="var(--text)" stroke-width="1.5"/>
+        <path class="st dash" d="M846 173L560 300M846 173L700 372"/>
+        <path stroke="var(--accent)" stroke-width="1.5" fill="none" class="dash" d="M620 262L660 352"/>
+        <text x="868" y="216" class="d">cámara macro</text>
+        <text x="868" y="234" class="m d">foco en la pieza</text>
+      </g>
+      <g class="co" data-ref="f1"><path class="ann" d="M940 140V150"/><g transform="translate(940 128)"><circle r="11"/><text>1</text></g></g>
+      <g class="co" data-ref="f2"><path class="ann" d="M580 366V392"/><g transform="translate(580 404)"><circle r="11"/><text>2</text></g></g>
+      <g class="co" data-ref="f3"><path class="ann" d="M240 42H254"/><g transform="translate(266 42)"><circle r="11"/><text>3</text></g></g>
+      <g class="co" data-ref="f4"><path class="ann" d="M668 275H690"/><g transform="translate(702 275)"><circle r="11"/><text>4</text></g></g>
+      <g class="co" data-ref="f5"><path class="ann" d="M640 204L622 186"/><g transform="translate(612 176)"><circle r="11"/><text>5</text></g></g>
+    </svg>
+    </div>
+    <figcaption><b>Cada número señala la parte del plano que enseña una fase.</b> La flecha azul es el recorrido de la pieza que aprendes a animar: cae, desliza y se hunde.</figcaption>
+    <ol class="callouts">
+      <li data-ref="f1"><span class="n">1</span><span><a href="#f1">Mirada</a>: dónde está la cámara, qué lente usa y dónde pone el foco.</span></li>
+      <li data-ref="f2"><span class="n">2</span><span><a href="#f2">Escena</a>: medidas reales, el bloque de 2,5 cm y el hueco con su holgura.</span></li>
+      <li data-ref="f3"><span class="n">3</span><span><a href="#f3">Luz y metal</a>: el softbox ilumina y la tarjeta da algo que reflejar al acero.</span></li>
+      <li data-ref="f4"><span class="n">4</span><span><a href="#f4">Movimiento</a>: el haz, la caída, el deslizamiento, el hundimiento y la fresa.</span></li>
+      <li data-ref="f5"><span class="n">5</span><span><a href="#f5">Entrega</a>: el brillo del corte se añade en el compositor y el vídeo sale a MP4.</span></li>
+    </ol>
+  </figure>
+</section>
+
+<section class="fase" id="f0">
+  <p class="lbl">Fase 0 · conceptual · 2 h · empieza aquí</p>
+  <h2>Tú decides el ritmo; la IA lo traduce a un script</h2>
+  <p>Este proyecto salió bien cuando tú juzgabas cuadros concretos y la IA cambiaba el script. Aprende este ciclo el primer día. Cada fase siguiente lo usa.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 900 300" role="img" aria-label="Ciclo de trabajo: tú decides el brief y el animatic, la IA traduce a script, se renderiza una previa corta, tú juzgas con capturas anotadas y ajustas un parámetro.">
+      <defs><marker id="fl2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--border-bright)"/></marker></defs>
+      <rect x="20" y="10" width="300" height="280" rx="8" fill="none" stroke="var(--accent)" class="dash"/>
+      <text x="32" y="32" class="m" fill="var(--accent)">TÚ DECIDES</text>
+      <rect x="580" y="10" width="300" height="280" rx="8" fill="none" stroke="var(--border-bright)" class="dash"/>
+      <text x="592" y="32" class="m d">LA IA EJECUTA</text>
+      <rect x="44" y="50" width="252" height="66" rx="6" class="key"/>
+      <text x="60" y="78" font-weight="600">Brief y animatic</text><text x="60" y="100" class="m d">ritmo, planos, referencias</text>
+      <rect x="604" y="50" width="252" height="66" rx="6" class="box"/>
+      <text x="620" y="78" font-weight="600">Script de Blender</text><text x="620" y="100" class="m d">escena, materiales, claves</text>
+      <rect x="604" y="196" width="252" height="66" rx="6" class="box"/>
+      <text x="620" y="224" font-weight="600">Previa corta</text><text x="620" y="246" class="m d">960×540 + hoja de contactos</text>
+      <rect x="44" y="196" width="252" height="66" rx="6" class="key"/>
+      <text x="60" y="224" font-weight="600">Juicio</text><text x="60" y="246" class="m d">capturas anotadas, 1 decisión</text>
+      <path class="edge" d="M296 83H600" marker-end="url(#fl2)"/><text x="448" y="74" text-anchor="middle" class="m">pide</text>
+      <path class="edge" d="M730 116V192" marker-end="url(#fl2)"/><text x="742" y="160" class="m">renderiza</text>
+      <path class="edge" d="M604 229H300" marker-end="url(#fl2)"/><text x="448" y="220" text-anchor="middle" class="m">miras</text>
+      <path class="edge" d="M170 196V120" marker-end="url(#fl2)"/><text x="182" y="160" class="m">ajustas 1 parámetro</text>
+    </svg>
+    </div>
+    <figcaption><b>Una vuelta del ciclo = una decisión tuya.</b> Las cajas azules son tuyas: el brief, el ritmo y el juicio de cada previa.</figcaption>
+  </figure>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li>Escribe un brief de 5 líneas: qué pasa, cuánto dura y qué debe sentir quien lo ve.</li>
+      <li>Revisa con una <a class="t" href="#g-hoja">hoja de contactos</a> y una <a class="t" href="#g-previa">previa</a> corta, no con el render final.</li>
+      <li>Da el feedback como lo hiciste aquí: capturas con un recuadro y una frase.</li>
+      <li>Compara <a class="t" href="#g-variantes">hojas de variantes</a> y elige una casilla (A1, B2…).</li>
+    </ul></div>
+    <div><h3>En Blender</h3><ul>
+      <li>Abre en Blender el archivo que entrega la IA y recorre la línea de tiempo.</li>
+      <li>Busca en el script los diccionarios de ajustes (<span class="mono">LUCES</span>, <span class="mono">LETRA</span>, <span class="mono">MONTAJE</span>) y cambia un valor.</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>Escribe el brief de 5 segundos de la O: el haz la corta, cae, desliza y encaja. Pide una previa y devuelve una sola captura anotada.</p></div>
+</section>
+
+<section class="fase" id="f1">
+  <p class="lbl">Fase 1 · conceptual · 6 h</p>
+  <h2>Decide qué ve la cámara antes de abrir Blender</h2>
+  <p>Un plano cuenta una sola acción. El montaje ordena esas acciones y decide cuánto dura cada una.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 1000 150" role="img" aria-label="Montaje de la previa 07: A N cae 2,5 s, D fresa 4 s, B láser 2,5 s, C O cae 3 s, E palabra 2,5 s; total 14,5 s.">
+      <rect x="50" y="30" width="155" height="56" class="box"/><text x="60" y="54" font-weight="600">A · N cae</text><text x="60" y="74" class="m d">macro fija</text>
+      <rect x="205" y="30" width="248" height="56" class="key"/><text x="215" y="54" font-weight="600">D · fresa</text><text x="215" y="74" class="m d">slide + rack focus</text>
+      <rect x="453" y="30" width="155" height="56" class="box"/><text x="463" y="54" font-weight="600">B · láser</text><text x="463" y="74" class="m d">slide lateral</text>
+      <rect x="608" y="30" width="186" height="56" class="box"/><text x="618" y="54" font-weight="600">C · O cae</text><text x="618" y="74" class="m d">29° + dolly-in</text>
+      <rect x="794" y="30" width="155" height="56" class="box"/><text x="804" y="54" font-weight="600">E · palabra</text><text x="804" y="74" class="m d">revelado</text>
+      <g class="m d" text-anchor="middle"><text x="127" y="106">2,5 s</text><text x="329" y="106">4 s</text><text x="530" y="106">2,5 s</text><text x="701" y="106">3 s</text><text x="871" y="106">2,5 s</text></g>
+      <path class="st" d="M50 112V140M949 112V140"/><path stroke="var(--text)" fill="none" d="M50 134H949M46 138l8-8M945 138l8-8"/>
+      <text x="500" y="128" text-anchor="middle" class="m halo">14,5 s · 348 cuadros a 24 fps</text>
+    </svg>
+    </div>
+    <figcaption><b>Cinco planos, una acción cada uno.</b> El plano de la fresa dura 4 s (en azul) para que se note el <a class="t" href="#g-rackfocus">cambio de foco</a>.</figcaption>
+  </figure>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li><a class="t" href="#g-moodboard">Moodboard</a>, <a class="t" href="#g-storyboard">storyboard</a> y <a class="t" href="#g-animatic">animatic</a>: de la idea al ritmo.</li>
+      <li>Tamaño de <a class="t" href="#g-plano">plano</a>, encuadre y regla de una acción por plano.</li>
+      <li><a class="t" href="#g-focal">Distancia focal</a>, <a class="t" href="#g-dof">profundidad de campo</a> y <a class="t" href="#g-apertura">apertura</a>.</li>
+      <li><a class="t" href="#g-macro">Macro</a>: con poca distancia, el desenfoque revela la escala.</li>
+      <li>Movimientos: <a class="t" href="#g-slide">slide</a>, dolly, push-in y <a class="t" href="#g-rackfocus">rack focus</a>.</li>
+      <li>Montaje: duración del plano, corte y revelado final.</li>
+    </ul></div>
+    <div><h3>En Blender</h3><ul>
+      <li>Objeto cámara: focal, sensor y profundidad de campo (distancia de foco y f-stop).</li>
+      <li>Vista de cámara (Numpad 0) y bloqueo de la cámara a la vista para encuadrar.</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>Dibuja 5 viñetas en papel: el corte, la caída, el deslizamiento, el hundimiento y la O en su sitio. Ponle segundos a cada una.</p></div>
+  <div class="rec"><p class="lbl">Recursos</p><ul>
+    <li><span class="k">artículo · inglés</span><a href="https://www.studiobinder.com/blog/types-of-camera-shots-sizes-in-film/">StudioBinder: tipos de plano</a></li>
+    <li><span class="k">artículo · inglés</span><a href="https://www.studiobinder.com/blog/what-is-depth-of-field/">StudioBinder: profundidad de campo</a></li>
+    <li><span class="k">artículo · inglés</span><a href="https://www.studiobinder.com/blog/what-is-a-storyboard/">StudioBinder: qué es un storyboard</a></li>
+    <li><span class="k">artículo · inglés</span><a href="https://www.studiobinder.com/blog/what-is-an-animatic/">StudioBinder: qué es un animatic</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/render/cameras.html">Manual de Blender: cámaras</a></li>
+    <li><span class="k">libro</span>Walter Murch, <i>En el momento del parpadeo</i>: por qué y cuándo cortar</li>
+  </ul></div>
+</section>
+
+<section class="fase" id="f2">
+  <p class="lbl">Fase 2 · técnico · 10 h</p>
+  <h2>Modela en metros reales: así la luz y la física se comportan bien</h2>
+  <p>La placa, el bloque y los huecos son formas simples. Con texto, extrusión, bisel y booleanas tienes casi todo. La <a class="t" href="#g-escala">escala real</a> importa: la luz, el desenfoque y la gravedad dependen de ella.</p>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li><a class="t" href="#g-malla">Malla</a>: vértices, aristas y caras. Las <a class="t" href="#g-normal">normales</a> dicen hacia dónde mira cada cara.</li>
+      <li>Pieza y hueco salen del mismo contorno, con una <a class="t" href="#g-holgura">holgura</a> que se lea en macro.</li>
+      <li>Un <a class="t" href="#g-modificador">modificador</a> cambia la forma sin destruir el original.</li>
+    </ul></div>
+    <div><h3>En Blender</h3><ul>
+      <li>Navegar el visor 3D, mover, rotar y escalar (G, R, S).</li>
+      <li>Unidades de escena en metros; colecciones para ordenar.</li>
+      <li>Objeto Texto → convertir a malla → extruir 2,5 cm.</li>
+      <li>Modificadores <a class="t" href="#g-bisel">Bevel</a>, <a class="t" href="#g-booleana">Boolean</a> y Solidify.</li>
+      <li><a class="t" href="#g-empty">Empties</a> y <a class="t" href="#g-parenting">parenting</a> para agrupar piezas.</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>Haz una placa de 30 × 20 cm con el hueco de la O (Boolean) y una O de 2,5 cm de alto con bisel de 0,4 mm.</p></div>
+  <div class="rec"><p class="lbl">Recursos</p><ul>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/editors/3dview/navigate/index.html">Navegación en el visor 3D</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/scene_layout/object/editing/transform/index.html">Transformar objetos</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/scene_layout/scene/properties.html">Propiedades de escena: unidades</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/modeling/texts/index.html">Objetos de texto</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/modeling/modifiers/generate/bevel.html">Modificador Bevel</a> · <a href="https://docs.blender.org/manual/es/latest/modeling/modifiers/generate/booleans.html">Boolean</a> · <a href="https://docs.blender.org/manual/es/latest/modeling/modifiers/generate/solidify.html">Solidify</a></li>
+    <li><span class="k">curso · inglés · de pago</span><a href="https://studio.blender.org/training/">Blender Studio: cursos oficiales</a></li>
+    <li><span class="k">vídeo · inglés</span><a href="https://www.youtube.com/@BlenderOfficial">Canal oficial de Blender</a></li>
+  </ul></div>
+</section>
+
+<section class="fase" id="f3">
+  <p class="lbl">Fase 3 · conceptual + técnico · 14 h</p>
+  <h2>El metal no tiene color propio: muestra lo que refleja</h2>
+  <p>Es la lección más cara de este proyecto. Con el mundo en negro, el acero pulido sale negro. Con un panel pequeño, cambia de negro a blanco según el ángulo. Con paneles amplios y degradados, se lee como acero.</p>
+  <figure>
+    <div class="mult">
+      <div class="case"><span class="tag risk">✕ sale negro</span><h4>Mundo a 0, sin nada que reflejar</h4>
+        <svg viewBox="0 0 240 130" role="img" aria-label="Cara de letra negra con borde rojo"><rect x="20" y="6" width="200" height="22" fill="none" stroke="var(--border-bright)" class="dash"/><text x="120" y="22" text-anchor="middle" class="m d">entorno vacío</text><rect x="30" y="46" width="180" height="70" rx="6" fill="#0d0e10" stroke="var(--heat)" stroke-width="6"/></svg></div>
+      <div class="case"><span class="tag warn">! depende del ángulo</span><h4>Un panel pequeño y duro</h4>
+        <svg viewBox="0 0 240 130" role="img" aria-label="Cara de letra negra con una franja blanca dura"><rect x="100" y="6" width="40" height="22" fill="var(--surface)" stroke="var(--border-bright)"/><defs><clipPath id="cp2"><rect x="30" y="46" width="180" height="70" rx="6"/></clipPath></defs><rect x="30" y="46" width="180" height="70" rx="6" fill="#0d0e10"/><polygon points="95,46 125,46 95,116 65,116" fill="#f4f4f4" clip-path="url(#cp2)"/><rect x="30" y="46" width="180" height="70" rx="6" fill="none" stroke="var(--heat)" stroke-width="6"/></svg></div>
+      <div class="case"><span class="tag ok">✓ se lee acero</span><h4>Paneles amplios con degradado</h4>
+        <svg viewBox="0 0 240 130" role="img" aria-label="Cara de letra con degradado de acero claro"><defs><linearGradient id="pan" x1="0" x2="1"><stop offset="0" stop-color="var(--surface)" stop-opacity=".2"/><stop offset=".5" stop-color="var(--surface)"/><stop offset="1" stop-color="var(--surface)" stop-opacity=".2"/></linearGradient><linearGradient id="ac2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8c939b"/><stop offset=".45" stop-color="#dfe3e7"/><stop offset="1" stop-color="#6e767e"/></linearGradient></defs><rect x="20" y="6" width="200" height="22" fill="url(#pan)" stroke="var(--border-bright)"/><rect x="30" y="46" width="180" height="70" rx="6" fill="url(#ac2)" stroke="var(--heat)" stroke-width="6"/></svg></div>
+    </div>
+    <figcaption><b>Misma letra, mismo material; solo cambia el entorno que refleja.</b> El rojo del borde es de marca y se queda igual en los tres casos.</figcaption>
+  </figure>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li><a class="t" href="#g-pbr">PBR</a>: valores físicos de color y brillo, no inventados.</li>
+      <li>Reflexión especular: el metal refleja; un plástico difunde.</li>
+      <li>Iluminación de producto: <a class="t" href="#g-softbox">softbox</a>, <a class="t" href="#g-contraluz">contraluz</a> y <a class="t" href="#g-tarjeta">tarjeta de reflexión</a>.</li>
+      <li>Color: <a class="t" href="#g-lineal">espacio lineal</a>, <a class="t" href="#g-exposicion">exposición</a> y <a class="t" href="#g-agx">AgX</a>.</li>
+      <li>El calor como color: <a class="t" href="#g-cuerponegro">cuerpo negro</a> (amarillo → naranja → rojo) y colores de <a class="t" href="#g-revenido">revenido</a> (pajizo → azul).</li>
+    </ul></div>
+    <div><h3>En Blender · solo lo necesario</h3><ul>
+      <li><a class="t" href="#g-principled">Principled BSDF</a>: Base Color, <a class="t" href="#g-metallic">Metallic</a>, <a class="t" href="#g-roughness">Roughness</a>, <a class="t" href="#g-anisotropia">Anisotropic</a> y <a class="t" href="#g-emision">Emission</a>.</li>
+      <li>Cinco nodos: Texture Coordinate, Noise, <a class="t" href="#g-colorramp">Color Ramp</a>, <a class="t" href="#g-bump">Bump</a> y <a class="t" href="#g-blackbody">Blackbody</a>.</li>
+      <li><a class="t" href="#g-luzarea">Luces de área</a>, <a class="t" href="#g-world">World</a> o <a class="t" href="#g-hdri">HDRI</a>, y <a class="t" href="#g-lightpath">Light Path</a> para ver luz solo en reflejos.</li>
+      <li><a class="t" href="#g-eevee">EEVEE</a> para previas rápidas; <a class="t" href="#g-cycles">Cycles</a> cuando el reflejo debe ser exacto.</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>Pon la O sobre la placa con dos softboxes y una tarjeta. Haz que su centro se lea acero claro desde dos cámaras distintas. El borde rojo sale de un Color Ramp.</p></div>
+  <div class="rec"><p class="lbl">Recursos</p><ul>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/render/shader_nodes/shader/principled.html">Principled BSDF</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/editors/shader_editor.html">Editor de sombreado (nodos)</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/render/lights/light_object.html">Objetos luz</a> · <a href="https://docs.blender.org/manual/es/latest/render/shader_nodes/input/light_path.html">Light Path</a> · <a href="https://docs.blender.org/manual/es/latest/render/shader_nodes/color/blackbody.html">Blackbody</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/render/color_management/index.html">Gestión de color (AgX, exposición)</a> · <a href="https://docs.blender.org/manual/es/latest/render/eevee/index.html">EEVEE</a></li>
+    <li><span class="k">base de datos</span><a href="https://physicallybased.info/">Physically Based: valores reales de materiales</a></li>
+    <li><span class="k">artículo · inglés</span><a href="https://marmoset.co/posts/basic-theory-of-physically-based-rendering/">Marmoset: teoría básica de PBR</a></li>
+    <li><span class="k">recursos gratis</span><a href="https://polyhaven.com/hdris">Poly Haven: HDRIs</a></li>
+    <li><span class="k">libro</span>Hunter, Biver y Fuqua, <i>Light: Science and Magic</i>: el capítulo de metal explica la tarjeta de reflexión</li>
+    <li><span class="k">wiki</span><a href="https://es.wikipedia.org/wiki/Radiaci%C3%B3n_de_cuerpo_negro">Radiación de cuerpo negro</a> · <a href="https://en.wikipedia.org/wiki/Tempering_(metallurgy)">Revenido (colores, inglés)</a></li>
+  </ul></div>
+</section>
+
+<section class="fase" id="f4">
+  <p class="lbl">Fase 4 · conceptual + técnico · 16 h</p>
+  <h2>En el aire la pieza acelera; la fricción solo actúa dentro del hueco</h2>
+  <p>Tu nota más precisa fue «la pieza parece desacelerar cuando cae». Un suavizado de salida frena la pieza en el aire. La gravedad hace lo contrario.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 760 300" role="img" aria-label="Altura frente a cuadros: la caída libre acelera hasta la placa; la curva con suavizado frena en el aire; luego la pieza rebota, desliza y se hunde con atascos desiguales hasta −2,5 cm.">
+      <path class="rule" d="M60 40H720M60 200H720M60 266.7H720"/>
+      <text x="52" y="44" text-anchor="end" class="m d">6 cm</text>
+      <text x="52" y="204" text-anchor="end" class="m d">0</text>
+      <text x="52" y="271" text-anchor="end" class="m d">−2,5</text>
+      <text x="726" y="196" class="m d" text-anchor="end">superficie de la placa</text>
+      <path class="ve-axis st" d="M60 30V280H720"/>
+      <g class="m d" text-anchor="middle"><text x="60" y="296">0</text><text x="192" y="296">12</text><text x="324" y="296">24</text><text x="456" y="296">36</text><text x="588" y="296">48</text><text x="720" y="296">60 cuadros</text></g>
+      <polyline fill="none" stroke="var(--risk)" stroke-width="2" class="dash" points="60,40 82,76 104,110 126,137 148,160 170,177 192,190 214,197 236,200"/>
+      <text x="150" y="232" class="m halo" fill="var(--risk)">✕ con suavizado: frena en el aire</text>
+      <path class="ann" d="M150 220L150 162" stroke="var(--risk)"/>
+      <polyline class="hot" points="60,40 82,44.4 104,57.8 126,80 148,111 170,151 192,200 203,195 214,193 225,195 236,200 346,200 380,214 400,215 420,216 440,232 470,233 500,234 515,245 560,247 600,249 640,262 676,266.7 720,266.7"/>
+      <text x="216" y="64" class="m halo" fill="var(--accent)">✓ caída libre: g constante, acelera</text>
+      <path class="ann" d="M214 70L146 104"/>
+      <text x="246" y="186" class="m halo">desliza</text>
+      <circle cx="410" cy="215.5" r="4" fill="var(--bg)" stroke="var(--text)" stroke-width="1.5"/>
+      <circle cx="485" cy="233.5" r="4" fill="var(--bg)" stroke="var(--text)" stroke-width="1.5"/>
+      <circle cx="580" cy="248" r="4" fill="var(--bg)" stroke="var(--text)" stroke-width="1.5"/>
+      <text x="410" y="250" class="m halo" text-anchor="middle">atasco</text>
+      <text x="716" y="222" class="m halo" text-anchor="end">último tercio:</text><text x="716" y="238" class="m halo" text-anchor="end">más fricción</text><path class="ann" d="M650 243V258"/>
+    </svg>
+    </div>
+    <figcaption><b>La curva azul es física; la roja es el error que viste.</b> Escala de tiempo: <a class="t" href="#g-camaralenta">cámara lenta</a> ×4,5. Los atascos tienen distinta duración porque la <a class="t" href="#g-friccion">fricción</a> cambia con la profundidad (<a class="t" href="#g-stickslip">stick-slip</a>).</figcaption>
+  </figure>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 860 250" role="img" aria-label="Un parámetro de progreso del corte mueve la posición del haz, enciende el calor del borde, abre la ranura y suelta la pieza al llegar a 1.">
+      <rect x="40" y="100" width="210" height="50" rx="6" class="key"/>
+      <text x="56" y="122" font-weight="600">progreso del corte</text><text x="56" y="140" class="m d">0 → 1, un solo reloj</text>
+      <rect x="520" y="18" width="300" height="42" rx="6" class="box"/><text x="536" y="44">posición del haz <tspan class="m d">· Follow Path</tspan></text>
+      <rect x="520" y="78" width="300" height="42" rx="6" class="box"/><text x="536" y="104">calor del borde <tspan class="m d">· Blackbody</tspan></text>
+      <rect x="520" y="138" width="300" height="42" rx="6" class="box"/><text x="536" y="164">ranura detrás del haz</text>
+      <rect x="520" y="198" width="300" height="42" rx="6" class="box"/><text x="536" y="224">la pieza cae</text>
+      <path class="edge" d="M250 125H380V39H516"/><text x="440" y="31" class="m" text-anchor="middle">mueve</text>
+      <path class="edge" d="M380 99H516"/><text x="440" y="91" class="m" text-anchor="middle">enciende</text>
+      <path class="edge" d="M380 125V159H516"/><text x="440" y="151" class="m" text-anchor="middle">abre</text>
+      <path class="hot" d="M380 159V219H516"/><text x="440" y="211" class="m" text-anchor="middle" fill="var(--accent)">suelta en 1</text>
+    </svg>
+    </div>
+    <figcaption><b>Un solo reloj sincroniza el haz, el calor, la ranura y la caída.</b> Así nada se enciende antes de que pase el láser. Se hace con un <a class="t" href="#g-driver">driver</a> o con una propiedad animada que leen los materiales.</figcaption>
+  </figure>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li>Principios de animación: <a class="t" href="#g-timing">timing</a>, <a class="t" href="#g-spacing">spacing</a>, <a class="t" href="#g-easing">easing</a> y anticipación.</li>
+      <li>Gravedad constante; la cámara lenta estira el tiempo, no cambia g.</li>
+      <li>Fricción estática y cinética, <a class="t" href="#g-restitucion">restitución</a> del rebote.</li>
+      <li>Coreografía: un evento dispara el siguiente (el corte cierra → la pieza cae).</li>
+    </ul></div>
+    <div><h3>En Blender</h3><ul>
+      <li><a class="t" href="#g-keyframe">Keyframes</a>, <a class="t" href="#g-dopesheet">Dope Sheet</a> y <a class="t" href="#g-graph">Graph Editor</a>: lee las <a class="t" href="#g-fcurve">curvas F</a> y cambia la <a class="t" href="#g-interpolacion">interpolación</a>.</li>
+      <li>Primero la caída y el rebote a mano, con pocas claves. La física simulada, después.</li>
+      <li>Restricción <a class="t" href="#g-followpath">Follow Path</a> para que el haz siga el contorno.</li>
+      <li>Foco animado: clave en la distancia de foco, de la placa a la herramienta y de vuelta.</li>
+      <li>Opcional: <a class="t" href="#g-rigidbody">Rigid Body</a> y su <a class="t" href="#g-bake">bake</a>; <a class="t" href="#g-particulas">partículas</a> para chispas.</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>Anima la O a mano: 12 cuadros de caída con la curva acelerando, un rebote mínimo, 10 cuadros de deslizamiento y un hundimiento con dos atascos. Revisa la curva en el Graph Editor.</p></div>
+  <div class="rec"><p class="lbl">Recursos</p><ul>
+    <li><span class="k">vídeo · inglés</span><a href="https://www.youtube.com/watch?v=uDqjIdI4bF4">Alan Becker: los 12 principios de animación</a></li>
+    <li><span class="k">wiki · inglés</span><a href="https://en.wikipedia.org/wiki/Twelve_basic_principles_of_animation">Los 12 principios, resumidos</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/animation/keyframes/index.html">Fotogramas clave</a> · <a href="https://docs.blender.org/manual/es/latest/editors/dope_sheet/index.html">Dope Sheet</a> · <a href="https://docs.blender.org/manual/es/latest/editors/graph_editor/index.html">Graph Editor</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/animation/constraints/relationship/follow_path.html">Follow Path</a> · <a href="https://docs.blender.org/manual/es/latest/animation/drivers/index.html">Drivers</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/render/eevee/render_settings/depth_of_field.html">Profundidad de campo en EEVEE</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/physics/rigid_body/index.html">Cuerpo rígido</a> · <a href="https://docs.blender.org/manual/es/latest/physics/particles/index.html">Partículas</a></li>
+    <li><span class="k">wiki</span><a href="https://es.wikipedia.org/wiki/Fricci%C3%B3n">Fricción</a> · <a href="https://en.wikipedia.org/wiki/Stick-slip_phenomenon">Stick-slip (inglés)</a> · <a href="https://es.wikipedia.org/wiki/Coeficiente_de_restituci%C3%B3n">Coeficiente de restitución</a></li>
+    <li><span class="k">libro</span>Richard Williams, <i>The Animator's Survival Kit</i>: timing y spacing</li>
+  </ul></div>
+</section>
+
+<section class="fase" id="f5">
+  <p class="lbl">Fase 5 · técnico · 6 h</p>
+  <h2>Renderiza imágenes sueltas y codifica el vídeo al final</h2>
+  <p>Una <a class="t" href="#g-secuencia">secuencia de imágenes</a> sobrevive a un corte de luz: solo repites los cuadros que faltan. El vídeo se arma al final.</p>
+  <figure>
+    <div class="fig-scroll">
+    <svg viewBox="0 0 1000 180" role="img" aria-label="Escena con cámaras por marcadores, render a secuencia PNG, compositor con Glare, codificación H.264 a MP4; la hoja de contactos vuelve a la escena.">
+      <defs><marker id="fl3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--border-bright)"/></marker></defs>
+      <rect x="30" y="50" width="190" height="56" rx="6" class="key"/><text x="46" y="74" font-weight="600">Escena</text><text x="46" y="94" class="m d">cámaras por marcadores</text>
+      <rect x="280" y="50" width="190" height="56" rx="6" class="box"/><text x="296" y="74" font-weight="600">Render</text><text x="296" y="94" class="m d">secuencia PNG</text>
+      <rect x="530" y="50" width="190" height="56" rx="6" class="box"/><text x="546" y="74" font-weight="600">Compositor</text><text x="546" y="94" class="m d">Glare con umbral</text>
+      <rect x="780" y="50" width="190" height="56" rx="6" class="box"/><text x="796" y="74" font-weight="600">Codificar</text><text x="796" y="94" class="m d">H.264 → MP4</text>
+      <path class="edge" d="M220 78H276" marker-end="url(#fl3)"/><text x="248" y="70" class="m" text-anchor="middle">cuadro</text>
+      <path class="edge" d="M470 78H526" marker-end="url(#fl3)"/><text x="498" y="70" class="m" text-anchor="middle">imagen</text>
+      <path class="edge" d="M720 78H776" marker-end="url(#fl3)"/><text x="748" y="70" class="m" text-anchor="middle">brillo</text>
+      <path class="edge dash" d="M875 106V150H125V110" marker-end="url(#fl3)"/><text x="500" y="168" class="m d" text-anchor="middle">hoja de contactos → ajustas</text>
+    </svg>
+    </div>
+    <figcaption><b>Cuatro pasos en orden; la revisión vuelve a la escena.</b> Con <a class="t" href="#g-marcadores">marcadores de cámara</a>, una sola escena hace los cinco planos.</figcaption>
+  </figure>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li><a class="t" href="#g-fps">FPS</a>, resolución y duración: 14,5 s a 24 fps = 348 cuadros.</li>
+      <li>Previa a 960×540 para decidir; 1920×1080 solo al final.</li>
+      <li><a class="t" href="#g-glare">Bloom</a> solo en lo que emite luz: el haz, las chispas y el borde caliente.</li>
+    </ul></div>
+    <div><h3>En Blender</h3><ul>
+      <li>Propiedades de salida: rango de cuadros, formato PNG y carpeta.</li>
+      <li>Marcadores en la línea de tiempo y <span class="mono">Bind Camera to Markers</span> (Ctrl B).</li>
+      <li><a class="t" href="#g-compositor">Compositor</a>: nodo Glare con umbral alto.</li>
+      <li>Video Sequencer o FFmpeg para unir los PNG en <a class="t" href="#g-h264">H.264</a>.</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>Tres planos de la O (corte, caída y O encajada) con tres cámaras y marcadores. Exporta un MP4 de 1080p y una hoja de contactos de 6 cuadros.</p></div>
+  <div class="rec"><p class="lbl">Recursos</p><ul>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/render/output/index.html">Salida de render</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/animation/markers.html">Marcadores (vincular cámaras)</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/compositing/types/filter/glare.html">Nodo Glare</a></li>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/video_editing/index.html">Edición de vídeo (Sequencer)</a></li>
+    <li><span class="k">herramienta</span><a href="https://ffmpeg.org/">FFmpeg</a></li>
+  </ul></div>
+</section>
+
+<section class="fase" id="f6">
+  <p class="lbl">Fase 6 · técnico · 10 h · opcional</p>
+  <h2>Lee los scripts de la IA para cambiar un valor sin pedirlo</h2>
+  <p>No necesitas programar la escena. Basta con leer <a class="t" href="#g-bpy">bpy</a> lo justo para encontrar un número y cambiarlo.</p>
+  <div class="cols">
+    <div><h3>Conceptos</h3><ul>
+      <li>Diccionarios de ajustes: un solo sitio con los valores que decides tú.</li>
+      <li>Semilla fija: el mismo script da siempre el mismo resultado.</li>
+    </ul></div>
+    <div><h3>En Blender</h3><ul>
+      <li>Espacio de trabajo Scripting: consola de Python y editor de texto.</li>
+      <li>Ejecutar Blender sin ventana para renderizar (<span class="mono">blender -b</span>).</li>
+    </ul></div>
+  </div>
+  <div class="practica"><span class="tag key">Práctica con la O</span>
+    <p>En <span class="mono">codemageddon.py</span>, cambia la fricción de <span class="mono">MONTAJE</span> y la focal de la cámara C. Renderiza 3 cuadros y compáralos.</p></div>
+  <div class="rec"><p class="lbl">Recursos</p><ul>
+    <li><span class="k">manual · español</span><a href="https://docs.blender.org/manual/es/latest/advanced/scripting/index.html">Scripting en Blender</a></li>
+    <li><span class="k">referencia · inglés</span><a href="https://docs.blender.org/api/current/">API de Python de Blender</a></li>
+  </ul></div>
+</section>
+
+<section id="astra">
+  <p class="lbl">Segunda opinión</p>
+  <h2>Astra pidió practicar con una letra y sincronizar antes de simular</h2>
+  <p>Le pasé este temario a Astra en texto plano, con esfuerzo bajo y sin buscar en internet (unos 4 000 tokens). Estas son sus cinco ideas y dónde quedaron.</p>
+  <div class="astra"><span class="tag">Opinión de Astra · resumida</span>
+    <ol>
+      <li>Empezar por una sola letra, del corte al encaje, antes de montar la palabra. <span class="dim">→ La práctica de cada fase usa la O.</span></li>
+      <li>Añadir la coreografía: el láser sigue el contorno, la pieza cae al cerrarse el corte y la fresa deja surco donde pasa. <span class="dim">→ Figura «un solo reloj» en la fase 4.</span></li>
+      <li>Pieza y hueco del mismo contorno, con una holgura que se lea en macro. <span class="dim">→ Fase 2.</span></li>
+      <li>Recortar el catálogo de nodos y aplazar la física avanzada; primero caída y rebote con pocas claves. <span class="dim">→ Fase 3 con cinco nodos; Rigid Body pasa a opcional.</span></li>
+      <li>Colaborar con la IA desde el primer día: tú marcas el ritmo, la IA lo traduce y tú juzgas una previa corta. <span class="dim">→ Nueva fase 0.</span></li>
+    </ol>
+  </div>
+  <div class="split">
+    <div class="you"><p class="lbl" style="color:var(--accent)">Lo que decides tú</p><ul>
+      <li>Qué se cuenta y en cuántos segundos.</li><li>El encuadre y el ritmo de cada plano.</li><li>Si el metal «se ve real» y si la caída «se siente bien».</li><li>Qué variante gana.</li></ul></div>
+    <div><p class="lbl">Lo que hace la IA</p><ul>
+      <li>Geometría exacta a partir de la tipografía.</li><li>Materiales con nodos y valores físicos.</li><li>Integrar la física y hornearla a claves.</li><li>Renderizar previas, hojas y comprobaciones.</li></ul></div>
+  </div>
+</section>
+
+<section id="glosario">
+  <p class="lbl">Glosario</p>
+  <h2>69 términos, en orden alfabético</h2>
+  <p>Cada <a class="t" href="#g-hoja">término marcado</a> en el texto apunta aquí. «↩ volver» te devuelve a donde estabas.</p>
+  <dl class="glos">
+    <div id="g-agx"><dt>AgX <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Transformación de vista de Blender que comprime las luces altas sin quemarlas. Da un look de cine.</dd></div>
+    <div id="g-animatic"><dt>Animatic <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Storyboard con tiempos: las viñetas en secuencia con su duración real.</dd></div>
+    <div id="g-anisotropia"><dt>Anisotropía <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Brillo estirado en una dirección, como en el acero cepillado o fresado.</dd></div>
+    <div id="g-apertura"><dt>Apertura (f-stop) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Tamaño del diafragma. Un número bajo (f/2,8) da menos profundidad de campo.</dd></div>
+    <div id="g-bake"><dt>Bake (hornear) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Guardar el resultado de una simulación como datos fijos, cuadro a cuadro.</dd></div>
+    <div id="g-bisel"><dt>Bevel (bisel) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Redondeo pequeño de las aristas. Sin bisel, una arista no capta luz y parece falsa.</dd></div>
+    <div id="g-blackbody"><dt>Blackbody (nodo) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Nodo que convierte una temperatura en kelvin en el color del metal caliente.</dd></div>
+    <div id="g-glare"><dt>Bloom · Glare <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Halo de luz alrededor de lo muy brillante. En Blender, nodo Glare del compositor.</dd></div>
+    <div id="g-booleana"><dt>Boolean (booleana) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Modificador que resta, une o interseca dos mallas. Sirve para hacer los huecos.</dd></div>
+    <div id="g-bpy"><dt>bpy <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Módulo de Python que controla Blender: objetos, materiales, claves y render.</dd></div>
+    <div id="g-bump"><dt>Bump <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Relieve falso: cambia cómo rebota la luz sin cambiar la geometría.</dd></div>
+    <div id="g-camaralenta"><dt>Cámara lenta (escala de tiempo) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Estirar el tiempo con un factor fijo (×4,5). La gravedad no cambia; solo se ve más despacio.</dd></div>
+    <div id="g-rackfocus"><dt>Cambio de foco (rack focus) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Mover el foco de un objeto a otro durante el plano para guiar la mirada.</dd></div>
+    <div id="g-colorramp"><dt>Color Ramp <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Nodo que convierte un valor de 0 a 1 en un degradado de colores. Así se hace el borde rojo.</dd></div>
+    <div id="g-compositor"><dt>Compositor <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Editor de nodos que retoca cada imagen después del render: brillo, color y desenfoque.</dd></div>
+    <div id="g-contraluz"><dt>Contraluz <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Luz desde detrás que dibuja el borde del objeto y lo separa del fondo negro.</dd></div>
+    <div id="g-cuerponegro"><dt>Cuerpo negro <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Ley física del color del calor: el metal pasa de blanco-amarillo a naranja y a rojo oscuro al enfriarse.</dd></div>
+    <div id="g-fcurve"><dt>Curva F (F-curve) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Curva de una propiedad en el tiempo. Su forma es el movimiento.</dd></div>
+    <div id="g-cycles"><dt>Cycles <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Motor de render de Blender por trazado de rayos. Más lento y más exacto en reflejos.</dd></div>
+    <div id="g-focal"><dt>Distancia focal <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Milímetros del objetivo. Más focal: ángulo más cerrado y fondo más comprimido.</dd></div>
+    <div id="g-dopesheet"><dt>Dope Sheet <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Editor que muestra las claves como puntos en el tiempo, para moverlas en bloque.</dd></div>
+    <div id="g-driver"><dt>Driver <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Fórmula que hace que una propiedad dependa de otra, por ejemplo del progreso del corte.</dd></div>
+    <div id="g-easing"><dt>Easing (suavizado) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Acelerar al empezar y frenar al terminar. Útil para la cámara; falso para una caída libre.</dd></div>
+    <div id="g-eevee"><dt>EEVEE <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Motor de render en tiempo real de Blender. Rápido, ideal para previas.</dd></div>
+    <div id="g-emision"><dt>Emission (emisión) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Luz que sale del propio material, como el haz o el borde caliente.</dd></div>
+    <div id="g-empty"><dt>Empty <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Objeto vacío que no se renderiza. Sirve de asa o de punto de referencia.</dd></div>
+    <div id="g-escala"><dt>Escala real <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Modelar en metros con medidas físicas. La luz, el foco y la gravedad lo necesitan.</dd></div>
+    <div id="g-lineal"><dt>Espacio lineal <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Forma en que Blender suma la luz. Lo que ves en pantalla es su conversión a sRGB.</dd></div>
+    <div id="g-exposicion"><dt>Exposición <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Cuánta luz llega a la imagen. Se mide en pasos: −1 es la mitad.</dd></div>
+    <div id="g-followpath"><dt>Follow Path <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Restricción que mueve un objeto a lo largo de una curva, como el haz por el contorno.</dd></div>
+    <div id="g-fps"><dt>FPS <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Cuadros por segundo. El cine usa 24.</dd></div>
+    <div id="g-friccion"><dt>Fricción estática y cinética <button type="button" onclick="history.back()">↩ volver</button></dt><dd>La estática frena el arranque; la cinética, el movimiento. La estática es mayor.</dd></div>
+    <div id="g-graph"><dt>Graph Editor <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Editor de las curvas F. Aquí se ve si algo frena o acelera.</dd></div>
+    <div id="g-h264"><dt>H.264 <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Códec de vídeo más común para MP4. Comprime con poca pérdida visible.</dd></div>
+    <div id="g-hdri"><dt>HDRI <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Foto panorámica con mucha gama de luz. Ilumina la escena y da algo que reflejar.</dd></div>
+    <div id="g-hoja"><dt>Hoja de contactos <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Una imagen con varios cuadros clave en cuadrícula para revisar un vídeo de un vistazo.</dd></div>
+    <div id="g-variantes"><dt>Hoja de variantes <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Cuadrícula del mismo cuadro con un valor distinto en cada casilla. Eliges una casilla.</dd></div>
+    <div id="g-holgura"><dt>Holgura <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Espacio entre la pieza y el hueco. Aquí, 0,05 mm por lado.</dd></div>
+    <div id="g-interpolacion"><dt>Interpolación <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Cómo calcula Blender los cuadros entre dos claves: constante, lineal o Bézier.</dd></div>
+    <div id="g-keyframe"><dt>Keyframe (clave) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Valor guardado en un cuadro concreto. Blender calcula lo que hay entre claves.</dd></div>
+    <div id="g-lightpath"><dt>Light Path <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Nodo que dice qué tipo de rayo mira el material. Permite una luz visible solo en reflejos.</dd></div>
+    <div id="g-luzarea"><dt>Luz de área <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Luz con superficie, rectangular o redonda. Da sombras suaves.</dd></div>
+    <div id="g-macro"><dt>Macro <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Fotografía muy cerca de objetos pequeños. Poca profundidad de campo.</dd></div>
+    <div id="g-malla"><dt>Malla <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Objeto hecho de vértices, aristas y caras.</dd></div>
+    <div id="g-marcadores"><dt>Marcadores de cámara <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Marcas en la línea de tiempo que cambian la cámara activa. Cada marca es un corte.</dd></div>
+    <div id="g-metallic"><dt>Metallic <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Entrada del Principled BSDF. Vale 1 para metal y 0 para lo demás; casi nunca un valor intermedio.</dd></div>
+    <div id="g-modificador"><dt>Modificador <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Operación que cambia la forma sin borrar el original. Se puede quitar o ajustar.</dd></div>
+    <div id="g-moodboard"><dt>Moodboard <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Tablero de imágenes de referencia para fijar el aspecto antes de empezar.</dd></div>
+    <div id="g-normal"><dt>Normal <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Dirección hacia la que mira una cara. Decide cómo rebota la luz.</dd></div>
+    <div id="g-parenting"><dt>Parenting <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Hacer un objeto hijo de otro: se mueve con su padre.</dd></div>
+    <div id="g-particulas"><dt>Partículas <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Sistema que emite muchos objetos pequeños, como chispas o virutas.</dd></div>
+    <div id="g-pbr"><dt>PBR <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Render basado en física: materiales con valores medidos del mundo real.</dd></div>
+    <div id="g-plano"><dt>Plano <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Toma continua entre dos cortes. Su tamaño va del general al detalle.</dd></div>
+    <div id="g-previa"><dt>Previa <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Render rápido a baja resolución (960×540) para decidir antes del render final.</dd></div>
+    <div id="g-principled"><dt>Principled BSDF <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Nodo de material principal de Blender. Reúne color, metal, rugosidad, emisión y más.</dd></div>
+    <div id="g-dof"><dt>Profundidad de campo <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Franja de distancia que sale nítida. En macro es de milímetros.</dd></div>
+    <div id="g-restitucion"><dt>Restitución <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Cuánta velocidad conserva un rebote, de 0 a 1. El acero sobre acero rebota poco.</dd></div>
+    <div id="g-revenido"><dt>Revenido (colores de) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Tonos que deja el calor en el acero: pajizo, bronce, púrpura y azul.</dd></div>
+    <div id="g-rigidbody"><dt>Rigid Body <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Simulación de sólidos de Blender. Falla con holguras muy pequeñas.</dd></div>
+    <div id="g-roughness"><dt>Roughness (rugosidad) <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Lo mate que es una superficie. 0 es espejo; 1 no tiene brillo definido.</dd></div>
+    <div id="g-secuencia"><dt>Secuencia de imágenes <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Un archivo por cuadro (PNG). Se codifica a vídeo al final.</dd></div>
+    <div id="g-slide"><dt>Slide <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Desplazamiento lateral de la cámara sobre un raíl.</dd></div>
+    <div id="g-softbox"><dt>Softbox <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Caja de luz difusa. Da luz suave y reflejos amplios en el metal.</dd></div>
+    <div id="g-spacing"><dt>Spacing <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Distancia que recorre un objeto entre cuadros. Más separación: más velocidad.</dd></div>
+    <div id="g-stickslip"><dt>Stick-slip <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Movimiento a tirones: se atasca, se suelta y vuelve a atascarse.</dd></div>
+    <div id="g-storyboard"><dt>Storyboard <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Viñetas dibujadas, una por plano, con lo que pasa en cada uno.</dd></div>
+    <div id="g-tarjeta"><dt>Tarjeta de reflexión <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Superficie clara fuera de cuadro que el metal refleja. No ilumina; da forma al brillo.</dd></div>
+    <div id="g-timing"><dt>Timing <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Cuántos cuadros dura una acción. Define el peso y el carácter.</dd></div>
+    <div id="g-world"><dt>World <button type="button" onclick="history.back()">↩ volver</button></dt><dd>Fondo y luz ambiente de la escena. A 0, todo lo que no se ilumina es negro.</dd></div>
+  </dl>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p>Hecho con la guía de estilo de <a href="https://github.com/nicobailon/visual-explainer">visual-explainer</a> a partir del proyecto CODEMAGEDDON (tareas 01–05). Temario: orquestador; revisión: Astra. Enlaces comprobados el 21 de noviembre de 2026.</p>
+</footer>
+
+<script>
+(function(){
+  var refs=document.querySelectorAll('[data-ref]');
+  var anat=document.getElementById('anat');
+  function set(ref,on){
+    document.querySelectorAll('[data-ref]').forEach(function(el){
+      var hit=(el.getAttribute('data-ref')||'').split(' ').indexOf(ref)>-1;
+      el.classList.toggle('lit',on&&hit);
+    });
+    if(anat) anat.classList.toggle('dimmed',on);
+  }
+  refs.forEach(function(el){
+    var r=el.getAttribute('data-ref').split(' ')[0];
+    el.addEventListener('mouseenter',function(){set(r,true)});
+    el.addEventListener('mouseleave',function(){set(r,false)});
+    el.addEventListener('focusin',function(){set(r,true)});
+    el.addEventListener('focusout',function(){set(r,false)});
+  });
+  var links=[].slice.call(document.querySelectorAll('nav.toc a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){var i=secs.indexOf(e.target);links.forEach(function(a,j){a.classList.toggle('on',i===j)})}})},{rootMargin:'-40% 0px -55% 0px'});
+    secs.forEach(function(s){if(s)io.observe(s)});
+  }
+})();
+</script>
+</body>
+</html>
