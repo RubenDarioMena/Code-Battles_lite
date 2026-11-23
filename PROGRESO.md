@@ -1,3 +1,13 @@
+## Rama `assets-3d`: assets 3D reunidos · 23 de noviembre de 2026
+
+- Sale de `trunk` (6330c0e) y reúne:
+  - `exportador-rig` (b8d58f6), fusionada entera: kit, T1, vehículo tubular y torreta, con sus GLB. Incluye el solver y el cambio de `factory.js` porque los GLB nuevos usan `cbl-rig` v2.
+  - `papercraft-campaign` (421ca8e): solo `arte/blender/papercraft/`.
+  - `vfx-explosiones-singularidad` (0f78213): solo `arte/blender/vfx/`, con el rayo y la carga del piso.
+  - `ccr-684f16c6-yq5at1` (6c4416f): unidades de batalla y rueda kamikaze, diseño tentativo; sin el laboratorio.
+- Fuera: motor y laboratorio de la muralla (con sus finalistas), destrucción por piezas, laboratorio de batalla y la animación CODEMAGEDDON (`experimento-animacion-1`).
+- Verificación actual: carpetas idénticas a su rama de origen, GLB bien formados y `node pruebas/todas.mjs` con 71 correctas (dependencias enlazadas desde otro worktree). Sin abrir en navegador ni regenerar en Blender.
+
 ## Kit de Blender: exportador y validador compartidos, y solver del rig en three.js · 20 de noviembre de 2026
 
 - **Exportador y validador (tarea 02, con Astra).**
