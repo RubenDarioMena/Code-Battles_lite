@@ -2,7 +2,10 @@ import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 
-const raiz = new URL('../', import.meta.url);
+// En raw.githack los binarios (GLB y sus texturas) responden 403: los datos se piden a
+// raw.githubusercontent, que usa la misma ruta (usuario/repo/ref/…) y permite CORS.
+const aqui = new URL('../', import.meta.url);
+const raiz = /(^|\.)githack\.com$/.test(aqui.hostname) ? new URL(aqui.pathname, 'https://raw.githubusercontent.com') : aqui;
 async function datos(nombre) {
   const respuesta = await fetch(new URL(nombre, raiz));
   if (!respuesta.ok) throw new Error(nombre + ' · ' + respuesta.status);
