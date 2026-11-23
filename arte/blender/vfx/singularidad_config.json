@@ -113,6 +113,66 @@
   "horizonte": 2.2
  },
 
+ "carga": {
+  "_": "El arma que carga el piso: un haz de electrones que entra con un golpe de rayo, y la figura de Lichtenberg que deja. La figura se sortea una vez con la semilla. Tiempos desde el impacto.",
+  "haz": {
+   "_": "«golpe»: segundos de rayo grueso y quebrado; se endereza en «enderezar» y queda un haz recto «duracion» segundos, que se apaga en «apagado». «origen_m»: de dónde viene, respecto al impacto; cualquier dirección vale (aquí, casi horizontal). «ensanche»: cuánto se abre al bajar (los electrones se dispersan en el aire). Los filamentos giran alrededor del haz en sus últimos «filamento_largo_m».",
+   "origen_m": [-22.0, -8.0, 7.0],
+   "golpe": 0.18,
+   "enderezar": 0.3,
+   "duracion": 1.7,
+   "apagado": 0.3,
+   "frecuencia": 30.0,
+   "segmentos": 48,
+   "zigzag": 0.03,
+   "zigzag_fino": 0.008,
+   "ancho_m": 0.05,
+   "ancho_golpe": 1.5,
+   "ensanche": 0.6,
+   "brillo": 2.6,
+   "brillo_golpe": 3.5,
+   "color": [0.85, 0.92, 1.0],
+   "envoltura_m": 0.28,
+   "envoltura_brillo": 0.5,
+   "color_envoltura": [0.55, 0.22, 1.0],
+   "filamentos": 3,
+   "filamento_largo_m": 10.0,
+   "filamento_radio_m": 0.2,
+   "filamento_vueltas": 5.0,
+   "filamento_ancho_m": 0.012,
+   "filamento_brillo": 1.2,
+   "ramas_golpe": 3
+  },
+  "destello": {"_": "Fogonazo del impacto. «escena» alumbra todo el encuadre un instante; «charco» es la luz en el suelo mientras dura el haz.", "brillo": 3.2, "duracion": 0.14, "radio_m": 0.9, "escena": 0.5, "charco": 0.5, "charco_m": 4.0},
+  "figura": {
+   "_": "Ramas de Lichtenberg. «troncos» salen del impacto y miden cerca de «radio_m»; cada rama gira al azar («giro», radianes por paso), tira hacia fuera («sesgo») y echa «ramificacion» hijas por metro, que heredan una parte («reparto») del largo que le queda. «ancho_m»: de la punta al tronco.",
+   "radio_m": 14.0,
+   "troncos": 9,
+   "paso_m": 0.22,
+   "giro": 0.16,
+   "sesgo": 0.15,
+   "ramificacion": 0.85,
+   "angulo_rama": [25, 60],
+   "reparto": [0.3, 0.7],
+   "rama_minima_m": 0.5,
+   "generaciones": 5,
+   "ancho_m": [0.008, 0.035],
+   "exponente_ancho": 0.5
+  },
+  "onda": {
+   "_": "El latido: una banda de luz que recorre las ramas del impacto hacia fuera. La figura nunca se ve entera ni queda marcada: solo se enciende el tramo por donde pasa. Late dos veces: al impactar el haz y cuando el primer agujero queda sobre el impacto. «frente_m»: lo nítido que es el borde de delante; «cola_m»: cuánto tarda en apagarse detrás, en metros. «alcance»: fracción de la figura que recorre; «desgaste» alto = se apaga antes al alejarse. «oscurece»: cuánto le afecta el apagado del entorno (0 nada, 1 igual que al piso).",
+   "velocidad_m_s": 11.0,
+   "frente_m": 0.25,
+   "cola_m": 1.6,
+   "brillo": 5.0,
+   "color": [0.85, 0.93, 1.0],
+   "color_cola": [0.50, 0.15, 1.0],
+   "alcance": 1.0,
+   "desgaste": 0.6,
+   "oscurece": 0.5
+  }
+ },
+
  "aparicion": {"_": "Destello al crearse un agujero.", "brillo": 1.6, "duracion": 0.25, "radio_m": 0.5},
 
  "fusion": {
@@ -137,18 +197,20 @@
 
  "eventos": {
   "_": "Ganchos que emite el efecto (o que recibe del juego) para conectar lógica o cinemáticas después. «carga_perdida» está reservado: hoy nadie lo emite y el VFX no depende de la carga.",
-  "emite": ["agujero_creado", "enemigo_absorbido", "repulsion", "orbita", "fusion", "ringdown_fin", "super_arma", "masa_critica"],
+  "emite": ["haz_impacto", "piso_cargado", "piso_late", "agujero_creado", "enemigo_absorbido", "repulsion", "orbita", "fusion", "ringdown_fin", "super_arma", "masa_critica"],
   "reservados": ["carga_perdida"]
  },
 
  "demo": {
-  "_": "Solo para las vistas previas de singularidad.py; el juego no lo usa.",
+  "_": "Solo para las vistas previas de singularidad.py; el juego no lo usa. «piso_cargado»: el piso ya estaba cargado antes de empezar (solo se ve el latido al aparecer el primer agujero).",
   "fusion": {
+   "piso_cargado": true,
    "duracion": 11.5,
    "agujero_a": {"t": 0.4, "pos": [0.0, 0.0]},
    "agujero_b": {"t": 3.0, "direccion_grados": -78},
    "enemigos": {"cantidad": 13, "velocidad": 1.2, "primero_y": 2.6, "separacion_y": 1.25, "carriles_x": [-0.55, 0.15, 0.5, -0.2]}
   },
-  "masa": {"_": "Un agujero cuya masa sube de 1 a la crítica: muestra la apariencia según la masa.", "duracion": 9.0, "exponente": 1.6, "lineas_por_segundo": 3.0}
+  "masa": {"_": "Un agujero cuya masa sube de 1 a la crítica: muestra la apariencia según la masa.", "piso_cargado": true, "duracion": 9.0, "exponente": 1.6, "lineas_por_segundo": 3.0},
+  "carga": {"_": "El haz carga el piso con un latido, y aparece un agujero (segundo latido) que crece hasta «masa_final».", "duracion": 9.0, "impacto": {"t": 0.6, "pos": [0.0, 1.0]}, "agujero": {"t": 3.6}, "masa_final": 3.5, "exponente": 1.4, "lineas_por_segundo": 1.5}
  }
 }

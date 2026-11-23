@@ -1,11 +1,14 @@
-# VFX: singularidad y artillería (pruebas de concepto)
+# VFX: singularidad, rayo láser y artillería (pruebas de concepto)
 
 Efectos generados por código, fuera del juego. Nada de esta carpeta se carga en War ni en Factory ni entra en el paquete de Netlify. Sirve para decidir el aspecto antes de la migración a WebGPU.
 
 | Archivo | Qué hace | Estado |
 | --- | --- | --- |
-| `singularidad.py` | Agujero negro del arma de final de juego: lente, arcos, spaghettificación y fusión. | Prototipo completo |
-| `singularidad_config.json` | Todos los parámetros de la singularidad. | — |
+| `singularidad.py` | Agujero negro del arma de final de juego: lente, arcos, spaghettificación, fusión y el haz que carga el piso. | Prototipo completo |
+| `carga.py` | Piso cargado: figura de Lichtenberg y el latido de luz que la recorre. Solo numpy; lo usa `singularidad.py`. | Prototipo completo |
+| `singularidad_config.json` | Todos los parámetros de la singularidad y de la carga del piso. | — |
+| `rayo.py` | Rayo láser con textura: serpenteo, hebras, turbulencia, chispas, impacto y cicatriz. | Prototipo completo |
+| `rayo_config.json` | Todos los parámetros del rayo. | — |
 | `explosion.py` | Simulación de gas de cada efecto de artillería: explosión en tierra, aérea, incendio y bocanada de estela. | Recetas en calidad media |
 | `empaquetar.py` | Convierte los cuadros en atlas de flipbook con su JSON, hoja de contactos y vista previa. | — |
 | `capas.py` | Capas baratas sin estado: destello, luz, onda expansiva, chispas, quemadura y sombra proyectada. | — |
@@ -51,6 +54,21 @@ blender -b --factory-startup --python arte/blender/vfx/singularidad.py -- --sali
 
 - **`--demo fusion`**: un agujero come enemigos; llega un segundo agujero, se repelen, orbitan cada vez más rápido mientras derivan hacia el fondo, y se fusionan.
 - **`--demo masa`**: un solo agujero cuya masa sube de 1 a la crítica. Enseña la apariencia según la masa.
+- **`--demo carga`**: el haz carga el piso (primer latido) y aparece un agujero que crece un poco (segundo latido). Las otras dos demos empiezan con el piso ya cargado (`demo.<nombre>.piso_cargado`): solo se ve el latido al aparecer el primer agujero.
+
+### El haz que carga el piso
+
+Un rayo descarga; lo que deposita carga es un haz de electrones. El arma hace las dos cosas en orden:
+
+1. **Golpe** (0,18 s): un rayo grueso y quebrado cae sobre el punto, con fogonazo.
+2. **Haz** (1,7 s): el rayo se endereza en una columna recta de núcleo blanco y borde violeta, el color con que el aire brilla al paso de electrones. Se abre un poco al bajar y lleva filamentos que giran a su alrededor.
+3. **Latido**: la carga se reparte por el piso en ramas, una figura de Lichtenberg, pero la figura nunca se ve entera ni deja marca. Solo se enciende el tramo por donde pasa una banda de luz que sale del impacto hacia fuera: frente blanco, cola violeta corta, y detrás nada.
+
+El piso late dos veces y nunca más: al impactar el haz y cuando el primer agujero queda sobre el punto de impacto. Es un complemento; el protagonista es el agujero.
+
+El haz puede venir de cualquier dirección (`carga.haz.origen_m`, respecto al impacto). En la demo llega casi horizontal, a unos 17° del suelo.
+
+La figura se sortea una vez con la semilla y no guarda estado: cada punto sabe cuánto camino hay hasta el impacto, y de ahí sale el latido. La lente de los agujeros lo deforma como al resto del piso. El piso cargado es solo vista: el agujero no lo lee para flotar.
 
 ### Qué es Blender y qué es el pase de pantalla
 
@@ -59,6 +77,8 @@ Blender solo renderiza el escenario de prueba: color y profundidad. Todo el efec
 - **Lente**: una pasada sobre el color y la profundidad de la escena. Suma las lentes puntuales de hasta `max_lentes` agujeros (β = θ − θE²/θ) y el pulso de la onda. La profundidad pondera cada lente, así que lo que está delante del agujero no se deforma.
 - **Entorno**: la oscuridad es un volumen esférico alrededor del agujero, calculado con la profundidad.
 - **Líneas**: cada enemigo absorbido y cada arco es una polilínea. La posición de cada punto es una fórmula del tiempo y de una semilla, sin estado ni sistema de partículas. En el motor serían cintas evaluadas en el vertex shader: 14 tramos por arco y 48 por anillo. Dentro de una línea los tramos no se suman entre sí, como en una cinta.
+- **Piso cargado**: en el motor, una textura del suelo generada por código (máscara de las ramas, camino hasta el impacto y un desfase por rama) y unas líneas de fragment shader. Aquí se dibuja una vez por cámara.
+- **Haz**: tres cintas (núcleo, envoltura y filamentos), como los arcos.
 - **Horizonte, brillo de Hawking y destellos**: un sprite por agujero. El resplandor morado del borde va dentro del disco y no pasa por el bloom.
 
 ### Parámetros ajustables (`singularidad_config.json`)
@@ -74,6 +94,10 @@ Blender solo renderiza el escenario de prueba: color y profundidad. Todo el efec
 | `flotacion` | Altura, altura por masa, vaivén, frecuencia y temblor. |
 | `arcos` | Cantidad, alcance y brillo según la masa; frecuencia de resorteo; tramos, zigzag, ancho, ramas, colores, luz en el suelo y arcos entre agujeros. |
 | `espagueti` | Duración del estiramiento y de la órbita, largo de la línea, despegue del suelo, vueltas, inclinación, forma de la espiral, ancho, brillo, tramos, calentamiento y colores (final y al rozar el horizonte). |
+| `carga.haz` | Duración del golpe, del haz y de su apagado; origen, zigzag, anchos, cuánto se abre, brillos, colores y filamentos. |
+| `carga.destello` | Fogonazo del impacto, cuánto alumbra el encuadre y la luz en el suelo mientras dura el haz. |
+| `carga.figura` | Forma de las ramas: radio, troncos, giro, ramificación, reparto del largo y anchos. |
+| `carga.onda` | El latido: velocidad, nitidez del frente, largo de la cola, brillo, colores, alcance, desgaste al alejarse y cuánto lo apaga el entorno. |
 | `aparicion` | Destello al crearse un agujero. |
 | `fusion` | Velocidad de disparo, distancias, duración de repulsión y órbita, vueltas, exponentes del inspiral, inclinación, deriva y su dirección, retroceso y su asimetría, destello, onda y ringdown. |
 | `eventos` | Ganchos que emite y los reservados. |
@@ -93,7 +117,7 @@ El radio de Einstein (`curvas.lente`) no se cambió: la zona deformada es la mis
 
 ### Eventos
 
-El JSON de salida lista los eventos con su instante: `agujero_creado`, `enemigo_absorbido`, `repulsion`, `orbita`, `fusion` (con masa, asimetría y retroceso), `ringdown_fin`, `super_arma` y `masa_critica`. `carga_perdida` está reservado y nadie lo emite: el efecto no depende del estado de carga.
+El JSON de salida lista los eventos con su instante: `haz_impacto`, `piso_cargado` (al terminar el haz), `piso_late` (segundo latido), `agujero_creado`, `enemigo_absorbido`, `repulsion`, `orbita`, `fusion` (con masa, asimetría y retroceso), `ringdown_fin`, `super_arma` y `masa_critica`. `carga_perdida` está reservado y nadie lo emite: el efecto no depende del estado de carga.
 
 `Guion.pos(agujero, t)` es una función pura del tiempo. El juego puede llamar a la misma fórmula para saber dónde está cada agujero durante la fusión.
 
@@ -103,7 +127,70 @@ El JSON de salida lista los eventos con su instante: `agujero_creado`, `enemigo_
 - Las trayectorias de la fusión son coreografía con forma de inspiral, no una simulación.
 - El enemigo desaparece al ser absorbido y lo sustituye una mancha de luz que se estira. El estirado de la malla del enemigo no está prototipado.
 - Los arcos caen sobre el plano del suelo; no buscan edificios ni unidades.
+- La figura del piso es plana y no rodea los edificios: el latido pasa por debajo y se ve solo donde hay suelo a la vista. Las unidades lo tapan.
+- El haz viene de un punto fijo (`carga.haz.origen_m`); no hay modelo del arma que lo dispara, y atraviesa lo que encuentre en su línea.
+- El segundo latido está atado en las demos a la aparición del primer agujero, que nace sobre el impacto. Detectar que un agujero en movimiento pasa por encima es cosa del juego.
 - No hay medida en GPU. Los tiempos del JSON son de numpy en CPU y solo sirven para comparar ejecuciones.
+
+## Rayo láser
+
+Un haz que no es una línea uniforme: serpentea, late y lleva textura. Reutiliza el escenario, la cámara y las utilidades de `singularidad.py`.
+
+```bash
+blender -b --factory-startup --python arte/blender/vfx/rayo.py -- --salida <carpeta> --calidad final
+```
+
+```bash
+blender -b --factory-startup --python arte/blender/vfx/rayo.py -- --salida <carpeta> --calidad final --vista cerca
+```
+
+Opciones: `--modo simple` (ruta degradada), `--config otro.json`, `--cuadros 26,50` (solo esos cuadros, en una hoja de prueba), `--nombre`.
+
+La demo: una torre carga, dispara al suelo, barre hasta un enemigo y lo destruye, pasa a otro, sube por la fachada de un edificio y corta.
+
+### Cómo está hecho
+
+El haz es una cinta entre el arma y el punto de impacto. Cada píxel calcula `s` (metros desde el arma) y `x` (metros hacia un lado), y el color sale de una fórmula de `s`, `x` y el tiempo. No hay estado: se puede pausar, saltar o evaluar en cualquier orden. En el motor sería un quad orientado a la cámara con ese fragment shader y una textura de ruido que se desplaza.
+
+- **Serpenteo y grosor**: la línea central se aparta con ondas que viajan hacia el blanco, y el ancho late con pulsos y ruido. Pegado al arma, el haz sale recto.
+- **Capas**: núcleo casi blanco, vaina naranja con ruido que fluye, halo rojo y jirones que se desprenden del borde.
+- **Hebras**: hélices de plasma trenzadas alrededor del núcleo, que se interrumpen a ratos.
+- **Nudos**: bultos brillantes que recorren el haz y lo engordan a su paso.
+- **Chispas**: partículas sin estado a lo largo del haz, en el impacto (con gravedad) y convergiendo al arma durante la carga.
+- **Extremos**: destello con raya de lente en la boca del arma, bola que hierve en el impacto, y cicatriz al rojo que se enfría y deja quemadura.
+- **Entorno**: luz roja sobre el escenario según la distancia real al haz, penumbra general mientras dispara, refracción de calor y bloom.
+- **Fases**: carga, disparo (el frente avanza a `velocidad_frente`), sostenido y corte (la cola se va del arma y queda un rescoldo).
+
+### Parámetros ajustables (`rayo_config.json`)
+
+| Sección | Qué controla |
+| --- | --- |
+| `haz` | Radios y colores del núcleo, la vaina y el halo; brillo general. |
+| `onda` | Serpenteo y pulsos de grosor: amplitud, longitud de onda y velocidad de cada onda, más su parte irregular. |
+| `filamentos` | Cantidad de hebras, radio, ancho, paso, giro, interrupciones y color. |
+| `turbulencia` | Escala, velocidad y contraste del ruido; fuerza y alcance de los jirones. |
+| `nudos` | Separación, velocidad, largo, engrosamiento y brillo. |
+| `chispas` | Cantidad, vida, velocidad, frenado, gravedad y color de las del haz, el impacto y la carga. |
+| `origen`, `impacto` | Destellos de los extremos; `impacto.cicatriz` para la marca que deja. |
+| `luz` | Luz sobre el escenario, penumbra y neblina. |
+| `calor` | Refracción del fondo. |
+| `fases` | Duración de la carga, velocidad del frente, exceso de potencia al arrancar, respiración y rescoldo. |
+| `demo` | Guion y cámaras de la vista previa; el juego no lo usa. |
+
+Para un haz más liso, baja `onda.serpenteo`, `onda.grosor_irregular` y `turbulencia.contraste`. Para uno más salvaje, súbelos junto con `turbulencia.jirones` y `filamentos.cantidad`.
+
+### Eventos
+
+El JSON de salida lista `carga`, `disparo`, `impacto` (con la superficie), `objetivo_destruido`, `corte` y `apagado` con su instante.
+
+### Límites conocidos
+
+- El efecto recibe el punto de impacto; no lo busca. En la demo lo decide el guion (la mira, o el primer enemigo que se cruce).
+- La destrucción del enemigo es solo un fogonazo: la explosión es otro efecto.
+- La cinta mira a la cámara. Vista casi de punta (el haz hacia la cámara) no está resuelta.
+- La penumbra oscurece todo el escenario para que el haz destaque a plena luz. Es una decisión de aspecto y se quita con `luz.penumbra: 0`.
+- La cicatriz no se aplasta con la perspectiva del suelo, y las chispas no rebotan.
+- No hay medida en GPU. Los tiempos del JSON son de numpy en CPU.
 
 ## Artillería
 
