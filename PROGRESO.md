@@ -6,7 +6,8 @@
 - **Verificación.** `node arte/blender/papercraft/validar.mjs` (cabeceras, presupuestos y colores de vértice: falla si `COLOR_0` es uniforme o no es más oscuro que `COLOR_1`). Claude abrió el visor en el navegador del escritorio (PC y 375 × 812): carga sin errores de consola, orbita, hace zoom y los interruptores «Mapa antiguo» y «Rejilla» responden.
 - **Fallo encontrado en la revisión.** En la segunda ronda las previas de Blender eran correctas, pero el visor salía gris: el pigmento se exportaba en `COLOR_1` y `COLOR_0` en blanco. La validación de Astra comprobaba que los GLB abrían, no su color. Se corrigió y quedó como comprobación automática.
 - **Límites.** Los bordes de los parches son polígonos con canto claro más que papel rasgado; las cumbres siguen algo grises en el visor. Sin pruebas en un teléfono real. No hay máquinas ni unidades: es solo escenario.
-- **Siguiente paso.** Del autor: feedback sobre el estilo y la composición en el visor.
+- **Murallas (ronda 4, medium, 5 min).** La muralla actual parecía medieval y no encajaba con el tono casi futurista. Astra hizo 10 conceptos militares modernos, cada uno con su tramo y su nudo, al doble de altura (10,5 y 16 m): gavión, pie en T, traba, intermodal, costillas, talud, cordón, pliegue, diente de sierra y ronda. Se comparan en `visor/muralla.html` y en `previas/muralla-opciones.jpg`; el resumen está en `MURALLA-OPCIONES.md`. En la revisión, la página se desbordaba a 1185 px en móvil (botones en fila sin `minmax(0,1fr)`); corregido. No van todavía en el mapa.
+- **Siguiente paso.** Del autor: elegir muralla. Después, montañas cónicas mucho más altas y la muralla elegida en el mapa.
 
 ## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026
 

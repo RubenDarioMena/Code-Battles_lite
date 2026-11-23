@@ -101,6 +101,18 @@ for (let y=0;y<4;y++) for (let x=0;x<4;x++) {
   triangulos += n;
   maximo = Math.max(maximo,n);
 }
+const murallas=listar('glb/muralla');
+assert.equal(murallas.length,20);
+let mayorMuralla=0;
+for(let i=1;i<=10;i++) for(const tipo of ['tramo','nudo']) {
+  const ruta='glb/muralla/opcion-'+String(i).padStart(2,'0')+'-'+tipo+'.glb';
+  const {n,pos}=inspeccionar(ruta);
+  assert(n<=800,ruta);
+  assert.equal(pos.min[1],0,ruta);
+  assert.equal(pos.max[1],tipo==='tramo'?10.5:16,ruta);
+  assert.deepEqual([pos.min[0],pos.max[0]],[-3.5,3.5],ruta);
+  mayorMuralla=Math.max(mayorMuralla,n);
+}
 assert(triangulos<=150000 && bytes<=25e6);
 assert(leer('kit.blend').length<=20e6);
 const html = leer('visor/index.html').toString();
@@ -120,6 +132,7 @@ function modulo(ruta) {
 }
 modulo(path.join('visor',html.match(/type="module" src="([^"]+)"/)[1]));
 assert.equal(visitados.size,6);
+modulo("visor/muralla.js");
 assert(listar('previas').length<=6);
 for (const f of listar('previas')) assert.equal(leer('previas/'+f).readUInt16BE(),0xffd8);
 function peso(carpeta) {
@@ -131,4 +144,4 @@ function peso(carpeta) {
 const carpeta = peso(base);
 assert(carpeta<=60e6);
 console.log({piezas:kit.length,colocaciones:sitios.length,trozos:terreno.length,triangulos,
-  maximoPorTrozo:maximo,maximoPorPieza:maximoKit,bytesGLB:bytes,bytesBlend:leer('kit.blend').length,bytesCarpeta:carpeta});
+  maximoPorTrozo:maximo,maximoPorPieza:maximoKit,piezasMuralla:murallas.length,mayorMuralla,bytesGLB:bytes,bytesBlend:leer('kit.blend').length,bytesCarpeta:carpeta});
