@@ -171,7 +171,7 @@ def generar():
     rotulo=bpy.data.materials.new("Marfil de imprenta");rotulo.use_nodes=True
     emisor=rotulo.node_tree.nodes.new("ShaderNodeEmission");emisor.inputs[0].default_value=(1,.95,.82,1)
     rotulo.node_tree.links.new(emisor.outputs[0],rotulo.node_tree.nodes.get("Material Output").inputs[0])
-    nombres=[linea.split('**')[1] for linea in (BASE/'MURALLA-OPCIONES.md').read_text().splitlines()]
+    nombres=[linea.split('**')[1] for linea in (BASE/'MURALLA-OPCIONES.md').read_text().splitlines() if linea[:2].isdigit()]
     for i,crear in enumerate([gavion,placas,traba,carga,costillas,talud,cordon,pliegue,fabrica,ronda]):
         pos=derecha*((i%5-2)*25)+arriba*((.5-i//5)*25-7)
         for n in [False,True]:

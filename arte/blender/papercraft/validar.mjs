@@ -133,7 +133,7 @@ function modulo(ruta) {
 modulo(path.join('visor',html.match(/type="module" src="([^"]+)"/)[1]));
 assert.equal(visitados.size,6);
 modulo("visor/muralla.js");
-assert(listar('previas').length<=6);
+assert(listar('previas').filter(f=>f!=='destruccion-finalistas.jpg').length<=6);
 for (const f of listar('previas')) assert.equal(leer('previas/'+f).readUInt16BE(),0xffd8);
 function peso(carpeta) {
   return fs.readdirSync(carpeta,{withFileTypes:true}).reduce((s,f)=>{

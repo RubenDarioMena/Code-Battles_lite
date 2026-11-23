@@ -19,3 +19,13 @@
 - En móvil prioricé llenar el alto del encuadre con la muralla y parte del frente. Los extremos del tablero quedan accesibles por desplazamiento.
 - Conservé la copia local de Three.js r180 y usé un material común en memoria.
 - Usé autooclusión suave en el kit para conservar el aspecto aprobado y fijé COLOR_0 como fuente común del material y del GLB.
+
+## Laboratorio de destrucción de las finalistas
+
+- Construí cinco módulos de 7 m con bandas nativas de 0,5 m de resolución. Cada hilada, cesta o anillo queda registrado como obra y se repara con el motor.
+- Coloqué el nudo de cada finalista en el centro. En Traba, el quinto módulo representa la aparición ocasional de Cordón. Representé la sección hueca mediante franjas de una corona oval.
+- Usé los tres materiales del motor. La piedra representa el relleno de las cestas y la tierra, el hormigón representa placas y bloques, y el acero da forma a las costuras y a la lámina superior del talud.
+- Elegí el adaptador r128 del laboratorio, con la fibra y las tintas del kit. Atenué el dibujo procedural para distinguir bien el rojo de tensión, las aristas de fractura y el cascajo.
+- La demo compara el mismo par de órdenes en los mismos pasos. Dejé el cascajo directo en el 8 % para que se vea el perfil roto. El selector conserva el estado de cada maqueta durante la sesión.
+- Al reparar se recogen las piezas móviles, se completan las obras originales y se conserva el cascajo exterior. Reiniciar recupera la maqueta intacta.
+- La hoja 2×2 usa las mallas del adaptador a los tres segundos. El render equivalente de Blender conserva sus poses, colores por vértice, caras de rotura y escombro.
