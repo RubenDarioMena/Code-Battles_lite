@@ -8,7 +8,7 @@ const ok = (v, m) => { assert.ok(v, m); comprobaciones++; };
 const igual = (a, b, m) => { assert.deepEqual(a, b, m); comprobaciones++; };
 const congelar = o => { if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); Object.values(o).forEach(congelar); } return o; };
 const { crear3D, crearCampaign3D, factory3d } = vistas;
-igual(Object.keys(vistas).sort(), ['crearDibujanteEfectos', 'crearVista', 'crear3D', 'crearCampaign3D', 'factory3d'].sort(), 'entrada pública');
+igual(Object.keys(vistas).sort(), ['conectarRig', 'crearDibujanteEfectos', 'crearVista', 'crear3D', 'crearCampaign3D', 'factory3d'].sort(), 'entrada pública');
 for (const f of [crear3D, crearCampaign3D, ...['construir', 'actualizar', 'cargar', 'ik'].map(k => factory3d[k])]) ok(typeof f === 'function', 'exporta funciones');
 igual(factory3d.ultimo, null, 'gancho mutable de Factory inicialmente vacío');
 factory3d.ultimo = { prueba: true };

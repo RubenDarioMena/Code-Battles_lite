@@ -1,0 +1,6 @@
+# Solo se versiona la selección de previas (JPG y reportes). PNG, GLB de prueba y logs se regeneran con catalogo.py.
+previas/**
+!previas/*/
+!previas/*/*.jpg
+!previas/*/*.json
+__pycache__/

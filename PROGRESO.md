@@ -1,3 +1,42 @@
+## Kit de Blender: exportador y validador compartidos, y solver del rig en three.js · 20 de noviembre de 2026
+
+- **Exportador y validador (tarea 02, con Astra).**
+  - Las tres máquinas (T1, vehículo tubular y torreta de observación) se exportan desde descriptores con
+    `arte/blender/kit/exportar.py`, que valida cada GLB (`validar_glb.py` y `validar_rig.py`) antes de sustituirlo.
+  - Rig `cbl-rig` v2 en los `extras`: reglas `LOCAL` con expresiones y las restricciones COPIAR_POSICION, APUNTAR,
+    APUNTAR_BLOQUEADO y ESTIRAR.
+  - Poses de referencia de Blender en `pruebas/rig/` (57 del vehículo y 21 de la torreta).
+  - El orquestador admitió la FCurve identidad que Blender 5 crea en cada driver (`curva_identidad`).
+  - Los GLB nuevos sustituyen a los del juego. Las triangulaciones coinciden con las históricas; el T1 y la torreta
+    se apoyan ahora en el suelo (sus orígenes se movieron +12,5 mm y −55 mm).
+- **Solver (tarea 03).** Paquete puro `paquetes/rig/` y adaptador `conectarRig` en `vista-3d`.
+  - Factory mueve el T1 con sus controles, en lugar de escribir `rotation.*` a mano.
+  - Visor en `herramientas/visor-rig/`: deslizadores, reproducción del bucle y muestras de referencia con su
+    error.
+  - Astra lo dejó funcionando y con pruebas antes de agotar las dos cuentas; el orquestador escribió el README y
+    verificó.
+- **Verificación actual.**
+  - Error máximo frente a Blender: **1,3e−6** en el vehículo (todos los niveles) y **2,3e−7** en la torreta;
+    tolerancia 1e−4.
+  - La prueba detecta cuatro mutaciones (eje de APUNTAR, volumen de ESTIRAR, orden topológico y desplazamiento).
+  - Factory frente al código anterior: 6,5e−8. Adaptador r180 frente al solver puro: ≤ 2e−15.
+  - `evaluar` del vehículo (181 pivotes): ≈ 0,04 ms.
+  - `npm test` **71 ok**; tipos, fronteras y las dos suites Python del kit correctos.
+  - Visor y Factory revisados en WebGL sin errores de consola; capturas en `docs/qa/visor-rig-2026-11-20/`.
+- **Límites.**
+  - Ningún GLB usa todavía APUNTAR_BLOQUEADO ni influencias menores que 1: esos casos se prueban solo con escenas
+    sintéticas.
+  - War aún no usa el vehículo ni la torreta.
+  - Sin commits, push ni publicación.
+
+## Arte · kit de piezas común para las máquinas · 20 de noviembre de 2026 · rama `kit-piezas`
+
+- **Qué es.** [arte/blender/kit/](arte/blender/kit/README.md): 25 piezas reutilizables para modelar máquinas nuevas, sacadas de lo que repetían el buggy tubular, la esfera de la torreta y `robots.py`. Incluye estructura, chapa, tornillería, engranajes evolventes, corona, cremallera, sinfín, rodamiento, cardán, rótula, resorte, amortiguador, rueda, oruga y LED. La rama nace de `trunk` (`6330c0e`). Solo arte: no toca el juego.
+- **Cómo se hizo.** Astra (`gpt-6.2-astra`, esfuerzo alto, unos 115k tokens) escribió el kit con el [prompt 01](arte/blender/kit/prompts/01-kit-base.md). La geometría es Python puro (`geometria.py`), con un adaptador fino de `bpy` (`blender.py`), para que el kit se pueda probar sin Blender. Cada pieza se construye en L0, L1 o L2 (detalle por construcción, sin decimar) y declara el último nivel en que existe. Las reglas de rig usan el formato `MANDO` de la torreta.
+- **Verificación.** `python3 arte/blender/kit/pruebas.py`: 8/8 (mallas cerradas y bien orientadas, medidas a 0,5 mm, triángulos decrecientes, engrane sin interpenetración, paso y avance del sinfín). Claude renderizó el catálogo en Blender 5.2 sin errores ([previas](arte/blender/kit/previas/01/)) y comprobó que su GLB carga en three.js r180 (L0/L1/L2: 31,7k/14,2k/7,5k triángulos).
+- **Límites.** La rueda del sinfín tiene dientes rectos y el filete del sinfín es fino. Se aceptan: las piezas pequeñas apenas se verán con la cámara del juego. Ninguna máquina usa el kit todavía.
+- **Siguiente paso exacto.** Del autor: elegir la primera máquina que se haga con el kit.
+
 ## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026
 
 - **Qué es.** `trunk` pasa a ser la única línea canónica (regla nueva en `AGENTS.md` y `CLAUDE.md`). Rama de integración `unificacion/canonica`: nace de `arquitectura/fase-5` (fases 0–5), incorpora el único commit de `trunk` que le faltaba (`ba48661`, VFX de singularidad y artillería; conflicto solo en este archivo, se conservaron las dos entradas), porta CodeMirror desde `codemirror-mobile` (`567f7d6`) al paquete y añade el harness de `peer-review-harness-plan` (`47bb23d`). `trunk` avanza a esta rama sin reescribir historia.

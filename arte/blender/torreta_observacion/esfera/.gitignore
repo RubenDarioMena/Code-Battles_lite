@@ -1,0 +1,7 @@
+# Solo se versiona la selección de previas (JPG, MP4 finales y reportes).
+# Las carpetas de cuadros, los PNG, los logs y las copias de fuente se regeneran con torreta_esfera.py.
+previas/**
+!previas/*/
+!previas/*/*.jpg
+!previas/*/*.mp4
+!previas/*/reporte.json

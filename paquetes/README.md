@@ -23,7 +23,8 @@ Los contratos son orientativos: los nombres definitivos los fija la fase 2.
 | `editor` | `lenguaje` |
 | `vfx` | `protocolo` |
 | `vista-2d` | `protocolo`, `vfx` |
-| `vista-3d` | `protocolo`, `vfx` |
+| `rig` | Nada |
+| `vista-3d` | `protocolo`, `vfx`, `rig` |
 | `interfaz` | `protocolo`, `editor` |
 | `app` | Todos |
 

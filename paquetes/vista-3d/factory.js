@@ -1,6 +1,9 @@
 /* Escenario 3D de logística: edificios con primitivas y el transporte T1 (modelos/t1.glb) como R1.
  * La cámara, la selección y las etiquetas son las de la vista 3D común (war.js); aquí solo el contenido.
  * Solo dibujo: lee la escena y nunca lo cambia. */
+import { leerRig } from '../rig/index.js';
+import { conectarRig } from './rig.js';
+
   const MODELO = "modelos/t1.glb";
   const ESCALA = .8;  // el T1 mide ~1 m de largo: cabe en su casilla con margen
   // LOD por tamaño en pantalla (px que ocupa el robot), no por distancia: así el teléfono, con menos
@@ -105,16 +108,24 @@
     const propios = {};
     cargar(cargarGLTFLoader).then((g) => {
       if (!g || !robot.grupo.parent) return;
+      const rig = leerRig(g.parser.json);
       robot.grupo.remove(provisional);
       for (let n = 0; n < 3; n++) {
         const raiz = g.scene.getObjectByName(`L${n}_RobotTransporte`);
         if (!raiz) continue;
         const copia = raiz.clone(true);
         adaptarMateriales(copia, propios, THREE);
-        copia.position.set(0, 0, 0); copia.scale.setScalar(ESCALA); copia.visible = false;
+        // Factory centraba la raíz importada a cero y la escalaba antes de posar el brazo.
+        // El marco externo conserva esa colocación al escribir el solver la local de la raíz.
+        const marco = new THREE.Group();
+        marco.scale.setScalar(ESCALA);
+        marco.position.copy(copia.position).multiplyScalar(-ESCALA);
+        marco.add(copia);
+        marco.visible = false;
+        const articulacion = conectarRig(THREE, copia, rig, n);
         const nodo = (k) => copia.getObjectByName(`L${n}_${k}`);
-        robot.niveles.push({ raiz: copia, torreta: nodo("torreta"), hombro: nodo("hombro"), codo: nodo("codo"), muneca: nodo("muneca"), dedoI: nodo("dedo_i"), dedoD: nodo("dedo_d"), carga: nodo("carga") });
-        robot.grupo.add(copia);
+        robot.niveles.push({ raiz: marco, articulacion, torreta: nodo("torreta"), hombro: nodo("hombro"), codo: nodo("codo"), muneca: nodo("muneca"), dedoI: nodo("dedo_i"), dedoD: nodo("dedo_d"), carga: nodo("carga") });
+        robot.grupo.add(marco);
       }
       // La carga se tiñe con el material que lleva; el turquesa del modelo es el de su función.
       for (const k of ["naranja", "naranja_oscuro"]) if (propios[k]) robot.carga.push({ m: propios[k], oscuro: k === "naranja_oscuro" });
@@ -187,9 +198,10 @@
     const obj = poseObjetivo(robot, mundo, THREE), p = robot.pose, kb = 1 - Math.exp(-dtReal / .11);
     for (const key of ["a1", "a2", "a3", "pinza"]) p[key] += (obj[key] - p[key]) * kb;
     p.giro += Math.atan2(Math.sin(obj.giro - p.giro), Math.cos(obj.giro - p.giro)) * kb;
+    const controles = { "torreta.giro": p.giro, "hombro.giro": p.a1, "codo.giro": p.a2,
+      "muneca.giro": p.a3, "pinza.apertura": p.pinza };
     for (const l of robot.niveles) {
-      l.torreta.rotation.y = p.giro; l.hombro.rotation.x = p.a1; l.codo.rotation.x = p.a2; l.muneca.rotation.x = p.a3;
-      l.dedoI.rotation.z = p.pinza; l.dedoD.rotation.z = -p.pinza;
+      l.articulacion.aplicar(controles);
       l.carga.visible = !!r.carga;
     }
     if (r.carga && robot.carga.length) {
