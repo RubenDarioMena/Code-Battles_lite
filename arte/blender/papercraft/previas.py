@@ -1,6 +1,7 @@
 """Fotografías del mismo collage con luz de tarde y relleno frío."""
 from comun import *
-from kit import piezas
+from kit import piezas, pieza_horneada
+ESTUDIO=json.loads((BASE/"estudio.json").read_text())
 
 def lampara(nombre,tipo,pos,energia,color,tamano):
     luz=bpy.data.lights.new(nombre,tipo)
@@ -15,10 +16,8 @@ def lampara(nombre,tipo,pos,energia,color,tamano):
 
 def estudio():
     esc=bpy.context.scene
-    esc.render.engine='CYCLES'
-    esc.cycles.samples=24
-    esc.cycles.use_denoising=True
-    esc.cycles.max_bounces=3
+    esc.render.engine='BLENDER_EEVEE'
+    esc.eevee.taa_render_samples=16
     esc.world=bpy.data.worlds.new('Azul de la tarde')
     esc.world.use_nodes=True
     nodos=esc.world.node_tree.nodes
@@ -41,13 +40,17 @@ def estudio():
     conectar(camino.outputs['Is Camera Ray'],mix.inputs[0])
     conectar(fondo.outputs[0],mix.inputs[1]); conectar(cielo.outputs[0],mix.inputs[2])
     conectar(mix.outputs[0],nodos.get('World Output').inputs[0])
-    lampara('Sol bajo','SUN',(0,0,40),3.0,(1,.85,.66),math.radians(7))
+    for luz in ESTUDIO['luces']:
+        x,h,y=luz['direccion']
+        obj=lampara(luz['nombre'],'SUN',(0,0,40),luz['energia'],luz['color'],math.radians(7))
+        obj.rotation_euler=Vector((-x,y,-h)).to_track_quat('-Z','Y').to_euler()
+        obj.data.use_shadow=luz['sombras']
     esc.view_settings.view_transform='AgX'
     esc.render.image_settings.file_format='JPEG'
     esc.render.image_settings.quality=91
     cam=bpy.data.objects.new('Objetivo',bpy.data.cameras.new('Objetivo'))
     bpy.context.collection.objects.link(cam); esc.camera=cam
-    cam.data.type='ORTHO'; cam.data.clip_end=2000
+    cam.data.type='PERSP'; cam.data.sensor_fit='VERTICAL'; cam.data.lens=cam.data.sensor_height/(2*math.tan(math.radians(ESTUDIO["campoVertical"]/2))); cam.data.clip_end=2000
     return cam
 
 def quitar_comentarios(ruta):
@@ -64,9 +67,9 @@ def quitar_comentarios(ruta):
     ruta.write_bytes(b''.join(partes)+datos[pos:])
 
 def foto(cam,nombre,centro,offset,escala,res):
-    cam.location=Vector(centro)+Vector(offset)
+    cam.location=Vector(centro)+Vector(offset).normalized()*(escala*res[1]/res[0]/(2*math.tan(math.radians(ESTUDIO["campoVertical"]/2))))
     cam.rotation_euler=(-Vector(offset)).to_track_quat('-Z','Y').to_euler()
-    cam.data.ortho_scale=escala
+
     esc=bpy.context.scene
     esc.render.resolution_x,esc.render.resolution_y=res
     esc.render.resolution_percentage=100
@@ -77,7 +80,7 @@ def foto(cam,nombre,centro,offset,escala,res):
 def generar():
     (BASE/'previas').mkdir(exist_ok=True)
     mat=next(m for m in bpy.data.materials if m.name.startswith('Cartulina'))
-    biblioteca={p.nombre:p.objeto(mat) for p in piezas()}
+    biblioteca={p.nombre:pieza_horneada(p,mat) for p in piezas()}
     for obj in biblioteca.values(): obj.hide_render=True
     sitios=json.loads((BASE/'colocaciones.json').read_text())
     for s in sitios:
@@ -88,7 +91,8 @@ def generar():
         obj.scale=(s['escala'],)*3
     cam=estudio()
     w,h=MAPA['metros']; x,y=MAPA['muralla'][5]
-    foto(cam,'panorama',(w/2,-h/2,1),(28,-210,231),430,(960,600))
+    dx,dh,dy=ESTUDIO['direccionCamara']
+    foto(cam,'panorama',(w/2,-h/2,1),(dx,-dy,dh),ESTUDIO['anchoPanorama'],(960,600))
     foto(cam,'frente-sur',(x-10,-y-26,2),(74,-113,79),141,(960,600))
     x,y=MAPA['rio']['puntos'][5]
     foto(cam,'ribera',(x,-y,3),(15,-38,24),63,(960,600))

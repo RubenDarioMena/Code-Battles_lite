@@ -11,8 +11,11 @@
 - Modelé diez siluetas reutilizables con un solo material, incluidas dos edades de pino y dos piezas de muralla.
 - Distribuí los lienzos a intervalos regulares y añadí estribos, saeteras y zapatas en los apoyos de la sierra.
 - Representé las juntas de lápiz mediante sombras finas entre hiladas, para conservarlas al recolorear los vértices.
-- Generé una fibra periódica de 256 px y su normal con la misma semilla. Cada GLB incorpora ambas para poder usarse por separado.
-- Elegí la copia local de Three.js r180 y mantuve un material común en memoria para los dieciséis trozos y las diez piezas.
-- Elegí proyección ortográfica, luz cálida lateral, relleno frío y fondo de azul a lavanda. Las sombras de contacto del visor comparten un sello radial.
-- Usé Cycles para las cinco fotografías y reservé los rótulos para la hoja de contacto del kit.
-- Esta exploración artística es independiente de las fases de arquitectura del juego. La verificación de navegación en PC y móvil corresponde a la revisión externa indicada en el brief.
+- Generé una fibra periódica de 1024 px con ruido en cuatro escalas, hebras largas y una normal derivada de la misma trama.
+- Compartí ambos PNG con rutas relativas para poder dedicar más resolución a la fibra. Usé una repetición de 36 m en el terreno y 11,52 m en las piezas pequeñas.
+- Horneé en Blender la oclusión de las capas y las piezas contra la geometría real. Guardé el resultado en COLOR_0 y la tinta limpia en COLOR_1.
+- Di a los retazos un canto de 0,32 a 0,52 m con una franja de alma visible desde arriba, amplié los ocres con arcilla y kraft y aclaré las cumbres de las cordilleras.
+- Usé una perspectiva vertical de 30° con sol cálido y relleno frío compartidos por el visor y las cinco fotografías en EEVEE.
+- En móvil prioricé llenar el alto del encuadre con la muralla y parte del frente. Los extremos del tablero quedan accesibles por desplazamiento.
+- Conservé la copia local de Three.js r180 y usé un material común en memoria.
+- Usé autooclusión suave en el kit para conservar el aspecto aprobado y fijé COLOR_0 como fuente común del material y del GLB.

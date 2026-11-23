@@ -110,15 +110,15 @@ class Paisaje:
     def retazos(self):
         # Parches anchos con bordes dentados y tiras de cultivo orientadas con los campos.
         r=self.r; w,h=MAPA['metros']
-        for i in range(185):
+        for i in range(223):
             x=r.uniform(-8,w+8); y=r.uniform(-6,h+6)
             casa=dentro((x,y),self.casa)
-            pol=contorno(x,y,r.uniform(10,37),r.uniform(4,14),38,i,r.uniform(-.65,.4),.16)
+            pol=contorno(x,y,r.uniform(10,37),r.uniform(4,14),24,i,r.uniform(-.65,.4),.16)
             if not all(bool(dentro(p,self.casa))==bool(casa) for p in pol):continue
             if any(dentro(p,pol) for p in MAPA['rio']['puntos']):continue
-            z=.16+.0015*i
-            mat=r.choice(['oliva','salvia','musgo','prado'] if casa else ['rastrojo','tierra','miel','ocre'])
-            self.hoja(pol,.16,z-.16+.14,mat,r.uniform(.96,1.04))
+            z=.16+.0009*i
+            mat=r.choice(['oliva','salvia','musgo','prado'] if casa else ['rastrojo','arcilla','miel','ocre','kraft','tierra'])
+            self.hoja(pol,.16,z-.16+.32,mat,r.uniform(.96,1.04))
         for i,(x,y,a,b,t) in enumerate(MAPA['campos']):
             def punto(u,v):
                 return (x+u*math.cos(t)-v*math.sin(t),y+u*math.sin(t)+v*math.cos(t))
@@ -142,8 +142,8 @@ class Paisaje:
                     f=1-k/(n+.8)
                     mat=(['tierra','musgo','oliva','pizarra','piedra','caliza','nieve','nieve'] if g<2
                          else ['arcilla','tierra','rastrojo','miel','caliza'])[k]
-                    pol=contorno(x+k*.48,y-k*.26,a*f,b*f,48,m['semilla']+k*.17,m['giro'],.115)
-                    self.hoja(pol,z,h,mat,reserva=True)
+                    pol=contorno(x+k*.48,y-k*.26,a*f,b*f,21,m['semilla']+k*.17,m['giro'],.115)
+                    self.hoja(pol,z,h,'nieve' if k==n-1 and g<2 else mat,reserva=True)
                     z+=h
 
     def vias(self):
@@ -223,8 +223,11 @@ def construir():
     mat=iniciar()
     paisaje=Paisaje()
     paisaje.base(); paisaje.retazos(); paisaje.montes(); paisaje.vias(); paisaje.poblar()
+    from oclusion import preparar, hornear
+    bvh=preparar(paisaje)
     for p in repartir(paisaje.p):
         obj=p.objeto(mat)
+        hornear(obj,bvh)
         exportar(obj,BASE/'glb'/'mapa'/(p.nombre+'.glb'))
     (BASE/'colocaciones.json').write_text('[\n'+',\n'.join(', '.join(json.dumps(v,ensure_ascii=False) for v in paisaje.colocaciones[i:i+4]) for i in range(0,len(paisaje.colocaciones),4))+'\n]\n')
     from previas import generar

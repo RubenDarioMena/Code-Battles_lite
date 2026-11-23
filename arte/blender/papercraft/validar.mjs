@@ -24,6 +24,29 @@ for (const p of sitios) {
 }
 
 let triangulos = 0, maximo = 0, maximoKit = 0, bytes = 0;
+function medirColor(binario, g, indice, cantidad) {
+  const a = g.accessors[indice];
+  const vista = g.bufferViews[a.bufferView];
+  assert.equal(a.count, cantidad);
+  assert(['VEC3','VEC4'].includes(a.type));
+  const formato = {
+    5121: [1, 255, 'readUInt8'],
+    5123: [2, 65535, 'readUInt16LE'],
+    5126: [4, 1, 'readFloatLE']
+  }[a.componentType];
+  assert(formato && (a.componentType === 5126 || a.normalized));
+  const [bytes, divisor, leerCanal] = formato;
+  const paso = vista.byteStride ?? bytes * Number(a.type.at(-1));
+  const inicio = (vista.byteOffset ?? 0) + (a.byteOffset ?? 0);
+  let primero, variado = false, suma = 0;
+  for (let i = 0; i < cantidad; i++) {
+    const rgb = [0,1,2].map(c => binario[leerCanal](inicio+i*paso+c*bytes)/divisor);
+    primero ??= rgb;
+    variado ||= rgb.some((v,c) => v !== primero[c]);
+    suma += .2126*rgb[0] + .7152*rgb[1] + .0722*rgb[2];
+  }
+  return {variado, media:suma/cantidad};
+}
 function inspeccionar(ruta) {
   const b = leer(ruta);
   bytes += b.length;
@@ -49,12 +72,18 @@ function inspeccionar(ruta) {
   const mat = g.materials[prim.material];
   assert(mat.normalTexture && mat.pbrMetallicRoughness.baseColorTexture);
   for (const imagen of g.images) {
-    const v = g.bufferViews[imagen.bufferView];
-    const png = b.subarray(fin+8+v.byteOffset,fin+8+v.byteOffset+v.byteLength);
-    assert(png.equals(leer('texturas/'+imagen.name+'.png')));
+    const png = leer(path.join(path.dirname(ruta),imagen.uri));
+    assert.equal(png.readUInt32BE(16),1024);
+    assert.equal(png.readUInt32BE(20),1024);
+
   }
-  for (const atr of ['COLOR_0','NORMAL','POSITION','TEXCOORD_0']) assert(atr in prim.attributes);
+  for (const atr of ['COLOR_0','COLOR_1','NORMAL','POSITION','TEXCOORD_0']) assert(atr in prim.attributes);
   const pos = g.accessors[prim.attributes.POSITION];
+  const binario = b.subarray(fin+8);
+  const visible = medirColor(binario,g,prim.attributes.COLOR_0,pos.count);
+  const limpio = medirColor(binario,g,prim.attributes.COLOR_1,pos.count);
+  assert(visible.variado,ruta+' tiene COLOR_0 uniforme');
+  assert(visible.media < limpio.media,ruta+' requiere luminancia media de COLOR_0 inferior a COLOR_1');
   const n = g.accessors[prim.indices].count/3;
   assert(Number.isInteger(n) && n>0);
   return {n,pos};

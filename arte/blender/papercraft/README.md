@@ -16,8 +16,8 @@ node arte/blender/papercraft/validar.mjs
 ```
 
 En el entorno aislado, ejecuta los dos scripts mediante la cola de Blender indicada en el brief.
-El primero genera las texturas y la biblioteca. El segundo genera las texturas, el terreno, las colocaciones y las cinco fotografías en Cycles.
-El validador comprueba los GLB, los pigmentos, las texturas embebidas, los límites por trozo, los tamaños y el grafo de módulos del visor.
+El primero genera las texturas y la biblioteca. El segundo genera las texturas, el terreno, las colocaciones y las cinco fotografías en EEVEE.
+El validador comprueba los GLB, los pigmentos, las texturas compartidas, los límites por trozo, los tamaños y el grafo de módulos del visor.
 
 ## Reutilización
 
@@ -25,5 +25,7 @@ El validador comprueba los GLB, los pigmentos, las texturas embebidas, los lími
 - `mapa-ampliado.json` define la composición en metros. El origen está en la esquina noroeste, con x al este e y al sur. La altura cero corresponde al suelo nominal.
 - `colocaciones.json` guarda la posición de cada pie. El giro está en radianes desde el este hacia el sur y la escala es uniforme. En Blender se usa (x, −y, z) con giro −giro sobre Z. En Three se usa (x, z, y) con −giro sobre Y.
 - `glb/mapa/terreno-F-C.glb` ocupa la fila F y columna C, ambas desde cero. Sus vértices están en coordenadas absolutas. Los cortes conservan las UV para mantener la continuidad de la fibra entre trozos.
-- `paleta.json` contiene tintas sRGB. Cada GLB lleva el pigmento en COLOR_0 lineal, la fibra en color base y su relieve en el mapa normal. Se pueden recolorear los vértices conservando las dos texturas.
+- `paleta.json` contiene tintas sRGB. COLOR_0 lleva el color lineal con oclusión y COLOR_1 el pigmento limpio. Para cambiar de tinta conservando la sombra, multiplica el nuevo RGB lineal por el cociente COLOR_0 / COLOR_1. Los GLB referencian los dos PNG de 1024 px mediante ../../texturas/. Conserva esta estructura al moverlos.
+- `oclusion.py` proyecta rayos contra la malla del terreno y las piezas colocadas. Añade muestras de color al suelo junto a las huellas y al pie de los cantos antes de hornear.
+- `estudio.json` fija las dos luces, la cámara de 30° y los encuadres. En vertical se abre sobre la curva de la muralla y se puede recorrer el resto con dos dedos.
 - El visor distribuye Three.js r180 con licencia MIT en `visor/vendor/`. Se sirve desde esta carpeta y utiliza instancias para las piezas repetidas.

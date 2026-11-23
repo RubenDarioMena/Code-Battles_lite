@@ -67,7 +67,9 @@ def muralla(p,torre):
             pts=[(x-dx,-fondo/2),(x+dx,-fondo/2),(x+dx,fondo/2),(x-dx,fondo/2)]
             al=(h-.49)/n
             bajo=[(*v,z) for v in pts]; alto=[(*v,z+al-.038) for v in pts]
-            unir(p,bajo,alto,[['piedra','dovela','piedra','sillar'][(k+j)%4]])
+            borde=[(*v,z+al-.17) for v in pts]
+            unir(p,borde,alto,['alma'])
+            unir(p,bajo,borde,[['piedra','dovela','piedra','sillar'][(k+j)%4]])
             p.tapa(pts,z+al-.038,'piedra')
     caja(p,0,0,h-.045,ancho*.52,fondo*.55,.32,'caliza')
     # Cubierta hundida, estribos plegados y saeteras de tinta en las torres.
@@ -122,10 +124,16 @@ def piezas():
             muralla(p,nombre=='torre')
         yield p
 
+def pieza_horneada(p,mat):
+    from oclusion import arbol, hornear
+    obj=p.objeto(mat)
+    hornear(obj,arbol(p.caras),intensidad=.12)
+    return obj
+
 def construir():
     mat=iniciar()
     for i,p in enumerate(piezas()):
-        obj=p.objeto(mat)
+        obj=pieza_horneada(p,mat)
         exportar(obj,BASE/'glb'/'kit'/(p.nombre+'.glb'))
         obj.location=((i%5-2)*12,(i//5-.5)*13,0)
         obj.asset_mark()
