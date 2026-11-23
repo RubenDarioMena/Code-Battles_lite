@@ -1,0 +1,31 @@
+# Decisiones de la maqueta
+
+- Tomé la esquina noroeste como origen y dibujé la J con dos cordilleras que llegan a los bordes norte y oeste.
+- Situé el rectángulo histórico alineando su tramo recto y su curva con la nueva muralla para comparar la escala.
+- Reservé la mayor parte del sureste para una llanura seca con una cañada transversal, un carril de flanco y un otero bajo frente a la muralla.
+- Usé salvia y musgo en casa, miel y arcilla en el frente, turquesa en el arroyo y kraft claro para recorrer ambos lados.
+- Abrí un entrante en la lámina verde para que el río quede físicamente hundido y añadí ondas de papel encima del agua.
+- Hice cinco parcelas con surcos y espigas, junto a una losa despejada que admite las máquinas del próximo prototipo.
+- Construí los montes por pisos con tapas desplazadas, fibras sueltas, línea de cola y alma clara de espesor variable.
+- Reservé el blanco roto para las cumbres altas y coloqué pinos y lajas en rellanos anchos.
+- Modelé diez siluetas reutilizables con un solo material, incluidas dos edades de pino y dos piezas de muralla.
+- Distribuí los lienzos a intervalos regulares y añadí estribos, saeteras y zapatas en los apoyos de la sierra.
+- Representé las juntas de lápiz mediante sombras finas entre hiladas, para conservarlas al recolorear los vértices.
+- Generé una fibra periódica de 1024 px con ruido en cuatro escalas, hebras largas y una normal derivada de la misma trama.
+- Compartí ambos PNG con rutas relativas para poder dedicar más resolución a la fibra. Usé una repetición de 36 m en el terreno y 11,52 m en las piezas pequeñas.
+- Horneé en Blender la oclusión de las capas y las piezas contra la geometría real. Guardé el resultado en COLOR_0 y la tinta limpia en COLOR_1.
+- Di a los retazos un canto de 0,32 a 0,52 m con una franja de alma visible desde arriba, amplié los ocres con arcilla y kraft y aclaré las cumbres de las cordilleras.
+- Usé una perspectiva vertical de 30° con sol cálido y relleno frío compartidos por el visor y las cinco fotografías en EEVEE.
+- En móvil prioricé llenar el alto del encuadre con la muralla y parte del frente. Los extremos del tablero quedan accesibles por desplazamiento.
+- Conservé la copia local de Three.js r180 y usé un material común en memoria.
+- Usé autooclusión suave en el kit para conservar el aspecto aprobado y fijé COLOR_0 como fuente común del material y del GLB.
+
+## Laboratorio de destrucción de las finalistas
+
+- Construí cinco módulos de 7 m con bandas nativas de 0,5 m de resolución. Cada hilada, cesta o anillo queda registrado como obra y se repara con el motor.
+- Coloqué el nudo de cada finalista en el centro. En Traba, el quinto módulo representa la aparición ocasional de Cordón. Representé la sección hueca mediante franjas de una corona oval.
+- Usé los tres materiales del motor. La piedra representa el relleno de las cestas y la tierra, el hormigón representa placas y bloques, y el acero da forma a las costuras y a la lámina superior del talud.
+- Elegí el adaptador r128 del laboratorio, con la fibra y las tintas del kit. Atenué el dibujo procedural para distinguir bien el rojo de tensión, las aristas de fractura y el cascajo.
+- La demo compara el mismo par de órdenes en los mismos pasos. Dejé el cascajo directo en el 8 % para que se vea el perfil roto. El selector conserva el estado de cada maqueta durante la sesión.
+- Al reparar se recogen las piezas móviles, se completan las obras originales y se conserva el cascajo exterior. Reiniciar recupera la maqueta intacta.
+- La hoja 2×2 usa las mallas del adaptador a los tres segundos. El render equivalente de Blender conserva sus poses, colores por vértice, caras de rotura y escombro.
