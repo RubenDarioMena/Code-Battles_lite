@@ -5,7 +5,8 @@
   - `papercraft-campaign` (421ca8e): solo `arte/blender/papercraft/`.
   - `vfx-explosiones-singularidad` (0f78213): solo `arte/blender/vfx/`, con el rayo y la carga del piso.
   - `ccr-684f16c6-yq5at1` (6c4416f): unidades de batalla y rueda kamikaze, diseño tentativo; sin el laboratorio.
-- Fuera: motor y laboratorio de la muralla (con sus finalistas), destrucción por piezas, laboratorio de batalla y la animación CODEMAGEDDON (`experimento-animacion-1`).
+- **Motor de vóxeles de la muralla (23-nov, a petición del autor: será el sistema que se use).** Traído desde `papercraft-campaign` (aa0858e), que lo tenía idéntico a `muralla-tension` (62ccb64) más las finalistas: `shared/muralla/`, `herramientas/muralla/` (laboratorio y `finalistas.html`), `pruebas/muralla-voxeles.cjs` y `docs/MURALLA-VOXELES.md`. Three r128 va en `herramientas/muralla/vendor/` y no en `shared/vendor/`, para no publicarlo. 275 comprobaciones del motor, las de las finalistas y `node pruebas/todas.mjs` 71/71 (dependencias enlazadas desde otro worktree). Revisado en el navegador: laboratorio y finalistas sin errores.
+- Fuera: destrucción por piezas, laboratorio de batalla y la animación CODEMAGEDDON (`experimento-animacion-1`).
 - **Muralla elegida (23-nov): C · Traba + Cordón.** Torreón cilíndrico de Cordón en los cambios de ángulo drásticos y nudo de Traba donde hay torre y el trazado sigue recto; el resto queda como referencia (`arte/blender/papercraft/MURALLA-OPCIONES.md`). El motor de vóxeles con el que se probó sigue fuera de esta rama (`papercraft-campaign`, `herramientas/muralla/finalistas.html`).
 - Verificación actual: carpetas idénticas a su rama de origen, GLB bien formados y `node pruebas/todas.mjs` con 71 correctas (dependencias enlazadas desde otro worktree). Sin abrir en navegador ni regenerar en Blender.
 

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Finalistas · Destrucción de murallas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#202a30;color:#ece4d4;font:15px system-ui,sans-serif;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr)}
+header,footer{padding:12px clamp(12px,3vw,40px)}header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;border-bottom:1px solid #485157}h1{margin:0;font:normal clamp(22px,3vw,32px) Georgia,serif}nav,.acciones{display:flex;gap:5px;flex-wrap:wrap}
+button,select{font:inherit;color:inherit;background:#344147;border:1px solid #596166;border-radius:4px;padding:8px 10px;cursor:pointer}button[aria-pressed=true]{background:#e5d3ad;color:#302d26;border-color:#e5d3ad}main{position:relative;min-height:0;min-width:0;background:linear-gradient(#485967,#94878a)}
+canvas{display:block;width:100%;height:100%;touch-action:none}footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid #485157}
+p{margin:0;color:#d6cebd;font-size:14px}output{position:absolute;left:12px;bottom:10px;padding:5px 9px;border-radius:3px;background:#222c30e8;font-size:13px;pointer-events:none}.acciones{align-items:center}a{color:#f4d693}
+@media(max-width:640px){header{display:grid;gap:7px;padding:9px 12px}nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}button,select{padding:8px 7px;font-size:14px}footer{display:grid;grid-template-columns:minmax(0,1fr);padding:9px 12px}.acciones{gap:4px}.acciones label{display:flex;align-items:center;gap:4px}}
+</style>
+<header><h1>Prueba de murallas</h1><nav aria-label="Finalista"></nav></header>
+<main><canvas aria-label="Maqueta de destrucción"></canvas><output aria-live="polite">Preparando maqueta…</output></main>
+<footer><div class="acciones"><label>Golpe <select id="golpe"><option value="bajo">Bajo</option><option value="medio" selected>Medio</option><option value="misil">Misil</option></select></label><label>Radio <select id="radio"><option value="1.6">1,6 m</option><option selected value="3.5">3,5 m</option><option value="5.5">5,5 m</option></select></label><button id="reparar">Reparar</button><button id="reiniciar">Reiniciar</button></div>
+<p>Toca para golpear · Arrastra para girar · <a href="?demo=comparar">Comparar daños</a></p></footer>
+<script src="vendor/three-r128.min.js"></script>
+<script src="../../shared/muralla/voxeles.js"></script>
+<script src="../../shared/muralla/material-three.js"></script>
+<script src="../../shared/muralla/vista-three.js"></script>
+<script type="module" src="finalistas.mjs"></script>
+</html>
