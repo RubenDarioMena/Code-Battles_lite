@@ -17,3 +17,13 @@ Resultado a los tres segundos de la demo. El porcentaje cuenta las celdas origin
 - **B · Pie en T + Cordón — 56 % en pie.** Caen la parte superior de las losas alcanzadas y un sector del anillo. Quedan 1 140 vóxeles de cascajo y ninguna pieza colgada.
 - **C · Traba + Cordón — 68 % en pie.** Caen hiladas y tetones del tramo y del nudo central. Cuatro fragmentos quedan colgados y se acumulan 1 276 vóxeles de cascajo. La torre curva del extremo sigue entera.
 - **D · Talud — 69 % en pie.** Caen parte de la cresta y el puesto superior. Cuatro fragmentos pequeños quedan colgados y se cuentan 1 167 vóxeles de cascajo.
+
+## Elección del autor · 23 de noviembre de 2026
+
+**Muralla elegida: C · Traba + Cordón**, con sus dos tipos de nudo:
+
+- **Torreón de Cordón** (cilindro hueco, opción 07): en los cambios de ángulo más drásticos del trazado.
+- **Nudo de Traba** (opción 03): donde haya torre pero la muralla siga recta.
+- **Tramo:** el de Traba (bloques de hormigón encajables con tetones).
+
+Las otras opciones (01–10 y las finalistas A, B y D) se conservan como referencia y como posibles materiales o variantes alternativas. No se borra nada.
