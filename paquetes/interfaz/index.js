@@ -17,3 +17,4 @@ export { registrarIconosFactory } from './factory-iconos.js';
 export { instalarLayout } from './layout.js';
 export { montarInterfazHito } from './panel-hito.js';
 export { montarHudHito } from './hud-hito.js';
+export { montarMandoTactil } from './mando-tactil.js';

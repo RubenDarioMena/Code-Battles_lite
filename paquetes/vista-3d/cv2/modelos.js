@@ -1,5 +1,5 @@
 // Las escalas y anclas están en ejes glTF (Y arriba), antes de escalar.
-import { terrenosBatalla } from './decorado.js';
+import { terrenosBatalla, terrenosLejanos } from './decorado.js';
 
 const arte = '../../../arte/blender/papercraft/';
 const pieza = (ruta, tam, escala = 1, ancla = [0, 0, 0]) => ({
@@ -18,7 +18,7 @@ export const modelos = {
   'torreon-cordon': pieza(arte + 'glb/muralla/opcion-07-nudo.glb', [7, 16, 5.41], .54),
 };
 // Las teselas y el kit salen del cálculo de encuadre de T10 (decorado.js).
-export const terrenos = terrenosBatalla;
+export const terrenos = [...terrenosBatalla, ...terrenosLejanos];
 for (const id of terrenos) {
   const [fila, col] = id.split('-').slice(1).map(Number);
   modelos[id] = { ...pieza(arte + 'glb/mapa/' + id + '.glb', [100, .2, 52]), centroProvisional: [100 * col + 50, -.1, 52 * fila + 26] };

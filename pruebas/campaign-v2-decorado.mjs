@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { kit, terrenosBatalla, zonasProhibidas, zoomMax } from '../paquetes/vista-3d/cv2/decorado.js';
+import { kit, terrenosBatalla, terrenosLejanos, zonasProhibidas, zoomMax, zoomNitido } from '../paquetes/vista-3d/cv2/decorado.js';
 
 const mapa = JSON.parse(await readFile(new URL('../arte/blender/papercraft/mapa-ampliado.json', import.meta.url), 'utf8'));
 assert.deepEqual(zonasProhibidas, {
@@ -36,12 +36,15 @@ function cubrir([x0, z0, x1, z1], motivo, intersecta = () => true) {
 // La esfera opaca corta el plano horizontal de la base a altura d·sen(pitch)
 // bajo la cámara. Al sumar el desplazamiento de la cámara al radio de ese
 // corte, cubrimos el disco completo con cualquier yaw y toda distancia menor.
-assert.ok(Number.isFinite(zoomMax) && zoomMax >= 8 && zoomMax <= 60);
+// Hasta zoomNitido bastan las teselas del campo; más lejos se cargan las demás y el mapa entero queda cubierto.
+assert.ok(Number.isFinite(zoomNitido) && zoomNitido >= 8 && zoomNitido <= zoomMax && zoomMax <= 60);
+assert.deepEqual([...cargadas, ...terrenosLejanos].sort(),
+  [0, 1, 2, 3].flatMap(f => [0, 1, 2, 3].map(c => `terreno-${f}-${c}`)).sort(), 'campo + lejanas = el mapa 4×4');
 for (const [nombre, pitch] of [['campo', 1.15], ['fabrica', 1]]) {
   const [x0, z0, x1, z1] = zonasProhibidas[nombre].caja;
   const x = (x0 + x1) / 2;
   const z = (z0 + z1) / 2;
-  const radio = zoomMax * (Math.cos(pitch) + Math.sqrt(1.75 ** 2 - Math.sin(pitch) ** 2));
+  const radio = zoomNitido * (Math.cos(pitch) + Math.sqrt(1.75 ** 2 - Math.sin(pitch) ** 2));
   cubrir([x - radio, z - radio, x + radio, z + radio], nombre, (izq, norte, der, sur) =>
     Math.hypot(Math.max(izq - x, 0, x - der), Math.max(norte - z, 0, z - sur)) <= radio);
 }
@@ -138,4 +141,4 @@ for (const pieza of kit) {
   huellas.push({ caja, etiqueta });
 }
 
-console.log(`OK · ${kit.length} piezas sin solapes ni invasiones · ${cargadas.size} teselas · niebla cubierta en batalla y fábrica hasta ${zoomMax} m`);
+console.log(`OK · ${kit.length} piezas sin solapes ni invasiones · ${cargadas.size} teselas · niebla cubierta en batalla y fábrica hasta ${zoomNitido} m con ellas; el resto del mapa, cargado después, llega a ${zoomMax} m`);

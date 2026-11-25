@@ -1,4 +1,4 @@
-import { montarInterfazHito, montarHudHito } from '../../interfaz/index.js';
+import { montarInterfazHito, montarHudHito, montarMandoTactil } from '../../interfaz/index.js';
 import { crearVinculos } from './vinculos-v2.js';
 import { volverACheckpoint } from './checkpoints-v2.js';
 import { crearFicha3D, crearVistaCV2 } from '../../vista-3d/index.js';
@@ -47,10 +47,14 @@ export function componerCampaignV2(params, contenido = niveles['nivel-1'], catal
   }
   return {
     reglas: crearReglamento({ ...war, fijarSuministro, pasoConIntentoPuntual, leerEnemigos, danoEnArea, velMisil: MISIL.vel }, contenido, porHito),
-    runtime: modo !== 'paridad' ? { aislarErrores: true, iconoUnidad: dibujarIconoHito, crearVinculos, montarInterfaz: ctx => montarInterfazHito(ctx, {
-      crearFicha: canvas => crearFicha3D(canvas, ctx.servicios, ctx.TIPOS),
-      volver: (h, programas) => elegirEtapa(ctx, h, programas), etapas: () => etapasDisponibles(ctx),
-    }), crearVista3D: crearVistaCV2, instalarGestosClic, camaraPlano: { zoom: 1, x: 0, y: 0 }, crearExtension: traducir => crearExtensionV2(activas, traducir, catalogo), repartirClic,
+    runtime: modo !== 'paridad' ? { aislarErrores: true, iconoUnidad: dibujarIconoHito, crearVinculos, montarInterfaz: ctx => {
+      const ui = montarInterfazHito(ctx, {
+        crearFicha: canvas => crearFicha3D(canvas, ctx.servicios, ctx.TIPOS),
+        volver: (h, programas) => elegirEtapa(ctx, h, programas), etapas: () => etapasDisponibles(ctx),
+      });
+      montarMando(ctx);
+      return ui;
+    }, crearVista3D: crearVistaCV2, instalarGestosClic, camaraPlano: { zoom: 1, x: 0, y: 0 }, crearExtension: traducir => crearExtensionV2(activas, traducir, catalogo), repartirClic,
       tiposHostiles, eventos: activas.flatMap(f => f.eventos ?? []).map(e => [e.objeto, e.nombre].filter(Boolean).join('.')), piezas: { lugarDeObjetivo, ...piezasMoviles }, repetir: params.get('repetir') === '1' } : null,
     anunciarHito: modo === 'campaign' ? (ctx, m, seguir) => anunciarHito(ctx, m, seguir, porHito, contenido) : null,
     anunciarFin: modo === 'campaign' ? (ctx, m) => anunciarFin(ctx, m, porHito, hitos) : null,
@@ -58,6 +62,18 @@ export function componerCampaignV2(params, contenido = niveles['nivel-1'], catal
     retos: batallas.map(h => porHito[h]), escenario,
     mundoPantalla,
   };
+}
+
+// Mando táctil de las Batallas: el joystick desplaza la cámara de la vista activa (3D o plano).
+function montarMando(ctx) {
+  const campo = ctx.$('campo');
+  if (!campo || typeof document === 'undefined') return null;
+  const textos = Object.fromEntries(['ocultar', 'mostrar', 'izq', 'der', 'raton'].map(k => [k, ctx.ti18n('cv2.mando.' + k)]));
+  return montarMandoTactil(campo, { almacen: ctx.plataforma?.almacen, textos, desplazar(dx, dy) {
+    if (ctx.vistaActual() === ctx.V3) return ctx.V3?.desplazar?.(dx, dy);
+    const c = ctx.runtime.camaraPlano;
+    c.x += dx; c.y += dy;
+  } });
 }
 
 // Los hitos de fábrica toman su título del catálogo de la serie Campaign (campaign.hito.N.titulo, N = su posición entre los hN).

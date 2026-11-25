@@ -1,7 +1,7 @@
 import { leerRig } from '../../rig/index.js';
-import { crearRegistro, modelos, terrenos, urlBinario } from './modelos.js';
+import { crearRegistro, modelos, urlBinario } from './modelos.js';
 import { crearMateriales } from './materiales.js';
-import { kit } from './decorado.js';
+import { kit, terrenosBatalla, terrenosLejanos } from './decorado.js';
 
 const tramo = modelos['muralla-traba-tramo'], nudo = modelos['muralla-traba-nudo'];
 export const altoBastion = nudo.apoyo[1] * nudo.escala;
@@ -71,11 +71,14 @@ export function crearPaisaje(THREE, escena, renderer, cargarGLTFLoader) {
     }
     return alturas.get(clave);
   }
-  for (const id of terrenos) montar(id, grupo, copia => {
+  // Las teselas del campo dan el relieve (alturas y encuadre); las lejanas solo se ven al alejarse.
+  let pendientes = terrenosBatalla.length;
+  for (const id of terrenosBatalla) montar(id, grupo, copia => {
     copia.updateWorldMatrix(true, true);
     copia.traverse(o => { if (o.isMesh) superficies.push(o); });
     alturas.clear(); revisionRelieve++;
     for (const { position: p } of apoyos) p.y = altura(p.x, p.z);
+    if (--pendientes === 0) for (const lejana of terrenosLejanos) montar(lejana, grupo);
   });
   function apoyar(id, x, z, giro = 0, largo = 1) {
     const o = montar(id, grupo);

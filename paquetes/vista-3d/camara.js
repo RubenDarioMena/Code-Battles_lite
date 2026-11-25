@@ -54,6 +54,28 @@ export function crearCamara3D(ctx) {
       camActual = c; cam = c.cam; cam0 = c.cam0;
     }
     const moverCamara = () => { if (camActual) camActual.movida = true; };
+    // En pantallas estrechas el encuadre inicial puede quedar más lejos que el tope: el tope nunca obliga a
+    // acercarse más de lo que muestra el encuadre (con margen para alejarse la mitad más).
+    const zoomTope = () => Math.max(ZOOM[1], (cam0?.dist ?? 0) * 1.5);
+    const limitarZoom = d => Math.min(zoomTope(), Math.max(ZOOM[0], d));
+    // Acercar o alejar dejando quieto el punto del suelo bajo el cursor o entre los dedos. Se corta con el
+    // plano a la altura del objetivo, no con el relieve: es barato en cada movimiento y basta para anclar.
+    const plano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), corte = new THREE.Vector3();
+    function puntoPlano(px, py, w, h) {
+      ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
+      ray.setFromCamera(ndc, camara);
+      plano.constant = -(cam.alto || 0);
+      return ray.ray.intersectPlane(plano, corte) && { x: corte.x, z: corte.z };
+    }
+    function acercar(factor, px, py, w, h) {
+      colocarCamara();
+      const antes = Number.isFinite(px) && Number.isFinite(py) && w && h ? puntoPlano(px, py, w, h) : null;
+      cam.dist = limitarZoom(cam.dist * factor);
+      if (!antes) return;
+      colocarCamara();
+      const despues = puntoPlano(px, py, w, h);
+      if (despues) { cam.x += antes.x - despues.x; cam.z += antes.z - despues.z; limitar(); }
+    }
     function tamano(w, h) {
       anchoCampo = w; altoCampo = h;
       renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
@@ -115,7 +137,8 @@ export function crearCamara3D(ctx) {
       if (dx || dy) moverCamara();
       if (punteros.size >= 2) {
         const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-        if (gesto.dist0) cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * gesto.dist0 / d));
+        const r = canvas.getBoundingClientRect(), mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
+        if (gesto.dist0) acercar(gesto.dist0 / d, mx, my, r.width, r.height);
         gesto.dist0 = d;
         desplazar(dx / 2, dy / 2);
         // Girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral pequeño evita
@@ -124,8 +147,7 @@ export function crearCamara3D(ctx) {
           const da = Math.atan2(Math.sin(ang - gesto.ang0), Math.cos(ang - gesto.ang0));
           gesto.giro += da;
           if (gesto.girando || Math.abs(gesto.giro) > .12) {
-            const r = canvas.getBoundingClientRect();
-            girar(gesto.girando ? da : gesto.giro, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, r.width, r.height);
+            girar(gesto.girando ? da : gesto.giro, mx, my, r.width, r.height);
             gesto.girando = true;
           }
         }
@@ -142,7 +164,11 @@ export function crearCamara3D(ctx) {
     };
     escuchar("pointerup", soltar);
     escuchar("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
-    escuchar("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
+    escuchar("wheel", (ev) => {
+      ev.preventDefault(); moverCamara();
+      const r = canvas.getBoundingClientRect();
+      acercar(Math.exp(ev.deltaY * .0012), ev.clientX - r.left, ev.clientY - r.top, r.width, r.height);
+    }, { passive: false });
     const limitar = () => {
       if (zona) {
         cam.x = Math.min(zona.x1, Math.max(zona.x0, cam.x));
@@ -167,6 +193,7 @@ export function crearCamara3D(ctx) {
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
     return { destruir() { oyentes.destruir(); observador.disconnect(); punteros.clear(); }, render, tamano, proyectar, elegir, suelo, centrar, recentrar, girar,
+      desplazar(dx, dy) { if (!cam) return; moverCamara(); desplazar(dx, dy); },
       altoPx: () => altoCampo,
       camara: () => { const factory = ctx.factory; return ({ clave: camActual && camActual.k, ...cam, dibujo: { calls: renderer.info?.render.calls ?? 0, triangles: renderer.info?.render.triangles ?? 0 }, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }); },
     };

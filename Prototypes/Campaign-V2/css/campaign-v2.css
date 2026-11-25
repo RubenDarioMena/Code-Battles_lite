@@ -79,3 +79,28 @@
   border: 2px solid #aaffdc; background: #153d3b; color: white;
   box-shadow: 0 0 0 2px #193a3c, 0 0 8px #77e1c0; cursor: pointer;
 }
+
+/* Mando táctil de las Batallas (paquetes/interfaz/mando-tactil.js): joystick a la izquierda con un botón en cada
+   esquina inferior, zona de ratón a la derecha y el cursor que mueve. Semitransparente para no tapar el campo. */
+.mando-tactil { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+.mando-tactil[hidden], .mando-cursor[hidden] { display: none; }
+.mando-joystick, .mando-boton, .mando-raton { pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+.mando-joystick { position: absolute; left: 34px; bottom: 46px; width: 112px; height: 112px; border-radius: 50%;
+  background: rgba(20, 32, 38, .22); border: 2px solid rgba(255, 255, 255, .35); backdrop-filter: blur(2px); }
+.mando-joystick.activo { background: rgba(20, 32, 38, .34); }
+.mando-palanca { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%;
+  background: rgba(255, 255, 255, .45); border: 2px solid rgba(255, 255, 255, .7); box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+.mando-boton { position: absolute; bottom: 10px; width: 46px; height: 46px; border-radius: 50%; font: 700 15px/1 system-ui, sans-serif;
+  color: #fff; background: rgba(20, 32, 38, .38); border: 2px solid rgba(255, 255, 255, .45); padding: 0; }
+.mando-boton.activo { background: rgba(98, 188, 186, .7); }
+.mando-izq { left: 10px; }
+.mando-der { left: 124px; }
+.mando-raton { position: absolute; right: 12px; bottom: 12px; width: min(44%, 220px); height: min(38%, 200px); border-radius: 14px;
+  background: rgba(20, 32, 38, .14); border: 2px dashed rgba(255, 255, 255, .38); display: flex; align-items: flex-end; justify-content: center; }
+.mando-raton-texto { font: 600 11px/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: rgba(255, 255, 255, .6); padding-bottom: 8px; }
+.mando-cursor { position: absolute; left: 0; top: 0; width: 18px; height: 22px; pointer-events: none; z-index: 7;
+  background: #fff; clip-path: polygon(0 0, 0 100%, 28% 76%, 48% 100%, 62% 92%, 44% 70%, 80% 70%);
+  filter: drop-shadow(0 0 1.5px #000) drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+.mando-alternar { position: absolute; left: 10px; bottom: 166px; z-index: 7; width: 30px; height: 30px; border-radius: 50%; padding: 0;
+  font-size: 15px; line-height: 1; color: #fff; background: rgba(20, 32, 38, .5); border: 1px solid rgba(255, 255, 255, .4); }
+.mando-alternar:not(.abierto) { bottom: 10px; }

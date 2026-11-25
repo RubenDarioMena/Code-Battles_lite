@@ -10,7 +10,13 @@ export const terrenosBatalla = [
   'terreno-1-1', 'terreno-1-2',
   'terreno-2-1', 'terreno-2-2',
 ];
-export const zoomMax = 36;
+// Hasta zoomNitido la niebla cubre cualquier giro solo con estas seis teselas. Más lejos (zoomMax, y el
+// encuadre de las pantallas estrechas) se ve el resto del mapa: terrenosLejanos se cargan cuando ya están
+// las del campo, así la Batalla se puede jugar mientras llegan.
+export const terrenosLejanos = [0, 1, 2, 3].flatMap(fila => [0, 1, 2, 3].map(col => `terreno-${fila}-${col}`))
+  .filter(id => !terrenosBatalla.includes(id));
+export const zoomNitido = 36;
+export const zoomMax = 60;
 
 // Interpreto los bosques como rectángulos centrados en (x,z), igual que la
 // losa. Agrupo árboles en los claros de sus bordes y aclaro el frente este.

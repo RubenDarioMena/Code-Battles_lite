@@ -103,7 +103,14 @@ export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS
         Object.assign(zona, { x0, x1, z0, z1, puntos, alto: (Math.max(...alturas) + Math.min(...alturas)) / 2 });
       }
       const { width, height } = campo.getBoundingClientRect();
-      if (width && height) { control.tamano(width, height); revisionEncuadre = paisaje.revisionRelieve; }
+      if (width && height) {
+        // El primer encuadre manda aunque el jugador tocara la cámara mientras cargaba: antes de él no hay
+        // zona y la cámara miraría a un punto vacío.
+        const primero = revisionEncuadre < 0;
+        control.tamano(width, height);
+        if (primero) control.recentrar();
+        revisionEncuadre = paisaje.revisionRelieve;
+      }
     }
     foto = e;
     paisaje.montarMuralla(e.puertas);
@@ -158,7 +165,7 @@ export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS
     paisaje.batalla(si);
     for (const [k, m] of Object.entries(M)) m.emissive.set(si ? colores[k] : 0).multiplyScalar(.45);
   }
-  return { dibujar, batalla, proyectar, centrar: control.centrar, recentrar: control.recentrar, girar: control.girar,
+  return { dibujar, batalla, proyectar, centrar: control.centrar, recentrar: control.recentrar, girar: control.girar, desplazar: control.desplazar,
     camara: control.camara, tamano: control.tamano, redimensionar() {
       const r = campo.getBoundingClientRect();
       if (r.width && r.height) control.tamano(r.width, r.height);

@@ -36,7 +36,9 @@ export function instalarGestosClic(ctx, campo, caja, { unidadEn, coordenadasEn, 
     const x = ev.clientX, y = ev.clientY;
     if (ev.button === 2) { ev.preventDefault(); ev.stopPropagation(); pulsar(x, y); return; }
     if (ev.button !== 0) return;
-    ev.target.setPointerCapture(ev.pointerId);
+    // El ratón virtual del mando táctil no es un puntero real: no se puede capturar, pero sus eventos ya
+    // llegan siempre al mismo lienzo.
+    try { ev.target.setPointerCapture(ev.pointerId); } catch { /* Puntero sintético. */ }
     contactos.set(ev.pointerId, { x, y });
     cancelarArrastre();
     if (contactos.size > 1) return;

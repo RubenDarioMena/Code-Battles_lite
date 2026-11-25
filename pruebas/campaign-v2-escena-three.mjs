@@ -1,6 +1,6 @@
 // El arnés three-r180 proporciona el GLTFLoader del juego. Solo se emulan el renderer y la decodificación PNG.
 import assert from 'node:assert/strict';
-import { terrenosBatalla } from '../paquetes/vista-3d/cv2/decorado.js';
+import { terrenosBatalla, terrenosLejanos } from '../paquetes/vista-3d/cv2/decorado.js';
 import { readFile } from 'node:fs/promises';
 import { crearFicha3D, crearVistaCV2 } from '../paquetes/vista-3d/index.js';
 import { componerCampaignV2 } from '../paquetes/app/index.js';
@@ -54,8 +54,11 @@ export async function probarEscena(Three, Loader) {
     assert.ok(terreno?.material?.vertexColors && terreno.material.map && terreno.material.normalMap);
     assert.equal(escena.getObjectByName('terreno-1-1').material, terreno.material);
     assert.ok(escena.getObjectByName('opcion-03-tramo') && escena.getObjectByName('opcion-07-nudo'));
-    // Las teselas salen del cálculo de encuadre de decorado.js (T10).
-    assert.deepEqual(leidos.filter(n => n.includes('terreno')).sort(), terrenosBatalla.map(id => id + '.glb').sort());
+    // Las teselas salen del cálculo de encuadre de decorado.js (T10): primero las del campo, y solo cuando
+    // están todas, las lejanas (para alejar la cámara).
+    const teselas = leidos.filter(n => n.includes('terreno'));
+    assert.deepEqual(teselas.slice(0, terrenosBatalla.length).sort(), terrenosBatalla.map(id => id + '.glb').sort());
+    assert.deepEqual(teselas.slice(terrenosBatalla.length).sort(), terrenosLejanos.map(id => id + '.glb').sort());
     const u = fabrica ? e.maquinas[0] : e.lanzadores[0];
     const punto = vista.proyectarUnidad(u, .45);
     assert.ok(punto.visible && punto.x >= 0 && punto.x < 900 && punto.y >= 0 && punto.y < 530);

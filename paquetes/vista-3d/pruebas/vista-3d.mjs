@@ -39,7 +39,8 @@ class Renderizador {
 THREE.WebGLRenderer = Renderizador;
 const ctx2 = { createRadialGradient: () => ({ addColorStop() {} }), fillRect() {}, beginPath() {}, moveTo() {}, arc() {}, closePath() {}, fill() {} };
 const eventos = new Map();
-const canvas = { getContext: () => ctx2, addEventListener: (k, f) => eventos.set(k, f), removeEventListener: (k, f) => { if (eventos.get(k) === f) eventos.delete(k); }, setPointerCapture() {} };
+const canvas = { getContext: () => ctx2, addEventListener: (k, f) => eventos.set(k, f), removeEventListener: (k, f) => { if (eventos.get(k) === f) eventos.delete(k); }, setPointerCapture() {},
+  getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 720 }) };
 const app = { dataset: {} };
 Object.assign(globalThis, {
   window: { devicePixelRatio: 1 },
