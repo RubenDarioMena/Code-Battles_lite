@@ -1,4 +1,5 @@
 export interface EstadoVista {
+  readonly camaraDosDedos?: boolean;
   readonly efectos?: { calidad: import('../vfx/index.js').Calidad; sinDestellos?: boolean };
   readonly medicionEfectos?: { ahora(): number; registrar(muestra: { vista: string; vivas: number; particulasMs: number; dibujarMs: number }): void };
   readonly escena: Readonly<Record<string, any>> | null;
@@ -111,3 +112,21 @@ export interface VistaCreada3D extends Omit<Vista3D, 'elegir' | 'proyectar' | 's
 export function crearVista(contenedor: HTMLElement, opciones: OpcionesVista3D): VistaCreada3D | null;
 
 export { crearDibujanteEfectos } from './efectos.js';
+import type { Rig, Control, Pose } from '../rig/index.js';
+export function conectarRig(THREE: any, raizObject3D: any, rig: Rig, nivel: number): {
+  controles: Control[]; aplicar(valores?: Record<string,number>): Pose;
+};
+
+/** El dibujo, la proyección y el rayo usan metros, con Y de Three como altura. */
+export interface VistaCV2 extends Omit<VistaCreada3D, 'actualizar' | 'render'> {
+  batalla(valor: boolean): void;
+  proyectarUnidad(unidad: any, alto: number): { x: number; y: number; visible: boolean };
+  proyectarBastion(bastion: { cx: number; cy: number }): { x: number; y: number; visible: boolean };
+  bastionEn(x: number, y: number): number | null;
+}
+export function crearVistaCV2(campo: HTMLElement, opciones: {
+  THREE?: any; cargarGLTFLoader?: () => Promise<any>; canvas: HTMLCanvasElement;
+  $(id: string): any; TIPOS: Record<string, any>; dt: number; fabrica?: boolean;
+  MISIL?: { radio: number }; estado?: EstadoVista;
+}): VistaCV2 | null;
+export { crearFicha3D } from './cv2/ficha.js';

@@ -1,3 +1,4 @@
+import { volverACheckpoint } from './checkpoints-v2.js';
 import { FACTORY_FORM } from '../../interfaz/index.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
@@ -23,14 +24,15 @@ export function instalarArranqueJuego(ctx) {
     medirUnidades: preparar => preparar(ctx),
     // QA terminal: se invoca dentro de alPaso; cierra el conductor antes del paso siguiente.
     congelarVista() { ctx.pausa = true; ctx.conductor?.cerrar(); ctx.pintarControles(); },
-    get escenaVista() { return ctx.estadoVista.escena; },
+    get escenaVista() { return ctx.escenaActual; },
     dibujarCaptura(escena, ahora) { ctx.vistaActual().dibujar(null, escena, 0, ahora); },
     // Campaign: la planta, sus checkpoints y la piel del mapa.
-    get campana() { return { instantanea: () => ctx.campaign.instantaneaHistorica(ctx.mundo), quieto: () => ctx.campaign.quieto(ctx.mundo) }; }, get checkpoints() { return ctx.historialC; }, volverA: (i, conProgramas) => ctx.volverA(ctx.historialC[i], !!conProgramas), seguir: () => ctx.seguirCampaign(), nivelDeNuevo: () => ctx.nivelDeNuevo(),
+    get campana() { return { instantanea: () => ctx.campaign.instantaneaHistorica(ctx.mundo), quieto: () => ctx.campaign.quieto(ctx.mundo) }; }, get checkpoints() { return ctx.checkpointsV2?.lista ?? ctx.historialC; },
+    volverA: (i, conProgramas) => ctx.checkpointsV2 ? volverACheckpoint(ctx, ctx.checkpointsV2.lista[i]?.hito, !!conProgramas) : ctx.volverA(ctx.historialC[i], !!conProgramas), seguir: () => ctx.seguirCampaign(), nivelDeNuevo: () => ctx.nivelDeNuevo(),
   }; // para depurar y probar desde la consola
-  const cmg = ctx.cmg = window.cmg = { editor: ctx.editorPrograma, get edicion() { return ctx.editorPrograma.fachada.edicion; }, get seudo() { return ctx.editorPrograma.fachada.seudo; }, tieneFoco: () => ctx.editorPrograma.fachada.tieneFoco(), get motorTexto() { return ctx.editorPrograma.fachada.motorTexto; }, serie: ctx.SERIE, insertar: ctx.insertar, envolver: ctx.envolver, alternarComentario: ctx.alternarComentario, medirEditor: ctx.medirEditor, get codigo() { return ctx.$codigo; }, get ejecutando() { return !!ctx.ejec; }, get confirmarReplace() { return ctx.confirmarReplace; }, set confirmarReplace(v) { ctx.preferirConfirmacionReplace(v); },
+  const cmg = ctx.cmg = window.cmg = { editor: ctx.editorPrograma, get edicion() { return ctx.editorPrograma.fachada.edicion; }, get seudo() { return ctx.editorPrograma.fachada.seudo; }, tieneFoco: () => ctx.editorPrograma.fachada.tieneFoco(), get motorTexto() { return ctx.editorPrograma.fachada.motorTexto; }, serie: ctx.reglas.id, insertar: ctx.insertar, envolver: ctx.envolver, alternarComentario: ctx.alternarComentario, medirEditor: ctx.medirEditor, get codigo() { return ctx.$codigo; }, get ejecutando() { return !!ctx.ejec; }, get confirmarReplace() { return ctx.confirmarReplace; }, set confirmarReplace(v) { ctx.preferirConfirmacionReplace(v); },
     // Para edicion.js (modo sin teclado, barra de edición y sugerencias).
-    lexico: ctx.lexico, clasificar: ctx.clasificar, sugerencias: ctx.sugerencias, firma: (f) => ctx.FIRMAS[f] || null, reHueco: ctx.RE_HUECO, aviso: ctx.avisoEditor, alDesplazar: ctx.pintarBanda, alternarEjecucion: () => ctx.ejec ? ctx.detener() : ctx.ejecutar(),
+    lexico: ctx.lexico, clasificar: ctx.clasificar, sugerencias: ctx.sugerencias, firma: (f) => ctx.FIRMAS[f] || null, reHueco: ctx.RE_HUECO, aviso: ctx.avisoEditor, alDesplazar: ctx.pintarBanda, alternarEjecucion: ctx.alternarEjecucion,
     // Funciones disponibles para el menú de alternativas (clic derecho o mantener 2 s sin teclado).
     // Estado de la cámara 3D (clave de la postura, giro, inclinación, distancia y centro); lo usan las pruebas.
     camara: () => ctx.V3 && ctx.V3.camara(),
@@ -41,6 +43,8 @@ export function instalarArranqueJuego(ctx) {
     get claveDocumento() { return ctx.claveDocumento(); },
     // Para seudo.js: datos de la máquina, programa de partida y línea que se ejecuta.
     datos: () => ({
+      bloques: ctx.extension?.bloques ?? [],
+      eventos: ctx.extension?.eventos ?? [],
       lugares: ctx.ES_FACTORY ? ctx.mundo.entidades.map(e => ({ id: e.id, expresion: ctx.varFactory(e.id), tipo: e.tipo })) : [],
       materiales: ctx.factory.MATERIALES, ladrillos: ctx.def.ladrillos,
       tipos: Object.entries(ctx.TIPOS).map(([id, t]) => ({ id, nombre: t.nombre, enReto: ctx.def.oleadas.some(o => o.tipo === id) })),
@@ -64,7 +68,7 @@ export function instalarArranqueJuego(ctx) {
     const sufijo = ctx.SERIE;
     ctx.$("c2d").setAttribute("aria-label", ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.canvas.2d" : `partida.canvas.${sufijo}.2d`));
     ctx.$("c3d").setAttribute("aria-label", ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.canvas.3d" : `partida.canvas.${sufijo}.3d`));
-    ctx.$("t-escenario").textContent = ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.tab.historial" : ctx.ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
+    if (!ctx.batallasV2) ctx.$("t-escenario").textContent = ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.tab.historial" : ctx.ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
     ctx.actualizarEtiquetasProgs();
   }
   if (ctx.ES_FACTORY) {
@@ -95,10 +99,18 @@ export function instalarArranqueJuego(ctx) {
       ctx.ponerPiel = poner; poner(ctx.pielBatalla);
     }
   }
+  if (ctx.runtime?.crearVista3D && ctx.V3) {
+    const selector = ctx.$('b-piel');
+    selector.hidden = false;
+    ctx.ponerPiel = si => {
+      ctx.pielBatalla = si; selector.setAttribute('aria-pressed', String(si)); ctx.V3.batalla(si);
+    };
+    selector.addEventListener('click', () => ctx.ponerPiel(!ctx.pielBatalla));
+  }
   for (const enlace of /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll("[data-serie]"))) {
     const url = new URL(location.href); url.searchParams.set("serie", enlace.dataset.serie);
     enlace.href = url.pathname + url.search + url.hash;
-    enlace.setAttribute("aria-current", enlace.dataset.serie === (ctx.SERIE) ? "page" : "false");
+    enlace.setAttribute("aria-current", enlace.dataset.serie === ctx.reglas.id ? "page" : "false");
   }
   const formularioFactory = ctx.ES_FACTORY ? FACTORY_FORM.crear({
     factory: ctx.factory, i18n: ctx.CMGI18n,
@@ -113,6 +125,7 @@ export function instalarArranqueJuego(ctx) {
   ctx.aplicarVista(ctx.vista);
   ctx.aplicarLetra();
   ctx.elegirReto(ctx.retoIdx);
+  if (ctx.checkpointsV2?.aviso) ctx.consola("sistema", null, null, ctx.esc(ctx.ti18n(ctx.checkpointsV2.aviso)));
   if (ctx.paletaRota) ctx.avisoEditor("La paleta no se pudo cargar: recarga la página sin caché (Ctrl+F5 o Ctrl+Shift+R).");
   function actualizarTextosDinamicos() {
     ctx.actualizarEtiquetasControles();

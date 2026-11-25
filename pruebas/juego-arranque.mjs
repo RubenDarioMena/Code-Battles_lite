@@ -1,163 +1,7 @@
-// Carga real de la composición en Node: DOM, editor y GPU emulados; NO abre navegador.
-// Detecta ReferenceError/TDZ indirecta en los instaladores y conexiones que Node --check no ve.
+// Carga real de la composición con DOM, editor y GPU emulados.
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
-import { readFile } from 'node:fs/promises';
-import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-import { crearPlataformaMemoria } from '../paquetes/app/index.js';
-
-if (!vm.SourceTextModule) {
-  const hijo = spawnSync(process.execPath, ['--experimental-vm-modules', '--disable-warning=ExperimentalWarning',
-    fileURLToPath(import.meta.url)], { stdio: 'inherit' });
-  process.exit(hijo.status ?? 1);
-}
-const raiz = new URL('../', import.meta.url);
-const entrada = new URL('Prototypes/Rocket Launcher/js/juego.js', raiz);
-const html = await readFile(new URL('../index.html', entrada), 'utf8');
-const noop = () => {};
-class Elemento {
-  constructor(id = '') {
-    this.id = id; this.dataset = {}; this.style = { setProperty: noop, removeProperty: noop };
-    this.classList = { add: noop, remove: noop, toggle: noop, contains: () => false };
-    this.value = ''; this.textContent = ''; this.innerHTML = ''; this.hidden = false;
-    this.href = 'http://qa.invalid/probar.html'; this.children = []; this.listeners = new Map();
-    this.selectionStart = 0; this.selectionEnd = 0;
-  }
-  addEventListener(tipo, fn) { const lista = this.listeners.get(tipo) || []; lista.push(fn); this.listeners.set(tipo, lista); }
-  dispatchEvent(ev) { for (const fn of this.listeners.get(ev.type) || []) fn(ev); return true; }
-  setAttribute() {} removeAttribute() {} getAttribute() { return null; }
-  append(...nodos) { this.children.push(...nodos); } appendChild(nodo) { this.append(nodo); return nodo; }
-  prepend(...nodos) { this.children.unshift(...nodos); } replaceChildren(...nodos) { this.children = nodos; }
-  querySelector() { return new Elemento(); } querySelectorAll() { return []; }
-  getBoundingClientRect() { return { width: 1000, height: 600, left: 0, top: 0 }; }
-  getContext() { return {}; }
-  contains() { return false; } insertBefore() {} after() {} remove() {} focus() {} select() {} scrollIntoView() {}
-}
-async function cargar(serie, vista, propio, sin3d = false, mutacion = null, forma = 'escritorio') {
-  const nodos = new Map();
-  const porId = id => {
-    if (!nodos.has(id)) nodos.set(id, new Elemento(id));
-    return nodos.get(id);
-  };
-  for (const [, attrs, id] of html.matchAll(/<([^>]*\bid="([^"]+)"[^>]*)>/g))
-    porId(id).hidden = /\bhidden\b/.test(attrs);
-  porId('app').dataset = { forma: 'escritorio', modo: 'js' };
-  const documento = {
-    getElementById: porId, createElement: () => new Elemento(), createTextNode: texto => ({ textContent: texto }),
-    querySelector: selector => porId(selector === '.app' ? 'app' : selector),
-    querySelectorAll: () => [], addEventListener: noop, documentElement: new Elemento('html'),
-    fonts: { ready: Promise.resolve() }, body: new Elemento('body'),
-  };
-  const plataforma = crearPlataformaMemoria();
-  plataforma.almacen.escribir(`cmg-banco03:${serie === 'war' ? '' : serie + '-'}vista`, JSON.stringify(vista));
-  const url = new URL(`http://qa.invalid/?serie=${serie}&forma=${forma}&marco=1&poc=1${propio ? '&reto=propio' : ''}`);
-  let fotogramas = 0, medidas = 0, editor = null, estadoVistas = null, vaciados = 0;
-  const vaciar = () => vaciados++;
-  const vistaFalsa = () => {
-    if (sin3d) return null;
-    return { vaciar, alSuceso: noop, construir: noop, anillosDe: noop, aplicarColores: noop, tamano: noop,
-      batalla: noop, actualizar: noop, render: noop, dibujar: noop, redimensionar: noop, camara: () => ({ dist: 60 }) };
-  };
-  const ventana = new Elemento();
-  const ctx = vm.createContext({ console, document: documento, location: url, URL, URLSearchParams,
-    performance: { now: () => 0 }, innerWidth: 1000, innerHeight: 700, Event: class { constructor(type) { this.type = type; } }, navigator: {},
-    history: { replaceState: noop }, addEventListener: ventana.addEventListener.bind(ventana),
-    dispatchEvent: ventana.dispatchEvent.bind(ventana),
-    matchMedia: () => ({ matches: false, addEventListener: noop }),
-    getComputedStyle: () => ({ getPropertyValue: () => '#123456' }),
-    MutationObserver: class { observe() {} }, ResizeObserver: class { observe() {} },
-    CustomEvent: class { constructor(type, opciones) { this.type = type; this.detail = opciones?.detail; } },
-    setTimeout: () => 1, clearTimeout: noop, cancelAnimationFrame: noop,
-    requestAnimationFrame: fn => { if (fn.name === 'bucle') fotogramas++; else medidas++; return fotogramas + medidas; },
-  });
-  ctx.window = ctx;
-  for (const vendor of ['acorn-8.11.3.js', 'lezer-python-1.1.19.js'])
-    vm.runInContext(await readFile(new URL(`shared/vendor/${vendor}`, raiz), 'utf8'), ctx);
-  // Los proveedores de app/interfaz se importan como módulos reales, sin globales.
-  ctx.CMGI18n = { t: clave => clave };
-  ctx.crypto = { randomUUID: () => 'qa-sesion' };
-  for (const nombre of ['trazador', 'flujo', 'python'])
-    vm.runInContext(await readFile(new URL(`educational-animation/revision/motor/${nombre}.js`, raiz), 'utf8'), ctx);
-  const cache = new Map();
-  async function modulo(url) {
-    if (cache.has(url.href)) return cache.get(url.href);
-    let m;
-    if (/\/paquetes\/(?:app|interfaz)\//.test(url.pathname) || url.pathname.includes('/Rocket%20Launcher/js/')) {
-      let fuente = await readFile(url, 'utf8');
-      if (mutacion && url.pathname.endsWith('/estado.js'))
-        fuente = fuente.replace('const CMGPythonJS =', mutacion + '\nconst CMGPythonJS =');
-      if (/\/(estado|layout)\.js$/.test(url.pathname)) {
-        // Una dependencia adelantada no se disimula como undefined en el contexto compartido.
-        fuente = fuente.replace('const l = {};', `const l = new Proxy({}, { get(o, k) {
-          if (!(k in o)) throw new ReferenceError('layout.' + String(k) + ' leído antes de conectar');
-          return Reflect.get(o, k);
-        } });`);
-        fuente = fuente.replace('return ctx;', `return new Proxy(ctx, { get(o, k) {
-          if (!(k in o)) throw new ReferenceError('ctx.' + String(k) + ' leído antes de conectar');
-          return Reflect.get(o, k);
-        } });`);
-      }
-      m = new vm.SourceTextModule(fuente, { context: ctx, identifier: url.href });
-      cache.set(url.href, m);
-    } else {
-      let valores = await import(url.href);
-      if (url.pathname.endsWith('/cascaras/web/plataforma.js'))
-        valores = { crearPlataformaWeb: () => plataforma };
-      if (/\/vista-[23]d\/index.js$/.test(url.pathname)) {
-        valores = Object.fromEntries(Object.keys(valores).map(n => [n,
-          n === 'crearVista' ? (_contenedor, opciones) => {
-            estadoVistas = opciones.estado;
-            return url.pathname.includes('/vista-2d/') ? { dibujar: noop, vaciar, alSuceso: noop } : vistaFalsa();
-          } : n.startsWith('crearPlano') ? (estado) => { estadoVistas = estado; return noop; } : vistaFalsa]));
-      } else if (url.pathname.endsWith('/editor/index.js')) {
-        valores = { ...valores, CMGTips: { crear: noop }, CMGEditor: { ...valores.CMGEditor, crear() {
-          const fachada = Object.fromEntries(['insertar', 'envolver', 'alternarComentario', 'medirEditor',
-            'pintarResaltado', 'seleccionarHueco', 'aviso', 'atajos'].map(n => [n, noop]));
-          editor = { fachada, abrir: noop, marcas: noop, documento: () => ({ revision: 0 }),
-            iniciarVistas: noop, irALinea: noop };
-          return editor;
-        } } };
-      }
-      const nombres = Object.keys(valores);
-      m = new vm.SyntheticModule(nombres, function () {
-        for (const n of nombres) this.setExport(n, valores[n]);
-      }, { context: ctx, identifier: url.href });
-      cache.set(url.href, m);
-    }
-    return m;
-  }
-  const principal = await modulo(entrada);
-  await principal.link((ruta, padre) => modulo(new URL(ruta, padre.identifier)));
-  await principal.evaluate();
-  await Promise.resolve();
-  assert.equal(ctx.__juegoListo, true, serie + ': llega al final del arranque');
-  assert.equal(ctx.cmg.editor, editor);
-  assert(ctx.__banco.mundo && ctx.__banco.partida, serie + ': mundo y partida conectados');
-  assert.equal(fotogramas, 1, 'programa el bucle una vez');
-  assert.equal(medidas, 1, 'programa la medida inicial del panel');
-  assert(ctx.cmg.revisionJuego && ctx.cmg.pulsos, 'revisión y pulsos se conectan sin globales');
-  assert.equal(porId('app').dataset.forma, forma);
-  for (const nombre of ['CMGProveedor', 'CMGPaleta', 'CMGProgramas', 'CMGPulsos', 'cmgRemota',
-    'CMGRevisionJuego', '__revisionJuego', 'CAMPAIGN_UI', 'FACTORY_FORM', 'FACTORY_3D', 'ESTRUCTURA'])
-    assert.equal(ctx[nombre], undefined, nombre + ': no se publica');
-  const fuentePulso = 'if (autoTarget("drone", "visual")) regularShoot(null);';
-  assert.notEqual(ctx.cmg.pulsos.preparar('QA', fuentePulso), fuentePulso);
-  assert(ctx.cmg.pulsos.programas.get('QA').nodos.size > 0, 'trazador y flujo clásicos inyectados');
-  ctx.cmg.pulsos.python('PY', 'while True:\n    print(1)\n');
-  assert(ctx.cmg.pulsos.programas.get('PY').lineas.size > 0, 'lector Python clásico inyectado');
-  assert(estadoVistas.escena, 'la escena se obtiene después de crear el mundo');
-  assert.equal(ctx.cmg.serie, serie);
-  if (serie === 'war') {
-    const antes = vaciados;
-    porId('b-reiniciar').dispatchEvent(new ctx.Event('click'));
-    assert.equal(vaciados - antes, sin3d ? 1 : 2, 'reiniciar vacía ambas vistas');
-  }
-  assert.equal(porId('c2d').hidden, !sin3d && vista !== '2d');
-  // Los handlers asíncronos leen los accesores vivos tras iniciar la página.
-  ctx.__banco.abrirPrograma(ctx.__banco.mundo.programables[0].id);
-  ctx.dispatchEvent(new ctx.CustomEvent('cmg:idioma'));
-}
+import { cargar, habilitarVM } from './juego-dom.mjs';
+habilitarVM(import.meta.url);
 let casos = 0;
 for (const forma of ['escritorio', 'movil'])
 for (const serie of ['war', 'factory', 'campaign']) for (const vista of ['2d', '3d']) {
@@ -166,9 +10,178 @@ for (const serie of ['war', 'factory', 'campaign']) for (const vista of ['2d', '
   }
   await cargar(serie, vista, false, true, null, forma); casos++;
 }
+for (const vista of ['2d', '3d']) {
+  for (const [consulta, hito, modo] of [['', 'b1', 'campaign'], ['&ensayo=b3', 'b3', 'ensayo'], ['&modo=paridad&batalla=b5', 'b5', 'paridad']]) {
+    const banco = await cargar('campaign-v2', vista, false, false, null, 'escritorio', consulta);
+    const previa = banco.partida;
+    let ui;
+    banco.medirUnidades(ctx => { ui = ctx; });
+    if (modo === 'paridad') assert.equal(ui.colocador, null);
+    else {
+      assert.equal(ui.pielBatalla, true);
+      ui.$('b-piel').dispatchEvent({ type: 'click' });
+      assert.equal(ui.pielBatalla, false);
+      ui.colocador.colocar(0);
+      assert.equal(previa.pasoActual, 0);
+      assert.equal(previa.serializar().ordenes.at(-1).origen, 'jugador');
+      assert.equal(banco.mundo.lanzadores[0].cy, 5.5);
+      ui.colocador.colocar(1); // Recuperar el puesto inicial antes del recorrido de victoria.
+      if (modo === 'ensayo') ui.colocador.colocar(2);
+    }
+    banco.ejecutar();
+    assert.notEqual(banco.partida, previa);
+    assert.equal(banco.partida.serializar().reglas, 'campaign-v2');
+    assert.equal(banco.partida.mundo.hito, hito);
+    assert.equal(banco.partida.mundo.modo, modo);
+    if (modo !== 'paridad') assert.equal(ui.pielBatalla, true);
+    if (modo === 'ensayo') assert.equal(banco.mundo.lanzadores[0].cy, 13.5);
+    assert.equal(banco.mundo, banco.partida.mundo.batalla);
+    if (modo === 'campaign') {
+      let juego;
+      banco.medirUnidades(ctx => { juego = ctx; });
+      banco.programas['LAU-01'] = 'while(true){regularShoot(autoTarget("crawler","visual"));await esperar(0.5);}';
+      juego.guardarProgramas();
+      banco.ejecutar();
+      for (let n = 0; n < 2000 && banco.partida.mundo.hito === 'b1'; n++) {
+        await juego.enVuelo;
+        juego.acum = 0.5;
+        juego.avanzar();
+      }
+      await juego.enVuelo;
+      assert.equal(banco.partida.mundo.hito, 'b2');
+      assert.equal(banco.mundo.t, 0);
+      assert.equal(banco.checkpoints.length, 3);
+      const actual = banco.programas['LAU-01'];
+      banco.volverA(1, false);
+      assert.equal(banco.programas['LAU-01'], actual);
+      banco.volverA(1, true);
+      assert.notEqual(banco.programas['LAU-01'], actual);
+    }
+    casos++;
+  }
+}
+// Recorre las acciones del jugador y lee las filas que escribió la consola.
+async function probarControlesIntento(paridad) {
+  const consulta = paridad ? '&modo=paridad&batalla=b5' : '&ensayo=b5&repetir=1';
+  const banco = await cargar('campaign-v2', '2d', false, false, null, 'escritorio', consulta);
+  let juego;
+  banco.medirUnidades(ctx => { juego = ctx; });
+  const pulsar = id => juego.$(id).dispatchEvent({ type: 'click' });
+  const escribir = texto => {
+    juego.$codigo.value = texto;
+    juego.$codigo.dispatchEvent({ type: 'input' });
+  };
+  const filas = () => juego.$('consola').children.map(e => e.innerHTML);
+  const id = 'LAU-01';
+  banco.abrirPrograma(id);
+  escribir('// una\n// dos\nthrow new Error("prueba P3a");');
+  pulsar('b-ejecutar');
+  await juego.enVuelo;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(filas().some(f => f.includes(id) && f.includes('L3') && f.includes('prueba P3a')));
+  assert.equal(juego.$('orden-manual').hidden, paridad);
+  if (paridad) {
+    assert.equal(juego.finActual, 'error');
+    assert.equal(juego.puedeRepetir, false);
+    return;
+  }
+  const partida = juego.partida;
+  assert.ok(juego.ejec);
+  assert.equal(juego.$codigo.readOnly, false);
+  pulsar('b-pausa');
+  const mandar = verbo => {
+    const select = juego.$('orden-manual');
+    select.value = verbo;
+    select.dispatchEvent({ type: 'change', target: select });
+  };
+  juego.$('coordenadas').value = '{x:20,y:6}';
+  mandar('regularShoot');
+  escribir('log("programa nuevo");');
+  pulsar('b-ejecutar-cod');
+  mandar('stopFire');
+  const acciones = ['regularShoot', 'Aplicar ahora', 'stopFire'];
+  assert.deepEqual(filas().filter(f => f.includes('En espera')).map(f => acciones.find(a => f.includes(a))), acciones);
+  assert.equal(partida.serializar().intento.entradas.length, 0);
+  pulsar('b-pausa');
+  juego.acum = juego.DT;
+  juego.avanzar();
+  await juego.enVuelo;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(juego.partida, partida);
+  assert.deepEqual(filas().filter(f => f.includes('Paso 0')).map(f => acciones.find(a => f.includes(a))), acciones);
+  assert.ok(filas().some(f => f.includes(id) && f.includes('L1') && f.includes('programa nuevo')));
+  pulsar('b-reiniciar');
+  assert.equal(juego.$('b-reiniciar').textContent, 'Repetir último intento');
+  pulsar('b-reiniciar');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(filas().some(f => f.includes('Repetición · paso 1 · detenido')));
+}
+// Clic real del colocador sobre el plano emulado, arranque desde esa posición y descarte en la FIFO.
+{
+  const banco = await cargar('campaign-v2', '2d', false, false, null, 'escritorio', '&ensayo=b5');
+  let ui;
+  banco.medirUnidades(ctx => { ui = ctx; });
+  const libre = () => ui.reglas.escenaMetros(banco.partida.mundo).bastiones.find(b => !b.ocupado);
+  const unidad = ui.seleccion, b = libre(), campo = ui.$('campo');
+  Object.assign(ui.vistaActual(), { proyectar: (x, _, y) => ({ x: x * 20, y: y * 20, visible: true }), elegir: () => null });
+  ui.colocador.pintar();
+  const marca = campo.children.find(el => el.className === 'bastion-libre' && !el.hidden);
+  const evento = { button: 0, pointerId: 1, pointerType: 'mouse', target: { tagName: 'CANVAS', setPointerCapture() {} },
+    clientX: parseFloat(marca.style.left), clientY: parseFloat(marca.style.top) };
+  for (const type of ['pointerdown', 'pointerup']) campo.dispatchEvent({ ...evento, type });
+  assert.equal(banco.partida.serializar().ordenes.at(-1).args[0], b.indice);
+  assert.equal(banco.mundo.porId[unidad].cy, b.cy - 72);
+  banco.ejecutar();
+  await ui.enVuelo;
+  await ui.conductor.avanzar(2);
+  assert.equal(banco.mundo.porId[unidad].cy, b.cy - 72);
+  ui.$('b-pausa').dispatchEvent({ type: 'click' });
+  const siguiente = libre(), ocupado = ui.reglas.escenaMetros(banco.partida.mundo).bastiones.find(x => x.ocupado && x.ocupado !== unidad);
+  ui.colocador.colocar(siguiente.indice);
+  ui.colocador.colocar(ocupado.indice);
+  assert.equal(banco.partida.serializar().intento.entradas.length, 0);
+  ui.$('b-pausa').dispatchEvent({ type: 'click' });
+  await ui.conductor.avanzar(1);
+  assert.equal(banco.mundo.porId[unidad].cy, b.cy - 72);
+  assert.equal(ui.reglas.serializar(banco.partida.mundo).torretas[unidad].y, siguiente.cy - 72.5);
+  assert.ok(ui.$('avisos').children.some(el => el.innerHTML.includes('El bastión ya está ocupado.')));
+  ui.conductor.cerrar();
+}
+// Ruta de uso completa: editor, botón Ejecutar, clic de campo y etiquetas de ambas vistas.
+for (const [lenguaje, vista] of [['js', '2d'], ['python', '3d']]) {
+  const banco = await cargar('campaign-v2', vista, false, false, null, 'escritorio', '&ensayo=b5');
+  let juego;
+  banco.medirUnidades(ctx => { juego = ctx; });
+  const id = 'LAU-01';
+  banco.fijarSemilla(29);
+  banco.abrirPrograma(id);
+  if (lenguaje === 'python') juego.cambiarLenguaje(lenguaje);
+  juego.$codigo.value = lenguaje === 'js' ? 'terrain.onClick(p => { regularShoot(p); });' :
+    'async def al_clic(p):\n    await wait(0.05)\n    regular_shoot(p)\nterrain.on_click(al_clic)';
+  juego.$codigo.dispatchEvent({ type: 'input' });
+  juego.$('b-ejecutar').dispatchEvent({ type: 'click' });
+  await juego.enVuelo;
+  assert.ok(juego.anfitrion.escucha(id, 'terrain.onClick'));
+  assert.ok(juego.$('consola').children.some(e => e.innerHTML.includes('Escuchando terrain.onClick')));
+  banco.seleccionar([id]);
+  Object.assign(juego.vistaActual(), { elegir: () => null, suelo: () => ({ x: 18, y: 5 }),
+    proyectar: () => ({ x: 100, y: 80, visible: true }) });
+  juego.$('campo').dispatchEvent({ type: 'pointerdown', target: { tagName: 'CANVAS' }, button: 2,
+    clientX: 18, clientY: 5, preventDefault() {}, stopPropagation() {} });
+  await juego.enVuelo;
+  await juego.conductor.avanzar(2);
+  assert.equal(banco.mundo.porId[id].lugar?.x, 18);
+  juego.pintarCapa(0, 1);
+  assert.ok(juego.etiquetas.get(id).etq.textContent.includes('⌖'));
+  juego.conductor.cerrar();
+}
+casos += 2;
+await probarControlesIntento(false);
+await probarControlesIntento(true);
+casos += 2;
 // Autoprueba de una TDZ indirecta: el nombre existe, pero se lee mediante una
 // llamada durante la carga, antes de inicializarse. La VM debe rechazarla.
 await assert.rejects(cargar('war', '2d', false, false,
   'const leerDespues = () => despues; leerDespues(); const despues = 1;'),
   /Cannot access 'despues' before initialization/);
-console.log(`Arranque emulado en Node: ${casos} cargas (3 series, 2D/3D, propio, sin GPU, poc, escritorio/móvil y marco); sin ReferenceError/TDZ ni servicios leídos antes de conectarse. TDZ indirecta inyectada rechazada. DOM/editor/GPU emulados; no sustituye QA de navegador.`);
+console.log(`Arranque emulado en Node: ${casos} cargas (4 series, 2D/3D, propio, sin GPU, poc, escritorio/móvil y marco); sin ReferenceError/TDZ ni servicios leídos antes de conectarse. TDZ indirecta inyectada rechazada. DOM/editor/GPU emulados; no sustituye QA de navegador.`);

@@ -1,0 +1,49 @@
+{
+  "nombre": "TorretaObservacion",
+  "medidas": [
+    1.382,
+    1.105,
+    1.382
+  ],
+  "paleta": [
+    "acero",
+    "grafito",
+    "cresta",
+    "ranura",
+    "luz",
+    "torre"
+  ],
+  "emisivos": [
+    "luz"
+  ],
+  "niveles": {
+    "L0": {
+      "pivotes": 9,
+      "mallas": 8,
+      "primitivas": 23,
+      "triangulos": 51446,
+      "triangulos_max": 51960
+    },
+    "L1": {
+      "pivotes": 9,
+      "mallas": 8,
+      "primitivas": 15,
+      "triangulos": 15662,
+      "triangulos_max": 15818
+    },
+    "L2": {
+      "pivotes": 9,
+      "mallas": 8,
+      "primitivas": 15,
+      "triangulos": 4498,
+      "triangulos_max": 4542
+    }
+  },
+  "jerarquia_sha256": "020ed19610467a9979057421a3f63e05910fb2208fd0e8a810158489cecd9daa",
+  "controles": [
+    "azimut",
+    "extension",
+    "hojas",
+    "inclinacion"
+  ]
+}

@@ -1,3 +1,5 @@
+import { ofrecerCheckpoint } from './checkpoints-v2.js';
+
 /** Presentación y guardado al terminar un intento.
  * @param {any} ctx */
 export function instalarCierreIntentos(ctx) {
@@ -52,6 +54,7 @@ export function instalarCierreIntentos(ctx) {
       const pista = ctx.pistaTrasFallo();
       ctx.ultimoAviso[ctx.claveReto()] = { resultado, motivo, texto: texto + extra, intento: ctx.intento, t: ctx.r2(m.t), derribos: `${m.derribos}/${m.total}`, cpd: cpd == null ? null : ctx.r2(cpd), cuando: Date.now() };
       ctx.mostrarBanner("fallo", "Aún no", ctx.esc(texto + extra), pista ? `Pista ${pista.n > 1 ? `${pista.i}/${pista.n}` : ""}: ${pista.texto}`.replace(" :", ":") : "Revisa el registro y la consola.", [["Editar programa", "primario", () => { ctx.ocultarBanner(); ctx.verPanel("codigo"); ctx.abrirPestana("programa"); }]]);
+      if (ctx.checkpointsV2 && ctx.partida.mundo.modo === 'campaign') ofrecerCheckpoint(ctx);
     } else if (resultado === "error") {
       ctx.pistaTrasFallo();
       ctx.mostrarBanner("fallo", linea ? `Error en la línea ${linea} de ${idProg}` : `Error en el programa de ${idProg}`, ctx.esc(texto), null,

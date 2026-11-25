@@ -65,7 +65,7 @@ export function instalarInfoReto(ctx) {
       return `<div class="enemigos-lista">${[...tipos].map(([t, x]) => {
         const tp = ctx.TIPOS[t], ven = ["cámara", ...(tp.frio ? [] : ["térmico"]), ...(tp.suelo ? vib : [])];
         return `<article class="enemigo-ficha" data-tipo="${t}">
-          <img class="retrato" src="img/enemigos/${t}.png" alt="Modelo de ${ctx.esc(tp.nombre)}" width="96" height="72" loading="lazy">
+          <img class="retrato" src="${ctx.batallasV2 ? "../Rocket%20Launcher/" : ""}img/enemigos/${ctx.runtime?.tiposHostiles[t]?.primitiva ?? t}.png" alt="Modelo de ${ctx.esc(tp.nombre)}" width="96" height="72" loading="lazy">
           <div><h4>${ctx.esc(tp.nombre[0].toUpperCase() + tp.nombre.slice(1))} <code>"${t}"</code> <span class="cuenta">× ${x.n}</span></h4>
           <dl><dt>vida</dt><dd>${rango(x.hp, v => `${v} ${v === 1 ? "impacto" : "impactos"}`)}</dd><dt>velocidad</dt><dd>${rango(x.vel, num)} c/s</dd>
           <dt>altura</dt><dd>${num(tp.z)} m${tp.suelo ? " · suelo" : ""}</dd><dt>lo ven</dt><dd>${ven.map(ctx.esc).join(" · ")}${tp.frio ? ' <span class="no">· el térmico no</span>' : ""}</dd></dl></div></article>`;
@@ -116,6 +116,7 @@ export function instalarInfoReto(ctx) {
   function pintarInfoReto() {
     if (PORTALES[ctx.infoPestana] && !conPortales()) ctx.infoPestana = "objetivo";
     ctx.actualizarContenidoReto();
+    ctx.uiHito?.rotulos();
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll("#info-pestanas [data-info]"))) {
       const si = b.dataset.info === ctx.infoPestana;
       b.setAttribute("aria-selected", String(si)); b.tabIndex = si ? 0 : -1;
@@ -177,13 +178,13 @@ export function instalarInfoReto(ctx) {
   // (se puede leer el inspector mientras se escribe): se cierra con su flecha o llevando el asa hasta abajo.
   document.addEventListener("pointerdown", (ev) => { if (!ctx.$("info-reto").hidden && !conPortales() && !/** @type {any} */ (ev.target).closest("#info-reto, #b-info-reto")) abrirInfoReto(false); }, true);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !ctx.$("info-reto").hidden) { abrirInfoReto(false); ctx.$("b-info-reto").focus(); } });
-  ctx.$("b-reto").addEventListener("click", () => ctx.abrirHoja(ctx.$("hoja-reto").hidden));
-  ctx.$("hoja-reto").addEventListener("click", (ev) => { if (/** @type {any} */ (ev.target).closest("[data-cerrar-hoja]")) ctx.abrirHoja(false); });
+  ctx.$("b-reto")?.addEventListener("click", () => ctx.abrirHoja(ctx.$("hoja-reto").hidden));
+  ctx.$("hoja-reto")?.addEventListener("click", (ev) => { if (/** @type {any} */ (ev.target).closest("[data-cerrar-hoja]")) ctx.abrirHoja(false); });
 
   function textoInicial(d, id) {
     if (d.serie === "factory") return (d.inicial[id] || []).join("\n") + "\n";
     const lineas = d.inicial[id] || [];
-    if (d.serie === "campaign" && d.vivos.includes(id)) return lineas.join("\n") + "\n";
+    if (d.unidades?.some(u => u.id === id) || (d.serie === "campaign" && d.vivos.includes(id))) return lineas.join("\n") + "\n";
     if (!lineas.length) return `/* Programa de ${id}.\n * Doble clic en el inspector inserta nombres, funciones y valores. */\n\n`;
     return `/* Programa de ${id} · el código de partida está comentado.\n * Quita las // (Ctrl+/ o el botón «//») o escribe el tuyo. */\n` + lineas.map(l => "// " + l).join("\n") + "\n";
   }
@@ -209,6 +210,16 @@ export function instalarInfoReto(ctx) {
   const copiaFuentes = () => JSON.parse(JSON.stringify(ctx.fuentes));
 
   function guardarProgramas() {
+    if (ctx.checkpointsV2 && ctx.retoIdx !== ctx.IDX_PROPIO) {
+      ctx.checkpointsV2.guardarActuales({ programas: ctx.programas, fuentes: ctx.fuentes, vinculos: ctx.vinculos.datos });
+      return;
+    }
+    if (ctx.vinculos) {
+      ctx.guardado.escribir(`prog-${ctx.claveReto()}`, ctx.programas);
+      ctx.guardado.escribir(`fuentes-${ctx.claveReto()}`, ctx.fuentes);
+      ctx.guardado.escribir(`vinculos-${ctx.claveReto()}`, ctx.vinculos.datos);
+      return;
+    }
     clearTimeout(ctx.tGuardar);
     const clave = `prog-${ctx.claveReto()}`, copia = { ...ctx.programas }, claveF = `fuentes-${ctx.claveReto()}`, copiaF = ctx.PYTHON ? copiaFuentes() : null;
     ctx.tGuardar = setTimeout(() => { ctx.guardado.escribir(clave, copia); if (copiaF) ctx.guardado.escribir(claveF, copiaF); }, 300);
@@ -222,15 +233,16 @@ export function instalarInfoReto(ctx) {
   // Lenguaje y texto de cada unidad.
   const lenguajeDe = id => ctx.PYTHON && ctx.fuentes[id] && ctx.fuentes[id].enUso ? "python" : "js";
   const textoDe = id => lenguajeDe(id) === "python" ? ctx.fuentes[id].texto : ctx.programas[id];
-  function ponerTexto(id, t) { if (lenguajeDe(id) === "python") ctx.fuentes[id].texto = t; else ctx.programas[id] = t; }
+  function ponerTexto(id, t) { if (lenguajeDe(id) === "python") ctx.fuentes[id].texto = t; else ctx.programas[id] = t; ctx.vinculos?.sincronizar([id]); }
   // E7: el programa de partida en Python sale del de JS, convertido por el árbol.
   function textoInicialPython(d, id) {
+    if (d.inicialPython?.[id]) return d.inicialPython[id].join("\n") + "\n";
     const lineas = d.inicial[id] || [];
     if (d.serie === "factory") { const r = convertirAPython(textoInicial(d, id)); if (r.ok) return r.texto; }
     if (!lineas.length || d.serie === "factory") return `# Programa de ${id} en Python.\n# Doble clic en el inspector inserta nombres, funciones y valores.\n\n`;
     const r = convertirAPython(lineas.join("\n"));
     const cuerpo = r.ok ? r.texto.replace(/\n$/, "").split("\n") : lineas;
-    if (d.serie === "campaign" && d.vivos.includes(id) && r.ok) return cuerpo.join("\n") + "\n";
+    if ((d.unidades?.some(u => u.id === id) || (d.serie === "campaign" && d.vivos.includes(id))) && r.ok) return cuerpo.join("\n") + "\n";
     return `# Programa de ${id} · el código de partida está comentado.\n# Quita los # (Ctrl+/ o el botón de comentar) o escribe el tuyo.\n` + cuerpo.map(l => "# " + l).join("\n") + "\n";
   }
   function convertirAPython(js) {
@@ -242,12 +254,19 @@ export function instalarInfoReto(ctx) {
   const vistaPython = () => new Proxy({}, { get: (_, id) => ctx.fuentes[id] ? ctx.fuentes[id].texto : undefined, set: (_, id, v) => { if (ctx.fuentes[id]) ctx.fuentes[id].texto = v; return true; } });
   addEventListener("pagehide", () => { if (ctx.ES_FACTORY && ctx.def) guardarFactoryAhora(); });
 
-  function nuevoMundo(nIntento = ctx.intento + 1) {
+  function nuevoMundo(nIntento = ctx.intento + 1, conservarPuestos = false) {
     ctx.cerrarProgramas();
     ctx.vaciarEfectos?.();
     ctx.COLS = ctx.def.mapa?.cols || 32; ctx.ROWS = ctx.def.mapa?.rows || 18;
-    ctx.partida = ctx.crearPartida({ reglas: ctx.reglas, escenario: { reto: ctx.def, ...(ctx.ES_FACTORY ? { intento: nIntento } : ctx.ES_CAMPAIGN ? { guardado: ctx.estadoCampaign } : {}) }, semilla: ctx.ES_FACTORY ? nIntento : ctx.semilla });
-    ctx.mundo = ctx.partida.mundo;
+    const base = { reto: ctx.def, ...(ctx.ES_FACTORY ? { intento: nIntento } : ctx.ES_CAMPAIGN ? { guardado: ctx.estadoCampaign } : {}) };
+    const escenario = ctx.escenarioPartida(base);
+    if (conservarPuestos && ctx.runtime?.crearVista3D && ctx.partida?.mundo.hito === escenario.hito) {
+      const { torretas } = ctx.reglas.serializar(ctx.partida.mundo);
+      if (escenario.checkpoint) escenario.checkpoint = { ...escenario.checkpoint, torretas };
+      else escenario.torretas = torretas;
+    }
+    ctx.partida = ctx.crearPartida({ reglas: ctx.reglas, escenario, semilla: ctx.ES_FACTORY ? nIntento : ctx.semilla });
+    ctx.mundo = ctx.mundoPantalla(ctx.partida.mundo);
     ctx.anfitrion = null; ctx.conductor = null; ctx.finActual = null; ctx.eventos = []; ctx.desdeRegistro = 0; ctx.registrosPendientes.clear(); ctx.eventosSucios = true;
     ctx.consolasCampaign = { log: 0, info: 0, warn: 0, error: 0 };
     ctx.invalidarEscena();
@@ -266,8 +285,10 @@ export function instalarInfoReto(ctx) {
   }
 
   function elegirReto(i) {
+    const historial = ctx.checkpointsV2;
+    if (historial && i !== ctx.IDX_PROPIO && !historial.volver(ctx.batallasV2.batallas[i])) return;
     if (ctx.ES_FACTORY && ctx.def && ctx.programas.R1 !== undefined) guardarFactoryAhora();
-    clearTimeout(ctx.tFicha); ctx.cancelarArrastre(); ctx.ultimoToque = null;
+    ctx.cancelarGestosCampo();
     ctx.cerrarProgramas();
     ctx.retoIdx = i; ctx.guardado.escribir(`${ctx.PREFIJO}reto`, i);
     ctx.def = ctx.defActual();
@@ -277,6 +298,12 @@ export function instalarInfoReto(ctx) {
     if (!ctx.semillaFija) ctx.semilla = ctx.intento + 1;
     ctx.programas = cargarProgramas();
     ctx.fuentes = cargarFuentes(); ctx.textosPython = vistaPython();
+    if (historial && i !== ctx.IDX_PROPIO) {
+      const guardado = historial.actuales ?? historial.ultimo();
+      ctx.programas = { ...ctx.programas, ...guardado.programas };
+      ctx.fuentes = { ...guardado.fuentes };
+    }
+    ctx.vinculos?.cargar(historial && i !== ctx.IDX_PROPIO ? (historial.actuales ?? historial.ultimo())?.vinculos : ctx.guardado.leer(`vinculos-${ctx.claveReto()}`, {}));
     ctx.borradoresMulti.clear();
     ctx.progSel = ctx.programablesDe(ctx.def)[0].id;
     ctx.seleccion = ctx.programablesDe(ctx.def)[0].id;
@@ -284,13 +311,12 @@ export function instalarInfoReto(ctx) {
     ctx.edicion = { ids: [], mixto: false };
     ctx.lineaCorre = {}; ctx.lineaErr = null;
     nuevoMundo();
+    if (ctx.runtime?.crearVista3D) ctx.ponerPiel(true);
     ctx.actualizarContenidoReto();
-    ctx.$("reto-n").textContent = ctx.ES_CAMPAIGN ? ctx.mundo.hito : i === ctx.IDX_PROPIO ? "✎" : i + 1;
+    ctx.uiHito?.rotulos();
+    if (!ctx.batallasV2) ctx.$("reto-n").textContent = ctx.ES_CAMPAIGN ? ctx.mundo.hito : i === ctx.IDX_PROPIO ? "✎" : i + 1;
     if (ctx.ES_CAMPAIGN && !ctx.historialC.length) ctx.guardarCheckpoint();
-    ctx.$("objetivo-corto").textContent = ctx.textoReto("objetivo");
     ctx.pintarPaleta();
-    ctx.$("objetivo-txt").textContent = ctx.textoReto("objetivo");
-    ctx.$("leccion").textContent = ctx.textoReto("leccion");
     if (!ctx.$("info-reto").hidden) pintarInfoReto();
     ctx.ocultarBanner(); ctx.limpiarConsola(); ctx.cerrarAvisos();
     ctx.pintarRetos(); ctx.pintarProgs(); ctx.abrirPrograma(ctx.progSel); ctx.pintarResumen(); ctx.pintarEventosYa(); pintarControles(); ctx.pintarEscenario();
@@ -304,6 +330,10 @@ export function instalarInfoReto(ctx) {
   }
   function pintarHud(refrescarInfo = true) {
     actualizarReloj();
+    if (ctx.uiHito) {
+      if (ctx.uiHito.metas(estadoMetas()) && refrescarInfo) vivoInfoReto();
+      return;
+    }
     if (ctx.ES_FACTORY || ctx.ES_CAMPAIGN) {
       const html = estadoMetas().map(f => `<span class="meta${f.estado === "ok" ? " cumplida" : f.estado === "rota" ? " rota" : ""}">${f.nombre} <b>${f.valor}</b></span>`).join("") + (ctx.ES_CAMPAIGN ? ctx.uiC.hudExtra() : "");
       if (html !== ctx.metasClave) { ctx.metasClave = html; ctx.$("metas").innerHTML = html; if (refrescarInfo) vivoInfoReto(); }
@@ -325,15 +355,23 @@ export function instalarInfoReto(ctx) {
 
   function actualizarEtiquetasControles() {
     const corriendo = !!ctx.ejec;
+    const aplicar = corriendo && ctx.runtime;
+    const etiqueta = (detener, ejecutar) => ctx.ti18n(aplicar ? 'cv2.aplicar' : corriendo ? detener : ejecutar);
+    if (ctx.runtime) ctx.$("etiqueta-orden-manual").textContent = ctx.ti18n('cv2.orden');
+    if (ctx.runtime?.repetir) {
+      const boton = ctx.$("b-reiniciar");
+      boton.removeAttribute("data-i18n");
+      boton.textContent = ctx.ti18n(ctx.puedeRepetir ? 'cv2.repetir' : 'juego.reiniciar');
+    }
     const $e = ctx.$("b-ejecutar");
-    $e.textContent = ctx.ti18n(corriendo ? "partida.ejecutar.detener" : "partida.ejecutar.ejecutar");
+    $e.textContent = etiqueta("partida.ejecutar.detener", "partida.ejecutar.ejecutar");
     for (const $ec of [ctx.$("b-ejecutar-cod"), ctx.$("b-ejecutar-flot")]) {
-      $ec.textContent = ctx.ti18n(corriendo ? "partida.ejecutar.detener_editor" : "partida.ejecutar.ejecutar_editor");
+      $ec.textContent = etiqueta("partida.ejecutar.detener_editor", "partida.ejecutar.ejecutar_editor");
     }
     // Teléfono: el mismo botón, solo con su icono (▶ / ■).
     const $em = ctx.$("b-ejecutar-movil");
-    $em.setAttribute("aria-label", ctx.ti18n(corriendo ? "partida.ejecutar.detener_corto" : "partida.ejecutar.ejecutar_corto"));
-    $em.dataset.tip = ctx.ti18n(corriendo ? "partida.ejecutar.detener_corto" : "partida.ejecutar.ejecutar_corto");
+    $em.setAttribute("aria-label", etiqueta("partida.ejecutar.detener_corto", "partida.ejecutar.ejecutar_corto"));
+    $em.dataset.tip = etiqueta("partida.ejecutar.detener_corto", "partida.ejecutar.ejecutar_corto");
     const $p = ctx.$("b-pausa");
     $p.textContent = ctx.ti18n(ctx.pausa ? "partida.pausa.seguir" : "partida.pausa.pausar");
     const reto = ctx.retoIdx === ctx.IDX_PROPIO
@@ -345,25 +383,28 @@ export function instalarInfoReto(ctx) {
   function pintarControles() {
     const corriendo = !!ctx.ejec;
     const $e = ctx.$("b-ejecutar");
-    $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo);
+    $e.classList.toggle("primario", !corriendo); $e.classList.toggle("peligro", corriendo && !ctx.runtime);
     for (const $ec of [ctx.$("b-ejecutar-cod"), ctx.$("b-ejecutar-flot")]) {
-      $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo);
+      $ec.classList.toggle("primario", !corriendo); $ec.classList.toggle("peligro", corriendo && !ctx.runtime);
     }
-    ctx.$("b-ejecutar-movil").classList.toggle("corriendo", corriendo);
+    ctx.$("b-ejecutar-movil").classList.toggle("corriendo", corriendo && !ctx.runtime);
     const $p = ctx.$("b-pausa");
     $p.disabled = !corriendo;
     actualizarEtiquetasControles();
     ctx.$("b-vel").textContent = `${ctx.velocidad}×`;
-    ctx.$("semilla-txt").textContent = corriendo || ctx.semillaFija ? ctx.semilla : ctx.intento + 1;
-    ctx.$("semilla-fija").checked = ctx.semillaFija;
-    ctx.$codigo.readOnly = corriendo;
+    if (!ctx.batallasV2) {
+      ctx.$("semilla-txt").textContent = corriendo || ctx.semillaFija ? ctx.semilla : ctx.intento + 1;
+      ctx.$("semilla-fija").checked = ctx.semillaFija;
+    }
+    ctx.$codigo.readOnly = ctx.edicionBloqueada;
+    if (ctx.runtime) ctx.$("orden-manual").hidden = !corriendo;
   }
-  ctx.$("b-ejecutar").addEventListener("click", () => ctx.ejec ? ctx.detener() : ctx.ejecutar());
+  ctx.$("b-ejecutar").addEventListener("click", () => ctx.alternarEjecucion());
   // EJECUTAR del editor (pantalla completa): corre el código, pasa a la batalla y cierra el inspector.
   // Si hay un error, la batalla muestra su aviso con el enlace a la línea.
   // Con las herramientas plegadas, el mismo botón flota abajo a la izquierda del código.
   function ejecutarDesdeCodigo() {
-    if (ctx.ejec) { ctx.detener(); return; }
+    if (ctx.ejec) { ctx.alternarEjecucion(); return; }
     ctx.ejecutar();
     if (ctx.ejec) ctx.ponerInspector("cerrado");
     ctx.verPanel("mapa");
@@ -378,6 +419,7 @@ export function instalarInfoReto(ctx) {
   ctx.$("b-vel").addEventListener("click", () => { ctx.velocidad = ctx.velocidad === 1 ? 2 : ctx.velocidad === 2 ? 4 : ctx.velocidad === 4 ? 8 : 1; pintarControles(); });
   let confirmarCheckpoint = false;
   ctx.$("b-reiniciar").addEventListener("click", () => {
+    if (ctx.puedeRepetir) { ctx.repetirUltimo(); return; }
     if (ctx.ES_CAMPAIGN) {
       // Vuelve al inicio del hito en curso (su checkpoint); pide confirmación con un segundo toque.
       if (!confirmarCheckpoint) { confirmarCheckpoint = true; actualizarEtiquetasControles(); setTimeout(() => { confirmarCheckpoint = false; actualizarEtiquetasControles(); }, 3000); return; }
@@ -387,9 +429,9 @@ export function instalarInfoReto(ctx) {
       return;
     }
     if (ctx.ejec) ctx.terminar("detenido", "reinicio", null);
-    nuevoMundo(); ctx.lineaCorre = {}; ctx.lineaErr = null; ctx.marcasSucias = true; ctx.ocultarBanner(); ctx.cerrarAvisos(); pintarControles();
+    nuevoMundo(undefined, true); ctx.lineaCorre = {}; ctx.lineaErr = null; ctx.marcasSucias = true; ctx.ocultarBanner(); ctx.cerrarAvisos(); pintarControles();
   });
-  ctx.$("semilla-fija").addEventListener("change", (ev) => {
+  ctx.$("semilla-fija")?.addEventListener("change", (ev) => {
     ctx.semillaFija = ev.target.checked; ctx.guardado.escribir("semillaFija", ctx.semillaFija);
     if (ctx.semillaFija && !ctx.ejec && ctx.finActual == null) ctx.semilla = ctx.intento + 1;
     pintarControles();

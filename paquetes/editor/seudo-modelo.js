@@ -5,6 +5,8 @@ import { dependencias } from './dependencias.js';
 /** @param {any} ctx */
 export function preparar(ctx) {
 
+  ctx.bloques = () => ctx.cmg.datos?.().bloques ?? [];
+  ctx.eventos = () => ctx.cmg.datos?.().eventos ?? [];
   ctx.conIds = function(lista) {
     return lista.map(n => {
       const c = { ...n, id: `s${ctx.sigId++}` };
@@ -46,12 +48,18 @@ export function preparar(ctx) {
         else if (n.t === "oir") emit(`${declarar()} = ${n.red}.detect(${q(n.tipo)});`, n.id, nivel);
         else if (n.t === "disparo") emit(`regularShoot(${n.lugar});`, n.id, nivel);
         else if (n.t === "rafaga") emit(`burstFire(${n.lugar});`, n.id, nivel);
+        else if (n.t === "verbo") emit(`${n.espera ? "await " : ""}${n.nombre}(${n.lugar ?? ""});`, n.id, nivel);
         else if (n.t === "detener") emit("stopFire();", n.id, nivel);
         else if (n.t === "esperar") emit(`${n.espera === false ? "" : "await "}${n.fn || (ctx.factory ? "wait" : "esperar")}(${n.s});`, n.id, nivel);
         else if (n.t === "recoger" || n.t === "entregar") emit(`${n.espera === false ? "" : "await "}${n.fn || (n.t === "recoger" ? "pickUp" : "deliver")}(${n.lugar}${n.t === "recoger" ? ", " + q(n.mat) : ""});`, n.id, nivel);
         else if (n.t === "contar") emit(`${declarar()} = ${n.espera ? "await " : ""}${n.fn || "count"}(${n.lugar}, ${q(n.mat)});`, n.id, nivel);
         else if (n.t === "aviso") emit(`console.${n.nivel}(${n.valor});`, n.id, nivel);
         else if (n.t === "salir") emit("break;", n.id, nivel);
+        else if (n.t === "cuando") {
+          emit(`${n.evento}(async (${n.parametro}) => {`, n.id, nivel);
+          bloque(n.cuerpo, nivel + 1, prof);
+          emit("});", n.id, nivel);
+        }
         else if (n.t === "siempre" || n.t === "mientras") {
           emit(`while (${n.t === "siempre" ? "true" : cond(n.cond)}) {`, n.id, nivel);
           bloque(n.cuerpo, nivel + 1, prof);
@@ -136,10 +144,22 @@ export function preparar(ctx) {
         }
         if (s.type === "ExpressionStatement") {
           const e = s.expression;
+          const llamadaPropia = e.type === "AwaitExpression" ? e.argument : e;
+          const ficha = llamadaPropia.type === "CallExpression" && ctx.bloques().find(f => f.nombre === llamadaPropia.callee.name);
+          if (ficha && !!ficha.await === (e !== llamadaPropia) && llamadaPropia.arguments.length === ficha.firma.length) {
+            out.push({ t: "verbo", nombre: ficha.nombre, lugar: ficha.firma.length ? texto(llamadaPropia.arguments[0]) : null, espera: !!ficha.await });
+            continue;
+          }
           const robot = robotCall(e);
           if (robot && robot.t !== "contar") { out.push(robot); continue; }
           if (e.type === "AssignmentExpression" && e.operator === "=" && e.left.type === "Identifier") { out.push({ ...valorVariable(e.left.name, e.right, s), declaracion: null }); continue; }
           const arg = e.arguments && e.arguments[0];
+          if (e.type === "CallExpression" && e.arguments.length === 1 && ctx.eventos().some(f => f.evento === texto(e.callee))
+              && arg.type === "ArrowFunctionExpression" && arg.params.length === 1 && arg.params[0].type === "Identifier"
+              && arg.body.type === "BlockStatement") {
+            out.push({ t: "cuando", evento: texto(e.callee), parametro: arg.params[0].name, cuerpo: cuerpo(arg.body) });
+            continue;
+          }
           const lugar = (a) => a && (nombre(a) || (a.type === "Literal" && a.value === null));
           if ((llamada(e, "regularShoot") || llamada(e, "burstFire")) && e.arguments.length === 1 && lugar(arg)) { out.push({ t: e.callee.name === "regularShoot" ? "disparo" : "rafaga", lugar: texto(arg) }); continue; }
           if (llamada(e, "stopFire") && !e.arguments.length) { out.push({ t: "detener" }); continue; }
@@ -229,7 +249,7 @@ export function preparar(ctx) {
     Object.assign(tx.paleta, { recoger: "pickUp", entregar: "deliver", contar: "count", esperar: "wait" });
   }
   (ctx.COND = [["slot", "cond.que"], ["slot", "cond.op"], ["slot", "cond.n"]]);
-  (ctx.CATEGORIA = { recoger: "accion", entregar: "accion", contar: "sentido", apuntar: "sentido", oir: "sentido", disparo: "accion", rafaga: "accion", detener: "accion", aviso: "accion", esperar: "espera", siempre: "control", repetir: "control", mientras: "control", si: "control", salir: "control" });
+  (ctx.CATEGORIA = { verbo: "accion", cuando: "control", recoger: "accion", entregar: "accion", contar: "sentido", apuntar: "sentido", oir: "sentido", disparo: "accion", rafaga: "accion", detener: "accion", aviso: "accion", esperar: "espera", siempre: "control", repetir: "control", mientras: "control", si: "control", salir: "control" });
   (ctx.ICONO = { recoger: "recoger", entregar: "entregar", contar: "sensor", apuntar: "apuntar", oir: "sensor", disparo: "disparo", rafaga: "rafaga", detener: "detener", esperar: "esperar", aviso: "aviso", siempre: "whileTrue", repetir: "para", mientras: "mientras", si: "siNo", salir: "salir" });
   (ctx.LADRILLOS = ["apuntar", "oir", "disparo", "rafaga", "detener", "esperar", "|", "siempre", "repetir", "mientras", "si", "salir", "|", "aviso"]);
   (ctx.OPS = ["existe", "noexiste", ">", ">=", "<", "<=", "==", "!="]);

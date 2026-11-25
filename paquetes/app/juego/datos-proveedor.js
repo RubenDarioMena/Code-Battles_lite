@@ -23,14 +23,20 @@
     { nombre: "setRecipe", nombres: { python: "set_recipe" }, firma: ["receta"], nota: "cambia de receta" },
     { nombre: "request", firma: ["materia"], nota: "pide una tarima" },
   ];
-  function crear({ serie, sensores = () => [], objetos = () => [], propiedades = () => [] }) {
+  function crear({ serie, extension = undefined, sensores = () => [], objetos = () => [], propiedades = () => [] }) {
     /** @returns {any[]} */
     function funciones() {
+      /** @type {any[]} */
       const propias = serie === "campaign" ? planta.map(f => ({ grupo: "Planta", ...f })) : serie === "factory"
         ? robot.map(f => ({ grupo: "Robot", ...f }))
         : [...lanzador.map(f => ({ grupo: "Lanzador", ...f })),
           { grupo: "Tiempo", nombre: "esperar", nombres: { python: "wait" }, firma: ["segundos"], await: true, nota: "pausa el programa" },
           ...sensores().map(objeto => ({ grupo: "Red de sensores", objeto, nombre: "detect", firma: ["tipo de enemigo"], nota: "posición actual" }))];
+      for (const f of extension?.funciones() ?? []) {
+        const anterior = propias.find(x => x.nombre === f.nombre && x.objeto === f.objeto);
+        if (anterior) Object.assign(anterior, f);
+        else propias.push(f);
+      }
       return [...propias, ...[["log", "registro"], ["info", "información"], ["warn", "aviso"], ["error", "error"]]
         .map(([nombre, nota]) => ({ grupo: "Consola", objeto: "console", nombre, firma: ["mensaje"], nota }))]
         .map(/** @param {any} f */ f => ({ ...f, firma: [...f.firma], nombres: { ...f.nombres }, alias: [...(f.alias || [])] }));

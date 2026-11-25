@@ -21,7 +21,7 @@ export function instalarEditorTexto(ctx) {
   });
   function insertarRef(ins, fin) {
     ctx.abrirPestana("programa");
-    if (ctx.ejec) { ctx.avisoEditor("Detén el programa para editarlo."); return; }
+    if (ctx.edicionBloqueada) { ctx.avisoEditor("Detén el programa para editarlo."); return; }
     if (ctx.$("app").dataset.modo === "pseudo") { ctx.avisoEditor("En seudocódigo toca un valor del programa para cambiarlo, o usa los ladrillos."); return; }
     const v = $codigo.value, a = $codigo.selectionStart, b = $codigo.selectionEnd;
     const finLinea = v.indexOf("\n", b) < 0 ? v.length : v.indexOf("\n", b);

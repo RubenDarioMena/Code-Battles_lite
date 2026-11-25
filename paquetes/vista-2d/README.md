@@ -54,6 +54,8 @@ Se conservan `crearPlano`, `dibujarFactory`, `crearPlanoCampaign` y
 vista-3d sin imports entre vistas. Campaign aún consulta el botón de piel y
 `window.__banco`, igual que antes.
 
+La composición de Campaign-V2 inyecta `dibujarIconoHito` como `iconoUnidad(ctx2d, unidad, x, y, escala, tiempo)` en H0 y las Batallas. El plano conserva la geometría común de proyección y selección.
+
 ## Pruebas
 
 - `node pruebas/vistas-contrato.mjs`: fachada, dibujo con fracciones 0/1 idéntico

@@ -36,6 +36,7 @@ export function instalarAyuda(ctx) {
       ${f(`${k("fn", "regularShoot")}(lugar) → "ok" | "sin_objetivo" | "sin_misiles" | "atascado"`, `Dispara 1 misil por segundo a ese lugar hasta que le des otra orden. Con <span class="r">null</span> deja de disparar y devuelve "sin_objetivo".`)}
       ${f(`${k("fn", "burstFire")}(lugar)`, `Igual, pero 2,2 misiles por segundo. Al entrar en ráfaga la probabilidad de fallo sube al 15 % y sigue subiendo 5 puntos por segundo. Fuera de ráfaga baja 6 puntos por segundo hasta el 2 %.`)}
       ${f(`${k("fn", "stopFire")}()`, `Deja de disparar.`)}
+      ${(ctx.extension?.funciones() ?? []).map(x => f(ctx.esc(`${x.evento ?? x.nombre}(${x.firma.join(", ")})`), ctx.esc(x.nota))).join("")}
       <h3>Propiedades (solo lectura)</h3>
       ${f(`${k("prop", "failureRate")} · ${k("prop", "missiles")} · ${k("prop", "mode")} · ${k("prop", "jammed")} · ${k("prop", "fireRate")} · ${k("prop", "target")} · ${k("prop", "sensors")}`, `Probabilidad de que el próximo disparo falle (0 a 1) · misiles en el cargador · "idle", "regular" o "burst" · si está atascado · disparos por segundo · a dónde apunta · sensores montados.`, "prop")}
       <h3>Red de sensores</h3>

@@ -18,6 +18,10 @@ export function casosReferencia() {
   casos.push({ ...factory, id: 'factory-reto-1-victoria-python', nombre: 'Factory reto-1-victoria Python',
     programas: { R1: { lenguaje: 'python', codigo:
       'for i in range(3):\n    await pick_up("ENT-1", "cobre")\n    await deliver("FUN")\n\nfor i in range(3):\n    await pick_up("ENT-1", "silicio")\n    await deliver("ENS")' } } });
+  casos.push({ id: 'war-1-victoria', nombre: 'war-1-victoria', reglas: 'war', reto: 1, semilla: 13,
+    programas: { 'LAU-01': 'while (true) {\n  regularShoot(autoTarget("crawler", "visual"));\n  await esperar(0.5);\n}' } });
+  casos.push({ id: 'war-4-atascos', nombre: 'war-4-atascos', reglas: 'war', reto: 4, semilla: 13,
+    programas: { 'LAU-01': 'while (true) {\n  burstFire(autoTarget("drone", "visual") ?? autoTarget("crawler", "visual"));\n  await esperar(0.4);\n}' } });
   return casos;
 }
 

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grill · Campaign-V2 · Ronda 3</title>
+<style>
+  :root{
+    --bg:#f6f3ec; --card:#fffdf8; --ink:#1f2328; --mute:#5d6470; --line:#ddd5c4;
+    --acc:#2f6f5e; --acc-soft:#e3efe9; --rec:#a3591b; --rec-soft:#fbeedd; --sel:#e8f0fb; --sel-line:#5a86c8;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#16181b; --card:#1e2125; --ink:#e7e9ec; --mute:#9aa2ad; --line:#30353b;
+      --acc:#6cc3a6; --acc-soft:#1d3a32; --rec:#f0a35c; --rec-soft:#3a2a1a; --sel:#1d2a3d; --sel-line:#6f9be0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{max-width:880px;margin:0 auto;padding:28px 18px 8px}
+  h1{font-size:1.45rem;margin:0 0 6px}
+  .sub{color:var(--mute);margin:0 0 14px}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .intro ul{margin:6px 0 0 18px;padding:0}
+  main{max-width:880px;margin:0 auto;padding:0 18px 140px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;scroll-margin-top:12px}
+  .q.done{border-color:var(--acc)}
+  .qh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .qid{font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+  .qt{font-weight:650;font-size:1.06rem}
+  .estado{margin-left:auto;font-size:.8rem;color:var(--mute)}
+  .q.done .estado{color:var(--acc)}
+  .cuerpo{margin:8px 0 6px}
+  details{margin:6px 0 10px;border-left:3px solid var(--line);padding:2px 0 2px 10px}
+  summary{cursor:pointer;color:var(--mute);font-size:.9rem}
+  details .hechos{font-size:.9rem;color:var(--mute)}
+  details .hechos code, .cuerpo code, .op code{font-size:.85em;background:var(--acc-soft);padding:0 4px;border-radius:4px}
+  .ops{display:grid;gap:8px;margin:10px 0}
+  label.op{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer}
+  label.op:hover{border-color:var(--sel-line)}
+  label.op.on{background:var(--sel);border-color:var(--sel-line)}
+  label.op input{margin-top:4px}
+  .op b{font-weight:650}
+  .op .d{display:block;color:var(--mute);font-size:.88rem}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;color:var(--rec);background:var(--rec-soft);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+  .rec{background:var(--rec-soft);border-radius:10px;padding:9px 12px;font-size:.92rem;margin:8px 0}
+  .rec::before{content:"➡️ Mi recomendación: ";font-weight:700}
+  .tabla{width:100%;border-collapse:collapse;margin:8px 0}
+  .tabla td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}
+  .tabla td:first-child{width:38%;font-size:.92rem}
+  .tabla .d{display:block;color:var(--mute);font-size:.82rem}
+  select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  textarea{min-height:58px;resize:vertical}
+  .extra{display:grid;gap:4px;margin:8px 0}
+  .extra span{font-size:.88rem;color:var(--mute)}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:5}
+  .bar .prog{font-variant-numeric:tabular-nums;color:var(--mute);margin-right:6px}
+  button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer}
+  button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:650}
+  @media (prefers-color-scheme:dark){ button.pri{color:#0d1714} }
+  button:hover{filter:brightness(1.05)}
+  .mini{font-size:.82rem;padding:4px 9px}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  nav.indice{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  nav.indice a{font-size:.8rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  nav.indice a.done{border-color:var(--acc);color:var(--acc)}
+  #salida{display:none;margin-top:16px}
+  #salida textarea{min-height:260px;font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Campaign-V2 · trunk + assets 3D + las 5 batallas de War</h1>
+  <p class="sub">Grill con documentos · <b>Ronda 3</b> (probablemente la última antes del wayfinder) · 24-nov-2026</p>
+  <div class="intro">
+    <b>Decidido en la ronda 2</b> (glosario completo en <code>docs/grill/CONTEXT-borrador.md</code>):
+    <ul>
+      <li><b>Campaign-V2 sustituye a la campaña H0–H5.</b> Todo son hitos: de fábrica o de batalla, alternados (H0 → B1 → H1 …). En los primeros niveles, las torretas vienen montadas en la muralla.</li>
+      <li><b>Dos modos:</b> paridad con War desde el menú de pruebas (se abre por URL y hay que documentarlo bien) y modo campaña, donde la fábrica afecta a la batalla.</li>
+      <li><b>Muralla:</b> su cara frontal está en x = 3 y las torretas, en bastiones hasta x = 6. <b>Torreta esfera:</b> el GLB actual mientras se exporta el rediseño S; apunta, abre la compuerta, dispara por el telescopio y muestra el atasco. <b>Placeholders:</b> las primitivas de War.</li>
+      <li><b>Estética:</b> papercraft, con la vista Tron sin texturas en combate y los iconos 2D del consolidado. Se mantienen JS y Python. El modelo de materiales y el reciclaje llegan después. <b>WebGPU:</b> explorar ya (T1 concreta el alcance).</li>
+      <li><b>UI del primer hito:</b> todo menos el Archivo, el guardado en ranuras y el menú Máquinas. El editor queda como trunk y el panel de código es nuevo. El árbol de unidades llega también al móvil. Los programas son compartidos y se pueden desvincular. En la derrota se elige checkpoint, con el último por defecto. Seudocódigo en las batallas.</li>
+    </ul>
+    <b>Sigue aplazado:</b> la arquitectura de mundo continuo y la estructura de paquetes (wayfinder), y Astra / <code>codex</code> / <code>codex-astra</code> (cuando me expliques sus restricciones).
+    <p style="margin:10px 0 0"><b>Cómo responder:</b> igual que antes. Pulsa <b>Copiar respuestas</b> y pégalo en el chat.</p>
+    <nav class="indice" id="indice"></nav>
+  </div>
+</header>
+<main id="preguntas"></main>
+<main style="padding-top:0;padding-bottom:120px"><div id="salida"><b>Texto para pegar en el chat</b><textarea id="salidaTxt" readonly></textarea></div></main>
+
+<div class="bar">
+  <span class="prog" id="prog">0 / 0</span>
+  <button id="btnRec" title="Rellena las preguntas que no has tocado con mi recomendación">Usar mis recomendaciones en las vacías</button>
+  <button class="pri" id="btnCopiar">Copiar respuestas</button>
+  <button id="btnMd">Descargar .md</button>
+  <button id="btnBorrar" title="Borra todo lo marcado">Borrar</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const Q = [
+{
+  id:"T1", titulo:"¿Qué significa «explorar WebGPU ya»?", tipo:"radio",
+  cuerpo:"En R1 elegiste explorar WebGPU ya. Three r180, la versión que usa el juego, trae su propio renderizador WebGPU, que recurre a WebGL 2 cuando el navegador no tiene WebGPU. El coste está en los shaders hechos a mano.",
+  hechos:`<ul>
+    <li><code>shared/vendor/three-r180/three.webgpu.min.js</code> ya está en el repo, sin usar.</li>
+    <li>El renderizador WebGPU <b>no ejecuta shaders GLSL</b> (<code>ShaderMaterial</code>, <code>onBeforeCompile</code>). Necesita materiales escritos en TSL, el lenguaje de nodos de Three, que funcionan tanto en WebGPU como en WebGL 2.</li>
+    <li>Hoy usan GLSL propio: <code>paquetes/vista-3d/efectos.js</code> (los VFX de War), <code>shared/muralla/material-three.js</code> (fuera de alcance) y el material del visor papercraft.</li>
+    <li>El consolidado pide no dar la compatibilidad por resuelta sin pruebas.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Experimento en paralelo", d:"Un parámetro <code>?render=webgpu</code> dibuja solo el mapa papercraft y los GLB con WebGPU. Los efectos siguen en WebGL. No bloquea el primer hito."},
+    {v:"B", t:"Migrar desde el primer hito", d:"vista-3d pasa al renderizador WebGPU y se reescriben en TSL el material papercraft y los VFX."},
+    {v:"C", t:"Lo nuevo en TSL y lo existente en GLSL hasta medir", d:"El material papercraft nace en TSL y funciona con los dos renderizadores, que se pueden elegir. Los VFX se pasan a TSL solo si la medida lo justifica; mientras tanto, en modo WebGPU no se ven."}],
+  rec:["C"], recTexto:"C. Nada nuevo nace atado a WebGL, no se reescribe lo que ya funciona y la decisión de migrar se toma con medidas. Lo propondría como ADR."
+},
+{
+  id:"T2", titulo:"¿Qué es un «level» en tu nota de R3?", tipo:"radio",
+  cuerpo:"Escribiste: «los primeros 5 levels (tal vez 3 en el futuro) se harán con unas torretas ya montadas por defecto en la muralla». Con el glosario de R16 (Nivel = cadena de hitos sobre un mismo mundo; Hito = de fábrica o de batalla), «level» puede leerse de dos maneras.",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Las 5 primeras batallas", d:"Un solo Nivel (un mundo) con hitos de fábrica y de batalla alternados: torretas de serie hasta la Batalla 5 (quizá solo hasta la 3)."},
+    {v:"B", t:"Los 5 primeros Niveles", d:"Cada uno con su mundo y su cadena de hitos."},
+    {v:"C", t:"Otro (en notas)", d:""}],
+  rec:["A"], recTexto:"A. Así lo leo y así quedaría en el glosario: en el Nivel 1, las torretas vienen montadas de serie."
+},
+{
+  id:"T3", titulo:"¿Qué fabrica el jugador en esos primeros hitos?", tipo:"radio",
+  cuerpo:"Dijiste que «generar munición es lo mínimo que pedimos». La cadena actual de H0–H5 es larga: el misil es ojiva + motor, el motor es base con aletas + carga química, y hay prensa, moldeadora, mezcladora, ensambladora con recetas y banda.",
+  hechos:`<ul><li>El consolidado prefiere «munición básica de nivel 1 antes de exigir montajes mecánicos complejos».</li></ul>`,
+  opciones:[
+    {v:"A", t:"La cadena de H0–H5 tal cual", d:"Las metas se reinterpretan como «la munición de la siguiente batalla»."},
+    {v:"B", t:"Una munición básica más corta", d:"Por ejemplo acero → prensa → munición. El misil compuesto queda para hitos posteriores. Las reglas de H0–H5 se reutilizan pero recortadas."},
+    {v:"C", t:"Una cadena nueva por diseñar", d:"Se define en el wayfinder."}],
+  rec:["B"], recTexto:"B. Es lo que piden tu nota y el consolidado: que el primer contacto con la fábrica sea corto. Recortar reglas existentes cuesta menos que inventar otras."
+},
+{
+  id:"T4", titulo:"¿Cómo llega la munición a las torretas?", tipo:"radio",
+  cuerpo:"En War, cada lanzador tiene un <code>cargador</code> y un <code>suministro</code> (ritmo de recarga automática). En H0–H5, la banda lleva los misiles a la bodega de la muralla (<code>DEP-01</code>).",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"La bodega abastece sola a las torretas", d:"El suministro corre mientras la bodega tenga munición. Si se vacía, la torreta se queda sin misiles."},
+    {v:"B", t:"Un robot programado por el jugador la lleva a cada torreta", d:""},
+    {v:"C", t:"A en los primeros niveles, B más adelante", d:""}],
+  rec:["C"], recTexto:"C. Lo mínimo es producir. Repartir la munición es un buen reto para más adelante."
+},
+{
+  id:"T5", titulo:"Controles AoE y widget shapez en la Batalla 1: ¿qué se ordena y qué se coloca?", tipo:"check",
+  cuerpo:"En R8 los pusiste en el primer hito, pero en la Batalla 1 solo hay una torreta montada y nada que mover. Del feedback: «se puede recoger material manualmente, pero el robot no entrará en bucle a menos que el jugador lo programe». Es decir, las órdenes manuales son puntuales y la automatización es programar.",
+  hechos:`<ul><li>La arquitectura ya admite órdenes de origen <code>jugador</code> (prueba de frontera de la fase 2). En modo paridad no se usan, así que la paridad con War se conserva.</li></ul>`,
+  opciones:[
+    {v:"seleccion", t:"Seleccionar con clic izquierdo o arrastre", d:"Ilumina las unidades y encuadra la cámara."},
+    {v:"disparo", t:"Clic derecho: una orden puntual a la torreta seleccionada", d:"Apuntar y disparar una vez a ese punto."},
+    {v:"reparar", t:"Clic derecho sobre una torreta atascada: el reparador va a repararla una vez", d:""},
+    {v:"colocar", t:"Widget shapez: elegir en qué bastión va la torreta antes de empezar", d:"Confirmar, cancelar y bloquear. Girar no aplica. Solo en modo campaña, porque cambia la posición."},
+    {v:"solo-ui", t:"Solo la interfaz", d:"Selección y widget visibles con un objeto de prueba, sin órdenes nuevas en las reglas."}],
+  rec:["seleccion","disparo","reparar","colocar"], recTexto:"Las cuatro primeras: cada control hace algo real en la Batalla 1 sin quitarle el protagonismo al programa."
+},
+{
+  id:"T6", titulo:"Selección: casillas del árbol y clic en el mapa (repetida, quedó sin marcar)", tipo:"radio",
+  cuerpo:"Ahora que los controles AoE entran en el primer hito, esta decisión pesa más.",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Una sola selección", d:"Seleccionar en el mapa marca las casillas y al revés. Programar y ordenar actúan sobre lo mismo."},
+    {v:"B", t:"Dos selecciones", d:"Las casillas eligen a quién se asigna el programa y el clic en el mapa da foco y órdenes."}],
+  rec:["A"], recTexto:"A. Una sola noción de «seleccionado»."
+},
+{
+  id:"T7", titulo:"¿Qué pieza hace de bastión?", tipo:"radio",
+  cuerpo:"En R5 elegiste torretas en bastiones que sobresalen de la muralla. El frente de la batalla es un tramo recto.",
+  hechos:`<ul><li>La elección del 23-nov (<code>MURALLA-OPCIONES.md</code>): <b>nudo de Traba</b> (<code>opcion-03-nudo.glb</code>) donde hay torre y la muralla sigue recta, y <b>torreón de Cordón</b> (<code>opcion-07-nudo.glb</code>) en los cambios de ángulo drásticos. El tramo es el de Traba (<code>opcion-03-tramo.glb</code>).</li></ul>`,
+  opciones:[
+    {v:"A", t:"El nudo de Traba", d:"Ya existe, encaja con la regla «torre en tramo recto»."},
+    {v:"B", t:"Una pieza de bastión nueva", d:"Encargo de arte."},
+    {v:"C", t:"La torre del kit papercraft", d:""}],
+  rec:["A"], recTexto:"A en el primer hito; si no queda bien con la torreta encima, B."
+},
+{
+  id:"T8", titulo:"¿Qué incluye el menú de pruebas?", tipo:"check",
+  cuerpo:"En R13 pediste documentarlo bien. Iría en un archivo propio, por ejemplo <code>docs/campaign-v2/MENU-PRUEBAS.md</code>, con la URL, cada opción y un ejemplo de enlace raw.githack.",
+  hechos:"",
+  opciones:[
+    {v:"hitos", t:"Lista de niveles e hitos para saltar a cualquiera", d:""},
+    {v:"paridad", t:"Interruptor de modo paridad o modo campaña", d:""},
+    {v:"semilla", t:"Elegir la semilla", d:""},
+    {v:"checkpoint", t:"Saltar a un checkpoint guardado", d:""},
+    {v:"legado", t:"Enlaces a War, Factory y la campaña H0–H5", d:""},
+    {v:"render", t:"Elegir renderizador (WebGL o WebGPU) y calidad", d:""}],
+  rec:["hitos","paridad","semilla","checkpoint","legado","render"], recTexto:"Todo. Es el panel de control del QA desde el teléfono."
+},
+{
+  id:"T9", titulo:"Rendimiento del mapa papercraft en el móvil", tipo:"radio",
+  cuerpo:"La batalla ocurre en una sección del mapa ampliado (Q8), que tiene 16 losetas GLB más el kit. El consolidado insiste: «no fijar presupuestos por intuición».",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Medir en el primer hito y decidir con datos", d:"Escritorio con Electron y tu teléfono; entrego la herramienta y los números."},
+    {v:"B", t:"Recorte reducido en el móvil desde el inicio", d:""},
+    {v:"C", t:"Mapa completo en todos los dispositivos", d:""}],
+  rec:["A"], recTexto:"A. La herramienta de medida de carga ya existe (fase 4) y solo hay que ampliarla al mapa."
+},
+{
+  id:"T10", titulo:"Documentación y reglas para agentes en la rama Campaign-V2", tipo:"check",
+  cuerpo:"El <code>AGENTS.md</code> de trunk dice «el diseño no es definitivo… no los rediseñes sin que se pida». Campaign-V2 es justamente ese pedido, y los agentes (Codex y Astra) lo leerán.",
+  hechos:`<ul><li>Candidatos a ADR (difíciles de revertir, sorprendentes sin contexto y fruto de un dilema real): Campaign-V2 sustituye a las series; los dos modos de paridad; la estrategia de WebGPU de T1.</li></ul>`,
+  opciones:[
+    {v:"context", t:"CONTEXT.md en la raíz", d:"El glosario de este grill."},
+    {v:"agents", t:"Actualizar AGENTS.md y CLAUDE.md de la rama", d:"Dirección de Campaign-V2, glosario, menú de pruebas y modo paridad."},
+    {v:"adr", t:"ADRs en docs/adr/ para las tres decisiones de arriba", d:""},
+    {v:"vision", t:"Guardar el consolidado preprototipo", d:"En <code>docs/Vision/2026-11-23/</code>, como visión fechada."},
+    {v:"menu", t:"docs/campaign-v2/MENU-PRUEBAS.md", d:""},
+    {v:"progreso", t:"Archivar PROGRESO.md y empezar uno nuevo para Campaign-V2", d:"Está pendiente desde la fase 0 y pesa 189 KB."}],
+  rec:["context","agents","adr","vision","menu","progreso"], recTexto:"Todo. El plan de implementación lo escribe el wayfinder; esto deja el terreno preparado para que lo lea un agente."
+}
+];
+
+const CLAVE = "grill-campaign-v2-r3";
+const almacen = (() => { try { const s = window.localStorage; s.getItem(CLAVE); return s; } catch { return null; } })();
+let estado = {};
+try { estado = JSON.parse((almacen && almacen.getItem(CLAVE)) || "{}"); } catch { estado = {}; }
+const guardar = () => { try { almacen && almacen.setItem(CLAVE, JSON.stringify(estado)); } catch {} pintarProgreso(); };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const cont = $("#preguntas"); cont.innerHTML = "";
+  const idx = $("#indice"); idx.innerHTML = "";
+  for (const q of Q){
+    const st = estado[q.id] ||= {sel:[], filas:{}, extra:{}, nota:""};
+    const card = document.createElement("section"); card.className = "q"; card.id = q.id;
+    let html = `<div class="qh"><span class="qid">❓ ${q.id}</span><span class="qt">${q.titulo}</span><span class="estado"></span></div>
+      <div class="cuerpo">${q.cuerpo}</div>`;
+    if (q.hechos) html += `<details><summary>Lo que encontré</summary><div class="hechos">${q.hechos}</div></details>`;
+    if (q.tipo === "radio" || q.tipo === "check"){
+      html += `<div class="ops">` + q.opciones.map(o => {
+        const on = st.sel.includes(o.v);
+        const r = (q.rec||[]).includes(o.v) ? `<span class="badge">Recomendado</span>` : "";
+        return `<label class="op${on?" on":""}"><input type="${q.tipo==="radio"?"radio":"checkbox"}" name="${q.id}" value="${esc(o.v)}"${on?" checked":""}>
+          <span><b>${q.tipo==="radio"?o.v+" · ":""}${o.t}</b>${r}${o.d?`<span class="d">${o.d}</span>`:""}</span></label>`;
+      }).join("") + `</div>`;
+      if (q.tipo === "check") html += `<button class="mini" data-todo="${q.id}">Marcar o desmarcar todas</button>`;
+    }
+    if (q.tipo === "tabla"){
+      html += `<table class="tabla">` + q.filas.map(f => {
+        const v = st.filas[f.id] || "";
+        return `<tr><td><b>${f.label}</b><span class="d">${f.d}</span></td><td><select data-fila="${q.id}:${f.id}">
+          <option value="">— elegir —</option>` + f.ops.map(o => `<option${o===v?" selected":""} value="${esc(o)}">${esc(o)}${o===f.rec?" ★ recomendado":""}</option>`).join("") +
+          `<option value="__otro"${v==="__otro"?" selected":""}>otro (en notas)</option></select></td></tr>`;
+      }).join("") + `</table>`;
+    }
+    html += `<div class="rec">${q.recTexto}</div>`;
+    for (const e of (q.extra||[])){
+      html += `<label class="extra"><span>${e.label}</span><input type="text" data-extra="${q.id}:${e.id}" placeholder="${esc(e.ph)}" value="${esc(st.extra[e.id]||"")}"></label>`;
+    }
+    html += `<label class="extra"><span>Notas u otra respuesta</span><textarea data-nota="${q.id}" placeholder="Opcional">${esc(st.nota||"")}</textarea></label>`;
+    card.innerHTML = html; cont.appendChild(card);
+    const a = document.createElement("a"); a.href = "#"+q.id; a.textContent = q.id; a.dataset.q = q.id; idx.appendChild(a);
+  }
+  pintarProgreso();
+}
+
+function respondida(q){
+  const st = estado[q.id]; if (!st) return false;
+  if (q.tipo === "tabla") return q.filas.every(f => st.filas[f.id]);
+  return st.sel.length > 0 || (st.nota||"").trim().length > 0;
+}
+function pintarProgreso(){
+  let n = 0;
+  for (const q of Q){
+    const ok = respondida(q); if (ok) n++;
+    const card = document.getElementById(q.id);
+    if (card){ card.classList.toggle("done", ok); card.querySelector(".estado").textContent = ok ? "✓ respondida" : "pendiente"; }
+    const a = document.querySelector(`nav.indice a[data-q="${q.id}"]`); if (a) a.classList.toggle("done", ok);
+  }
+  $("#prog").textContent = `${n} / ${Q.length} respondidas`;
+}
+
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.matches(".op input")){
+    const q = Q.find(x => x.id === t.name), st = estado[q.id];
+    if (q.tipo === "radio") st.sel = [t.value];
+    else st.sel = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    document.querySelectorAll(`input[name="${q.id}"]`).forEach(i => i.closest("label").classList.toggle("on", i.checked));
+    guardar();
+  } else if (t.dataset.fila){
+    const [qid, fid] = t.dataset.fila.split(":"); estado[qid].filas[fid] = t.value; guardar();
+  }
+});
+document.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.dataset.extra){ const [qid, eid] = t.dataset.extra.split(":"); estado[qid].extra[eid] = t.value; guardar(); }
+  else if (t.dataset.nota){ estado[t.dataset.nota].nota = t.value; guardar(); }
+});
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-todo]"); if (!b) return;
+  const qid = b.dataset.todo, q = Q.find(x => x.id === qid), st = estado[qid];
+  st.sel = st.sel.length === q.opciones.length ? [] : q.opciones.map(o => o.v);
+  guardar(); render();
+});
+
+function texto(){
+  const lineas = ["# Grill · Campaign-V2 · Ronda 3 · respuestas", ""];
+  for (const q of Q){
+    const st = estado[q.id] || {sel:[], filas:{}, extra:{}, nota:""};
+    let r = "";
+    if (q.tipo === "tabla"){
+      r = "\n" + q.filas.map(f => `  - ${f.label}: ${st.filas[f.id] === "__otro" ? "otro (ver nota)" : (st.filas[f.id] || "—")}`).join("\n");
+    } else if (st.sel.length){
+      r = q.tipo === "radio"
+        ? st.sel.map(v => { const o = q.opciones.find(x => x.v === v); return `${v} · ${o ? o.t : v}`; }).join("")
+        : st.sel.join(", ");
+    } else r = "— sin marcar —";
+    lineas.push(`**${q.id} · ${q.titulo}:** ${r}`);
+    for (const e of (q.extra||[])) if ((st.extra[e.id]||"").trim()) lineas.push(`  - ${e.label}: ${st.extra[e.id].trim()}`);
+    if ((st.nota||"").trim()) lineas.push(`  - Nota: ${st.nota.trim().replace(/\n+/g, " / ")}`);
+  }
+  return lineas.join("\n");
+}
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
+function mostrarSalida(){ $("#salida").style.display = "block"; $("#salidaTxt").value = texto(); }
+
+$("#btnCopiar").onclick = async () => {
+  mostrarSalida();
+  try { await navigator.clipboard.writeText(texto()); toast("Copiado. Pégalo en el chat."); }
+  catch { $("#salidaTxt").select(); toast("Selecciona el texto de abajo y cópialo."); }
+};
+$("#btnMd").onclick = () => {
+  const blob = new Blob([texto()], {type:"text/markdown"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "grill-ronda-3-respuestas.md"; a.click();
+};
+$("#btnRec").onclick = () => {
+  let n = 0;
+  for (const q of Q){
+    const st = estado[q.id];
+    if (q.tipo === "tabla"){ for (const f of q.filas) if (!st.filas[f.id]){ st.filas[f.id] = f.rec; n++; } }
+    else if (!st.sel.length && q.rec){ st.sel = [...q.rec]; n++; }
+  }
+  guardar(); render(); toast(n ? `Rellenadas ${n} con la recomendación` : "No quedaba nada vacío");
+};
+$("#btnBorrar").onclick = () => { if (confirm("¿Borrar todas las respuestas de esta página?")){ estado = {}; guardar(); render(); $("#salida").style.display = "none"; } };
+
+render();
+</script>
+</body>
+</html>

@@ -163,6 +163,21 @@ const ERRORES = [
   eq((await correr('def count():\n    return 3\nprint(count())', { ...WAR, funciones: [...WAR.funciones, { objeto: null, nombre: 'count', destino: 'count' }] })).js.includes('$count = __py.def'), true, 'una función local que se llama como la API sigue siendo local');
   eq((await correr('new = 2\nthis = 3\nprint(new + this)')).salida, '5', 'los nombres reservados de JS se renombran');
 
+  const { fichaClic } = await import('../paquetes/reglas-campaign-v2/index.js');
+  const { crearExtensionV2 } = await import('../paquetes/app/juego/proveedor-v2.js');
+  const { CMGProveedor } = await import('../paquetes/app/index.js');
+  const proveedor = CMGProveedor.crear({ serie: 'war', extension: crearExtensionV2([fichaClic], k => k) });
+  const cv2 = { ...WAR, funciones: proveedor.alias('python'), objetos: proveedor.vocabulario('python').objetos };
+  for (const src of ['def al_clic(p):\n    return p.x\nterrain.on_click(al_clic)',
+    'async def al_clic(p):\n    await wait(0.1)\n    return p.x\nterrain.on_click(al_clic)',
+    'terrain.on_click(lambda p: p.x)']) {
+    let handler;
+    await correr(src, cv2, { terrain: { onClick: f => { handler = f; } }, esperar });
+    eq(await handler({ x: 7 }), 7, 'El registro Python acepta def, async def y lambda');
+  }
+  eq(await diag('def al_clic(p):\n    await wait(0.1)\nterrain.on_click(al_clic)', cv2),
+    [2, "SyntaxError: 'await' outside async function"], 'un oyente con await necesita async def');
+
   // ---------- E7 · JS → Python por árbol ----------
   const huecos = { re: CMGEditorJS.RE_HUECO, aPython: CMGEditorPython.aHueco };
   const nombres = new Map([['esperar', 'wait'], ['autoTarget', 'auto_target'], ['regularShoot', 'regular_shoot'], ['stopFire', 'stop_fire'], ['pickUp', 'pick_up']]);

@@ -15,3 +15,5 @@ export { CAMPAIGN_UI } from './campaign-ui.js';
 export { FACTORY_FORM } from './factory-form.js';
 export { registrarIconosFactory } from './factory-iconos.js';
 export { instalarLayout } from './layout.js';
+export { montarInterfazHito } from './panel-hito.js';
+export { montarHudHito } from './hud-hito.js';

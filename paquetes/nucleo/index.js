@@ -104,12 +104,22 @@ export function crearPartida({ reglas, escenario, semilla }) {
   const cola = crearColaOrdenes();
   /** @type {import('../protocolo/index.js').Orden[]} */
   const ordenes = [];
+  /** @type {import('./index.js').GrabacionIntento | undefined} */
+  let intento;
   let pasoActual = 0;
   const aplicarOrdenes = () => {
     for (const orden of cola.tomar(pasoActual)) reglas.aplicarOrden(mundo, orden);
   };
   return {
     mundo: /** @type {Mundo & { sucesos: import('./index.js').RegistroSucesos }} */ (mundo),
+    iniciarGrabacion(semillaIntento, programas) {
+      if (pasoActual || intento) throw new Error('La grabación empieza al inicio del intento.');
+      intento = { semillaIntento, programas: structuredClone(programas), entradas: [] };
+    },
+    registrarEntrada(entrada) {
+      if (!intento) throw new Error('La grabación del intento está desactivada.');
+      intento.entradas.push({ ...structuredClone(entrada), paso: pasoActual });
+    },
     ordenar(orden) {
       cola.poner(orden);
       ordenes.push(structuredClone(orden));
@@ -125,7 +135,7 @@ export function crearPartida({ reglas, escenario, semilla }) {
     evaluar() { return reglas.evaluar(mundo); },
     serializar() {
       return structuredClone({ reglas: reglas.id, version: reglas.version,
-        escenario: escenarioOriginal, semilla, paso: pasoActual, ordenes });
+        escenario: escenarioOriginal, semilla, paso: pasoActual, ordenes, ...(intento && { intento }) });
     },
     get pasoActual() { return pasoActual; },
   };

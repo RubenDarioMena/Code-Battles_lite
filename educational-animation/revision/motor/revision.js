@@ -87,8 +87,13 @@
       R.pasos.forEach((p, i) => { if (i && (p.vuelta !== R.pasos[i - 1].vuelta || !!p.fuera !== !!R.pasos[i - 1].fuera)) desde = i; inicio.push(desde); });
       datos[id] = { P, F, R, inicio };
     }
-    const leer = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
-    const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } };
+    const almacen = opciones.almacen || {
+      leer: k => localStorage.getItem(k),
+      escribir: (k, v) => localStorage.setItem(k, v),
+      borrar: k => localStorage.removeItem(k),
+    };
+    const leer = (k, d) => { try { const v = almacen.leer(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+    const guardar = (k, v) => { try { almacen.escribir(k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } };
     const estado = { prog: ids.includes(opciones.programa) ? opciones.programa : ids[0], paso: 0, foco: null, auto: false, temporizador: 0, vel: 1, doc: null, texto: leer("cmg-revision-texto", true) !== false };
     const D = () => datos[estado.prog];
 
@@ -802,7 +807,7 @@
     const PEGAR = 44, ANCHO_LADO = 900;
     const CLAVES = { apilado: "cmg-revision-reparto", lado: "cmg-revision-reparto-lado" };
     const reparto = { apilado: null, lado: null }, repartoAntes = { apilado: null, lado: null };
-    for (const k of Object.keys(CLAVES)) try { const v = parseFloat(localStorage.getItem(CLAVES[k])); if (v >= 0 && v <= 1) reparto[k] = v; } catch (e) { /* sin almacenamiento */ }
+    for (const k of Object.keys(CLAVES)) try { const v = parseFloat(almacen.leer(CLAVES[k])); if (v >= 0 && v <= 1) reparto[k] = v; } catch (e) { /* sin almacenamiento */ }
     const barra = $(".rv-barra"), pie = $(".rv-pie");
     const modo = () => raiz.dataset.disposicion === "lado" ? "lado" : "apilado";
     const lado = () => modo() === "lado";
@@ -837,7 +842,7 @@
       const k = modo();
       reparto[k] = f == null ? null : Math.max(0, Math.min(1, f));
       aplicarReparto();
-      if (guardar) try { if (reparto[k] == null) localStorage.removeItem(CLAVES[k]); else localStorage.setItem(CLAVES[k], String(reparto[k])); } catch (e) { /* sin almacenamiento */ }
+      if (guardar) try { if (reparto[k] == null) almacen.borrar(CLAVES[k]); else almacen.escribir(CLAVES[k], String(reparto[k])); } catch (e) { /* sin almacenamiento */ }
     }
     const repartoActual = () => { const d = disponible(); return d ? tamCodigo() / d : 0; };
     function alternarPleno() {

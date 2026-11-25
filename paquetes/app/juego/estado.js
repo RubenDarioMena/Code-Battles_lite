@@ -3,12 +3,13 @@ import { crearPulsos } from './pulsos.js';
 import { DT, crearPartida } from '../../nucleo/index.js';
 import war, * as datosWar from '../../reglas-war/index.js';
 import reglasFactory, * as factory from '../../reglas-factory/index.js';
-import reglasCampaign, * as campaign from '../../reglas-campaign/index.js';
 import { crearAnfitrion } from '../../anfitrion/index.js';
 import * as lenguaje from '../../lenguaje/index.js';
 import { CMGEditor, CMGAdaptadorJS, CMGAdaptadorPython, CMGEditorPython } from '../../editor/index.js';
 
 import { crearPlataformaMemoria } from '../plataforma.js';
+import { abrirCheckpoints } from './checkpoints-v2.js';
+import { componerCampaignV2 } from './campaign-v2.js';
 import { crearConductor } from '../conductor.js';
 
 /** Sección extraída del juego; conserva el estado vivo mediante ctx.
@@ -17,12 +18,14 @@ export function crearEstadoJuego(opciones = {}) {
   /** @type {any} */
   const ctx = { plataforma: opciones.plataforma || crearPlataformaMemoria() };
   const servicios = opciones.servicios || {};
+  const campaign = opciones.campaign;
+  const reglasCampaign = campaign?.default;
   let banco = null, cmg = null;
   const pulsos = crearPulsos({ trazador: servicios.CMGTrazador, flujo: servicios.CMGFlujo, python: servicios.CMGPythonRevision, acorn: servicios.acorn });
   const CMGPythonJS = lenguaje.crearPython({ lezer: servicios.LezerPython, hueco: CMGEditorPython.nombreDe });
   const CMGJSaPython = lenguaje.crearJSaPython({ acorn: servicios.acorn });
-  const piezasTrabajador = { validarFactory: factory.validar, validarCampaign: campaign.validar,
-    modoCampaign: campaign.modoEnSnap, preludioPython: CMGPythonJS.preludio };
+  const piezasTrabajador = { validarFactory: factory.validar, validarCampaign: campaign?.validar,
+    modoCampaign: campaign?.modoEnSnap, preludioPython: CMGPythonJS.preludio };
 
   /* Code Battle Lite · juego de programación y defensa.
    * Simulación determinista, runtime del jugador en el intérprete, vista 3D/plano, inspector y editor.
@@ -31,11 +34,21 @@ export function crearEstadoJuego(opciones = {}) {
   const localizarHTML = html => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(html) : html;
 
   // ---------- Constantes del mundo ----------
-  const SERIE = (() => { const q = new URLSearchParams(location.search).get("serie"); return q === "factory" || q === "campaign" ? q : "war"; })();
+  const params = new URLSearchParams(location.search);
+  const batallas = opciones.serie === 'campaign-v2' ? componerCampaignV2(params, undefined, servicios.catalogoNivel1) : null;
+  Object.assign(piezasTrabajador, batallas?.runtime?.piezas);
+  if (batallas) for (const [idioma, catalogo] of Object.entries(servicios.catalogoNivel1 ?? {}))
+    servicios.CMGI18n?.registrar?.(idioma, catalogo);
+  const checkpointsV2 = batallas?.modo === 'campaign' ? abrirCheckpoints(batallas, ctx.plataforma.almacen) : null;
+  const cpInicial = checkpointsV2?.ultimo();
+  const indiceV2 = cpInicial ? batallas.batallas.indexOf(cpInicial.hito) : batallas?.indiceInicial;
+  const serieUrl = params.get("serie");
+  const SERIE = batallas?.reglasProgramas.id ?? (serieUrl === "factory" || serieUrl === "campaign" ? serieUrl : "war");
   const ES_FACTORY = SERIE === "factory", ES_CAMPAIGN = SERIE === "campaign";
   // Prefijo de las claves guardadas de cada serie (War conserva las suyas, sin prefijo).
   const PREFIJO = ES_CAMPAIGN ? "campaign-" : ES_FACTORY ? "factory-" : "";
   const ti18n = (clave, valores) => servicios.CMGI18n ? servicios.CMGI18n.t(clave, valores) : clave;
+  const extension = batallas?.runtime?.crearExtension(ti18n);
   const htmlInterfaz = html => servicios.CMGPresentacion ? servicios.CMGPresentacion.html(html) : html;
   // Python (E5): cada unidad se programa en JavaScript o en Python. Python se traduce a JS con las mismas
   // líneas (paquetes/lenguaje) y corre en la misma unidad.
@@ -43,8 +56,8 @@ export function crearEstadoJuego(opciones = {}) {
   let COLS = 32, ROWS = 18;      // casillas de 1 m
   const LINEA_BASE = 3;            // x de la línea roja: cruzarla es una brecha
   const T_LIMITE = 400;            // tiempo de juego máximo de un intento
-  const CLAVE = "cmg-banco03";
-  const { TIPOS, SENSOR, LAU, MISIL, REP, COSTE } = datosWar;
+  const CLAVE = batallas ? "juego" : "cmg-banco03";
+  const { SENSOR, LAU, MISIL, REP, COSTE } = datosWar;
   const NIVELES = ["log", "info", "warn", "error"];
 
   // ---------- Funciones de los robots (provisionales) ----------
@@ -63,7 +76,10 @@ export function crearEstadoJuego(opciones = {}) {
     lugar: { principal: "fabrica" }, pad: { principal: "fabrica" }, pila: { principal: "fabrica" }, arsenal: { principal: "fabrica" },
     torreta: { principal: "ofensiva" }, control: { principal: "rastreo" },
   };
-  const funcionDe = (e) => FUNCION_DE[e.clase] || null;
+  const TIPOS = { ...datosWar.TIPOS };
+  for (const [id, ficha] of Object.entries(batallas?.runtime?.tiposHostiles ?? {}))
+    TIPOS[id] = { ...TIPOS[ficha.primitiva], nombre: ti18n(ficha.nombre), hp: ficha.experimental.vida };
+  const funcionDe = (e) => FUNCION_DE[e.clase] || (e.rol ? { principal: e.rol } : null);
   const RADIO_DE = { lanzador: .9, vibracion: .6, deposito: 1.2, reparador: .5,
     obrero: .8, montacargas: 1.3, prensa: 1.7, moldeadora: 1.7, mezcladora: 1.7, ensambladora: 2.4, banda: 1.2, bahia: 1.9, lugar: 1, pad: 1.4, pila: 1, arsenal: 1.9, torreta: 1.1, control: 1.2 };
   const radioDe = (e) => RADIO_DE[e.clase] || .6;
@@ -109,9 +125,9 @@ export function crearEstadoJuego(opciones = {}) {
   const avisar = (tipo, detalle) => { try { window.dispatchEvent(new CustomEvent(tipo, { detail: detalle })); } catch { /* sin oyentes */ } };
 
   /** @type {any[]} */
-  const RETOS = ES_CAMPAIGN ? campaign.nivel.RETOS : ES_FACTORY ? factory.retos.RETOS : RETOS_WAR;
+  const RETOS = ES_CAMPAIGN ? campaign.nivel.RETOS : ES_FACTORY ? factory.retos.RETOS : batallas?.retos ?? RETOS_WAR;
   // En Campaign las unidades se encienden por hitos: solo las encendidas se programan y se ejecutan.
-  const programablesDe = d => d.serie === "campaign" && mundo ? mundo.programables : d.robots || d.lanzadores;
+  const programablesDe = d => d.serie === "campaign" && mundo ? mundo.programables : d.robots || (d.unidades && batallas?.runtime ? [...d.lanzadores, ...d.unidades] : d.lanzadores);
 
   // ---------- Almacenamiento local (comodidad del jugador) ----------
   const guardado = {
@@ -121,8 +137,11 @@ export function crearEstadoJuego(opciones = {}) {
 
   // ---------- Léxico (resaltado e instrumentación comparten el mismo) ----------
   const { KW, FN_PROPIAS, FN_MIEMBRO, PROPS } = lenguaje.vocabulario(SERIE);
+  for (const f of extension?.verbos ?? []) FN_PROPIAS.add(f.nombre);
+  for (const p of extension?.lecturas ?? []) PROPS.add(p);
+  for (const e of extension?.eventos ?? []) (e.objeto ? FN_MIEMBRO : FN_PROPIAS).add(e.nombre);
   const { NOMBRES_HUECO, HUECO, RE_HUECO, lexico } = lenguaje.CMGEditorJS;
-  const instrumentar = src => lenguaje.instrumentar(src, { serie: SERIE, objetos: nombresVar(), acorn: servicios.acorn });
+  const instrumentar = src => lenguaje.instrumentar(src, { serie: SERIE, objetos: nombresVar(), funciones: FN_PROPIAS, acorn: servicios.acorn });
   const clasificar = (toks, i) => CMGAdaptadorJS.clasificar(toks, i, {
     objetos: ["console", "yo", ...nombresVar()], funciones: [...FN_PROPIAS], miembros: [...FN_MIEMBRO], propiedades: [...PROPS],
   });
@@ -131,7 +150,8 @@ export function crearEstadoJuego(opciones = {}) {
   const r2 = v => Math.round(v * 100) / 100, r3 = v => Math.round(v * 1000) / 1000;
   const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");
   const cadencia = datosWar.cadencia;
-  const reglas = ({ war, factory: reglasFactory, campaign: reglasCampaign })[SERIE];
+  const reglasProgramas = ({ war, factory: reglasFactory, campaign: reglasCampaign })[SERIE];
+  const reglas = batallas?.reglas ?? reglasProgramas;
   const alcance = sensor => def.niebla ? SENSOR[sensor].niebla : SENSOR[sensor].alcance;
   const enRango = s => mundo.enemigos.filter(e => TIPOS[e.tipo].suelo && Math.hypot(e.x - s.cx, e.y - s.cy) <= s.alcance + 1e-9);
   const coste = () => mundo.consumidos * COSTE.misil + mundo.reparaciones * COSTE.reparacion;
@@ -145,7 +165,7 @@ export function crearEstadoJuego(opciones = {}) {
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
   const varDe = (id) => id.replace(/-/g, "_");
   const nombradas = () => ES_CAMPAIGN ? mundo.unidades : ES_FACTORY ? mundo.maquinas : [...mundo.programables, ...mundo.sensores];
-  const nombresVar = () => mundo ? nombradas().map(e => varDe(e.id)) : [];
+  const nombresVar = () => [...(mundo ? nombradas().map(e => varDe(e.id)) : []), ...new Set((extension?.eventos ?? []).map(e => e.objeto).filter(Boolean))];
   const RUTEO_DEF = { log: "globo", info: "globo", warn: "globo", error: "pantalla" };
   const IDX_PROPIO = RETOS.length;
 
@@ -156,7 +176,7 @@ export function crearEstadoJuego(opciones = {}) {
     let viejo = 0; try { viejo = JSON.parse(ctx.plataforma.almacen.leer("cmg-banco02:reto")) || 0; } catch (_) { /* Sin selección antigua. */ }
     return guardado.leer("factory-reto", viejo);
   };
-  let retoIdx = Math.min(IDX_PROPIO, Math.max(0, (ES_CAMPAIGN ? 0 : ES_FACTORY ? retoFactoryInicial() : guardado.leer("reto", 0)) | 0));
+  let retoIdx = Math.min(IDX_PROPIO, Math.max(0, (ES_CAMPAIGN ? 0 : ES_FACTORY ? retoFactoryInicial() : indiceV2 ?? guardado.leer("reto", 0)) | 0));
   let propio = ES_CAMPAIGN ? null : ES_FACTORY ? factory.retos.normalizar(guardado.leer("factory-propio", (() => { try { return JSON.parse(ctx.plataforma.almacen.leer("cmg-banco02:propio")); } catch { return null; } })())) : normalizar(guardado.leer("propio", PROPIO_BASE));
   let hechos = guardado.leer("hechos", []);
   let records = guardado.leer("records", {});
@@ -192,7 +212,7 @@ export function crearEstadoJuego(opciones = {}) {
   let eventosSucios = false, marcasSucias = false;
   const globos = new Map();   // id de máquina → { nivel, texto, hasta }
 
-  const defActual = () => ES_CAMPAIGN ? RETOS[0] : retoIdx === IDX_PROPIO ? propio : ES_FACTORY ? RETOS[retoIdx] : normalizar(RETOS[retoIdx]);
+  const defActual = () => ES_CAMPAIGN ? RETOS[0] : retoIdx === IDX_PROPIO ? propio : ES_FACTORY || batallas ? RETOS[retoIdx] : normalizar(RETOS[retoIdx]);
   const claveReto = () => PREFIJO + (retoIdx === IDX_PROPIO ? "propio" : String(retoIdx));
 
   let acum = 0;
@@ -227,6 +247,7 @@ export function crearEstadoJuego(opciones = {}) {
     get CMGEditorPython() { return CMGEditorPython; },
     get CMGPythonJS() { return CMGPythonJS; },
     get CMGJSaPython() { return CMGJSaPython; },
+    extension,
     get piezasTrabajador() { return piezasTrabajador; },
     get localizarHTML() { return localizarHTML; },
     get SERIE() { return SERIE; },
@@ -285,6 +306,16 @@ export function crearEstadoJuego(opciones = {}) {
     get coma() { return coma; },
     get cadencia() { return cadencia; },
     get reglas() { return reglas; },
+    get reglasProgramas() { return reglasProgramas; },
+    get batallasV2() { return batallas; },
+    get checkpointsV2() { return checkpointsV2; },
+    escenarioPartida(base) {
+      if (!batallas) return base;
+      const e = batallas.escenario(retoIdx, base.reto);
+      return { ...e, semillaIntento: semilla, ...(e.modo === 'campaign'
+        ? { checkpoint: checkpointsV2.ultimo(), ...checkpointsV2.actuales, programas, fuentes } : {}) };
+    },
+    mundoPantalla(m) { return batallas ? batallas.mundoPantalla(m) : m; },
     get alcance() { return alcance; },
     get enRango() { return enRango; },
     get coste() { return coste; },

@@ -28,7 +28,7 @@ export function posMisil(mi, t) {
 
 // Una tabla por pareja geometría/material. Los modelos sueltos son también el patrón
 // de matrices: conservar su jerarquía evita duplicar las fórmulas de brazos/rotores.
-export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil }) {
+export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil, alturaSuelo = undefined }) {
   const tiposModelo = { suelo: { suelo: true }, aire: { suelo: false } };
   const modelos = ['suelo', 'aire'].map(tipo => enemigoMesh(THREE, G, M, L, tiposModelo, { tipo }));
   const propias = new Set();
@@ -82,6 +82,7 @@ export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil }) {
       vivos.add(e.id);
       const tp = TIPOS[e.tipo], o = modelos[tp.suelo ? 0 : 1];
       o.grupo.position.set(e.x + e.vx * off, 0, e.y + e.vy * off);
+      if (alturaSuelo) o.grupo.position.y = alturaSuelo(o.grupo.position.x, o.grupo.position.z);
       o.cuerpo.material = escena.t - e.golpeT < .25 ? M.golpe : tp.frio ? M.frio : M.enemigo;
       if (o.cuerpoG) {
         o.cuerpoG.position.y = e.z;
@@ -120,7 +121,11 @@ export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil }) {
     for (const lote of lotes.values()) {
       const m = lote.mesh;
       m.count = lote.usados; m.visible = m.count > 0; m.userData.ids.length = m.count;
-      if (lote.cambio) m.instanceMatrix.needsUpdate = true;
+      if (lote.cambio) {
+        m.instanceMatrix.needsUpdate = true;
+        // Three recalcula la esfera al siguiente raycast de las instancias móviles.
+        m.boundingSphere = null;
+      }
     }
   }
   function destruir() {

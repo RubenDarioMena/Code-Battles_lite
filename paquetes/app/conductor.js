@@ -8,13 +8,48 @@ export function esperarConductor(conductor) { return esperas.get(conductor)?.();
 
 /** @param {import('./index.js').OpcionesConductor} opciones
  * @returns {import('./index.js').Conductor} */
-export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaNula(), alPaso, alSucesos, alTurno, detener }) {
+export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaNula(), alPaso, alSucesos, alTurno, detener, intento }) {
   let anterior, iniciado = false, cerrado = false, terminada = false, error = null, pasos = 0;
   let ultimoSuceso = -1, vistos = 0;
   /** @type {null | { promesa: Promise<void>, listo: boolean, turno?: import('../anfitrion/index.js').Turno, fallo?: any, falloRecibido?: boolean }} */
   let pendiente = null;
   // Tras cada paso: respuestas (incluidas sus continuaciones) antes de ceder.
   let fase = null, cederDespues = false;
+
+  const cola = [];
+  let siguienteEntrada = 0;
+  if (intento) partida.iniciarGrabacion(intento.semillaIntento, intento.programas);
+
+  // Frontera entre el turno ordinario y el siguiente paso del mundo. Una recarga
+  // ejecuta su primera entrega antes de procesar la siguiente entrada de la FIFO.
+  async function aplicarEntradas() {
+    const grabadas = intento.repeticion;
+    while (grabadas && grabadas[siguienteEntrada]?.paso === partida.pasoActual)
+      cola.push(grabadas[siguienteEntrada++]);
+    while (cola.length && !cerrado && !intento.enPausa?.()) {
+      const e = cola.shift();
+      if (e.tipo === 'orden') {
+        partida.ordenar({ unidad: e.unidad, verbo: e.verbo, args: e.args, paso: partida.pasoActual, origen: 'jugador' });
+        partida.aplicarOrdenes();
+        entregarEventos();
+      } else {
+        await anfitrion.recargar(e.unidad, e.codigo, e);
+        if (cerrado) return false;
+        recibirTurno(anfitrion.ceder(partida.instantanea()));
+      }
+      partida.registrarEntrada(e);
+      intento.alAplicar?.(e, partida.pasoActual);
+      if (pendiente && !await completarTurnos()) return false;
+    }
+    return !cerrado && !intento.enPausa?.();
+  }
+
+  function entregarEventos() {
+    const eventos = reglas.eventos?.(partida.mundo);
+    if (!eventos?.length || !anfitrion) return false;
+    recibirTurno(anfitrion.entregarEventos(partida.instantanea(), eventos));
+    return true;
+  }
 
   function entregarSucesos() {
     const disponibles = partida.sucesos(ultimoSuceso);
@@ -57,6 +92,7 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
       }
       if (comprobarFin()) return true;
       if (fase === 'respuestas') {
+        if (entregarEventos()) continue;
         const respuestas = reglas.respuestas?.(partida.mundo) ?? [];
         if (respuestas.length) {
           recibirTurno(anfitrion.responder(respuestas));
@@ -75,6 +111,11 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
   }
 
   const conductor = {
+    encolar(entrada) {
+      if (!intento || intento.repeticion || cerrado || terminada) return false;
+      cola.push(structuredClone(entrada));
+      return true;
+    },
     async iniciar() {
       if (iniciado || cerrado) return;
       iniciado = true;
@@ -91,7 +132,9 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
       if (terminada) return { pasos: dados, terminada, ...(anfitrion?.pausas?.().length ? { esperandoPausa: true } : {}) };
       partida.aplicarOrdenes();
       if (!await completarTurnos()) return { pasos: dados, terminada, ...(anfitrion?.pausas?.().length ? { esperandoPausa: true } : {}) };
-      while (!comprobarFin() && dados < maxPasos && !anfitrion?.algunoCorre?.()) {
+      while (!comprobarFin() && !anfitrion?.algunoCorre?.()) {
+        if (intento && !await aplicarEntradas()) break;
+        if (dados >= maxPasos) break;
         // Con Workers reales un mensaje puede llegar tras cerrar su turno (dos encargos seguidos sin await):
         // el fallo ya anotado por el anfitrión corta antes de dar otro paso, como el ciclo antiguo.
         if (anfitrion?.fallo?.()) { error = anfitrion.fallo(); terminada = true; break; }

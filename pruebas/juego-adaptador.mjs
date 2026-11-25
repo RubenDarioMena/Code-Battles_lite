@@ -86,6 +86,7 @@ export function adaptar(caso, presentacion = {}) {
       get ES_FACTORY() { return ES_FACTORY; },
       get ES_CAMPAIGN() { return ES_CAMPAIGN; },
       get reglas() { return reglas; },
+      escenarioPartida: base => base, mundoPantalla: m => m,
       get TIPOS() { return TIPOS; },
       get SENSOR() { return SENSOR; },
       get LAU() { return LAU; },

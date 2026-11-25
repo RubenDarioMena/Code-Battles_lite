@@ -4,6 +4,14 @@ Fase 2, paso 12. Vistas de War, Factory y Campaign desde la escena visible
 del reglamento, sin leer ni escribir el mundo. Puede importar `protocolo`
 y `vfx`; las dependencias de juego llegan en opciones.
 
+## Campaign-V2 en metros
+
+La composición de campaña y ensayo monta `crearVistaCV2(campo, opciones)` para H0 y la Batalla. Recibe `escenaMetros` y devuelve metros en `suelo`. La app convierte el punto a casillas para los gestos y traslada la proyección de las etiquetas en sentido inverso. `bastionEn` devuelve el índice de la pieza tocada y `batalla(si)` cambia los materiales sobre las mismas mallas. El registro de `cv2/modelos.js` comparte la carga de cada GLB entre sus instancias hasta destruir la vista. El plano y la paridad conservan sus vistas de origen.
+
+`crearFicha3D(canvas, servicios, tipos)` devuelve un visor con `mostrar(unidad)` y `pausar()`, o `null` si WebGL no está disponible. Usa el registro de modelos y las primitivas de War. La prueba con Three comprueba la rotación y los extremos del campo y los bastiones en horizontal y vertical.
+
+Las pruebas `node pruebas/campaign-v2-vista.mjs` y `node pruebas/three-r180.mjs` comprueban el registro, la pose física, la selección y el dibujo de H0 y B1 con geometría real.
+
 ## Contrato
 
 ```js

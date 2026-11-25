@@ -20,6 +20,9 @@ export function instalarSugerencias(ctx) {
       : c.tipo === "argumento" ? (FIRMAS[c.funcion] || [])[c.indice]
       : c.tipo === "condicion" ? "condición" : c.tipo === "valor" ? "valor" : null;
     if (ctx.ES_CAMPAIGN) return ctx.def && ctx.mundo ? ctx.uiC.sugerencias(c, clase) : null;
+    const evento = ctx.extension?.eventos.find(e => e.nombre === c.funcion && (!c.objeto || c.objeto === e.objeto));
+    if (evento && c.tipo === "argumento") return { titulo: evento.evento, grupos: [{ items: (c.variables || [])
+      .map(ins => ({ ins, cls: "var", nota: ctx.ti18n(evento.nota) })) }] };
     if (!clase || !ctx.def) return null;
     if (ctx.ES_FACTORY && ["lugar", "material", "valor", "condición"].includes(clase)) {
       const items = clase === "lugar" ? ctx.mundo.entidades.map(e => ({ ins: ctx.varFactory(e.id), cls: "var", nota: e.nombre }))

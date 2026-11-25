@@ -32,15 +32,19 @@ export function preparar(ctx) {
   };
   ctx.htmlNodo = function(n) {
     const tx = ctx.TXT[ctx.idioma], cat = ctx.CATEGORIA[n.t], sel = ctx.elegido === n.id ? " sel" : "";
-    if (!ctx.esContenedor(n)) return `<div class="fila simple ${cat}${sel}" data-accion="fila" data-parte="simple" data-id="${n.id}" data-nodo="${n.id}" data-item="${n.id}">${ctx.piezas(n, tx[n.t])}</div>`;
+    const verbo = n.t === "verbo" && ctx.bloques().find(f => f.nombre === n.nombre);
+    const simple = verbo ? [["kw", verbo.rotulo(ctx.idioma)], ...(n.lugar ? [["slot", "lugar"]] : [])] : tx[n.t];
+    if (!ctx.esContenedor(n)) return `<div class="fila simple ${cat}${sel}" data-accion="fila" data-parte="simple" data-id="${n.id}" data-nodo="${n.id}" data-item="${n.id}">${ctx.piezas(n, simple)}</div>`;
+    const evento = n.t === "cuando" && ctx.eventos().find(e => e.evento === n.evento);
+    const plantilla = evento ? [["kc", evento.rotulo(ctx.idioma)], ["tx", "→"], ["kw", n.parametro]] : tx[n.t];
     let html = `<div class="nodo contenedor ${cat}${sel}" data-item="${n.id}">`;
-    html += `<div class="fila cabeza ${cat} ${n.t}" data-accion="fila" data-parte="cabeza" data-id="${n.id}" data-nodo="${n.id}">${ctx.piezas(n, tx[n.t])}</div>`;
+    html += `<div class="fila cabeza ${cat} ${n.t}" data-accion="fila" data-parte="cabeza" data-id="${n.id}" data-nodo="${n.id}">${ctx.piezas(n, plantilla)}</div>`;
     html += `<div class="cuerpo">${ctx.htmlLista(n.cuerpo, n.id, "cuerpo")}</div>`;
     if (n.t === "si") {
       html += `<div class="fila sino ${cat}" data-accion="fila" data-parte="sino" data-id="${n.id}"><span class="kc">${ctx.esc(tx.sino)}</span></div>`;
       html += `<div class="cuerpo">${ctx.htmlLista(n.sino, n.id, "sino")}</div>`;
     }
-    return html + `<div class="fila pie ${cat}" data-accion="fila" data-parte="pie" data-id="${n.id}">${ctx.esc(tx.fin[n.t])}</div></div>`;
+    return html + `<div class="fila pie ${cat}" data-accion="fila" data-parte="pie" data-id="${n.id}">${ctx.esc(evento ? "}" : tx.fin[n.t])}</div></div>`;
   };
   ctx.pintar = function() {
     if (!ctx.activo()) return;
@@ -54,11 +58,14 @@ export function preparar(ctx) {
   };
   ctx.pintarPaleta = function() {
     const I = ctx.iconos || {}, tx = ctx.TXT[ctx.idioma], d = ctx.datos();
-    ctx.$paleta.innerHTML = (ctx.factory ? (d.ladrillos || []).concat(d.ladrillos?.includes("mientras") ? ["contar"] : []) : ctx.LADRILLOS).map(t => {
+    ctx.$paleta.innerHTML = (ctx.factory ? (d.ladrillos || []).concat(d.ladrillos?.includes("mientras") ? ["contar"] : []) : [...ctx.LADRILLOS, ...ctx.bloques().map(f => f.nombre), ...ctx.eventos().map(e => e.evento)]).map(t => {
       if (t === "|") return `<span class="sep-pal" aria-hidden="true"></span>`;
       if (t === "oir" && !d.red.length) return "";
-      const ico = I[ctx.ICONO[t]] || { svg: "", c1: "#7FA3FF" };
-      return `<button type="button" class="atajo ladrillo ${ctx.CATEGORIA[t]}" data-ladrillo="${t}" aria-label="${ctx.esc(tx.paleta[t])}" style="--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}">${ico.svg}<span>${ctx.esc(tx.paleta[t])}</span></button>`;
+      const evento = ctx.eventos().find(e => e.evento === t);
+      const verbo = ctx.bloques().find(f => f.nombre === t);
+      const rotulo = verbo ? verbo.rotulo(ctx.idioma) : evento ? evento.rotulo(ctx.idioma) : tx.paleta[t];
+      const ico = I[evento ? "apuntar" : ctx.ICONO[t]] || { svg: "", c1: "#7FA3FF" };
+      return `<button type="button" class="atajo ladrillo ${ctx.CATEGORIA[verbo ? "verbo" : evento ? "cuando" : t]}" data-ladrillo="${t}" aria-label="${ctx.esc(rotulo)}" style="--c1:${ico.c1};${ico.c2 ? `--c2:${ico.c2};` : ""}${ico.c3 ? `--c3:${ico.c3};` : ""}">${ico.svg}<span>${ctx.esc(rotulo)}</span></button>`;
     }).join("");
   };
   // La línea que se ejecuta (o la del error) ilumina su renglón.

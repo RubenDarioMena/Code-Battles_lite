@@ -1,5 +1,7 @@
 // Grafo ESM real, glTF y protocolo local; sin red, DOM, navegador ni GPU.
 import assert from 'node:assert/strict';
+import { probarEscena } from './campaign-v2-escena-three.mjs';
+import { comprobarAdaptador, equivalenciaFactory } from './rig-three.mjs';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -10,7 +12,7 @@ import { factory3d } from '../paquetes/vista-3d/index.js';
 
 if (!vm.SourceTextModule) {
   const hijo = spawnSync(process.execPath, ['--experimental-vm-modules', '--disable-warning=ExperimentalWarning',
-    fileURLToPath(import.meta.url)], { stdio: 'inherit' });
+    fileURLToPath(import.meta.url), ...process.argv.slice(2)], { stdio: 'inherit' });
   process.exit(hijo.status ?? 1);
 }
 const raiz = new URL('../', import.meta.url);
@@ -24,7 +26,7 @@ assert.equal(THREE.REVISION, '180');
 assert.equal(THREE.ColorManagement.enabled, true);
 assert.equal(Object.isExtensible(THREE), false);
 
-const contexto = vm.createContext({ ArrayBuffer, TextDecoder, TextEncoder, console, window: {}, addEventListener() {} });
+const contexto = vm.createContext({ ArrayBuffer, TextDecoder, TextEncoder, console, self: { URL }, window: {}, addEventListener() {} });
 const cache = new Map();
 async function obtener(ruta, origen = pagina.href) {
   const url = ruta === 'three' ? moduloThree : new URL(ruta, origen);
@@ -54,14 +56,14 @@ await entrada.link((r, p) => obtener(r, p.identifier));
 await entrada.evaluate();
 const servicios = entrada.namespace.servicios;
 assert.equal(servicios.THREE.REVISION, '180');
-assert.equal(cache.size, 2, 'GLTFLoader todavía no se solicita');
+assert.deepEqual([...cache.keys()].filter(k => k.includes('/vendor/three-')), [moduloThree.href], 'solo Three está cargado, GLTFLoader sigue diferido');
 const GLTFLoader = await servicios.cargarGLTFLoader();
 assert.equal(GLTFLoader, await servicios.cargarGLTFLoader());
 assert([...cache.keys()].some(k => k.endsWith('/utils/BufferGeometryUtils.js')));
 assert.equal(THREE.GLTFLoader, undefined, 'el constructor no se añade al namespace');
 assert.equal(contexto.window.THREE, undefined, 'sin puente global implícito');
 
-const bytes = await readFile(new URL('modelos/t1.glb', pagina));
+const bytes = await readFile(new URL(process.argv.includes('--rig') ? '../Campaign-V2/modelos/t1.glb' : 'modelos/t1.glb', pagina));
 const gltf = await new Promise((ok, mal) => new GLTFLoader().parse(
   bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '', ok, mal));
 for (let n = 0; n < 3; n++) assert(gltf.scene.getObjectByName(`L${n}_RobotTransporte`));
@@ -96,6 +98,11 @@ contenido.robot.grupo.traverse(o => {
   materiales++;
 });
 assert(materiales > 10);
+if (!process.argv.includes('--rig')) await probarEscena(THREE, GLTFLoader);
+if (process.argv.includes('--rig')) {
+  equivalenciaFactory(THREE, gltf, contenido);
+  await comprobarAdaptador(THREE, GLTFLoader, gltf);
+}
 
 // El protocolo real de escritorio sirve el mismo grafo con MIME de módulos JS.
 const require = createRequire(import.meta.url);

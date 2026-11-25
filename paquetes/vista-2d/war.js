@@ -2,12 +2,16 @@
 import { dibujarAnotacionesWar } from './anotaciones-war.js';
 import { dibujarFactory } from './factory.js';
 
-export function crearPlano(estado, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2, dibujarEfectos }) {
+export function crearPlano(estado, { $c2d, ctx2, ES_FACTORY, LINEA_BASE, TIPOS, MISIL, SENSOR, LAU, FUNCIONES, FR, HALO, INTENSIDAD, ARCO, LUCES, visual, funcionDe, radioDe, direccionDe, alcance, rgba, mezclaBlanco, r2, dibujarEfectos, iconoUnidad = undefined }) {
 function dibujar2D(off, _ahora = undefined) {
   const dpr = window.devicePixelRatio || 1, W = $c2d.clientWidth, H = $c2d.clientHeight;
   if (!W || !H) return;
   if ($c2d.width !== Math.round(W * dpr) || $c2d.height !== Math.round(H * dpr)) { $c2d.width = Math.round(W * dpr); $c2d.height = Math.round(H * dpr); }
-  const T = Math.min(W / estado.cols, (H - 40) / estado.rows), ox = (W - T * estado.cols) / 2, oy = Math.max(36, (H - T * estado.rows) / 2);
+  let T = Math.min(W / estado.cols, (H - 40) / estado.rows), ox = (W - T * estado.cols) / 2, oy = Math.max(36, (H - T * estado.rows) / 2);
+  if (estado.camaraPlano) {
+    const { zoom, x, y } = estado.camaraPlano;
+    T *= zoom; ox = ox * zoom + x; oy = oy * zoom + y;
+  }
   estado.geo2 = { T, ox, oy };
   const c = ctx2, P = (x) => ox + x * T, Q = (y) => oy + y * T;
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -29,13 +33,34 @@ function dibujar2D(off, _ahora = undefined) {
   }
   c.fillStyle = estado.col.muted; c.font = `500 ${Math.max(8, T * .38)}px "JetBrains Mono", monospace`; c.textAlign = "center"; c.textBaseline = "bottom";
   for (let i = 0; i <= estado.cols; i += 4) c.fillText(i, P(i), oy - 2);
-  c.strokeStyle = estado.col.bad; c.setLineDash([5, 4]); c.lineWidth = 2; c.beginPath(); c.moveTo(P(LINEA_BASE), oy); c.lineTo(P(LINEA_BASE), oy + estado.rows * T); c.stroke(); c.setLineDash([]);
+  c.strokeStyle = iconoUnidad ? estado.col.edge : estado.col.bad; c.setLineDash([5, 4]); c.lineWidth = 2; c.beginPath(); c.moveTo(P(LINEA_BASE), oy); c.lineTo(P(LINEA_BASE), oy + estado.rows * T); c.stroke(); c.setLineDash([]);
+  for (const puerta of estado.escena.puertas ?? []) {
+    c.fillStyle = estado.col.suelo; c.fillRect(P(puerta.x) - 3, Q(puerta.y - 1), 6, T * 2);
+    c.fillStyle = estado.col.edge;
+    for (const lado of [-1, 1]) c.fillRect(P(puerta.x) - 3, Q(puerta.y + lado), 6, 2);
+  }
   if (estado.escena.def.niebla) { c.fillStyle = estado.col.surface; c.globalAlpha = .28; c.fillRect(ox, oy, estado.cols * T, estado.rows * T); c.globalAlpha = 1; }
   // Alcances de la máquina elegida
   const sel = estado.seleccion && estado.escena.porId[estado.seleccion];
   const aro = (x, y, r, color, dash) => { c.strokeStyle = color; c.lineWidth = 1.5; c.setLineDash(dash || []); c.beginPath(); c.arc(P(x), Q(y), r * T, 0, Math.PI * 2); c.stroke(); c.setLineDash([]); };
   if (sel && sel.clase === "lanzador") { aro(sel.cx, sel.cy, alcance("visual"), estado.col["s-visual"]); aro(sel.cx, sel.cy, alcance("thermal"), estado.col["s-termico"], [6, 4]); }
   if (sel && sel.clase === "vibracion") aro(sel.cx, sel.cy, sel.alcance, estado.col["s-vibra"], [3, 3]);
+  if (iconoUnidad) {
+    for (const e of estado.escena.maquinas) iconoUnidad(c, e, P(e.cx), Q(e.cy), T, estado.escena.t);
+    for (const e of estado.escena.enemigos)
+      iconoUnidad(c, e, P(e.x + e.vx * off), Q(e.y + e.vy * off), T, estado.escena.t);
+  } else dibujarUnidadesWar(c, P, Q, T, off);
+  const t = estado.escena.t + off;
+  for (const mi of estado.escena.misiles) {
+    const u = Math.min(1, Math.max(0, (t - mi.t0) / mi.dur));
+    const x = P(mi.x0 + (mi.x1 - mi.x0) * u), y = Q(mi.y0 + (mi.y1 - mi.y0) * u);
+    c.strokeStyle = estado.col.misil; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P(mi.x0 + (mi.x1 - mi.x0) * Math.max(0, u - .18)), Q(mi.y0 + (mi.y1 - mi.y0) * Math.max(0, u - .18))); c.lineTo(x, y); c.stroke();
+    c.fillStyle = estado.col.misil; c.beginPath(); c.arc(x, y, T * .14, 0, Math.PI * 2); c.fill();
+  }
+  dibujarEfectos?.(c, off);
+  dibujarAnotacionesWar(c, estado, { off, T, P, Q, MISIL, r2, radioDe });
+}
+function dibujarUnidadesWar(c, P, Q, T, off) {
   // Halo y brillo bajo las máquinas: calcos aditivos con las mismas medidas que en 3D.
   const rol = (e) => estado.col[`rol-${funcionDe(e).principal}`];
   const ahora = performance.now(), k = INTENSIDAD[visual.intensidad];
@@ -104,15 +129,6 @@ function dibujar2D(off, _ahora = undefined) {
       if (tp.frio) { c.strokeStyle = color; c.lineWidth = 2; c.stroke(); } else { c.fillStyle = color; c.fill(); }
     }
   }
-  const t = estado.escena.t + off;
-  for (const mi of estado.escena.misiles) {
-    const u = Math.min(1, Math.max(0, (t - mi.t0) / mi.dur));
-    const x = P(mi.x0 + (mi.x1 - mi.x0) * u), y = Q(mi.y0 + (mi.y1 - mi.y0) * u);
-    c.strokeStyle = estado.col.misil; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P(mi.x0 + (mi.x1 - mi.x0) * Math.max(0, u - .18)), Q(mi.y0 + (mi.y1 - mi.y0) * Math.max(0, u - .18))); c.lineTo(x, y); c.stroke();
-    c.fillStyle = estado.col.misil; c.beginPath(); c.arc(x, y, T * .14, 0, Math.PI * 2); c.fill();
-  }
-  dibujarEfectos?.(c, off);
-  dibujarAnotacionesWar(c, estado, { off, T, P, Q, MISIL, r2, radioDe });
 }
   return dibujar2D;
 }

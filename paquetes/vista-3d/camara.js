@@ -3,15 +3,16 @@ import { escucharEn } from './recursos.js';
 /* Posturas, proyección, selección y gestos del visor común, antes en js/vistas.js. */
 export function crearCamara3D(ctx) {
     const { THREE, estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil } = ctx;
-    const ZOOM = ES_FACTORY ? [2.5, 30] : [8, 70];
+    const zona = ctx.zona;
+    const ZOOM = zona ? [8, 160] : ES_FACTORY ? [2.5, 30] : [8, 70];
     // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
     // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.
     const camaras = {};
     let camActual = null, cam = null, cam0 = null, anchoCampo = 1, altoCampo = 1;
     function colocarCamara(c = cam) {
       const cp = Math.cos(c.pitch);
-      camara.position.set(c.x + c.dist * cp * Math.sin(c.yaw), c.dist * Math.sin(c.pitch), c.z + c.dist * cp * Math.cos(c.yaw));
-      camara.lookAt(c.x, 0, c.z);
+      camara.position.set(c.x + c.dist * cp * Math.sin(c.yaw), (c.alto || 0) + c.dist * Math.sin(c.pitch), c.z + c.dist * cp * Math.cos(c.yaw));
+      camara.lookAt(c.x, c.alto || 0, c.z);
       camara.updateMatrixWorld();
     }
     // Campo girado 90°: la base queda abajo y los enemigos llegan desde arriba. Se usa en pantalla completa
@@ -24,7 +25,8 @@ export function crearCamara3D(ctx) {
     }
     // Distancia mínima para que las cuatro esquinas del campo quepan en pantalla (con margen para el HUD).
     function encuadrar(c, mx, my) {
-      const esquinas = [[0, 0], [estado.cols, 0], [0, estado.rows], [estado.cols, estado.rows]].map(([x, z]) => new THREE.Vector3(x, 0, z));
+      const { x0, x1, z0, z1 } = zona ?? { x0: 0, x1: estado.cols, z0: 0, z1: estado.rows };
+      const esquinas = zona?.puntos ?? [[x0, z0], [x1, z0], [x0, z1], [x1, z1]].map(([x, z]) => new THREE.Vector3(x, 0, z));
       let lo = 6, hi = 160;
       for (let k = 0; k < 24; k++) {
         c.dist = (lo + hi) / 2; colocarCamara(c);
@@ -37,6 +39,8 @@ export function crearCamara3D(ctx) {
     function camaraInicial(k) {
       // En pantallas estrechas la cámara se aleja para que quepan las 32 columnas.
       // Algo inclinada y mirando un poco más al norte: deja ver la cordillera detrás del campo.
+      if (zona) return encuadrar({ yaw: zona.yaw - (k === "girada" ? Math.PI / 2 : 0), pitch: zona.pitch ?? 1,
+        dist: 32, alto: zona.alto ?? 0, x: (zona.x0 + zona.x1) / 2, z: (zona.z0 + zona.z1) / 2 }, .92, .78);
       if (ES_FACTORY) return encuadrar({ yaw: k === "girada" ? -Math.PI / 2 : 0, pitch: .9, dist: 12, x: estado.cols / 2, z: estado.rows / 2 }, .92, .82);
       if (k !== "girada") return { yaw: 0, pitch: .93, dist: camara.aspect < 1.5 ? 33 * 1.5 / camara.aspect : 33, x: estado.cols / 2, z: estado.rows / 2 - .8 };
       return encuadrar({ yaw: -Math.PI / 2, pitch: .98, dist: 30, x: estado.cols / 2 - .6, z: estado.rows / 2 }, .98, .8);
@@ -81,7 +85,7 @@ export function crearCamara3D(ctx) {
     function suelo(px, py, w, h) {
       ndc.set(px / w * 2 - 1, -(py / h) * 2 + 1);
       ray.setFromCamera(ndc, camara);
-      const punto = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
+      const punto = ctx.interseccionTerreno?.(ray) ?? ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
       return punto ? { x: punto.x, y: punto.z, z: 0 } : null;
     }
     function centrar(x, y) {
@@ -107,6 +111,7 @@ export function crearCamara3D(ctx) {
       const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
       p.x = ev.clientX; p.y = ev.clientY;
       gesto.movido += Math.abs(dx) + Math.abs(dy);
+      if (estado.camaraDosDedos && gesto.tactil && punteros.size === 1) return;
       if (dx || dy) moverCamara();
       if (punteros.size >= 2) {
         const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
@@ -127,7 +132,7 @@ export function crearCamara3D(ctx) {
         gesto.ang0 = ang;
       } else if (gesto.tactil && estado.arrastreCampo && estado.arrastreCampo.cajaTactil) return;
       else if (gesto.desplazar || gesto.tactil) desplazar(dx, dy);
-      else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(.28, cam.pitch + dy * .005)); }
+      else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(zona ? .78 : .28, cam.pitch + dy * .005)); }
     });
     const soltar = (ev) => {
       punteros.delete(ev.pointerId);
@@ -138,7 +143,13 @@ export function crearCamara3D(ctx) {
     escuchar("pointerup", soltar);
     escuchar("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
     escuchar("wheel", (ev) => { ev.preventDefault(); moverCamara(); cam.dist = Math.min(ZOOM[1], Math.max(ZOOM[0], cam.dist * Math.exp(ev.deltaY * .0012))); }, { passive: false });
-    const limitar = () => { cam.x = Math.min(estado.cols + 4, Math.max(-4, cam.x)); cam.z = Math.min(estado.rows + 4, Math.max(-6, cam.z)); };
+    const limitar = () => {
+      if (zona) {
+        cam.x = Math.min(zona.x1, Math.max(zona.x0, cam.x));
+        cam.z = Math.min(zona.z1, Math.max(zona.z0, cam.z));
+        return;
+      }
+      cam.x = Math.min(estado.cols + 4, Math.max(-4, cam.x)); cam.z = Math.min(estado.rows + 4, Math.max(-6, cam.z)); };
     function desplazar(dx, dy) {
       const k = cam.dist * .0022;
       const sx = Math.cos(cam.yaw), sz = -Math.sin(cam.yaw);

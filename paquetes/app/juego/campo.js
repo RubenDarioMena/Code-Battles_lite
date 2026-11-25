@@ -13,7 +13,8 @@ export function instalarCampoJuego(ctx) {
   const unidadPorId = (id) => ctx.mundo.porId[id] || ctx.mundo.enemigos.find(e => e.id === id);
   function puntoPantalla(e) {
     const r = $campo.getBoundingClientRect();
-    const p = ctx.vistaActual().proyectar(e.cx ?? e.x, e.z || 0, e.cy ?? e.y);
+    const vista = ctx.vistaActual();
+    const p = vista.proyectarUnidad?.(e, e.z || 0) ?? vista.proyectar(e.cx ?? e.x, e.z || 0, e.cy ?? e.y);
     return { x: p.x + r.left, y: p.y + r.top, visible: p.visible && p.x >= 0 && p.x <= r.width && p.y >= 0 && p.y <= r.height };
   }
   function unidadEn(cx, cy) {
@@ -25,6 +26,8 @@ export function instalarCampoJuego(ctx) {
     const p = ctx.vistaActual().suelo(x, y);
     return p && p.x >= 0 && p.x <= ctx.COLS && p.y >= 0 && p.y <= ctx.ROWS ? { x: ctx.r2(p.x), y: ctx.r2(p.y), z: 0 } : null;
   }
+  if (ctx.runtime?.instalarGestosClic) return { unidades, unidadPorId, puntoPantalla, unidadEn, coordenadasEn,
+    ...ctx.runtime.instalarGestosClic(ctx, $campo, $cajaSeleccion, { unidades, puntoPantalla, unidadEn, coordenadasEn }) };
   document.addEventListener("focusin", (ev) => {
     if (/** @type {Element} */ (ev.target).matches("[data-coordenadas]")) campoCoordenadas = ev.target;
     else campoCoordenadas = null;
@@ -147,6 +150,7 @@ export function instalarCampoJuego(ctx) {
 
 
   return {
+    cancelarGestosCampo() { clearTimeout(tFicha); cancelarArrastre(); ultimoToque = null; },
     get LARGO_MS() { return LARGO_MS; },
     get $campo() { return $campo; },
     get $carga() { return $carga; },

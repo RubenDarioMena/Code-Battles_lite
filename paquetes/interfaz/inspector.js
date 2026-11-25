@@ -99,7 +99,7 @@ export function instalarInspector(ctx) {
   });
   document.addEventListener("keydown", (ev) => {
     if (ev.key !== "Escape") return;
-    if (!ctx.$("hoja-reto").hidden) ctx.abrirHoja(false);
+    if (ctx.$("hoja-reto")?.hidden === false) ctx.abrirHoja(false);
     else if (ctx.insEstado === "abierto") ctx.ponerInspector("tira");
   });
   function valorVivo(clave) {
@@ -170,7 +170,7 @@ export function instalarInspector(ctx) {
 
   const paletaSegura = hacer => { try { return hacer(); } catch (e) { ctx.paletaRota ||= e; console.error("Paleta no disponible:", e); return { atajos: [] }; } };
   const { atajos: ATAJOS } = paletaSegura(() => ctx.CMGPaleta.crear({
-    serie: ctx.SERIE,
+    serie: ctx.SERIE, extension: ctx.extension,
     sensor: () => ctx.mundo && ctx.mundo.sensores[0] ? ctx.varDe(ctx.mundo.sensores[0].id) : null,
   }));
   const preferenciasEditor = prefijo => ({
@@ -186,10 +186,10 @@ export function instalarInspector(ctx) {
     documento: { id: "inicio", lenguaje: "js", texto: "", revision: 0 },
     adaptadores: ctx.PYTHON ? { js: ctx.CMGAdaptadorJS, python: ctx.CMGAdaptadorPython } : { js: ctx.CMGAdaptadorJS }, serie: ctx.SERIE, aplazarVistas: true,
     preferencias: preferenciasEditor("cmg-juego-"), preferenciasVistas,
-    soloLectura: () => !!ctx.ejec, alEjecutar: () => ctx.ejec ? ctx.detener() : ctx.ejecutar(),
+    soloLectura: () => ctx.edicionBloqueada, alEjecutar: () => ctx.alternarEjecucion(),
     alAtajo: () => ctx.insercion.atajo++, alArrastrar: () => ctx.insercion.arrastre++,
     proveedor: {
-      funciones: () => ctx.proveedorEditor.funciones(), firma: f => ctx.FIRMAS[f] || null,
+      funciones: () => ctx.proveedorEditor.funciones(), firma: f => ctx.extension?.funciones().find(x => x.nombre === f)?.firma ?? ctx.FIRMAS[f] ?? null,
       sugerencias: c => ctx.edicion.lenguaje === "python" ? ctx.sugerenciasPython(c) : ctx.sugerencias(c),
       vocabulario: l => l === "python" ? ctx.vocabularioPython() : ({ objetos: ["console", "yo", ...ctx.nombresVar()], funciones: [...ctx.FN_PROPIAS], miembros: [...ctx.FN_MIEMBRO], propiedades: [...ctx.PROPS] }),
       atajos: l => l === "python" ? ctx.atajosPython() : ATAJOS,

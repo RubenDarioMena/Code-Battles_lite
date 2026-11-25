@@ -1,6 +1,6 @@
 /** @param {any} l
  * @param {any} cmg */
-export function instalarPanelPantalla(l, cmg) {
+export function instalarPanelPantalla(l, cmg, pantallaMovil = false) {
   const dom = /** @type {any} */ (document);
   // ---------- Panel inferior: inspector del programa (por defecto) o consola ----------
   // Su barra se arrastra como el divisor: llevarla hasta abajo lo cierra del todo; un toque en la barra
@@ -126,9 +126,10 @@ export function instalarPanelPantalla(l, cmg) {
   // El divisor sigue funcionando; esos botones vuelven a llevar a pantalla completa.
   const MANTENER_MS = 2000;
   const gruesa = matchMedia("(pointer: coarse)");
-  let pantallaActiva = l.leer("pantalla-completa", false) === true, panelFS = "mapa";
+  let pantallaActiva = l.leer("pantalla-completa", null), panelFS = "mapa";
   const pantallaPermitida = () => l.forma === "movil" || innerWidth <= 1100 || (gruesa.matches && innerWidth <= 1400);
-  const pantallaEfectiva = () => pantallaActiva && pantallaPermitida();
+  const preferida = () => pantallaActiva ?? (pantallaMovil && l.forma === "movil");
+  const pantallaEfectiva = () => preferida() && pantallaPermitida();
   // Reparto al cambiar de forma: el panel a pantalla completa, o el guardado.
   const repartoActual = () => pantallaEfectiva() && panelFS ? (panelFS === "mapa" ? 100 : 0) : l.leer(l.claveReparto(), l.REPARTO[l.forma]);
   function pintarTextosBotonesPantalla(ef = pantallaEfectiva()) {
@@ -143,7 +144,7 @@ export function instalarPanelPantalla(l, cmg) {
       `disposicion.pantalla.estado.${ef ? "activo" : pantallaActiva ? "pausado" : "inactivo"}`);
   }
   function aplicarPantalla() {
-    const ok = pantallaPermitida(), ef = pantallaActiva && ok, antes = l.app.dataset.pantallaCompleta === "true";
+    const ok = pantallaPermitida(), ef = pantallaEfectiva(), antes = l.app.dataset.pantallaCompleta === "true";
     l.app.dataset.pantallaPermitida = String(ok);
     l.app.dataset.pantallaCompleta = String(ef);
     for (const b of dom.querySelectorAll(".b-pantalla")) {
@@ -204,7 +205,7 @@ export function instalarPanelPantalla(l, cmg) {
     if (info) abrirInfoPantalla();
   });
   function alternarPantalla() {
-    pantallaActiva = !pantallaActiva;
+    pantallaActiva = !preferida();
     l.escribir("pantalla-completa", pantallaActiva);
     aplicarPantalla();
     if (pantallaActiva) { verPanel("mapa"); avisoPantalla("activado", true); }

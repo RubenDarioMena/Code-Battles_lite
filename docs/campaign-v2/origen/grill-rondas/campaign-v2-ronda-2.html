@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grill · Campaign-V2 · Ronda 2</title>
+<style>
+  :root{
+    --bg:#f6f3ec; --card:#fffdf8; --ink:#1f2328; --mute:#5d6470; --line:#ddd5c4;
+    --acc:#2f6f5e; --acc-soft:#e3efe9; --rec:#a3591b; --rec-soft:#fbeedd; --sel:#e8f0fb; --sel-line:#5a86c8;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#16181b; --card:#1e2125; --ink:#e7e9ec; --mute:#9aa2ad; --line:#30353b;
+      --acc:#6cc3a6; --acc-soft:#1d3a32; --rec:#f0a35c; --rec-soft:#3a2a1a; --sel:#1d2a3d; --sel-line:#6f9be0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{max-width:880px;margin:0 auto;padding:28px 18px 8px}
+  h1{font-size:1.45rem;margin:0 0 6px}
+  .sub{color:var(--mute);margin:0 0 14px}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .intro ul{margin:6px 0 0 18px;padding:0}
+  main{max-width:880px;margin:0 auto;padding:0 18px 140px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;scroll-margin-top:12px}
+  .q.done{border-color:var(--acc)}
+  .qh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .qid{font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+  .qt{font-weight:650;font-size:1.06rem}
+  .estado{margin-left:auto;font-size:.8rem;color:var(--mute)}
+  .q.done .estado{color:var(--acc)}
+  .cuerpo{margin:8px 0 6px}
+  details{margin:6px 0 10px;border-left:3px solid var(--line);padding:2px 0 2px 10px}
+  summary{cursor:pointer;color:var(--mute);font-size:.9rem}
+  details .hechos{font-size:.9rem;color:var(--mute)}
+  details .hechos code, .cuerpo code, .op code{font-size:.85em;background:var(--acc-soft);padding:0 4px;border-radius:4px}
+  .ops{display:grid;gap:8px;margin:10px 0}
+  label.op{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer}
+  label.op:hover{border-color:var(--sel-line)}
+  label.op.on{background:var(--sel);border-color:var(--sel-line)}
+  label.op input{margin-top:4px}
+  .op b{font-weight:650}
+  .op .d{display:block;color:var(--mute);font-size:.88rem}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;color:var(--rec);background:var(--rec-soft);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+  .rec{background:var(--rec-soft);border-radius:10px;padding:9px 12px;font-size:.92rem;margin:8px 0}
+  .rec::before{content:"➡️ Mi recomendación: ";font-weight:700}
+  .tabla{width:100%;border-collapse:collapse;margin:8px 0}
+  .tabla td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}
+  .tabla td:first-child{width:38%;font-size:.92rem}
+  .tabla .d{display:block;color:var(--mute);font-size:.82rem}
+  select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  textarea{min-height:58px;resize:vertical}
+  .extra{display:grid;gap:4px;margin:8px 0}
+  .extra span{font-size:.88rem;color:var(--mute)}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:5}
+  .bar .prog{font-variant-numeric:tabular-nums;color:var(--mute);margin-right:6px}
+  button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer}
+  button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:650}
+  @media (prefers-color-scheme:dark){ button.pri{color:#0d1714} }
+  button:hover{filter:brightness(1.05)}
+  .mini{font-size:.82rem;padding:4px 9px}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  nav.indice{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  nav.indice a{font-size:.8rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  nav.indice a.done{border-color:var(--acc);color:var(--acc)}
+  #salida{display:none;margin-top:16px}
+  #salida textarea{min-height:260px;font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Campaign-V2 · trunk + assets 3D + las 5 batallas de War</h1>
+  <p class="sub">Grill con documentos · <b>Ronda 2</b> · 24-nov-2026</p>
+  <div class="intro">
+    <b>Ya decidido en la ronda 1:</b>
+    <ul>
+      <li><b>Rama:</b> <code>Campaign-V2</code>, desde <code>origin/trunk</code> más un merge de <code>origin/assets-3d</code>. «Campaign 1» es <code>campaign-nivel-1</code>: aporta solo referencia visual y de UI, ningún código.</li>
+      <li><b>Fábrica:</b> la de Campaign (H0–H5). Sus niveles se definen por hitos y sigue funcionando durante la batalla. Las batallas empiezan idénticas a War. War y Factory quedan ocultas, accesibles solo para QA.</li>
+      <li><b>3D:</b> las torretas esfera son los lanzadores y van sobre la muralla; el resto, placeholders de bloqueo. La batalla ocurre en una sección del mapa papercraft, con la muralla estática. Cambios permitidos: registro de modelos, material papercraft, rigs y URL de binarios.</li>
+      <li><b>Móvil:</b> como trunk. <b>Precedencia:</b> manda la fecha del documento fuente. <b>Primer hito:</b> la Batalla 1 con la UI nueva.</li>
+    </ul>
+    <b>Aplazado al wayfinder (arquitectura que me darás después):</b> cómo se compone un reglamento de mundo continuo con fábrica y combate, la estructura de paquetes de Campaign-V2, el núcleo en otro hilo y la muralla rompible (fuera de alcance). <b>Astra, <code>codex</code> y <code>codex-astra</code></b> siguen fuera hasta que me expliques sus restricciones.
+    <p style="margin:10px 0 0"><b>Cómo responder:</b> igual que en la ronda 1. Marca opciones, añade notas y pulsa <b>Copiar respuestas</b>. En esta ronda hay varias preguntas que señalan <b>tensiones entre respuestas tuyas</b>; ahí la nota es lo más útil.</p>
+    <nav class="indice" id="indice"></nav>
+  </div>
+</header>
+<main id="preguntas"></main>
+<main style="padding-top:0;padding-bottom:120px"><div id="salida"><b>Texto para pegar en el chat</b><textarea id="salidaTxt" readonly></textarea></div></main>
+
+<div class="bar">
+  <span class="prog" id="prog">0 / 0</span>
+  <button id="btnRec" title="Rellena las preguntas que no has tocado con mi recomendación">Usar mis recomendaciones en las vacías</button>
+  <button class="pri" id="btnCopiar">Copiar respuestas</button>
+  <button id="btnMd">Descargar .md</button>
+  <button id="btnBorrar" title="Borra todo lo marcado">Borrar</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const Q = [
+{
+  id:"R1", titulo:"El documento preprototipo frente al papercraft y tus respuestas", tipo:"tabla",
+  cuerpo:"Con la regla de Q14 (manda el documento fuente más reciente), el consolidado del 23-nov, 21:33, es más nuevo que <code>assets-3d</code> (23-nov, 18:14). Pero choca en varios puntos con lo que respondiste en la ronda 1. Elige quién manda <b>en Campaign-V2</b> en cada punto.",
+  hechos:`<ul>
+    <li>El propio documento dice que es un «registro de decisiones e hipótesis, <b>no</b> una orden de implementación ni una descripción del repo».</li>
+    <li>En Q2 escribiste: «papercraft es como queremos que luzca en gran medida».</li>
+    <li>En Q13 marcaste las mejoras sobre la vista actual (Three r180, WebGL 2), no una migración.</li>
+    <li>El <code>AGENTS.md</code> de trunk da Python por decidido (traducido a JS).</li></ul>`,
+  filas:[
+    {id:"naturaleza", label:"Naturaleza y rocas", d:"Doc: Gaussian Splats estáticos «muy realistas». Ronda 1: papercraft (kit de pinos y rocas en GLB)",
+      ops:["papercraft (esta campaña)","splats realistas (doc)","papercraft ahora; splats como experimento posterior"], rec:"papercraft ahora; splats como experimento posterior"},
+    {id:"tactica", label:"Vista de combate", d:"Doc: estética oscura tipo Tron, cuadrícula y líneas brillantes. Feedback: «la vista sin texturas se activa sola en el combate»",
+      ops:["son lo mismo: la vista sin texturas es la vista Tron","solo cuadrícula de War, sin Tron"], rec:"son lo mismo: la vista sin texturas es la vista Tron"},
+    {id:"render", label:"Motor de dibujo", d:"Doc: evolución gradual a WebGPU. Repo: r180 / WebGL 2",
+      ops:["WebGL 2 (r180) en esta campaña; WebGPU fuera de alcance","explorar WebGPU ya"], rec:"WebGL 2 (r180) en esta campaña; WebGPU fuera de alcance"},
+    {id:"lenguaje", label:"Lenguaje del jugador", d:"Doc: Python «no debe darse por cerrado». AGENTS: JS y Python decididos",
+      ops:["JS y Python, como en AGENTS","reabrir la decisión"], rec:"JS y Python, como en AGENTS"},
+    {id:"mecanicas", label:"Materiales con masa, recortes, reciclaje, sierra frente a láser", d:"Doc: corte vertical «producción circular mínima». H0–H5 no tiene nada de eso",
+      ops:["fuera del primer corte; entra después como hito nuevo","dentro de Campaign-V2 desde el principio"], rec:"fuera del primer corte; entra después como hito nuevo"},
+    {id:"iconos2d", label:"Iconos 2D", d:"Doc: robots vectoriales cenitales (obrero azul con brazo blanco, montacargas rojo); máquinas en isométrica ligera; colores de estado ámbar / verde / azul / rojo",
+      ops:["adoptar en la vista 2D de Campaign-V2","más adelante"], rec:"adoptar en la vista 2D de Campaign-V2"}],
+  recTexto:"Para este corte, el papercraft y tus respuestas mandan en la estética; el documento manda en las mecánicas futuras y en el lenguaje visual 2D. Lo guardaría en el repo como documento de visión fechado, para que los agentes lo lean como hipótesis y no como especificación."
+},
+{
+  id:"R2", titulo:"¿Qué es Campaign-V2 respecto a la campaña H0–H5 actual?", tipo:"radio",
+  cuerpo:"Hay una tensión entre dos respuestas tuyas. En Q16 elegiste «nivel 2 de la serie Campaign». En Q2 escribiste que se hará «casi enteramente desde el inicio como una sola cosa, sin factory ni war, sino una campaña directamente».",
+  hechos:`<ul>
+    <li>H0–H5 «Primera fábrica»: un nivel de 200 × 104 m con mundo continuo, un checkpoint por hito y sin oleadas.</li>
+    <li>En Q4 dijiste que «estos primeros niveles se definen por hitos».</li></ul>`,
+  opciones:[
+    {v:"A", t:"Campaign-V2 sustituye a la campaña actual", d:"Rehace desde el inicio el primer nivel: hitos de fábrica inspirados en H0–H5, con las 5 batallas intercaladas. La campaña H0–H5 queda como referencia y para QA."},
+    {v:"B", t:"H0–H5 es el nivel 1 tal cual y Campaign-V2 es el nivel 2", d:"Empieza después de H5 y trae las batallas."},
+    {v:"C", t:"Campaign-V2 contiene H0–H5 sin cambios más las batallas", d:"Mismos hitos y reglas, con batallas añadidas entre ellos."}],
+  rec:["A"], recTexto:"A. Encaja con «desde el inicio, una sola cosa». «Nivel 2» se lee como «segunda versión de Campaign», no como un nivel que va detrás de H5. Las reglas de fábrica de H0–H5 se reutilizan al principio."
+},
+{
+  id:"R3", titulo:"¿En qué orden se intercalan hitos y batallas?", tipo:"radio",
+  cuerpo:"Solo aplica si en R2 respondes A o C. El consolidado propone un «arma defensiva básica por defecto, para no exigir una cadena industrial enorme antes del primer contacto con el combate». Las lecciones de cada lado coinciden bastante:",
+  hechos:`<ul>
+    <li>H0 enseña <code>await</code>; la Batalla 1 enseña un bucle con espera.</li>
+    <li>H2 enseña <code>if / else</code>; la Batalla 2 también.</li>
+    <li>H4 introduce el control maestro; la Batalla 5 enseña un programa por máquina y a leer otra máquina.</li>
+    <li>Las Batallas 4 y 5 dependen del cargador y del suministro: ahí la fábrica pesa más.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Alternando", d:"H0 → B1 → H1 → B2 → H2 → B3 → H3 → B4 → H4 → B5 → H5."},
+    {v:"B", t:"Todos los hitos primero y luego las 5 batallas", d:""},
+    {v:"C", t:"Las batallas llegan por tiempo mientras la fábrica corre", d:"Sin orden fijo de hitos."},
+    {v:"D", t:"Otro orden (en notas)", d:""}],
+  rec:["A"], recTexto:"A como primer borrador: cada batalla refuerza lo que acaba de enseñar el hito anterior. El orden exacto se ajusta al jugar."
+},
+{
+  id:"R4", titulo:"La fábrica corre durante la batalla: ¿cómo se conserva la paridad con War?", tipo:"radio",
+  cuerpo:"En Q4 pediste que la fábrica siga funcionando durante la batalla, y en Q5, batallas idénticas al principio. Si la fábrica cambia el suministro en vivo, la batalla ya no da la misma huella que War.",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Dos modos", d:"Con el selector de misiones, cada batalla corre con los parámetros exactos de War (misma huella). Dentro de la campaña, la fábrica sí cambia cargador y suministro."},
+    {v:"B", t:"La fábrica corre durante la batalla, pero todavía no le afecta", d:"Paridad siempre. El acople llega en otra fase."},
+    {v:"C", t:"Acople en vivo desde el primer hito", d:"Sin paridad con War."}],
+  rec:["A"], recTexto:"A. La red de seguridad de las referencias sigue valiendo y la campaña ya se siente conectada."
+},
+{
+  id:"R5", titulo:"La muralla, las torretas y la línea de brechas", tipo:"radio",
+  cuerpo:"En Q7 dijiste que las torretas esfera van sobre la muralla, como en las primeras versiones de War. En las reglas actuales, los lanzadores están en x = 6 y la brecha se cuenta en x = 3 (<code>LINEA_BASE</code>). La muralla es estática y no colisiona (Q9 = A).",
+  hechos:`<ul><li>Cambiar <code>LINEA_BASE</code> o la posición de los lanzadores cambia la huella (rompe Q5 = A).</li></ul>`,
+  opciones:[
+    {v:"A", t:"Muralla de x = 3 a x = 6, con las torretas encima de su cara frontal", d:"Un enemigo cuenta como brecha al llegar a la cara trasera, así que visualmente atraviesa la muralla."},
+    {v:"B", t:"Cara frontal en x = 3 y torretas en bastiones que sobresalen hasta x = 6", d:"Brecha = tocar la muralla. Las torretas siguen sobre la obra (en torres o bastiones), como las «torres en los quiebres» del papercraft."},
+    {v:"C", t:"Mover la línea de base o los lanzadores", d:"Cambio de reglas y huella nueva."}],
+  rec:["B"], recTexto:"B. No toca las reglas, ningún enemigo atraviesa piedra y la torreta queda montada en la muralla."
+},
+{
+  id:"R6", titulo:"¿Qué torreta esfera, y cómo dispara?", tipo:"check",
+  cuerpo:"Marca todo lo que quieras.",
+  hechos:`<ul>
+    <li>El GLB del juego (<code>torreta_observacion.glb</code>) es la <b>esfera original de 1 m con telescopio</b> (compuerta doble, azimut y dos inclinaciones; rig v2 con 21 poses).</li>
+    <li>El <b>rediseño vigente</b> (<code>esfera/</code>: dientes helicoidales y mecanismo S de sinfín con relevo, montado en torre) <b>no tiene GLB</b>; solo existe el generador de Blender y su animación para el menú de máquinas.</li></ul>`,
+  opciones:[
+    {v:"glb-actual", t:"Usar el GLB actual (esfera con telescopio) en el primer hito", d:""},
+    {v:"exportar-s", t:"Encargar el GLB del rediseño S", d:"Lo sustituiría más adelante."},
+    {v:"apuntar", t:"Apunta con su rig hacia el objetivo", d:"Azimut e inclinación según la escena."},
+    {v:"compuerta", t:"La compuerta se abre al entrar en combate", d:""},
+    {v:"telescopio", t:"El misil sale del extremo del telescopio", d:""},
+    {v:"atasco", t:"Muestra el atasco", d:"Compuerta cerrada o luz roja mientras está atascada."}],
+  rec:["glb-actual","exportar-s","apuntar","compuerta","telescopio","atasco"], recTexto:"Todo. Empezar con el GLB que ya existe y encargar el S como trabajo de arte en paralelo. Las animaciones salen del rig sin tocar las reglas."
+},
+{
+  id:"R7", titulo:"Aspecto de los placeholders («blocking»)", tipo:"radio",
+  cuerpo:"Dron, reparador, sensor y oruga irán como bloqueo para indicar que son provisionales.",
+  hechos:`<ul><li>El consolidado reserva el rojo para daño y ataque, y usa ámbar, verde y azul para los estados.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Gris neutro y primitivas con la silueta de cada tipo", d:"Oruga = caja baja alargada; dron = disco a 2,5 m; dron frío = disco translúcido; sensor = poste; reparador = cubo pequeño. Etiqueta con el id."},
+    {v:"B", t:"Las primitivas actuales de War sin cambios", d:""},
+    {v:"C", t:"Cajas iguales con etiqueta", d:"Nada de silueta."}],
+  rec:["A"], recTexto:"A. Se leen en combate y se ven provisionales a primera vista. Un material «blocking» común (gris con retícula) basta para todos."
+},
+{
+  id:"R8", titulo:"La UI que marcaste: ¿qué entra en el primer hito?", tipo:"tabla",
+  cuerpo:"En Q10 marcaste casi todo y en Q15 elegiste como primer hito la Batalla 1 sola (un lanzador y nada que construir ni mover). Reparte cada pieza.",
+  hechos:"",
+  filas:[
+    {id:"mision", label:"Botón Misión «!»", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"metas", label:"Metas en columna", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"vista", label:"Selector 3D / 2D centrado y vista de combate automática", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"ficha", label:"Ficha compacta", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"ficha3d", label:"Ficha completa con modelo 3D", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"vidas", label:"Vida de las unidades en batalla", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"arbol", label:"Árbol de unidades con casillas", d:"Sustituye la tira de tarjetas", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"archivo", label:"Archivo de programas", d:"Desplegable o menú", ops:["primer hito","después"], rec:"después"},
+    {id:"menu", label:"Menú ⋯ de pantallas", d:"", ops:["primer hito","después"], rec:"primer hito"},
+    {id:"guardado", label:"Guardado en varias ranuras y checkpoints en la derrota", d:"", ops:["primer hito","después"], rec:"después"},
+    {id:"maquinas", label:"Menú Máquinas (ingeniería inversa, investigación)", d:"", ops:["primer hito","después"], rec:"después"},
+    {id:"aoe", label:"Controles tipo Age of Empires", d:"", ops:["primer hito","después"], rec:"después"},
+    {id:"shapez", label:"Widget de colocar estilo shapez", d:"", ops:["primer hito","después"], rec:"después"}],
+  recTexto:"En el primer hito, lo que se ve y se usa en la Batalla 1. El Archivo y el guardado llegan con la primera fábrica. AoE, shapez y Máquinas, cuando haya unidades que mover y cosas que construir."
+},
+{
+  id:"R9", titulo:"¿Dónde termina el «editor como trunk»?", tipo:"radio",
+  cuerpo:"Pediste que el editor se viera como en trunk, pero el árbol de unidades y el Archivo van en la zona del código. Propongo separar dos términos para el glosario:",
+  hechos:`<ul>
+    <li><b>Editor</b>: <code>paquetes/editor</code> (CodeMirror, modo sin teclado, paleta, sugerencias, seudocódigo, revisión).</li>
+    <li><b>Panel de código</b>: el marco que lo rodea (hoy, la tira de tarjetas de unidades, las pestañas y la consola).</li></ul>`,
+  opciones:[
+    {v:"A", t:"El Editor queda idéntico a trunk y el Panel de código es nuevo", d:"Árbol plegable arriba a la izquierda, con casillas y «todas», más el Archivo al centro."},
+    {v:"B", t:"El árbol va fuera del panel de código", d:"Sobre el mapa, por ejemplo."},
+    {v:"C", t:"Otro reparto (en notas)", d:""}],
+  rec:["A"], recTexto:"A. Así el editor sigue siendo reutilizable (pilar del plan de arquitectura) y lo nuevo vive en la interfaz de Campaign-V2."
+},
+{
+  id:"R10", titulo:"Móvil y la tira de tarjetas", tipo:"radio",
+  cuerpo:"En Q11 pediste el móvil como trunk, pero en Q12 llamaste a la tira de tarjetas «completamente insostenible para cualquier momento mínimamente avanzado del juego».",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"El móvil conserva la tira por ahora", d:"Trunk exacto."},
+    {v:"B", t:"El móvil también cambia la tira por el árbol plegable", d:"Es la única excepción a «móvil como trunk»."}],
+  rec:["B"], recTexto:"B. El problema de escala es el mismo en el teléfono, y más grave por el espacio."
+},
+{
+  id:"R11", titulo:"«El mismo programa a varios»: ¿compartido o copiado?", tipo:"radio",
+  cuerpo:"Con varias unidades marcadas en el árbol, se les asigna un programa del Archivo.",
+  hechos:`<ul><li>Regla de War que se conserva: las órdenes de un programa solo valen para la máquina que lo ejecuta. Leer el estado de las demás sí se puede.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Compartido", d:"Todas ejecutan el mismo Programa del Archivo, cada una con su propia ejecución y estado. Editarlo cambia a todas."},
+    {v:"B", t:"Copiado", d:"El texto se copia a cada unidad y luego son independientes, como el «Copiar a los demás lanzadores» de War."},
+    {v:"C", t:"Compartido por defecto, con «desvincular»", d:"Una unidad puede pasar a tener su propia copia."}],
+  rec:["C"], recTexto:"C. Es lo que hace útil al Archivo y no obliga a duplicar. Para el glosario: el Programa es el texto guardado en el Archivo; la Ejecución es ese programa corriendo en una unidad concreta."
+},
+{
+  id:"R12", titulo:"Selección: casillas del árbol y clic en el mapa", tipo:"radio",
+  cuerpo:"El feedback dice que marcar un robot lo ilumina y encuadra la cámara, y que el clic izquierdo estilo AoE selecciona.",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Una sola selección", d:"Clic o arrastre en el mapa marca las casillas y al revés. Programar y ordenar actúan sobre lo mismo."},
+    {v:"B", t:"Dos selecciones", d:"Las casillas eligen a quién se asigna el programa y el clic en el mapa da foco y órdenes."}],
+  rec:["A"], recTexto:"A. Una sola noción de «seleccionado» es más fácil de entender y de probar."
+},
+{
+  id:"R13", titulo:"Selector de misiones para pruebas", tipo:"radio",
+  cuerpo:"Es solo para pruebas (Q4) y War y Factory quedan ocultas pero accesibles (Q6 = C). ¿Cómo se entra?",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Menú de pruebas tras un parámetro de URL", d:"Por ejemplo <code>?pruebas=1</code>. Lista hitos y batallas de Campaign-V2 y enlaza War y Factory."},
+    {v:"B", t:"Entrada visible en Ajustes", d:""},
+    {v:"C", t:"Como el selector de retos de War, siempre visible", d:""}],
+  rec:["A"], recTexto:"A. Así no contamina la experiencia que quieres evaluar y entrar por un enlace de raw.githack sigue siendo fácil."
+},
+{
+  id:"R14", titulo:"Derrota en una batalla con la fábrica corriendo", tipo:"radio",
+  cuerpo:"Se pierde una batalla al superar <code>brechasMax</code>. Con mundo continuo, ¿qué se restaura?",
+  hechos:`<ul><li>Campaign ya guarda un checkpoint (mundo y programas) por hito. Q10: los checkpoints pasan a la pantalla de derrota.</li></ul>`,
+  opciones:[
+    {v:"A", t:"El checkpoint completo del inicio de la batalla", d:"Mundo y fábrica incluidos. Los programas que escribiste se conservan."},
+    {v:"B", t:"Solo se repite la batalla", d:"La fábrica conserva lo que produjo durante el intento."},
+    {v:"C", t:"Elegir entre checkpoints anteriores", d:"Desde la pantalla de derrota."}],
+  rec:["A"], recTexto:"A, con C como opción secundaria en esa pantalla. B rompe el determinismo de «escenario + semilla + órdenes»."
+},
+{
+  id:"R15", titulo:"Seudocódigo", tipo:"radio",
+  cuerpo:"En Q3 dijiste que la campaña podría tener seudocódigo. War lo tiene (ES/EN); Campaign H0–H5 no.",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Sí en las batallas desde el primer hito (ya existe); en la fábrica, más adelante", d:""},
+    {v:"B", t:"Más adelante en todo", d:""},
+    {v:"C", t:"No", d:""}],
+  rec:["A"], recTexto:"A. Es gratis en las batallas y la API de fábrica necesita su propio vocabulario."
+},
+{
+  id:"R16", titulo:"Glosario: hito, batalla y nivel", tipo:"radio",
+  cuerpo:"Dijiste que los títulos están por decidir. Lo que falta fijar es la estructura.",
+  hechos:`<ul><li>Q4: «estos primeros niveles se definen por hitos».</li></ul>`,
+  opciones:[
+    {v:"A", t:"Todo son Hitos", d:"Un Hito es de fábrica o de batalla (la Batalla es un hito de combate). Un Nivel es una cadena de hitos sobre un mismo mundo, y Campaign-V2 es una secuencia de niveles."},
+    {v:"B", t:"Hitos y Batallas son cosas distintas que se intercalan dentro del Nivel", d:""},
+    {v:"C", t:"Otro (en notas)", d:""}],
+  rec:["A"], recTexto:"A. Reutiliza el checkpoint por hito y el selector de misiones lista hitos sin distinguir el tipo."
+}
+];
+
+const CLAVE = "grill-campaign-v2-r2";
+const almacen = (() => { try { const s = window.localStorage; s.getItem(CLAVE); return s; } catch { return null; } })();
+let estado = {};
+try { estado = JSON.parse((almacen && almacen.getItem(CLAVE)) || "{}"); } catch { estado = {}; }
+const guardar = () => { try { almacen && almacen.setItem(CLAVE, JSON.stringify(estado)); } catch {} pintarProgreso(); };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const cont = $("#preguntas"); cont.innerHTML = "";
+  const idx = $("#indice"); idx.innerHTML = "";
+  for (const q of Q){
+    const st = estado[q.id] ||= {sel:[], filas:{}, extra:{}, nota:""};
+    const card = document.createElement("section"); card.className = "q"; card.id = q.id;
+    let html = `<div class="qh"><span class="qid">❓ ${q.id}</span><span class="qt">${q.titulo}</span><span class="estado"></span></div>
+      <div class="cuerpo">${q.cuerpo}</div>`;
+    if (q.hechos) html += `<details><summary>Lo que encontré</summary><div class="hechos">${q.hechos}</div></details>`;
+    if (q.tipo === "radio" || q.tipo === "check"){
+      html += `<div class="ops">` + q.opciones.map(o => {
+        const on = st.sel.includes(o.v);
+        const r = (q.rec||[]).includes(o.v) ? `<span class="badge">Recomendado</span>` : "";
+        return `<label class="op${on?" on":""}"><input type="${q.tipo==="radio"?"radio":"checkbox"}" name="${q.id}" value="${esc(o.v)}"${on?" checked":""}>
+          <span><b>${q.tipo==="radio"?o.v+" · ":""}${o.t}</b>${r}${o.d?`<span class="d">${o.d}</span>`:""}</span></label>`;
+      }).join("") + `</div>`;
+      if (q.tipo === "check") html += `<button class="mini" data-todo="${q.id}">Marcar o desmarcar todas</button>`;
+    }
+    if (q.tipo === "tabla"){
+      html += `<table class="tabla">` + q.filas.map(f => {
+        const v = st.filas[f.id] || "";
+        return `<tr><td><b>${f.label}</b><span class="d">${f.d}</span></td><td><select data-fila="${q.id}:${f.id}">
+          <option value="">— elegir —</option>` + f.ops.map(o => `<option${o===v?" selected":""} value="${esc(o)}">${esc(o)}${o===f.rec?" ★ recomendado":""}</option>`).join("") +
+          `<option value="__otro"${v==="__otro"?" selected":""}>otro (en notas)</option></select></td></tr>`;
+      }).join("") + `</table>`;
+    }
+    html += `<div class="rec">${q.recTexto}</div>`;
+    for (const e of (q.extra||[])){
+      html += `<label class="extra"><span>${e.label}</span><input type="text" data-extra="${q.id}:${e.id}" placeholder="${esc(e.ph)}" value="${esc(st.extra[e.id]||"")}"></label>`;
+    }
+    html += `<label class="extra"><span>Notas u otra respuesta</span><textarea data-nota="${q.id}" placeholder="Opcional">${esc(st.nota||"")}</textarea></label>`;
+    card.innerHTML = html; cont.appendChild(card);
+    const a = document.createElement("a"); a.href = "#"+q.id; a.textContent = q.id; a.dataset.q = q.id; idx.appendChild(a);
+  }
+  pintarProgreso();
+}
+
+function respondida(q){
+  const st = estado[q.id]; if (!st) return false;
+  if (q.tipo === "tabla") return q.filas.every(f => st.filas[f.id]);
+  return st.sel.length > 0 || (st.nota||"").trim().length > 0;
+}
+function pintarProgreso(){
+  let n = 0;
+  for (const q of Q){
+    const ok = respondida(q); if (ok) n++;
+    const card = document.getElementById(q.id);
+    if (card){ card.classList.toggle("done", ok); card.querySelector(".estado").textContent = ok ? "✓ respondida" : "pendiente"; }
+    const a = document.querySelector(`nav.indice a[data-q="${q.id}"]`); if (a) a.classList.toggle("done", ok);
+  }
+  $("#prog").textContent = `${n} / ${Q.length} respondidas`;
+}
+
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.matches(".op input")){
+    const q = Q.find(x => x.id === t.name), st = estado[q.id];
+    if (q.tipo === "radio") st.sel = [t.value];
+    else st.sel = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    document.querySelectorAll(`input[name="${q.id}"]`).forEach(i => i.closest("label").classList.toggle("on", i.checked));
+    guardar();
+  } else if (t.dataset.fila){
+    const [qid, fid] = t.dataset.fila.split(":"); estado[qid].filas[fid] = t.value; guardar();
+  }
+});
+document.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.dataset.extra){ const [qid, eid] = t.dataset.extra.split(":"); estado[qid].extra[eid] = t.value; guardar(); }
+  else if (t.dataset.nota){ estado[t.dataset.nota].nota = t.value; guardar(); }
+});
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-todo]"); if (!b) return;
+  const qid = b.dataset.todo, q = Q.find(x => x.id === qid), st = estado[qid];
+  st.sel = st.sel.length === q.opciones.length ? [] : q.opciones.map(o => o.v);
+  guardar(); render();
+});
+
+function texto(){
+  const lineas = ["# Grill · Campaign-V2 · Ronda 2 · respuestas", ""];
+  for (const q of Q){
+    const st = estado[q.id] || {sel:[], filas:{}, extra:{}, nota:""};
+    let r = "";
+    if (q.tipo === "tabla"){
+      r = "\n" + q.filas.map(f => `  - ${f.label}: ${st.filas[f.id] === "__otro" ? "otro (ver nota)" : (st.filas[f.id] || "—")}`).join("\n");
+    } else if (st.sel.length){
+      r = q.tipo === "radio"
+        ? st.sel.map(v => { const o = q.opciones.find(x => x.v === v); return `${v} · ${o ? o.t : v}`; }).join("")
+        : st.sel.join(", ");
+    } else r = "— sin marcar —";
+    lineas.push(`**${q.id} · ${q.titulo}:** ${r}`);
+    for (const e of (q.extra||[])) if ((st.extra[e.id]||"").trim()) lineas.push(`  - ${e.label}: ${st.extra[e.id].trim()}`);
+    if ((st.nota||"").trim()) lineas.push(`  - Nota: ${st.nota.trim().replace(/\n+/g, " / ")}`);
+  }
+  return lineas.join("\n");
+}
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
+function mostrarSalida(){ $("#salida").style.display = "block"; $("#salidaTxt").value = texto(); }
+
+$("#btnCopiar").onclick = async () => {
+  mostrarSalida();
+  try { await navigator.clipboard.writeText(texto()); toast("Copiado. Pégalo en el chat."); }
+  catch { $("#salidaTxt").select(); toast("Selecciona el texto de abajo y cópialo."); }
+};
+$("#btnMd").onclick = () => {
+  const blob = new Blob([texto()], {type:"text/markdown"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "grill-ronda-2-respuestas.md"; a.click();
+};
+$("#btnRec").onclick = () => {
+  let n = 0;
+  for (const q of Q){
+    const st = estado[q.id];
+    if (q.tipo === "tabla"){ for (const f of q.filas) if (!st.filas[f.id]){ st.filas[f.id] = f.rec; n++; } }
+    else if (!st.sel.length && q.rec){ st.sel = [...q.rec]; n++; }
+  }
+  guardar(); render(); toast(n ? `Rellenadas ${n} con la recomendación` : "No quedaba nada vacío");
+};
+$("#btnBorrar").onclick = () => { if (confirm("¿Borrar todas las respuestas de esta página?")){ estado = {}; guardar(); render(); $("#salida").style.display = "none"; } };
+
+render();
+</script>
+</body>
+</html>

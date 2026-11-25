@@ -18,9 +18,10 @@ export function instalarProgramasJuego(ctx) {
   const gemelos = id => { const e = ctx.mundo && ctx.mundo.porId[id]; return e ? ctx.mundo.programables.filter(u => u.id !== id && u.clase === e.clase) : []; };
   function pintarProgs() {
     const varios = ctx.programablesDe(ctx.def).length > 1;
-    ctx.$("progs").innerHTML = ctx.programablesDe(ctx.def).map(l => {
+    if (ctx.uiHito?.arbol) ctx.uiHito.arbol();
+    else ctx.$("progs").innerHTML = ctx.programablesDe(ctx.def).map(l => {
       const p = ctx.ejec && ctx.ejec.progs.get(l.id);
-      const est = ctx.lineaErr && ctx.lineaErr.id === l.id ? "error" : p ? (["nuevo", "corre"].includes(ctx.anfitrion.estado(l.id)) ? "corre" : ctx.anfitrion.estado(l.id) === "espera" ? "espera" : "") : "";
+      const est = (ctx.lineaErr && ctx.lineaErr.id === l.id) || (p && ctx.anfitrion.estado(l.id) === "error") ? "error" : p ? (["nuevo", "corre"].includes(ctx.anfitrion.estado(l.id)) ? "corre" : ctx.anfitrion.estado(l.id) === "espera" ? "espera" : "") : "";
       return `<button type="button" class="prog-tab" data-id="${l.id}" aria-pressed="${ctx.edicion.ids.includes(l.id)}"><span class="punto ${est}"></span><span class="prog-pre"></span>${l.id}</button>`;
     }).join("");
     ctx.$("b-copiar-prog").hidden = !varios || ctx.edicion.ids.length > 1 || (ctx.ES_CAMPAIGN && !gemelos(ctx.progSel).length);
@@ -37,6 +38,7 @@ export function instalarProgramasJuego(ctx) {
     ids = [...new Set(ids)].filter(id => Object.hasOwn(ctx.programas, id));
     if (!ids.length) return;
     if (!forzar && ids.join("|") === ctx.edicion.ids.join("|")) return;
+    ctx.vinculos?.preparar(ids);
     const textos = ids.map(ctx.textoDe), langs = ids.map(ctx.lenguajeDe);
     const variosLenguajes = langs.some(l => l !== langs[0]);
     ctx.edicion = { ids, mixto: variosLenguajes || textos.some(src => src !== textos[0]), lenguaje: variosLenguajes ? "js" : langs[0], variosLenguajes };
@@ -46,6 +48,7 @@ export function instalarProgramasJuego(ctx) {
     // Cambia el documento que se edita: el historial de deshacer de edicion.js va por documento.
     ctx.editorPrograma.abrir({ id: claveDocumento(), lenguaje: ctx.edicion.lenguaje, texto: ctx.$codigo.value, revision: 0 });
     actualizarEtiquetasEdicion();
+    if (leccionV2()) actualizarEtiquetasConfirmaciones();
     pintarProgs(); ctx.medirEditor(); pintarEdicion(); ctx.pintarPieIns(); pintarLenguaje(); ctx.marcasSucias = true;
   }
   function actualizarEtiquetasEdicion() {
@@ -135,6 +138,7 @@ export function instalarProgramasJuego(ctx) {
         ctx.fuentes[id] = { lenguaje: "python", texto, enUso: true };
       } else if (ctx.fuentes[id]) ctx.fuentes[id].enUso = false;
     }
+    ctx.vinculos?.sincronizar(ctx.edicion.ids);
     ctx.guardarProgramas(); configurarEdicion(ctx.edicion.ids, true); ctx.pintarInspector();
     if (sinConvertir.length) ctx.avisoEditor(`No se pudo pasar a Python: ${sinConvertir.join(" · ")}`);
     return true;
@@ -178,6 +182,8 @@ export function instalarProgramasJuego(ctx) {
     estado: () => ({ ejec: ctx.ejec, edicion: ctx.edicion, programas: ctx.edicion.lenguaje === "python" ? ctx.textosPython : ctx.programas, texto: ctx.$codigo.value }),
     confirmarReemplazo,
     alAplicar(ids) {
+      ctx.vinculos?.sincronizar(ids);
+      if (ctx.vinculos && ids.every(id => ctx.textoDe(id) === ctx.textoDe(ids[0]))) ctx.vinculos.unir(ids);
       ctx.borradoresMulti.delete(ctx.claveEdicion(ids) + ":" + ctx.edicion.lenguaje);
       ctx.guardarProgramas(); configurarEdicion(ids, true); ctx.pintarInspector();
     },
@@ -186,12 +192,34 @@ export function instalarProgramasJuego(ctx) {
   ctx.$("b-add").addEventListener("click", () => aplicarSiSeMezcla(false));
   ctx.$("b-replace").addEventListener("click", () => aplicarSiSeMezcla(true));
   ctx.$("b-coordenadas").addEventListener("click", () => { const texto = ctx.$("coordenadas").value.trim(); if (texto) ctx.insertar(texto); });
+  if (ctx.runtime) ctx.$("orden-manual").addEventListener("change", ev => {
+    const verbo = ev.target.value;
+    ev.target.value = "";
+    if (!ctx.ejec || !ctx.reglasProgramas.api.ordenes.includes(verbo)) return;
+    const args = [];
+    if (verbo !== "stopFire") {
+      try {
+        // El campo de War usa {x: 16, y: 9, z: 0}. Se admiten también claves JSON.
+        const lugar = JSON.parse(ctx.$("coordenadas").value.replace(/([{,]\s*)([xyz])\s*:/g, '$1"$2":'));
+        if (![lugar.x, lugar.y, lugar.z ?? 0].every(Number.isFinite)) throw new Error();
+        args.push({ x: lugar.x, y: lugar.y, z: lugar.z ?? 0 });
+      } catch {
+        ctx.avisoEditor(ctx.ti18n('cv2.lugar'));
+        return;
+      }
+    }
+    ctx.encolar({ tipo: 'orden', unidad: ctx.progSel, verbo, args });
+  });
   let confirmarCopia = false;
   let confirmarRestaurar = false;
+  let anteriorLeccion = null;
+  const leccionV2 = () => ctx.checkpointsV2 && ctx.retoIdx !== ctx.IDX_PROPIO;
+  const documentoLeccion = () => ctx.claveDocumento() + ':' + ctx.progSel;
   function actualizarEtiquetasConfirmaciones() {
     ctx.$("b-copiar-prog").textContent = ctx.ES_CAMPAIGN ? ctx.ti18n(confirmarCopia ? "campaign.copiar.confirmar" : "campaign.copiar", { clase: ctx.ti18n(ctx.mundo && ctx.mundo.porId[ctx.progSel] && ctx.mundo.porId[ctx.progSel].clase === "obrero" ? "campaign.copiar.obrero" : "campaign.copiar.maquina") })
       : ctx.ti18n(confirmarCopia ? "partida.programa.copiar.confirmar" : "partida.programa.copiar", { unidad: ctx.progSel });
-    ctx.$("b-restaurar").textContent = ctx.ti18n(confirmarRestaurar ? "partida.programa.restaurar.confirmar" : "partida.programa.restaurar");
+    ctx.$("b-restaurar").textContent = ctx.ti18n(leccionV2() ? (anteriorLeccion?.id === documentoLeccion() ? "cv2.deshacer" : "cv2.leccion")
+      : confirmarRestaurar ? "partida.programa.restaurar.confirmar" : "partida.programa.restaurar");
     ctx.$("b-copiar").textContent = ctx.ti18n("partida.telemetria.copiar");
     ctx.$("b-borrar").textContent = ctx.ti18n(ctx.confirmarBorrado ? "partida.telemetria.borrar.confirmar" : "partida.telemetria.borrar");
     ctx.$("copiado").textContent = ctx.ti18n("partida.telemetria.copiada");
@@ -205,6 +233,10 @@ export function instalarProgramasJuego(ctx) {
     }
     confirmarCopia = false; actualizarEtiquetasConfirmaciones();
     // Se copia el programa en su lenguaje: los demás pasan a ese lenguaje y conservan el otro.
+    if (ctx.vinculos) {
+      ctx.vinculos.unir([ctx.progSel, ...ctx.def.lanzadores.map(l => l.id)]);
+      ctx.guardarProgramas(); pintarProgs(); return;
+    }
     const py = ctx.lenguajeDe(ctx.progSel) === "python";
     for (const l of (ctx.ES_CAMPAIGN ? gemelos(ctx.progSel) : ctx.def.lanzadores)) if (l.id !== ctx.progSel) {
       if (py) ctx.fuentes[l.id] = { lenguaje: "python", texto: ctx.fuentes[ctx.progSel].texto.split(ctx.progSel).join(l.id), enUso: true };
@@ -214,6 +246,21 @@ export function instalarProgramasJuego(ctx) {
   });
   ctx.$("b-restaurar").addEventListener("click", (ev) => {
     if (ctx.ejec) return;
+    if (leccionV2()) {
+      const id = documentoLeccion();
+      if (anteriorLeccion?.id === id) {
+        ctx.ponerTexto(ctx.progSel, anteriorLeccion.texto);
+        anteriorLeccion = null;
+      } else {
+        const js = (ctx.def.inicial[ctx.progSel] ?? []).join("\n");
+        const programa = ctx.lenguajeDe(ctx.progSel) === 'python' ? ctx.convertirAPython(js).texto : js;
+        if (programa == null) return;
+        anteriorLeccion = { id, texto: ctx.textoDe(ctx.progSel) };
+        ctx.ponerTexto(ctx.progSel, programa);
+      }
+      ctx.guardarProgramas(); abrirPrograma(ctx.progSel); actualizarEtiquetasConfirmaciones();
+      return;
+    }
     if (!confirmarRestaurar) {
       confirmarRestaurar = true; actualizarEtiquetasConfirmaciones();
       setTimeout(() => { confirmarRestaurar = false; actualizarEtiquetasConfirmaciones(); }, 3000);
@@ -223,8 +270,9 @@ export function instalarProgramasJuego(ctx) {
     ctx.ponerTexto(ctx.progSel, ctx.lenguajeDe(ctx.progSel) === "python" ? ctx.textoInicialPython(ctx.def, ctx.progSel) : ctx.textoInicial(ctx.def, ctx.progSel)); ctx.guardarProgramas(); abrirPrograma(ctx.progSel);
   });
   function pintarEdicion() {
-    ctx.$codigo.readOnly = !!ctx.ejec;
-    for (const id of ["b-add", "b-replace", "b-coordenadas", "coordenadas"]) ctx.$(id).disabled = !!ctx.ejec;
+    ctx.$codigo.readOnly = ctx.edicionBloqueada;
+    for (const id of ["b-add", "b-replace"]) ctx.$(id).disabled = !!ctx.ejec;
+    for (const id of ["b-coordenadas", "coordenadas"]) ctx.$(id).disabled = ctx.edicionBloqueada;
     ctx.marcasSucias = true;
     ctx.$codigo.dispatchEvent(new CustomEvent("cmg:estado"));
   }

@@ -61,7 +61,7 @@ export function instalarPythonJuego(ctx) {
     const sensor = ctx.mundo && ctx.mundo.sensores[0] ? ctx.varDe(ctx.mundo.sensores[0].id) : null;
     if (atajosPy && atajosPySensor === sensor) return atajosPy;
     atajosPySensor = sensor;
-    atajosPy = ctx.paletaSegura(() => CMGPaleta.crearPython({ serie: ctx.SERIE, sensor: () => sensor, aPython })).atajos;
+    atajosPy = ctx.paletaSegura(() => CMGPaleta.crearPython({ extension: ctx.extension, serie: ctx.SERIE, sensor: () => sensor, aPython })).atajos;
     return atajosPy;
   }
 

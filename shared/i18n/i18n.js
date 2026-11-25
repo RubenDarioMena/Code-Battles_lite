@@ -3,7 +3,7 @@
   'use strict';
 
   var ventana = typeof window !== 'undefined' ? window : global;
-  var claveStorage = 'cmg-interfaz-idioma';
+  var claveStorage = ventana.document?.currentScript?.dataset?.claveIdioma || 'cmg-interfaz-idioma';
   var catalogos = { es: Object.create(null), en: Object.create(null) };
   var idiomaActual = 'es';
   var inicializado = false;

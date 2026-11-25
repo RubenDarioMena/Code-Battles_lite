@@ -4,6 +4,7 @@ import { configurar, ICONOS } from '../../editor/index.js';
 import { registrarIconosFactory, instalarLayout } from '../../interfaz/index.js';
 import { instalarRemota } from './remota.js';
 import { instalarRevisionJuego } from './revision-juego.js';
+import { abrirFabrica, instalarInterfazV2 } from './campaign-v2.js';
 import { crearEstadoJuego } from './estado.js';
 import { instalarCicloProgramas } from './ciclo-programas.js';
 import { instalarCierreIntentos } from './cierre-intentos.js';
@@ -36,9 +37,14 @@ export function arrancarJuego(opciones = {}) {
     } });
   registrarIconosFactory(ICONOS);
   const ctx = crearEstadoJuego({ ...opciones, plataforma });
+  if (!abrirFabrica(ctx, () => montarInterfaz(ctx, servicios))) montarInterfaz(ctx, servicios);
+}
+
+function montarInterfaz(ctx, servicios) {
   const conectar = instalar => Object.defineProperties(ctx,
     Object.getOwnPropertyDescriptors(instalar(ctx)));
   conectar(instalarCicloProgramas);
+  conectar(instalarInterfazV2);
   conectar(instalarCierreIntentos);
   conectar(instalarConsola);
   conectar(instalarVistasJuego);
@@ -61,9 +67,9 @@ export function arrancarJuego(opciones = {}) {
   conectar(instalarBucleJuego);
   conectar(instalarProveedorJuego);
   conectar(instalarArranqueJuego);
-  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg, servicios);
+  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg, servicios, ctx.batallasV2 ? ctx.plataforma.almacen : undefined);
   instalarLayout(ctx);
-  ctx.cmg.remota = instalarRemota(ctx);
+  if (!ctx.batallasV2) ctx.cmg.remota = instalarRemota(ctx);
   // Diagnóstico accesible sin publicar los antiguos globales.
   ctx.cmg.pulsos = ctx.CMGPulsos;
   ctx.cmg.estructura = ctx.lenguaje.ESTRUCTURA;

@@ -1,0 +1,10 @@
+[.scratch/campaign-v2-wayfinder/astra/ARQUITECTURA-ASTRA.md](/Users/rubenmena/Documents/Dev/Code-battle-lite/.scratch/campaign-v2-wayfinder/astra/ARQUITECTURA-ASTRA.md)
+
+La fábrica y la muralla comparten un mundo que continúa de una Batalla a la siguiente.  
+Mientras la Torreta esfera dispara, la fábrica puede producir la munición que le falta.  
+Las cinco primeras Batallas toman de War sus enemigos, sus oleadas y sus metas.  
+El menú de pruebas permite repetirlas y comprobar que cada paso coincide con el original.  
+Añadir una Batalla con piezas conocidas requiere describirla y situarla en el nivel.  
+Un vehículo nuevo puede probarse dentro de la campaña antes de incorporarlo a un nivel.  
+Cambiar su modelo en pantalla conserva lo que el vehículo hace y lo que sabe su programa.  
+La primera entrega jugable es «Primer blanco», con la Torreta esfera montada en su bastión.

@@ -6,11 +6,12 @@ export function instalarEtiquetas(ctx) {
   const $capa = ctx.$("capa"), etiquetas = new Map();
   function pintarCapa(off, ahora) {
     const vista = ctx.vistaActual();
+    ctx.uiHito?.vida?.(ctx.mundo.enemigos, vista, off);
     const vivos = new Set(), puestas = [];
     const cercaC = ctx.ES_CAMPAIGN && (ctx.vista === "3d" && ctx.V3 ? ctx.V3.camara().dist < 55 : vista.proyectar(1, 0, 0).x - vista.proyectar(0, 0, 0).x > 9);
     for (const e of ctx.mundo.maquinas) {
       const alto = ctx.ES_CAMPAIGN ? ctx.uiC.altoEtiqueta(e) : e.clase === "lanzador" ? 1.45 : e.clase === "vibracion" ? 1.7 : e.clase === "deposito" ? 1.1 : .9;
-      const p = vista.proyectar(e.cx, alto, e.cy, ctx.radioDe(e));
+      const p = vista.proyectarUnidad?.(e, alto) ?? vista.proyectar(e.cx, alto, e.cy, ctx.radioDe(e));
       vivos.add(e.id);
       let o = etiquetas.get(e.id);
       if (!o) {
@@ -22,11 +23,12 @@ export function instalarEtiquetas(ctx) {
       const atasco = e.clase === "lanzador" && e.atascado;
       // Campaign: los contadores de tarimas y máquinas se ven de cerca sin seleccionar nada.
       const fija = ctx.ES_CAMPAIGN && !ctx.seleccionadas.has(e.id) && cercaC && ctx.uiC.siempre(e);
-      const txt = ctx.ES_CAMPAIGN ? (fija ? ctx.uiC.etiqueta(e).replace(`${e.id} · `, "") : ctx.uiC.etiqueta(e)) : e.clase === "lanzador" ? `${e.id} · ${e.misiles}▮${atasco ? " ⚠" : ""}` : e.id;
+      const escucha = ctx.ejec && ctx.runtime?.eventos.some(evento => ctx.anfitrion.escucha(e.id, evento));
+      const txt = ctx.ES_CAMPAIGN ? (fija ? ctx.uiC.etiqueta(e).replace(`${e.id} · `, "") : ctx.uiC.etiqueta(e)) : e.clase === "lanzador" ? `${escucha ? "⌖ " : ""}${e.id} · ${e.misiles}▮${atasco ? " ⚠" : ""}` : e.id;
       if (txt !== o.txtEtq) { o.etq.textContent = txt; o.txtEtq = txt; }
       o.etq.className = `etq${e.id === ctx.seleccion ? " principal" : ""}${atasco ? " atasco" : ""}${fija ? " fija" : ""}`;
       // Los nombres solo aparecen en las unidades seleccionadas: sin selección no tapan a nadie.
-      o.etq.hidden = !p.visible || !(ctx.seleccionadas.has(e.id) || fija);
+      o.etq.hidden = !p.visible || !(ctx.seleccionadas.has(e.id) || fija || escucha);
       if (!o.etq.hidden) puestas.push({ o, x: p.x, y: p.y, w: txt.length * 7.2 + 22, h: 21 });
       const gl = ctx.globos.get(e.id);
       if (gl && ahora < gl.hasta && p.visible) {

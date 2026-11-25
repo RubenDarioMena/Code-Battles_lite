@@ -14,6 +14,7 @@ export function crearVista(contenedor, opciones) {
     get escena() { return dibujando ? actual : externo?.escena ?? actual; },
     get seleccion() { return externo?.seleccion ?? null; },
     get seleccionadas() { return externo?.seleccionadas ?? new Set(); },
+    camaraPlano: externo?.camaraPlano,
     get arrastreCampo() { return externo?.arrastreCampo ?? null; },
     get cols() { return externo?.cols ?? opciones.cols; },
     get rows() { return externo?.rows ?? opciones.rows; },

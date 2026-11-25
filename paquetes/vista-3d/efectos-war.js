@@ -2,9 +2,9 @@ import { crearEfectos, crearRecetasWar, recetaWar } from '../vfx/index.js';
 import { crearDibujanteEfectos } from './efectos.js';
 
 /** @param {any} estado @param {any} opciones */
-export function crearEfectosWar(estado, { dt, MISIL }) {
+export function crearEfectosWar(estado, { dt, MISIL, alturaLanzador = undefined }) {
   const efectos = crearEfectos({ dt, recetas: crearRecetasWar({ radioDanio: MISIL.radio }), recetaDe: recetaWar });
-  const origenes = crearOrigenes(dt);
+  const origenes = crearOrigenes(dt, alturaLanzador);
   let dibujante = null, renderer, camara, grupo;
   function redimensionar() {
     if (!dibujante) return;
@@ -41,7 +41,7 @@ export function crearEfectosWar(estado, { dt, MISIL }) {
 }
 
 // Solo conserva posiciones visuales, nunca entidades ni referencias al mundo.
-function crearOrigenes(dt) {
+function crearOrigenes(dt, alturaLanzador) {
   const enemigos = new Map();
   let pendientes = [];
   const posicion = e => [e.cx ?? e.x, e.cy ?? e.y, e.z ?? 0];
@@ -56,7 +56,7 @@ function crearOrigenes(dt) {
       const l = escena?.lanzadores?.find(e => e.id === s.unidad);
       if (s.tipo === 'disparo' || s.tipo === 'atasco' || s.tipo === 'reparado') {
         if (!l) return;
-        datos.origen = [l.cx, l.cy, s.tipo === 'reparado' ? 0 : 1];
+        datos.origen = [l.cx, l.cy, (alturaLanzador?.(l) ?? 0) + (s.tipo === 'reparado' ? 0 : 1)];
         if (s.tipo === 'disparo') datos.rumbo = Math.atan2(Number(datos.y) - l.cy, Number(datos.x) - l.cx);
         else datos.rumbo = l.yaw || 0;
       } else if (s.tipo === 'derribo') {

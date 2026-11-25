@@ -1,0 +1,19 @@
+cuenta,inicio_local,fin_utc,modelo,esfuerzo,llamadas_modelo,entrada,entrada_cacheada,salida,razonamiento,ctx_max,uso_5h_inicio,uso_5h_fin,uso_semana_inicio,uso_semana_fin,worktree,tarea
+codex,2026-11-22T17-39-50,2026-11-22T23:40,gpt-6.2-astra,high,2,62013,25344,415,83,36592,0.0,2.0,52.0,52.0,Code-battle-lite-papercraft,
+codex,2026-11-22T17-40-48,2026-11-23T07:47,gpt-6.2-astra,high,100,11460223,10934912,67325,11789,197598,4.0,25.0,52.0,66.0,Code-battle-lite-papercraft,
+codex,2026-11-23T17-39-22,2026-11-23T23:39,gpt-6-luna,medium,6,193550,150528,1330,465,42124,0.0,0.0,66.0,66.0,Code-battle-lite,
+codex,2026-11-23T19-25-52,2026-11-24T02:08,gpt-6-luna,xhigh,25,3270855,3051264,89921,70544,215071,0.0,2.0,66.0,66.0,Code-battle-lite,
+codex,2026-11-23T22-26-43,2026-11-24T04:31,gpt-6.2-astra,high,13,894743,792960,10867,1372,108353,2.0,19.0,66.0,69.0,Code-battle-lite,# Brief para Astra · arquitectura alternativa de Campaign-V2 (alias «B2»)
+codex,2026-11-24T00-40-19,2026-11-24T06:49,gpt-6.2-astra,high,38,4435555,4301440,17617,3969,146129,0.0,41.0,69.0,75.0,Code-battle-lite-cv2,# Brief para Astra · Campaign-V2 · porción P1 «Esqueleto y paridad»
+codex,2026-11-24T06-05-46,2026-11-24T12:20,gpt-6.2-astra,high,56,8523167,8358784,31559,7333,205506,0.0,70.0,0.0,11.0,Code-battle-lite-cv2,"# Brief para Astra · Campaign-V2 · porción P2 «Fábrica, puente y checkpoint»"
+codex,2026-11-24T06-34-26,2026-11-24T12:40,gpt-6.2-astra,high,26,2573570,2454400,12781,1986,144763,71.0,100.0,11.0,16.0,Code-battle-lite-cv2,# Brief para Astra · Campaign-V2 · porción P3a «Runtime base del primer corte»
+codex,2026-11-24T11-06-15,2026-11-24T17:22,gpt-6.2-astra,high,53,8081855,7884544,35434,9067,208926,0.0,71.0,16.0,27.0,Code-battle-lite-cv2,# Brief para Astra · Campaign-V2 · porción P4a «Escenario 3D en metros»
+codex,2026-11-24T11-31-25,2026-11-24T17:35,gpt-6.2-astra,high,21,2085928,1947776,10191,628,151895,73.0,98.0,27.0,31.0,Code-battle-lite-cv2,# Brief para Astra · Campaign-V2 · porción P4b «UI del primer hito»
+codex,2026-11-24T16-30-59,2026-11-25T02:55,gpt-6.2-astra,high,18,1000173,810496,4976,315,127637,0.0,32.0,31.0,36.0,Code-battle-lite-cv2,"# Brief para Astra · Campaign-V2 · porción P5a «Movimiento, VEH y tirador»"
+codex,2026-11-24T21-49-32,2026-11-25T04:02,gpt-6.2-astra,high,62,9107476,8944000,26209,3535,199488,0.0,70.0,36.0,47.0,Code-battle-lite-cv2,> Una sesión anterior empezó esta porción y se cortó por cuota. Su trabajo está en el árbo
+codex-astra,2026-11-24T06-42-20,2026-11-24T12:46,gpt-6.2-astra,medium,26,2036559,1941760,6457,774,99383,0.0,21.0,9.0,12.0,Code-battle-lite-cv2,# Brief para Astra · cierre de P3a
+codex-astra,2026-11-24T06-49-43,2026-11-24T13:05,gpt-6.2-astra,high,67,9884017,9714816,33144,5867,211086,22.0,99.0,12.0,25.0,Code-battle-lite-cv2,"# Brief para Astra · Campaign-V2 · porción P3b «Eventos, clic programado y gestos»"
+codex-astra,2026-11-24T11-43-22,2026-11-24T17:56,gpt-6.2-astra,high,66,10932755,10727424,30399,6291,229653,0.0,84.0,25.0,38.0,Code-battle-lite-cv2,> Una sesión anterior empezó esta porción y se cortó por cuota. Su trabajo está en el árbo
+codex-astra,2026-11-24T12-02-47,2026-11-24T18:05,gpt-6.2-astra,high,13,789270,687488,5868,683,117512,86.0,99.0,38.0,40.0,Code-battle-lite-cv2,> Una sesión anterior empezó esta porción y se cortó por cuota. Su trabajo está en el árbo
+codex-astra,2026-11-24T20-55-56,2026-11-25T03:12,gpt-6.2-astra,high,65,10723954,10524800,33896,6926,241271,4.0,88.0,41.0,54.0,Code-battle-lite-cv2,> Una sesión anterior empezó esta porción y se cortó sin terminar. Su trabajo está en el á
+codex-astra,2026-11-24T21-48-37,2026-11-25T03:49,gpt-6.2-astra,high,10,548322,464128,1116,0,98460,90.0,100.0,55.0,56.0,Code-battle-lite-cv2,# Brief para Astra · Campaign-V2 · porción «Página propia»

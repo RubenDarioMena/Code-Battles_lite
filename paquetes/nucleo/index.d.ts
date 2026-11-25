@@ -21,6 +21,7 @@ export interface MundoConSucesos { t: number; sucesos?: RegistroSucesos }
 /** Respuesta de un encargo; la instantánea se toma al terminarlo, incluso a mitad de paso. */
 export type Respuesta = { unidad: string; resultado: string; ref?: string } &
   ({ modo: true; instantanea?: never } | { modo?: false; instantanea: Instantanea });
+export interface EventoPrograma { evento: string; unidad: string; datos: DatoPlano }
 export interface Reglamento<Mundo, Escenario, Evaluacion = DatoPlano> {
   id: string;
   version: string | number;
@@ -30,7 +31,22 @@ export interface Reglamento<Mundo, Escenario, Evaluacion = DatoPlano> {
   instantanea(mundo: Mundo): Instantanea;
   evaluar(mundo: Mundo): Evaluacion;
   /** Devuelve y vacía la cola de respuestas del reglamento (opcional). */
+  eventos?(mundo: Mundo): EventoPrograma[];
   respuestas?(mundo: Mundo): Respuesta[];
+}
+export interface FuenteIntento {
+  fuente: string;
+  codigo: string;
+  lenguaje: 'js' | 'python';
+  diagnostico?: { mensaje: string; linea: number | null };
+}
+export type EntradaIntento =
+  | { tipo: 'orden'; unidad: string; verbo: string; args: Orden['args'] }
+  | ({ tipo: 'programa'; unidad: string } & FuenteIntento);
+export interface GrabacionIntento {
+  semillaIntento: number;
+  programas: Record<string, FuenteIntento>;
+  entradas: (EntradaIntento & { paso: number })[];
 }
 export interface DatosPartida<Escenario = DatoPlano> {
   reglas: string;
@@ -39,9 +55,12 @@ export interface DatosPartida<Escenario = DatoPlano> {
   semilla: number;
   paso: number;
   ordenes: Orden[];
+  intento?: GrabacionIntento;
 }
 export interface Partida<Mundo, Escenario, Evaluacion = DatoPlano> {
   mundo: Mundo & { sucesos: RegistroSucesos };
+  iniciarGrabacion(semillaIntento: number, programas: GrabacionIntento['programas']): void;
+  registrarEntrada(entrada: EntradaIntento): void;
   ordenar(orden: Orden): void;
   aplicarOrdenes(): void;
   paso(): void;

@@ -22,7 +22,7 @@ export interface Estadisticas {
 }
 export interface Maquina {
   id: string; clase: string; cx: number; cy: number; st?: Estadisticas;
-  modo?: string; lugar?: Lugar | null; cd?: number; misiles?: number; carga?: number;
+  modo?: string; lugar?: Lugar | null; cd?: number; misiles?: number; carga?: number; suministro?: number;
   falla?: number; riesgo?: number; umbral?: number; tReparar?: number;
   atascado?: boolean; yaw?: number; sinMisiles?: boolean; alcance?: number;
   bx?: number; by?: number; estado?: string; objetivo?: string | null; t?: number;
@@ -79,6 +79,7 @@ export interface ReglamentoWar extends Reglamento<Mundo, Escenario, Final | null
     conf: { fallaRafaga: number; cadencia: number; cadenciaRafaga: number };
   };
 }
+export function fijarSuministro(lanzador: Maquina, ritmo: number): void;
 export function crear(def: Reto, semilla: number | null, rng?: Rng): Mundo;
 export function aplicarOrden(mundo: Mundo, orden: Orden): void;
 export const TIPOS: ReglamentoWar['api']['tipos'];
@@ -95,3 +96,7 @@ export const retos: {
 };
 declare const reglamento: ReglamentoWar;
 export default reglamento;
+
+export function pasoConIntentoPuntual(mundo: Mundo, dt: number, pendientes: Map<string, Lugar>, descartar: (id: string, motivo: string) => void): void;
+export function leerEnemigos(mundo: Mundo): Mundo['enemigos'];
+export function danoEnArea(mundo: Mundo, x: number, y: number, radio: number, dano: number, por?: string | null): string[];

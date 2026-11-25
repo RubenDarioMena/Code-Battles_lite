@@ -1,5 +1,5 @@
-/** @param {any} cmg @param {any} servicios */
-export function instalarRevisionJuego(cmg, servicios) {
+/** @param {any} cmg @param {any} servicios @param {import("../index.js").Plataforma["almacen"]} [almacen] */
+export function instalarRevisionJuego(cmg, servicios, almacen = undefined) {
   const dom = /** @type {any} */ (document);
 /* Modo revisión dentro del juego (War, JavaScript).
  *
@@ -48,7 +48,7 @@ export function instalarRevisionJuego(cmg, servicios) {
     caja.hidden = false;
     app.dataset.revision = "";
     const G = { formato: 2, serie: r.serie, reto: r.reto, titulo: r.titulo, programas };
-    vista = motor.revision.montar(caja, G, { modo: "lectura", programa: r.seleccionado, alMapa: () => salir("mapa"), alCodigo: () => salir("codigo") });
+    vista = motor.revision.montar(caja, G, { modo: "lectura", almacen, programa: r.seleccionado, alMapa: () => salir("mapa"), alCodigo: () => salir("codigo") });
     
   }
 

@@ -6,7 +6,7 @@ import { crearTerreno } from './campaign-terreno.js';
 const PIEZA = { steel: "#9fb2c0", polymer: "#e6d79a", nose: "#e2704c", base: "#5fa06a", charge: "#b884e0", motor: "#e0a04e", missile: "#eef2f4" };
 const LUZ = { green: "#4be38a", amber: "#ffc247", red: "#ff5a4f" };
 // mapa y reglas (esRobot, esMaquina, estadoMaquina) los da la app: una vista no importa reglamentos.
-export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, rgba, mapa, reglas: C, leerBatalla = () => false }) {
+export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, rgba, mapa, reglas: C, iconoUnidad = undefined, leerBatalla = () => false }) {
   const T = crearTerreno(mapa);
   const ESC = 2;  // píxeles por metro de la imagen del relieve
   let fondo = null, fondoBatalla = null, claveFondo = "";
@@ -94,6 +94,7 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
       ta.piezas.forEach((pz, i) => { g.fillStyle = PIEZA[pz]; g.fillRect(X(x - .52 + (i % 4) * .27), Y(y - .42 + Math.floor(i / 4) * .3), .2 * S, .2 * S); });
     };
     for (const e of m.maquinas) {
+      if (iconoUnidad) { iconoUnidad(g, e, X(e.cx), Y(e.cy), 2.4 * S, m.t); continue; }
       if (e.clase === "lugar" || e.clase === "bahia" || e.clase === "pad" || e.clase === "pila") {
         const a = e.clase === "pad" ? 2.6 : e.clase === "bahia" ? 2.6 : 1.7, b = e.clase === "bahia" ? 3.4 : a;
         g.setLineDash(e.clase === "pad" ? [4, 4] : []); cuadro(e.cx, e.cy, a, b, rgba(e.tipo === "sup" || e.clase === "bahia" ? col.accent : col.edge, .14), rgba(e.tipo === "sup" || e.clase === "bahia" ? col.accent : col.edge, .8)); g.setLineDash([]);

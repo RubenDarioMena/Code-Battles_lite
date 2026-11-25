@@ -1,3 +1,90 @@
+## Campaign-V2 · Página propia · 24 de noviembre de 2026
+
+El prototipo abre H0, B1–B5 y Salida desde `Prototypes/Campaign-V2/`. El editor, el idioma y el modo revisión usan almacenamiento propio. H0 conserva los checkpoints de P2 y su fábrica vive en el reglamento V2. Rocket Launcher conserva el acceso antiguo mediante redirección. La suite de Node dio **82 ok, 7 falla, 0 omitida**. Las fronteras de War, Factory y Campaign pasaron. El arranque y los controles se comprobaron en DOM emulado. Queda la revisión visual de Claude en el puerto 8779. [Informe de la porción](docs/campaign-v2/PAGINA-INFORME.md).
+
+## Campaign-V2 · P5a · Movimiento, VEH y tirador · 24 de noviembre de 2026
+
+En Salida, VEH-01 cruza la puerta, espera la llegada y derriba drones con un proyectil de V2. El tirador puede destruirlo. El árbol muestra la reposición y el intérprete vuelve a la primera línea de la fuente vigente. Cada pieza ocupa dos archivos propios, una importación y una llamada explícita en el paso. La primera integración requirió además cambios en el anfitrión, el editor y ambas vistas. La suite dio **81 ok, 7 falla, 0 omitida**, con los siete fallos de base. Se verificaron JS y Python, la conversión de Seudo, el árbol en DOM emulado y la escena de Three con GLB locales. El puerto 8771 quedó bloqueado para la revisión en navegador. P5b recoge WHL, minador y menú de pruebas. [Coste real y ensayo local](docs/campaign-v2/P5a-INFORME.md).
+
+## Campaign-V2 · P4b · UI del primer hito · 24 de noviembre de 2026
+
+El árbol comparte selección con el mapa y guarda los programas vinculados en los checkpoints. H0 y Batalla tienen Misión y metas en vivo. La ficha completa muestra el modelo en rotación y los enemigos muestran su vida en ambas vistas. La cámara incluye los bastiones y la entrada, también en vertical. La suite de Node dio **80 ok, 7 falla, 0 omitida**, con los siete fallos de base. Se comprobaron controles en DOM emulado, proyecciones con GLB reales y vistas rasterizadas por software. Queda revisar la disposición final en navegador a 375 × 812 y en PC. [Informe de P4b, supuestos y enlaces de QA](docs/campaign-v2/P4b-INFORME.md).
+
+## Campaign-V2 · P4a · Escenario 3D en metros · 24 de noviembre de 2026
+
+H0 y las Batallas de campaña y ensayo muestran la fábrica y el frente de Traba en metros. La torreta sigue el objetivo con el rig del GLB. El colocador funciona en el plano y en 3D, antes de ejecutar y en pausa. Las pruebas de Node dieron **79 ok, 7 falla, 0 omitida**, con los siete fallos de la línea base. El cargador y los rayos de Three se comprobaron con los GLB reales y el renderer emulado. Quedan la revisión visual y la reubicación de la losa horneada. P4b recoge la UI del primer hito. [Informe de P4a y enlaces locales](docs/campaign-v2/P4a-INFORME.md).
+
+## Campaign-V2 · P4a lógica y daño de War · 24 de noviembre de 2026
+
+Las vistas de V2 ya tienen la escena en metros (`escenaMetros`): la Batalla se traslada en (204, 72) y la fábrica de H0 en (103, 22). La escena de War, la instantánea y las huellas siguen en casillas. El Nivel 1 declara tres bastiones, que coinciden con los puestos de War, y el validador los comprueba. La orden `colocar` mueve una torreta a un bastión libre: si la Batalla no ha empezado, la vuelve a montar con la misma semilla; si ya corre, vale para la siguiente y entra en el checkpoint. En paridad no existe. War expone `leerEnemigos` y `danoEnArea` para las mecánicas de P5a; sin llamarlas, las referencias no cambian. La suite de Node dio **78 ok, 7 falla, 0 omitida**, con los siete fallos conocidos. P2, P3a y P3b se revisaron en navegador real con un servidor sin caché. La vista 3D de P4a queda para Astra ([brief](docs/campaign-v2/BRIEF-P4a.md)).
+
+## Campaign-V2 · P3b · Eventos y gestos · 24 de noviembre de 2026
+
+En campaña y ensayo, cada torreta entrega el clic a su programa o reserva un disparo puntual. La repetición conserva los clics y vuelve a ejecutar sus oyentes. JS, Python y Seudo comparten las fichas de eventos. La suite de Node dio **75 ok, 7 falla, 0 omitida**, con los siete fallos conocidos. El recorrido de editor, mapa, icono y consola pasó en emulación. Queda pendiente la revisión visual en navegador real por la denegación del puerto 8771. [Informe y pruebas de P3b](docs/campaign-v2/P3b-INFORME.md).
+
+## Campaign-V2 · P3a · Runtime base · 24 de noviembre de 2026
+
+Campaña y ensayo aíslan los errores por unidad, permiten aplicar el programa durante la batalla y registran las órdenes y recargas al salir de pausa. El último intento se puede repetir con su semilla desde el checkpoint o el inicio del ensayo. En paridad el error termina la partida como en War. La suite de Node dio **72 ok, 7 falla, 0 omitida**, con los siete fallos conocidos. El recorrido por los controles y la consola pasó con DOM emulado. Queda pendiente el contraste en navegador real porque el entorno denegó el puerto 8771. P3b recoge los eventos y el clic programado. [Informe y prueba manual de P3a](docs/campaign-v2/P3a-INFORME.md).
+
+## Campaign-V2 · P2 · Fábrica, puente y checkpoint · 24 de noviembre de 2026
+
+H0 produce munición y abre B1. La fábrica y la bodega continúan entre batallas, con un checkpoint por hito. El plano 2D de Campaign muestra H0. Las 12 referencias de paridad de War coinciden y las 41 referencias previas del archivo conservan sus datos. La suite de Node dio **68 ok, 7 falla, 0 omitida** con los siete fallos conocidos. El recorrido de pantalla se comprobó en emulación. El entorno denegó el puerto 8771 para el navegador real. P3 recogerá la semilla de intento en la grabación. [Informe de P2](docs/campaign-v2/P2-INFORME.md).
+
+## Campaign-V2 · P1 · Esqueleto y paridad · 24 de noviembre de 2026
+
+Las cinco Batallas del Nivel 1 se ejecutan por el reglamento V2 con War inyectado. Las diez partidas de referencia coinciden en huella, pasos y resultado completo. La suite de Node dio 65 ok y los siete fallos de la línea base. Las tres rutas arrancaron en 2D y 3D emulados. El entorno denegó el puerto 8771 para el contraste en navegador real. La siguiente porción es P2, fábrica, puente y checkpoint. [Informe de P1](docs/campaign-v2/P1-INFORME.md).
+
+## Rama `assets-3d`: assets 3D reunidos · 23 de noviembre de 2026
+
+- Sale de `trunk` (6330c0e) y reúne:
+  - `exportador-rig` (b8d58f6), fusionada entera: kit, T1, vehículo tubular y torreta, con sus GLB. Incluye el solver y el cambio de `factory.js` porque los GLB nuevos usan `cbl-rig` v2.
+  - `papercraft-campaign` (421ca8e): solo `arte/blender/papercraft/`.
+  - `vfx-explosiones-singularidad` (0f78213): solo `arte/blender/vfx/`, con el rayo y la carga del piso.
+  - `ccr-684f16c6-yq5at1` (6c4416f): unidades de batalla y rueda kamikaze, diseño tentativo; sin el laboratorio.
+- **Motor de vóxeles de la muralla (23-nov, a petición del autor: será el sistema que se use).** Traído desde `papercraft-campaign` (aa0858e), que lo tenía idéntico a `muralla-tension` (62ccb64) más las finalistas: `shared/muralla/`, `herramientas/muralla/` (laboratorio y `finalistas.html`), `pruebas/muralla-voxeles.cjs` y `docs/MURALLA-VOXELES.md`. Three r128 va en `herramientas/muralla/vendor/` y no en `shared/vendor/`, para no publicarlo. 275 comprobaciones del motor, las de las finalistas y `node pruebas/todas.mjs` 71/71 (dependencias enlazadas desde otro worktree). Revisado en el navegador: laboratorio y finalistas sin errores.
+- Fuera: destrucción por piezas, laboratorio de batalla y la animación CODEMAGEDDON (`experimento-animacion-1`).
+- **Muralla elegida (23-nov): C · Traba + Cordón.** Torreón cilíndrico de Cordón en los cambios de ángulo drásticos y nudo de Traba donde hay torre y el trazado sigue recto; el resto queda como referencia (`arte/blender/papercraft/MURALLA-OPCIONES.md`). El motor de vóxeles con el que se probó sigue fuera de esta rama (`papercraft-campaign`, `herramientas/muralla/finalistas.html`).
+- Verificación actual: carpetas idénticas a su rama de origen, GLB bien formados y `node pruebas/todas.mjs` con 71 correctas (dependencias enlazadas desde otro worktree). Sin abrir en navegador ni regenerar en Blender.
+
+## Kit de Blender: exportador y validador compartidos, y solver del rig en three.js · 20 de noviembre de 2026
+
+- **Exportador y validador (tarea 02, con Astra).**
+  - Las tres máquinas (T1, vehículo tubular y torreta de observación) se exportan desde descriptores con
+    `arte/blender/kit/exportar.py`, que valida cada GLB (`validar_glb.py` y `validar_rig.py`) antes de sustituirlo.
+  - Rig `cbl-rig` v2 en los `extras`: reglas `LOCAL` con expresiones y las restricciones COPIAR_POSICION, APUNTAR,
+    APUNTAR_BLOQUEADO y ESTIRAR.
+  - Poses de referencia de Blender en `pruebas/rig/` (57 del vehículo y 21 de la torreta).
+  - El orquestador admitió la FCurve identidad que Blender 5 crea en cada driver (`curva_identidad`).
+  - Los GLB nuevos sustituyen a los del juego. Las triangulaciones coinciden con las históricas; el T1 y la torreta
+    se apoyan ahora en el suelo (sus orígenes se movieron +12,5 mm y −55 mm).
+- **Solver (tarea 03).** Paquete puro `paquetes/rig/` y adaptador `conectarRig` en `vista-3d`.
+  - Factory mueve el T1 con sus controles, en lugar de escribir `rotation.*` a mano.
+  - Visor en `herramientas/visor-rig/`: deslizadores, reproducción del bucle y muestras de referencia con su
+    error.
+  - Astra lo dejó funcionando y con pruebas antes de agotar las dos cuentas; el orquestador escribió el README y
+    verificó.
+- **Verificación actual.**
+  - Error máximo frente a Blender: **1,3e−6** en el vehículo (todos los niveles) y **2,3e−7** en la torreta;
+    tolerancia 1e−4.
+  - La prueba detecta cuatro mutaciones (eje de APUNTAR, volumen de ESTIRAR, orden topológico y desplazamiento).
+  - Factory frente al código anterior: 6,5e−8. Adaptador r180 frente al solver puro: ≤ 2e−15.
+  - `evaluar` del vehículo (181 pivotes): ≈ 0,04 ms.
+  - `npm test` **71 ok**; tipos, fronteras y las dos suites Python del kit correctos.
+  - Visor y Factory revisados en WebGL sin errores de consola; capturas en `docs/qa/visor-rig-2026-11-20/`.
+- **Límites.**
+  - Ningún GLB usa todavía APUNTAR_BLOQUEADO ni influencias menores que 1: esos casos se prueban solo con escenas
+    sintéticas.
+  - War aún no usa el vehículo ni la torreta.
+  - Sin commits, push ni publicación.
+
+## Arte · kit de piezas común para las máquinas · 20 de noviembre de 2026 · rama `kit-piezas`
+
+- **Qué es.** [arte/blender/kit/](arte/blender/kit/README.md): 25 piezas reutilizables para modelar máquinas nuevas, sacadas de lo que repetían el buggy tubular, la esfera de la torreta y `robots.py`. Incluye estructura, chapa, tornillería, engranajes evolventes, corona, cremallera, sinfín, rodamiento, cardán, rótula, resorte, amortiguador, rueda, oruga y LED. La rama nace de `trunk` (`6330c0e`). Solo arte: no toca el juego.
+- **Cómo se hizo.** Astra (`gpt-6.2-astra`, esfuerzo alto, unos 115k tokens) escribió el kit con el [prompt 01](arte/blender/kit/prompts/01-kit-base.md). La geometría es Python puro (`geometria.py`), con un adaptador fino de `bpy` (`blender.py`), para que el kit se pueda probar sin Blender. Cada pieza se construye en L0, L1 o L2 (detalle por construcción, sin decimar) y declara el último nivel en que existe. Las reglas de rig usan el formato `MANDO` de la torreta.
+- **Verificación.** `python3 arte/blender/kit/pruebas.py`: 8/8 (mallas cerradas y bien orientadas, medidas a 0,5 mm, triángulos decrecientes, engrane sin interpenetración, paso y avance del sinfín). Claude renderizó el catálogo en Blender 5.2 sin errores ([previas](arte/blender/kit/previas/01/)) y comprobó que su GLB carga en three.js r180 (L0/L1/L2: 31,7k/14,2k/7,5k triángulos).
+- **Límites.** La rueda del sinfín tiene dientes rectos y el filete del sinfín es fino. Se aceptan: las piezas pequeñas apenas se verán con la cámara del juego. Ninguna máquina usa el kit todavía.
+- **Siguiente paso exacto.** Del autor: elegir la primera máquina que se haga con el kit.
+
 ## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026
 
 - **Qué es.** `trunk` pasa a ser la única línea canónica (regla nueva en `AGENTS.md` y `CLAUDE.md`). Rama de integración `unificacion/canonica`: nace de `arquitectura/fase-5` (fases 0–5), incorpora el único commit de `trunk` que le faltaba (`ba48661`, VFX de singularidad y artillería; conflicto solo en este archivo, se conservaron las dos entradas), porta CodeMirror desde `codemirror-mobile` (`567f7d6`) al paquete y añade el harness de `peer-review-harness-plan` (`47bb23d`). `trunk` avanza a esta rama sin reescribir historia.

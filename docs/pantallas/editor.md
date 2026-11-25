@@ -35,7 +35,7 @@ El editor es el paquete `paquetes/editor/` (contrato en su `README.md`). Lo usan
 - [x] `EDITOR-F04` · `documento()` devuelve una copia. La revisión crece al editar y al cambiar de documento.
 - [x] `EDITOR-F05` · `marcas(revision, lista)` rechaza diagnósticos de una revisión antigua o de otro documento.
 - [x] `EDITOR-F06` · Historial propio por instancia y por documento (deshacer y rehacer), compartido con botones y fichas. No hay un segundo historial de CodeMirror.
-- [x] `EDITOR-F07` · Solo lectura bloquea `insertar` y la barra lo refleja (botones deshabilitados).
+- [x] `EDITOR-F07` · Solo lectura bloquea `insertar` y la barra lo refleja (botones deshabilitados). En las batallas de campaña y ensayo de Campaign-V2 se puede editar una unidad durante el intento y pulsar «Aplicar ahora», también en pausa.
 - [x] `EDITOR-F08` · La superficie editable es CodeMirror (`.cm-content`), una por instancia.
 - [x] `EDITOR-F09` · `#codigo` sigue como puerto oculto (value, selección, foco y eventos) para el anfitrión. La geometría y el foco se consultan con `tieneFoco()` y `motorTexto`, nunca con el puerto.
 - [x] `EDITOR-F10` · Selector de lenguaje JavaScript/Python. Cada lenguaje abre su propio documento; no convierte el texto. Con un solo adaptador, el selector aparece deshabilitado.
@@ -49,6 +49,12 @@ El editor es el paquete `paquetes/editor/` (contrato en su `README.md`). Lo usan
 - [ ] `EDITOR-F18` · Usable en móvil sin scroll horizontal de la página.
 - [x] `EDITOR-F19` · En el juego, `window.cmg`, `cmg.edicion`, `cmg.seudo` y `cmg.tieneFoco()` siguen funcionando, y las vistas Seudo y Bloques se conservan.
 - [ ] `EDITOR-F20` · `?editor=textarea` activa el motor anterior para comparar (el anfitrión no inyecta CodeMirror).
+
+- [x] `EDITOR-F21` · En campaña y ensayo de Campaign-V2, la paleta ofrece los dos eventos de clic en JS y Python. Seudo permite insertar «cuando», editar su cuerpo y volver a JS. Cada ficha aporta el nombre del evento, el parámetro y el rótulo ES/EN.
+
+- [x] `EDITOR-F22` · En campaña y ensayo de Campaign-V2, el árbol del panel abre los documentos de las unidades seleccionadas desde el mapa o sus casillas. Una edición compartida se propaga a las vinculadas. Desvincular conserva la fuente actual de la unidad. Lo verifica `pruebas/campaign-v2-ui.mjs`.
+- [x] `EDITOR-F23` · En Salida, VEH-01 tiene programa de partida en JS y Python. Seudo reconoce sus bloques de movimiento y llegada. Durante la reposición, el árbol muestra la unidad en gris y los segundos restantes. Lo verifica `pruebas/campaign-v2-mecanicas.mjs`.
+
 
 ## Límites intencionales
 

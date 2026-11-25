@@ -40,13 +40,23 @@ export function preparar(ctx) {
   };
 
   // ---------- Edición ----------
-  ctx.variables = function() {
+  ctx.variables = function(desde = ctx.cursor?.padre) {
     const v = new Set();
+    while (desde && desde !== "raiz") {
+      const actual = ctx.buscar(ctx.modelo, desde);
+      if (!actual) break;
+      if (actual.nodo.parametro) v.add(actual.nodo.parametro);
+      desde = actual.padre;
+    }
     ctx.recorrer(ctx.modelo.cuerpo, n => { if (n.var) v.add(n.var); });
     return [...v];
   };
-  ctx.nuevoLadrillo = function(t) {
-    const d = ctx.datos(), tipo = d.tipos.find(x => x.enReto)?.id || "crawler", v = ctx.variables()[0] || "pos";
+  ctx.nuevoLadrillo = function(t, padre = ctx.cursor?.padre) {
+    const d = ctx.datos(), tipo = d.tipos.find(x => x.enReto)?.id || "crawler", v = ctx.variables(padre)[0] || "pos";
+    const verbo = ctx.bloques().find(f => f.nombre === t);
+    if (verbo) return ctx.conIds([{ t: "verbo", nombre: t, lugar: verbo.seudo.lugar, espera: !!verbo.await }])[0];
+    const evento = ctx.eventos().find(e => e.evento === t);
+    if (evento) return ctx.conIds([{ t: "cuando", evento: t, parametro: evento.parametro, cuerpo: [] }])[0];
     const base = {
       apuntar: { var: "pos", tipo, sensor: "visual", alt: null },
       oir: { var: "pos", tipo: "crawler", red: d.red[0] || "VIB_01" },
@@ -133,7 +143,7 @@ export function preparar(ctx) {
   };
   // Opciones de cada hueco: salen de los datos de la máquina y de las variables del programa.
   ctx.opciones = function(campo, n) {
-    const d = ctx.datos(), vars = ctx.variables(), tx = ctx.TXT[ctx.idioma];
+    const d = ctx.datos(), vars = ctx.variables(n.id), tx = ctx.TXT[ctx.idioma];
     const o = (v, nota, ver) => ({ v, nota, ver });
     if (ctx.factory) {
       if (campo === "lugar") return [...d.lugares.map(x => o(x.expresion, x.tipo)), ...vars.map(v => o(v, "variable"))];
@@ -143,6 +153,7 @@ export function preparar(ctx) {
       if (campo === "s") return [.05,.1,.5,1,2,3,6,9,15,30,60].map(v => o(v));
       if (campo === "var") return [...new Set([...vars,"cantidad","stock"])].map(v => o(v));
     }
+    if (n.t === "verbo" && campo === "lugar") return [...new Set([n.lugar, "home", "position", ...vars])].map(v => o(v));
     switch (campo) {
       case "var": return [...new Set([...vars, "pos", "objetivo", "dron", "oruga"])].map(v => o(v));
       case "tipo": case "alt": return [...(campo === "alt" ? [o(null, "sin alternativa", tx.ninguno)] : []), ...d.tipos.map(t => o(t.id, t.nombre + (t.enReto ? " · en este reto" : "")))];

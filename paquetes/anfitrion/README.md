@@ -152,6 +152,12 @@ Si varias unidades fallan en el mismo turno, gana la primera por orden de carga.
 La VM opcional conserva su timeout de diagnóstico y no reproduce el presupuesto
 de nodos del intérprete. No es el motor predeterminado de ninguna serie.
 
+### Eventos de programa
+
+La opción `eventos` habilita los nombres de registro del programa. Cada llamada antes del primer `await` suscribe una función en la unidad. `escucha(unidad, evento)` consulta ese registro. Una recarga comienza con un registro vacío.
+
+El conductor recoge `reglas.eventos(mundo)` y entrega la lista de `{ evento, unidad, datos }` entre pasos con `entregarEventos(instantanea, lista)`. Cada suscripción recibe su copia, en orden de registro, y puede esperar aunque otra invocación del mismo manejador esté suspendida. El turno termina después de procesar las continuaciones listas. Un programa que solo ha registrado oyentes permanece en el estado `escuchando`.
+
 ## De dónde sale
 
 `Prototypes/Rocket Launcher/js/runtime.js` (retirado) y la sección «Ciclo de los

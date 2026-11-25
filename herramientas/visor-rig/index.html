@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title data-i18n="rig.titulo">Visor de rig</title>
+  <link rel="stylesheet" href="visor.css">
+  <script type="importmap">{"imports":{"three":"../../shared/vendor/three-r180/three.module.min.js"}}</script>
+  <script src="../../shared/i18n/i18n.js"></script>
+  <script src="../../shared/i18n/rig.js"></script>
+</head>
+<body>
+  <main id="escena"><canvas></canvas></main>
+  <aside>
+    <h1 data-i18n="rig.titulo"></h1>
+    <label><span data-i18n="rig.maquina"></span><select id="maquina">
+      <option value="vehiculo_tubular" data-i18n="rig.vehiculo"></option>
+      <option value="torreta_observacion" data-i18n="rig.torreta"></option><option value="t1">T1</option>
+    </select></label>
+    <label><span data-i18n="rig.nivel"></span><select id="nivel"><option>L0</option><option>L1</option><option>L2</option></select></label>
+    <label id="referencias"><span data-i18n="rig.muestra"></span><select id="muestra"></select></label>
+    <button id="bucle" hidden data-i18n="rig.reproducir"></button>
+    <section id="informe" hidden>
+      <h2 data-i18n="rig.error"></h2><output id="peor"></output>
+      <details><summary data-i18n="rig.pivotes"></summary><dl id="errores"></dl></details>
+    </section>
+    <section><h2 data-i18n="rig.controles"></h2><div id="controles"></div></section>
+  </aside>
+  <output id="estado" role="status"></output>
+  <script type="module" src="visor.js"></script>
+</body>
+</html>

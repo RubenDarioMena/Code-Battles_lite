@@ -1,0 +1,87 @@
+/* Controles del hito. El campo sigue recibiendo los gestos entre los botones. */
+.cv2-hud:not([hidden]) {
+  position: absolute; inset: 8px 8px auto; z-index: 5;
+  display: flex; justify-content: space-between; pointer-events: none;
+}
+.cv2-hud > * { pointer-events: auto; }
+.cv2-hud button, #vista-h0, #cv2-unidades summary, #cv2-arbol button {
+  font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 7px; padding: .35em .7em; cursor: pointer;
+}
+.cv2-hud > button { width: 36px; height: 36px; font-size: 19px; font-weight: 700; padding: 0; }
+.cv2-hud button:is(:hover, [aria-expanded="true"]), #cv2-unidades[open] summary { border-color: var(--accent); }
+.cv2-hoja {
+  box-sizing: border-box; position: absolute; z-index: 6; padding: 12px;
+  width: min(320px, 100%); overflow: auto; overscroll-behavior: contain;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: 0 5px 20px #0006;
+}
+.cv2-hud .cv2-hoja { top: 42px; max-height: min(54dvh, 320px); }
+#cv2-objetivo { left: 0; }
+#cv2-objetivo h2 { margin: 0; font-size: 1.1rem; }
+#cv2-objetivo p, #cv2-lista-metas { margin: 8px 0 0; font-size: .88rem; line-height: 1.4; }
+#cv2-lista-metas { padding-left: 20px; }
+#cv2-gestos { color: var(--muted); }
+#cv2-menu:not([hidden]) { right: 0; display: grid; gap: 8px; width: min(240px, 100%); }
+#cv2-menu label:not([hidden]) { display: flex; gap: 8px; align-items: center; }
+#cv2-menu select { margin-left: auto; }
+#cv2-unidades { position: relative; min-width: 0; }
+#cv2-unidades summary { white-space: nowrap; font-size: .85rem; }
+#cv2-arbol { top: calc(100% + 4px); left: 0; width: min(315px, calc(100vw - 32px)); max-height: min(55dvh, 400px); }
+#cv2-arbol label { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; cursor: pointer; }
+#cv2-arbol input { accent-color: var(--accent); }
+.cv2-todas, .cv2-tipo { font-weight: 700; }
+.cv2-tipo { border-top: 1px solid var(--line); margin-top: 4px; padding-left: 8px; }
+.cv2-unidad { display: flex; align-items: center; gap: 6px; padding-left: 17px; font: 12px var(--f-code); }
+.cv2-unidad small { color: var(--accent); overflow-wrap: anywhere; }
+#cv2-arbol button { margin-left: auto; font-size: .74rem; }
+#app[data-ui-hito] #progs { display: none; }
+#app .hud-sup { left: 50%; top: 8px; transform: translateX(-50%); }
+#app[data-ui-hito] #reloj { display: none; } /* El tiempo forma parte de las metas. */
+#app[data-ui-hito] #metas {
+  left: auto; right: 8px; bottom: auto; top: 52px; flex-flow: column nowrap;
+  align-items: flex-end; overflow: visible; gap: 3px;
+}
+#app[data-ui-hito] .meta { font-size: clamp(10px, 1.2vw, 12px); }
+#app[data-ui-hito] .meta[data-estado="ok"] { color: var(--ok); }
+#app[data-ui-hito] .meta[data-estado="rota"] { color: var(--warn); }
+#app[data-ui-hito] .inspector[data-estado="tira"] { border-left: 3px solid var(--rol); background: var(--surface); }
+#app[data-ui-hito][data-forma="escritorio"] .inspector[data-estado="tira"] { inset: auto auto 8px 8px; }
+#cv2-modelo:not([hidden]) { display: block; width: 100%; height: clamp(96px, 16dvh, 160px); background: var(--bg); border-radius: 8px; }
+.cv2-vida { position: absolute; width: 21px; height: 3px; border: 1px solid #22333b;
+  transform: translate(-50%, -100%); background: #26333d; pointer-events: none; }
+.cv2-vida::after { content: ''; display: block; height: 100%; background: #78c9a7; transform-origin: left; transform: scaleX(var(--vida)); }
+.cv2-vida[data-herida="true"]::after { background: #fa7767; }
+.cv2-vida[data-elegida="true"] { outline: 1px solid var(--sel); }
+#campo-h0 { position: relative; }
+#fabrica-v2 .cabeza { position: relative; min-height: 38px; }
+#titulo-h0 { font-size: 1rem; }
+#vista-h0 { position: absolute; z-index: 3; top: 8px; left: 50%; transform: translateX(-50%); }
+#meta-h0 { align-self: end; padding: 4px 12px; }
+#cv2-ajustes-h0 form { display: grid; gap: 12px; }
+
+.cv2-ausente { color: var(--muted); opacity: .75; }
+
+.guia-puntual {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  border-top: 2px dotted var(--sel);
+  transform-origin: 0 0;
+}
+.guia-puntual::after {
+  content: "⊕";
+  position: absolute;
+  left: 100%;
+  transform: translate(-50%, -50%);
+  font: bold 24px/1 sans-serif;
+  color: var(--sel);
+  text-shadow: 0 0 2px var(--bg);
+}
+
+.bastion-libre {
+  position: absolute; transform: translate(-50%, -50%); z-index: 2; pointer-events: none;
+  width: 1.55rem; height: 1.55rem; padding: 0; border-radius: 50%;
+  border: 2px solid #aaffdc; background: #153d3b; color: white;
+  box-shadow: 0 0 0 2px #193a3c, 0 0 8px #77e1c0; cursor: pointer;
+}

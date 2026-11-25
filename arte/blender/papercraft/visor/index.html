@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Campaign · Maqueta de cartulina</title>
+<style>
+* {box-sizing:border-box}
+body {margin:0;background:linear-gradient(#40566e,#817e91 58%,#b69c99);color:#f9ecd0;font:14px system-ui,sans-serif}
+canvas {display:block;width:100vw;height:100dvh;touch-action:none}
+nav {position:fixed;bottom:max(12px,env(safe-area-inset-bottom));right:max(12px,env(safe-area-inset-right));display:flex;gap:2px;background:#28302fed;border:1px solid #a29b88;border-radius:5px;padding:2px}
+label {display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px}
+input {margin:0;accent-color:#cbab76}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<canvas aria-label="Mapa de cartulina en tres dimensiones"></canvas>
+<nav aria-label="Capas de comparación"><label><input id="antiguo" type="checkbox">Mapa antiguo</label><label><input id="rejilla" type="checkbox">Rejilla</label></nav>
+<script type="module" src="./visor.js"></script>
+</html>

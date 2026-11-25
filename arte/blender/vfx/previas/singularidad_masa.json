@@ -15,6 +15,10 @@
    "agujero": "A"
   },
   {
+   "t": 0.3,
+   "evento": "piso_late"
+  },
+  {
    "t": 0.6,
    "evento": "enemigo_absorbido",
    "agujero": "A",
@@ -269,8 +273,8 @@
  },
  "tiempos_fusion": null,
  "segundos": {
-  "total": 223.6,
-  "por_cuadro": 1.03,
+  "total": 182.8,
+  "por_cuadro": 0.85,
   "renders_escenario": 1
  },
  "config": {
@@ -446,6 +450,97 @@
    ],
    "horizonte": 2.2
   },
+  "carga": {
+   "haz": {
+    "origen_m": [
+     -22.0,
+     -8.0,
+     7.0
+    ],
+    "golpe": 0.18,
+    "enderezar": 0.3,
+    "duracion": 1.7,
+    "apagado": 0.3,
+    "frecuencia": 30.0,
+    "segmentos": 48,
+    "zigzag": 0.03,
+    "zigzag_fino": 0.008,
+    "ancho_m": 0.05,
+    "ancho_golpe": 1.5,
+    "ensanche": 0.6,
+    "brillo": 2.6,
+    "brillo_golpe": 3.5,
+    "color": [
+     0.85,
+     0.92,
+     1.0
+    ],
+    "envoltura_m": 0.28,
+    "envoltura_brillo": 0.5,
+    "color_envoltura": [
+     0.55,
+     0.22,
+     1.0
+    ],
+    "filamentos": 3,
+    "filamento_largo_m": 10.0,
+    "filamento_radio_m": 0.2,
+    "filamento_vueltas": 5.0,
+    "filamento_ancho_m": 0.012,
+    "filamento_brillo": 1.2,
+    "ramas_golpe": 3
+   },
+   "destello": {
+    "brillo": 3.2,
+    "duracion": 0.14,
+    "radio_m": 0.9,
+    "escena": 0.5,
+    "charco": 0.5,
+    "charco_m": 4.0
+   },
+   "figura": {
+    "radio_m": 14.0,
+    "troncos": 9,
+    "paso_m": 0.22,
+    "giro": 0.16,
+    "sesgo": 0.15,
+    "ramificacion": 0.85,
+    "angulo_rama": [
+     25,
+     60
+    ],
+    "reparto": [
+     0.3,
+     0.7
+    ],
+    "rama_minima_m": 0.5,
+    "generaciones": 5,
+    "ancho_m": [
+     0.008,
+     0.035
+    ],
+    "exponente_ancho": 0.5
+   },
+   "onda": {
+    "velocidad_m_s": 11.0,
+    "frente_m": 0.25,
+    "cola_m": 1.6,
+    "brillo": 5.0,
+    "color": [
+     0.85,
+     0.93,
+     1.0
+    ],
+    "color_cola": [
+     0.5,
+     0.15,
+     1.0
+    ],
+    "alcance": 1.0,
+    "desgaste": 0.6,
+    "oscurece": 0.5
+   }
+  },
   "aparicion": {
    "brillo": 1.6,
    "duracion": 0.25,
@@ -492,6 +587,9 @@
   },
   "eventos": {
    "emite": [
+    "haz_impacto",
+    "piso_cargado",
+    "piso_late",
     "agujero_creado",
     "enemigo_absorbido",
     "repulsion",
@@ -507,6 +605,7 @@
   },
   "demo": {
    "fusion": {
+    "piso_cargado": true,
     "duracion": 11.5,
     "agujero_a": {
      "t": 0.4,
@@ -533,9 +632,26 @@
     }
    },
    "masa": {
+    "piso_cargado": true,
     "duracion": 9.0,
     "exponente": 1.6,
     "lineas_por_segundo": 3.0
+   },
+   "carga": {
+    "duracion": 9.0,
+    "impacto": {
+     "t": 0.6,
+     "pos": [
+      0.0,
+      1.0
+     ]
+    },
+    "agujero": {
+     "t": 3.6
+    },
+    "masa_final": 3.5,
+    "exponente": 1.4,
+    "lineas_por_segundo": 1.5
    }
   }
  },

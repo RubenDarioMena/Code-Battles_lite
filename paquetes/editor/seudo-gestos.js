@@ -73,7 +73,7 @@ export function preparar(ctx) {
     if (a.borrar) return ctx.borrar(a.fuente.id);
     if (!a.destino) return ctx.pintar();
     const { padre, rama, idx } = a.destino;
-    if (a.fuente.nuevo) ctx.insertarEn(ctx.nuevoLadrillo(a.fuente.nuevo), padre, rama, idx);
+    if (a.fuente.nuevo) ctx.insertarEn(ctx.nuevoLadrillo(a.fuente.nuevo, padre), padre, rama, idx);
     else ctx.moverA(a.fuente.id, padre, rama, idx);
   };
 

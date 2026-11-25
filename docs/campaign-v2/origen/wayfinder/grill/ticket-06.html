@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ticket 06 · Orden puntual frente a onClick</title>
+<style>
+  :root{
+    --bg:#f6f3ec; --card:#fffdf8; --ink:#1f2328; --mute:#5d6470; --line:#ddd5c4;
+    --acc:#2f6f5e; --acc-soft:#e3efe9; --rec:#a3591b; --rec-soft:#fbeedd; --sel:#e8f0fb; --sel-line:#5a86c8;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#16181b; --card:#1e2125; --ink:#e7e9ec; --mute:#9aa2ad; --line:#30353b;
+      --acc:#6cc3a6; --acc-soft:#1d3a32; --rec:#f0a35c; --rec-soft:#3a2a1a; --sel:#1d2a3d; --sel-line:#6f9be0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{max-width:880px;margin:0 auto;padding:28px 18px 8px}
+  h1{font-size:1.45rem;margin:0 0 6px}
+  .sub{color:var(--mute);margin:0 0 14px}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .intro ul{margin:6px 0 0 18px;padding:0}
+  main{max-width:880px;margin:0 auto;padding:0 18px 140px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;scroll-margin-top:12px}
+  .q.done{border-color:var(--acc)}
+  .qh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .qid{font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+  .qt{font-weight:650;font-size:1.06rem}
+  .estado{margin-left:auto;font-size:.8rem;color:var(--mute)}
+  .q.done .estado{color:var(--acc)}
+  .cuerpo{margin:8px 0 6px}
+  details{margin:6px 0 10px;border-left:3px solid var(--line);padding:2px 0 2px 10px}
+  summary{cursor:pointer;color:var(--mute);font-size:.9rem}
+  details .hechos{font-size:.9rem;color:var(--mute)}
+  details .hechos code, .cuerpo code, .op code{font-size:.85em;background:var(--acc-soft);padding:0 4px;border-radius:4px}
+  .ops{display:grid;gap:8px;margin:10px 0}
+  label.op{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer}
+  label.op:hover{border-color:var(--sel-line)}
+  label.op.on{background:var(--sel);border-color:var(--sel-line)}
+  label.op input{margin-top:4px}
+  .op b{font-weight:650}
+  .op .d{display:block;color:var(--mute);font-size:.88rem}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;color:var(--rec);background:var(--rec-soft);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+  .rec{background:var(--rec-soft);border-radius:10px;padding:9px 12px;font-size:.92rem;margin:8px 0}
+  .rec::before{content:"➡️ Mi recomendación: ";font-weight:700}
+  .tabla{width:100%;border-collapse:collapse;margin:8px 0}
+  .tabla td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}
+  .tabla td:first-child{width:38%;font-size:.92rem}
+  .tabla .d{display:block;color:var(--mute);font-size:.82rem}
+  select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  textarea{min-height:58px;resize:vertical}
+  .extra{display:grid;gap:4px;margin:8px 0}
+  .extra span{font-size:.88rem;color:var(--mute)}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:5}
+  .bar .prog{font-variant-numeric:tabular-nums;color:var(--mute);margin-right:6px}
+  button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer}
+  button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:650}
+  @media (prefers-color-scheme:dark){ button.pri{color:#0d1714} }
+  button:hover{filter:brightness(1.05)}
+  .mini{font-size:.82rem;padding:4px 9px}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  nav.indice{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  nav.indice a{font-size:.8rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  nav.indice a.done{border-color:var(--acc);color:var(--acc)}
+  #salida{display:none;margin-top:16px}
+  #salida textarea{min-height:260px;font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+
+  .figura{margin:10px 0 8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;overflow-x:auto}
+  .figura svg{width:100%;height:auto;min-width:560px;display:block}
+  .figura .t{fill:var(--ink);font:13px system-ui,sans-serif}
+  .figura .s{font-size:11px}
+  .figura .m{fill:var(--mute);font:12px system-ui,sans-serif}
+  .figura .tw{fill:#fff;font:700 12px system-ui,sans-serif}
+  .figura .b{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+  .figura .b2{fill:var(--card);stroke:var(--mute);stroke-width:1.5;stroke-dasharray:4 3}
+  .figura .b3{fill:var(--sel);stroke:var(--sel-line);stroke-width:1.5}
+  .figura .ok{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.5}
+  .figura .bad{fill:var(--rec-soft);stroke:#c0503a;stroke-width:1.5}
+  .figura .dia{fill:var(--card);stroke:var(--rec);stroke-width:1.5}
+  .figura .ar,.figura .mov{stroke:var(--mute);stroke-width:1.6;fill:none}
+  .figura .punta{fill:var(--mute)}
+  .figura .sep{stroke:var(--line);stroke-dasharray:3 4}
+  .figura .tagA{fill:var(--mute)} .figura .tagR{fill:var(--rec)}
+  .figura .warn{fill:var(--rec);font:12px system-ui,sans-serif}
+  .figura .pan{fill:var(--card);stroke:var(--line)}
+  .figura .muro{stroke:var(--ink);stroke-width:5;opacity:.5}
+  .figura .tor{fill:var(--acc);stroke:var(--ink);stroke-width:1}
+  .figura .enA{fill:none;stroke:#c0503a;stroke-width:1.5;stroke-dasharray:3 3}
+  .figura .enB{fill:#c0503a}
+  .figura .mis{stroke:var(--rec);stroke-width:2;fill:none;stroke-dasharray:6 4}
+  .figura .cruz{fill:var(--ink);font:700 15px system-ui}
+  .figura .imp{fill:none;stroke:var(--acc);stroke-width:3}
+  .figura .impF{fill:none;stroke:#c0503a;stroke-width:2;stroke-dasharray:2 3}
+  .figura .okt{fill:var(--acc);font:700 13px system-ui} .figura .badt{fill:#c0503a;font:700 13px system-ui}
+  .figura .eje{stroke:var(--line);stroke-width:2} .figura .tick{stroke:var(--line);stroke-dasharray:2 4}
+  .figura .clic{stroke:var(--rec);stroke-width:2;stroke-dasharray:5 3} .figura .rect{fill:var(--rec);font:12px system-ui}
+  .figura .dotT{fill:var(--mute)} .figura .dotC{fill:var(--rec)}
+  table.gestos{width:100%;border-collapse:separate;border-spacing:3px;font-size:.88rem;min-width:560px}
+  table.gestos th{text-align:left;font-weight:600;padding:6px 8px;color:var(--mute)}
+  table.gestos thead th{color:var(--ink)}
+  table.gestos td{padding:7px 8px;border-radius:7px;vertical-align:top}
+  table.gestos tr.grupo td{font-weight:700;padding-top:12px;background:none}
+  .g-sel{background:var(--sel);border:1px solid var(--sel-line)}
+  .g-ord{background:var(--rec-soft);border:1px solid var(--rec)}
+  .g-fut{background:var(--card);border:1px dashed var(--mute);color:var(--mute)}
+  .g-cam{background:var(--acc-soft);border:1px solid var(--acc)}
+  .g-nada{background:var(--card);border:1px solid var(--line);color:var(--mute)}
+  .leyenda{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:.8rem}
+  .leyenda span{padding:2px 8px;border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ticket 06 · Orden puntual frente a <code>onClick</code></h1>
+  <p class="sub">Wayfinder Campaign-V2 · grilling · 24-nov-2026 · 5 preguntas</p>
+  <div class="intro">
+    <b>Ya decidido</b> (tickets 04 y 05): War corre como caja negra en cada Batalla. Las mecánicas nuevas emiten eventos por un transporte genérico, y los <code>onClick</code>, <code>onDamage</code>… se ven en el programa con su nombre. En modo paridad no hay órdenes de jugador.
+    <p style="margin:10px 0 0"><b>Cómo responder:</b> marca una opción por pregunta (o pulsa <b>Usar mis recomendaciones en las vacías</b>), después <b>Copiar respuestas</b> y pégalo en el chat. Los diagramas muestran cada opción; los detalles del código están en «Lo que encontré».</p>
+    <nav class="indice" id="indice"></nav>
+  </div>
+</header>
+<main id="preguntas"></main>
+<main style="padding-top:0;padding-bottom:120px"><div id="salida"><b>Texto para pegar en el chat</b><textarea id="salidaTxt" readonly></textarea></div></main>
+
+<div class="bar">
+  <span class="prog" id="prog">0 / 0</span>
+  <button id="btnRec" title="Rellena las preguntas que no has tocado con mi recomendación">Usar mis recomendaciones en las vacías</button>
+  <button class="pri" id="btnCopiar">Copiar respuestas</button>
+  <button id="btnMd">Descargar .md</button>
+  <button id="btnBorrar" title="Borra todo lo marcado">Borrar</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const Q = [
+ {
+  "id": "Q1",
+  "titulo": "¿Cómo se relacionan la orden puntual y el clic programado (onClick)?",
+  "tipo": "radio",
+  "cuerpo": "El grill fijó la <b>orden puntual</b>: con el clic derecho, la torreta seleccionada dispara <b>una vez</b> a ese punto, sin código. El laboratorio propone lo contrario: el clic no hace nada por sí mismo, y solo ocurre lo que el programa de cada unidad haya escrito en <code>onClick</code>. Aquí se decide la relación; si el clic programado entra ya o más tarde lo decide el ticket 07.",
+  "figura": "<svg viewBox=\"0 0 780 240\" role=\"img\" aria-label=\"Tres formas de relacionar la orden puntual y el clic programado\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"tagR\" x=\"6\" y=\"34\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"19\" y=\"49\" text-anchor=\"middle\">A</text><rect class=\"b\" x=\"44\" y=\"14\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"119.0\" y=\"28.0\" text-anchor=\"middle\">Clic derecho</text><text class=\"m s\" x=\"119.0\" y=\"43.0\" text-anchor=\"middle\">(o mantener en móvil)</text><line class=\"ar\" x1=\"194\" y1=\"31\" x2=\"240\" y2=\"31\" marker-end=\"url(#pf)\"/><rect class=\"b2\" x=\"240\" y=\"14\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"315.0\" y=\"28.0\" text-anchor=\"middle\">El juego</text><text class=\"m s\" x=\"315.0\" y=\"43.0\" text-anchor=\"middle\">sin código</text><line class=\"ar\" x1=\"390\" y1=\"31\" x2=\"436\" y2=\"31\" marker-end=\"url(#pf)\"/><rect class=\"ok\" x=\"436\" y=\"14\" width=\"190\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"531.0\" y=\"35.0\" text-anchor=\"middle\">Torreta: 1 disparo</text><rect class=\"b\" x=\"44\" y=\"58\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"119.0\" y=\"72.0\" text-anchor=\"middle\">Gesto distinto</text><text class=\"m s\" x=\"119.0\" y=\"87.0\" text-anchor=\"middle\">Alt+clic · botón «Señalar»</text><line class=\"ar\" x1=\"194\" y1=\"75\" x2=\"240\" y2=\"75\" marker-end=\"url(#pf)\"/><rect class=\"b3\" x=\"240\" y=\"58\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"315.0\" y=\"72.0\" text-anchor=\"middle\">Programa</text><text class=\"m s\" x=\"315.0\" y=\"87.0\" text-anchor=\"middle\">onClick(fn)</text><line class=\"ar\" x1=\"390\" y1=\"75\" x2=\"436\" y2=\"75\" marker-end=\"url(#pf)\"/><rect class=\"b3\" x=\"436\" y=\"58\" width=\"190\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"531.0\" y=\"79.0\" text-anchor=\"middle\">Lo que diga el código</text><text class=\"m s\" x=\"636\" y=\"54\">dos caminos</text><line class=\"sep\" x1=\"0\" y1=\"106\" x2=\"760\" y2=\"106\"/><rect class=\"tagA\" x=\"6\" y=\"136\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"19\" y=\"151\" text-anchor=\"middle\">B</text><rect class=\"b\" x=\"44\" y=\"124\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"119.0\" y=\"145.0\" text-anchor=\"middle\">Clic derecho</text><line class=\"ar\" x1=\"194\" y1=\"141\" x2=\"236\" y2=\"141\" marker-end=\"url(#pf)\"/><polygon class=\"dia\" points=\"316,116 396,141 316,166 236,141\"/><text class=\"t s\" x=\"316\" y=\"138\" text-anchor=\"middle\">¿El programa</text><text class=\"t s\" x=\"316\" y=\"151\" text-anchor=\"middle\">escucha?</text><line class=\"ar\" x1=\"396\" y1=\"141\" x2=\"436\" y2=\"123\" marker-end=\"url(#pf)\"/><text class=\"m s\" x=\"416.0\" y=\"127.0\" text-anchor=\"middle\">sí</text><rect class=\"b3\" x=\"436\" y=\"106\" width=\"190\" height=\"30\" rx=\"8\"/><text class=\"t\" x=\"531.0\" y=\"125.0\" text-anchor=\"middle\">El programa decide</text><line class=\"ar\" x1=\"396\" y1=\"141\" x2=\"436\" y2=\"161\" marker-end=\"url(#pf)\"/><text class=\"m s\" x=\"416.0\" y=\"146.0\" text-anchor=\"middle\">no</text><rect class=\"ok\" x=\"436\" y=\"148\" width=\"190\" height=\"30\" rx=\"8\"/><text class=\"t\" x=\"531.0\" y=\"167.0\" text-anchor=\"middle\">Disparo puntual</text><text class=\"warn s\" x=\"636\" y=\"136\">sin orden manual</text><text class=\"warn s\" x=\"636\" y=\"150\">si el programa</text><text class=\"warn s\" x=\"636\" y=\"164\">escucha</text><line class=\"sep\" x1=\"0\" y1=\"186\" x2=\"760\" y2=\"186\"/><rect class=\"tagA\" x=\"6\" y=\"204\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"19\" y=\"219\" text-anchor=\"middle\">C</text><rect class=\"b\" x=\"44\" y=\"196\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"119.0\" y=\"217.0\" text-anchor=\"middle\">Cualquier clic</text><line class=\"ar\" x1=\"194\" y1=\"213\" x2=\"240\" y2=\"213\" marker-end=\"url(#pf)\"/><rect class=\"b3\" x=\"240\" y=\"196\" width=\"150\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"315.0\" y=\"210.0\" text-anchor=\"middle\">Programa</text><text class=\"m s\" x=\"315.0\" y=\"225.0\" text-anchor=\"middle\">onClick(fn)</text><line class=\"ar\" x1=\"390\" y1=\"213\" x2=\"436\" y2=\"213\" marker-end=\"url(#pf)\"/><rect class=\"bad\" x=\"436\" y=\"196\" width=\"190\" height=\"34\" rx=\"8\"/><text class=\"t\" x=\"531.0\" y=\"217.0\" text-anchor=\"middle\">Sin código, no pasa nada</text><text class=\"m s\" x=\"636\" y=\"210\">modelo del</text><text class=\"m s\" x=\"636\" y=\"224\">laboratorio</text></svg>",
+  "hechos": "<ul><li>El grill: «Nunca se repite sola: para que algo se repita hay que programarlo».</li><li>Laboratorio: en «Observador» (niebla, la torreta ve 6 casillas y alcanza 14), los clics convierten una derrota en victoria. Sin niebla, el clic sobre un enemigo no aporta nada que <code>autoTarget</code> no haga ya.</li><li>El laboratorio dejó abierta la «prioridad entre el clic y el programa». La opción B la resuelve a favor del programa, y la A la evita.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Dos caminos separados",
+    "d": "La orden puntual funciona siempre, con o sin código. El clic programado usa otro gesto y solo hace lo que diga el programa."
+   },
+   {
+    "v": "B",
+    "t": "Uno sobre otro",
+    "d": "El clic derecho llega primero al programa; si no hay <code>onClick</code>, se hace la orden puntual por defecto."
+   },
+   {
+    "v": "C",
+    "t": "Solo clic programado (modelo del laboratorio)",
+    "d": "Se retira la orden puntual del grill: sin código, un clic no hace nada."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> El jugador siempre sabe qué hace el clic derecho, y programar <code>onClick</code> no le quita la orden manual. B depende de lo que haya en el programa, que no se ve en el mapa, y C contradice el grill."
+ },
+ {
+  "id": "Q2",
+  "titulo": "¿Qué hace cada gesto, en PC y en móvil?",
+  "tipo": "radio",
+  "cuerpo": "Este es el mapa de gestos que propongo para la Batalla 1. El clic programado aparece reservado para cuando llegue.",
+  "figura": "<table class=\"gestos\"><thead><tr><th></th><th>Sobre enemigo</th><th>Sobre terreno</th><th>Sobre unidad propia</th></tr></thead><tbody>\n<tr class=\"grupo\"><td colspan=\"4\">🖱️ PC</td></tr>\n<tr><th>Clic izquierdo</th><td class=\"g-sel\">—</td><td class=\"g-sel\">Quitar la selección</td><td class=\"g-sel\">Seleccionar (con Mayús: añadir)</td></tr>\n<tr><th>Arrastrar</th><td class=\"g-sel\" colspan=\"3\">Recuadro de selección</td></tr>\n<tr><th>Clic derecho</th><td class=\"g-ord\">Orden puntual: disparar ahí</td><td class=\"g-ord\">Orden puntual: disparar ahí</td><td class=\"g-nada\">Nada (reservado)</td></tr>\n<tr><th>Alt + clic</th><td class=\"g-fut\" colspan=\"2\">Clic programado (cuando llegue)</td><td class=\"g-nada\">—</td></tr>\n<tr class=\"grupo\"><td colspan=\"4\">📱 Móvil</td></tr>\n<tr><th>Toque</th><td class=\"g-sel\">—</td><td class=\"g-sel\">Quitar la selección</td><td class=\"g-sel\">Seleccionar</td></tr>\n<tr><th>Mantener 0,45 s</th><td class=\"g-ord\">Orden puntual (anillo que se llena)</td><td class=\"g-ord\">Orden puntual (anillo que se llena)</td><td class=\"g-nada\">Nada (reservado)</td></tr>\n<tr><th>Dos dedos</th><td class=\"g-cam\" colspan=\"3\">Cámara (como en trunk)</td></tr>\n<tr><th>Botón «Señalar» + toque</th><td class=\"g-fut\" colspan=\"2\">Clic programado (cuando llegue)</td><td class=\"g-nada\">—</td></tr>\n</tbody></table>\n<div class=\"leyenda\"><span class=\"g-sel\">selección</span><span class=\"g-ord\">orden puntual</span><span class=\"g-fut\">clic programado (futuro)</span><span class=\"g-cam\">cámara</span></div>",
+  "hechos": "<ul><li>En el editor de trunk, <b>mantener pulsado ~0,45 s equivale al clic derecho</b> (<code>editor/edicion-barra.js:232</code>, <code>editor/nucleo-ui.js:199</code>). Android también lanza <code>contextmenu</code> al mantener el dedo.</li><li>El grill fijó: selección con clic izquierdo o arrastre, compartida con el árbol, y orden puntual con clic derecho.</li><li>Laboratorio: tocar una unidad propia la elige y abre su programa; no es una orden.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "El mapa de la tabla",
+    "d": "En móvil, la orden puntual es «mantener pulsado», igual que el clic derecho en el editor de trunk."
+   },
+   {
+    "v": "B",
+    "t": "Igual en PC, pero en móvil con un botón «Disparar»",
+    "d": "En la ficha compacta: se pulsa el botón y luego se toca el punto. Son dos pasos, sin pulsación larga."
+   },
+   {
+    "v": "C",
+    "t": "Otro mapa (en notas)",
+    "d": ""
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> Usa el mismo gesto que el jugador ya aprende en el editor y la orden puntual queda en un solo gesto. Si al probarlo en el teléfono la pulsación larga se dispara sin querer, se cambia a B sin tocar las reglas."
+ },
+ {
+  "id": "Q3",
+  "titulo": "Si el clic derecho cae sobre un enemigo, ¿adónde apunta la torreta?",
+  "tipo": "radio",
+  "cuerpo": "El misil tarda en llegar y el enemigo sigue andando. En War, <code>autoTarget</code> ya calcula dónde estará (predicción); la orden puntual puede usar esa misma cuenta o no.",
+  "figura": "<svg viewBox=\"0 0 760 192\" role=\"img\" aria-label=\"Apuntar al punto del clic frente a apuntar con predicción\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"pan\" x=\"0\" y=\"0\" width=\"370\" height=\"170\" rx=\"10\"/><line class=\"muro\" x1=\"70\" y1=\"20\" x2=\"70\" y2=\"150\"/><text class=\"m s\" x=\"74\" y=\"160\">muralla</text><circle class=\"tor\" cx=\"45\" cy=\"85\" r=\"14\"/><text class=\"m s\" x=\"45\" y=\"118\" text-anchor=\"middle\">torreta</text><circle class=\"enA\" cx=\"300\" cy=\"85\" r=\"9\"/><text class=\"m s\" x=\"300\" y=\"52\" text-anchor=\"middle\">enemigo al clic</text><line class=\"mov\" x1=\"290\" y1=\"85\" x2=\"252\" y2=\"85\" marker-end=\"url(#pf)\"/><circle class=\"enB\" cx=\"240\" cy=\"85\" r=\"9\"/><text class=\"m s\" x=\"240\" y=\"112\" text-anchor=\"middle\">cuando llega el misil</text><path class=\"mis\" d=\"M59,80 Q179.5,18 300,78\" marker-end=\"url(#pf)\"/><text class=\"cruz\" x=\"300\" y=\"91\" text-anchor=\"middle\">✕</text><circle class=\"impF\" cx=\"300\" cy=\"85\" r=\"16\"/><text class=\"badt\" x=\"250\" y=\"150\">falla</text><rect class=\"tagA\" x=\"8\" y=\"8\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"21\" y=\"23\" text-anchor=\"middle\">A</text><rect class=\"pan\" x=\"390\" y=\"0\" width=\"370\" height=\"170\" rx=\"10\"/><line class=\"muro\" x1=\"460\" y1=\"20\" x2=\"460\" y2=\"150\"/><text class=\"m s\" x=\"464\" y=\"160\">muralla</text><circle class=\"tor\" cx=\"435\" cy=\"85\" r=\"14\"/><text class=\"m s\" x=\"435\" y=\"118\" text-anchor=\"middle\">torreta</text><circle class=\"enA\" cx=\"690\" cy=\"85\" r=\"9\"/><text class=\"m s\" x=\"690\" y=\"52\" text-anchor=\"middle\">enemigo al clic</text><line class=\"mov\" x1=\"680\" y1=\"85\" x2=\"642\" y2=\"85\" marker-end=\"url(#pf)\"/><circle class=\"enB\" cx=\"630\" cy=\"85\" r=\"9\"/><text class=\"m s\" x=\"630\" y=\"112\" text-anchor=\"middle\">cuando llega el misil</text><path class=\"mis\" d=\"M449,80 Q539.5,18 630,78\" marker-end=\"url(#pf)\"/><text class=\"cruz\" x=\"690\" y=\"91\" text-anchor=\"middle\">✕</text><circle class=\"imp\" cx=\"630\" cy=\"85\" r=\"16\"/><text class=\"okt\" x=\"640\" y=\"150\">acierta</text><rect class=\"tagR\" x=\"398\" y=\"8\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"411\" y=\"23\" text-anchor=\"middle\">B</text><text class=\"m s\" x=\"200\" y=\"186\" text-anchor=\"middle\">✕ = donde hiciste clic</text></svg>",
+  "hechos": "<ul><li>War: <code>regularShoot(lugar)</code> recibe un <b>punto</b>, no un enemigo, y <code>autoTarget()</code> devuelve el punto predicho (<code>predecir</code> en <code>reglas-war/mundo.js:90</code>).</li><li>Sobre el terreno no hay nada que predecir: se apunta al punto.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Al punto exacto del clic",
+    "d": "Es simple, pero con enemigos rápidos casi siempre falla."
+   },
+   {
+    "v": "B",
+    "t": "Con la predicción de War",
+    "d": "Si el clic cae sobre un enemigo, se apunta adonde estará, como <code>autoTarget</code>. Es un solo disparo, no lo persigue."
+   },
+   {
+    "v": "C",
+    "t": "Misil guiado que persigue al enemigo",
+    "d": "Es una mecánica nueva; War no la tiene."
+   }
+  ],
+  "rec": [
+   "B"
+  ],
+  "recTexto": "<b>Recomiendo B.</b> Reutiliza la cuenta de War, así que la orden puntual acierta tanto como el programa y no crea un seguimiento por identidad. Ese seguimiento (marca + <code>track</code>) queda para el ticket 07."
+ },
+ {
+  "id": "Q4",
+  "titulo": "¿Cuándo dispara la orden puntual si el programa también está disparando?",
+  "tipo": "radio",
+  "cuerpo": "La torreta dispara una vez por segundo con su programa (<code>regularShoot</code>). Haces clic derecho a los 2,4 s.",
+  "figura": "<svg viewBox=\"0 0 760 220\" role=\"img\" aria-label=\"Cuándo dispara la orden puntual respecto al programa\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><line class=\"tick\" x1=\"210\" y1=\"22\" x2=\"210\" y2=\"196\"/><text class=\"m s\" x=\"210\" y=\"16\" text-anchor=\"middle\">0 s</text><line class=\"tick\" x1=\"310\" y1=\"22\" x2=\"310\" y2=\"196\"/><text class=\"m s\" x=\"310\" y=\"16\" text-anchor=\"middle\">1 s</text><line class=\"tick\" x1=\"410\" y1=\"22\" x2=\"410\" y2=\"196\"/><text class=\"m s\" x=\"410\" y=\"16\" text-anchor=\"middle\">2 s</text><line class=\"tick\" x1=\"510\" y1=\"22\" x2=\"510\" y2=\"196\"/><text class=\"m s\" x=\"510\" y=\"16\" text-anchor=\"middle\">3 s</text><line class=\"tick\" x1=\"610\" y1=\"22\" x2=\"610\" y2=\"196\"/><text class=\"m s\" x=\"610\" y=\"16\" text-anchor=\"middle\">4 s</text><line class=\"tick\" x1=\"710\" y1=\"22\" x2=\"710\" y2=\"196\"/><text class=\"m s\" x=\"710\" y=\"16\" text-anchor=\"middle\">5 s</text><line class=\"clic\" x1=\"450\" y1=\"22\" x2=\"450\" y2=\"196\"/><text class=\"rect s\" x=\"456\" y=\"34\">clic derecho (2,4 s)</text><text class=\"t s\" x=\"36\" y=\"60\">Programa: regularShoot</text><line class=\"eje\" x1=\"210\" y1=\"56\" x2=\"740\" y2=\"56\"/><circle class=\"dotT\" cx=\"310\" cy=\"56\" r=\"9\"/><text class=\"tw s\" x=\"310\" y=\"60\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"410\" cy=\"56\" r=\"9\"/><text class=\"tw s\" x=\"410\" y=\"60\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"510\" cy=\"56\" r=\"9\"/><text class=\"tw s\" x=\"510\" y=\"60\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"610\" cy=\"56\" r=\"9\"/><text class=\"tw s\" x=\"610\" y=\"60\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"710\" cy=\"56\" r=\"9\"/><text class=\"tw s\" x=\"710\" y=\"60\" text-anchor=\"middle\">P</text><rect class=\"tagR\" x=\"4\" y=\"85\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"17\" y=\"100\" text-anchor=\"middle\">A</text><text class=\"t s\" x=\"36\" y=\"104\">Siguiente turno</text><line class=\"eje\" x1=\"210\" y1=\"100\" x2=\"740\" y2=\"100\"/><circle class=\"dotT\" cx=\"310\" cy=\"100\" r=\"9\"/><text class=\"tw s\" x=\"310\" y=\"104\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"410\" cy=\"100\" r=\"9\"/><text class=\"tw s\" x=\"410\" y=\"104\" text-anchor=\"middle\">P</text><circle class=\"dotC\" cx=\"510\" cy=\"100\" r=\"10\"/><text class=\"tw s\" x=\"510\" y=\"104\" text-anchor=\"middle\">★</text><circle class=\"dotT\" cx=\"610\" cy=\"100\" r=\"9\"/><text class=\"tw s\" x=\"610\" y=\"104\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"710\" cy=\"100\" r=\"9\"/><text class=\"tw s\" x=\"710\" y=\"104\" text-anchor=\"middle\">P</text><rect class=\"tagA\" x=\"4\" y=\"125\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"17\" y=\"140\" text-anchor=\"middle\">B</text><text class=\"t s\" x=\"36\" y=\"144\">Queda en espera</text><line class=\"eje\" x1=\"210\" y1=\"140\" x2=\"740\" y2=\"140\"/><circle class=\"dotT\" cx=\"310\" cy=\"140\" r=\"9\"/><text class=\"tw s\" x=\"310\" y=\"144\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"410\" cy=\"140\" r=\"9\"/><text class=\"tw s\" x=\"410\" y=\"144\" text-anchor=\"middle\">P</text><circle class=\"dotC\" cx=\"510\" cy=\"140\" r=\"10\"/><text class=\"tw s\" x=\"510\" y=\"144\" text-anchor=\"middle\">★</text><text class=\"m\" x=\"610\" y=\"145\" text-anchor=\"middle\">·</text><text class=\"m\" x=\"710\" y=\"145\" text-anchor=\"middle\">·</text><rect class=\"tagA\" x=\"4\" y=\"165\" width=\"26\" height=\"22\" rx=\"6\"/><text class=\"tw\" x=\"17\" y=\"180\" text-anchor=\"middle\">C</text><text class=\"t s\" x=\"36\" y=\"184\">Al instante</text><line class=\"eje\" x1=\"210\" y1=\"180\" x2=\"740\" y2=\"180\"/><circle class=\"dotT\" cx=\"310\" cy=\"180\" r=\"9\"/><text class=\"tw s\" x=\"310\" y=\"184\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"410\" cy=\"180\" r=\"9\"/><text class=\"tw s\" x=\"410\" y=\"184\" text-anchor=\"middle\">P</text><circle class=\"dotC\" cx=\"450.0\" cy=\"180\" r=\"10\"/><text class=\"tw s\" x=\"450.0\" y=\"184\" text-anchor=\"middle\">★</text><circle class=\"dotT\" cx=\"510\" cy=\"180\" r=\"9\"/><text class=\"tw s\" x=\"510\" y=\"184\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"610\" cy=\"180\" r=\"9\"/><text class=\"tw s\" x=\"610\" y=\"184\" text-anchor=\"middle\">P</text><circle class=\"dotT\" cx=\"710\" cy=\"180\" r=\"9\"/><text class=\"tw s\" x=\"710\" y=\"184\" text-anchor=\"middle\">P</text><text class=\"m s\" x=\"36\" y=\"212\">P = disparo del programa · ★ = disparo puntual · cadencia de la torreta: 1 disparo/s</text></svg>",
+  "hechos": "<ul><li>Astra propone A: «concede un único intento en el siguiente turno de fuego habilitado, respeta munición, cadencia y atasco, y recupera después el objetivo programado».</li><li>Para hacerlo en War hay que distinguir «intento puntual» de «modo persistente» (<code>reglas-war/mundo.js:274</code> solo conoce modos). Según el ticket 05, sería otra función pública pequeña de War.</li><li>En modo paridad no hay órdenes de jugador: la paridad no se toca.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "En el siguiente turno de fuego, y luego sigue el programa",
+    "d": "Respeta cadencia, munición y atasco. Si no puede disparar (sin munición o atascada), la orden se descarta con un aviso y no queda en cola."
+   },
+   {
+    "v": "B",
+    "t": "Sustituye al programa hasta que este dé otra orden",
+    "d": "Después del disparo puntual, la torreta queda parada."
+   },
+   {
+    "v": "C",
+    "t": "Al instante, saltándose la cadencia",
+    "d": "Da más respuesta, pero el clic se vuelve más fuerte que el programa."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> El clic «presta» un disparo y no rompe el programa, así que programar sigue siendo lo principal. Con varias torretas seleccionadas, cada una hace su intento."
+ },
+ {
+  "id": "Q5",
+  "titulo": "¿Cómo se llama en el glosario el «clic programado»?",
+  "tipo": "radio",
+  "cuerpo": "«Orden puntual» ya está en el glosario. Falta el nombre del otro concepto (el clic que solo hace lo que diga <code>onClick</code>), que se use igual en la interfaz, la documentación y con los agentes.",
+  "hechos": "<ul><li>«Aviso» ya se usa en el editor para advertencias («un hueco sin rellenar se avisa»).</li><li>«Señal» choca con <code>signal</code>/<code>onSignal</code> entre unidades, previsto en el laboratorio.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Clic programado",
+    "d": "Descriptivo, sin choques."
+   },
+   {
+    "v": "B",
+    "t": "Aviso del jugador",
+    "d": "Choca con los avisos del editor."
+   },
+   {
+    "v": "C",
+    "t": "Señal del jugador",
+    "d": "Choca con signal/onSignal."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> En el glosario: _Evitar_: «orden» (solo lo es si el programa la convierte en una)."
+ }
+];
+
+const CLAVE = "wayfinder-cv2-ticket-06";
+const almacen = (() => { try { const s = window.localStorage; s.getItem(CLAVE); return s; } catch { return null; } })();
+let estado = {};
+try { estado = JSON.parse((almacen && almacen.getItem(CLAVE)) || "{}"); } catch { estado = {}; }
+const guardar = () => { try { almacen && almacen.setItem(CLAVE, JSON.stringify(estado)); } catch {} pintarProgreso(); };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const cont = $("#preguntas"); cont.innerHTML = "";
+  const idx = $("#indice"); idx.innerHTML = "";
+  for (const q of Q){
+    const st = estado[q.id] ||= {sel:[], filas:{}, extra:{}, nota:""};
+    const card = document.createElement("section"); card.className = "q"; card.id = q.id;
+    let html = `<div class="qh"><span class="qid">❓ ${q.id}</span><span class="qt">${q.titulo}</span><span class="estado"></span></div>
+      <div class="cuerpo">${q.cuerpo}</div>`;
+    if (q.figura) html += `<div class="figura">${q.figura}</div>`;
+    if (q.hechos) html += `<details><summary>Lo que encontré</summary><div class="hechos">${q.hechos}</div></details>`;
+    if (q.tipo === "radio" || q.tipo === "check"){
+      html += `<div class="ops">` + q.opciones.map(o => {
+        const on = st.sel.includes(o.v);
+        const r = (q.rec||[]).includes(o.v) ? `<span class="badge">Recomendado</span>` : "";
+        return `<label class="op${on?" on":""}"><input type="${q.tipo==="radio"?"radio":"checkbox"}" name="${q.id}" value="${esc(o.v)}"${on?" checked":""}>
+          <span><b>${q.tipo==="radio"?o.v+" · ":""}${o.t}</b>${r}${o.d?`<span class="d">${o.d}</span>`:""}</span></label>`;
+      }).join("") + `</div>`;
+      if (q.tipo === "check") html += `<button class="mini" data-todo="${q.id}">Marcar o desmarcar todas</button>`;
+    }
+    if (q.tipo === "tabla"){
+      html += `<table class="tabla">` + q.filas.map(f => {
+        const v = st.filas[f.id] || "";
+        return `<tr><td><b>${f.label}</b><span class="d">${f.d}</span></td><td><select data-fila="${q.id}:${f.id}">
+          <option value="">— elegir —</option>` + f.ops.map(o => `<option${o===v?" selected":""} value="${esc(o)}">${esc(o)}${o===f.rec?" ★ recomendado":""}</option>`).join("") +
+          `<option value="__otro"${v==="__otro"?" selected":""}>otro (en notas)</option></select></td></tr>`;
+      }).join("") + `</table>`;
+    }
+    html += `<div class="rec">${q.recTexto}</div>`;
+    for (const e of (q.extra||[])){
+      html += `<label class="extra"><span>${e.label}</span><input type="text" data-extra="${q.id}:${e.id}" placeholder="${esc(e.ph)}" value="${esc(st.extra[e.id]||"")}"></label>`;
+    }
+    html += `<label class="extra"><span>Notas u otra respuesta</span><textarea data-nota="${q.id}" placeholder="Opcional">${esc(st.nota||"")}</textarea></label>`;
+    card.innerHTML = html; cont.appendChild(card);
+    const a = document.createElement("a"); a.href = "#"+q.id; a.textContent = q.id; a.dataset.q = q.id; idx.appendChild(a);
+  }
+  pintarProgreso();
+}
+
+function respondida(q){
+  const st = estado[q.id]; if (!st) return false;
+  if (q.tipo === "tabla") return q.filas.every(f => st.filas[f.id]);
+  return st.sel.length > 0 || (st.nota||"").trim().length > 0;
+}
+function pintarProgreso(){
+  let n = 0;
+  for (const q of Q){
+    const ok = respondida(q); if (ok) n++;
+    const card = document.getElementById(q.id);
+    if (card){ card.classList.toggle("done", ok); card.querySelector(".estado").textContent = ok ? "✓ respondida" : "pendiente"; }
+    const a = document.querySelector(`nav.indice a[data-q="${q.id}"]`); if (a) a.classList.toggle("done", ok);
+  }
+  $("#prog").textContent = `${n} / ${Q.length} respondidas`;
+}
+
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.matches(".op input")){
+    const q = Q.find(x => x.id === t.name), st = estado[q.id];
+    if (q.tipo === "radio") st.sel = [t.value];
+    else st.sel = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    document.querySelectorAll(`input[name="${q.id}"]`).forEach(i => i.closest("label").classList.toggle("on", i.checked));
+    guardar();
+  } else if (t.dataset.fila){
+    const [qid, fid] = t.dataset.fila.split(":"); estado[qid].filas[fid] = t.value; guardar();
+  }
+});
+document.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.dataset.extra){ const [qid, eid] = t.dataset.extra.split(":"); estado[qid].extra[eid] = t.value; guardar(); }
+  else if (t.dataset.nota){ estado[t.dataset.nota].nota = t.value; guardar(); }
+});
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-todo]"); if (!b) return;
+  const qid = b.dataset.todo, q = Q.find(x => x.id === qid), st = estado[qid];
+  st.sel = st.sel.length === q.opciones.length ? [] : q.opciones.map(o => o.v);
+  guardar(); render();
+});
+
+function texto(){
+  const lineas = ["# Ticket 06 · Orden puntual frente a onClick · respuestas", ""];
+  for (const q of Q){
+    const st = estado[q.id] || {sel:[], filas:{}, extra:{}, nota:""};
+    let r = "";
+    if (q.tipo === "tabla"){
+      r = "\n" + q.filas.map(f => `  - ${f.label}: ${st.filas[f.id] === "__otro" ? "otro (ver nota)" : (st.filas[f.id] || "—")}`).join("\n");
+    } else if (st.sel.length){
+      r = q.tipo === "radio"
+        ? st.sel.map(v => { const o = q.opciones.find(x => x.v === v); return `${v} · ${o ? o.t : v}`; }).join("")
+        : st.sel.join(", ");
+    } else r = "— sin marcar —";
+    lineas.push(`**${q.id} · ${q.titulo}:** ${r}`);
+    for (const e of (q.extra||[])) if ((st.extra[e.id]||"").trim()) lineas.push(`  - ${e.label}: ${st.extra[e.id].trim()}`);
+    if ((st.nota||"").trim()) lineas.push(`  - Nota: ${st.nota.trim().replace(/\n+/g, " / ")}`);
+  }
+  return lineas.join("\n");
+}
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
+function mostrarSalida(){ $("#salida").style.display = "block"; $("#salidaTxt").value = texto(); }
+
+$("#btnCopiar").onclick = async () => {
+  mostrarSalida();
+  try { await navigator.clipboard.writeText(texto()); toast("Copiado. Pégalo en el chat."); }
+  catch { $("#salidaTxt").select(); toast("Selecciona el texto de abajo y cópialo."); }
+};
+$("#btnMd").onclick = () => {
+  const blob = new Blob([texto()], {type:"text/markdown"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "ticket-06-respuestas.md"; a.click();
+};
+$("#btnRec").onclick = () => {
+  let n = 0;
+  for (const q of Q){
+    const st = estado[q.id];
+    if (q.tipo === "tabla"){ for (const f of q.filas) if (!st.filas[f.id]){ st.filas[f.id] = f.rec; n++; } }
+    else if (!st.sel.length && q.rec){ st.sel = [...q.rec]; n++; }
+  }
+  guardar(); render(); toast(n ? `Rellenadas ${n} con la recomendación` : "No quedaba nada vacío");
+};
+$("#btnBorrar").onclick = () => { if (confirm("¿Borrar todas las respuestas de esta página?")){ estado = {}; guardar(); render(); $("#salida").style.display = "none"; } };
+
+render();
+</script>
+</body>
+</html>

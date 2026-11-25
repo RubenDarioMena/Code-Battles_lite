@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grill · Unificación trunk + assets 3D · Campaña con las 5 batallas de War · Ronda 1</title>
+<style>
+  :root{
+    --bg:#f6f3ec; --card:#fffdf8; --ink:#1f2328; --mute:#5d6470; --line:#ddd5c4;
+    --acc:#2f6f5e; --acc-soft:#e3efe9; --rec:#a3591b; --rec-soft:#fbeedd; --sel:#e8f0fb; --sel-line:#5a86c8;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#16181b; --card:#1e2125; --ink:#e7e9ec; --mute:#9aa2ad; --line:#30353b;
+      --acc:#6cc3a6; --acc-soft:#1d3a32; --rec:#f0a35c; --rec-soft:#3a2a1a; --sel:#1d2a3d; --sel-line:#6f9be0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{max-width:880px;margin:0 auto;padding:28px 18px 8px}
+  h1{font-size:1.45rem;margin:0 0 6px}
+  .sub{color:var(--mute);margin:0 0 14px}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .intro ul{margin:6px 0 0 18px;padding:0}
+  main{max-width:880px;margin:0 auto;padding:0 18px 140px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;scroll-margin-top:12px}
+  .q.done{border-color:var(--acc)}
+  .qh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .qid{font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+  .qt{font-weight:650;font-size:1.06rem}
+  .estado{margin-left:auto;font-size:.8rem;color:var(--mute)}
+  .q.done .estado{color:var(--acc)}
+  .cuerpo{margin:8px 0 6px}
+  details{margin:6px 0 10px;border-left:3px solid var(--line);padding:2px 0 2px 10px}
+  summary{cursor:pointer;color:var(--mute);font-size:.9rem}
+  details .hechos{font-size:.9rem;color:var(--mute)}
+  details .hechos code, .cuerpo code, .op code{font-size:.85em;background:var(--acc-soft);padding:0 4px;border-radius:4px}
+  .ops{display:grid;gap:8px;margin:10px 0}
+  label.op{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer}
+  label.op:hover{border-color:var(--sel-line)}
+  label.op.on{background:var(--sel);border-color:var(--sel-line)}
+  label.op input{margin-top:4px}
+  .op b{font-weight:650}
+  .op .d{display:block;color:var(--mute);font-size:.88rem}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;color:var(--rec);background:var(--rec-soft);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+  .rec{background:var(--rec-soft);border-radius:10px;padding:9px 12px;font-size:.92rem;margin:8px 0}
+  .rec::before{content:"➡️ Mi recomendación: ";font-weight:700}
+  .tabla{width:100%;border-collapse:collapse;margin:8px 0}
+  .tabla td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}
+  .tabla td:first-child{width:38%;font-size:.92rem}
+  .tabla .d{display:block;color:var(--mute);font-size:.82rem}
+  select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  textarea{min-height:58px;resize:vertical}
+  .extra{display:grid;gap:4px;margin:8px 0}
+  .extra span{font-size:.88rem;color:var(--mute)}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:5}
+  .bar .prog{font-variant-numeric:tabular-nums;color:var(--mute);margin-right:6px}
+  button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer}
+  button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:650}
+  @media (prefers-color-scheme:dark){ button.pri{color:#0d1714} }
+  button:hover{filter:brightness(1.05)}
+  .mini{font-size:.82rem;padding:4px 9px}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  nav.indice{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  nav.indice a{font-size:.8rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  nav.indice a.done{border-color:var(--acc);color:var(--acc)}
+  #salida{display:none;margin-top:16px}
+  #salida textarea{min-height:260px;font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Unificación trunk + assets 3D → campaña con las 5 batallas de War</h1>
+  <p class="sub">Grill con documentos · <b>Ronda 1</b> de N · 23-nov-2026</p>
+  <div class="intro">
+    <b>Cómo responder:</b> marca una opción (o varias donde lo indica), añade notas si quieres y pulsa <b>Copiar respuestas</b>. Pega el texto en el chat. Las respuestas se guardan en este navegador por si cierras la página.
+    <ul>
+      <li>Cada pregunta trae <b>lo que encontré</b> en el repo y en las tres carpetas de Descargas, y mi recomendación, marcada como <span class="badge">Recomendado</span>.</li>
+      <li>Esta ronda solo incluye decisiones que no dependen de otras abiertas. Las siguientes (reparto entre capítulos, guardado, animación de los rigs, rendimiento, Astra y Codex) llegan en la ronda 2 según lo que respondas aquí.</li>
+      <li><b>Astra, <code>codex</code> y <code>codex-astra</code></b> quedan fuera de esta ronda, como pediste.</li>
+    </ul>
+    <nav class="indice" id="indice"></nav>
+  </div>
+</header>
+<main id="preguntas"></main>
+<main style="padding-top:0;padding-bottom:120px"><div id="salida"><b>Texto para pegar en el chat</b><textarea id="salidaTxt" readonly></textarea></div></main>
+
+<div class="bar">
+  <span class="prog" id="prog">0 / 0</span>
+  <button id="btnRec" title="Rellena las preguntas que no has tocado con mi recomendación">Usar mis recomendaciones en las vacías</button>
+  <button class="pri" id="btnCopiar">Copiar respuestas</button>
+  <button id="btnMd">Descargar .md</button>
+  <button id="btnBorrar" title="Borra todo lo marcado">Borrar</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const Q = [
+{
+  id:"Q1", titulo:"Rama base de la unificación", tipo:"radio",
+  cuerpo:"¿Desde dónde nace la rama de trabajo?",
+  hechos:`<ul>
+    <li><code>assets-3d</code> es <code>trunk</code> (6330c0e) más 9 commits y nada más: se fusiona sin conflictos (0 commits detrás).</li>
+    <li><code>campaign-nivel-1</code> está 84 commits detrás de <code>trunk</code>: es anterior a la arquitectura de paquetes (sus archivos siguen en <code>Prototypes/Rocket Launcher/js/</code>).</li>
+    <li>Tu checkout actual, <code>revision-flujo</code>, va 86 commits por delante de <code>trunk</code> (modo revisión de <code>educational-animation</code>). Su <code>AGENTS.md</code> y <code>CLAUDE.md</code> están desfasados: citan <code>PLAN-UNIFICACION</code> como vigente y dejan Campaign fuera del plan, mientras que el <code>AGENTS.md</code> de <code>trunk</code> manda <code>PLAN-ARQUITECTURA</code>.</li>
+    <li>Tu memoria dice: ramas desde <code>origin/trunk</code> y fusionar en trunk solo si lo pides.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Rama nueva desde origin/assets-3d", d:"Mismo contenido que B, sin commit de merge."},
+    {v:"B", t:"Rama nueva desde origin/trunk + merge de origin/assets-3d", d:"La entrada de los assets queda como un merge visible en la historia."},
+    {v:"C", t:"Integrar primero assets-3d en trunk y ramificar después", d:"Requiere tu permiso explícito para tocar trunk."},
+    {v:"D", t:"Además, traer revision-flujo", d:"Mete también el modo revisión de educational-animation."}],
+  rec:["B"], recTexto:"B. Respeta la regla «todo nace de trunk» y deja constancia de cuándo entraron los assets. revision-flujo sigue aparte: no aporta nada a las batallas.",
+  extra:[{id:"rama", label:"Nombre de la rama (déjalo vacío para usar el sugerido)", ph:"campana-war"}]
+},
+{
+  id:"Q2", titulo:"¿Qué es «campaign 1»?", tipo:"check",
+  cuerpo:"Hay varias ramas con «campaign» en el nombre. ¿De cuál tomo la referencia visual y de UI? Puedes marcar varias.",
+  hechos:`<ul>
+    <li><code>campaign-nivel-1</code> (17-nov): HUD de escritorio según tu feedback «War actual vs prototipo» (<code>campaign-hud.js</code>, <code>campaign.css</code>), iconos SVG/PNG de máquinas y robots en <code>img/campaign/</code> y el documento <code>docs/qa/campaign-2026-11-17/feedback-war-prototipo.md</code>.</li>
+    <li><code>papercraft-campaign</code> (23-nov): estilo papercraft, mapa de 400 × 208 m, kit de vegetación y muralla, y motor de vóxeles. Ya entra completa a través de <code>assets-3d</code>.</li>
+    <li><code>mapa-campaign-astra</code>: solo local, idéntica a trunk (vacía).</li>
+    <li>La serie Campaign de <code>trunk</code>: <code>reglas-campaign</code>, «Primera fábrica», hitos H0–H5.</li></ul>`,
+  opciones:[
+    {v:"campaign-nivel-1", t:"campaign-nivel-1", d:"UI de escritorio, iconos y feedback."},
+    {v:"papercraft-campaign", t:"papercraft-campaign", d:"Estilo y mapa (ya viene en assets-3d)."},
+    {v:"serie-campaign", t:"La serie Campaign de trunk", d:"Interfaz actual de H0–H5."},
+    {v:"otra", t:"Otra (en notas)", d:""}],
+  rec:["campaign-nivel-1","papercraft-campaign"], recTexto:"campaign-nivel-1 para la UI y papercraft-campaign (vía assets-3d) para el aspecto. Doy por hecho que «campaign 1» es campaign-nivel-1."
+},
+{
+  id:"Q3", titulo:"¿Qué son «las mecánicas de la fábrica»?", tipo:"radio",
+  cuerpo:"En el código hay dos fábricas distintas. ¿Cuál se combina con las batallas?",
+  hechos:`<ul>
+    <li><b>Serie Campaign</b> (<code>reglas-campaign</code>, «Primera fábrica»): robots FRK y BOT, prensa, moldeadora, mezcladora, ensambladora con recetas, banda y energía. Produce <b>misiles</b> que acaban en la bodega de la muralla. API: <code>pickUp</code>, <code>deliver</code>, <code>setRecipe</code>, <code>count</code>, <code>wait</code>…</li>
+    <li><b>Serie Factory</b> (<code>reglas-factory</code>, banco 02): recoger y entregar con el T1, con bloques y seudocódigo ES/EN. Tiene oráculo de comportamiento.</li></ul>`,
+  opciones:[
+    {v:"A", t:"La de Campaign (H0–H5)", d:"Fabricar misiles que abastecen a los lanzadores. Encaja de forma natural con War."},
+    {v:"B", t:"La de Factory (recoger y entregar)", d:"Más simple y con bloques y seudocódigo."},
+    {v:"C", t:"Ambas", d:"Factory al principio, como tutorial, y Campaign después."},
+    {v:"D", t:"Mecánicas nuevas por diseñar", d:"Se definen en rondas siguientes."}],
+  rec:["A"], recTexto:"A. Ya fabrica munición para una muralla con lanzadores, que es justo el puente hacia War. El T1 de Factory se aprovecha como asset (ver Q7)."
+},
+{
+  id:"Q4", titulo:"¿Cómo se conectan fábrica y batallas?", tipo:"radio",
+  cuerpo:"Las batallas ya no se eligen de un selector: forman parte de la campaña. ¿Qué une un capítulo de fábrica con una batalla?",
+  hechos:`<ul>
+    <li>Cada reto de War ya acepta como parámetros <code>cargador</code>, <code>suministro</code>, <code>reparadores</code> y hasta 2 <code>lanzadores</code> (función <code>normalizar</code> de <code>reglas-war/retos.js</code>). Se pueden alimentar desde fuera sin tocar las reglas.</li>
+    <li>Campaign H0–H5 ya es un mundo continuo de 200 × 104 m con muralla y campo de batalla, pero sin oleadas.</li>
+    <li>El plan de arquitectura describe Campaign como «una secuencia de tramos sobre el mismo mundo».</li></ul>`,
+  opciones:[
+    {v:"A", t:"Capítulos independientes", d:"La fábrica y la batalla se alternan sin compartir estado. Solo los une la narrativa."},
+    {v:"B", t:"Acople por recursos", d:"Lo producido (misiles, piezas, robots) fija los parámetros de la batalla siguiente (cargador, suministro, reparadores, segundo lanzador). Las reglas de War no se tocan."},
+    {v:"C", t:"Mundo continuo", d:"Fábrica y batalla corren a la vez en el mismo mapa. Los misiles llegan en vivo a la muralla durante el combate."},
+    {v:"D", t:"Otro (en notas)", d:""}],
+  rec:["B"], recTexto:"B para estas 5 batallas. La fábrica pesa de verdad, sigue valiendo la paridad de reglas-war y la puerta a C queda abierta. C es la visión a largo plazo, pero obliga a reescribir reglas y rompe las referencias."
+},
+{
+  id:"Q5", titulo:"¿Qué tan fiel es «replicar las 5 batallas»?", tipo:"radio",
+  cuerpo:"War tiene exactamente 5 retos: <b>1 Primer blanco · 2 Prioridades · 3 Niebla · 4 Enjambre · 5 Dos lanzadores</b>.",
+  hechos:`<ul>
+    <li>Las referencias de la fase 0 guardan la huella de War, retos 1–5 con semillas 1 y 7. Son la red de seguridad de paridad.</li>
+    <li>API que ve el jugador: <code>autoTarget</code>, <code>regularShoot</code>, <code>burstFire</code>, <code>stopFire</code>, <code>esperar</code>, <code>failureRate</code>, <code>VIB_01.detect</code>, <code>LAU_02.jammed</code>.</li>
+    <li>Tablero de 32 × 18 casillas; las oleadas entran por la derecha.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Idénticas", d:"Mismas oleadas, metas, API, programas iniciales y huella. Solo cambian la vista y el envoltorio de campaña."},
+    {v:"B", t:"Mismas reglas y API, contenido ajustado", d:"Textos, oleadas o metas cambian por la narrativa (p. ej., el cargador depende de la fábrica). Huella distinta solo en las que cambien."},
+    {v:"C", t:"Reinterpretadas", d:"Nuevo mapa, coordenadas, muralla o unidades nuevas. Reglas nuevas."}],
+  rec:["A"], recTexto:"A en el primer corte, con B permitido después para cada escenario sin tocar reglas-war (con Q4 = B, el cargador variable ya es un caso de B)."
+},
+{
+  id:"Q6", titulo:"¿War y Factory siguen existiendo por separado?", tipo:"radio",
+  cuerpo:"En el feedback de campaign-nivel-1 dijiste: «quizá solo se deje war y factory aparte en un menú por fuera de la campaña… pero de cara al launch todo será campaña».",
+  hechos:`<ul><li>Hoy: <code>?serie=war</code> (por defecto), <code>?serie=factory</code> y <code>?serie=campaign</code>, todas sobre la misma app.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Sí, intactas", d:"La campaña se suma sin quitar nada. War conserva su selector de retos para QA y demo."},
+    {v:"B", t:"La campaña sustituye a War", d:"El selector de retos desaparece."},
+    {v:"C", t:"Quedan solo para QA (ocultas)", d:"Accesibles por URL, fuera de la portada."}],
+  rec:["A"], recTexto:"A por ahora. Así no se rompe ninguna suite ni referencia. Ocultarlas de la portada es una decisión de lanzamiento, no de esta unificación."
+},
+{
+  id:"Q7", titulo:"¿Qué asset 3D representa a cada entidad de War?", tipo:"tabla",
+  cuerpo:"Esta es la prueba real de los assets. Elige un modelo por entidad.",
+  hechos:`<ul>
+    <li>GLB disponibles en assets-3d: <code>vehiculo_tubular.glb</code> (buggy «sustituto del carro lanzamisiles», con ametralladora sobre corona, 3 LOD y rig cbl-rig v2 validado), <code>torreta_observacion.glb</code> (esfera con telescopio), <code>t1.glb</code> (robot de Factory), el kit papercraft (pinos, rocas, laja, torre…), 16 losetas del mapa y 12 opciones de muralla (elegida: C · Traba + Cordón).</li>
+    <li><b>Sin GLB:</b> VEH (armazón tubular con 2 lanzadores de 5 tubos = cargador de 10, que encaja con el LAU) y WHL (rueda kamikaze). Existen como <code>unidades_batalla.blend</code> y <code>.py</code>, sin exportar.</li>
+    <li>Ningún asset sirve para drones ni drones fríos.</li>
+    <li>Las imágenes de campaign-nivel-1 son de la fábrica (prensa, ensambladora, FRK-01, BOT-01), no de War.</li></ul>`,
+  filas:[
+    {id:"LAU", label:"LAU-01/02 · lanzador", d:"Estático, cargador de 8–12, apunta y dispara",
+      ops:["vehiculo_tubular.glb","VEH (exportar desde unidades_batalla)","torreta_observacion.glb","primitiva actual"], rec:"vehiculo_tubular.glb"},
+    {id:"VIB", label:"VIB-01 · sensor de vibración", d:"Escucha el suelo, alcance 8",
+      ops:["torreta_observacion.glb","torre del kit papercraft","primitiva actual"], rec:"torreta_observacion.glb"},
+    {id:"REP", label:"Robot reparador", d:"Va al lanzador atascado y lo repara",
+      ops:["t1.glb","primitiva actual"], rec:"t1.glb"},
+    {id:"crawler", label:"Oruga (y oruga blindada, 3 impactos)", d:"Terrestre, lenta",
+      ops:["WHL rueda kamikaze (exportar)","vehiculo_tubular.glb con color enemigo","primitiva actual"], rec:"primitiva actual"},
+    {id:"drone", label:"Dron y dron frío", d:"Vuela a 2,5 m, rápido",
+      ops:["primitiva actual","encargo de arte nuevo"], rec:"primitiva actual"},
+    {id:"base", label:"Base / línea roja", d:"Por donde cuentan las brechas",
+      ops:["tramo de muralla C · Traba + Cordón (estático)","torre del kit papercraft","línea actual"], rec:"tramo de muralla C · Traba + Cordón (estático)"}],
+  recTexto:"Usar ya los GLB que existen (LAU = tubular, VIB = torreta, REP = T1, muralla C) y dejar los enemigos con su primitiva. Exportar WHL y VEH sería el primer encargo de arte, no un requisito para arrancar."
+},
+{
+  id:"Q8", titulo:"¿Dónde ocurren las batallas en 3D?", tipo:"radio",
+  cuerpo:"En War, 1 casilla = 1 m, y en el mapa papercraft, 1 unidad = 1 m. El campo de batalla de War mide 32 × 18 m y el mapa ampliado, 400 × 208 m. Vale para Q5 = A o B.",
+  hechos:`<ul>
+    <li>Mapa papercraft: 16 losetas GLB (4 × 4), muralla en «J», frente este y frente sur como campos de batalla, Three r180 y material de fibra con color por vértice.</li>
+    <li>Feedback de campaign-nivel-1: «la vista sin texturas de mapa es exclusiva de cuando hay un combate… y se activa sola».</li></ul>`,
+  opciones:[
+    {v:"A", t:"Diorama propio por batalla", d:"Un recorte de 32 × 18 m montado con el kit (suelo, rocas, pinos y muralla al oeste). Ligero y fácil de encuadrar."},
+    {v:"B", t:"Sección del mapa ampliado", d:"La batalla se encuadra frente a la muralla, en el frente este o sur, y el resto del mapa queda como paisaje. Prepara el mundo continuo."},
+    {v:"C", t:"Tablero actual de War con materiales papercraft", d:"El cambio mínimo."}],
+  rec:["B"], recTexto:"B, con la cuadrícula de combate superpuesta al activarse la batalla. Es la que de verdad prueba el mapa. Si el móvil no la aguanta (16 losetas), A sirve de respaldo."
+},
+{
+  id:"Q9", titulo:"¿Entra la muralla de vóxeles en estas batallas?", tipo:"radio",
+  cuerpo:"El 23-nov decidiste que el motor de vóxeles «será el sistema que se use». En War no hay muralla: las brechas se cuentan al cruzar una línea.",
+  hechos:`<ul>
+    <li>Motor en <code>shared/muralla/</code>. Su laboratorio usa Three r128 (en <code>herramientas/muralla/vendor/</code>) y el juego usa r180.</li>
+    <li>Que los enemigos dañen la muralla sería una regla nueva: cambia reglas-war y la huella.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Muralla estática", d:"Un GLB de la opción C como decorado de la línea de base. Sin daño."},
+    {v:"B", t:"Muralla de vóxeles con daño", d:"Regla nueva y vista con el motor adaptado a r180."},
+    {v:"C", t:"Fuera de este corte", d:"Ni siquiera como decorado."}],
+  rec:["A"], recTexto:"A. Prueba el asset sin tocar las reglas. El daño de vóxeles merece su propia ronda, porque cambia el diseño de War."
+},
+{
+  id:"Q10", titulo:"¿Qué UI de campaign-nivel-1 entra?", tipo:"check",
+  cuerpo:"Dijiste: el editor se queda como en trunk y algo de la UI del mapa puede venir de campaign. Esta es la lista de tu feedback. Marca lo que entra en esta unificación.",
+  hechos:`<ul><li>Fuente: <code>feedback-war-prototipo.md</code> y <code>campaign-hud.js</code> (rama campaign-nivel-1). En el teléfono, todo lo nuevo se oculta por CSS.</li></ul>`,
+  opciones:[
+    {v:"mision", t:"Mapa sin barra superior y botón Misión «!»", d:"Resumen mínimo con «ver más», que abre la explicación completa y las pistas opcionales."},
+    {v:"metas", t:"Metas numéricas en columna arriba a la derecha", d:"Con el SVG de la pieza o máquina, y los recursos debajo."},
+    {v:"vista", t:"Selector 3D / 2D centrado arriba", d:"«Plano» pasa a «2D», «Batalla» desaparece y la vista sin texturas se activa sola en el combate."},
+    {v:"ficha", t:"Ficha compacta de unidad abajo a la izquierda", d:"Sección 6 del feedback."},
+    {v:"ficha3d", t:"Ficha completa con el modelo 3D de la máquina", d:"Solo en escritorio. Sirve para lucir y probar los GLB."},
+    {v:"vidas", t:"Botón de vida de tus unidades en batalla", d:"Junto a los binoculares."},
+    {v:"guardado", t:"Guardado manual en varias ranuras", d:"Los checkpoints pasan a la pantalla de derrota."},
+    {v:"maquinas", t:"Menú Máquinas en lugar de Checkpoint", d:"Incluye la ingeniería inversa de enemigos y el árbol de investigación."},
+    {v:"arbol", t:"Selector de unidades en árbol con casillas", d:"Ocupa la zona superior del editor."},
+    {v:"biblioteca", t:"Pestañas «+» con biblioteca de programas", d:"En los controles maestros."},
+    {v:"menu", t:"Menú ⋯ de pantallas que ocupan el sitio del código", d:""},
+    {v:"ajustes", t:"Ajustes del prototipo", d:"Lenguaje JS/Python, tamaño de letra, etc., dentro de Ajustes."},
+    {v:"aoe", t:"Controles tipo Age of Empires", d:"Clic izquierdo para seleccionar, derecho para ordenar."},
+    {v:"shapez", t:"Widget de colocar estilo shapez", d:"Confirmar, girar, cancelar y bloquear."}],
+  rec:["mision","metas","vista","ficha","ficha3d","guardado"], recTexto:"Las seis primeras sin «vidas»: son del mapa, no tocan el editor y luce los assets. El árbol de unidades, la biblioteca y el menú ⋯ invaden la zona del editor (que debe quedarse como trunk). Los controles AoE y shapez requieren órdenes de jugador y construcción, que las 5 batallas no usan."
+},
+{
+  id:"Q11", titulo:"Móvil", tipo:"radio",
+  cuerpo:"Tu feedback para teléfono: «Nada del prototipo se queda… además de dejar por defecto el modo fullscreen».",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"La interfaz de trunk sin cambios", d:"Pantalla completa por defecto. Los assets 3D sí se ven, con un nivel de calidad adecuado."},
+    {v:"B", t:"Adaptar también la UI nueva del mapa al móvil", d:""}],
+  rec:["A"], recTexto:"A, tal como lo pediste el 17-nov."
+},
+{
+  id:"Q12", titulo:"«Estructura de carpetas de campaign1»: ¿qué significa?", tipo:"check",
+  cuerpo:"Dijiste que se puede copiar parte de la estructura de carpetas de campaign1 junto con su UI, aunque su código no se use. ¿Qué incluye eso?",
+  hechos:`<ul>
+    <li>campaign-nivel-1 tiene poca estructura propia: <code>js/campaign-hud.js</code> (IIFE con global), <code>css/campaign.css</code> e <code>img/campaign/{maquinas,robots}</code> (con <code>svg/</code>, <code>svg-b/</code> y sus <code>generar.py</code>).</li>
+    <li>En trunk, la UI vive en <code>paquetes/interfaz/</code> como módulos ES, con un máximo de unas 500 líneas por archivo, y los GLB del juego en <code>Prototypes/Rocket Launcher/modelos/</code>.</li></ul>`,
+  opciones:[
+    {v:"img", t:"Traer img/campaign/ tal cual", d:"Iconos y generadores de máquinas y robots."},
+    {v:"submodulo", t:"Submódulo de interfaz para la campaña", d:"Algo como <code>paquetes/interfaz/campana/</code>: HUD del mapa reescrito como ES siguiendo el reparto de campaign-hud.js (misión, metas, ficha…)."},
+    {v:"css", t:"Hoja de estilos propia de la campaña", d:"Dentro del paquete interfaz."},
+    {v:"assets", t:"Carpeta común de assets", d:"Mover los GLB a algo como <code>assets/modelos/</code> o <code>assets/mapa/</code> para que no vivan dentro de un prototipo."},
+    {v:"otra", t:"Otra cosa (en notas)", d:""}],
+  rec:["img","submodulo","css"], recTexto:"img + submódulo + css. Mover los GLB es un cambio de arquitectura: solo lo haría si Q13 lo justifica (p. ej., si el mapa y la campaña los comparten con otras páginas)."
+},
+{
+  id:"Q13", titulo:"Cambios de arquitectura permitidos para el 3D", tipo:"check",
+  cuerpo:"Dijiste que solo se cambia la arquitectura si es necesario o muy recomendable para el 3D con Three.js. Estos son los candidatos que veo:",
+  hechos:`<ul>
+    <li><code>vista-3d</code> está en r180, con <code>InstancedMesh</code> para enemigos y misiles; <code>conectarRig</code> ya mueve el T1 en Factory.</li>
+    <li>El visor papercraft tiene su propio material de fibra y color por vértice.</li>
+    <li>Tu memoria: en raw.githack, los GLB y las imágenes dan 403 y hay que cargarlos desde raw.githubusercontent.</li></ul>`,
+  opciones:[
+    {v:"registro", t:"Registro y caché de modelos en vista-3d", d:"Tipo de entidad → GLB, LOD y escala, cargado una sola vez. Necesario."},
+    {v:"material", t:"Material papercraft compartido como módulo de vista-3d", d:"Fibra, COLOR_0 y canto. Muy recomendable."},
+    {v:"rig", t:"Animar los rigs desde la escena", d:"Torreta que apunta al objetivo y ruedas, vía <code>paquetes/rig</code>."},
+    {v:"urls", t:"Resolver las URL de binarios", d:"Usar raw.githubusercontent cuando se sirve por githack."},
+    {v:"r180muralla", t:"Pasar el motor de muralla a r180", d:"Solo si Q9 = B."},
+    {v:"hilo", t:"Núcleo en otro hilo", d:"No lo veo necesario para 5 batallas."}],
+  rec:["registro","material","rig","urls"], recTexto:"Las cuatro primeras. Todas viven dentro de vista-3d o de la app y no cruzan fronteras (las reglas siguen sin saber nada del 3D)."
+},
+{
+  id:"Q14", titulo:"Precedencia entre las tres carpetas de Descargas", tipo:"radio",
+  cuerpo:"Pediste priorizar lo más reciente si hay inconsistencias, pero «reciente» es ambiguo aquí.",
+  hechos:`<ul>
+    <li><b>Claude-code-battle-lite</b>: paquete generado el 24-nov, pero a partir de <code>papercraft-campaign</code> 421ca8e, anterior a la punta de assets-3d.</li>
+    <li><b>codex1</b>: corte en <code>assets-3d</code> ac1d810 (23-nov, 18:14), la fuente más nueva.</li>
+    <li><b>Codex2</b> (23-nov): mezcla <code>revision-flujo</code> (con el AGENTS.md desfasado) y <code>assets-3d</code>.</li>
+    <li>Ya superados: VISION-CAMPANA (3-nov) frente a VISION (15-nov), y PLAN-UNIFICACION (cerrado) frente a PLAN-ARQUITECTURA.</li></ul>`,
+  opciones:[
+    {v:"A", t:"Por fecha y commit del documento fuente", d:"assets-3d ac1d810 > papercraft 421ca8e > trunk o revision-flujo."},
+    {v:"B", t:"Por fecha de generación del paquete", d:"Claude (24-nov) > codex1 y Codex2 (23-nov)."},
+    {v:"C", t:"Mixto", d:"En arquitectura y reglas de trabajo mandan el AGENTS.md y el PLAN-ARQUITECTURA de trunk. En diseño, arte y UI, el documento fuente más reciente (A)."}],
+  rec:["C"], recTexto:"C. Evita que un AGENTS.md desfasado (el de revision-flujo, copiado en Codex2 y en tu CLAUDE.md local) contradiga la arquitectura de trunk."
+},
+{
+  id:"Q15", titulo:"Primer hito entregable", tipo:"radio",
+  cuerpo:"¿Qué tiene que poder probarse por enlace raw.githack al cerrar el primer paso?",
+  hechos:"",
+  opciones:[
+    {v:"A", t:"Batalla 1 «Primer blanco» con la UI nueva del mapa, los assets 3D y el escenario papercraft", d:"Sin fábrica todavía."},
+    {v:"B", t:"Lo de A más un capítulo de fábrica antes y el acople de recursos", d:""},
+    {v:"C", t:"Las 5 batallas con assets antes de cualquier fábrica", d:""},
+    {v:"D", t:"Las 5 batallas con la fábrica, todo junto", d:""}],
+  rec:["A"], recTexto:"A, después B y luego las batallas 2–5. Un corte vertical pequeño permite revisar desde el teléfono si los assets y el mapa funcionan antes de multiplicar."
+},
+{
+  id:"Q16", titulo:"Nombres: ¿cómo se llama cada cosa?", tipo:"radio",
+  cuerpo:"Ya existe una serie llamada Campaign («Primera fábrica», H0–H5). Si la nueva también se llama «campaña», hay que decidir su relación con esa serie y fijar el glosario (irá a <code>CONTEXT.md</code>).",
+  hechos:`<ul>
+    <li>Términos actuales: <b>serie</b> (War, Factory, Campaign), <b>reto</b> (cada batalla de War), <b>hito</b> (H0–H5 de Campaign), <b>tramo</b> (en la herramienta de partidas), <b>oleada</b> y <b>brecha</b>.</li>
+    <li>Tu feedback: «la UI planeada actualmente será todo campaña de cara al launch».</li></ul>`,
+  opciones:[
+    {v:"A", t:"La nueva campaña absorbe la serie Campaign", d:"H0–H5 pasan a ser capítulos de fábrica dentro de ella y sus reglas no cambian."},
+    {v:"B", t:"Serie nueva aparte", d:"Algo como <code>?serie=campana</code>. Campaign H0–H5 sigue como está."},
+    {v:"C", t:"Nivel 2 de la serie Campaign", d:""}],
+  rec:["A"], recTexto:"A, con este glosario propuesto (corrígelo abajo): Campaña = secuencia de Capítulos; Capítulo = una Batalla (reglamento War) o una Jornada de fábrica (reglamento Campaign, por hitos); el Reto de War se llama Batalla cuando se juega dentro de la campaña.",
+  extra:[
+    {id:"g_campana", label:"Nombre del conjunto", ph:"Campaña"},
+    {id:"g_capitulo", label:"Cada paso de la campaña", ph:"Capítulo"},
+    {id:"g_batalla", label:"Capítulo de combate", ph:"Batalla"},
+    {id:"g_fabrica", label:"Capítulo de fábrica", ph:"Jornada de fábrica"}]
+}
+];
+
+const CLAVE = "grill-unificacion-campana-war-r1";
+const almacen = (() => { try { const s = window.localStorage; s.getItem(CLAVE); return s; } catch { return null; } })();
+let estado = {};
+try { estado = JSON.parse((almacen && almacen.getItem(CLAVE)) || "{}"); } catch { estado = {}; }
+const guardar = () => { try { almacen && almacen.setItem(CLAVE, JSON.stringify(estado)); } catch {} pintarProgreso(); };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const cont = $("#preguntas"); cont.innerHTML = "";
+  const idx = $("#indice"); idx.innerHTML = "";
+  for (const q of Q){
+    const st = estado[q.id] ||= {sel:[], filas:{}, extra:{}, nota:""};
+    const card = document.createElement("section"); card.className = "q"; card.id = q.id;
+    let html = `<div class="qh"><span class="qid">❓ ${q.id}</span><span class="qt">${q.titulo}</span><span class="estado"></span></div>
+      <div class="cuerpo">${q.cuerpo}</div>`;
+    if (q.hechos) html += `<details><summary>Lo que encontré</summary><div class="hechos">${q.hechos}</div></details>`;
+    if (q.tipo === "radio" || q.tipo === "check"){
+      html += `<div class="ops">` + q.opciones.map(o => {
+        const on = st.sel.includes(o.v);
+        const r = (q.rec||[]).includes(o.v) ? `<span class="badge">Recomendado</span>` : "";
+        return `<label class="op${on?" on":""}"><input type="${q.tipo==="radio"?"radio":"checkbox"}" name="${q.id}" value="${esc(o.v)}"${on?" checked":""}>
+          <span><b>${q.tipo==="radio"?o.v+" · ":""}${o.t}</b>${r}${o.d?`<span class="d">${o.d}</span>`:""}</span></label>`;
+      }).join("") + `</div>`;
+      if (q.tipo === "check") html += `<button class="mini" data-todo="${q.id}">Marcar o desmarcar todas</button>`;
+    }
+    if (q.tipo === "tabla"){
+      html += `<table class="tabla">` + q.filas.map(f => {
+        const v = st.filas[f.id] || "";
+        return `<tr><td><b>${f.label}</b><span class="d">${f.d}</span></td><td><select data-fila="${q.id}:${f.id}">
+          <option value="">— elegir —</option>` + f.ops.map(o => `<option${o===v?" selected":""} value="${esc(o)}">${esc(o)}${o===f.rec?" ★ recomendado":""}</option>`).join("") +
+          `<option value="__otro"${v==="__otro"?" selected":""}>otro (en notas)</option></select></td></tr>`;
+      }).join("") + `</table>`;
+    }
+    html += `<div class="rec">${q.recTexto}</div>`;
+    for (const e of (q.extra||[])){
+      html += `<label class="extra"><span>${e.label}</span><input type="text" data-extra="${q.id}:${e.id}" placeholder="${esc(e.ph)}" value="${esc(st.extra[e.id]||"")}"></label>`;
+    }
+    html += `<label class="extra"><span>Notas u otra respuesta</span><textarea data-nota="${q.id}" placeholder="Opcional">${esc(st.nota||"")}</textarea></label>`;
+    card.innerHTML = html; cont.appendChild(card);
+    const a = document.createElement("a"); a.href = "#"+q.id; a.textContent = q.id; a.dataset.q = q.id; idx.appendChild(a);
+  }
+  pintarProgreso();
+}
+
+function respondida(q){
+  const st = estado[q.id]; if (!st) return false;
+  if (q.tipo === "tabla") return q.filas.every(f => st.filas[f.id]);
+  return st.sel.length > 0 || (st.nota||"").trim().length > 0;
+}
+function pintarProgreso(){
+  let n = 0;
+  for (const q of Q){
+    const ok = respondida(q); if (ok) n++;
+    const card = document.getElementById(q.id);
+    if (card){ card.classList.toggle("done", ok); card.querySelector(".estado").textContent = ok ? "✓ respondida" : "pendiente"; }
+    const a = document.querySelector(`nav.indice a[data-q="${q.id}"]`); if (a) a.classList.toggle("done", ok);
+  }
+  $("#prog").textContent = `${n} / ${Q.length} respondidas`;
+}
+
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.matches(".op input")){
+    const q = Q.find(x => x.id === t.name), st = estado[q.id];
+    if (q.tipo === "radio") st.sel = [t.value];
+    else st.sel = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    document.querySelectorAll(`input[name="${q.id}"]`).forEach(i => i.closest("label").classList.toggle("on", i.checked));
+    guardar();
+  } else if (t.dataset.fila){
+    const [qid, fid] = t.dataset.fila.split(":"); estado[qid].filas[fid] = t.value; guardar();
+  }
+});
+document.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.dataset.extra){ const [qid, eid] = t.dataset.extra.split(":"); estado[qid].extra[eid] = t.value; guardar(); }
+  else if (t.dataset.nota){ estado[t.dataset.nota].nota = t.value; guardar(); }
+});
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-todo]"); if (!b) return;
+  const qid = b.dataset.todo, q = Q.find(x => x.id === qid), st = estado[qid];
+  st.sel = st.sel.length === q.opciones.length ? [] : q.opciones.map(o => o.v);
+  guardar(); render();
+});
+
+function texto(){
+  const lineas = ["# Grill · Unificación trunk + assets 3D · Ronda 1 · respuestas", ""];
+  for (const q of Q){
+    const st = estado[q.id] || {sel:[], filas:{}, extra:{}, nota:""};
+    let r = "";
+    if (q.tipo === "tabla"){
+      r = "\n" + q.filas.map(f => `  - ${f.label}: ${st.filas[f.id] === "__otro" ? "otro (ver nota)" : (st.filas[f.id] || "—")}`).join("\n");
+    } else if (st.sel.length){
+      r = q.tipo === "radio"
+        ? st.sel.map(v => { const o = q.opciones.find(x => x.v === v); return `${v} · ${o ? o.t : v}`; }).join("")
+        : st.sel.join(", ");
+    } else r = "— sin marcar —";
+    lineas.push(`**${q.id} · ${q.titulo}:** ${r}`);
+    for (const e of (q.extra||[])) if ((st.extra[e.id]||"").trim()) lineas.push(`  - ${e.label}: ${st.extra[e.id].trim()}`);
+    if ((st.nota||"").trim()) lineas.push(`  - Nota: ${st.nota.trim().replace(/\n+/g, " / ")}`);
+  }
+  return lineas.join("\n");
+}
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
+function mostrarSalida(){ $("#salida").style.display = "block"; $("#salidaTxt").value = texto(); }
+
+$("#btnCopiar").onclick = async () => {
+  mostrarSalida();
+  try { await navigator.clipboard.writeText(texto()); toast("Copiado. Pégalo en el chat."); }
+  catch { $("#salidaTxt").select(); toast("Selecciona el texto de abajo y cópialo."); }
+};
+$("#btnMd").onclick = () => {
+  const blob = new Blob([texto()], {type:"text/markdown"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "grill-ronda-1-respuestas.md"; a.click();
+};
+$("#btnRec").onclick = () => {
+  let n = 0;
+  for (const q of Q){
+    const st = estado[q.id];
+    if (q.tipo === "tabla"){ for (const f of q.filas) if (!st.filas[f.id]){ st.filas[f.id] = f.rec; n++; } }
+    else if (!st.sel.length && q.rec){ st.sel = [...q.rec]; n++; }
+  }
+  guardar(); render(); toast(n ? `Rellenadas ${n} con la recomendación` : "No quedaba nada vacío");
+};
+$("#btnBorrar").onclick = () => { if (confirm("¿Borrar todas las respuestas de esta página?")){ estado = {}; guardar(); render(); $("#salida").style.display = "none"; } };
+
+render();
+</script>
+</body>
+</html>

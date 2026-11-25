@@ -17,13 +17,15 @@ Los contratos son orientativos: los nombres definitivos los fija la fase 2.
 | `reglas-war` | `nucleo`, `protocolo` |
 | `reglas-factory` | `nucleo`, `protocolo` |
 | `reglas-campaign` | `nucleo`, `protocolo` |
+| `reglas-campaign-v2` | `nucleo`, `protocolo` |
 | `lenguaje` | Nada |
 | `interprete` | Nada (Acorn inyectado por opciones) |
 | `anfitrion` | `nucleo`, `protocolo`, `lenguaje`, `interprete` |
 | `editor` | `lenguaje` |
 | `vfx` | `protocolo` |
 | `vista-2d` | `protocolo`, `vfx` |
-| `vista-3d` | `protocolo`, `vfx` |
+| `rig` | Nada |
+| `vista-3d` | `protocolo`, `vfx`, `rig` |
 | `interfaz` | `protocolo`, `editor` |
 | `app` | Todos |
 

@@ -3,6 +3,8 @@ export interface PiezasTrabajador {
   validarFactory?: Function | string | null;
   validarCampaign?: Function | string | null;
   modoCampaign?: Function | string | null;
+  capacidades?: Record<string, { api: Function; ordenar: Function }>;
+  lugarDeObjetivo?: Function | string;
   preludioPython?: Function | string | null;
 }
 /** Canal mínimo de un programa: un Worker del navegador o su imitación sin pantalla. */
@@ -36,16 +38,26 @@ export interface OpcionesAnfitrion {
   crearTrabajador(fuente: string, unidad: string, recibir: (mensaje: any) => void, maxOrdenes?: number,
     opciones?: { depurar?: boolean }): Trabajador & { entregar?(): boolean; pausa?(): { linea: number } | null; reanudar?(): unknown; onerror?: any };
   pasoAPaso?: boolean;
+  eventos?: string[];
+  erroresEvento?: { tarde: string; funcion: string };
+  aislarErrores?: boolean;
   contexto?: { nombres?: string[]; tipos?: string[]; sensores?: string[]; conf?: Record<string, number> };
   piezas?: PiezasTrabajador;
   maxOrdenes?: number;
   ahora?: () => number;
 }
+export interface OpcionesPrograma {
+  lenguaje?: 'js' | 'python';
+  diagnostico?: { mensaje: string; linea: number | null };
+}
 export interface Anfitrion {
+  escucha(unidad: string, evento: string): boolean;
+  entregarEventos(snap: { t: number }, eventos: import('../nucleo/index.js').EventoPrograma[]): Promise<Turno>;
   pausas(): PausaUnidad[];
   avanzarLinea(unidad?: string): Promise<AvanceLinea>;
   continuar(): Promise<void>;
-  cargar(unidad: string, codigo: string, opciones?: { lenguaje?: 'js' | 'python' }): Promise<void>;
+  cargar(unidad: string, codigo: string, opciones?: OpcionesPrograma): Promise<void>;
+  recargar(unidad: string, codigo: string, opciones?: OpcionesPrograma): Promise<void>;
   ceder(instantanea: { t: number; [clave: string]: unknown }, respuestas?: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
   responder(respuestas: import('../nucleo/index.js').Respuesta[]): Promise<Turno>;
   /** Índice absoluto de eventos; los contadores siempre son acumulados. Devuelve una copia. */

@@ -1,11 +1,13 @@
 import type { Vista } from '../protocolo/index.js';
 export type { Vista } from '../protocolo/index.js';
+export { dibujarIconoHito } from './iconos-hito.js';
 export { crearPlano } from './war.js';
 export { dibujarFactory } from './factory.js';
 export { crearPlanoCampaign } from './campaign.js';
 export { crearTerreno } from './campaign-terreno.js';
 
 export interface EstadoVista2D {
+  readonly camaraPlano?: { zoom: number; x: number; y: number };
   readonly efectos?: { calidad: import('../vfx/index.js').Calidad; sinDestellos?: boolean };
   readonly medicionEfectos?: { ahora(): number; registrar(muestra: { vista: string; vivas: number; particulasMs: number; dibujarMs: number }): void };
   readonly escena: Readonly<Record<string, any>> | null;

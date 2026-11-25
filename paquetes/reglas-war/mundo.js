@@ -161,7 +161,7 @@ export function conectar(mundo, hooks) {
     if (l.modo === "burst" && !l.atascado) { l.falla = Math.min(0.95, l.falla + LAU.subida * dt); l.st.tRafaga += dt; }
     else l.falla = Math.max(LAU.fallaBase, l.falla - (l.modo === "idle" || l.atascado ? LAU.bajadaParado : LAU.bajada) * dt);
     l.st.fallaMax = Math.max(l.st.fallaMax, l.falla);
-    if (l.misiles < m.def.cargador) { l.carga += m.def.suministro * dt; if (l.carga >= 1 - 1e-9) { l.misiles++; l.carga -= 1; } }
+    if (l.misiles < m.def.cargador) { l.carga += (l.suministro ?? m.def.suministro) * dt; if (l.carga >= 1 - 1e-9) { l.misiles++; l.carga -= 1; } }
     else l.carga = 0;
     l.cd = Math.max(l.cd - dt, -dt);
     if (l.lugar) l.yaw = Math.atan2(l.lugar.y - l.cy, l.lugar.x - l.cx);

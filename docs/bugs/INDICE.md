@@ -16,4 +16,5 @@ Las claves son las del índice de palabras clave de la spec de la pantalla. Un b
 
 | ID | Título | Pantalla | Claves | Estado | Fecha |
 | --- | --- | --- | --- | --- | --- |
+| [BUG-0001](BUG-0001-campaign-v2-el-encuadre-3d-inicial-corta-la-entrad.md) | Campaign-V2: el encuadre 3D inicial corta la entrada de la Batalla | mapa | camara, bastion, encuadre | corregido, QA visual pendiente | 2026-11-24 |
 <!-- nuevas filas encima de esta línea -->

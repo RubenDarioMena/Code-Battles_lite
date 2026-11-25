@@ -40,9 +40,18 @@ Pruebas: `node pruebas/plataforma.mjs`, `node pruebas/juego-arranque.mjs` y
 
 ## Puede importar
 
-`protocolo`, `nucleo`, `reglas-war`, `reglas-factory`, `reglas-campaign`,
+`protocolo`, `nucleo`, `reglas-war`, `reglas-factory`, `reglas-campaign`, `reglas-campaign-v2`,
 `lenguaje`, `anfitrion`, `editor`, `vfx`, `vista-2d`, `vista-3d`, `interfaz`.
 Véanse las reglas de [paquetes](../README.md).
+
+## Batallas de Campaign-V2
+
+`componerCampaignV2(URLSearchParams)` resuelve las Batallas y prepara el escenario del reglamento V2.
+[La página de Campaign-V2](../../Prototypes/Campaign-V2/index.html) arranca con `serie: 'campaign-v2'` mediante la entrada pública `paquetes/app/campaign-v2.js`. Abre H0 o el último checkpoint. El enlace antiguo de Rocket Launcher redirige y conserva los demás parámetros y el fragmento.
+`?ensayo=b1` y `?ensayo=salida` abren ensayos aislados. `?modo=paridad&batalla=b3` juega el reto original. `forma=movil` y `forma=escritorio` fijan la distribución.
+H0 comparte el dibujante de plano y aporta sus datos de mapa y producción. El arranque clásico inyecta el reglamento de Campaign en la composición compartida.
+Las preferencias de interfaz, idioma, documentos y sesión de esta página usan `campaign-v2:`. El historial y las fuentes vigentes conservan `campaign-v2-nivel-1` y `campaign-v2-nivel-1-programas`.
+Desde el menú del mapa o tras una derrota se puede elegir un hito y recuperar sus programas y vínculos o mantener los actuales. En el árbol, los vínculos agrupan los documentos de `edicion.ids`. Cada unidad sigue ejecutando su propia instancia.
 
 ## Contrato vigente
 

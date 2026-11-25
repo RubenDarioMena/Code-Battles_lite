@@ -1,3 +1,4 @@
+import { montarSensor, montarReparador } from './maquinas-war.js';
 import { crearInstanciasWar, enemigoMesh } from './instancias-war.js';
 import { liberarEscena } from './recursos.js';
 /* Visor 3D común de War y Factory, antes en js/vistas.js. Solo lee estado.escena. */
@@ -187,10 +188,7 @@ export function crear3D(estado, { THREE, cargarGLTFLoader, $, ES_FACTORY, ARCO, 
       }
       for (const s of estado.escena.sensores) {
         const g = new THREE.Group(); g.position.set(s.cx, 0, s.cy); g.userData.id = s.id;
-        const poste = mesh(new THREE.CylinderGeometry(.06, .08, 1.3, 8), M.borde); poste.position.y = .65;
-        const cabeza = mesh(new THREE.CylinderGeometry(.28, .28, .1, 16), rolM(s)); cabeza.position.y = 1.3;
-        const pie = mesh(new THREE.CylinderGeometry(.35, .4, .08, 16), M.edificio); pie.position.y = .04;
-        g.add(poste, cabeza, pie); fijo.add(g);
+        montarSensor(THREE, g, M, rolM(s)); fijo.add(g);
         objetos.set(s.id, { grupo: g, alto: 1.6 });
       }
       { const d = estado.escena.deposito, g = new THREE.Group(); g.position.set(d.cx, 0, d.cy); g.userData.id = d.id;
@@ -201,9 +199,7 @@ export function crear3D(estado, { THREE, cargarGLTFLoader, $, ES_FACTORY, ARCO, 
         g.add(c, t, m1, m2); fijo.add(g); objetos.set(d.id, { grupo: g, alto: 1.1 }); }
       for (const r of estado.escena.reparadores) {
         const g = new THREE.Group(); g.userData.id = r.id;
-        const c = mesh(G.caja(.46, .32, .46), rolM(r)); c.position.y = .2;
-        const a = mesh(G.caja(.04, .35, .04), M.borde); a.position.set(.12, .5, .12);
-        g.add(c, a); movil.add(g); objetos.set(r.id, { grupo: g, alto: .9 });
+        montarReparador(THREE, g, M, rolM(r)); movil.add(g); objetos.set(r.id, { grupo: g, alto: .9 });
       }
       for (const e of estado.escena.maquinas) {
         const o = objetos.get(e.id);

@@ -1,0 +1,132 @@
+# Campaign-V2 · Propuesta de arquitectura de Astra
+
+## 1. Resumen en 8 líneas
+
+La fábrica y la muralla comparten un mundo que continúa de una Batalla a la siguiente.  
+Mientras la Torreta esfera dispara, la fábrica puede producir la munición que le falta.  
+Las cinco primeras Batallas toman de War sus enemigos, sus oleadas y sus metas.  
+El menú de pruebas permite repetirlas y comprobar que cada paso coincide con el original.  
+Añadir una Batalla con piezas conocidas requiere describirla y situarla en el nivel.  
+Un vehículo nuevo puede probarse dentro de la campaña antes de incorporarlo a un nivel.  
+Cambiar su modelo en pantalla conserva lo que el vehículo hace y lo que sabe su programa.  
+La primera entrega jugable es «Primer blanco», con la Torreta esfera montada en su bastión.
+
+## 2. La idea central
+
+Un nivel tiene **una partida, un reloj y una bodega**. Campaign-V2 dirige los hitos desde un reglamento propio dentro del paquete de campaña. War le presta las operaciones de defensa y la campaña H0–H5, las de producción. La aplicación reúne ambas entradas públicas al arrancar. Así, un agente que cambie la ruta de un vehículo trabaja dentro de Campaign-V2, mientras que un cambio en la reparación automática tiene un único lugar de origen y se prueba también en War. El escenario elige los datos y las mecánicas disponibles. El modo de batalla integrado abre ese mismo mundo en un hito de prueba.
+
+```text
+A --> B significa que A importa la entrada publica de B.
+app --> reglas-war                   (defensa y escenarios originales)
+app --> reglas-campaign              (reglamento V2 y reglamento H0-H5)
+app --> nucleo, anfitrion, interfaz, vista-2d, vista-3d
+reglas-war, reglas-campaign --> nucleo --> protocolo
+anfitrion --> interprete, lenguaje, nucleo, protocolo
+interfaz --> editor --> lenguaje
+interfaz --> protocolo
+vista-2d, vista-3d --> protocolo, vfx --> protocolo
+vista-3d --> rig                     (tras integrar assets-3d)
+```
+
+## 3. Qué cambia respecto a trunk
+
+| Paquete | Se queda / cambia / nuevo | Responsabilidad y motivo |
+| --- | --- | --- |
+| `protocolo`, `nucleo` | Se quedan | Órdenes con paso y origen, paso fijo de 0,05 s, RNG inyectado, repetición y validación de datos planos. El reglamento V2 usa otro identificador y versión. |
+| `reglas-war` | Cambia | En `mundo.js`, recarga, disparo, movimiento enemigo, impactos, reparación y fin están dentro de una conexión de 282 líneas contando el archivo completo. Extraer operaciones a `defensa.js` y exponerlas por `index.js` y `index.d.ts`. El adaptador histórico llama a las mismas operaciones en el mismo orden. `retos.js` sigue siendo la fuente de los cinco escenarios. |
+| `reglas-campaign` | Cambia | Nueva carpeta `v2/` y exportación con nombre en `index.js` y `index.d.ts`. El reglamento histórico sigue siendo la exportación por defecto. Extraer de `mundo.js` y `estado.js` a `produccion.js` el avance de robots y máquinas con receta y capacidad explícitas. H0–H5 conserva sus pedidos, cobros, arsenal y salva. V2 aporta su receta, bodega e hitos. |
+| `reglas-factory` | Se queda | La cadena corta deriva de H0–H5. Factory sigue disponible para QA. |
+| `anfitrion` | Cambia | `anfitrion.js` admite tres identificadores y `api.js` elige la API por serie. Añadir un perfil V2 en `v2/perfil.js` con adaptación por unidad. Reutilizar el comportamiento War para sus torretas. Las nuevas funciones se ofrecen mediante piezas inyectadas que también admite el arnés VM. |
+| `interprete`, `lenguaje`, `editor` | Se quedan | Ejecución con presupuesto por tarea, JS/Python y editor de trunk. El proveedor V2 aporta vocabulario, esperas, paleta y frases de seudocódigo. El árbol pertenece al panel de código. |
+| `app` | Cambia | `juego/campaign-v2.js` conecta la defensa pública y los escenarios normalizados a la fábrica de reglamentos V2. La misma composición sirve al navegador y a Node. `juego/iniciar.js` conecta entrada, plataforma y menú. El conductor de trunk conserva el orden de las respuestas y esperas. |
+| `interfaz`, `vista-2d`, `vista-3d` | Cambian | Panel de código, fichas y selección compartida en la primera. Las dos vistas reciben la misma escena, proyectan coordenadas y devuelven identificadores. Solo la vista 3D resuelve binarios, materiales y poses. |
+| `rig`, `vfx` | Nuevo desde assets-3d / se queda | El solucionador puro lee controles del GLB. El adaptador de Three aplica sus matrices. Los VFX de trunk siguen consumiendo sucesos de presentación. |
+
+**Contrato de defensa.** La aplicación inyecta operaciones de creación de oleadas, avance de enemigos y brechas, disparo, impactos, reparación, lectura de sensores y evaluación. Cada operación actúa sobre el estado de defensa del mundo y recibe el tiempo del llamante. War conserva su secuencia, recarga fraccionaria, redondeos, desempates, llamadas al RNG y textos de resultado. El tiempo de las oleadas y de las metas de duración se mide desde el inicio de la Batalla. El registro de sucesos y las esperas de los programas llevan el paso global. El reglamento V2 decide si cerrar una Batalla conduce al hito siguiente o termina la partida.
+
+**Paso de campaña.** El núcleo aplica las órdenes vencidas por paso y orden de inserción. V2 avanza el reloj una vez, procesa producción y entregas, acredita la bodega y abastece cargadores hasta su capacidad. Cada transferencia debita y acredita la misma cantidad, con prioridad por menor carga y desempate por identificador. A continuación avanzan enemigos, unidades propias, disparos, impactos y reparación. Al final se evalúa el hito. La recarga automática de War se elige exclusivamente en paridad. Cambiar de hito conserva máquinas, trabajos, carga, posiciones y programas. Solo se preparan las oleadas y contadores de la nueva Batalla.
+
+**Dos salidas y una entrada.** La instantánea contiene las lecturas permitidas al programa. La escena contiene posiciones, vida, orientación, compuerta y estado de atasco para dibujar. Un suceso de presentación puede producir luz o sonido. Una regla que produce daño también escribe una notificación de ejecución si la mecánica la requiere, con destinatario y paso de entrega. Las reglas funcionan en Node sin DOM, Three, temporizadores ni azar global. Los imports entre paquetes pasan por `index.js`. La inyección evita abrir una excepción entre los dos reglamentos en `pruebas/fronteras.mjs`.
+
+**Órdenes.** La selección vive en la aplicación y vincula mapa y árbol. Al confirmar disparo o colocación, la app fija destinatarios y coordenadas de juego y encola una orden por unidad con `origen: 'jugador'`. El anfitrión fija `origen: 'programa'` y la unidad propietaria. Las entradas administrativas reproducibles usan `sistema`. V2 valida verbo, destinatario, estado, alcance y capacidad antes de actuar. El disparo puntual concede un único intento en el siguiente turno de fuego habilitado, respeta munición, cadencia y atasco, y recupera después el objetivo programado. Esto requiere separar el intento de disparo del modo persistente de War. La comprobación cuenta intentos y munición tras un solo clic.
+
+**Checkpoint.** Al entrar en cada hito y antes de aceptar otra entrada, la app guarda por plataforma la versión del escenario, semilla, paso, programas con sus vínculos por unidad y registro ordenado de entradas externas y cambios de programa. El guardado por repetición del núcleo reconstruye el mundo y el RNG. Para continuar también una ejecución suspendida, la app repite desde el inicio del nivel con intérprete y entradas externas, en la misma frontera de turno, hasta ese checkpoint. Las órdenes de programa se regeneran una vez y se cotejan con las grabadas. El guardado incluye la secuencia dentro del paso para distinguir una entrada manual antes y después de una cesión. Prueba decisiva: restaurar con una máquina a medio ciclo y una unidad esperando, continuar ambos intentos y comparar mundo, órdenes y siguiente hito.
+
+## 4. Cómo se añade un nivel y cómo se añade una mecánica
+
+**Rutas propuestas.** En adelante, `V/` significa `paquetes/reglas-campaign/v2/`, `H/` significa `paquetes/anfitrion/v2/` y `J/` significa `paquetes/app/juego/`. `P/` significa `paquetes/reglas-campaign/pruebas/v2/`. Los nombres de estas rutas describen el diseño. La base de partida se identifica en la última sección.
+
+**Añadir un nivel**
+
+1. Crear `V/niveles/<id>/nivel.js` con identificador estable, mapa lógico, posiciones iniciales, inventario y lista ordenada de hitos. Cada hito de fábrica indica producto y cantidad. Cada Batalla indica oleadas, unidades, metas, programas iniciales y textos ES/EN, o referencia uno de los cinco escenarios normalizados que proporciona la app.
+2. Guardar una Batalla extensa en `V/niveles/<id>/<batalla>.js` e importarla literalmente desde el nivel. Para la Batalla 6 de un nivel existente basta este archivo y una entrada en su lista. El menú y el botón Misión leen esa lista.
+3. Para un nivel nuevo, añadir su import y entrada en `V/niveles/index.js`. El validador del catálogo rechaza identificadores repetidos, referencias rotas, posiciones inválidas y tipos desconocidos antes de iniciar. Un hito con identificador publicado conserva su significado en esa versión del escenario.
+4. En `P/<id>.mjs` jugar desde el inicio y desde el salto del menú con una semilla fija. Comprobar la meta, el hito sucesor y el checkpoint. Una Batalla nueva no requiere grabar otra referencia de War.
+
+**Añadir una mecánica**
+
+1. Escribir un caso jugable en `V/ensayos/<id>.js` y registrarlo en `V/ensayos/index.js`. El menú abre un ensayo como modo de batalla integrado con el mismo reglamento, interfaz, intérprete y vistas. Las cifras experimentales se guardan en el ensayo.
+2. Crear `V/mecanicas/<nombre>.js` con las operaciones que necesita el caso y un estado plano por unidad. `V/paso.js` llama explícitamente a la operación en la fase que le corresponde. `V/unidades.js` asocia cada tipo con sus datos, operaciones disponibles y presentación básica. Así se puede seguir la llamada desde el paso hasta la regla sin descubrir extensiones en tiempo de ejecución.
+3. Si expone una orden o lectura, declarar su nombre JS/Python, argumentos, clase, espera y texto para el editor en la ficha del tipo. El perfil del anfitrión usa esa descripción para enviar órdenes y consultar instantáneas. Una semántica nueva de espera u oyente sí exige código en el anfitrión. Añadir campos a `V/lecturas.js` o `V/escena.js` cuando la mecánica necesite entregar información nueva a programas o vistas.
+4. En `P/<id>.mjs` repetir semilla y órdenes con vista nula, comprobar estado intermedio y final. Para verbos nuevos, probar destinatarios, un rechazo y ambas formas de programar. Para dibujos, comprobar la misma repetición en ambas vistas. Activar la mecánica en un nivel solo tras aceptar el ensayo.
+
+**Control de paridad para todos los cambios.** La app construye cada ficha B1–B5 desde `retos.normalizar(retos.RETOS[n-1])`, incluidos sus programas, claves originales y sensores. Las cinco son «Primer blanco», «Prioridades», «Niebla», «Enjambre» y «Dos lanzadores». La traducción de nombres de unidad es visual. En el menú, paridad inicia **el reglamento V2** en el paso cero de esa Batalla, sin suministro de la bodega, colocación, entradas manuales ni consumo adicional del RNG. Usa la secuencia de defensa y devuelve exactamente la instantánea War completa `{t, maq, auto, vib}`. El modo campaña comparte esa defensa y añade sus fases. La huella se toma de cada instantánea entregada por la partida.
+
+Crear `pruebas/paridad-campaign-v2.mjs` con la composición real que selecciona el menú, vista nula y los programas iniciales. Comparar hash, pasos, tiempo y resultado con las diez entradas existentes de `pruebas/referencias/partidas.json`. Para ambas semillas (1 y 7), los pasos esperados de B1 a B5 son **755, 493, 692, 1014 y 500**. Las diez terminan en fallo. Para demostrar jugabilidad hace falta además ganar B1 con un programa que vuelva a apuntar. Mantener `pruebas/fronteras-fase2.mjs` como contraste independiente de War y ejecutar `pruebas/fronteras.mjs` y su autoprueba. En campaña, probar una entrega durante la Batalla y que una bodega vacía agota el cargador.
+
+## 5. Tabla de casos A–G y coste de los cambios
+
+La base de comparación es B1 con el primer hito de producción ya conectado. Para mostrar el coste incremental, C reutiliza el movimiento de B, E reutiliza la llegada de B y F reutiliza las notificaciones de E. D se estima después de B, C y F. G parte de un vehículo que ya se dibuja como placeholder. Si se adelanta un caso se suma la dependencia indicada. Las cuentas de la segunda columna incluyen **todo archivo de producción reutilizado** que recibe una edición, incluso un índice. Se enumeran aparte archivos propios nuevos y pruebas. Las vistas básicas de unidades usan la ficha del tipo y los datos genéricos de escena.
+
+En la columna de pruebas, **P10** significa ejecutar las diez comparaciones anteriores y la suite War existente con sus referencias originales. La columna de lectura enumera el contexto adicional al contrato de esta sección. Las longitudes corresponden a fuentes medidas en las ramas, no a estimaciones de los archivos futuros.
+
+| Caso | 1 · Archivos que se tocan, compartidos y propios | 2 · Pruebas afectadas | 3 · Qué leer antes | 4 · Cómo retirarlo |
+| --- | --- | --- | --- | --- |
+| **A · Batalla 6** | **1**: `V/niveles/n1/nivel.js`. Crear `V/niveles/n1/b6.js` y `P/b6.mjs`. | P10. Nuevo caso de carga, salto, meta y vuelta a checkpoint. | 3 archivos: nivel, una Batalla de ejemplo y su prueba. Los cinco ejemplos originales caben en `reglas-war/retos.js` (135 líneas). | Quitar la entrada y su contenido. Conservar la versión de nivel si tiene checkpoints publicados. |
+| **B · Vehículo** | **5**: `V/unidades.js`, `V/paso.js`, `V/lecturas.js`, `V/escena.js`, índice de ensayos. Crear `mecanicas/vehiculo.js` y `mecanicas/puertas.js` bajo V, `ensayos/salida.js` y `P/salida.mjs`. La ruta cruza por la puerta de menor recorrido, desempata por id y recarga de la bodega solo dentro. Validar alcance medio/corto al disparar. | P10 y prueba de bodega. Añadir cruce en ambos sentidos, empate de puertas, blanco fuera de alcance y regreso con cargador vacío. | 4 archivos V2: paso, unidades, bodega y lecturas. En la maqueta, `mundo.js` (373 líneas) contiene ruta y recarga, y `escenarios.js` contiene «Salida». | Retirar tipo y ensayo. Mantener puertas solo si otra unidad las usa. |
+| **C · Rueda kamikaze** | **4**: `V/unidades.js`, `V/paso.js`, `H/perfil.js`, índice de ensayos. Crear `V/mecanicas/rueda.js`, `H/reposicion.js`, `V/ensayos/rueda.js` y `P/rueda.mjs`. Detona una vez en área y reaparece al paso previsto. El perfil cancela la ejecución vieja y crea otra del mismo programa con generación nueva. | P10 y suite de unidades del anfitrión. Probar radio, daño aliado configurado, oyentes/esperas caducados y primera línea tras reponer. | 4 archivos del diseño: vehículo, paso, perfil y prueba de salida. La destrucción/reposición de la maqueta se ve en `runtime.js`, líneas 215–298. | Desactivar reposición y quitar tipo y ensayo. La generación distingue respuestas tardías incluso con el mismo id visible. |
+| **D · Cinco arquetipos** | **5**: `V/unidades.js`, `V/paso.js`, `V/lecturas.js`, `V/escena.js`, índice de ensayos. Crear en `V/mecanicas/` **camion.js** (transferir a un vehículo próximo), **senuelo.js** (prioridad del tirador), **minador.js** (dejar carga y resolver contacto), **explorador.js** (mover el sensor de F), **escudo.js** (interceptar el disparo detrás de la puerta). Crear `V/ensayos/formacion.js` y `P/formacion.mjs` con cinco casos aislables. | P10 más regresiones B, C y F. Probar conservación de munición, cambio de objetivo, una explosión por mina, zona revelada y cobertura según dirección. | Por arquetipo, leer unidad, paso, ensayo y regla reutilizada: bodega, selección de blanco, área, visibilidad o impactos, respectivamente. Añadir escena si el efecto necesita representación propia. | Cada tipo tiene su ficha y operación. Retirar uno y su caso sin desmontar la formación restante. |
+| **E · Eventos, seguimiento y señales** | **7**: `V/paso.js`, `V/lecturas.js`, `V/unidades.js`, `H/perfil.js`, `anfitrion/api.js`, `J/campo.js`, índice de ensayos. Crear `V/mecanicas/contactos.js`, `H/oyentes.js`, `V/ensayos/ordenes.js` y `P/oyentes.mjs`. El seguimiento consulta una identidad visible o marcada con caducidad. | P10, `pruebas/api-nativa.mjs` y pruebas del anfitrión. Añadir dos oyentes esperando a la vez, cuerpo terminado con oyente activo, señales simultáneas, objetivo perdido y repetición de clics. | 3 fuentes de trunk: `anfitrion.js` (192), `api.js` (323), `unidad.js` (98 líneas). En la maqueta leer `runtime.js` (315 líneas) y el ejemplo «Observador». | Desactivar las suscripciones en el perfil V2 y retirar el ensayo. Conservar el disparo puntual de B1 con su verbo propio. |
+| **F · Radar y visibilidad** | **7**: `V/unidades.js`, `V/paso.js`, `V/lecturas.js`, `V/escena.js`, `vista-2d/campaign-v2.js`, `vista-3d/campaign-v2.js`, índice de ensayos. Crear `V/mecanicas/visibilidad.js`, `V/ensayos/niebla.js` y `P/niebla.mjs`. La regla calcula contactos y zona despejada tras el movimiento. Las vistas reciben su contorno. | P10, en especial B3. Probar entrada, permanencia y salida del radio, caducidad de marca, radar con niebla y coincidencia de selección 2D/3D con la visibilidad autorizada. | 3 archivos V2: contactos, lecturas y escena. Comparar la detección de War en `mundo.js` con el radar de la maqueta en `runtime.js`, líneas 61–82. | Retirar el sensor móvil y la capa de niebla. B3 conserva la detección visual, térmica y por vibración de War. |
+| **G · GLB con rig para VEH** | **1**: `vista-3d/modelos/catalogo.js`. Crear `vista-3d/modelos/vehiculo.js` con URL, niveles de detalle y correspondencia entre orientación/rodaje y controles. Usar el GLB existente si sirve al diseño. Para un GLB nuevo añadir binario y poses patrón. | P10, `paquetes/rig/pruebas/rig.mjs` y `pruebas/rig-three.mjs`. Añadir `vista-3d/pruebas/modelo-vehiculo.mjs` para asociación, pose y retorno al placeholder al fallar la carga. | 3 archivos: ficha de la Torreta esfera, catálogo y `rig/README.md` (64 líneas en assets-3d). Consultar la tabla de controles del modelo al integrarlo. | Quitar la asociación. La selección, la colisión y la simulación conservan el identificador y las dimensiones lógicas de VEH. |
+
+**Semántica de E.** El clic izquierdo selecciona. En el ensayo de eventos, la acción contextual «enviar clic» captura terreno o enemigo y los destinatarios elegidos. El disparo puntual del primer corte sigue siendo otra acción. `onClick` recibe esa entrada validada, `onDamage` un daño confirmado, `onArrive` el fin de una ruta concreta y `onEnemySeen` la transición de invisible a visible. `signal` encola un mensaje plano con emisor y destinatario, y `onSignal` lo recibe en la siguiente frontera de paso. Las respuestas a encargos conservan su precedencia. Después se entregan notificaciones por paso, orden de emisión, unidad y orden de registro, y se despiertan las esperas vencidas. Una espera suspende solo su hilo. El intérprete comparte el ámbito entre el cuerpo y sus oyentes de esa unidad. Cada ejecución conserva presupuesto por tarea y un límite total de entregas por paso para cortar ciclos de señales de forma reproducible.
+
+## 6. Primer corte, extensiones previstas y decisiones pendientes
+
+**Batalla 1 jugable.** Se abre Campaign-V2 por defecto. La Torreta esfera viene montada en el bastión y el reparador actúa automáticamente. «Primer blanco» sitúa seis orugas frente a la línea de brecha y exige cero cruces. El encuadre usa una sección del mapa papercraft de 400 × 208 m, con la cara de la muralla C · Traba + Cordón en x = 3 y el bastión hasta x = 6. El encuadre visual respeta las casillas que usa War. Se emplea `torreta_observacion.glb` para giro, compuerta, disparo por telescopio y atasco. Dron, oruga, sensor y reparador usan las primitivas de War.
+
+El botón Misión «!» muestra metas en columna. El selector 3D/2D va centrado y al empezar la Batalla se activa la vista de combate oscura sin texturas. Hay vida, ficha compacta y ficha completa con modelo, menú ⋯, clic izquierdo o arrastre para seleccionar, clic derecho para un disparo y colocador de bastión con confirmar, cancelar y bloqueo. El panel de código tiene árbol plegable con casillas por unidad, tipo y todas. Mapa y árbol comparten selección. Compartir programa conserva ejecuciones independientes y desvincular crea una copia. El editor de trunk incluye seudocódigo de Batalla desde este hito. En móvil se conserva su interfaz con pantalla completa por defecto y el mismo árbol.
+
+El menú por `?pruebas=1` ofrece nivel e hito disponibles, paridad o campaña, semilla, checkpoint, calidad, WebGL/WebGPU y acceso a War, Factory y H0–H5. Tras una derrota se elige checkpoint con el último preseleccionado. La futura entrega jugable incluirá su enlace raw.githack. Aceptación del primer corte: victoria y derrota reproducibles, diez referencias en Node aunque solo B1 tenga recorrido jugable, restauración, gesto en teléfono y medida en Electron y en el teléfono del autor. El material papercraft nuevo se expresa en TSL para ambos renderizadores. Se miden los VFX existentes con sus shaders actuales.
+
+**Después del primer corte.** Conectar el primer hito de fábrica y su munición básica, con las máquinas mínimas ya colocadas y desplazables. La bodega abastece a las torretas mientras haya existencias. El borrador completo del Nivel 1 es H0 → B1 → H1 → B2 → H2 → B3 → H3 → B4 → H4 → B5 → H5. Llegan después las Batallas 2–5 jugables, los ensayos integrados de movimiento, rueda, oyentes y radar, y eventualmente el reparto con robots programados. Los ensayos «Salida», «Rueda kamikaze», «Observador», «Órdenes» y la batalla larga de la maqueta sirven de guiones para probar. Archivo, varias ranuras, menú Máquinas, colocación libre y seudocódigo de fábrica corresponden a entregas posteriores.
+
+La futura rama se documenta con `CONTEXT.md`, `AGENTS.md`, `CLAUDE.md`, la visión fechada bajo `docs/Vision/2026-11-23/`, el menú en `docs/campaign-v2/MENU-PRUEBAS.md` y un `PROGRESO.md` nuevo tras archivar el anterior. El lenguaje 2D usa robots vectoriales desde arriba y máquinas en isométrica ligera, con ámbar, verde y azul para estados y rojo para daño.
+
+**Necesita definición al jugar.** Afinar la secuencia del nivel, decidir a partir de qué Batalla se monta la Torreta esfera, dimensionar la receta y la reserva inicial, y fijar alcances, vida, cadencias, tiempos de marca y reposición. Falta elegir el gesto táctil para dirigir un evento programado y validar la prioridad de una orden puntual frente a una orden de programa simultánea. Estas decisiones se pueden experimentar por escenario.
+
+## 7. Riesgos y lo que no sabes
+
+- Una extracción inocente puede desplazar un sorteo de atasco o una reparación un paso. Localizar la primera instantánea distinta de la referencia antes de aceptar un cambio compartido.
+- La prueba de War ejerce su programa inicial hasta el fallo. Hace falta la prueba de victoria y otra que llegue a la segunda oleada de B5 para cubrir dos torretas compitiendo por munición y reparador.
+- La planta histórica acopla banda, ensambladora y arsenal a identificadores concretos. Comprobar sus referencias H0–H5 al extraer producción y ensayar en V2 la última pieza disponible para dos consumidores.
+- Repetir toda la historia al restaurar conserva también las esperas y variables locales, pero cuesta tiempo. Medir el último checkpoint de un nivel largo en el teléfono antes de introducir un guardado más complejo.
+- Una lectura de radar, una ficha o la selección por arrastre pueden revelar a un enemigo oculto. Probar las tres con una identidad que acaba de salir del campo visible.
+- Cargar o descartar un GLB mientras se cambia de nivel puede dejar recursos vivos o colocar el modelo en una unidad repuesta. La caché comparte el recurso por URL, asocia cada instancia a su generación y libera recursos al desaparecer el último usuario.
+- En assets-3d figura el vehículo tubular con rig. La lista y el contrato no certifican que su silueta, escala o controles sean los definitivos para VEH. El presupuesto gráfico y la compatibilidad visual WebGL/WebGPU requieren medición real.
+
+## 8. Suposiciones y Faltantes
+
+**Suposiciones**
+
+- B1 arranca con cargador y reserva explícitos suficientes para probarla antes del hito de producción. En ese corte las máquinas mínimas figuran en el escenario inicial. El primer hito de fábrica activa la cadena corta y permite verificar la continuidad del inventario.
+- Los cinco escenarios originales pueden probarse en paridad desde Node desde el primer corte. En campaña solo se presentan como jugables los hitos terminados. El identificador de Batalla y el de programa permanecen estables aunque cambie el texto mostrado.
+- Para comparar costes, los arquetipos usan placeholders y verbos descritos en fichas siempre que baste con una orden, lectura o espera ya soportada. Un aspecto propio suma el coste de G. En el ensayo de formación se presupone un tirador con proyectiles interceptables. Si todavía no existe, añadir `V/mecanicas/tirador.js` y un caso de trayectoria en `P/formacion.mjs`.
+- Prioridad provisional para B1: un intento puntual ocupa un turno de disparo y el programa conserva su modo. La marca de seguimiento, el daño aliado y la reposición se configuran solo en los ensayos que los necesitan. La muralla estática del primer corte conserva la línea de brecha.
+
+**Faltantes y alcance de la comprobación**
+
+- No figura una rama local o remota llamada `Campaign-V2` en las referencias disponibles. El diseño parte de `origin/trunk` (`6330c0e`), prevé integrar `origin/assets-3d` (`ac1d810`) y toma la maqueta de `origin/ccr-684f16c6-yq5at1` (`6c4416f`). Las decisiones y el glosario están en el árbol de trabajo bajo `docs/grill/`.
+- En trunk no hay directorio literal `pruebas/fronteras/`. El comprobador es `pruebas/fronteras.mjs`, con `fronteras-autoprueba.mjs`, casos negativos y suites de ejecución por familia. La documentación del rig sí existe en assets-3d. El rediseño S queda pendiente según el grill.
+- La comprobación actual fue documental: rutas, contratos, longitudes y diez referencias grabadas. Los archivos propuestos, las pruebas de aceptación y las medidas en dispositivos corresponden a la implementación futura.

@@ -73120,6 +73120,48 @@
           }
         ]
       }
+    },
+    {
+      "id": "war-1-victoria",
+      "reglas": "war",
+      "parametros": {
+        "reto": 1,
+        "semilla": 13,
+        "programas": {
+          "LAU-01": "while (true) {\n  regularShoot(autoTarget(\"crawler\", \"visual\"));\n  await esperar(0.5);\n}"
+        }
+      },
+      "hash": "f3080009fcf470ace4183a86a7958e7af1ba50e2a9726b013f8ed65ea6f5c165",
+      "pasos": 718,
+      "resultado": {
+        "fin": "victoria",
+        "motivo": null,
+        "t": 35.9000000000001,
+        "texto": null,
+        "linea": null,
+        "idProg": null
+      }
+    },
+    {
+      "id": "war-4-atascos",
+      "reglas": "war",
+      "parametros": {
+        "reto": 4,
+        "semilla": 13,
+        "programas": {
+          "LAU-01": "while (true) {\n  burstFire(autoTarget(\"drone\", \"visual\") ?? autoTarget(\"crawler\", \"visual\"));\n  await esperar(0.4);\n}"
+        }
+      },
+      "hash": "c5b4d987b14c4c10521a53454f114e45e8294a385e4c85cc3615d27461c66dca",
+      "pasos": 1004,
+      "resultado": {
+        "fin": "fallo",
+        "motivo": "brecha",
+        "t": 50.199999999999285,
+        "texto": "Hubo 2 brechas (máximo 1). Hubo 4 atascos; el peor, con failureRate 0.24, tardó 4,4 s en repararse.",
+        "linea": null,
+        "idProg": null
+      }
     }
   ]
 }

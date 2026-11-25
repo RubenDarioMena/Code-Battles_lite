@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ticket 09 · Escala y coordenadas</title>
+<style>
+  :root{
+    --bg:#f6f3ec; --card:#fffdf8; --ink:#1f2328; --mute:#5d6470; --line:#ddd5c4;
+    --acc:#2f6f5e; --acc-soft:#e3efe9; --rec:#a3591b; --rec-soft:#fbeedd; --sel:#e8f0fb; --sel-line:#5a86c8;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#16181b; --card:#1e2125; --ink:#e7e9ec; --mute:#9aa2ad; --line:#30353b;
+      --acc:#6cc3a6; --acc-soft:#1d3a32; --rec:#f0a35c; --rec-soft:#3a2a1a; --sel:#1d2a3d; --sel-line:#6f9be0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{max-width:880px;margin:0 auto;padding:28px 18px 8px}
+  h1{font-size:1.45rem;margin:0 0 6px}
+  .sub{color:var(--mute);margin:0 0 14px}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .intro ul{margin:6px 0 0 18px;padding:0}
+  main{max-width:880px;margin:0 auto;padding:0 18px 140px}
+  .q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;scroll-margin-top:12px}
+  .q.done{border-color:var(--acc)}
+  .qh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .qid{font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+  .qt{font-weight:650;font-size:1.06rem}
+  .estado{margin-left:auto;font-size:.8rem;color:var(--mute)}
+  .q.done .estado{color:var(--acc)}
+  .cuerpo{margin:8px 0 6px}
+  details{margin:6px 0 10px;border-left:3px solid var(--line);padding:2px 0 2px 10px}
+  summary{cursor:pointer;color:var(--mute);font-size:.9rem}
+  details .hechos{font-size:.9rem;color:var(--mute)}
+  details .hechos code, .cuerpo code, .op code{font-size:.85em;background:var(--acc-soft);padding:0 4px;border-radius:4px}
+  .ops{display:grid;gap:8px;margin:10px 0}
+  label.op{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer}
+  label.op:hover{border-color:var(--sel-line)}
+  label.op.on{background:var(--sel);border-color:var(--sel-line)}
+  label.op input{margin-top:4px}
+  .op b{font-weight:650}
+  .op .d{display:block;color:var(--mute);font-size:.88rem}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;color:var(--rec);background:var(--rec-soft);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+  .rec{background:var(--rec-soft);border-radius:10px;padding:9px 12px;font-size:.92rem;margin:8px 0}
+  .rec::before{content:"➡️ Mi recomendación: ";font-weight:700}
+  .tabla{width:100%;border-collapse:collapse;margin:8px 0}
+  .tabla td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}
+  .tabla td:first-child{width:38%;font-size:.92rem}
+  .tabla .d{display:block;color:var(--mute);font-size:.82rem}
+  select,input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  textarea{min-height:58px;resize:vertical}
+  .extra{display:grid;gap:4px;margin:8px 0}
+  .extra span{font-size:.88rem;color:var(--mute)}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:5}
+  .bar .prog{font-variant-numeric:tabular-nums;color:var(--mute);margin-right:6px}
+  button{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer}
+  button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:650}
+  @media (prefers-color-scheme:dark){ button.pri{color:#0d1714} }
+  button:hover{filter:brightness(1.05)}
+  .mini{font-size:.82rem;padding:4px 9px}
+  .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  nav.indice{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  nav.indice a{font-size:.8rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  nav.indice a.done{border-color:var(--acc);color:var(--acc)}
+  #salida{display:none;margin-top:16px}
+  #salida textarea{min-height:260px;font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+
+  .figura{margin:10px 0 8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;overflow-x:auto}
+  .figura svg{width:100%;height:auto;min-width:620px;display:block}
+  .figura .t{fill:var(--ink);font:13px system-ui,sans-serif}
+  .figura .s{font-size:11px}
+  .figura .m{fill:var(--mute);font:12px system-ui,sans-serif}
+  .figura .tw{fill:#fff;font:700 12px system-ui,sans-serif}
+  .figura .b{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+  .figura .b2{fill:var(--card);stroke:var(--mute);stroke-width:1.5;stroke-dasharray:4 3}
+  .figura .b3{fill:var(--sel);stroke:var(--sel-line);stroke-width:1.5}
+  .figura .ok{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.5}
+  .figura .bad{fill:var(--rec-soft);stroke:#c0503a;stroke-width:1.5}
+  .figura .dia{fill:var(--card);stroke:var(--rec);stroke-width:1.5}
+  .figura .ar,.figura .mov{stroke:var(--mute);stroke-width:1.6;fill:none}
+  .figura .punta{fill:var(--mute)}
+  .figura .sep{stroke:var(--line);stroke-dasharray:3 4}
+  .figura .tagA{fill:var(--mute)} .figura .tagR{fill:var(--rec)}
+  .figura .warn{fill:var(--rec);font:12px system-ui,sans-serif}
+  .figura .pan{fill:var(--card);stroke:var(--line)}
+  .figura .muro{stroke:var(--ink);stroke-width:5;opacity:.5}
+  .figura .tor{fill:var(--acc);stroke:var(--ink);stroke-width:1}
+  .figura .enA{fill:none;stroke:#c0503a;stroke-width:1.5;stroke-dasharray:3 3}
+  .figura .enB{fill:#c0503a}
+  .figura .mis{stroke:var(--rec);stroke-width:2;fill:none;stroke-dasharray:6 4}
+  .figura .cruz{fill:var(--ink);font:700 15px system-ui}
+  .figura .imp{fill:none;stroke:var(--acc);stroke-width:3}
+  .figura .impF{fill:none;stroke:#c0503a;stroke-width:2;stroke-dasharray:2 3}
+  .figura .okt{fill:var(--acc);font:700 13px system-ui} .figura .badt{fill:#c0503a;font:700 13px system-ui}
+  .figura .eje{stroke:var(--line);stroke-width:2} .figura .tick{stroke:var(--line);stroke-dasharray:2 4}
+  .figura .clic{stroke:var(--rec);stroke-width:2;stroke-dasharray:5 3} .figura .rect{fill:var(--rec);font:12px system-ui}
+  .figura .dotT{fill:var(--mute)} .figura .dotC{fill:var(--rec)}
+  table.gestos{width:100%;border-collapse:separate;border-spacing:3px;font-size:.88rem;min-width:560px}
+  table.gestos th{text-align:left;font-weight:600;padding:6px 8px;color:var(--mute)}
+  table.gestos thead th{color:var(--ink)}
+  table.gestos td{padding:7px 8px;border-radius:7px;vertical-align:top}
+  table.gestos tr.grupo td{font-weight:700;padding-top:12px;background:none}
+  .g-sel{background:var(--sel);border:1px solid var(--sel-line)}
+  .g-ord{background:var(--rec-soft);border:1px solid var(--rec)}
+  .g-fut{background:var(--card);border:1px dashed var(--mute);color:var(--mute)}
+  .g-cam{background:var(--acc-soft);border:1px solid var(--acc)}
+  .g-nada{background:var(--card);border:1px solid var(--line);color:var(--mute)}
+  .leyenda{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:.8rem}
+  .leyenda span{padding:2px 8px;border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ticket 09 · Escala, coordenadas y espacio del mundo</h1>
+  <p class="sub">Wayfinder Campaign-V2 · grilling · 24-nov-2026 · 6 preguntas</p>
+  <div class="intro">
+    <b>Ya decidido:</b> War corre intacto como caja negra en cada Batalla (ticket 04) y la paridad lee siempre su reto original (ticket 08). El colocador puede mover las torretas en modo campaña, y el escenario es una sección del mapa papercraft (grill).
+    <p style="margin:10px 0 0"><b>Cómo responder:</b> marca cada pregunta (o pulsa <b>Usar mis recomendaciones en las vacías</b>), después <b>Copiar respuestas</b> y pégalo en el chat.</p>
+    <nav class="indice" id="indice"></nav>
+  </div>
+</header>
+<main id="preguntas"></main>
+<main style="padding-top:0;padding-bottom:120px"><div id="salida"><b>Texto para pegar en el chat</b><textarea id="salidaTxt" readonly></textarea></div></main>
+
+<div class="bar">
+  <span class="prog" id="prog">0 / 0</span>
+  <button id="btnRec" title="Rellena las preguntas que no has tocado con mi recomendación">Usar mis recomendaciones en las vacías</button>
+  <button class="pri" id="btnCopiar">Copiar respuestas</button>
+  <button id="btnMd">Descargar .md</button>
+  <button id="btnBorrar" title="Borra todo lo marcado">Borrar</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const Q = [
+ {
+  "id": "Q1",
+  "titulo": "¿Cuál es el sistema de coordenadas del mundo de Campaign-V2?",
+  "tipo": "radio",
+  "cuerpo": "Hay tres marcos: el mapa papercraft (400 × 208 m), el mundo de Campaign de trunk (200 × 104 m) y la cuadrícula de War (32 × 18 casillas). Hace falta uno de referencia para el nivel, la fábrica, las mecánicas y las vistas.",
+  "figura": "<svg viewBox=\"0 0 740 394\" role=\"img\" aria-label=\"Mapa papercraft 400 × 208 m con el marco de batalla de War\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"b\" x=\"10.0\" y=\"10.0\" width=\"720.0\" height=\"374.4\" rx=\"4\" style=\"fill:none\"/><polygon points=\"10.0,10.0 391.6,10.0 388.0,44.2 382.6,89.2 382.6,118.0 382.6,150.4 382.6,172.0 377.2,188.2 366.4,200.8 348.4,209.8 321.4,215.2 281.8,217.0 249.4,218.8 213.4,220.6 166.6,238.6 110.8,251.2 64.0,267.4 10.0,276.4\" class=\"ok\" style=\"opacity:.35\"/><polyline points=\"730.0,105.4 677.8,116.2 622.0,125.2 564.4,146.8 506.8,157.6 454.6,157.6 384.4,155.8\" fill=\"none\" stroke=\"#b08a4a\" stroke-width=\"6\" stroke-linecap=\"round\" opacity=\".55\"/><polyline points=\"382.6,89.2 382.6,118.0 382.6,150.4 382.6,172.0 377.2,188.2 366.4,200.8 348.4,209.8 321.4,215.2 281.8,217.0 249.4,218.8 213.4,220.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3.5\"/><rect class=\"b2\" x=\"195.4\" y=\"49.6\" width=\"360.0\" height=\"187.2\" style=\"fill:none\" stroke-dasharray=\"6 4\"/><text class=\"m s\" x=\"200.8\" y=\"65.8\">Campaign de trunk: 200 × 104 m, origen (103, 22)</text><rect class=\"b3\" x=\"140.5\" y=\"115.3\" width=\"73.8\" height=\"48.6\" style=\"opacity:.6\"/><text class=\"m s\" x=\"141.4\" y=\"179.2\">losa del papercraft</text><rect class=\"bad\" x=\"377.2\" y=\"139.6\" width=\"57.6\" height=\"32.4\" style=\"opacity:.8\"/><text class=\"t s\" x=\"438.4\" y=\"136.0\">marco de batalla 32 × 18</text><text class=\"t\" x=\"64.0\" y=\"64.0\">CASA (oeste)</text><text class=\"t\" x=\"550.0\" y=\"316.0\">FRENTES (este y sur)</text><text class=\"m s\" x=\"604.0\" y=\"96.4\">Paso del este</text><text class=\"m s\" x=\"386.2\" y=\"82.0\">muralla x = 207</text></svg>",
+  "hechos": "<ul><li><code>mapa-ampliado.json</code> (assets-3d): 400 × 208 m, «1 unidad = 1 m», x hacia el este e y hacia el sur. El brief lo declara «fuente de verdad». Trae <code>antiguo: { origen: [103, 22], metros: [200, 104] }</code>: el mapa de Campaign cabe dentro desplazado (103, 22).</li><li>Muralla del papercraft: tramo recto en x = 207 (y 44–90). En Campaign estaba en x = 104,5, y 104,5 + 103 ≈ 207, así que encaja con ese desplazamiento.</li><li>Grill (Mundo y 3D): el escenario es «una sección del mapa papercraft ampliado».</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Metros del mapa papercraft",
+    "d": "Un solo marco de 400 × 208 m. Los datos de fábrica de Campaign se trasladan una vez sumando (103, 22)."
+   },
+   {
+    "v": "B",
+    "t": "Metros de Campaign (200 × 104)",
+    "d": "Se conservan las coordenadas de <code>nivel.js</code> y el mapa se dibuja desplazado (−103, −22). El frente sur del papercraft queda fuera del marco."
+   },
+   {
+    "v": "C",
+    "t": "Casillas de War como mundo",
+    "d": "Todo en la cuadrícula de 32 × 18, ampliada. La fábrica no cabe sin estirarla."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> El mapa ya es la fuente de verdad del escenario y usa la misma unidad (1 m). Trasladar la fábrica es una suma, y así nadie tiene que traducir entre dos marcos de mundo."
+ },
+ {
+  "id": "Q2",
+  "titulo": "¿Cómo se coloca la batalla de War dentro del mundo?",
+  "tipo": "radio",
+  "cuerpo": "La paridad exige que War siga corriendo en sus casillas (línea de brechas en x = 3, nacimiento en x = 32,4, alcances en casillas). La pregunta es cómo se pasa de sus casillas al mapa.",
+  "figura": "<svg viewBox=\"0 0 780 240\" role=\"img\" aria-label=\"La batalla corre en sus casillas y el marco la coloca en el mapa\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"b\" x=\"20\" y=\"30\" width=\"320\" height=\"180\" rx=\"4\"/><line x1=\"50\" y1=\"30\" x2=\"50\" y2=\"210\" stroke=\"currentColor\" stroke-width=\"3\"/><text class=\"m s\" x=\"24\" y=\"24\">War (local, casillas) · intacto</text><text class=\"t s\" x=\"54\" y=\"46\">x = 3 · línea de brechas</text><circle cx=\"80\" cy=\"120\" r=\"7\" class=\"tagA\"/><text class=\"m s\" x=\"90\" y=\"124\">LAU-01 (6, 9)</text><path class=\"ar\" d=\"M338,66 L120,66\" marker-end=\"url(#pf)\" stroke-dasharray=\"3 4\"/><path class=\"ar\" d=\"M338,166 L120,166\" marker-end=\"url(#pf)\" stroke-dasharray=\"3 4\"/><text class=\"m s\" x=\"250\" y=\"190\">nacen en x = 32,4</text><rect class=\"b3\" x=\"360\" y=\"95\" width=\"110\" height=\"44\" rx=\"8\"/><text class=\"t\" x=\"415.0\" y=\"114.0\" text-anchor=\"middle\">marco</text><text class=\"m s\" x=\"415.0\" y=\"129.0\" text-anchor=\"middle\">origen + giro</text><line class=\"ar\" x1=\"340\" y1=\"117\" x2=\"358\" y2=\"117\" marker-end=\"url(#pf)\"/><line class=\"ar\" x1=\"470\" y1=\"117\" x2=\"498\" y2=\"117\" marker-end=\"url(#pf)\"/><rect class=\"b\" x=\"500\" y=\"30\" width=\"260\" height=\"180\" rx=\"4\"/><text class=\"m s\" x=\"504\" y=\"24\">Mundo (metros del mapa)</text><line x1=\"530\" y1=\"30\" x2=\"530\" y2=\"210\" stroke=\"currentColor\" stroke-width=\"3\"/><text class=\"t s\" x=\"534\" y=\"46\">x = 207 · muralla</text><circle cx=\"560\" cy=\"120\" r=\"7\" class=\"tagA\"/><text class=\"m s\" x=\"570\" y=\"124\">(210, 81)</text><text class=\"m s\" x=\"504\" y=\"230\">mundo = (x + 204, y + 72) · 1 casilla = 1 m</text></svg>",
+  "hechos": "<ul><li>War ya dice que 1 casilla = 1 m (grill, ronda 1), y su vista 3D dibuja una casilla como una unidad de Three.</li><li>War lee <code>def.mapa.cols</code> (32 por defecto). Las filas las fija la app.</li><li>El «Paso del este» llega a la muralla en (208, 81). Un marco de 18 m centrado ahí ocupa y 72–90, dentro del tramo recto.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Marco de batalla: desplazamiento, sin escala",
+    "d": "Cada nivel declara <code>marco: { origen: [204, 72] }</code>. Para pasar a metros se suma el origen; 1 casilla = 1 m. La batalla ocupa 32 × 18 m frente a la muralla."
+   },
+   {
+    "v": "B",
+    "t": "Marco con escala (por ejemplo 1 casilla = 3 m)",
+    "d": "La batalla llena más campo (96 × 54 m), pero todo lo que se ve se multiplica: un dron a 2 casillas/s se mueve a 6 m/s, y las mecánicas V2 (en metros) tienen que convertir velocidades y radios."
+   },
+   {
+    "v": "C",
+    "t": "Marco con escala y giro libres",
+    "d": "Sirve también para el frente sur (la muralla mira al sur). Es más general, pero hoy no lo pide ninguna Batalla."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> Convertir es sumar, y los valores del laboratorio (VEH a 3 casillas/s) pasan tal cual a metros. Si algún día hay batallas en el frente sur, se añade el giro al marco: es un campo más, no un cambio de forma."
+ },
+ {
+  "id": "Q3",
+  "titulo": "¿Cuánto campo tienen las unidades que salen de la muralla (VEH, WHL)?",
+  "tipo": "radio",
+  "cuerpo": "Los enemigos de War solo existen dentro de su marco (nacen en x = 32,4 local). Las mecánicas V2 trabajan en metros y podrían ir más allá.",
+  "figura": "<svg viewBox=\"0 0 740 394\" role=\"img\" aria-label=\"Mapa papercraft 400 × 208 m con el marco de batalla de War\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"b\" x=\"10.0\" y=\"10.0\" width=\"720.0\" height=\"374.4\" rx=\"4\" style=\"fill:none\"/><polygon points=\"10.0,10.0 391.6,10.0 388.0,44.2 382.6,89.2 382.6,118.0 382.6,150.4 382.6,172.0 377.2,188.2 366.4,200.8 348.4,209.8 321.4,215.2 281.8,217.0 249.4,218.8 213.4,220.6 166.6,238.6 110.8,251.2 64.0,267.4 10.0,276.4\" class=\"ok\" style=\"opacity:.35\"/><polyline points=\"730.0,105.4 677.8,116.2 622.0,125.2 564.4,146.8 506.8,157.6 454.6,157.6 384.4,155.8\" fill=\"none\" stroke=\"#b08a4a\" stroke-width=\"6\" stroke-linecap=\"round\" opacity=\".55\"/><polyline points=\"382.6,89.2 382.6,118.0 382.6,150.4 382.6,172.0 377.2,188.2 366.4,200.8 348.4,209.8 321.4,215.2 281.8,217.0 249.4,218.8 213.4,220.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3.5\"/><rect class=\"b2\" x=\"195.4\" y=\"49.6\" width=\"360.0\" height=\"187.2\" style=\"fill:none\" stroke-dasharray=\"6 4\"/><text class=\"m s\" x=\"200.8\" y=\"65.8\">Campaign de trunk: 200 × 104 m, origen (103, 22)</text><rect class=\"b3\" x=\"140.5\" y=\"115.3\" width=\"73.8\" height=\"48.6\" style=\"opacity:.6\"/><text class=\"m s\" x=\"141.4\" y=\"179.2\">losa del papercraft</text><rect class=\"b2\" x=\"377.2\" y=\"131.5\" width=\"86.4\" height=\"48.6\" style=\"opacity:.5\"/><text class=\"m s\" x=\"427.6\" y=\"195.4\">48 × 27 (copia propia)</text><rect class=\"bad\" x=\"377.2\" y=\"139.6\" width=\"57.6\" height=\"32.4\" style=\"opacity:.8\"/><text class=\"t s\" x=\"438.4\" y=\"136.0\">marco de batalla 32 × 18</text><text class=\"t\" x=\"64.0\" y=\"64.0\">CASA (oeste)</text><text class=\"t\" x=\"550.0\" y=\"316.0\">FRENTES (este y sur)</text><text class=\"m s\" x=\"604.0\" y=\"96.4\">Paso del este</text><text class=\"m s\" x=\"386.2\" y=\"82.0\">muralla x = 207</text></svg>",
+  "hechos": "<ul><li>El laboratorio usa 48 × 27 con el muro en x = 7, con valores experimentales.</li><li>En el papercraft hay 193 m de campo al este de la muralla.</li><li>Ticket 08: una Batalla que cambia se copia y puede editar su <code>mapa.cols</code>; la paridad sigue leyendo el reto original.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "El campo activo es el marco de batalla",
+    "d": "Las unidades V2 no salen del marco (32 × 18). Si una Batalla necesita más campo, su copia amplía <code>mapa.cols</code> (y las filas): enemigos y unidades comparten siempre el mismo rectángulo."
+   },
+   {
+    "v": "B",
+    "t": "Todo el frente este",
+    "d": "Las unidades V2 pueden ir por los 193 m, pero los enemigos de War solo aparecen en el marco. Fuera hay terreno vacío."
+   },
+   {
+    "v": "C",
+    "t": "Un campo activo propio por nivel",
+    "d": "Un rectángulo distinto del marco de War, declarado en <code>nivel.js</code>."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> Un solo rectángulo para todo, y la manera de crecer ya existe (copia + <code>cols</code>). B deja zonas sin enemigos donde una unidad puede perderse, sin un ejercicio que lo pida."
+ },
+ {
+  "id": "Q4",
+  "titulo": "Cuando el arte y la simulación no coinciden, ¿qué manda?",
+  "tipo": "radio",
+  "cuerpo": "El nudo de Traba (el bastión) mide 5,6 m de fondo y 16 m de alto. En War, el bastión sobresale 3 m (de x = 3 a x = 6) y los drones vuelan a 2,5 m.",
+  "figura": "<svg viewBox=\"0 0 780 276\" role=\"img\" aria-label=\"Sección de la muralla: el nudo de Traba frente al bastión de War\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><text class=\"t s\" x=\"10\" y=\"18\">Traba a escala real (1:1)</text><line x1=\"10\" y1=\"230\" x2=\"350\" y2=\"230\" stroke=\"currentColor\" opacity=\".5\"/><rect class=\"b2\" x=\"18\" y=\"104\" width=\"28\" height=\"126\"/><rect class=\"b3\" x=\"46\" y=\"38\" width=\"67\" height=\"192\" style=\"opacity:.8\"/><circle cx=\"113\" cy=\"32\" r=\"7\" class=\"tagA\"/><line x1=\"82\" y1=\"40\" x2=\"82\" y2=\"230\" class=\"ar\" stroke-dasharray=\"3 3\"/><text class=\"m s\" x=\"85\" y=\"52\">x = 6 (lanzador)</text><line x1=\"46\" y1=\"60\" x2=\"46\" y2=\"230\" class=\"ar\" stroke-dasharray=\"1 3\"/><text class=\"m s\" x=\"16\" y=\"246\">x = 3</text><text class=\"t s\" x=\"250\" y=\"200\">✈ dron a z = 2,5 m</text><text class=\"m s\" x=\"10\" y=\"264\">nudo 5.6 m de fondo · 16.0 m alto</text><text class=\"t s\" x=\"410\" y=\"18\">Traba escalada × 0,54 (fondo = 3 m)</text><line x1=\"410\" y1=\"230\" x2=\"750\" y2=\"230\" stroke=\"currentColor\" opacity=\".5\"/><rect class=\"b2\" x=\"431\" y=\"162\" width=\"15\" height=\"68\"/><rect class=\"b3\" x=\"446\" y=\"126\" width=\"36\" height=\"104\" style=\"opacity:.8\"/><circle cx=\"482\" cy=\"120\" r=\"7\" class=\"tagA\"/><line x1=\"482\" y1=\"40\" x2=\"482\" y2=\"230\" class=\"ar\" stroke-dasharray=\"3 3\"/><text class=\"m s\" x=\"485\" y=\"52\">x = 6 (lanzador)</text><line x1=\"446\" y1=\"60\" x2=\"446\" y2=\"230\" class=\"ar\" stroke-dasharray=\"1 3\"/><text class=\"m s\" x=\"416\" y=\"246\">x = 3</text><text class=\"t s\" x=\"650\" y=\"200\">✈ dron a z = 2,5 m</text><text class=\"m s\" x=\"410\" y=\"264\">nudo 3.0 m de fondo · 8.6 m alto</text></svg>",
+  "hechos": "<ul><li>Ticket 03: tramo de Traba de 7 m × 10,5 m; nudo de 5,6 m de fondo × 16 m; sin punto de anclaje del bastión. La muralla de vóxeles es una banda de 1,5 × 3,4 m (fuera del alcance: la muralla rompible quedó fuera).</li><li>Grill: «No cambia ninguna regla» por la muralla.</li><li>Ticket 05: <code>modelos.js</code> asocia cada id de modelo a una URL, una escala y un rig.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Manda la simulación; el arte se ajusta",
+    "d": "Las posiciones de las reglas no se mueven por el arte. Cada modelo lleva en <code>modelos.js</code> su escala, desplazamiento y punto de anclaje. Para Traba: escala ≈ 0,54, de modo que el nudo mida 3 m de fondo (≈ 8,6 m de alto)."
+   },
+   {
+    "v": "B",
+    "t": "Manda el arte en modo campaña",
+    "d": "Traba a 1:1 y, en campaña, el lanzador y la línea de brechas se mueven para encajar (paridad intacta, pero campaña y War ya no comparten números)."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> Protege la paridad y los números que enseñan las lecciones. Cada desajuste se arregla con una línea de datos en <code>modelos.js</code>, no en las reglas."
+ },
+ {
+  "id": "Q5",
+  "titulo": "¿Dónde está la fábrica respecto a la muralla?",
+  "tipo": "radio",
+  "cuerpo": "La instalación de Campaign está pegada a la muralla. La losa del papercraft quedó unos 93 m al oeste. Ticket 04: el puente bodega → torreta es abstracto (no hay transporte), así que la distancia no cambia las reglas de hoy. Sí cambia el encuadre y el futuro camión de munición.",
+  "figura": "<svg viewBox=\"0 0 740 394\" role=\"img\" aria-label=\"Mapa papercraft 400 × 208 m con el marco de batalla de War\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"b\" x=\"10.0\" y=\"10.0\" width=\"720.0\" height=\"374.4\" rx=\"4\" style=\"fill:none\"/><polygon points=\"10.0,10.0 391.6,10.0 388.0,44.2 382.6,89.2 382.6,118.0 382.6,150.4 382.6,172.0 377.2,188.2 366.4,200.8 348.4,209.8 321.4,215.2 281.8,217.0 249.4,218.8 213.4,220.6 166.6,238.6 110.8,251.2 64.0,267.4 10.0,276.4\" class=\"ok\" style=\"opacity:.35\"/><polyline points=\"730.0,105.4 677.8,116.2 622.0,125.2 564.4,146.8 506.8,157.6 454.6,157.6 384.4,155.8\" fill=\"none\" stroke=\"#b08a4a\" stroke-width=\"6\" stroke-linecap=\"round\" opacity=\".55\"/><polyline points=\"382.6,89.2 382.6,118.0 382.6,150.4 382.6,172.0 377.2,188.2 366.4,200.8 348.4,209.8 321.4,215.2 281.8,217.0 249.4,218.8 213.4,220.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3.5\"/><rect class=\"b2\" x=\"195.4\" y=\"49.6\" width=\"360.0\" height=\"187.2\" style=\"fill:none\" stroke-dasharray=\"6 4\"/><text class=\"m s\" x=\"200.8\" y=\"65.8\">Campaign de trunk: 200 × 104 m, origen (103, 22)</text><rect class=\"b3\" x=\"140.5\" y=\"115.3\" width=\"73.8\" height=\"48.6\" style=\"opacity:.6\"/><text class=\"m s\" x=\"141.4\" y=\"179.2\">losa del papercraft</text><rect class=\"bad\" x=\"377.2\" y=\"139.6\" width=\"57.6\" height=\"32.4\" style=\"opacity:.8\"/><text class=\"t s\" x=\"438.4\" y=\"136.0\">marco de batalla 32 × 18</text><rect class=\"tagA\" x=\"317.8\" y=\"125.2\" width=\"64.8\" height=\"28.8\" style=\"opacity:.85\"/><text class=\"t s\" x=\"280.0\" y=\"121.6\">fábrica (A)</text><text class=\"t\" x=\"64.0\" y=\"64.0\">CASA (oeste)</text><text class=\"t\" x=\"550.0\" y=\"316.0\">FRENTES (este y sur)</text><text class=\"m s\" x=\"604.0\" y=\"96.4\">Paso del este</text><text class=\"m s\" x=\"386.2\" y=\"82.0\">muralla x = 207</text><rect class=\"tagA\" x=\"146.8\" y=\"123.4\" width=\"59.4\" height=\"32.4\" style=\"opacity:.45\" stroke-dasharray=\"4 3\"/><text class=\"t s\" x=\"150.4\" y=\"118.0\">fábrica (B)</text></svg>",
+  "hechos": "<ul><li><code>reglas-campaign/nivel.js</code>: «Losa de la fábrica inicial, pegada a la muralla». La instalación va de x 71 a 104 (de 174 a 207 en metros del papercraft).</li><li>Papercraft: <code>losa: { centro: [93, 72], metros: [41, 27] }</code> (x 72–114). El brief dejó «coordenadas y formas exactas» a criterio del agente de arte.</li><li><b>Sin verificar:</b> si la losa está horneada en los trozos <code>terreno-F-C.glb</code>; moverla obligaría a regenerarlos con <code>mapa.py</code> en Blender.</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Pegada a la muralla, como Campaign",
+    "d": "La instalación se traslada (103, 22) y la losa del papercraft se mueve a su sitio en <code>mapa-ampliado.json</code> (un cambio de datos de arte, quizá con regeneración del terreno)."
+   },
+   {
+    "v": "B",
+    "t": "Sobre la losa actual del papercraft",
+    "d": "La instalación se traslada para que caiga sobre la losa, sin tocar el arte. La fábrica queda a unos 93 m de la muralla."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> Fábrica y muralla se ven juntas, que es lo que cuenta el mundo continuo, y el camión de munición tendrá un camino corto. Si regenerar el terreno resulta caro, B es una salida razonable que no toca ninguna regla."
+ },
+ {
+  "id": "Q6",
+  "titulo": "¿Dónde se traduce entre casillas y metros?",
+  "tipo": "radio",
+  "cuerpo": "Las mecánicas V2 trabajan en metros y War en casillas. Las vistas, el colocador y los clics (orden puntual, clic programado) también tocan coordenadas.",
+  "figura": "<svg viewBox=\"0 0 780 184\" role=\"img\" aria-label=\"Opción A: un solo traductor entre casillas y metros\"><defs><marker id=\"pf\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" class=\"punta\"/></marker></defs><rect class=\"b\" x=\"10\" y=\"20\" width=\"170\" height=\"46\" rx=\"8\"/><text class=\"t\" x=\"95.0\" y=\"40.0\" text-anchor=\"middle\">War (por Batalla)</text><text class=\"m s\" x=\"95.0\" y=\"55.0\" text-anchor=\"middle\">casillas locales</text><rect class=\"b2\" x=\"10\" y=\"110\" width=\"170\" height=\"46\" rx=\"8\"/><text class=\"t\" x=\"95.0\" y=\"130.0\" text-anchor=\"middle\">Mecánicas V2</text><text class=\"m s\" x=\"95.0\" y=\"145.0\" text-anchor=\"middle\">metros del mundo</text><rect class=\"b3\" x=\"280\" y=\"60\" width=\"190\" height=\"60\" rx=\"8\"/><text class=\"t\" x=\"375.0\" y=\"87.0\" text-anchor=\"middle\">reglas-campaign-v2</text><text class=\"m s\" x=\"375.0\" y=\"102.0\" text-anchor=\"middle\">convierte con el marco</text><rect class=\"ok\" x=\"580\" y=\"20\" width=\"180\" height=\"40\" rx=\"8\"/><text class=\"t\" x=\"670.0\" y=\"37.0\" text-anchor=\"middle\">vista-3d / vista-2d</text><text class=\"m s\" x=\"670.0\" y=\"52.0\" text-anchor=\"middle\">solo metros</text><rect class=\"ok\" x=\"580\" y=\"80\" width=\"180\" height=\"40\" rx=\"8\"/><text class=\"t\" x=\"670.0\" y=\"97.0\" text-anchor=\"middle\">colocador · clics</text><text class=\"m s\" x=\"670.0\" y=\"112.0\" text-anchor=\"middle\">metros → casillas</text><line class=\"ar\" x1=\"180\" y1=\"43\" x2=\"278\" y2=\"78\" marker-end=\"url(#pf)\"/><text class=\"m s\" x=\"229.0\" y=\"55.5\" text-anchor=\"middle\">instantánea</text><line class=\"ar\" x1=\"278\" y1=\"108\" x2=\"182\" y2=\"124\" marker-end=\"url(#pf)\"/><line class=\"ar\" x1=\"182\" y1=\"148\" x2=\"278\" y2=\"116\" marker-end=\"url(#pf)\"/><text class=\"m s\" x=\"196\" y=\"104\">enemigos (metros)</text><text class=\"m s\" x=\"196\" y=\"172\">daño en área (metros)</text><line class=\"ar\" x1=\"470\" y1=\"80\" x2=\"578\" y2=\"40\" marker-end=\"url(#pf)\"/><text class=\"m s\" x=\"524.0\" y=\"55.0\" text-anchor=\"middle\">escena en metros</text><line class=\"ar\" x1=\"578\" y1=\"100\" x2=\"470\" y2=\"100\" marker-end=\"url(#pf)\"/></svg>",
+  "hechos": "<ul><li>Ticket 05: War expone la lectura de enemigos (copia plana) y daño en área <code>(x, y, radio, daño)</code>; el daño de las mecánicas llega un paso después.</li><li>Hoy <code>vista-3d/war.js</code> dibuja directamente en casillas (<code>estado.cols × estado.rows</code>).</li></ul>",
+  "opciones": [
+   {
+    "v": "A",
+    "t": "Solo en reglas-campaign-v2",
+    "d": "Al pedir enemigos los convierte a metros y al aplicar daño los pasa a casillas. La escena llega a las vistas ya en metros. El colocador y los clics entregan metros y V2 los traduce."
+   },
+   {
+    "v": "B",
+    "t": "Cada consumidor traduce",
+    "d": "Las vistas y las mecánicas reciben el marco y convierten por su cuenta."
+   }
+  ],
+  "rec": [
+   "A"
+  ],
+  "recTexto": "<b>Recomiendo A.</b> El marco vive en un solo sitio, así que las mecánicas y las vistas nuevas solo conocen metros. Con B, cada mecánica nueva tendría que aprender el marco."
+ }
+];
+
+const CLAVE = "wayfinder-cv2-ticket-09";
+const almacen = (() => { try { const s = window.localStorage; s.getItem(CLAVE); return s; } catch { return null; } })();
+let estado = {};
+try { estado = JSON.parse((almacen && almacen.getItem(CLAVE)) || "{}"); } catch { estado = {}; }
+const guardar = () => { try { almacen && almacen.setItem(CLAVE, JSON.stringify(estado)); } catch {} pintarProgreso(); };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const cont = $("#preguntas"); cont.innerHTML = "";
+  const idx = $("#indice"); idx.innerHTML = "";
+  for (const q of Q){
+    const st = estado[q.id] ||= {sel:[], filas:{}, extra:{}, nota:""};
+    const card = document.createElement("section"); card.className = "q"; card.id = q.id;
+    let html = `<div class="qh"><span class="qid">❓ ${q.id}</span><span class="qt">${q.titulo}</span><span class="estado"></span></div>
+      <div class="cuerpo">${q.cuerpo}</div>`;
+    if (q.figura) html += `<div class="figura">${q.figura}</div>`;
+    if (q.hechos) html += `<details><summary>Lo que encontré</summary><div class="hechos">${q.hechos}</div></details>`;
+    if (q.tipo === "radio" || q.tipo === "check"){
+      html += `<div class="ops">` + q.opciones.map(o => {
+        const on = st.sel.includes(o.v);
+        const r = (q.rec||[]).includes(o.v) ? `<span class="badge">Recomendado</span>` : "";
+        return `<label class="op${on?" on":""}"><input type="${q.tipo==="radio"?"radio":"checkbox"}" name="${q.id}" value="${esc(o.v)}"${on?" checked":""}>
+          <span><b>${q.tipo==="radio"?o.v+" · ":""}${o.t}</b>${r}${o.d?`<span class="d">${o.d}</span>`:""}</span></label>`;
+      }).join("") + `</div>`;
+      if (q.tipo === "check") html += `<button class="mini" data-todo="${q.id}">Marcar o desmarcar todas</button>`;
+    }
+    if (q.tipo === "tabla"){
+      html += `<table class="tabla">` + q.filas.map(f => {
+        const v = st.filas[f.id] || "";
+        return `<tr><td><b>${f.label}</b><span class="d">${f.d}</span></td><td><select data-fila="${q.id}:${f.id}">
+          <option value="">— elegir —</option>` + f.ops.map(o => `<option${o===v?" selected":""} value="${esc(o)}">${esc(o)}${o===f.rec?" ★ recomendado":""}</option>`).join("") +
+          `<option value="__otro"${v==="__otro"?" selected":""}>otro (en notas)</option></select></td></tr>`;
+      }).join("") + `</table>`;
+    }
+    html += `<div class="rec">${q.recTexto}</div>`;
+    for (const e of (q.extra||[])){
+      html += `<label class="extra"><span>${e.label}</span><input type="text" data-extra="${q.id}:${e.id}" placeholder="${esc(e.ph)}" value="${esc(st.extra[e.id]||"")}"></label>`;
+    }
+    html += `<label class="extra"><span>Notas u otra respuesta</span><textarea data-nota="${q.id}" placeholder="Opcional">${esc(st.nota||"")}</textarea></label>`;
+    card.innerHTML = html; cont.appendChild(card);
+    const a = document.createElement("a"); a.href = "#"+q.id; a.textContent = q.id; a.dataset.q = q.id; idx.appendChild(a);
+  }
+  pintarProgreso();
+}
+
+function respondida(q){
+  const st = estado[q.id]; if (!st) return false;
+  if (q.tipo === "tabla") return q.filas.every(f => st.filas[f.id]);
+  return st.sel.length > 0 || (st.nota||"").trim().length > 0;
+}
+function pintarProgreso(){
+  let n = 0;
+  for (const q of Q){
+    const ok = respondida(q); if (ok) n++;
+    const card = document.getElementById(q.id);
+    if (card){ card.classList.toggle("done", ok); card.querySelector(".estado").textContent = ok ? "✓ respondida" : "pendiente"; }
+    const a = document.querySelector(`nav.indice a[data-q="${q.id}"]`); if (a) a.classList.toggle("done", ok);
+  }
+  $("#prog").textContent = `${n} / ${Q.length} respondidas`;
+}
+
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.matches(".op input")){
+    const q = Q.find(x => x.id === t.name), st = estado[q.id];
+    if (q.tipo === "radio") st.sel = [t.value];
+    else st.sel = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    document.querySelectorAll(`input[name="${q.id}"]`).forEach(i => i.closest("label").classList.toggle("on", i.checked));
+    guardar();
+  } else if (t.dataset.fila){
+    const [qid, fid] = t.dataset.fila.split(":"); estado[qid].filas[fid] = t.value; guardar();
+  }
+});
+document.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.dataset.extra){ const [qid, eid] = t.dataset.extra.split(":"); estado[qid].extra[eid] = t.value; guardar(); }
+  else if (t.dataset.nota){ estado[t.dataset.nota].nota = t.value; guardar(); }
+});
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-todo]"); if (!b) return;
+  const qid = b.dataset.todo, q = Q.find(x => x.id === qid), st = estado[qid];
+  st.sel = st.sel.length === q.opciones.length ? [] : q.opciones.map(o => o.v);
+  guardar(); render();
+});
+
+function texto(){
+  const lineas = ["# Ticket 09 · Escala y coordenadas · respuestas", ""];
+  for (const q of Q){
+    const st = estado[q.id] || {sel:[], filas:{}, extra:{}, nota:""};
+    let r = "";
+    if (q.tipo === "tabla"){
+      r = "\n" + q.filas.map(f => `  - ${f.label}: ${st.filas[f.id] === "__otro" ? "otro (ver nota)" : (st.filas[f.id] || "—")}`).join("\n");
+    } else if (st.sel.length){
+      r = q.tipo === "radio"
+        ? st.sel.map(v => { const o = q.opciones.find(x => x.v === v); return `${v} · ${o ? o.t : v}`; }).join("")
+        : st.sel.join(", ");
+    } else r = "— sin marcar —";
+    lineas.push(`**${q.id} · ${q.titulo}:** ${r}`);
+    for (const e of (q.extra||[])) if ((st.extra[e.id]||"").trim()) lineas.push(`  - ${e.label}: ${st.extra[e.id].trim()}`);
+    if ((st.nota||"").trim()) lineas.push(`  - Nota: ${st.nota.trim().replace(/\n+/g, " / ")}`);
+  }
+  return lineas.join("\n");
+}
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
+function mostrarSalida(){ $("#salida").style.display = "block"; $("#salidaTxt").value = texto(); }
+
+$("#btnCopiar").onclick = async () => {
+  mostrarSalida();
+  try { await navigator.clipboard.writeText(texto()); toast("Copiado. Pégalo en el chat."); }
+  catch { $("#salidaTxt").select(); toast("Selecciona el texto de abajo y cópialo."); }
+};
+$("#btnMd").onclick = () => {
+  const blob = new Blob([texto()], {type:"text/markdown"}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "ticket-09-respuestas.md"; a.click();
+};
+$("#btnRec").onclick = () => {
+  let n = 0;
+  for (const q of Q){
+    const st = estado[q.id];
+    if (q.tipo === "tabla"){ for (const f of q.filas) if (!st.filas[f.id]){ st.filas[f.id] = f.rec; n++; } }
+    else if (!st.sel.length && q.rec){ st.sel = [...q.rec]; n++; }
+  }
+  guardar(); render(); toast(n ? `Rellenadas ${n} con la recomendación` : "No quedaba nada vacío");
+};
+$("#btnBorrar").onclick = () => { if (confirm("¿Borrar todas las respuestas de esta página?")){ estado = {}; guardar(); render(); $("#salida").style.display = "none"; } };
+
+render();
+</script>
+</body>
+</html>

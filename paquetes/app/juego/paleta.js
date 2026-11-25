@@ -42,15 +42,15 @@ import { CMGPlantillasJS, CMGEditorPython } from '../../editor/index.js';
     atajos.splice(atajos.findIndex(a => a.ico === consola), 0, ...propias, "|");
     return atajos;
   }
-  function crear({ serie = "war", sensor = () => null } = {}) {
+  function crear({ serie = "war", sensor = () => null, extension = undefined } = {}) {
     const s = serieDe(serie), paleta = CMGPlantillasJS.crear({ pausa: s.pausa.js });
-    componer(paleta.atajos, { esperar: s.esperar, propias: s.propias(sensor), consola: "aviso" });
+    componer(paleta.atajos, { esperar: s.esperar, propias: [...s.propias(sensor), ...(extension?.atajos(false) ?? [])], consola: "aviso" });
     return paleta;
   }
-  function crearPython({ serie = "war", sensor = () => null, aPython }) {
+  function crearPython({ serie = "war", sensor = () => null, extension = undefined, aPython }) {
     const s = serieDe(serie), paleta = CMGEditorPython.plantillas({ pausa: s.pausa.python });
     const py = a => ({ ...a, b: typeof a.b === "function" ? () => aPython(a.b()) : aPython(a.b) });
-    componer(paleta.atajos, { esperar: aPython(s.esperar), propias: s.propias(sensor).map(py), consola: "registro" });
+    componer(paleta.atajos, { esperar: aPython(s.esperar), propias: [...s.propias(sensor).map(py), ...(extension?.atajos(true, aPython) ?? [])], consola: "registro" });
     return paleta;
   }
 export const CMGPaleta = { crear, crearPython, series: Object.keys(SERIES) };

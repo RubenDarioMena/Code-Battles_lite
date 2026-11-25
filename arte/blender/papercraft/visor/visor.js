@@ -1,0 +1,145 @@
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/OrbitControls.js';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+
+// En raw.githack los binarios (GLB y sus texturas) responden 403: los datos se piden a
+// raw.githubusercontent, que usa la misma ruta (usuario/repo/ref/…) y permite CORS.
+const aqui = new URL('../', import.meta.url);
+const raiz = /(^|\.)githack\.com$/.test(aqui.hostname) ? new URL(aqui.pathname, 'https://raw.githubusercontent.com') : aqui;
+async function datos(nombre) {
+  const respuesta = await fetch(new URL(nombre, raiz));
+  if (!respuesta.ok) throw new Error(nombre + ' · ' + respuesta.status);
+  return respuesta.json();
+}
+const [mapa, sitios, estudio] = await Promise.all([datos('mapa-ampliado.json'), datos('colocaciones.json'), datos('estudio.json')]);
+const [ancho, fondo] = mapa.metros;
+const lienzo = document.querySelector('canvas');
+const render = new THREE.WebGLRenderer({canvas: lienzo, alpha: true, antialias: true});
+render.setPixelRatio(Math.min(devicePixelRatio, 2));
+render.shadowMap.enabled = true;
+render.shadowMap.type = THREE.PCFSoftShadowMap;
+render.toneMapping = THREE.AgXToneMapping;
+render.toneMappingExposure = estudio.exposicion;
+const escena = new THREE.Scene();
+const camara = new THREE.PerspectiveCamera(estudio.campoVertical, 1, .2, 2500);
+const control = new OrbitControls(camara, lienzo);
+control.target.set(ancho / 2, 1, fondo / 2);
+camara.position.copy(control.target).add(new THREE.Vector3(...estudio.direccionCamara));
+control.maxPolarAngle = Math.PI * .485;
+control.minDistance = 7;
+control.maxDistance = 1200;
+control.zoomToCursor = true;
+control.update();
+let sol;
+for (const fuente of estudio.luces) {
+  const luz = new THREE.DirectionalLight(new THREE.Color(...fuente.color), fuente.energia);
+  luz.target.position.copy(control.target);
+  luz.position.copy(luz.target.position).addScaledVector(new THREE.Vector3(...fuente.direccion), 300);
+  luz.castShadow = fuente.sombras;
+  if (fuente.sombras) sol = luz;
+  escena.add(luz, luz.target);
+}
+const sombra = sol.shadow.camera;
+Object.assign(sombra, {left: -234, right: 234, top: 205, bottom: -205, near: 60, far: 730});
+sombra.updateProjectionMatrix();
+sol.shadow.mapSize.setScalar(Math.min(4096, render.capabilities.maxTextureSize));
+sol.shadow.normalBias = .07;
+sol.shadow.bias = -.00012;
+
+
+const cargador = new GLTFLoader();
+let papel;
+async function cargar(ruta) {
+  const gltf = await cargador.loadAsync(new URL(ruta, raiz).href);
+  const pieza = gltf.scene.getObjectByProperty('isMesh', true);
+  if (!papel) {
+    papel = pieza.material;
+    for (const textura of [papel.map, papel.normalMap]) {
+      textura.anisotropy = Math.min(8, render.capabilities.getMaxAnisotropy());
+    }
+  } else {
+    // Los GLB son autónomos. En memoria basta un solo par de texturas.
+    pieza.material.map.dispose();
+    pieza.material.normalMap.dispose();
+    pieza.material.dispose();
+    pieza.material = papel;
+  }
+  pieza.castShadow = pieza.receiveShadow = true;
+  return pieza;
+}
+
+const rutas = [];
+const [columnas, filas] = mapa.trozos;
+for (let y = 0; y < filas; y++) {
+  for (let x = 0; x < columnas; x++) rutas.push('glb/mapa/terreno-' + y + '-' + x + '.glb');
+}
+const transformar = new THREE.Object3D();
+function lote(geometria, material, puntos, situar) {
+  const malla = new THREE.InstancedMesh(geometria, material, puntos.length);
+  puntos.forEach((p, i) => {
+    situar(transformar, p);
+    transformar.updateMatrix();
+    malla.setMatrixAt(i, transformar.matrix);
+  });
+  escena.add(malla);
+  return malla;
+}
+
+function lineas(puntos, color, id, opacidad) {
+  const geometria = new THREE.BufferGeometry().setFromPoints(puntos.map(([x,z]) => new THREE.Vector3(x, .97, z)));
+  const obj = new THREE.LineSegments(geometria, new THREE.LineBasicMaterial({
+    color, transparent: true, opacity: opacidad, depthWrite: false, depthTest: false
+  }));
+  const boton = document.getElementById(id);
+  obj.visible = boton.checked;
+  boton.addEventListener('change', () => { obj.visible = boton.checked; dibujar(); });
+  obj.renderOrder = 3;
+  escena.add(obj);
+}
+const marco = mapa.antiguo;
+const [x,z] = marco.origen, [w,h] = marco.metros;
+lineas([[x,z],[x+w,z],[x+w,z],[x+w,z+h],[x+w,z+h],[x,z+h],[x,z+h],[x,z]],0xfff1c0,'antiguo',.95);
+const cuadricula = [];
+for (let i = 0; i <= ancho; i += 10) cuadricula.push([i,0],[i,fondo]);
+for (let i = 0; i <= fondo; i += 10) cuadricula.push([0,i],[ancho,i]);
+lineas(cuadricula,0x4d473e,'rejilla',.35);
+
+function dibujar() { render.render(escena, camara); }
+let distanciaInicial;
+function ajustar() {
+  const aspecto = lienzo.clientWidth / lienzo.clientHeight;
+  const alto = aspecto < 1 ? estudio.alturaMovil : Math.max(fondo * 1.15, estudio.anchoPanorama / aspecto);
+  const distancia = alto / (2 * Math.tan(THREE.MathUtils.degToRad(estudio.campoVertical/2)));
+  const vector = camara.position.clone().sub(control.target);
+  vector.setLength(distanciaInicial ? vector.length()*distancia/distanciaInicial : distancia);
+  camara.position.copy(control.target).add(vector);
+  distanciaInicial = distancia;
+  camara.aspect = aspecto;
+  camara.updateProjectionMatrix();
+  render.setSize(lienzo.clientWidth, lienzo.clientHeight, false);
+  dibujar();
+}
+control.addEventListener('change', dibujar);
+window.addEventListener('resize', ajustar);
+ajustar();
+
+// Cuatro descargas simultáneas para limitar el pico de decodificación en móvil.
+const nombres = [...new Set(sitios.map(s => s.pieza))];
+const tareas = [
+  ...rutas.map(ruta => async () => escena.add(await cargar(ruta))),
+  ...nombres.map(nombre => async () => {
+    const pieza = await cargar('glb/kit/' + nombre + '.glb');
+    const puntos = sitios.filter(s => s.pieza === nombre);
+    const malla = lote(pieza.geometry, papel, puntos, (obj, p) => {
+      obj.position.set(p.x, p.z, p.y);
+      obj.rotation.set(0, -p.giro, 0);
+      obj.scale.setScalar(p.escala);
+    });
+    malla.castShadow = malla.receiveShadow = true;
+  })
+];
+async function cargarCola() {
+  while (tareas.length) { await tareas.shift()(); dibujar(); }
+}
+await Promise.all(Array.from({length: 4}, cargarCola));
+

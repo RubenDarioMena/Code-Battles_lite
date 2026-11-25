@@ -66,6 +66,7 @@ export function vocabulario(serie?: string): {
 };
 export function vecino(fichas: FichaLexica[], indice: number, direccion: number): FichaLexica | null;
 export function instrumentar(texto: string, opciones?: {
+  funciones?: Set<string>;
   serie?: string; objetos?: string[]; acorn?: AnalizadorJS;
 }): string;
 export function revisar(texto: string, acorn?: AnalizadorJS): Diagnostico | null;

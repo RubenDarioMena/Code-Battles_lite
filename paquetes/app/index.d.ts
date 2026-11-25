@@ -1,5 +1,5 @@
 import type { Instantanea, Orden, Suceso } from '../protocolo/index.js';
-import type { Reglamento, Partida } from '../nucleo/index.js';
+import type { Reglamento, Partida, EntradaIntento, GrabacionIntento } from '../nucleo/index.js';
 import type { Anfitrion, Turno } from '../anfitrion/index.js';
 
 import type { Vista } from '../protocolo/index.js';
@@ -26,6 +26,13 @@ export interface VistaNula extends Vista {
 export interface OpcionesConductor {
   reglas: Reglamento<any, any, any>;
   partida: Partida<any, any, any>;
+  intento?: {
+    semillaIntento: number;
+    programas: GrabacionIntento['programas'];
+    repeticion?: GrabacionIntento['entradas'];
+    enPausa?: () => boolean;
+    alAplicar?: (entrada: EntradaIntento, paso: number) => void;
+  };
   detener?: (partida: Partida<any, any, any>) => boolean;
   anfitrion?: Anfitrion | null;
   vista?: Vista;
@@ -36,6 +43,7 @@ export interface OpcionesConductor {
   alTurno?: (turno: Turno) => void;
 }
 export interface Conductor {
+  encolar(entrada: EntradaIntento): boolean;
   pausas(): import('../anfitrion/index.js').PausaUnidad[];
   avanzarLinea(unidad?: string): Promise<import('../anfitrion/index.js').AvanceLinea>;
   continuar(): Promise<void>;
@@ -80,10 +88,11 @@ export function instalarBucleJuego(ctx: any): ReturnType<typeof import('./juego/
 
 /** Plataforma y proveedores clásicos de la página para la composición. */
 export interface OpcionesArranqueJuego {
+  serie?: 'campaign-v2';
   /** Sin plataforma se usan almacenes aislados en memoria. */
   plataforma?: Plataforma;
   servicios?: {
-    CMGI18n?: any; CMGPresentacion?: any; CMGTerreno?: any;
+    catalogoNivel1?: Record<string, Record<string, string>>; CMGI18n?: any; CMGPresentacion?: any; CMGTerreno?: any;
     CMGTrazador?: any; CMGFlujo?: any; CMGPythonRevision?: any;
     THREE?: any; acorn?: any; LezerPython?: any; CMGCodeMirror?: any;
     cargarRevision?: () => Promise<{ catalogo: any; revision: any; trazador: any; python: any }>;
@@ -94,3 +103,4 @@ export function arrancarJuego(opciones?: OpcionesArranqueJuego): void;
 export { CMGProveedor } from './juego/datos-proveedor.js';
 export { CMGPaleta } from './juego/paleta.js';
 export { CMGProgramas } from './juego/aplicar-programas.js';
+export { componerCampaignV2 } from './juego/campaign-v2.js';

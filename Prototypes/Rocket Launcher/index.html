@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <script>
+  const destinoV2 = new URL(location.href);
+  if (destinoV2.searchParams.get("serie") === "campaign-v2") {
+    destinoV2.searchParams.delete("serie");
+    location.replace("../Campaign-V2/" + destinoV2.search + destinoV2.hash);
+  }
+</script>
+<script>
   // Si el arranque falla (p. ej. una caché que mezcla versiones), avisar en vez de dejar la pantalla en negro.
   window.__erroresArranque = [];
   window.__juegoListo = false;

@@ -1,10 +1,30 @@
 /* Fuente única de la API: se ejecuta nativamente o se serializa para la VM.
  * Sin imports/cierres externos: todas las capacidades se inyectan. */
-/** @param {{ self: any, AF: any, Promise: any, emitir: Function, programarTimer: Function, validarFactory?: any, validarCampaign?: any, modoCampaign?: any, preludioPython?: any }} opciones */
+/** @param {{ self: any, AF: any, Promise: any, emitir: Function, programarTimer: Function, validarFactory?: any, validarCampaign?: any, modoCampaign?: any, capacidades?: any, lugarDeObjetivo?: any, preludioPython?: any }} opciones */
 export function crearAPI({ self: globalPrograma, AF, Promise, emitir: postMessage, programarTimer: setTimeout,
   validarFactory = () => null, validarCampaign = () => null, modoCampaign = () => 'ok',
-  preludioPython = () => null }) {
-let propiaMaq = null;
+  capacidades = {}, lugarDeObjetivo = objetivo => objetivo, preludioPython = () => null }) {
+let propiaMaq = null, registroAbierto = false;
+let eventos = [], erroresEvento = {};
+const oyentes = new Map(), origenDato = new WeakMap();
+function registrar(evento, fn, linea) {
+  if (!registroAbierto) throw fallo(linea, erroresEvento.tarde || "Register before the first await.");
+  if (typeof fn !== "function") throw fallo(linea, erroresEvento.funcion || "Expected a function.");
+  const lista = oyentes.get(evento) || [];
+  lista.push(fn);
+  oyentes.set(evento, lista);
+  postMessage({ type: "oyente", evento, linea });
+}
+function instalarEventos(o, linea) {
+  for (const evento of eventos) {
+    const partes = evento.split(".");
+    const nombre = partes.pop();
+    const destino = partes.reduce((obj, k) => obj[k] ||= {}, o);
+    destino[nombre] = fn => registrar(evento, fn, linea);
+  }
+}
+// La barrera va detrás de las continuaciones de Promise de esta entrega.
+function finEntrega() { setTimeout(() => postMessage({ type: "reposo" }), 0); }
 
 
 let SNAP = null, PROPIA = null, NOMBRES = [], TIPOS = [], SENSORES = [], CONF = {}, OFF = null, seq = 0, espera = null;
@@ -161,7 +181,7 @@ function apuntarAPI(linea, id, tipo, sensor) {
     throw fallo(linea, "El sensor de vibración no va montado en el lanzador: es de la red de sensores. " + (vib ? "Usa " + nombreVar(vib) + '.detect("crawler").' : "En este mapa no hay ninguno."));
   }
   if (!SENSORES.includes(sensor)) throw fallo(linea, "autoTarget necesita el sensor como segundo argumento: " + lista(SENSORES) + ". Recibió " + q(sensor) + ".");
-  const v = SNAP.auto[id][sensor][tipo];
+  const v = SNAP.auto[id][sensor][tipo] ?? null;
   postMessage({ type: "lee", linea, maquina: id, que: (id === PROPIA ? "" : nombreVar(id) + ".") + "autoTarget(" + q(tipo) + ", " + q(sensor) + ")", valor: v, fn: "autoTarget" });
   return copia(v);
 }
@@ -183,7 +203,8 @@ function orden(linea, id, verbo, args) {
   let res = "ok", lugar = null;
   if (verbo === "stopFire") { d.mode = "idle"; d.target = null; d.fireRate = 0; }
   else {
-    lugar = lugarDe(linea, verbo, args[0]);
+    lugar = lugarDe(linea, verbo, verbo === "regularShoot" && origenDato.has(args[0])
+      ? lugarDeObjetivo(args[0], SNAP.tiro?.[id], origenDato.get(args[0])) : args[0]);
     if (!lugar) { d.mode = "idle"; d.target = null; d.fireRate = 0; res = "sin_objetivo"; }
     else {
       const modo = verbo === "burstFire" ? "burst" : "regular";
@@ -197,22 +218,48 @@ function orden(linea, id, verbo, args) {
 }
 function esperarAPI(linea, s) {
   if (typeof s !== "number" || !(s >= 0.05) || s > 30) throw fallo(linea, "esperar necesita segundos entre 0.05 y 30, por ejemplo await esperar(0.5). Recibió " + q(s) + ".");
+  if (eventos.length) {
+    const id = ++seq;
+    postMessage({ type: "espera", id, linea, s });
+    return new Promise(resolve => pend.set(id, { resolve }));
+  }
   if (espera) throw fallo(linea, "Falta await en la línea " + espera.linea + ": el programa seguía esperando cuando llegó otra espera en la línea " + linea + ".");
   const id = ++seq;
   postMessage({ type: "espera", id, linea, s });
   return new Promise((resolve) => { espera = { id, resolve, linea }; });
 }
 function consola(linea, nivel, a) { postMessage({ type: "consola", linea, nivel, texto: a.map(fmt).join(" ") }); }
+function verbosMoviles(linea) {
+  const funciones = {};
+  const estado = () => propiaMaq ||= { ...SNAP.moviles[PROPIA] };
+  const emitir = (verbo, lugar, res) => postMessage({ type: "cmd", linea, verbo, lugar, res });
+  function esperarEvento(evento, campo, valor) {
+    const id = ++seq;
+    postMessage({ type: "esperaEvento", linea, evento, campo, valor, id });
+    return new Promise(resolve => pend.set(id, { resolve }));
+  }
+  for (const id of SNAP.moviles[PROPIA].capacidades) {
+    const pieza = capacidades[id];
+    if (pieza) Object.assign(funciones, pieza.api(estado, () => SNAP.limites, pieza.ordenar, emitir, esperarEvento, Promise));
+  }
+  return funciones;
+}
 function maquina(id, linea) {
   if (ES_CAMPAIGN) return unidadC(id, linea);
   if (ES_ROBOT && id === PROPIA) return robotAPI(linea);
   const o = {};
-  if (id.startsWith("LAU")) {
+  if (SNAP.moviles?.[id] === null) return null;
+  if (SNAP.moviles?.[id]) {
+    if (id === PROPIA) Object.assign(o, verbosMoviles(linea));
+    for (const k of SNAP.moviles[id].lecturas)
+      Object.defineProperty(o, k, { enumerable: true, get: () => copia((id === PROPIA && propiaMaq || SNAP.maq[id])[k]) });
+  }
+  if (id.startsWith("LAU") || SNAP.moviles?.[id]) {
     o.autoTarget = (t, s) => apuntarAPI(linea, id, t, s);
     o.regularShoot = (...a) => orden(linea, id, "regularShoot", a);
-    o.burstFire = (...a) => orden(linea, id, "burstFire", a);
+    if (!SNAP.moviles?.[id]) o.burstFire = (...a) => orden(linea, id, "burstFire", a);
     o.stopFire = (...a) => orden(linea, id, "stopFire", a);
-    for (const p of PROPS_LAU) Object.defineProperty(o, p, { enumerable: true, get: () => copia((id === PROPIA && propiaMaq || SNAP.maq[id])[p]) });
+    for (const p of SNAP.moviles?.[id] ? [] : PROPS_LAU) Object.defineProperty(o, p, { enumerable: true, get: () => copia((id === PROPIA && propiaMaq || SNAP.maq[id])[p]) });
   } else if (id.startsWith("VIB")) {
     o.detect = (t) => detectarAPI(linea, id, t);
     Object.defineProperty(o, "count", { enumerable: true, get: () => SNAP.maq[id].count });
@@ -247,6 +294,8 @@ function __L(linea) {
     log: (...a) => consola(linea, "log", a),
     console: { log: (...a) => consola(linea, "log", a), info: (...a) => consola(linea, "info", a), warn: (...a) => consola(linea, "warn", a), error: (...a) => consola(linea, "error", a) },
   };
+  if (eventos.length) instalarEventos(o, linea);
+  if (SNAP.moviles?.[PROPIA]) Object.assign(o, verbosMoviles(linea));
   if (ES_ROBOT) for (const k of ["recoger", "entregar", "esperar", "cuantos", "pickUp", "deliver", "wait", "count"]) o[k] = robotAPI(linea)[k];
   Object.defineProperty(o, "yo", { get: () => maquina(PROPIA, linea) });
   // Factory solo programa R1 y conserva el camino pequeño también en el arnés
@@ -260,6 +309,7 @@ function __L(linea) {
 // Sin instrumentar (dentro de plantillas de texto, por ejemplo) también funcionan, solo que sin línea.
 function instalarGlobales() {
   const base = __L(null);
+  if (eventos.length) instalarEventos(globalPrograma, null);
   if (ES_CAMPAIGN) {
     for (const k of GLOBALES_C) globalPrograma[k] = base[k];
     Object.defineProperty(globalPrograma, "yo", { configurable: true, get: () => unidadC(PROPIA, null) });
@@ -272,16 +322,26 @@ function instalarGlobales() {
   for (const k of (ES_ROBOT ? ["recoger", "entregar", "esperar", "cuantos", "pickUp", "deliver", "wait", "count", "log", "console"] : ["autoTarget", "regularShoot", "burstFire", "stopFire", "esperar", "log", "console"])) globalPrograma[k] = base[k];
   Object.defineProperty(globalPrograma, "yo", { configurable: true, get: () => maquina(PROPIA, null) });
   for (const id of NOMBRES) Object.defineProperty(globalPrograma, nombreVar(id), { configurable: true, get: () => maquina(id, null) });
-  if (!ES_ROBOT) for (const p of PROPS_LAU) Object.defineProperty(globalPrograma, p, { configurable: true, get: () => copia((propiaMaq || SNAP.maq[PROPIA])[p]) });
+  if (SNAP.moviles?.[PROPIA]) Object.assign(globalPrograma, verbosMoviles(null));
+  if (!ES_ROBOT) for (const p of SNAP.moviles?.[PROPIA]?.lecturas ?? PROPS_LAU) Object.defineProperty(globalPrograma, p, { configurable: true, get: () => copia((propiaMaq || SNAP.maq[PROPIA])[p]) });
 }
 function onmessage(ev) {
   const m = ev.data;
+  if (m.type === "evento") {
+    SNAP = m.snap; propiaMaq = null;
+    if (m.datos && typeof m.datos === "object") origenDato.set(m.datos, m.evento);
+    const fn = oyentes.get(m.evento)[m.indice];
+    try { Promise.resolve(fn(m.datos)).catch(errorPrograma); }
+    catch (e) { errorPrograma(e); }
+    finEntrega();
+    return;
+  }
   if (m.type === "despierta") {
     SNAP = m.snap; propiaMaq = null;
-    if (ES_CAMPAIGN) {
+    if (ES_CAMPAIGN || eventos.length) {
       const p = pend.get(m.id);
       if (p) { pend.delete(m.id); p.resolve(m.resultado === undefined ? "ok" : m.resultado); }
-      cederLuego();
+      if (eventos.length) finEntrega(); else cederLuego();
       return;
     }
     const e = espera;
@@ -290,6 +350,7 @@ function onmessage(ev) {
   }
   if (m.type !== "run") return;
   ES_ROBOT = m.serie === "factory"; ES_CAMPAIGN = m.serie === "campaign"; LENGUAJE = m.lenguaje === "python" ? "python" : "js";
+  eventos = m.eventos || []; erroresEvento = m.erroresEvento || {};
   SNAP = m.snap; propiaMaq = null; PROPIA = m.propia;
   const cuentas = new Map(), variables = m.nombres.map(nombreVar);
   for (const nombre of variables) cuentas.set(nombre, (cuentas.get(nombre) || 0) + 1);
@@ -310,13 +371,21 @@ function ejecutarPrograma(m) {
   let fn;
   try { fn = new AF("__L", m.codigo); }
   catch (e) { postMessage({ type: "error", mensaje: "Error de sintaxis: " + e.message, linea: null }); return; }
-  return fn(__L).then(() => { acabado = true; postMessage({ type: "done" }); }, e => {
-    acabado = true;
-    let linea = e && e.__linea;
-    if (linea == null) { const n = lineaDe(e); if (n != null && !Number.isNaN(OFF)) linea = n - OFF; }
-    const msg = String(LENGUAJE === "python" && __py ? __py.mensaje(e) : (e && e.message) || e).replace(/__L\((?:\d+|null)\)\./g, "");
-    postMessage({ type: "error", mensaje: msg, linea: linea == null ? null : linea });
-  });
+  if (eventos.length) {
+    registroAbierto = true;
+    // La sección síncrona termina antes de cualquier continuación de await.
+    // El depurador conserva esta microtarea durante las pausas de línea.
+    Promise.resolve().then(() => { registroAbierto = false; });
+  }
+  const resultado = fn(__L);
+  if (eventos.length) finEntrega();
+  return resultado.then(() => { acabado = true; postMessage({ type: oyentes.size ? "escuchando" : "done" }); }, errorPrograma);
+}
+function errorPrograma(e) {
+  let linea = e && e.__linea;
+  if (linea == null) { const n = lineaDe(e); if (n != null && !Number.isNaN(OFF)) linea = n - OFF; }
+  const msg = String(LENGUAJE === "python" && __py ? __py.mensaje(e) : (e && e.message) || e).replace(/__L\((?:\d+|null)\)\./g, "");
+  postMessage({ type: "error", mensaje: msg, linea: linea == null ? null : linea });
 }
 
 return { onmessage, python: __py };

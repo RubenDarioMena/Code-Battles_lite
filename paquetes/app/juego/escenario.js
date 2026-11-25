@@ -20,6 +20,7 @@ export function instalarEscenarioJuego(ctx) {
     </div>`;
   // `d` es el escenario que se muestra: el del reto o un borrador que todavía no se guardó.
   function pintarEscenario(d = ctx.def) {
+    if (ctx.batallasV2) return;
     if (ctx.ES_CAMPAIGN) { ctx.$("esc-aviso").hidden = true; ctx.$("esc-form").innerHTML = ctx.uiC.historial(ctx.historialC); return; }
     if (ctx.ES_FACTORY) return ctx.formularioFactory.pintar(d);
     const propioSel = ctx.retoIdx === ctx.IDX_PROPIO, dis = propioSel ? "" : "disabled";
@@ -87,7 +88,7 @@ export function instalarEscenarioJuego(ctx) {
     if (jugar || ctx.retoIdx === ctx.IDX_PROPIO) { ctx.elegirReto(ctx.IDX_PROPIO); ctx.abrirPestana("escenario"); }
     ctx.pintarRetos();
   }
-  ctx.$("v-escenario").addEventListener("click", (ev) => {
+  ctx.$("v-escenario")?.addEventListener("click", (ev) => {
     if (ctx.ES_CAMPAIGN) return ctx.clicHistorial(ev);
     if (ctx.ES_FACTORY) return;
     const boton = ev.target.closest?.("button") || ev.target, id = boton.id;

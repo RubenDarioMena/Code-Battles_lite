@@ -6,8 +6,8 @@ import { vocabulario } from './vocabulario.js';
   }
 
   // Cada llamada de la API lleva su número de línea, para iluminarla y para los mensajes de error.
-  /** @param {string} src @param {{ serie?: string, objetos?: string[], acorn?: any }} [opciones] */
-  function instrumentar(src, { serie = "war", objetos = [], acorn } = {}) {
+  /** @param {string} src @param {{ serie?: string, objetos?: string[], funciones?: Set<string>, acorn?: any }} [opciones] */
+  function instrumentar(src, { serie = "war", objetos = [], funciones, acorn } = {}) {
     const ES_FACTORY = serie === "factory", ES_CAMPAIGN = serie === "campaign";
     const { FN_PROPIAS } = vocabulario(serie);
     const esObjeto = nombre => nombre === "console" || nombre === "yo" || objetos.includes(nombre);
@@ -25,7 +25,7 @@ import { vocabulario } from './vocabulario.js';
       if (k === "id") {
         const prev = vecino(toks, i, -1), sig = vecino(toks, i, 1);
         const miembro = prev && prev[1] === ".";
-        if (!miembro && !locales.has(t) && ((FN_PROPIAS.has(t) && sig && sig[1] === "(") || (esObjeto(t) && sig && sig[1] === "."))) { out += `__L(${linea}).${t}`; return; }
+        if (!miembro && !locales.has(t) && (((funciones ?? FN_PROPIAS).has(t) && sig && sig[1] === "(") || (esObjeto(t) && sig && sig[1] === "."))) { out += `__L(${linea}).${t}`; return; }
       }
       out += t;
       for (const ch of t) if (ch === "\n") linea++;

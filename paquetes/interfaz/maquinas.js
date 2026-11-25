@@ -24,6 +24,7 @@ export function instalarMaquinas(ctx) {
     else if (ctx.insEstado === "cerrado") ctx.insEstado = "tira";
     const programables = ids.filter(id => Object.hasOwn(ctx.programas, id));
     ctx.configurarEdicion(programables.length ? programables : [ctx.progSel]);
+    ctx.uiHito?.arbol?.();
     pintarInspector();
   }
   ctx.$("app").addEventListener("cmg:forma", () => {
@@ -142,6 +143,7 @@ export function instalarMaquinas(ctx) {
   };
   const claseInspector = (e) => {
     if (ctx.ES_CAMPAIGN) return ctx.uiC.clase(e);
+    if (e?.modelo) return ctx.ti18n('cv2.tipo.' + (e.clase || e.tipo));
     if (!e?.clase || e.clase === "enemigo") return `${textoInspector("inspector.clase.enemigo")} · ${textoInspector(`inspector.enemigo.${e.tipo}`)}`;
     if (e.clase === "bodega" || e.clase === "fundidora") {
       const claveNombre = { Bodega: "inspector.clase.bodega", Fundidora: "inspector.clase.fundidora", Ensambladora: "inspector.clase.ensambladora", Muelle: "inspector.clase.muelle" }[e.nombre];
@@ -218,6 +220,7 @@ export function instalarMaquinas(ctx) {
     const e = ctx.seleccion && (ctx.mundo.porId[ctx.seleccion] || ctx.mundo.enemigos.find(x => x.id === ctx.seleccion));
     if (!e) ctx.insEstado = "cerrado";
     $i.dataset.estado = ctx.insEstado;
+    ctx.uiHito?.ficha?.(ctx.insEstado === "abierto" ? e : null);
     if (!e) { ctx.$("ins-tira").innerHTML = ctx.htmlInterfaz(""); ctx.$("ins-cuerpo").innerHTML = ctx.htmlInterfaz(""); return; }
     const propioProg = e.id === ctx.progSel, pre = propioProg ? "" : `${ctx.varDe(e.id)}.`;
     let c1 = "", c2 = "", botones = "";
@@ -245,6 +248,10 @@ export function instalarMaquinas(ctx) {
           fila(nota(`alcance: cámara ${ctx.alcance("visual")} · térmico ${ctx.alcance("thermal")}${ctx.def.niebla ? " (niebla)" : ""}`)),
           fila(nota("tipos:"), ...Object.keys(ctx.TIPOS).map(t => tk("str", `"${t}"`, `"${t}"`))));
       botones = (propioProg ? "" : `<button type="button" class="btn chico" data-accion="programa" ${atributoInspector("aria-label", "inspector.accion.editar_programa", { unidad: e.id })} data-ins-i18n-text="inspector.accion.editar_programa">${ctx.esc(textoInspector("inspector.accion.editar_programa", { unidad: e.id }))}</button>`);
+    } else if (e.programable && e.modelo) {
+      c1 = grupo("Funciones", ...ctx.extension.verbos.map(f => fila(tk("fn", f.nombre, f.paleta), nota(ctx.ti18n(f.nota)))));
+      c2 = grupo("Contenido", fila(tk("prop", "hp", pre + "hp"), tkValor(e.hp, e.id + ":hp")),
+        fila(tk("prop", "missiles", pre + "missiles"), tkValor(e.misiles, e.id + ":missiles")));
     } else if (e.clase === "vibracion") {
       c1 = grupo("Nombre", fila(tk("var", ctx.varDe(e.id), ctx.varDe(e.id)), nota(`en pantalla ${e.id}`)))
         + grupo("Funciones", fila(tk("fn", `${ctx.varDe(e.id)}.detect(tipo)`, `${ctx.varDe(e.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }), nota("→ posición, sin predicción")))

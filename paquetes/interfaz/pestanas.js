@@ -2,7 +2,7 @@
  * @param {any} ctx */
 export function instalarPestanas(ctx) {
   // ---------- Pestañas ----------
-  const TABS = ["programa", "registro", "ayuda", "escenario"];
+  const TABS = ["programa", "registro", "ayuda", "escenario"].filter(x => ctx.$("t-" + x));
   function abrirPestana(t) {
     ctx.$("zona-codigo").dataset.pestana = t;
     for (const x of TABS) { const on = x === t; ctx.$(`t-${x}`).setAttribute("aria-selected", on); ctx.$(`v-${x}`).hidden = !on; }

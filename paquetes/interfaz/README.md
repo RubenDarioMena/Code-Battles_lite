@@ -16,6 +16,8 @@ Importar `index.js` en Node no requiere DOM ni instala escuchas. Cada
 funciones y auxiliares; los nodos, IDs, eventos y cadenas son los del juego.
 Todavía no es una interfaz autónoma ni incluye desmontaje.
 
+En Campaign-V2, `montarHudHito(ctx, campo, acciones)` conecta Misión, metas y checkpoints con el hito activo. `montarInterfazHito` comparte la selección del árbol con el mapa y recibe la fábrica del retrato 3D. El recorrido de ambos se prueba con `node pruebas/campaign-v2-ui.mjs`.
+
 | Instalador | Sección y resultados principales |
 | --- | --- |
 | `instalarConsola` | Consola, globos y avisos: limpiar, mostrar, cerrar y caducar. |

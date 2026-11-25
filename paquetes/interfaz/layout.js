@@ -18,7 +18,7 @@ export function instalarLayout(ctx) {
   const svg = (cuerpo) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${cuerpo}</svg>`;
   const params = new URLSearchParams(location.search);
   const forzada = ["movil", "escritorio"].includes(params.get("forma")) ? params.get("forma") : null;
-  const enMarco = params.get("marco") === "1";
+  const enMarco = !ctx.batallasV2 && params.get("marco") === "1";
   const leer = (k, d) => { try { const v = ctx.plataforma.almacen.leer(`cmg-juego-${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
   const escribir = (k, v) => { try { ctx.plataforma.almacen.escribir(`cmg-juego-${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento: no pasa nada */ } };
 
@@ -225,7 +225,7 @@ export function instalarLayout(ctx) {
     app.classList.toggle("teclado", abierto);
     aplicarBarras();
     simbolos.hidden = true;
-    tecladoSim.hidden = !(abierto && enMarco);
+    if (tecladoSim) tecladoSim.hidden = !(abierto && enMarco);
     dom.documentElement.style.setProperty("--teclado", `${abierto ? teclado : 0}px`);
     if (abierto) {
       const arriba = enMarco ? 0 : (vv ? vv.offsetTop : 0);
@@ -274,7 +274,7 @@ export function instalarLayout(ctx) {
   teclaIntroSim = crearTecla(t("disposicion.teclado.intro"), "gris");
   filaEspecial.append(teclaEspacioSim, teclaIntroSim);
   filasTeclado.push(filaEspecial);
-  tecladoSim.replaceChildren(...filasTeclado);
+  tecladoSim?.replaceChildren(...filasTeclado);
 
   // ---------- Barras de una línea ----------
   // La paleta, la barra de edición y las pestañas de información se deslizan; con ratón, la rueda vertical
@@ -342,7 +342,7 @@ export function instalarLayout(ctx) {
     get abrirAjustes() { return abrirAjustes; },
     get svg() { return svg; },
   }));
-  Object.defineProperties(l, instalarPanelPantalla(l, cmg));
+  Object.defineProperties(l, instalarPanelPantalla(l, cmg, !!ctx.uiHito));
   Object.defineProperties(l, instalarMenuFicha(l, cmg));
   // ---------- Tooltips rápidos ----------
   // Los iconos no llevan nombre: aparece al pasar el cursor (o al tocarlos en el teléfono).

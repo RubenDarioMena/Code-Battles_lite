@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="384" height="256">
+  <title>Prensa</title>
+  <desc>Bastidor en H visto desde arriba: dos columnas altas y un puente. El cabezal blanco baja con el troquel de acero; la pieza queda a la vista en la bancada.</desc>
+  <defs><pattern id="franjas" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#f6b817"/><rect width="2" height="4" fill="#171b26"/></pattern></defs>
+  <g id="bandejas" data-entrada="11,50" data-salida="85,50">
+    <rect x="4" y="42" width="14" height="14" rx="1" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="4" y="42" width="14" height="12" rx="1" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="5.5" y="43.5" width="11" height="9" rx="0.5" fill="#6c7584"/>
+    <rect x="5.5" y="43.5" width="11" height="1.2" rx="0.5" fill="#3fc1e0"/>
+    <rect x="5.5" y="51.3" width="11" height="1.2" rx="0.5" fill="#3fc1e0"/>
+    <path d="M9.5 46 L12 48 L9.5 50" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect x="78" y="42" width="14" height="14" rx="1" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="78" y="42" width="14" height="12" rx="1" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="79.5" y="43.5" width="11" height="9" rx="0.5" fill="#6c7584"/>
+    <rect x="79.5" y="43.5" width="11" height="1.2" rx="0.5" fill="#f6b817"/>
+    <rect x="79.5" y="51.3" width="11" height="1.2" rx="0.5" fill="#f6b817"/>
+    <path d="M83.5 46 L86 48 L83.5 50" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <g id="bastidor">
+    <rect x="20" y="32" width="56" height="30" rx="2" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="20" y="32" width="56" height="28" rx="2" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <circle cx="22.5" cy="34.5" r="0.7" fill="#3a4150"/>
+    <circle cx="22.5" cy="57.5" r="0.7" fill="#3a4150"/>
+    <circle cx="73.5" cy="34.5" r="0.7" fill="#3a4150"/>
+    <circle cx="73.5" cy="57.5" r="0.7" fill="#3a4150"/>
+    <rect x="22" y="4" width="10" height="52" rx="1.2" fill="#a8760f" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="22" y="4" width="10" height="20" rx="1.2" fill="#e3a81b" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="23.5" y="5.5" width="7" height="1" rx="0.5" fill="#f6cc4a"/>
+    <rect x="25.5" y="30" width="3" height="18" rx="1" fill="#e3a81b"/>
+    <circle cx="27" cy="27" r="0.7" fill="#f6cc4a"/>
+    <circle cx="27" cy="51" r="0.7" fill="#f6cc4a"/>
+    <rect x="64" y="4" width="10" height="52" rx="1.2" fill="#a8760f" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="64" y="4" width="10" height="20" rx="1.2" fill="#e3a81b" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="65.5" y="5.5" width="7" height="1" rx="0.5" fill="#f6cc4a"/>
+    <rect x="67.5" y="30" width="3" height="18" rx="1" fill="#e3a81b"/>
+    <circle cx="69" cy="27" r="0.7" fill="#f6cc4a"/>
+    <circle cx="69" cy="51" r="0.7" fill="#f6cc4a"/>
+    <rect x="34" y="36" width="28" height="18" rx="0.8" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="34" y="36" width="28" height="14" rx="0.8" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="35" y="50.5" width="26" height="3" rx="0.3" fill="url(#franjas)"/>
+  </g>
+  <g id="pieza" data-ancla="48,45">
+    <rect x="40" y="36" width="16" height="11" rx="0.8" fill="#b85e12" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="40" y="36" width="16" height="8" rx="0.8" fill="#f08a24" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="41.5" y="37.5" width="13" height="1" rx="0.5" fill="#ffb04d"/>
+  </g>
+  <g id="cabezal" data-recorrido-y="0..7">
+    <rect x="36" y="18" width="24" height="13" rx="0.6" fill="#b4bcc9" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="36" y="18" width="24" height="9" rx="0.6" fill="#f2f4f7" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <g id="troquel" data-ancla="48,27">
+    <path d="M41 27 H55 V30 L52 33 H44 L41 30 Z" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect x="42.5" y="28" width="11" height="1" rx="0.5" fill="#c3cad5"/>
+  </g>
+  </g>
+  <g id="puente">
+    <rect x="32" y="8" width="32" height="20" rx="0.8" fill="#a8760f" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="32" y="8" width="32" height="12" rx="0.8" fill="#e3a81b" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="33.5" y="9.5" width="29" height="1" rx="0.5" fill="#f6cc4a"/>
+    <path d="M44 11 V14 A4 4 0 0 0 52 14 V11 Z" fill="#2e2c36" stroke="#171b26" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="48" cy="11" r="4" fill="#474450" stroke="#171b26" stroke-width="1"/>
+    <circle cx="48" cy="11" r="1.8" fill="#f2f4f7" stroke="#171b26" stroke-width="0.6"/>
+  </g>
+  <g id="consola">
+    <rect x="66" y="51" width="8" height="8" rx="0.8" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="66" y="51" width="8" height="4" rx="0.8" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+    <rect x="67.2" y="52.2" width="3.6" height="2.2" rx="0.3" fill="#3fc1e0"/>
+    <circle id="piloto" cx="72.2" cy="53.3" r="1" fill="#59606e" data-encendido="#7dff6a"/>
+  </g>
+</svg>

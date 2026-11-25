@@ -21,7 +21,7 @@ export function instalarMenuFicha(l, cmg) {
     { id: "escenario", t: () => l.$("t-escenario").textContent.trim(), c1: "#5FC28A" },
     { id: "revisar", t: () => l.t("disposicion.menu.revisar"), c1: "#E0AE4A", fn: () => cmg.revisionJuego && cmg.revisionJuego.abrir() },
     { id: "ajustes", t: () => l.t("disposicion.menu.ajustes"), c1: "#B7C2CC", fn: l.abrirAjustes },
-  ];
+  ].filter(m => m.fn || l.$("t-" + m.id));
   const $menu = dom.createElement("div");
   $menu.id = "menu-cod"; $menu.className = "variantes menu-cod"; $menu.hidden = true;
   $menu.setAttribute("role", "menu"); $menu.setAttribute("aria-label", l.t("disposicion.menu.aria_label"));
