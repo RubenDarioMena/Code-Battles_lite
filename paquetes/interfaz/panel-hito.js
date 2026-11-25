@@ -1,6 +1,6 @@
 import { montarHudHito } from './hud-hito.js';
 
-export function montarInterfazHito(ctx, { crearFicha, volver }) {
+export function montarInterfazHito(ctx, { crearFicha, volver, etapas = () => ctx.batallasV2.etapas }) {
   const { $, ti18n: t } = ctx;
   $('app').dataset.uiHito = 'true';
   $('progs').hidden = true;
@@ -8,7 +8,7 @@ export function montarInterfazHito(ctx, { crearFicha, volver }) {
   const etapa = () => ctx.partida.mundo.hito;
   const hud = montarHudHito(ctx, $('campo'), {
     titulo: () => ctx.textoReto('titulo'), texto: () => etapa() === 'b1' ? t('cv2.b1.texto') : ctx.textoReto('objetivo'),
-    etapas: () => ctx.batallasV2.etapas,
+    etapas,
     actual: () => ctx.checkpointsV2?.ultimo()?.hito ?? etapa(),
     ajustes: () => $('b-ajustes').click(), volver,
   });

@@ -20,7 +20,7 @@ export function instalarEscenarioJuego(ctx) {
     </div>`;
   // `d` es el escenario que se muestra: el del reto o un borrador que todavía no se guardó.
   function pintarEscenario(d = ctx.def) {
-    if (ctx.batallasV2) return;
+    if (ctx.paginaV2) return;
     if (ctx.ES_CAMPAIGN) { ctx.$("esc-aviso").hidden = true; ctx.$("esc-form").innerHTML = ctx.uiC.historial(ctx.historialC); return; }
     if (ctx.ES_FACTORY) return ctx.formularioFactory.pintar(d);
     const propioSel = ctx.retoIdx === ctx.IDX_PROPIO, dis = propioSel ? "" : "disabled";

@@ -65,7 +65,7 @@ export function instalarInfoReto(ctx) {
       return `<div class="enemigos-lista">${[...tipos].map(([t, x]) => {
         const tp = ctx.TIPOS[t], ven = ["cámara", ...(tp.frio ? [] : ["térmico"]), ...(tp.suelo ? vib : [])];
         return `<article class="enemigo-ficha" data-tipo="${t}">
-          <img class="retrato" src="${ctx.batallasV2 ? "../Rocket%20Launcher/" : ""}img/enemigos/${ctx.runtime?.tiposHostiles[t]?.primitiva ?? t}.png" alt="Modelo de ${ctx.esc(tp.nombre)}" width="96" height="72" loading="lazy">
+          <img class="retrato" src="${ctx.paginaV2 ? "../Rocket%20Launcher/" : ""}img/enemigos/${ctx.runtime?.tiposHostiles[t]?.primitiva ?? t}.png" alt="Modelo de ${ctx.esc(tp.nombre)}" width="96" height="72" loading="lazy">
           <div><h4>${ctx.esc(tp.nombre[0].toUpperCase() + tp.nombre.slice(1))} <code>"${t}"</code> <span class="cuenta">× ${x.n}</span></h4>
           <dl><dt>vida</dt><dd>${rango(x.hp, v => `${v} ${v === 1 ? "impacto" : "impactos"}`)}</dd><dt>velocidad</dt><dd>${rango(x.vel, num)} c/s</dd>
           <dt>altura</dt><dd>${num(tp.z)} m${tp.suelo ? " · suelo" : ""}</dd><dt>lo ven</dt><dd>${ven.map(ctx.esc).join(" · ")}${tp.frio ? ' <span class="no">· el térmico no</span>' : ""}</dd></dl></div></article>`;
@@ -314,7 +314,7 @@ export function instalarInfoReto(ctx) {
     if (ctx.runtime?.crearVista3D) ctx.ponerPiel(true);
     ctx.actualizarContenidoReto();
     ctx.uiHito?.rotulos();
-    if (!ctx.batallasV2) ctx.$("reto-n").textContent = ctx.ES_CAMPAIGN ? ctx.mundo.hito : i === ctx.IDX_PROPIO ? "✎" : i + 1;
+    if (!ctx.paginaV2) ctx.$("reto-n").textContent = ctx.ES_CAMPAIGN ? ctx.mundo.hito : i === ctx.IDX_PROPIO ? "✎" : i + 1;
     if (ctx.ES_CAMPAIGN && !ctx.historialC.length) ctx.guardarCheckpoint();
     ctx.pintarPaleta();
     if (!ctx.$("info-reto").hidden) pintarInfoReto();
@@ -392,7 +392,7 @@ export function instalarInfoReto(ctx) {
     $p.disabled = !corriendo;
     actualizarEtiquetasControles();
     ctx.$("b-vel").textContent = `${ctx.velocidad}×`;
-    if (!ctx.batallasV2) {
+    if (!ctx.paginaV2) {
       ctx.$("semilla-txt").textContent = corriendo || ctx.semillaFija ? ctx.semilla : ctx.intento + 1;
       ctx.$("semilla-fija").checked = ctx.semillaFija;
     }
@@ -424,6 +424,8 @@ export function instalarInfoReto(ctx) {
       // Vuelve al inicio del hito en curso (su checkpoint); pide confirmación con un segundo toque.
       if (!confirmarCheckpoint) { confirmarCheckpoint = true; actualizarEtiquetasControles(); setTimeout(() => { confirmarCheckpoint = false; actualizarEtiquetasControles(); }, 3000); return; }
       confirmarCheckpoint = false;
+      // Campaign-V2: el inicio del hito de fábrica es su checkpoint V2; la página se recarga sembrando esa planta.
+      if (ctx.fabricaV2) { if (ctx.fabricaV2.volver(ctx.fabricaV2.hito)) location.reload(); return; }
       const cp = [...ctx.historialC].reverse().find(c => c.hito === ctx.mundo.hito) || ctx.historialC[ctx.historialC.length - 1];
       if (cp) ctx.volverA(cp, false);
       return;
@@ -440,7 +442,7 @@ export function instalarInfoReto(ctx) {
   // Vista 3D o plano
   function aplicarVista(v) {
     ctx.vista = ctx.V3 ? v : "2d";
-    ctx.guardado.escribir(`${ctx.PREFIJO}vista`, v);
+    ctx.preferenciaVista.escribir(v);
     ctx.$("c3d").hidden = ctx.vista !== "3d"; ctx.$("c2d").hidden = ctx.vista !== "2d";
     ctx.$("sin3d").hidden = !!ctx.V3;
     ctx.$("b-centrar").hidden = ctx.vista !== "3d";

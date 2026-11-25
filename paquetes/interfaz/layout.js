@@ -18,7 +18,7 @@ export function instalarLayout(ctx) {
   const svg = (cuerpo) => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${cuerpo}</svg>`;
   const params = new URLSearchParams(location.search);
   const forzada = ["movil", "escritorio"].includes(params.get("forma")) ? params.get("forma") : null;
-  const enMarco = !ctx.batallasV2 && params.get("marco") === "1";
+  const enMarco = !ctx.paginaV2 && params.get("marco") === "1";
   const leer = (k, d) => { try { const v = ctx.plataforma.almacen.leer(`cmg-juego-${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } };
   const escribir = (k, v) => { try { ctx.plataforma.almacen.escribir(`cmg-juego-${k}`, JSON.stringify(v)); } catch { /* sin almacenamiento: no pasa nada */ } };
 

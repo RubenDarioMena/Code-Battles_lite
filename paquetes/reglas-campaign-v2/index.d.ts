@@ -6,14 +6,18 @@ export type Nivel = { clave: string; revision: number; hitos: string[];
   marco: { origen: number[]; tam?: number[]; puertas: number[]; bastiones: number[][] }; fabrica?: { origen: number[] } };
 export type Batalla = { clave: string; war: number } | ({ clave: string } & Record<string, DatoPlano>);
 export type HitoFabrica = {
-  clave: string; titulo: string; receta: { base: string; sale: string };
-  mapa: typeof import('./niveles/nivel-1/h0.js').default.mapa;
-  prensa: { id: string; clase: string; cx: number; cy: number };
-  bodega: { id: string; clase: string; cx: number; cy: number };
-  metas: { k: string; tipo: string; lugar?: string; pieza?: string; n: number }[];
+  clave: string; fabrica: true; pistas: number;
+  alEmpezar?: { entregas?: { lugar: string; pieza: string; n: number }[] };
+  metas: { k: string; tipo: 'en' | 'lotes' | 'hechos' | 'tarima'; lugar?: string; pieza?: string; n: number }[];
 };
-export type Contenido = { default: Nivel; h0: HitoFabrica } & Record<string, Nivel | HitoFabrica | Batalla>;
+export type PlantaNivel = typeof import('./niveles/nivel-1/fabrica.js').default;
+export type Contenido = { default: Nivel; fabrica: PlantaNivel } & Record<string, Nivel | HitoFabrica | Batalla | PlantaNivel>;
 export const niveles: Record<string, Contenido>;
+export function esFabrica(clave: unknown): boolean;
+export function hitosFabrica(nivel: Nivel): string[];
+export function nivelFabrica(contenido: Contenido): Record<string, any>;
+export function moduloFabrica(contenido: Contenido): Record<string, any>;
+export const motorFabrica: ReturnType<typeof import('../fabrica/index.js').crearMotor>;
 export function validarNivel(carpeta: string, contenido: Contenido, tipos: object,
   catalogo?: Record<string, Record<string, string>>): string[];
 type Programas = { programas: Record<string, DatoPlano>; fuentes: Record<string, DatoPlano>; vinculos: Record<string, DatoPlano> };
@@ -30,14 +34,16 @@ export type Escenario<R, G> = Partial<Programas> & {
   semillaIntento?: number; semillaFabrica?: number; torretas?: Posiciones; bodega?: number;
 };
 type ConEscena<M, R, F, S, A> = Reglamento<M, R, F> & { escena(mundo: M): S; api: A };
-type Planta = ReturnType<typeof import('./fabrica/produccion.js').restaurar>;
-type Guardado = ReturnType<typeof import('./fabrica/produccion.js').serializar>;
+type Planta = ReturnType<typeof import('./fabrica/index.js').motor.crear>;
+type Guardado = ReturnType<typeof import('./fabrica/index.js').motor.serializar>;
 export function crearReglamento<B, R, F, S, A>(
   war: ConEscena<B, { reto: R }, F, S, A> & { fijarSuministro(lanzador: object, ritmo: number): void; pasoConIntentoPuntual: Function; leerEnemigos: Function; danoEnArea: Function; velMisil: number },
   contenido: Contenido, retos: Record<string, R>
 ): ConEscena<Mundo<B, Planta>, Escenario<R, Guardado>, F, S | Record<string, DatoPlano>, A> & {
   id: 'campaign-v2'; serializar(m: Mundo<B, Planta>): Checkpoint<Guardado>;
   restaurar(cp: Checkpoint<Guardado>, semillaIntento: number, actuales?: Partial<Programas>): Mundo<B, Planta>;
+  /** Cierra el hito de fábrica en curso con la planta jugada en su sesión y pasa al hito siguiente. */
+  cerrarFabrica(m: Mundo<B, Planta>, plantaJugada?: Planta | null): boolean;
   /** La escena en metros del mapa papercraft, con `marco` y, fuera de paridad, los bastiones. */
   escenaMetros(m: Mundo<B, Planta>): Record<string, DatoPlano> & { marco: Marco; bastiones?: Bastion[] };
 };

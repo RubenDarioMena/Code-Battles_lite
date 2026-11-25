@@ -4,7 +4,7 @@ import { escucharEn } from './recursos.js';
 export function crearCamara3D(ctx) {
     const { THREE, estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil } = ctx;
     const zona = ctx.zona;
-    const ZOOM = zona ? [8, 160] : ES_FACTORY ? [2.5, 30] : [8, 70];
+    const ZOOM = zona ? zona.zoom ?? [8, 160] : ES_FACTORY ? [2.5, 30] : [8, 70];
     // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
     // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.
     const camaras = {};

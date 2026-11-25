@@ -43,7 +43,7 @@ async function recorrer(url) {
       if (fn?.type !== 'FunctionDeclaration') continue;
       const resultado = fn.body.body.at(-1);
       if (resultado?.type === 'ReturnStatement' && resultado.argument?.type === 'ObjectExpression')
-        instaladores.set(fn.id.name, new Set(resultado.argument.properties.map(p => p.key.name)));
+        instaladores.set(fn.id.name, new Set(resultado.argument.properties.filter(p => p.type === 'Property').map(p => p.key.name)));
     }
   }
   for (const nodo of arbol.body) {

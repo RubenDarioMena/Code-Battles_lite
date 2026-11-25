@@ -21,7 +21,8 @@ export function montarHudHito(ctx, campo, acciones) {
       ['cv2-volver', 'cv2.checkpoint'], ['cv2-etiqueta-fuentes', 'cv2.conProgramas'],
       ['cv2-etapa', 'cv2.ui.hito']]) $(id).textContent = t(clave);
     const continuar = $('cv2-continuar');
-    continuar.hidden = !!ctx.checkpointsV2;
+    // En la campaña (Batallas con checkpoint o un hito de fábrica) no hay a dónde volver: solo lo ofrecen los ensayos.
+    continuar.hidden = !!ctx.checkpointsV2 || !!acciones.fabrica;
     continuar.textContent = t('cv2.ui.continuar');
     const url = new URL(location.href);
     for (const clave of ['ensayo', 'modo', 'batalla']) url.searchParams.delete(clave);

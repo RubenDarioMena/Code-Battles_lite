@@ -4,7 +4,7 @@
   display: flex; justify-content: space-between; pointer-events: none;
 }
 .cv2-hud > * { pointer-events: auto; }
-.cv2-hud button, #vista-h0, #cv2-unidades summary, #cv2-arbol button {
+.cv2-hud button, #cv2-unidades summary, #cv2-arbol button {
   font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
   border-radius: 7px; padding: .35em .7em; cursor: pointer;
 }
@@ -53,12 +53,6 @@
 .cv2-vida::after { content: ''; display: block; height: 100%; background: #78c9a7; transform-origin: left; transform: scaleX(var(--vida)); }
 .cv2-vida[data-herida="true"]::after { background: #fa7767; }
 .cv2-vida[data-elegida="true"] { outline: 1px solid var(--sel); }
-#campo-h0 { position: relative; }
-#fabrica-v2 .cabeza { position: relative; min-height: 38px; }
-#titulo-h0 { font-size: 1rem; }
-#vista-h0 { position: absolute; z-index: 3; top: 8px; left: 50%; transform: translateX(-50%); }
-#meta-h0 { align-self: end; padding: 4px 12px; }
-#cv2-ajustes-h0 form { display: grid; gap: 12px; }
 
 .cv2-ausente { color: var(--muted); opacity: .75; }
 

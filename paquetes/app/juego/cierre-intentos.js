@@ -46,6 +46,7 @@ export function instalarCierreIntentos(ctx) {
       const sig = ctx.retoIdx + 1 < ctx.IDX_PROPIO;
       ctx.mostrarBanner("victoria", "Base intacta", record + `<p>₵ ${ctx.coste()} en total: ${m.consumidos} misiles × ₵ ${ctx.COSTE.misil} + ${m.reparaciones} reparaciones × ₵ ${ctx.COSTE.reparacion}. Menos misiles y menos atascos bajan el número.</p>`, stats,
         sig ? [["Siguiente reto", "primario", () => ctx.elegirReto(ctx.retoIdx + 1)], ["Otra vez", "", ctx.ocultarBanner]] : [["Otra vez", "primario", ctx.ocultarBanner]]);
+      ctx.batallasV2?.anunciarFin?.(ctx, ctx.partida.mundo);
       ctx.pintarRetos();
     } else if (resultado === "fallo") {
       const comentados = ctx.def.lanzadores.filter(l => lenguajes[l.id] === "python" ? !(codigos[l.id] || "").split("\n").some(x => x.trim() && !/^\s*#/.test(x)) : ctx.soloComentarios(codigos[l.id] || "")).map(l => l.id);

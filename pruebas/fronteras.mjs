@@ -8,8 +8,9 @@ const dependencias = {
   protocolo: [], nucleo: ['protocolo'],
   'reglas-war': ['nucleo', 'protocolo'],
   'reglas-factory': ['nucleo', 'protocolo'],
-  'reglas-campaign': ['nucleo', 'protocolo'],
-  'reglas-campaign-v2': ['nucleo', 'protocolo'],
+  fabrica: ['nucleo', 'protocolo'],
+  'reglas-campaign': ['nucleo', 'protocolo', 'fabrica'],
+  'reglas-campaign-v2': ['nucleo', 'protocolo', 'fabrica'],
   lenguaje: [], interprete: [], anfitrion: ['nucleo', 'protocolo', 'lenguaje', 'interprete'],
   editor: ['lenguaje'], vfx: ['protocolo'],
   'vista-2d': ['protocolo', 'vfx'], rig: [], 'vista-3d': ['protocolo', 'vfx', 'rig'],
@@ -18,7 +19,7 @@ const dependencias = {
 dependencias.app = Object.keys(dependencias).filter(nombre => nombre !== 'app');
 // Especificadores exactos: no autorizan subrutas ni paquetes homónimos.
 const terceros = { three: ['vista-3d'], acorn: ['lenguaje'], '@lezer/python': ['lenguaje'] };
-const puros = new Set(['protocolo', 'nucleo', 'reglas-war', 'reglas-factory',
+const puros = new Set(['protocolo', 'nucleo', 'reglas-war', 'reglas-factory', 'fabrica',
   'reglas-campaign', 'reglas-campaign-v2', 'lenguaje', 'interprete', 'vfx', 'rig']);
 const identificadores = new Set(['window', 'document', 'localStorage',
   'requestAnimationFrame', 'THREE', 'setTimeout', 'setInterval']);

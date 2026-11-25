@@ -16,8 +16,9 @@ Los contratos son orientativos: los nombres definitivos los fija la fase 2.
 | `nucleo` | `protocolo` |
 | `reglas-war` | `nucleo`, `protocolo` |
 | `reglas-factory` | `nucleo`, `protocolo` |
-| `reglas-campaign` | `nucleo`, `protocolo` |
-| `reglas-campaign-v2` | `nucleo`, `protocolo` |
+| `fabrica` | `nucleo`, `protocolo` |
+| `reglas-campaign` | `nucleo`, `protocolo`, `fabrica` |
+| `reglas-campaign-v2` | `nucleo`, `protocolo`, `fabrica` |
 | `lenguaje` | Nada |
 | `interprete` | Nada (Acorn inyectado por opciones) |
 | `anfitrion` | `nucleo`, `protocolo`, `lenguaje`, `interprete` |

@@ -181,7 +181,7 @@ export function crearCampaign3D(estado, { THREE, $, FUNCIONES, funcionDe, leerVa
     construirTerreno();
 
     // ---------- Unidades ----------
-    const objetos = new Map(), tarimas = new Map(), misiles = new Map(), efectos = new Map(), aros = new Map();
+    const objetos = new Map(), tarimas = new Map(), misiles = new Map(), efectos = new Map(), aros = new Map(), alcances = new Map();
     let camion = null, dianas = null;
     function limpiar(grupo) { while (grupo.children.length) { const c = grupo.children.pop(); c.traverse(o => { if (o.geometry && !Object.values(GP).includes(o.geometry)) o.geometry.dispose(); }); } }
     const marco = (w, d, mat) => { const pts = [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [-w / 2, -d / 2]].map(([x, z]) => new THREE.Vector3(x, .06, z)); const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat); l.raycast = () => {}; return l; };
@@ -238,7 +238,7 @@ export function crearCampaign3D(estado, { THREE, $, FUNCIONES, funcionDe, leerVa
       movil.add(g); tarimas.set(id, o); return o;
     }
     function construir() {
-      limpiar(fijo); limpiar(movil); objetos.clear(); tarimas.clear(); misiles.clear(); efectos.clear(); aros.clear(); camion = null;
+      limpiar(fijo); limpiar(movil); objetos.clear(); tarimas.clear(); misiles.clear(); efectos.clear(); aros.clear(); alcances.clear(); camion = null;
       const m = estado.escena; if (!m) return;
       for (const e of m.maquinas) {
         /** @type {any} */
@@ -386,6 +386,15 @@ export function crearCampaign3D(estado, { THREE, $, FUNCIONES, funcionDe, leerVa
         a.position.set(e.cx, (e.clase === "torreta" ? MURO.alto : 0) + .09, e.cy);
       }
       for (const [id, a] of aros) if (!estado.seleccionadas.has(id) || !m.porId[id] || !m.porId[id].presente) { movil.remove(a); a.geometry.dispose(); aros.delete(id); }
+      // Alcance de los brazos anclados (Campaign-V2): visible al elegir un brazo, una tarima libre o una máquina.
+      const verAlcance = [...estado.seleccionadas].some(id => { const e = m.porId[id]; return e && e.presente && (e.alcance || (e.clase === "lugar" && e.tipo === "lot") || e.entrada); });
+      for (const e of m.robots) {
+        if (!e.alcance || !e.base) continue;
+        let a = alcances.get(e.id);
+        if (!verAlcance) { if (a) a.visible = false; continue; }
+        if (!a) { a = mesh(new THREE.RingGeometry(e.alcance - .05, e.alcance + .05, 72), M.sel); a.rotation.x = -Math.PI / 2; a.raycast = () => {}; movil.add(a); alcances.set(e.id, a); }
+        a.position.set(e.base.x, .07, e.base.y); a.visible = true;
+      }
       if (dianas) dianas.visible = m.hito >= 5 || piel > .5;
     }
     function anillosDe() { /* los aros se pintan en actualizar, a partir de la selección */ }

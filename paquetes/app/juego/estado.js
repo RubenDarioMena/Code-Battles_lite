@@ -42,7 +42,7 @@ export function crearEstadoJuego(opciones = {}) {
   const checkpointsV2 = batallas?.modo === 'campaign' ? abrirCheckpoints(batallas, ctx.plataforma.almacen) : null;
   const cpInicial = checkpointsV2?.ultimo();
   const indiceV2 = cpInicial ? batallas.batallas.indexOf(cpInicial.hito) : batallas?.indiceInicial;
-  const serieUrl = params.get("serie");
+  const serieUrl = opciones.serieFija ?? params.get("serie");
   const SERIE = batallas?.reglasProgramas.id ?? (serieUrl === "factory" || serieUrl === "campaign" ? serieUrl : "war");
   const ES_FACTORY = SERIE === "factory", ES_CAMPAIGN = SERIE === "campaign";
   // Prefijo de las claves guardadas de cada serie (War conserva las suyas, sin prefijo).
@@ -190,10 +190,17 @@ export function crearEstadoJuego(opciones = {}) {
   let consolasCampaign = { log: 0, info: 0, warn: 0, error: 0 };
   // Campaign: estado con el que se monta el mundo (el guardado en vivo o un checkpoint) e hito recién cumplido.
   let estadoCampaign = null, hitoPendiente = null;
+  let continuarHito = null; // V2: arranca la Batalla siguiente tras la tarjeta de transición.
   // El hito detiene al conductor en su paso hasta «Seguir» (o hasta parar); hitoPendiente solo espera al banner.
   let hitoDetiene = false;
   let ruteo = { ...RUTEO_DEF, ...guardado.leer("ruteo", {}) };
-  let vista = guardado.leer(`${PREFIJO}vista`, "3d");
+  // La página V2 recuerda la misma vista en sus Batallas (clave «juego:vista») y en sus hitos de fábrica.
+  const claveVista = opciones.fabricaV2 ? null : `${PREFIJO}vista`;
+  const preferenciaVista = {
+    leer() { if (claveVista) return guardado.leer(claveVista, "3d"); try { return JSON.parse(ctx.plataforma.almacen.leer("juego:vista")) ?? "3d"; } catch { return "3d"; } },
+    escribir(v) { if (claveVista) guardado.escribir(claveVista, v); else try { ctx.plataforma.almacen.escribir("juego:vista", JSON.stringify(v)); } catch { /* sin almacenamiento */ } },
+  };
+  let vista = preferenciaVista.leer();
   let colores = guardado.leer("colores", true);
   let tamLetra = guardado.leer("letra", 14);
   let semillaFija = !!guardado.leer("semillaFija", false);
@@ -308,7 +315,10 @@ export function crearEstadoJuego(opciones = {}) {
     get reglas() { return reglas; },
     get reglasProgramas() { return reglasProgramas; },
     get batallasV2() { return batallas; },
+    // La página Campaign-V2, también en sus hitos de fábrica (sesión Campaign sin Batallas): su marcado es el de V2.
+    get paginaV2() { return !!batallas || !!opciones.fabricaV2; },
     get checkpointsV2() { return checkpointsV2; },
+    get fabricaV2() { return opciones.fabricaV2 ?? null; },
     escenarioPartida(base) {
       if (!batallas) return base;
       const e = batallas.escenario(retoIdx, base.reto);
@@ -346,9 +356,11 @@ export function crearEstadoJuego(opciones = {}) {
     get consolasCampaign() { return consolasCampaign; }, set consolasCampaign(v) { consolasCampaign = v; },
     get estadoCampaign() { return estadoCampaign; }, set estadoCampaign(v) { estadoCampaign = v; },
     get hitoPendiente() { return hitoPendiente; }, set hitoPendiente(v) { hitoPendiente = v; },
+    get continuarHito() { return continuarHito; }, set continuarHito(v) { continuarHito = v; },
     get hitoDetiene() { return hitoDetiene; }, set hitoDetiene(v) { hitoDetiene = v; },
     get ruteo() { return ruteo; }, set ruteo(v) { ruteo = v; },
     get vista() { return vista; }, set vista(v) { vista = v; },
+    get preferenciaVista() { return preferenciaVista; },
     get colores() { return colores; }, set colores(v) { colores = v; },
     get tamLetra() { return tamLetra; }, set tamLetra(v) { tamLetra = v; },
     get semillaFija() { return semillaFija; }, set semillaFija(v) { semillaFija = v; },

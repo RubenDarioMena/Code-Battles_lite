@@ -6,6 +6,7 @@ import { liberarEscena } from '../recursos.js';
 import { altoBastion, crearPaisaje } from './paisaje.js';
 import { estadoRig, montarTorreta } from './torreta.js';
 import { modelos } from './modelos.js';
+import { zoomMax } from './decorado.js';
 
 // Fachada en metros. Solo la composición conoce la conversión al marco del jugador.
 export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS, dt, fabrica = false, MISIL = undefined, estado = undefined }) {
@@ -27,7 +28,7 @@ export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS
   }, { dt, MISIL, alturaLanzador: l => altoBastion + paisaje.altura(l.cx, l.cy) });
   efectos?.montar({ THREE, escena, renderer, camara });
   // La primera escena fija los límites, también si llega después de redimensionar el canvas.
-  const zona = { x0: 0, x1: 1, z0: 0, z1: 1, yaw: fabrica ? -.6 : .15, pitch: fabrica ? 1 : 1.15 };
+  const zona = { x0: 0, x1: 1, z0: 0, z1: 1, yaw: fabrica ? -.6 : .15, pitch: fabrica ? 1 : 1.15, zoom: [8, zoomMax] };
   let revisionEncuadre = -1;
   const control = crearCamara3D({ THREE, renderer, escena, camara, fijo: maquinas, movil, zona,
     estado: { camaraDosDedos: true }, $: id => id === 'c3d' ? canvas : $(id), interseccionTerreno: paisaje.interseccion });

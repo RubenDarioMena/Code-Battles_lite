@@ -26,18 +26,6 @@
 
 </head>
 <body>
-<section id="fabrica-v2" class="zona-mapa marco" hidden style="height:100dvh;box-sizing:border-box">
-  <header class="cabeza"><h1 id="titulo-h0"></h1></header>
-  <div class="escena"><div class="campo" id="campo-h0"><button type="button" id="vista-h0"></button><canvas id="volumen-h0" aria-labelledby="titulo-h0"></canvas><canvas id="plano-h0" aria-labelledby="titulo-h0"></canvas></div></div>
-  <output id="meta-h0"></output>
-  <dialog id="cv2-ajustes-h0" class="ajustes" aria-labelledby="cv2-titulo-ajustes"><form method="dialog">
-    <h2 id="cv2-titulo-ajustes" data-cv2-texto="cv2.ui.ajustes"></h2>
-    <label><span data-cv2-texto="cv2.ui.vista"></span> <select id="cv2-vista-preferida">
-      <option value="3d" data-cv2-texto="cv2.ui.volumen"></option><option value="2d" data-cv2-texto="cv2.ui.2d"></option>
-    </select></label>
-    <button type="submit" data-cv2-texto="cv2.ui.cerrar"></button>
-  </form></dialog>
-</section>
 <div class="cv2-hud" id="cv2-hud" hidden>
   <button type="button" id="cv2-mision" aria-controls="cv2-objetivo" aria-expanded="false">!</button>
   <section id="cv2-objetivo" class="cv2-hoja" aria-labelledby="cv2-titulo" hidden>
@@ -75,6 +63,7 @@
             <button type="button" data-vista="3d" aria-pressed="true">3D</button>
             <button type="button" data-vista="2d" aria-pressed="false" data-i18n="juego.vista.plano">Plano</button>
             <button type="button" id="b-piel" hidden aria-pressed="false" aria-label="Alternar entre el paisaje y el modo batalla" data-i18n-aria-label="campaign.piel.aria" data-tip="Modo batalla" data-i18n-data-tip="campaign.piel.tip" data-i18n="campaign.piel.batalla">Batalla</button>
+            <button type="button" id="b-mover" hidden aria-pressed="false">Mover</button>
             <button type="button" id="b-centrar" aria-label="Recentrar la cámara" data-i18n-aria-label="juego.camara.recentrar" data-tip="Recentrar la cámara" data-i18n-data-tip="juego.camara.recentrar">⌖</button>
           </div>
           <div class="reloj" id="reloj">t 0.0 s</div>

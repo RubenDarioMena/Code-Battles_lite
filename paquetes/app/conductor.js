@@ -1,5 +1,6 @@
 /* Lockstep por llamadas, compartido por la aplicación en vivo y jugarPartida. */
 import { crearVistaNula } from './vista-nula.js';
+import { pasoDe } from '../nucleo/index.js';
 
 // La unidad del intérprete entrega síncronamente. También se admiten adaptadores
 // asíncronos: la aplicación recupera el control y jugarPartida espera su turno.
@@ -18,6 +19,11 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
 
   const cola = [];
   let siguienteEntrada = 0;
+  // El anfitrión sella las órdenes con el paso del reloj del mundo (pasoDe(t)); la cola de la partida cuenta pasos
+  // desde que se creó. Un mundo restaurado con t > 0 (la planta de Campaign al recargar o al volver de una Batalla)
+  // los desfasa: sin convertirlos, cada orden esperaría ese tiempo entero antes de aplicarse.
+  const desfase = pasoDe(partida.instantanea().t ?? 0) - partida.pasoActual;
+  const enPartida = orden => (desfase ? { ...orden, paso: orden.paso - desfase } : orden);
   if (intento) partida.iniciarGrabacion(intento.semillaIntento, intento.programas);
 
   // Frontera entre el turno ordinario y el siguiente paso del mundo. Una recarga
@@ -84,7 +90,7 @@ export function crearConductor({ reglas, partida, anfitrion, vista = crearVistaN
         pendiente = null;
         if (recibido.falloRecibido) throw recibido.fallo;
         const turno = recibido.turno;
-        for (const orden of turno.ordenes) partida.ordenar(orden);
+        for (const orden of turno.ordenes) partida.ordenar(enPartida(orden));
         error = turno.error ?? error;
         partida.aplicarOrdenes();
         alTurno?.(turno);

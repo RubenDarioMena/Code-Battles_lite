@@ -64,11 +64,12 @@ export function instalarArranqueJuego(ctx) {
     get marcas() { return { corre: (!ctx.edicion.mixto && ctx.lineaCorre[ctx.progSel]) || null, err: !ctx.edicion.mixto && ctx.lineaErr && ctx.lineaErr.id === ctx.progSel ? ctx.lineaErr.linea : null }; } };
   // Pulsos: solo del programa (o programas con el mismo texto) que está en el editor.
   if (ctx.CMGPulsos) ctx.CMGPulsos.conectar({ visibles: () => ctx.edicion.mixto ? [] : ctx.edicion.ids });
+  const tituloCampaign = () => ctx.paginaV2 ? "Code Battle Lite · Campaign-V2" : ctx.ti18n("campaign.doc.titulo");
   function actualizarEtiquetasSerie() {
     const sufijo = ctx.SERIE;
     ctx.$("c2d").setAttribute("aria-label", ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.canvas.2d" : `partida.canvas.${sufijo}.2d`));
     ctx.$("c3d").setAttribute("aria-label", ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.canvas.3d" : `partida.canvas.${sufijo}.3d`));
-    if (!ctx.batallasV2) ctx.$("t-escenario").textContent = ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.tab.historial" : ctx.ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
+    if (!ctx.paginaV2) ctx.$("t-escenario").textContent = ctx.ti18n(ctx.ES_CAMPAIGN ? "campaign.tab.historial" : ctx.ES_FACTORY ? "partida.escenario.tu_reto" : "partida.escenario.escenario");
     ctx.actualizarEtiquetasProgs();
   }
   if (ctx.ES_FACTORY) {
@@ -83,11 +84,11 @@ export function instalarArranqueJuego(ctx) {
     const probar = ctx.$("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "factory"); probar.href = u.pathname + u.search; }
   }
   if (ctx.ES_CAMPAIGN) {
-    document.title = ctx.ti18n("campaign.doc.titulo");
+    document.title = tituloCampaign();
     document.documentElement.dataset.serie = "campaign";
-    /** @type {HTMLElement} */ (document.querySelector(".fila-sem")).hidden = true;
-    /** @type {HTMLElement} */ (document.querySelector(".coordenadas-manuales")).hidden = true;
-    ctx.$("info-t-enemigos").hidden = true;
+    // La página V2 (hitos de fábrica) no tiene la fila de semilla, las coordenadas manuales ni la ficha de enemigos.
+    for (const nodo of [document.querySelector(".fila-sem"), document.querySelector(".coordenadas-manuales"), ctx.$("info-t-enemigos")])
+      if (nodo) /** @type {HTMLElement} */ (nodo).hidden = true;
     ctx.$("b-reiniciar").removeAttribute("data-i18n");
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-modo-codigo="pseudo"], [data-modo-codigo="bloques"]'))) b.hidden = true;
     const probar = ctx.$("b-probar"); if (probar) { const u = new URL(probar.href, location.href); u.searchParams.set("serie", "campaign"); probar.href = u.pathname + u.search; }
@@ -132,7 +133,7 @@ export function instalarArranqueJuego(ctx) {
     ctx.actualizarEtiquetasEdicion();
     ctx.actualizarEtiquetasSelectorLenguaje();
     actualizarEtiquetasSerie();
-    if (ctx.ES_CAMPAIGN && ctx.mundo) { document.title = ctx.ti18n("campaign.doc.titulo"); ctx.pintarRetos(); ctx.pintarInspector(); ctx.pintarPieIns(); ctx.pintarAyuda(); ctx.pintarEscenario(); }
+    if (ctx.ES_CAMPAIGN && ctx.mundo) { document.title = tituloCampaign(); ctx.pintarRetos(); ctx.pintarInspector(); ctx.pintarPieIns(); ctx.pintarAyuda(); ctx.pintarEscenario(); }
     ctx.actualizarEtiquetasRuteo();
     ctx.actualizarEtiquetasResumen();
     ctx.actualizarEtiquetaEventosVacios();

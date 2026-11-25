@@ -90,7 +90,7 @@ export function paso(m, dt, planta, war) {
   planta.paso(m.fabrica, dt);
   copiarSucesos(m, m.fabrica);
   const b = m.batalla, c = m.campo;
-  if (!b) return planta.metas(m.fabrica).every(meta => meta.cumplida) ? { fin: 'victoria', motivo: null, mensaje: null } : null;
+  if (!b) return null;
   for (const l of b.lanzadores) {
     const ritmo = m.bodega.misiles > 0 ? b.def.suministro : 0;
     war.fijarSuministro(l, ritmo);

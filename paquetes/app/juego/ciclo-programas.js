@@ -235,10 +235,14 @@ export function instalarCicloProgramas(ctx) {
       if (actual.error) {
         const e = actual.error;
         errorPrograma({ id: e.unidad }, e.mensaje, e.linea);
-      } else if (ctx.checkpointsV2 && ctx.partida.mundo.batalla && ctx.partida.mundo.hito !== hitoEnEjecucion) {
+      } else if (ctx.checkpointsV2 && ctx.partida.mundo.hito !== hitoEnEjecucion) {
         const m = ctx.partida.mundo;
         ctx.checkpointsV2.guardar(m, { programas: { ...m.programas, ...ctx.programas }, fuentes: ctx.fuentes, vinculos: ctx.vinculos.datos });
-        ctx.elegirReto(ctx.batallasV2.batallas.indexOf(m.hito));
+        // La etapa siguiente espera tras la tarjeta de transición: se para aquí y arranca al continuar.
+        // Sin Batalla montada viene un hito de fábrica, que se juega en su propia sesión: se recarga la página.
+        const seguir = () => m.batalla ? ctx.elegirReto(ctx.batallasV2.batallas.indexOf(m.hito)) : location.reload();
+        cerrarProgramas();
+        if (ctx.batallasV2.anunciarHito) ctx.batallasV2.anunciarHito(ctx, m, seguir); else seguir();
       } else if (!ctx.ES_CAMPAIGN) {
         const fin = ctx.partida.evaluar();
         if (fin) ctx.terminar(fin.fin, fin.motivo, fin.mensaje);

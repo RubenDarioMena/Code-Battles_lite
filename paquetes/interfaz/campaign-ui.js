@@ -239,17 +239,27 @@
     // ---------- Hitos, metas e historial ----------
     const nPistas = () => hitoDe(M().hito).pistas || 0;
     const pistas = () => Array.from({ length: nPistas() }, (_, i) => t(`campaign.hito.${M().hito}.pista.${i}`));
+    // «en», «lotes» y «banda» son del nivel original; «hechos» y «tarima», de los hitos de fábrica de Campaign-V2.
+    function nombreMeta(x) {
+      if (x.tipo === "en") return t("campaign.meta.en", { pieza: pieza(x.pieza), lugar: x.lugar });
+      if (x.tipo === "lotes") return t("campaign.meta.lotes", { pieza: pieza(x.pieza) });
+      if (x.tipo === "hechos") return t("campaign.meta.hechos", { pieza: pieza(x.pieza) });
+      if (x.tipo === "tarima") return t("campaign.meta.tarima", { lugar: x.lugar });
+      return t("campaign.meta.banda");
+    }
     function metas() {
       const m = M();
       return C.metas(m).map(x => ({
-        k: `campaign-${x.k}`, nombre: esc(x.tipo === "en" ? t("campaign.meta.en", { pieza: pieza(x.pieza), lugar: x.lugar }) : x.tipo === "lotes" ? t("campaign.meta.lotes", { pieza: pieza(x.pieza) }) : t("campaign.meta.banda")),
+        k: `campaign-${x.k}`, nombre: esc(nombreMeta(x)),
         meta: t("campaign.meta.minimo", { n: x.n }), valor: `${Math.min(x.valor, 999)}/${x.n}`, estado: x.cumplida ? "ok" : "pendiente",
       }));
     }
     function hudExtra() {
       const m = M(), e = m.energia, alerta = e.uso > e.max;
       return `<span class="meta optimo" title="${esc(t("campaign.hud.presupuesto", { gastado: m.gastado, ingresado: m.ingresado }))}">₵ <b>${m.presupuesto}</b></span>`
-        + `<span class="meta${alerta ? " rota" : ""}" title="${esc(t("campaign.hud.energia"))}">⚡ <b>${e.uso}/${e.max}</b></span>`;
+        + `<span class="meta${alerta ? " rota" : ""}" title="${esc(t("campaign.hud.energia"))}">⚡ <b>${e.uso}/${e.max}</b></span>`
+        // Campaign-V2: la bodega de la muralla que vacían las Batallas.
+        + (D().bodegaInicial != null && m.arsenal ? `<span class="meta" title="${esc(t("campaign.hud.bodega"))}">${esc(t("campaign.hud.bodegaCorto"))} <b>${m.arsenal.misiles}</b></span>` : "");
     }
     function chipsHitos(historial) {
       const m = M();

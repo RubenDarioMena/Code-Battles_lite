@@ -6,6 +6,15 @@ import { crearTerreno } from './campaign-terreno.js';
 const PIEZA = { steel: "#9fb2c0", polymer: "#e6d79a", nose: "#e2704c", base: "#5fa06a", charge: "#b884e0", motor: "#e0a04e", missile: "#eef2f4" };
 const LUZ = { green: "#4be38a", amber: "#ffc247", red: "#ff5a4f" };
 // mapa y reglas (esRobot, esMaquina, estadoMaquina) los da la app: una vista no importa reglamentos.
+/** ¿Se dibujan los alcances? Solo cuando la selección incluye un brazo anclado, una tarima libre o una máquina. */
+export function verAlcances(m, seleccionadas) {
+  for (const id of seleccionadas) {
+    const e = m.porId[id];
+    if (e && e.presente && (e.alcance || (e.clase === "lugar" && e.tipo === "lot") || e.entrada)) return true;
+  }
+  return false;
+}
+
 export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, rgba, mapa, reglas: C, iconoUnidad = undefined, leerBatalla = () => false }) {
   const T = crearTerreno(mapa);
   const ESC = 2;  // píxeles por metro de la imagen del relieve
@@ -129,6 +138,12 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
     for (const mi of m.misiles) { const u = Math.min(1, Math.max(0, (tt - mi.t0) / mi.dur)); g.fillStyle = col.misil; g.beginPath(); g.arc(X(mi.x0 + (mi.x1 - mi.x0) * u), Y(mi.y0 + (mi.y1 - mi.y0) * u), Math.max(2, .25 * S), 0, 7); g.fill(); }
     for (const x of m.explosiones) { g.fillStyle = rgba(col.explosion, .45 * (1 - Math.min(1, (tt - x.t0) / .8))); g.beginPath(); g.arc(X(x.x), Y(x.y), 2 * S, 0, 7); g.fill(); }
     for (const id of estado.seleccionadas) { const e = m.porId[id]; if (!e || !e.presente) continue; g.strokeStyle = col.sel; g.lineWidth = 2; g.beginPath(); g.arc(X(e.cx), Y(e.cy), radioDe(e) * S, 0, 7); g.stroke(); }
+    // Alcance de los brazos anclados: se ve al elegir lo que el colocador mueve (un brazo, una tarima o una máquina).
+    if (verAlcances(m, estado.seleccionadas)) for (const e of m.robots) {
+      if (!e.alcance || !e.base) continue;
+      g.strokeStyle = rgba(col.sel, .6); g.lineWidth = 1.5; g.setLineDash([5, 4]);
+      g.beginPath(); g.arc(X(e.base.x), Y(e.base.y), e.alcance * S, 0, 7); g.stroke(); g.setLineDash([]);
+    }
   }
   dibujar.recentrar = () => { vista = null; };
   dibujar.destruir = () => { oyentes.forEach(quitar => quitar()); punteros.clear(); fondo = fondoBatalla = null; };

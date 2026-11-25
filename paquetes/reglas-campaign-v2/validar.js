@@ -1,3 +1,5 @@
+import { PIEZAS } from './fabrica/catalogo.js';
+
 // El nombre del archivo viene del módulo del nivel, incluso si el contenido pierde su clave.
 export function validarNivel(carpeta, contenido, tipos, catalogo) {
   const errores = [];
@@ -18,6 +20,7 @@ export function validarNivel(carpeta, contenido, tipos, catalogo) {
     error('nivel', 'marco.bastiones', 'bastión repetido');
   if (nivel?.fabrica !== undefined && !par(nivel.fabrica?.origen))
     error('nivel', 'fabrica.origen', 'se esperan dos coordenadas');
+  if (nivel?.hitos?.some?.(h => /^h\d+$/.test(h))) validarPlanta(contenido.fabrica, error);
   if (!Array.isArray(nivel?.hitos) || !nivel.hitos.length) {
     error('nivel', 'hitos', 'se espera una secuencia con al menos un hito');
     return errores;
@@ -35,18 +38,8 @@ export function validarNivel(carpeta, contenido, tipos, catalogo) {
     const b = contenido[clave];
     if (b?.clave !== clave) error(clave, 'clave', `se esperaba ${clave}`);
     if (!b || typeof b !== 'object') continue;
-    if (b.prensa) {
-      const texto = (campo, k) => {
-        if (!k || (catalogo && !['es', 'en'].every(idioma => typeof catalogo[idioma]?.[k] === 'string')))
-          error(clave, campo, 'falta la clave i18n en el catálogo ES/EN');
-      };
-      texto('titulo', b.titulo);
-      if (!Array.isArray(b.metas) || !b.metas.length) error(clave, 'metas', 'se espera una lista de metas');
-      else for (const [j, meta] of b.metas.entries()) {
-        texto(`metas[${j}].k`, meta.k);
-        if (!['en', 'lotes', 'banda'].includes(meta.tipo) || !(meta.n > 0))
-          error(clave, `metas[${j}]`, 'meta de producción inválida');
-      }
+    if (b.fabrica) {
+      validarHitoFabrica(clave, b, nivel.hitos.filter(h => /^h\d+$/.test(h)).indexOf(clave), contenido.fabrica, catalogo, error);
       continue;
     }
     if (Object.hasOwn(b, 'war')) {
@@ -75,4 +68,41 @@ export function validarNivel(carpeta, contenido, tipos, catalogo) {
     }
   }
   return errores;
+}
+
+// La planta de la fábrica: unidades con id único y programas de unidades que existen.
+function validarPlanta(planta, error) {
+  if (!planta || !Array.isArray(planta.unidades)) return error('fabrica', 'unidades', 'falta la planta de los hitos de fábrica');
+  const ids = new Set();
+  for (const [i, u] of planta.unidades.entries()) {
+    if (typeof u?.id !== 'string' || !u.id) error('fabrica', `unidades[${i}].id`, 'se espera un id');
+    else if (ids.has(u.id)) error('fabrica', `unidades[${i}].id`, `id repetido: ${u.id}`);
+    ids.add(u?.id);
+    if (u?.alcance !== undefined && !(u.alcance > 0)) error('fabrica', `unidades[${i}].alcance`, 'se espera un alcance positivo');
+  }
+  for (const id of Object.keys(planta.inicial ?? {})) if (!ids.has(id)) error('fabrica', `inicial.${id}`, 'unidad desconocida');
+  for (const k of ['energia', 'presupuesto', 'premioHito', 'bodegaInicial'])
+    if (!Number.isFinite(planta[k]) || planta[k] < 0) error('fabrica', k, 'se espera un número no negativo');
+}
+
+// Un hito de fábrica: metas sobre piezas y lugares de la planta, y sus textos en el catálogo ES/EN.
+function validarHitoFabrica(clave, h, indice, planta, catalogo, error) {
+  const ids = new Set((planta?.unidades ?? []).map(u => u.id));
+  const texto = k => {
+    if (catalogo && !['es', 'en'].every(idioma => typeof catalogo[idioma]?.[k] === 'string'))
+      error(clave, k, 'falta la clave i18n en el catálogo ES/EN');
+  };
+  for (const k of ['titulo', 'objetivo', 'leccion']) texto(`campaign.hito.${indice}.${k}`);
+  if (!Number.isInteger(h.pistas) || h.pistas < 0) error(clave, 'pistas', 'se espera un entero');
+  else for (let i = 0; i < h.pistas; i++) texto(`campaign.hito.${indice}.pista.${i}`);
+  if (!Array.isArray(h.metas) || !h.metas.length) error(clave, 'metas', 'se espera una lista de metas');
+  else for (const [j, meta] of h.metas.entries()) {
+    if (!['en', 'lotes', 'hechos', 'tarima'].includes(meta.tipo) || !(meta.n > 0)) error(clave, `metas[${j}]`, 'meta de producción inválida');
+    if (meta.pieza !== undefined && !Object.hasOwn(PIEZAS, meta.pieza)) error(clave, `metas[${j}].pieza`, `pieza desconocida: ${meta.pieza}`);
+    if ((meta.tipo === 'en' || meta.tipo === 'tarima') && !ids.has(meta.lugar)) error(clave, `metas[${j}].lugar`, `lugar desconocido: ${meta.lugar}`);
+  }
+  for (const [j, g] of (h.alEmpezar?.entregas ?? []).entries()) {
+    if (!ids.has(g.lugar)) error(clave, `alEmpezar.entregas[${j}].lugar`, `lugar desconocido: ${g.lugar}`);
+    if (!Object.hasOwn(PIEZAS, g.pieza) || !(g.n > 0)) error(clave, `alEmpezar.entregas[${j}]`, 'entrega inválida');
+  }
 }

@@ -1,5 +1,5 @@
 import { adjuntarSucesos, crearRng, copiaPlana, pasoDe } from '../nucleo/index.js';
-import { configurarFabrica } from './fabrica.js';
+import { crearPlanta, esFabrica, nivelFabrica } from './fabrica/index.js';
 import { escenaEnMetros } from './marco.js';
 import { crearCampo, entidadesCampo, instantaneaCampo, ordenarCampo, paso as avanzar } from './paso.js';
 export { fichas, piezasMoviles } from './paso.js';
@@ -13,12 +13,13 @@ import { lugarDeObjetivo } from './mecanicas/clic/reglas.js';
 export { lugarDeObjetivo, repartirClic } from './mecanicas/clic/reglas.js';
 export { validarNivel } from './validar.js';
 export const niveles = { 'nivel-1': nivel1 };
+export { esFabrica, hitosFabrica, moduloFabrica, nivelFabrica, motor as motorFabrica } from './fabrica/index.js';
 const BODEGA_ENSAYO = 16;
 const otraSemilla = rng => Math.floor(rng() * 4294967296);
 
 export function crearReglamento(war, contenido, retos) {
   const nivel = contenido.default;
-  const planta = configurarFabrica(nivel, contenido.h0);
+  const planta = crearPlanta(nivelFabrica(contenido));
   const iniciales = Object.fromEntries((retos[nivel.hitos.find(h => retos[h])]?.lanzadores ?? [])
     .map(({ id, x, y }) => [id, { x, y }]));
   const alturas = Object.fromEntries(Object.entries(war.api.tipos).map(([k, v]) => [k, v.z]));
@@ -110,34 +111,56 @@ export function crearReglamento(war, contenido, retos) {
     const fabrica = planta.crear(base?.fabrica ?? e.fabrica);
     const m = { t: 0, hito, modo: e.modo, fabrica, bodega: fabrica.arsenal, batalla: null,
       semillaFabrica: base?.semillaFabrica ?? e.semillaFabrica ?? otraSemilla(rng), semillaIntento: null,
-      torretas: copiaPlana(base?.torretas ?? e.torretas ?? (hito === 'h0' ? iniciales : {})), colocadas: {}, final: null,
+      torretas: copiaPlana(base?.torretas ?? e.torretas ?? (esFabrica(hito) ? iniciales : {})), colocadas: {}, final: null,
       programas: copiaPlana(e.programas ?? cp?.programas ?? {}), vinculos: copiaPlana(e.vinculos ?? cp?.vinculos ?? {}),
       fuentes: copiaPlana(e.fuentes ?? cp?.fuentes ?? {}), aviso: incompatible ? 'cv2.revision' : null, rng };
     adjuntarSucesos(m);
-    m.bodega.misiles = base?.bodega ?? e.bodega ?? (e.modo === 'ensayo' && hito !== 'h0' ? BODEGA_ENSAYO : 0);
-    if (hito !== 'h0') montarBatalla(m, retos[hito] ?? e.reto, e.semillaIntento ?? otraSemilla(rng));
+    // Sin checkpoint, la bodega es la de la planta (sus existencias iniciales); el ensayo trae la suya.
+    m.bodega.misiles = base?.bodega ?? e.bodega ?? (e.modo === 'ensayo' && !esFabrica(hito) ? BODEGA_ENSAYO : m.bodega.misiles);
+    if (!esFabrica(hito)) montarBatalla(m, retos[hito] ?? e.reto, e.semillaIntento ?? otraSemilla(rng));
     return m;
   }
   function restaurar(cp, semillaIntento, actuales = {}) {
     return crearMundo({ modo: 'campaign', checkpoint: cp, semillaIntento, ...actuales }, crearRng(semillaIntento));
   }
+  /** Cierra el hito de fábrica en curso: la planta jugada en su sesión (si se da) sustituye a la del mundo y se pasa
+   * al hito siguiente. Si es una Batalla, queda montada; tras el último hito, el nivel termina en victoria.
+   * Devuelve false si el mundo no está en un hito de fábrica. */
+  function cerrarFabrica(m, plantaJugada = null) {
+    if (m.modo === 'paridad' || m.batalla || !esFabrica(m.hito)) return false;
+    if (plantaJugada) {
+      m.fabrica = planta.crear(planta.serializar(plantaJugada));
+      m.bodega = m.fabrica.arsenal;
+    }
+    const siguiente = nivel.hitos[nivel.hitos.indexOf(m.hito) + 1];
+    if (!siguiente) { m.final = { fin: 'victoria', motivo: 'nivel' }; return true; }
+    m.hito = siguiente;
+    if (!esFabrica(siguiente)) montarBatalla(m, retos[siguiente], otraSemilla(m.rng));
+    return true;
+  }
   function paso(m, dt) {
     if (m.modo === 'paridad') return war.paso(m.batalla, dt);
-    if (m.final) return;
+    // En un hito de fábrica la planta se juega en su propia sesión (moduloFabrica): aquí no avanza nada.
+    if (m.final || !m.batalla) return;
     const b = m.batalla, fin = avanzar(m, dt, planta, war);
     if (!fin) return;
     const siguiente = nivel.hitos[nivel.hitos.indexOf(m.hito) + 1];
+    // La pantalla de transición muestra el hito superado: después de montar la siguiente Batalla ya no existe.
+    if (fin.fin === 'victoria') m.superado = { hito: m.hito, t: b?.t ?? m.t, derribos: b?.derribos ?? 0, total: b?.total ?? 0,
+      brechas: b?.brechas ?? 0, atascos: b?.atascos ?? 0, misiles: b?.consumidos ?? 0 };
     if (fin.fin === 'victoria' && m.modo === 'campaign' && siguiente) {
       m.torretas = posiciones(m);
       m.hito = siguiente;
-      montarBatalla(m, retos[siguiente], otraSemilla(m.rng));
+      // Tras la Batalla viene un hito de fábrica: el checkpoint guarda la planta y la página abre la fábrica.
+      if (esFabrica(siguiente)) Object.assign(m, { batalla: null, campo: null, reto: null });
+      else montarBatalla(m, retos[siguiente], otraSemilla(m.rng));
     } else {
       m.final = fin;
       if (!b) m.sucesos.anotar({ paso: pasoDe(m.t), tipo: 'fin', datos: fin });
     }
   }
   return {
-    id: 'campaign-v2', version: 1, api: war.api, crearMundo, paso, serializar, restaurar,
+    id: 'campaign-v2', version: 1, api: war.api, crearMundo, paso, serializar, restaurar, cerrarFabrica,
     eventos(m) { return [...(m.eventosPrograma?.splice(0) ?? []), ...(m.campo?.eventos.splice(0) ?? [])]; },
     aplicarOrden(m, orden) {
       const { verbo, unidad, args } = orden;

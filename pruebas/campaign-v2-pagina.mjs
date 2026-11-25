@@ -34,22 +34,24 @@ for (const almacen of [plataforma.almacen, plataforma.sesion]) {
   }
 }
 const etapas = ['h0', 'b1', 'b2', 'b3', 'b4', 'b5', 'salida'];
-let vioH0 = false, destinoEnsayo;
-await cargar('campaign-v2', '2d', false, false, null, 'movil', '', { plataforma, i18n: true,
-  alNavegar(url) { destinoEnsayo = url; },
-  enH0($) {
-    vioH0 = true;
-    assert.equal($('fabrica-v2').hidden, false);
-    assert.equal($('app').hidden, true);
-    assert.match($('meta-h0').textContent, /0\/4/);
-    $('cv2-opciones').click();
-    assert.deepEqual([...$('cv2-checkpoints').children].map(op => op.value), etapas);
-    $('cv2-idioma').click();
-    $('cv2-checkpoints').value = 'salida';
-    $('cv2-volver').click();
-  },
-});
-assert(vioH0);
+let destinoEnsayo;
+// Partida nueva: la página arranca la sesión Campaign sobre la planta de H0 (fabrica-v2.js), con el HUD de V2.
+const fabrica = await cargar('campaign-v2', '2d', false, false, null, 'movil', '', { plataforma, i18n: true, serie: 'campaign',
+  alNavegar(url) { destinoEnsayo = url; } });
+let enFabrica;
+fabrica.medirUnidades(c => { enFabrica = c; });
+const $ = id => enFabrica.$(id);
+assert.equal(enFabrica.fabricaV2.hito, 'h0');
+assert.equal(fabrica.partida.mundo.hito, 0);
+assert.equal($('cv2-hud').hidden, false);
+assert.equal($('b-mover').hidden, false);
+// El menú ofrece las Batallas en ensayo y, de los hitos de fábrica, solo los que tienen checkpoint.
+$('cv2-opciones').click();
+assert.deepEqual([...$('cv2-checkpoints').children].map(op => op.value), etapas);
+assert.equal($('cv2-continuar').hidden, true, 'ya se está en la campaña');
+$('cv2-idioma').click();
+$('cv2-checkpoints').value = 'salida';
+$('cv2-volver').click();
 assert.equal(destinoEnsayo.pathname, '/Prototypes/Campaign-V2/');
 assert.equal(destinoEnsayo.searchParams.get('ensayo'), 'salida');
 assert.equal(destinoEnsayo.searchParams.get('forma'), 'movil');
@@ -74,7 +76,7 @@ for (const h of ['b1', 'salida']) {
 }
 assert(claves.has('campaign-v2:idioma'));
 assert(claves.has('campaign-v2-nivel-1'));
-for (const k of claves) assert.match(k, /^campaign-v2(?::|-nivel-1(?:-programas)?$)/);
+for (const k of claves) assert.match(k, /^campaign-v2(?::|-nivel-1(?:-programas|-sello)?$)/);
 
 const rocket = await readFile(new URL('../Rocket Launcher/index.html', pagina), 'utf8');
 const redireccion = rocket.match(/<script>([\s\S]*?)<\/script>/)[1];
@@ -88,4 +90,4 @@ for (const serie of ['war', 'factory', 'campaign', 'campaign-v2']) {
     '/Prototypes/Campaign-V2/?ensayo=salida&forma=movil#editor');
   else assert.equal(destino, undefined);
 }
-console.log('Página propia, grafo de módulos, H0, B1, Salida, selector, almacenamiento y redirección verificados.');
+console.log('Página propia, grafo de módulos, fábrica H0 con su HUD, B1, Salida, selector, almacenamiento y redirección verificados.');

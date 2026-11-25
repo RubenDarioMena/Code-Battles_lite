@@ -66,7 +66,8 @@ export async function cargar(serie, vista, propio, sin3d = false, mutacion = nul
   plataforma.almacen.escribir(claveVista, JSON.stringify(vista));
   const url = new URL(`http://qa.invalid/Prototypes/${pagina}/?${v2 ? '' : 'serie=' + serie + '&'}forma=${forma}&marco=1&poc=1${propio ? '&reto=propio' : ''}${consulta}`);
   url.assign = destino => opciones.alNavegar?.(new URL(destino, url));
-  let avanzarH0 = null;
+  // Campaign-V2 recarga la página para pasar entre fábrica y Batalla: la prueba vuelve a llamar a cargar.
+  url.reload = () => opciones.alRecargar?.();
   let fotogramas = 0, medidas = 0, editor = null, estadoVistas = null, vaciados = 0;
   const vaciar = () => vaciados++;
   const vistaFalsa = () => {
@@ -84,7 +85,7 @@ export async function cargar(serie, vista, propio, sin3d = false, mutacion = nul
     MutationObserver: class { observe() {} }, ResizeObserver: class { observe() {} disconnect() {} },
     CustomEvent: class { constructor(type, opciones) { this.type = type; this.detail = opciones?.detail; } },
     setTimeout: () => 1, clearTimeout: noop, cancelAnimationFrame: noop,
-    requestAnimationFrame: fn => { if (fn.name === 'fotograma') { avanzarH0 = fn; return 1; } if (fn.name === 'bucle') fotogramas++; else medidas++; return fotogramas + medidas; },
+    requestAnimationFrame: fn => { if (fn.name === 'bucle') fotogramas++; else medidas++; return fotogramas + medidas; },
   });
   ctx.window = ctx;
   ctx.localStorage = { getItem: k => plataforma.almacen.leer(k), setItem: (k, v) => plataforma.almacen.escribir(k, v) };
@@ -97,6 +98,8 @@ export async function cargar(serie, vista, propio, sin3d = false, mutacion = nul
   if (consulta || opciones.i18n) vm.runInContext(await readFile(new URL('shared/i18n/i18n.js', raiz), 'utf8'), ctx);
   if (opciones.i18n) {
     vm.runInContext(await readFile(new URL('shared/i18n/retos.js', raiz), 'utf8'), ctx);
+    // Las metas de la planta (Campaign y los hitos de fábrica de Campaign-V2) viven en su propio catálogo.
+    if (/shared\/i18n\/campaign\.js/.test(html)) vm.runInContext(await readFile(new URL('shared/i18n/campaign.js', raiz), 'utf8'), ctx);
   }
   if (!ctx.CMGI18n) ctx.CMGI18n = { t: clave => clave };
   ctx.crypto = { randomUUID: () => 'qa-sesion' };
@@ -158,19 +161,6 @@ export async function cargar(serie, vista, propio, sin3d = false, mutacion = nul
   await principal.link((ruta, padre) => modulo(new URL(ruta, padre.identifier)));
   await principal.evaluate();
   await Promise.resolve();
-  if (serie === 'campaign-v2' && !consulta && !porId('fabrica-v2').hidden) {
-    const clave = 'campaign-v2-nivel-1';
-    assert.equal(JSON.parse(plataforma.almacen.leer(clave)).ultimo, 'h0');
-    assert.equal(ctx.__juegoListo, true);
-    assert.equal(ctx.__banco.partida.mundo.batalla, null);
-    if (!opciones.i18n) assert.equal(porId('meta-h0').textContent, 'cv2.h0.meta');
-    opciones.enH0?.(porId, avanzarH0);
-    for (let n = 1; n <= 200 && !porId('fabrica-v2').hidden; n++) avanzarH0(n * 100);
-    const { ultimo, hitos } = JSON.parse(plataforma.almacen.leer(clave));
-    assert.equal(ultimo, 'b1');
-    assert.equal(hitos.h0.bodega, 0);
-    assert.equal(hitos.b1.bodega, 4);
-  }
   assert.equal(ctx.__juegoListo, true, serie + ': llega al final del arranque');
   assert.equal(ctx.cmg.editor, editor);
   assert(ctx.__banco.mundo && ctx.__banco.partida, serie + ': mundo y partida conectados');
@@ -187,7 +177,8 @@ export async function cargar(serie, vista, propio, sin3d = false, mutacion = nul
   ctx.cmg.pulsos.python('PY', 'while True:\n    print(1)\n');
   assert(ctx.cmg.pulsos.programas.get('PY').lineas.size > 0, 'lector Python clásico inyectado');
   assert(estadoVistas.escena, 'la escena se obtiene después de crear el mundo');
-  assert.equal(ctx.cmg.serie, serie);
+  // Campaign-V2 arranca la serie Campaign en sus hitos de fábrica (opciones.serie lo dice).
+  assert.equal(ctx.cmg.serie, opciones.serie ?? serie);
   if (serie === 'war') {
     const antes = vaciados;
     porId('b-reiniciar').dispatchEvent(new ctx.Event('click'));

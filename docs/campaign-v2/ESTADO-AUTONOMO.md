@@ -2,6 +2,22 @@
 
 Sin commits ni push. Todo está en el worktree `Code-battle-lite-cv2`, rama `Campaign-V2`. El índice de git sirve de instantánea entre porciones: `git diff` muestra solo lo último.
 
+## Misión 1 de fábrica (25-nov, Claude)
+
+Sin commits ni push. La misión del autor ([MISION-1.md](MISION-1.md)) está implementada sobre el motor compartido `paquetes/fabrica` ([README](../../paquetes/fabrica/README.md)).
+
+- Los hitos `h0`…`h5` se intercalan con `b1`…`b5`. Cada hito de fábrica es una sesión Campaign en la página V2 (`paquetes/app/juego/fabrica-v2.js`), con el HUD de V2 y el colocador (`mover-fabrica.js`).
+- Pruebas nuevas:
+  - `campaign-v2-fabrica.mjs`: el motor, de H0 a H5;
+  - `campaign-v2-sesion-fabrica.mjs`: recargas, guardado en vivo, Checkpoint y colocador;
+  - `campaign-v2-demo-fabrica.mjs`: los seis hitos en la página con programas del editor.
+- Corregido en `app/conductor.js`: una planta restaurada con t > 0 retrasaba cada orden ese tiempo entero. También afectaba al Campaign del trunk al recargar.
+- Falta:
+  - jugar en el navegador B2–B5 con la bodega de la planta;
+  - girar al colocar;
+  - la energía compartida con las torretas;
+  - equilibrar los números.
+
 ## Hecho
 
 | Porción | Quién | Prueba en Node | Navegador real |

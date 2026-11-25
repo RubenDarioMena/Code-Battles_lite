@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { cargar, habilitarVM } from './juego-dom.mjs';
 import { crearPlataformaMemoria, componerCampaignV2 } from '../paquetes/app/index.js';
-import { abrirCheckpoints } from '../paquetes/app/juego/checkpoints-v2.js';
+import { abrirCheckpoints, leerHistorialV2, escribirCheckpointV2 } from '../paquetes/app/juego/checkpoints-v2.js';
 import { crearPartida } from '../paquetes/nucleo/index.js';
 habilitarVM(import.meta.url);
 
@@ -76,16 +76,22 @@ volver('b1', false); volver('b5', true);
 assert.equal(camp.fuentes['LAU-01'].texto, 'print(42)');
 assert.equal(camp.vinculos.miembros('LAU-01').length, 2);
 
-const { ui: b1 } = await entrar('', 'escritorio', {
-  plataforma: crearPlataformaMemoria(),
-  enH0($, paso) {
-    $('cv2-mision').click();
-    assert.match($('cv2-titulo').textContent, /Munición/);
-    assert.match($('cv2-lista-metas').children[0].textContent, /0\/4/);
-    for (let i = 0; i <= 22; i++) paso(i * 100);
-    assert.match($('cv2-lista-metas').children[0].textContent, /1\/4/);
-  },
-});
+// Partida nueva: la planta de H0 en la sesión Campaign con el mismo HUD (misión, metas y menú) que las Batallas.
+const nueva = crearPlataformaMemoria();
+const { ui: h0 } = await entrar('', 'escritorio', { plataforma: nueva, serie: 'campaign' });
+h0.$('cv2-mision').click();
+assert.equal(h0.$('cv2-objetivo').hidden, false);
+assert.equal(h0.$('cv2-titulo').textContent, 'Llegada');
+assert.equal(h0.$('cv2-gestos').hidden, true);
+h0.metasClave = null; h0.pintarHud();
+assert.match(h0.$('cv2-lista-metas').children[0].textContent, /acero.*0\/12/);
+assert.match(h0.$('metas').innerHTML, /Bodega/);
+// Cerrada la planta (lo que hace la sesión al cumplir H0), la recarga abre B1 desde su checkpoint.
+const mundoH0 = config.reglas.restaurar(leerHistorialV2(nueva.almacen).hitos.h0, 1);
+assert(config.reglas.cerrarFabrica(mundoH0));
+escribirCheckpointV2(nueva.almacen, config.reglas.serializar(mundoH0));
+const { ui: b1 } = await entrar('', 'escritorio', { plataforma: nueva });
+assert.equal(b1.partida.mundo.hito, 'b1');
 b1.$('cv2-mision').click();
 assert.equal(b1.$('cv2-objetivo').hidden, false);
 assert.equal(b1.$('cv2-titulo').textContent, 'Primer blanco');
@@ -118,4 +124,4 @@ war.medirUnidades(juego => {
   assert.equal(juego.$('cv2-hud'), null);
   assert.match(juego.$('progs').innerHTML, /class="prog-tab".*LAU-01/);
 });
-console.log('H0 y Batallas · misión, metas, idioma, ajustes, selección en ambos sentidos, grupos JS/Python, desvinculación, recarga, checkpoints, móvil y tira clásica de War.');
+console.log('Fábrica H0 y Batallas · misión, metas, idioma, ajustes, selección en ambos sentidos, grupos JS/Python, desvinculación, recarga, checkpoints, móvil y tira clásica de War.');

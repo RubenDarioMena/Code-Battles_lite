@@ -30,9 +30,9 @@ export function instalarCampaignJuego(ctx) {
   }
   // Lo que cambia en pantalla al pasar de hito o al volver a un checkpoint.
   function refrescarHito() {
-    ctx.$("reto-n").textContent = ctx.mundo.hito;
+    if (ctx.$("reto-n")) ctx.$("reto-n").textContent = ctx.mundo.hito;
     ctx.actualizarContenidoReto();
-    ctx.$("objetivo-corto").textContent = ctx.textoReto("objetivo");
+    if (ctx.$("objetivo-corto")) ctx.$("objetivo-corto").textContent = ctx.textoReto("objetivo");
     ctx.pintarRetos(); ctx.pintarProgs(); ctx.pintarMaquinas(); ctx.pintarInspector(); ctx.pintarPieIns(); ctx.pintarEscenario(); ctx.pintarControles();
     ctx.metasClave = "";
     if (!ctx.$("info-reto").hidden) ctx.pintarInfoReto();
@@ -124,6 +124,8 @@ export function instalarCampaignJuego(ctx) {
   function seguirCampaign() { ctx.ocultarBanner(); ctx.hitoDetiene = false; ctx.pausa = false; arrancarNuevos(); ctx.conductor?.reanudar(); ctx.pintarControles(); }
   function alCumplirHito(h) {
     ctx.plataforma.logros?.desbloquear("CBL_PRUEBA_VICTORIA");
+    // Campaign-V2: el hito de fábrica cierra la sesión y abre la Batalla siguiente.
+    if (ctx.fabricaV2?.alCumplirHito(ctx, h)) return;
     ctx.__banco.alHito?.(h);
     const corriendo = !!ctx.ejec;
     ctx.pausa = corriendo;

@@ -15,6 +15,7 @@ export function instalarBucleJuego(ctx) {
     const off = ctx.ejec && !ctx.pausa && !ctx.algunoCorre() ? Math.min(ctx.acum, ctx.DT) : 0;
     ctx.vistaActual().dibujar(null, ctx.escenaActual, off / ctx.DT, now);
     ctx.colocador?.pintar();
+    ctx.moverFabrica?.pintar();
     ctx.pintarCapa(off, now);
     ctx.caducarAvisos(now);
     ctx.pintarHud();

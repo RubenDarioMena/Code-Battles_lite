@@ -7,7 +7,8 @@ import { componerCampaignV2 } from '../paquetes/app/index.js';
 
 const config = componerCampaignV2(new URLSearchParams('serie=campaign-v2'));
 const planta = crearPartida({ reglas: config.reglas, escenario: config.escenario(-1), semilla: 5 });
-while (planta.mundo.hito === 'h0') planta.paso();
+// H0 se juega en la sesión de fábrica; aquí se cierra tal cual y la planta pasa a B1.
+config.reglas.cerrarFabrica(planta.mundo);
 const checkpoint = config.reglas.serializar(planta.mundo);
 const huella = crearHuella(), duplicada = crearHuella();
 const observar = h => (_, foto, p) => h.paso({ foto, bodega: p.mundo.bodega.misiles, producidos: p.mundo.fabrica.producidos });

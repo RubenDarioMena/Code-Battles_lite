@@ -1,6 +1,24 @@
 // Solo la frontera de hito se escribe aquí. Las ediciones se guardan bajo otra clave.
 const CLAVE = 'campaign-v2-nivel-1';
 
+/** El historial sin reglamento: la sesión de fábrica no compone las Batallas, pero escribe su checkpoint aquí. */
+export function leerHistorialV2(almacen) {
+  try { return JSON.parse(almacen.leer(CLAVE)) ?? { ultimo: null, hitos: {} }; } catch { return { ultimo: null, hitos: {} }; }
+}
+export function escribirCheckpointV2(almacen, cp) {
+  const historial = leerHistorialV2(almacen);
+  historial.hitos[cp.hito] = cp;
+  historial.ultimo = cp.hito;
+  try { almacen.escribir(CLAVE, JSON.stringify(historial)); } catch { /* Sesión en memoria. */ }
+}
+export function elegirCheckpointV2(almacen, hito) {
+  const historial = leerHistorialV2(almacen);
+  if (!historial.hitos[hito]) return false;
+  historial.ultimo = hito;
+  try { almacen.escribir(CLAVE, JSON.stringify(historial)); } catch { /* Sesión en memoria. */ }
+  return true;
+}
+
 export function abrirCheckpoints(config, almacen) {
   function leer(k, defecto) {
     try { return JSON.parse(almacen.leer(k)) ?? defecto; } catch { return defecto; }
@@ -48,7 +66,8 @@ export function abrirCheckpoints(config, almacen) {
 
 export function volverACheckpoint(ctx, hito, conProgramas) {
   if (!ctx.checkpointsV2.volver(hito, conProgramas)) return;
-  if (hito === 'h0') location.reload();
+  // Los hitos de fábrica (hN) se juegan en su propia sesión: se abren recargando la página.
+  if (/^h\d+$/.test(hito)) location.reload();
   else ctx.elegirReto(ctx.batallasV2.batallas.indexOf(hito));
 }
 

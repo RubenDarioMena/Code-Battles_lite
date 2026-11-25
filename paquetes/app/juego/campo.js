@@ -128,7 +128,9 @@ export function instalarCampoJuego(ctx) {
       }).map(u => u.id)]);
       ultimoToque = null;
     } else if (!a.movido && !a.ficha) {
-      if (a.tactil) {
+      // Campaign-V2: con «Mover» activo, el toque en el suelo coloca la pieza elegida.
+      if (ctx.moverFabrica?.tocar(ev.clientX, ev.clientY)) ultimoToque = null;
+      else if (a.tactil) {
         const ahora = performance.now();
         if (ultimoToque && ahora - ultimoToque.t < 320 && Math.hypot(ev.clientX - ultimoToque.x, ev.clientY - ultimoToque.y) < 24) dobleEnCampo(ev.clientX, ev.clientY);
         else {

@@ -34,7 +34,7 @@ export function instalarVistasJuego(ctx) {
   };
   function leerTerrenoEditor() {
     let terrenoEditor = null;
-    if (!ctx.batallasV2 && !ctx.ES_FACTORY && !ctx.ES_CAMPAIGN && typeof servicios.THREE !== "undefined" && new URLSearchParams(location.search).get("terreno") === "editor") {
+    if (!ctx.paginaV2 && !ctx.ES_FACTORY && !ctx.ES_CAMPAIGN && typeof servicios.THREE !== "undefined" && new URLSearchParams(location.search).get("terreno") === "editor") {
       try {
         const api = servicios.CMGTerreno;
         if (!api || !api.crearGeometria) throw new Error("No se cargaron los recursos del editor de terreno.");

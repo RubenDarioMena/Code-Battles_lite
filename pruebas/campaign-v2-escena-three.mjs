@@ -1,5 +1,6 @@
 // El arnés three-r180 proporciona el GLTFLoader del juego. Solo se emulan el renderer y la decodificación PNG.
 import assert from 'node:assert/strict';
+import { terrenosBatalla } from '../paquetes/vista-3d/cv2/decorado.js';
 import { readFile } from 'node:fs/promises';
 import { crearFicha3D, crearVistaCV2 } from '../paquetes/vista-3d/index.js';
 import { componerCampaignV2 } from '../paquetes/app/index.js';
@@ -35,8 +36,9 @@ export async function probarEscena(Three, Loader) {
   const opciones = { THREE, cargarGLTFLoader: async () => Disco, dt: .05, canvas, $: () => canvas, TIPOS };
   for (const hito of ['b1', 'salida', 'h0']) {
     const fabrica = hito === 'h0';
-    const c = componerCampaignV2(new URLSearchParams('serie=campaign-v2' + ('&ensayo=' + hito)));
-    const p = crearPartida({ reglas: c.reglas, escenario: c.escenario(c.indiceInicial), semilla: 7 });
+    // H0 no tiene ensayo suelto: es la partida nueva de la campaña (escenario -1).
+    const c = componerCampaignV2(new URLSearchParams('serie=campaign-v2' + (fabrica ? '' : '&ensayo=' + hito)));
+    const p = crearPartida({ reglas: c.reglas, escenario: c.escenario(fabrica ? -1 : c.indiceInicial), semilla: 7 });
     if (hito === 'salida') p.ordenar({ paso: 0, origen: 'programa', unidad: 'VEH-01', verbo: 'moveTo', args: [{ x: 222, y: 81.5 }] });
     if (!fabrica) for (let i = 0; i < 100; i++) p.paso();
     const e = c.reglas.escenaMetros(p.mundo), vista = crearVistaCV2(canvas, { ...opciones, fabrica });
@@ -52,7 +54,8 @@ export async function probarEscena(Three, Loader) {
     assert.ok(terreno?.material?.vertexColors && terreno.material.map && terreno.material.normalMap);
     assert.equal(escena.getObjectByName('terreno-1-1').material, terreno.material);
     assert.ok(escena.getObjectByName('opcion-03-tramo') && escena.getObjectByName('opcion-07-nudo'));
-    assert.deepEqual(leidos.filter(n => n.includes('terreno')).sort(), ['terreno-1-1.glb', 'terreno-1-2.glb']);
+    // Las teselas salen del cálculo de encuadre de decorado.js (T10).
+    assert.deepEqual(leidos.filter(n => n.includes('terreno')).sort(), terrenosBatalla.map(id => id + '.glb').sort());
     const u = fabrica ? e.maquinas[0] : e.lanzadores[0];
     const punto = vista.proyectarUnidad(u, .45);
     assert.ok(punto.visible && punto.x >= 0 && punto.x < 900 && punto.y >= 0 && punto.y < 530);

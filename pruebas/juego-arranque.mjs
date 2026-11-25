@@ -1,7 +1,19 @@
 // Carga real de la composición con DOM, editor y GPU emulados.
 import assert from 'node:assert/strict';
 import { cargar, habilitarVM } from './juego-dom.mjs';
+import { crearPlataformaMemoria, componerCampaignV2 } from '../paquetes/app/index.js';
+import { crearPartida } from '../paquetes/nucleo/index.js';
+import { escribirCheckpointV2 } from '../paquetes/app/juego/checkpoints-v2.js';
 habilitarVM(import.meta.url);
+// La campaña tras H0: checkpoints de H0 y de B1 con la planta cerrada, como los deja la sesión de fábrica.
+function trasH0() {
+  const plataforma = crearPlataformaMemoria(), { reglas, escenario } = componerCampaignV2(new URLSearchParams());
+  const { mundo } = crearPartida({ reglas, escenario: escenario(-1), semilla: 1 });
+  escribirCheckpointV2(plataforma.almacen, reglas.serializar(mundo));
+  assert(reglas.cerrarFabrica(mundo));
+  escribirCheckpointV2(plataforma.almacen, reglas.serializar(mundo));
+  return plataforma;
+}
 let casos = 0;
 for (const forma of ['escritorio', 'movil'])
 for (const serie of ['war', 'factory', 'campaign']) for (const vista of ['2d', '3d']) {
@@ -11,8 +23,19 @@ for (const serie of ['war', 'factory', 'campaign']) for (const vista of ['2d', '
   await cargar(serie, vista, false, true, null, forma); casos++;
 }
 for (const vista of ['2d', '3d']) {
+  // Partida nueva: la página arranca la sesión Campaign sobre la planta de H0, con su colocador.
+  const fabrica = await cargar('campaign-v2', vista, false, false, null, 'escritorio', '', { serie: 'campaign' });
+  fabrica.medirUnidades(ctx => {
+    assert.equal(ctx.fabricaV2.hito, 'h0');
+    assert.equal(ctx.ES_CAMPAIGN, true);
+    assert.ok(ctx.moverFabrica);
+  });
+  assert.equal(fabrica.partida.mundo.hito, 0);
+  casos++;
   for (const [consulta, hito, modo] of [['', 'b1', 'campaign'], ['&ensayo=b3', 'b3', 'ensayo'], ['&modo=paridad&batalla=b5', 'b5', 'paridad']]) {
-    const banco = await cargar('campaign-v2', vista, false, false, null, 'escritorio', consulta);
+    let recargas = 0;
+    const banco = await cargar('campaign-v2', vista, false, false, null, 'escritorio', consulta,
+      modo === 'campaign' ? { plataforma: trasH0(), alRecargar: () => recargas++ } : {});
     const previa = banco.partida;
     let ui;
     banco.medirUnidades(ctx => { ui = ctx; });
@@ -48,9 +71,14 @@ for (const vista of ['2d', '3d']) {
         juego.avanzar();
       }
       await juego.enVuelo;
-      assert.equal(banco.partida.mundo.hito, 'b2');
-      assert.equal(banco.mundo.t, 0);
+      // Tras B1 viene la fábrica H1: la tarjeta de transición espera con la simulación parada y la recarga la abre.
+      assert.equal(banco.partida.mundo.hito, 'h1');
+      assert.equal(juego.ejec, null);
+      assert.equal(banco.partida.mundo.superado.hito, 'b1');
       assert.equal(banco.checkpoints.length, 3);
+      assert.equal(recargas, 0);
+      juego.continuarHito();
+      assert.equal(recargas, 1);
       const actual = banco.programas['LAU-01'];
       banco.volverA(1, false);
       assert.equal(banco.programas['LAU-01'], actual);

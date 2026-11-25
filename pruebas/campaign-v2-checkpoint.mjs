@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { crearPartida } from '../paquetes/nucleo/index.js';
 import { componerCampaignV2, jugarPartida, crearPlataformaMemoria } from '../paquetes/app/index.js';
 import { abrirCheckpoints } from '../paquetes/app/juego/checkpoints-v2.js';
+import { niveles } from '../paquetes/reglas-campaign-v2/index.js';
 import { crearAnfitrion, crearTrabajadorInterprete } from '../paquetes/anfitrion/index.js';
 import { crearInstrumentador } from '../herramientas/partida/instrumentar.mjs';
 import { crearHuella } from '../herramientas/partida/huella.mjs';
@@ -18,7 +19,8 @@ const p = crearPartida({ reglas, escenario: { ...config.escenario(-1), ...datos,
 const almacen = crearPlataformaMemoria().almacen;
 const historial = abrirCheckpoints(config, almacen);
 historial.guardar(p.mundo);
-while (!p.mundo.batalla && p.pasoActual < 300) p.paso();
+// H0 se juega en la sesión de fábrica: al cerrarlo, la planta pasa a la Batalla B1.
+reglas.cerrarFabrica(p.mundo);
 historial.guardar(p.mundo);
 const cp = JSON.parse(JSON.stringify(historial.ultimo()));
 assert.equal(cp.hito, 'b1');
@@ -31,7 +33,8 @@ assert.equal(vuelta.semillaIntento, 29);
 assert.equal(reglas.restaurar(cp, 30).semillaIntento, 30);
 const anterior = { ...cp, revision: cp.revision + 1 };
 const reinicio = reglas.restaurar(anterior, 9);
-assert.deepEqual([reinicio.hito, reinicio.bodega.misiles, reinicio.fabrica.t, reinicio.aviso], ['h0', 0, 0, 'cv2.revision']);
+// Sin checkpoint válido se vuelve a la planta recién instalada, con la bodega inicial del nivel.
+assert.deepEqual([reinicio.hito, reinicio.bodega.misiles, reinicio.fabrica.t, reinicio.aviso], ['h0', niveles['nivel-1'].fabrica.bodegaInicial, 0, 'cv2.revision']);
 for (const k of Object.keys(datos)) assert.deepEqual(reinicio[k], datos[k]);
 
 async function jugar(escenario) {

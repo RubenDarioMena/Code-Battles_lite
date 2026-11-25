@@ -4,7 +4,9 @@ import { configurar, ICONOS } from '../../editor/index.js';
 import { registrarIconosFactory, instalarLayout } from '../../interfaz/index.js';
 import { instalarRemota } from './remota.js';
 import { instalarRevisionJuego } from './revision-juego.js';
-import { abrirFabrica, instalarInterfazV2 } from './campaign-v2.js';
+import { instalarInterfazV2 } from './campaign-v2.js';
+import { prepararFabricaV2 } from './fabrica-v2.js';
+import { instalarMoverFabrica } from './mover-fabrica.js';
 import { crearEstadoJuego } from './estado.js';
 import { instalarCicloProgramas } from './ciclo-programas.js';
 import { instalarCierreIntentos } from './cierre-intentos.js';
@@ -36,8 +38,10 @@ export function arrancarJuego(opciones = {}) {
       rotular: (nodo, texto) => { if (servicios.CMGPresentacion) servicios.CMGPresentacion.rotular(nodo, texto); else nodo.textContent = texto; },
     } });
   registrarIconosFactory(ICONOS);
-  const ctx = crearEstadoJuego({ ...opciones, plataforma });
-  if (!abrirFabrica(ctx, () => montarInterfaz(ctx, servicios))) montarInterfaz(ctx, servicios);
+  // Campaign-V2 en un hito de fábrica: la misma página arranca la sesión Campaign sobre la planta del nivel.
+  const fabrica = prepararFabricaV2({ ...opciones, plataforma });
+  const ctx = crearEstadoJuego(fabrica ?? { ...opciones, plataforma });
+  montarInterfaz(ctx, servicios);
 }
 
 function montarInterfaz(ctx, servicios) {
@@ -64,12 +68,13 @@ function montarInterfaz(ctx, servicios) {
   conectar(instalarAyuda);
   conectar(instalarEscenarioJuego);
   conectar(instalarCampaignJuego);
+  conectar(instalarMoverFabrica);
   conectar(instalarBucleJuego);
   conectar(instalarProveedorJuego);
   conectar(instalarArranqueJuego);
-  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg, servicios, ctx.batallasV2 ? ctx.plataforma.almacen : undefined);
+  ctx.cmg.revisionJuego = instalarRevisionJuego(ctx.cmg, servicios, ctx.paginaV2 ? ctx.plataforma.almacen : undefined);
   instalarLayout(ctx);
-  if (!ctx.batallasV2) ctx.cmg.remota = instalarRemota(ctx);
+  if (!ctx.paginaV2) ctx.cmg.remota = instalarRemota(ctx);
   // Diagnóstico accesible sin publicar los antiguos globales.
   ctx.cmg.pulsos = ctx.CMGPulsos;
   ctx.cmg.estructura = ctx.lenguaje.ESTRUCTURA;

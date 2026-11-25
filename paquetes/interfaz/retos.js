@@ -23,7 +23,7 @@ export function instalarRetosPantalla(ctx) {
     }
   }
   function pintarRetos() {
-    if (ctx.batallasV2) return;
+    if (ctx.paginaV2) return;
     if (ctx.ES_CAMPAIGN) { ctx.$("retos").innerHTML = ctx.uiC.chipsHitos(ctx.historialC); return; }
     const chips = ctx.RETOS.map((r, i) => [i, r.titulo]).concat(ctx.ES_FACTORY ? [] : [[ctx.IDX_PROPIO, `✎ ${ctx.propio.titulo}`]]);
     ctx.$("retos").innerHTML = chips.filter(([i]) => !ctx.checkpointsV2 || i === ctx.IDX_PROPIO || ctx.checkpointsV2.lista.some(c => c.hito === ctx.batallasV2.batallas[i])).map(([i, t]) => {

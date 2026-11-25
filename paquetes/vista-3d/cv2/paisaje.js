@@ -1,6 +1,7 @@
 import { leerRig } from '../../rig/index.js';
 import { crearRegistro, modelos, terrenos, urlBinario } from './modelos.js';
 import { crearMateriales } from './materiales.js';
+import { kit } from './decorado.js';
 
 const tramo = modelos['muralla-traba-tramo'], nudo = modelos['muralla-traba-nudo'];
 export const altoBastion = nudo.apoyo[1] * nudo.escala;
@@ -123,6 +124,11 @@ export function crearPaisaje(THREE, escena, renderer, cargarGLTFLoader) {
         if (Math.abs(Math.atan2(pz - v, px - u) - ang) > .28) apoyar('torreon-cordon', u + ox, v + oz, ang);
       }
     }
+  }
+  // El kit de paisaje rodea el campo sin tocar la simulación: se apoya en el relieve como la muralla.
+  for (const p of kit) {
+    const o = apoyar('kit-' + p.id, p.x, p.z, p.giro);
+    o.scale.setScalar(p.escala);
   }
   let montada = false;
   function montarMuralla(puertas = []) {
