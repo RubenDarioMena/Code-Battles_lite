@@ -59,8 +59,9 @@ const UNIDADES = [
   tarima("PAL-8", 98.6, 47.6, NORTE, true),
 ];
 
-// La luz de cada máquina sigue a su sensor de salida hasta que el jugador la reprograme.
-const luz = id => [`// La luz de ${id} sigue a su sensor de salida.`, "while (true) {", "  light(outputFull ? \"red\" : \"green\");", "  await wait(0.5);", "}"];
+// La luz de cada máquina sigue a su sensor de salida hasta que el jugador la reprograme. Ámbar es espera (9.2 del
+// consolidado): el rojo queda para el daño o el ataque.
+const luz = id => [`// La luz de ${id} sigue a su sensor de salida.`, "while (true) {", "  light(outputFull ? \"amber\" : \"green\");", "  await wait(0.5);", "}"];
 const INICIAL = {
   "FRK-01": ["// FRK-01 mueve tarimas completas.", "await pickUp(BAY_1);", "await deliver(PAL_1);"],
   "ARM-01": [

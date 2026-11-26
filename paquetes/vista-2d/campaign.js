@@ -118,7 +118,9 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
         const lado = e.clase === "ensambladora" ? 3 : 2.2, est = C.estadoMaquina(e);
         cuadro(e.cx, e.cy, lado, lado, e.encendida ? col.building : "#1b242b", e.encendida ? rol(e) : rgba(col.edge, .6));
         if (e.proceso) { const R = C.RECETAS[e.proceso.receta]; g.fillStyle = col.ink; g.fillRect(X(e.cx - lado / 2 + .15), Y(e.cy + lado / 2 - .4), (lado - .3) * S * Math.min(1, e.proceso.prog / R.t), .22 * S); }
-        const luz = !e.encendida ? null : e.luz && e.luz !== "off" ? LUZ[e.luz] : est === "blocked" ? LUZ.red : null;
+        // El piloto avisa de una espera que necesita a otro. Las reglas de la serie dan su luz (V2: ámbar, 9.2); sin ella, rojo.
+        const aviso = C.luzEstado ? C.luzEstado(est) : { luz: "red", aviso: est === "blocked" };
+        const luz = !e.encendida ? null : e.luz && e.luz !== "off" ? LUZ[e.luz] : aviso.aviso ? LUZ[aviso.luz] : null;
         if (luz) { g.fillStyle = luz; g.beginPath(); g.arc(X(e.cx), Y(e.cy - lado / 2 + .45), .26 * S, 0, 7); g.fill(); }
         e.salida.forEach((pz, i) => { g.fillStyle = PIEZA[pz]; g.fillRect(X(e.cx + lado / 2 - .4 - i * .34), Y(e.cy - .15), .28 * S, .28 * S); });
       } else if (e.clase === "arsenal" || e.clase === "control" || e.clase === "torreta") {

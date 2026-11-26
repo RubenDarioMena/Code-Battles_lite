@@ -34,7 +34,7 @@ Las dependencias conservan los nombres de los planos anteriores: `FUNCIONES`,
 `TIPOS`, `MISIL`, `SENSOR`, `LAU`, `LINEA_BASE`, `FR`, `HALO`, `INTENSIDAD`,
 `ARCO`, `LUCES`, `visual`, `funcionDe`, `radioDe`, `direccionDe`, `alcance`,
 `rgba`, `mezclaBlanco` y `r2`. Campaign recibe `mapa` y `reglas` (`esRobot`,
-`esMaquina`, `estadoMaquina`, etc.). Tipos en `index.d.ts`.
+`esMaquina`, `estadoMaquina`, etc.; `luzEstado` opcional, para el color del piloto). Tipos en `index.d.ts`.
 
 La geometría del plano es privada. `elegir` recorre `maquinas` y `enemigos`,
 obtiene las máquinas de Factory de `robot` + `entidades` en su orden original,

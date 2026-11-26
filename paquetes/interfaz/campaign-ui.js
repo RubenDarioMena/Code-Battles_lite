@@ -38,7 +38,9 @@
       }
       if (C.esMaquina(e)) {
         const s = C.estadoMaquina(e);
-        return [{ working: "activo", blocked: "mal", changeover: "alerta", moving: "activo" }[s] || "", t(`campaign.estado.maquina.${s}`, { receta: e.cambio ? e.cambio.a : e.receta })];
+        // Con la luz de la serie (V2, 9.2), la ficha usa sus mismos colores: verde trabaja, ámbar espera.
+        const tono = C.luzEstado ? { green: "activo", amber: "alerta" }[C.luzEstado(s).luz] : { working: "activo", blocked: "mal", changeover: "alerta", moving: "activo" }[s];
+        return [tono || "", t(`campaign.estado.maquina.${s}`, { receta: e.cambio ? e.cambio.a : e.receta })];
       }
       if (esLugar(e)) {
         if (e.clase === "bahia" && e.pedidos.length && !e.tarima) return ["activo", t("campaign.estado.camion", { s: coma(Math.max(0, e.pedidos[0].llega - m.t)) })];
@@ -55,7 +57,10 @@
     }
     // Etiqueta sobre el mapa: el nombre y el contador que más importa de esa unidad.
     function etiqueta(e) {
-      if (C.esMaquina(e)) return e.encendida ? `${e.id} · ${e.salida.length}/${MAQUINAS[e.clase].salida}${C.estadoMaquina(e) === "blocked" ? " ⚠" : ""}` : e.id;
+      if (C.esMaquina(e)) {
+        const s = C.estadoMaquina(e), avisa = C.luzEstado ? C.luzEstado(s).aviso : s === "blocked";
+        return e.encendida ? `${e.id} · ${e.salida.length}/${MAQUINAS[e.clase].salida}${avisa ? " ⚠" : ""}` : e.id;
+      }
       if (esLugar(e)) { const ta = tarimaDe(e); const n = ta ? Object.entries(cuenta(ta.piezas)).map(([p, k]) => `${k} ${p}`).join(" · ") : ""; return n ? `${e.id} · ${n}` : e.id; }
       if (e.clase === "obrero") return e.carga ? `${e.id} · ${e.carga}` : e.id;
       if (e.clase === "banda") return `${e.id} · ${e.piezas.length}`;

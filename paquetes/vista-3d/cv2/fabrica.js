@@ -476,6 +476,8 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     return [mi.x0 + (mi.x1 - mi.x0) * u, mi.z0 + (mi.z1 - mi.z0) * u + mi.arco * 4 * u * (1 - u), mi.y0 + (mi.y1 - mi.y0) * u];
   };
   const giro = (a, b, k) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * k;
+  // Las reglas de la serie dan la luz de cada estado (9.2 en V2). Sin ella, la de Campaign: rojo con la salida llena.
+  const luzDe = C.luzEstado ?? (est => ({ luz: { working: 'green', changeover: 'amber', blocked: 'red' }[est] ?? 'off', aviso: est === 'blocked' }));
   function actualizar(off, ahora) {
     const m = estado.escena;
     if (!m) return;
@@ -507,7 +509,9 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
         for (const c of o.cuerpo) c.material = enc ? c.userData.color : apagadoDe(c.userData.color);
         pintarPiezas(o.entrada, Object.entries(e.entrada).flatMap(([p, n]) => Array(n).fill(p)));
         pintarPiezas(o.salida, e.salida);
-        const luz = !enc ? 'off' : e.luz ? e.luz : est === 'blocked' ? 'red' : 'off';
+        // El piloto: la luz que pida el programa o, si no, el aviso de espera; la franja, el estado (verde o ámbar).
+        const senal = luzDe(est);
+        const luz = !enc ? 'off' : e.luz ? e.luz : senal.aviso ? senal.luz : 'off';
         o.luz.material = luces[luz] ?? luces.off;
         const R = e.proceso ? C.RECETAS[e.proceso.receta] : null;
         const u = R ? Math.min(1, e.proceso.prog / R.t) : e.cambio ? 1 - e.cambio.falta / e.cambio.total : 0;
@@ -519,7 +523,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
         if (o.pala && anda) o.pala.rotation.y = ahora / 130;
         if (o.anima) o.anima(anda, ahora);
         if (o.franja) {
-          o.franja.material = luces[!enc ? 'off' : est === 'working' ? 'green' : est === 'changeover' ? 'amber' : est === 'blocked' ? 'red' : 'off'];
+          o.franja.material = luces[enc ? senal.luz : 'off'] ?? luces.off;
           g.position.y += anda ? .015 * Math.sin(ahora / 30) : 0;
         }
       } else {

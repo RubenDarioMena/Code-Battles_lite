@@ -1,3 +1,13 @@
+## Campaign-V2 · Esperas en ámbar y depósito de recortes lleno · 26 de noviembre de 2026
+
+Dos pendientes del consolidado del 23-nov: el lenguaje de estados de 9.2 («ámbar = espera; verde = ejecutando; rojo reservado para daño o ataque») y el caso de prueba de 12.3 «el depósito de sobrantes se llena».
+
+- **Esperas en ámbar en la fábrica V2:** una máquina con la salida llena o sin energía enciende su piloto ámbar. Pasa en 3D, en el plano, en la franja y en la ficha, y la etiqueta lleva ⚠ también sin energía. Antes era rojo y solo con la salida llena.
+  - La regla vive en `luzEstado` (reglas-campaign-v2/fabrica). Las vistas compartidas la usan si las reglas la traen, así que Campaign del trunk sigue igual.
+  - El programa de partida de las luces pasa a `light(outputFull ? "amber" : "green")` y la ayuda de máquinas dice «ámbar». Las partidas ya guardadas conservan su programa.
+- **Depósito de recortes lleno:** con PAL-R llena, `deliver` responde «lleno» y el recorte sigue en las manos del obrero, sin perderse. El programa lo puede desviar a la fundidora. Prueba en `campaign-v2-circular`, junto con la tabla de luces: ningún estado de trabajo se pinta de rojo.
+- **Probado en el navegador** en H6 con la sierra bloqueada: esfera ámbar en su consola 3D, punto ámbar en el plano y «SALIDA LLENA» en ámbar en la ficha. Sin errores.
+
 ## Campaign-V2 · Colocador de la fábrica con fantasma, giro y confirmación · 26 de noviembre de 2026
 
 MISION-1 pedía «confirmar, girar, cancelar y fijar», como en el feedback del 17-nov, y el consolidado del 23-nov (2.1) habla de una «imagen fantasma de colocación». Antes, un toque colocaba al instante y no se podía girar.

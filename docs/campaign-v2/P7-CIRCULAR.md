@@ -33,6 +33,7 @@ placa (10 kg) ──embutidora──▶ domo (10 kg) ──sierra o láser──
 Solo se activan si el catálogo las declara. La misión 1 y Campaign del trunk siguen igual.
 
 - **`sub` en una receta:** subproductos que salen junto a la pieza principal, por la misma salida. La máquina solo arranca si caben todas las piezas del ciclo. Si nadie retira los recortes, la máquina se bloquea: la acumulación se ve antes de ser irreversible (4.1).
+  - La señal es ámbar, con el lenguaje de 9.2: el piloto de la máquina, la franja, la ficha y un ⚠ en su etiqueta. El rojo queda para el daño. El programa de partida de las luces (`light(outputFull ? "amber" : "green")`) y la ayuda dicen lo mismo.
 - **`masa` en una pieza:** el motor comprueba al crearse que ninguna receta crea masa. Lleva un libro de pérdidas (`perdida`, en kg) y ofrece `masaEnPlanta(m)` para las pruebas de conservación (6.2).
 - **`ritmo` en una máquina:** multiplica su velocidad de trabajo. Sierra y láser comparten la receta y difieren en tiempo y energía (5.1).
 
@@ -40,6 +41,7 @@ Solo se activan si el catálogo las declara. La misión 1 y Campaign del trunk s
 
 1. **Conservación:** masa en planta + pérdidas = masa inicial + masa entregada en la bahía, en cada paso.
 2. **No duplicación:** dos brazos piden el mismo recorte y solo uno se lo lleva.
+   - **Depósito lleno (12.3):** con la tarima de recortes llena, la entrega responde «lleno» y el recorte sigue en las manos del obrero. El programa puede desviarlo a la fundidora.
 3. **Inventarios válidos:** ninguna salida, entrada ni tarima pasa de su capacidad.
 4. **Procesos compatibles:** la fundidora rechaza lo que no son recortes.
 5. **Semilla fija:** la misma partida da el mismo resultado.

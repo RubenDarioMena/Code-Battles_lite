@@ -161,6 +161,8 @@ export const catalogo = {
     'campaign.hud.bodega': 'Bodega de la muralla: misiles listos para las Batallas',
     'campaign.hud.bodegaCorto': 'Bodega',
     'campaign.estado.maquina.no_power': 'sin energía',
+    // Lenguaje de luces del consolidado (9.2): ámbar es espera; el rojo queda para el daño o el ataque.
+    'campaign.ayuda.maquinas.1': 'Trabajan solas: toman material de su entrada y dejan la pieza en su salida. Con la salida llena esperan sin perder nada, y su luz se pone ámbar.',
     'campaign.clase.lot': 'Tarima',
     'cv2.fab.superado': '{hito} · {titulo} · cumplido',
     'cv2.fab.siguiente': 'Ahora la Batalla: {titulo}. La fábrica sigue trabajando con lo que tenga cargado.',
@@ -345,6 +347,7 @@ export const catalogo = {
     'campaign.hud.bodega': 'Wall depot: missiles ready for the Battles',
     'campaign.hud.bodegaCorto': 'Depot',
     'campaign.estado.maquina.no_power': 'no power',
+    'campaign.ayuda.maquinas.1': 'They work on their own: they take material from their input and leave the part in their output. With a full output they wait without losing anything, and their light turns amber.',
     'campaign.clase.lot': 'Pallet',
     'cv2.fab.superado': '{hito} · {titulo} · done',
     'cv2.fab.siguiente': 'Now the battle: {titulo}. The factory keeps working with whatever it has loaded.',

@@ -3,12 +3,13 @@
 // semiesfera + recortes → fundidora → placa. Un guion en JS hace de programa (sin intérprete ni pantalla).
 // - Conservación: masa en planta + pérdidas = masa inicial + entregas, en cada paso.
 // - Ciclo completo: con 5 placas salen 7 semiesferas reciclando dos veces; sin reciclar, solo 5.
-// - Acumulación: si nadie retira los recortes, la sierra se bloquea (los recortes no desaparecen).
+// - Acumulación: si nadie retira los recortes, la sierra se bloquea (los recortes no desaparecen); con el depósito
+//   lleno, la entrega responde «lleno» y el recorte sigue en las manos del obrero.
 // - No duplicación, inventarios dentro de capacidad, procesos compatibles, semilla fija y guardado.
 // - Sierra frente a láser: la misma semiesfera, con distinto tiempo y energía.
 // - Catálogo honesto: una receta que crea masa, o con masa a medias, no deja crear el motor.
 import assert from 'node:assert/strict';
-import { motor, catalogo } from '../paquetes/reglas-campaign-v2/fabrica/index.js';
+import { motor, catalogo, luzEstado } from '../paquetes/reglas-campaign-v2/fabrica/index.js';
 import { crearMotor } from '../paquetes/fabrica/index.js';
 
 const { MAQUINAS, PIEZAS, TARIMA_CAP } = catalogo;
@@ -128,9 +129,30 @@ assert.equal(sierra.entrada.dome, 1, 'el tercer domo espera');
 assert.equal(motor.estadoMaquina(sierra, acu.m), 'blocked');
 assert.equal(motor.estadoMaquina(sierra), 'blocked', 'también sin el mundo (vista y fichas)');
 assert.equal(motor.instantanea(acu.m).u['SAW-01'].outputFull, true, 'el programa lo lee en outputFull');
+// La señal que lo hace legible (4.1) usa el lenguaje de luces del consolidado (9.2): ámbar es espera y el rojo queda
+// para el daño. El piloto se enciende cuando la espera necesita a otro.
+assert.deepEqual(luzEstado('blocked'), { luz: 'amber', aviso: true });
+assert.deepEqual(luzEstado('no_power'), { luz: 'amber', aviso: true });
+assert.deepEqual(luzEstado('working'), { luz: 'green', aviso: false });
+assert.deepEqual(luzEstado('idle'), { luz: 'off', aviso: false });
+for (const est of ['off', 'moving', 'changeover', 'working', 'stopped', 'blocked', 'no_power', 'idle'])
+  assert.notEqual(luzEstado(est).luz, 'red', `${est}: ningún estado de trabajo se pinta de rojo`);
 assert.equal(acu.orden('OBR-1', 'pickUp', 'SAW-01', 'scrap'), 'ok');
 acu.esperar(() => sierra.proceso !== null, 40);
 assert.equal(motor.estadoMaquina(sierra, acu.m), 'working', 'retirar un recorte la desbloquea');
+
+// 3b · El depósito de recortes se llena (12.3): la entrega responde «lleno» y el recorte sigue en las manos del
+// obrero, sin desaparecer. El programa decide el desvío: la fundidora lo acepta.
+const conLleno = taller({ placas: 0 });
+conLleno.unidades = conLleno.unidades.map(u => u.id === 'PAL-R' ? { ...u, tarimaInicial: { pieza: 'scrap', n: TARIMA_CAP } }
+  : u.id === 'PAL-S' ? { ...u, tarimaInicial: { pieza: 'scrap', n: 1 } } : u);
+const lleno = abrir(conLleno);
+assert.equal(lleno.orden('OBR-1', 'pickUp', 'PAL-S', 'scrap'), 'ok');
+assert.equal(lleno.orden('OBR-1', 'deliver', 'PAL-R'), 'lleno');
+assert.equal(lleno.m.porId['OBR-1'].carga, 'scrap', 'el recorte no se pierde: el obrero lo sigue llevando');
+assert.equal(lleno.hay('PAL-R', 'scrap'), TARIMA_CAP);
+assert.equal(lleno.orden('OBR-1', 'deliver', 'FND-01'), 'ok', 'desvío a la fundidora');
+assert.equal(lleno.m.porId['FND-01'].entrada.scrap, 1);
 
 // 4 · No duplicación: dos obreros piden el único recorte a la vez y solo uno se lo lleva.
 const conUno = taller({ placas: 0 });
@@ -180,4 +202,4 @@ assert.throws(() => crearMotor({ ...base, RECETAS: { ...base.RECETAS, plate: { e
 assert.throws(() => crearMotor({ ...base, RECETAS: { ...base.RECETAS, raro: { entra: { steel: 1 }, sale: 'plate', t: 1 } } }), /todas sus piezas/);
 assert.doesNotThrow(() => crearMotor(base));
 
-console.log(`Producción circular: 5 placas → 7 semiesferas reciclando (5 sin reciclar), 4 kg de escoria y masa conservada en cada paso; sierra ${conSierra.t} s a ${conSierra.uso} kW, láser ${conLaser.t} s a ${conLaser.uso} kW (${laserJusto.t} s con 4 kW); acumulación que bloquea, sin duplicados, procesos compatibles, repetible y con la pérdida en el checkpoint.`);
+console.log(`Producción circular: 5 placas → 7 semiesferas reciclando (5 sin reciclar), 4 kg de escoria y masa conservada en cada paso; sierra ${conSierra.t} s a ${conSierra.uso} kW, láser ${conLaser.t} s a ${conLaser.uso} kW (${laserJusto.t} s con 4 kW); acumulación que bloquea (en ámbar), depósito lleno sin perder el recorte, sin duplicados, procesos compatibles, repetible y con la pérdida en el checkpoint.`);

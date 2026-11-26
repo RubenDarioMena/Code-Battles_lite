@@ -8,6 +8,14 @@ import * as catalogo from './catalogo.js';
 export const motor = crearMotor(catalogo);
 export { catalogo };
 
+/** Luz de una máquina según su estado, con el lenguaje del consolidado (9.2): verde trabaja, ámbar espera y el rojo
+ * queda para el daño o el ataque. `aviso`: la espera necesita a otro (salida llena, sin energía) y enciende el piloto.
+ * @param {string} estado lo que da `estadoMaquina` */
+export function luzEstado(estado) {
+  const luz = { working: 'green', moving: 'green', changeover: 'amber', blocked: 'amber', no_power: 'amber' }[estado] ?? 'off';
+  return { luz, aviso: estado === 'blocked' || estado === 'no_power' };
+}
+
 /** ¿Es un hito de fábrica? Las claves hN son de fábrica; bN, de Batalla. */
 export const esFabrica = clave => typeof clave === 'string' && /^h\d+$/.test(clave);
 
@@ -62,6 +70,6 @@ export function moduloFabrica(contenido) {
     estadoMaquina: motor.estadoMaquina, totalEntrada: motor.totalEntrada, esMaquina: motor.esMaquina, esRobot: motor.esRobot,
     nivel: { RETOS: [def], NIVEL: def, MAPA: def.mapa },
     restaurar: (guardado, reto = def) => motor.crear(reto, guardado),
-    quieto, probarColocar,
+    quieto, probarColocar, luzEstado,
   };
 }
