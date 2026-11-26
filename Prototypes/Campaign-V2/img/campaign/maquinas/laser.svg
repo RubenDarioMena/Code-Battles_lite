@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="384" height="256">
+  <title>Láser</title>
+  <desc>Cortadora láser vista desde arriba: cabina de ladrillo con lecho de rejilla, pórtico de acero y un cabezal blanco con el haz rojo. Hace el corte de la sierra tres veces más rápido, con mucho más consumo.</desc>
+  <defs></defs>
+  <g id="bandejas" data-entrada="11,42" data-salida="87,42">
+  <rect x="4" y="34" width="14" height="14" rx="1" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="4" y="34" width="14" height="12" rx="1" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="5.5" y="35.5" width="11" height="9" rx="0.5" fill="#6c7584"/>
+  <rect x="5.5" y="35.5" width="11" height="1.2" rx="0.5" fill="#3fc1e0"/>
+  <rect x="5.5" y="43.3" width="11" height="1.2" rx="0.5" fill="#3fc1e0"/>
+  <path d="M9.5 38 L12 40 L9.5 42" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="80" y="34" width="14" height="14" rx="1" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="80" y="34" width="14" height="12" rx="1" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="81.5" y="35.5" width="11" height="9" rx="0.5" fill="#6c7584"/>
+  <rect x="81.5" y="35.5" width="11" height="1.2" rx="0.5" fill="#f6b817"/>
+  <rect x="81.5" y="43.3" width="11" height="1.2" rx="0.5" fill="#f6b817"/>
+  <path d="M85.5 38 L88 40 L85.5 42" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <g id="cabina">
+  <rect x="18" y="18" width="60" height="42" rx="2" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="18" y="18" width="60" height="40" rx="2" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <circle cx="20.5" cy="20.5" r="0.7" fill="#3a4150"/>
+  <circle cx="20.5" cy="55.5" r="0.7" fill="#3a4150"/>
+  <circle cx="75.5" cy="20.5" r="0.7" fill="#3a4150"/>
+  <circle cx="75.5" cy="55.5" r="0.7" fill="#3a4150"/>
+  <rect x="22" y="17" width="52" height="35" rx="1" fill="#7d2f1c" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="22" y="17" width="52" height="30" rx="1" fill="#b5482c" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="23.5" y="18.5" width="49" height="1" rx="0.5" fill="#d46a48"/>
+  <rect x="25" y="20" width="46" height="25" rx="0.6" fill="#2e2c36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="27.0" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="31.3" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="35.6" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="39.9" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="44.2" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="48.5" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="52.8" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="57.099999999999994" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="61.4" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  <rect x="65.69999999999999" y="21.5" width="0.8" height="22" rx="0.3" fill="#474450"/>
+  </g>
+  <g id="pieza" data-ancla="48,32">
+  <ellipse cx="48" cy="33.2" rx="6.9" ry="4.025" fill="#6c7584" stroke="#171b26" stroke-width="1"/>
+  <path d="M42.5 33 A5.5 5.5 0 0 1 53.5 33 Z" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M44.975 29.525 A3.8499999999999996 3.8499999999999996 0 0 1 48.55 27.875" fill="none" stroke="#c3cad5" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+  <g id="portico" data-recorrido-y="0..10">
+  <rect x="20.5" y="8" width="5" height="16" rx="0.6" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="20.5" y="8" width="5" height="5" rx="0.6" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="70.5" y="8" width="5" height="16" rx="0.6" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="70.5" y="8" width="5" height="5" rx="0.6" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="26" y="23" width="44" height="1.5" rx="0.5" fill="#000" opacity=".22"/>
+  <rect x="20.5" y="8" width="55" height="9" rx="0.8" fill="#6c7584" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="20.5" y="8" width="55" height="5" rx="0.8" fill="#9aa3b2" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="22.0" y="9.5" width="52" height="1" rx="0.5" fill="#c3cad5"/>
+  <g id="cabezal" data-punta="48,27" data-recorrido-x="-18..18">
+  <circle cx="48" cy="27" r="3.2" fill="#ff5a4f" opacity=".35"/>
+  <path d="M47.2 22 H48.8 L48 27 Z" fill="#ff5a4f" stroke="#171b26" stroke-width="0.5" stroke-linejoin="round"/>
+  <circle cx="48" cy="27" r="1.1" fill="#ffd0c8"/>
+  <rect x="44" y="5" width="8" height="17" rx="0.8" fill="#b4bcc9" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="44" y="5" width="8" height="7" rx="0.8" fill="#f2f4f7" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="45.5" y="6.3" width="5" height="2.4" rx="0.5" fill="#ff5a4f" stroke="#171b26" stroke-width="0.6" stroke-linejoin="round"/>
+  </g>
+  </g>
+  <g id="consola">
+  <rect x="66" y="53" width="8" height="8" rx="0.8" fill="#1b1f29" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="66" y="53" width="8" height="4" rx="0.8" fill="#252a36" stroke="#171b26" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="67.2" y="54.2" width="3.6" height="2.2" rx="0.3" fill="#3fc1e0"/>
+  <circle id="piloto" cx="72.2" cy="55.3" r="1" fill="#59606e" data-encendido="#7dff6a"/>
+  </g>
+</svg>

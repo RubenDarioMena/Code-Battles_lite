@@ -5,6 +5,7 @@
 // - montarInclinacion: el deslizador solo aparece en 3D, toma los límites de la vista y la inclina.
 // - puertasDelMarco: la puerta del marco en metros, donde paso.js coloca el muro (x0 + 3).
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { crearMinificha, elegirFilas, rotuloCorto, urlDibujo, DIBUJOS } from '../paquetes/interfaz/minificha.js';
 import { montarInclinacion } from '../paquetes/interfaz/inclinacion.js';
 import { puertasDelMarco, paletaFabrica } from '../paquetes/vista-3d/index.js';
@@ -74,6 +75,8 @@ assert.equal(cajaProps.className, 'cv2-mini-props');
 assert.deepEqual(cajaProps.children.map(p => p.children.map(h => h.textContent).join('')), ['output=0', 'outputFull=false'], 'sin las notas sin valor vivo');
 assert.deepEqual(cajaOrd.children.map(t => [t.textContent, t.title]), [['start()', 'start()'], ['stop()', 'stop()'], ['light()', 'light(color)']]);
 for (const ruta of Object.values(DIBUJOS)) assert.match(ruta, /^(maquinas\/[a-z-]+\.svg|robots\/[a-z0-9-]+\.png)$/);
+for (const ruta of new Set(Object.values(DIBUJOS))) assert.ok(existsSync(new URL(`../Prototypes/Campaign-V2/img/campaign/${ruta}`, import.meta.url)), `falta el dibujo ${ruta}`);
+assert.deepEqual(['embutidora', 'sierra', 'laser'].map(k => DIBUJOS[k]), ['maquinas/embutidora.svg', 'maquinas/sierra.svg', 'maquinas/laser.svg'], 'el taller tiene dibujos propios');
 
 // La puerta del marco del nivel 1, en metros, es la de la muralla de las Batallas.
 const marco = niveles['nivel-1'].marco ?? niveles['nivel-1'].default?.marco;

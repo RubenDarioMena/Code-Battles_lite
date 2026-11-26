@@ -28,6 +28,13 @@ Segunda porción del consolidado del 23-nov: su corte vertical 13.B, «Un experi
 - **Probado en el navegador:** escritorio y móvil, sin errores de consola.
 - **H6:** el objetivo dice ahora que las placas se suben a PAL-6 con FRK-01.
 - **Velocidad 1× a un tercio del tiempo real (pendiente anterior):** medido con `__banco.alFotograma`. En el panel oculto del navegador integrado, la página del juego recibe 1 fotograma por segundo. El bucle recorta cada fotograma a 0,25 s para no dar saltos, así que el juego avanza a 0,25×. Los programas no restan tiempo (0 s sin acumular). En una pestaña visible a 60 fps no pasa, así que no es un fallo del juego.
+- **Dibujos propios del taller en la minificha:** la embutidora, la sierra y el láser ya no reutilizan los de otras máquinas. Siguen el estilo de Campaign 1 (contorno oscuro, bloques en sombra, base y luz, bandeja de entrada cian y de salida amarilla):
+  - embutidora: columnas naranjas, matriz redonda y punzón semiesférico;
+  - sierra: mesa con disco dentado, guarda amarilla y motor;
+  - láser: cabina con cama de rejilla, pórtico y cabezal con el haz rojo.
+
+  La prueba de la minificha comprueba que cada dibujo exista.
+- **Frente este del decorado:** diez piezas del kit (esparto, matorral, espigas, pino joven, laja, roca y alcornoque) a los dos lados del carril este, que estaba desnudo. La prueba del decorado da 57 piezas sin solapes ni invasiones.
 - **Pendiente de tu decisión:** si las orugas derribadas en las Batallas dejan restos que lleguen a la fundidora de H6, y cuántos.
 
 ## Campaign-V2 · P7 · Producción circular: reglas, hito H6 jugable y taller en 3D · 26 de noviembre de 2026

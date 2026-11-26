@@ -71,6 +71,18 @@ export const kit = [
   { id: 'pino-joven', x: 145, z: 131, giro: 5.5, escala: 1.04 },
   { id: 'laja', x: 111, z: 128, giro: 2.3, escala: 1.23 },
   { id: 'matorral', x: 117, z: 133, giro: 0.3, escala: 0.87 },
+  // Frente este (pendiente de la revisión del 25-nov): matas bajas y rocas a los dos lados del Paso del este, para que
+  // el carril se lea como un paso entre monte sin tapar a los enemigos que llegan por él.
+  { id: 'esparto', x: 244, z: 72, giro: 0.9, escala: 1.05 },
+  { id: 'matorral', x: 261, z: 72, giro: 1.8, escala: 0.95 },
+  { id: 'espigas', x: 270, z: 71, giro: 5.0, escala: 1.12 },
+  { id: 'pino-joven', x: 280, z: 68, giro: 2.2, escala: 0.98 },
+  { id: 'laja', x: 291, z: 67, giro: 0.4, escala: 1.08 },
+  { id: 'matorral', x: 245, z: 93, giro: 4.1, escala: 1.0 },
+  { id: 'esparto', x: 253, z: 92, giro: 2.7, escala: 0.92 },
+  { id: 'roca', x: 263, z: 93, giro: 1.1, escala: 1.12 },
+  { id: 'espigas', x: 272, z: 94, giro: 3.3, escala: 0.96 },
+  { id: 'alcornoque', x: 286, z: 101, giro: 0.6, escala: 0.9 },
 ];
 
 // Rectángulos [xMin,zMin,xMax,zMax], antes de aplicar margen. En el río

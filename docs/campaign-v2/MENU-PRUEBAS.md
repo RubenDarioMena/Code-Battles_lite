@@ -144,7 +144,7 @@ Experimento aislado del consolidado (13.B, [diseño](P8-DANIO.md)); no toca la c
 
 - `node pruebas/campaign-v2-rueda-minador.mjs` juega los ensayos de la rueda y del minador con sus programas de ejemplo. Rueda: estallidos, reaparición en casa y `nearest`. Minador: cuatro cargas, avisos `onDetonation` y vuelta tras la muralla. Cada estallido y cada carga anota una explosión `carga` (la receta `detonacion`).
 - `node pruebas/campaign-v2-mando.mjs` prueba el mando táctil.
-- `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase) el deslizador de inclinación y la puerta de la muralla en la vista de la fábrica.
+- `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase y que cada dibujo exista), el deslizador de inclinación y la puerta de la muralla en la vista de la fábrica.
 - `node pruebas/campaign-v2-batallas-propias.mjs` juega B6–B8 con el intérprete: las torretas solas pierden y con la unidad nueva se gana; en la B6 también gana repartir el trabajo.
 - `node pruebas/campaign-v2-danio.mjs` prueba el daño por componentes: masa exacta en gramos en cada golpe, el tanque corroído en dos fragmentos, preciso frente a explosivo, el láser en un borde, la destrucción total sin botín doble, la estabilidad y el paso de los lotes recogidos por la fundidora de la fábrica.
 - `node pruebas/campaign-v2-i18n.mjs` revisa los textos de Campaign-V2: las mismas claves en español e inglés, ninguna vacía y los mismos `{parámetros}`; y que existe cada clave `cv2.…` escrita literalmente en el código.

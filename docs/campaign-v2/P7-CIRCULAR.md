@@ -67,7 +67,7 @@ Todo aparece con `desde: 6`.
 - **Vista:**
   - `vista-3d/cv2/taller.js` tiene las cuatro máquinas;
   - las piezas nuevas están en `fabrica.js` (3D) y `vista-2d/campaign.js` (plano);
-  - la minificha usa `prensa.svg` y `cnc.svg` hasta que haya dibujos propios.
+  - la minificha tiene dibujos propios en el estilo de Campaign 1: `embutidora.svg`, `sierra.svg` y `laser.svg` (en `img/campaign/maquinas/`), y la fundidora usa el suyo.
 
 ## Fuera de esta porción
 

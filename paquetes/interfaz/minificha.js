@@ -11,8 +11,8 @@ export const DIBUJOS = {
   prensa: 'maquinas/prensa.svg', moldeadora: 'maquinas/moldeadora.svg', mezcladora: 'maquinas/mezcladora.svg',
   ensambladora: 'maquinas/ensambladora.svg', fundidora: 'maquinas/fundidora.svg', cnc: 'maquinas/cnc.svg',
   obrero: 'robots/bot-01-agarre.png', montacargas: 'robots/frk-01-armado.png',
-  // Taller de carcasas (P7): sin dibujo propio en Campaign 1; la embutidora es una prensa y la sierra y el láser, corte CNC.
-  embutidora: 'maquinas/prensa.svg', sierra: 'maquinas/cnc.svg', laser: 'maquinas/cnc.svg',
+  // Taller de carcasas (P7): dibujos propios en el mismo estilo (docs/campaign-v2/P7-CIRCULAR.md).
+  embutidora: 'maquinas/embutidora.svg', sierra: 'maquinas/sierra.svg', laser: 'maquinas/laser.svg',
 };
 const PROPS = 2, ORDENES = 3;
 
