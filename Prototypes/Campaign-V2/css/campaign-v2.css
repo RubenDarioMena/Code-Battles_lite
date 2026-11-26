@@ -131,3 +131,9 @@
 .mando-alternar { position: absolute; left: 10px; bottom: 166px; z-index: 7; width: 30px; height: 30px; border-radius: 50%; padding: 0;
   font-size: 15px; line-height: 1; color: #fff; background: rgba(20, 32, 38, .5); border: 1px solid rgba(255, 255, 255, .4); }
 .mando-alternar:not(.abierto) { bottom: 10px; }
+/* Inclinación de la cámara 3D: deslizador vertical a la derecha del campo (arriba = desde lo alto). */
+.cv2-inclinacion { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 6; padding: 8px 4px;
+  border-radius: 14px; background: rgba(20, 32, 38, .42); border: 1px solid rgba(255, 255, 255, .3); display: flex; }
+.cv2-inclinacion[hidden] { display: none; }
+.cv2-inclinacion input { writing-mode: vertical-lr; direction: rtl; height: 120px; width: 18px; margin: 0; accent-color: #f6b817; cursor: ns-resize; }
+#app[data-forma="movil"] .cv2-inclinacion input { height: 96px; width: 26px; }

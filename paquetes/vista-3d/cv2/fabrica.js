@@ -7,7 +7,7 @@
 import { crearCamara3D } from '../camara.js';
 import { liberarEscena } from '../recursos.js';
 import { crearPaisaje } from './paisaje.js';
-import { zoomMax } from './decorado.js';
+import { zoomMax, PITCH_RASANTE } from './decorado.js';
 
 /** Tonos de las máquinas de Campaign 1 (generar.py de svg-b): [base, luz, sombra]. */
 export const PALETA = {
@@ -569,7 +569,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
   // (`puntos`, a su altura): así las máquinas se ven grandes desde el primer momento.
   const margen = 5;
   const puntos = [[L.x0, L.y0], [L.x1, L.y0], [L.x0, L.y1], [L.x1, L.y1]].map(([x, y]) => new THREE.Vector3(ox + x, 0, oy + y));
-  const zona = { x0: ox + L.x0 - margen, x1: ox + L.x1 + margen, z0: oy + L.y0 - margen, z1: oy + L.y1 + margen, yaw: -.35, pitch: 1, alto: 0, zoom: [3, zoomMax], puntos };
+  const zona = { x0: ox + L.x0 - margen, x1: ox + L.x1 + margen, z0: oy + L.y0 - margen, z1: oy + L.y1 + margen, yaw: -.35, pitch: 1, pitchMin: PITCH_RASANTE, alto: 0, zoom: [3, zoomMax], puntos };
   const interseccion = ray => ray.intersectObject(losa, false)[0]?.point ?? paisaje.interseccion(ray);
   // `horizonte`: la niebla de la fábrica empieza detrás de la cámara (dist + 24 m), como la del visor común,
   // en vez de la de las Batallas (55 % de la distancia), que lavaba la mitad lejana de la losa.
@@ -613,6 +613,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     suelo(px, py, w, h) { const p = control.suelo(px, py, w, h); return p ? { x: p.x - ox, y: p.y - oy, z: 0 } : null; },
     centrar(x, y) { control.centrar(x + ox, y + oy); },
     recentrar: control.recentrar, girar: control.girar, desplazar: control.desplazar,
+    inclinacion: control.inclinacion, limitesInclinacion: control.limitesInclinacion,
     anillosDe() {}, aplicarColores() {}, retrato: () => null,
     batalla(si) {
       escena.background.set(si ? FONDO_BATALLA : FONDO);

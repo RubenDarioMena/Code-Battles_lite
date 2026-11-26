@@ -1,3 +1,20 @@
+## Campaign-V2 · Cámara a ras del suelo · 26 de noviembre de 2026
+
+La cámara 3D de la fábrica y de las Batallas baja ahora hasta unos 17° sobre el suelo (`PITCH_RASANTE = .3` en `vista-3d/cv2/decorado.js`). Antes no pasaba de 45° (.78). Hay cuatro formas de inclinarla:
+
+- el deslizador vertical de la derecha del campo (`interfaz/inclinacion.js`), que solo aparece en 3D y sigue a los gestos;
+- Mayúsculas + rueda;
+- dos dedos que suben o bajan juntos en el teléfono, distinguidos del pellizco y del giro (`modoDosDedos` en `vista-3d/camara.js`);
+- el arrastre con la rueda pulsada (órbita), como siempre.
+
+Cuanto más rasante es la cámara, más cerca empieza la niebla y más lejos acaba, para que el borde del mapa no se vea. La fábrica ya usaba la niebla de horizonte. La vista expone `inclinacion(valor?)` y `limitesInclinacion`. Los demás prototipos conservan su mínimo de .78.
+
+Prueba: el deslizador entra en `campaign-v2-minificha.mjs`. Suite: **89 ok, 7 falla** (las mismas dependencias sin instalar). Se comprobó en el navegador:
+
+- deslizador y Mayúsculas + rueda en la B1 (3D) y en la fábrica;
+- 375×812;
+- sin errores en la consola.
+
 ## Campaign-V2 · Fábrica al estilo Campaign 1 sobre el papercraft y minificha · 26 de noviembre de 2026
 
 La fábrica ya no usa la planta antigua del trunk. La nueva vista `vista-3d/cv2/fabrica.js` tiene el mismo contrato que `crearCampaign3D` y la dibuja sobre el mapa papercraft, junto a la muralla y con su puerta. Cuelga de un gancho de una línea (`crearBase` en `vista.js`, aportado por `fabricaV2.crearVista3D`). Las máquinas siguen el lenguaje de los SVG de Campaign 1, copiados a `img/campaign/`:

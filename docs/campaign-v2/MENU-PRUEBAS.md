@@ -80,6 +80,7 @@ moveTo({x: 205.5, y: 81.5});
 | Inciso | Ruta | Qué mirar |
 |---|---|---|
 | Cámara en PC | `index.html?ensayo=b1` | La rueda del ratón aleja hasta 1,5 veces el encuadre inicial y acerca hacia el cursor. Al alejarte no se ven los bordes del mapa, porque las teselas de alrededor se cargan después. |
+| Inclinación a ras del suelo | `index.html?ensayo=b1` (pulsa «3D») e `index.html` (fábrica) | El deslizador de la derecha baja la cámara hasta unos 17° (antes, 45°) y la sube hasta casi la vertical. También inclinan Mayúsculas + rueda, dos dedos que suben o bajan juntos en el teléfono y el arrastre con la rueda pulsada. Abajo se ven la muralla y los árboles, y la niebla tapa el borde del mapa. En el plano 2D el deslizador no aparece. |
 | Mando táctil en PC | `index.html?ensayo=b1&mando=1` | El joystick, abajo a la izquierda, desplaza la cámara. La zona «Ratón», a la derecha, mueve el cursor. L selecciona; R da una orden puntual con el programa en marcha. Con L mantenido, arrastrar en la zona dibuja un recuadro de selección. |
 | Mando oculto | `index.html?ensayo=b1&mando=0` | Fuerza el mando oculto, también en el teléfono. El botón 🕹 lo vuelve a mostrar. |
 

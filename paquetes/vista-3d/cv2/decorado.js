@@ -17,6 +17,8 @@ export const terrenosLejanos = [0, 1, 2, 3].flatMap(fila => [0, 1, 2, 3].map(col
   .filter(id => !terrenosBatalla.includes(id));
 export const zoomNitido = 36;
 export const zoomMax = 60;
+/** Inclinación mínima de la cámara (≈ 17° sobre el suelo): casi rasante, con el horizonte tapado por la niebla. */
+export const PITCH_RASANTE = .3;
 
 // Interpreto los bosques como rectángulos centrados en (x,z), igual que la
 // losa. Agrupo árboles en los claros de sus bordes y aclaro el frente este.

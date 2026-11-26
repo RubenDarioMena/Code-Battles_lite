@@ -6,7 +6,7 @@ assert.equal(typeof globalThis.document, 'undefined');
 const nombres = ['instalarConsola', 'instalarInfoReto', 'instalarMaquinas', 'instalarInspector',
   'instalarPestanas', 'instalarRegistro', 'instalarAyuda', 'instalarVariantes',
   'instalarEtiquetas', 'instalarRetosPantalla', 'instalarEditorTexto', 'instalarSugerencias',
-  'montarHudHito', 'montarInterfazHito', 'montarMandoTactil', 'crearMinificha'];
+  'montarHudHito', 'montarInterfazHito', 'montarMandoTactil', 'crearMinificha', 'montarInclinacion'];
 assert.deepEqual(Object.keys(interfaz).sort(), [...nombres, 'CAMPAIGN_UI', 'FACTORY_FORM', 'registrarIconosFactory', 'instalarLayout'].sort());
 assert.equal(typeof interfaz.CAMPAIGN_UI.crear, 'function');
 assert.equal(typeof interfaz.FACTORY_FORM.crear, 'function');

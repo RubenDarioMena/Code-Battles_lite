@@ -1,4 +1,4 @@
-import { montarInterfazHito, montarHudHito, montarMandoTactil, crearMinificha } from '../../interfaz/index.js';
+import { montarInterfazHito, montarHudHito, montarMandoTactil, crearMinificha, montarInclinacion } from '../../interfaz/index.js';
 import { crearVinculos } from './vinculos-v2.js';
 import { volverACheckpoint } from './checkpoints-v2.js';
 import { crearFicha3D, crearVistaCV2 } from '../../vista-3d/index.js';
@@ -151,7 +151,11 @@ function elegirEtapa(ctx, hito, programas) {
 // Con una unidad elegida, la tira del inspector es la minificha de Campaign 1 en la fábrica y en las Batallas.
 export function instalarInterfazV2(ctx) {
   const { vinculos, uiHito } = interfazV2(ctx);
-  if (uiHito) uiHito.mini = crearMinificha(ctx);
+  if (uiHito) {
+    uiHito.mini = crearMinificha(ctx);
+    // Deslizador de inclinación de la cámara 3D (fábrica y Batallas), en el navegador.
+    if (typeof document !== 'undefined' && document.createElement && ctx.$('campo')?.append) montarInclinacion(ctx, ctx.$('campo'));
+  }
   return { vinculos, uiHito };
 }
 function interfazV2(ctx) {

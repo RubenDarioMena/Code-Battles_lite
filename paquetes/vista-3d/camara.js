@@ -5,6 +5,9 @@ export function crearCamara3D(ctx) {
     const { THREE, estado, $, ES_FACTORY, renderer, escena, camara, horizonte, fijo, movil } = ctx;
     const zona = ctx.zona;
     const ZOOM = zona ? zona.zoom ?? [8, 160] : ES_FACTORY ? [2.5, 30] : [8, 70];
+    // Inclinación (radianes sobre el suelo): una zona puede bajar hasta casi rasante (`pitchMin`, Campaign-V2).
+    const INCLINACION = [zona ? zona.pitchMin ?? .78 : .28, 1.5];
+    const limitarInclinacion = p => Math.min(INCLINACION[1], Math.max(INCLINACION[0], p));
     // Una cámara por postura de la pantalla (horizontal, vertical y vertical con el campo girado 90°, la de
     // pantalla completa): cada una recuerda durante la sesión dónde la dejó el jugador.
     const camaras = {};
@@ -88,7 +91,12 @@ export function crearCamara3D(ctx) {
       if (!cam) elegirCamara();
       colocarCamara();
       if (escena.fog === horizonte) { horizonte.near = cam.dist + (ES_FACTORY ? 8 : 24); horizonte.far = cam.dist + (ES_FACTORY ? 40 : 110); }
-      else if (escena.fog) { escena.fog.near = cam.dist * .55; escena.fog.far = cam.dist * 1.75; }
+      else if (escena.fog) {
+        // Rasante se ve más lejos: la niebla se aparta un poco para que el campo no se lave, y sigue tapando el
+        // borde del mapa en el horizonte.
+        const rasante = Math.max(0, .78 - cam.pitch);
+        escena.fog.near = cam.dist * (.55 + rasante * .3); escena.fog.far = cam.dist * (1.75 + rasante * 1.4);
+      }
       renderer.render(escena, camara);
     }
     const v = new THREE.Vector3();
@@ -125,18 +133,23 @@ export function crearCamara3D(ctx) {
     escuchar("pointerdown", (ev) => {
       if (ev.pointerType !== "touch" && ev.button !== 1 && ev.button !== 2) return;
       canvas.setPointerCapture(ev.pointerId);
-      punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
-      gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false };
+      punteros.set(ev.pointerId, { x: ev.clientX, y: ev.clientY, ax: 0, ay: 0 });
+      for (const p of punteros.values()) { p.ax = 0; p.ay = 0; }
+      gesto = { movido: 0, desplazar: ev.button === 2, tactil: ev.pointerType === "touch", dist0: null, ang0: null, giro: 0, girando: false, modo: null, d0: null };
     });
     escuchar("pointermove", (ev) => {
       const p = punteros.get(ev.pointerId); if (!p || !gesto) return;
       const dx = ev.clientX - p.x, dy = ev.clientY - p.y;
-      p.x = ev.clientX; p.y = ev.clientY;
+      p.x = ev.clientX; p.y = ev.clientY; p.ax += dx; p.ay += dy;
       gesto.movido += Math.abs(dx) + Math.abs(dy);
       if (estado.camaraDosDedos && gesto.tactil && punteros.size === 1) return;
       if (dx || dy) moverCamara();
       if (punteros.size >= 2) {
         const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
+        // Dos dedos que suben o bajan juntos, uno al lado del otro, inclinan la cámara (como en los mapas).
+        gesto.d0 ??= d;
+        gesto.modo ??= modoDosDedos(a, b, d / gesto.d0);
+        if (gesto.modo === "inclinar") { inclinar(dy * .004); return; }
         const r = canvas.getBoundingClientRect(), mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
         if (gesto.dist0) acercar(gesto.dist0 / d, mx, my, r.width, r.height);
         gesto.dist0 = d;
@@ -154,8 +167,25 @@ export function crearCamara3D(ctx) {
         gesto.ang0 = ang;
       } else if (gesto.tactil && estado.arrastreCampo && estado.arrastreCampo.cajaTactil) return;
       else if (gesto.desplazar || gesto.tactil) desplazar(dx, dy);
-      else { cam.yaw -= dx * .006; cam.pitch = Math.min(1.5, Math.max(zona ? .78 : .28, cam.pitch + dy * .005)); }
+      else { cam.yaw -= dx * .006; inclinar(dy * .005); }
     });
+    // Decide el gesto de dos dedos cuando ya se movieron 14 px: inclinar si los dos van en vertical y en el mismo
+    // sentido, están más separados en horizontal que en vertical y la distancia entre ellos casi no cambia.
+    function modoDosDedos(a, b, escala) {
+      if (Math.abs(a.ay) + Math.abs(b.ay) + Math.abs(a.ax) + Math.abs(b.ax) < 14) return null;
+      const vertical = p => Math.abs(p.ay) > 2 * Math.abs(p.ax);
+      const juntos = Math.sign(a.ay) === Math.sign(b.ay) && vertical(a) && vertical(b);
+      const lado = Math.abs(a.x - b.x) > Math.abs(a.y - b.y);
+      return juntos && lado && Math.abs(escala - 1) < .12 ? "inclinar" : "normal";
+    }
+    // La inclinación gira alrededor del punto al que mira la cámara: ese punto no se mueve.
+    function inclinar(dp) { cam.pitch = limitarInclinacion(cam.pitch + dp); }
+    /** Inclinación actual; con valor, la fija (el deslizador de Campaign-V2). */
+    function inclinacion(valor) {
+      if (!cam) elegirCamara();
+      if (Number.isFinite(valor)) { cam.pitch = limitarInclinacion(valor); moverCamara(); }
+      return cam.pitch;
+    }
     const soltar = (ev) => {
       punteros.delete(ev.pointerId);
       if (gesto && punteros.size === 0) {
@@ -166,6 +196,8 @@ export function crearCamara3D(ctx) {
     escuchar("pointercancel", (ev) => { punteros.delete(ev.pointerId); gesto = null; });
     escuchar("wheel", (ev) => {
       ev.preventDefault(); moverCamara();
+      // Mayúsculas + rueda inclina (en macOS la rueda con Mayúsculas llega como deltaX).
+      if (ev.shiftKey) { inclinar(-(ev.deltaY || ev.deltaX) * .0025); return; }
       const r = canvas.getBoundingClientRect();
       acercar(Math.exp(ev.deltaY * .0012), ev.clientX - r.left, ev.clientY - r.top, r.width, r.height);
     }, { passive: false });
@@ -192,7 +224,7 @@ export function crearCamara3D(ctx) {
       const despues = suelo(px, py, w, h);
       if (antes && despues) { cam.x += antes.x - despues.x; cam.z += antes.y - despues.y; limitar(); }
     }
-    return { destruir() { oyentes.destruir(); observador.disconnect(); punteros.clear(); }, render, tamano, proyectar, elegir, suelo, centrar, recentrar, girar,
+    return { destruir() { oyentes.destruir(); observador.disconnect(); punteros.clear(); }, render, tamano, proyectar, elegir, suelo, centrar, recentrar, girar, inclinacion, limitesInclinacion: INCLINACION,
       desplazar(dx, dy) { if (!cam) return; moverCamara(); desplazar(dx, dy); },
       altoPx: () => altoCampo,
       camara: () => { const factory = ctx.factory; return ({ clave: camActual && camActual.k, ...cam, dibujo: { calls: renderer.info?.render.calls ?? 0, triangles: renderer.info?.render.triangles ?? 0 }, ...(factory ? { lod: factory.robot.nivel, px: factory.robot.px } : {}) }); },

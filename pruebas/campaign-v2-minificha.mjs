@@ -2,9 +2,11 @@
 // - rotuloCorto: el rótulo de Campaign 1 («pickUp()») para los tokens de orden, en JS y en Python.
 // - elegirFilas: solo las columnas de la ficha (no la leyenda), dos propiedades y tres órdenes.
 // - crearMinificha: solo pinta en estado «tira», pone el dibujo de la clase y deja las filas tras la cabecera.
+// - montarInclinacion: el deslizador solo aparece en 3D, toma los límites de la vista y la inclina.
 // - puertasDelMarco: la puerta del marco en metros, donde paso.js coloca el muro (x0 + 3).
 import assert from 'node:assert/strict';
 import { crearMinificha, elegirFilas, rotuloCorto, urlDibujo, DIBUJOS } from '../paquetes/interfaz/minificha.js';
+import { montarInclinacion } from '../paquetes/interfaz/inclinacion.js';
 import { puertasDelMarco, paletaFabrica } from '../paquetes/vista-3d/index.js';
 import { niveles } from '../paquetes/reglas-campaign-v2/index.js';
 
@@ -23,6 +25,8 @@ class Nodo {
   }
   cloneNode() { const c = new Nodo([...this.classList].join(' '), this.children.map(h => h.cloneNode()), this.textContent); c.dataset = { ...this.dataset }; return c; }
   append(...n) { this.children.push(...n); }
+  addEventListener(t, fn) { (this.oyentes ??= {})[t] = fn; }
+  setAttribute(k, v) { this[k] = v; }
   prepend(...n) { this.antes.unshift(...n); }
   after(...n) { this.despues.push(...n); }
   set className(v) { this.classList = new Set(v.split(' ')); this.classList.contains = c => this.classList.has(c); }
@@ -79,4 +83,23 @@ assert.deepEqual(puertasDelMarco({ origen: [204, 72], puertas: [7] }), [{ x: 207
 assert.equal(paletaFabrica.entrada, 0x3fc1e0, 'bandeja de entrada cian de Campaign 1');
 assert.equal(paletaFabrica.salida, 0xf6b817, 'bandeja de salida amarilla de Campaign 1');
 
-console.log('Minificha: rótulos cortos, dos propiedades y tres órdenes de las columnas (sin la leyenda), dibujo por clase y solo en «tira»; puerta del marco a x0 + 3 y paleta de Campaign 1.');
+// Deslizador de inclinación: oculto en el plano; en 3D, límites de la cámara y valor que la mueve.
+const oyentes = {};
+const campo = { hijos: [], append(n) { this.hijos.push(n); }, addEventListener(t, fn) { oyentes[t] = fn; } };
+let inclinada = 1;
+const V3 = { limitesInclinacion: [.3, 1.5], inclinacion(v) { if (v !== undefined) inclinada = v; return inclinada; } };
+const ctxInc = { vista: '2d', V3, ti18n: k => k };
+const intervalo = globalThis.setInterval; globalThis.setInterval = undefined; // sin reloj: que no deje viva la prueba
+globalThis.addEventListener ??= () => {}; globalThis.removeEventListener ??= () => {};
+const inc = montarInclinacion(ctxInc, campo);
+globalThis.setInterval = intervalo;
+const [cajaInc] = campo.hijos, rango = cajaInc.children[0];
+assert.equal(cajaInc.hidden, true, 'en el plano no hay inclinación');
+ctxInc.vista = '3d'; oyentes.wheel();
+assert.equal(cajaInc.hidden, false);
+assert.deepEqual([rango.min, rango.max, rango.value], ['0.3', '1.5', '1'], 'límites y valor de la cámara');
+rango.value = '0.3'; rango.oyentes.input();
+assert.equal(inclinada, .3, 'mover el deslizador inclina la cámara');
+assert.equal(cajaInc.title, 'cv2.ui.inclinacion');
+
+console.log('Minificha: rótulos cortos, dos propiedades y tres órdenes de las columnas (sin la leyenda), dibujo por clase y solo en «tira»; deslizador de inclinación solo en 3D; puerta del marco a x0 + 3 y paleta de Campaign 1.');
