@@ -9,3 +9,4 @@ export { conectarRig } from './rig.js';
 export { crearVistaCV2 } from './cv2/index.js';
 export { crearFabricaCV2, puertasDelMarco, PALETA as paletaFabrica } from './cv2/fabrica.js';
 export { crearFicha3D } from './cv2/ficha.js';
+export { crearRestos3D } from './cv2/restos.js';

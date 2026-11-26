@@ -1,0 +1,45 @@
+/* Banco de daño de Campaign-V2: lienzo 3D y panel. En PC, lado a lado; en el teléfono, el lienzo arriba. */
+:root { color-scheme: dark; --fondo: #0b0f13; --tarjeta: #141c22; --borde: #26333c; --texto: #dfe7ea; --tenue: #8fa3ab; --acento: #62bcba;
+  --reutilizable: #53bd68; --fragmento: #9aa3b2; --chatarra: #615e6c; --perdido: #e5383b; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; display: flex; background: var(--fondo); color: var(--texto); font: 14px/1.45 system-ui, -apple-system, sans-serif; }
+#escena { position: relative; flex: 1; min-width: 0; }
+#lienzo { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+#ayuda { position: absolute; left: 12px; bottom: 10px; margin: 0; padding: 4px 10px; border-radius: 6px; background: #0b0f13cc; color: var(--tenue); font-size: .82rem; }
+#panel { width: 340px; flex: none; overflow-y: auto; padding: 14px 16px 28px; border-left: 1px solid var(--borde); background: var(--tarjeta); }
+h1 { font-size: 1.2rem; margin: 0 0 4px; }
+h2 { font-size: .8rem; margin: 16px 0 6px; color: var(--acento); text-transform: uppercase; letter-spacing: .06em; }
+.nota { color: var(--tenue); margin: 4px 0; font-size: .84rem; }
+a { color: #fff; text-decoration-color: var(--acento); text-underline-offset: 3px; }
+.botones { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: inherit; color: var(--texto); background: #1d2a31; border: 1px solid var(--borde); border-radius: 6px; padding: 5px 10px; cursor: pointer; min-height: 32px; }
+button[aria-pressed="true"] { background: #23464a; border-color: var(--acento); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.casos button { font-size: .84rem; }
+.fila { display: flex; align-items: center; gap: 8px; margin: 8px 0 2px; }
+.fila input[type="range"] { flex: 1; }
+#barra { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: #0d1418; border: 1px solid var(--borde); }
+#barra span { display: block; height: 100%; }
+dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+dt { display: flex; align-items: center; gap: 6px; }
+dt::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+dd { margin: 0; text-align: right; }
+.estado { margin: 8px 0 0; font-weight: 600; }
+.estado .no { color: var(--perdido); }
+.estado .si { color: var(--reutilizable); }
+ol { margin: 0; padding-left: 20px; }
+li { margin: 2px 0; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .84rem; }
+th { text-align: left; color: var(--tenue); font-weight: 500; border-bottom: 1px solid var(--borde); }
+td { padding: 2px 0; }
+td:nth-child(2) { text-align: right; padding-right: 8px; }
+.integridad { display: block; height: 6px; border-radius: 3px; background: #0d1418; overflow: hidden; }
+.integridad span { display: block; height: 100%; }
+#recoger { margin-top: 6px; }
+#recogida p { margin: 6px 0 0; }
+@media (max-width: 760px) {
+  body { flex-direction: column; height: auto; }
+  #escena { height: 55vh; flex: none; }
+  #panel { width: 100%; border-left: 0; border-top: 1px solid var(--borde); overflow: visible; }
+}

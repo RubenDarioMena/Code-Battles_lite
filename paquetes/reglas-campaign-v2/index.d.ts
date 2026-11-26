@@ -18,6 +18,9 @@ export function hitosFabrica(nivel: Nivel): string[];
 export function nivelFabrica(contenido: Contenido): Record<string, any>;
 export function moduloFabrica(contenido: Contenido): Record<string, any>;
 export const motorFabrica: ReturnType<typeof import('../fabrica/index.js').crearMotor>;
+export const catalogoFabrica: typeof import('./fabrica/catalogo.js');
+/** Daño por componentes y recuperación de material (P8, consolidado 13.B). */
+export const danio: typeof import('./danio/index.js');
 export function validarNivel(carpeta: string, contenido: Contenido, tipos: object,
   catalogo?: Record<string, Record<string, string>>): string[];
 type Programas = { programas: Record<string, DatoPlano>; fuentes: Record<string, DatoPlano>; vinculos: Record<string, DatoPlano> };

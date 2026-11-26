@@ -1,3 +1,35 @@
+## Campaign-V2 · P8 · Daño por componentes y recuperación · 26 de noviembre de 2026
+
+Segunda porción del consolidado del 23-nov: su corte vertical 13.B, «Un experimento aislado de daño y recuperación», en la versión mínima sin vóxeles (8.2). El diseño está en [P8-DANIO.md](docs/campaign-v2/P8-DANIO.md).
+
+- **Reglas puras** en `reglas-campaign-v2/danio`. Una oruga blindada de 77 kg en 8 componentes (proa, chasis central, popa, motor, dos orugas, arma y electrónica), con caja, masa, integridad y uniones.
+- **Tres ataques abstractos:**
+  - explosivo: arranca mucha masa y rompe uniones;
+  - preciso: solo al componente más cercano, quita la función con muy poca masa;
+  - corrosivo: por dosis, erosiona poco a poco.
+- **El resultado se lee en las cuatro categorías de 7.4:** reutilizable, fragmento, chatarra y perdido. Las masas van en gramos enteros, así que la suma es siempre la original.
+- **Estado funcional por regla:** movilidad y fuego. Sin ninguna de las dos, queda fuera de combate.
+- **Recogida:** los restos se agrupan en lotes de recortes de 4 kg, la masa del catálogo de la fábrica, y cada resto se recoge una sola vez.
+- **Prueba nueva `campaign-v2-danio.mjs`:**
+  - la masa cuadra en cada golpe;
+  - el ácido en el centro deja dos fragmentos grandes (popa con motor, 20,1 kg; proa con electrónica, 14,6 kg);
+  - dos disparos precisos lo dejan fuera de combate perdiendo 1,1 kg, frente a los 11,7 kg de una explosión (18 lotes frente a 15);
+  - un láser en un borde suelta solo la electrónica;
+  - golpear lo destruido no da botín y nada reaparece;
+  - el resultado es el mismo con 500 o con 50 000 triángulos;
+  - dos mil erosiones pequeñas no corrompen nada;
+  - los lotes pasan por la fundidora de V2 y la masa del tanque cuadra hasta las placas y la escoria.
+- **Banco visual `Prototypes/Campaign-V2/danio.html`**, en el menú de pruebas («Daño y recuperación»):
+  - se elige el ataque y se hace clic sobre la oruga;
+  - la máscara de daño va en el color de los vértices (tizne, ácido, punto al rojo) y el contorno rojo marca lo que perdió la función;
+  - los fragmentos se separan y caen fuera del casco, y la chatarra queda en el suelo;
+  - el panel muestra el balance, los fragmentos, los componentes y la recogida con las placas que daría la fundidora;
+  - la calidad alta o baja cambia la máscara, no el balance.
+- **Probado en el navegador:** escritorio y móvil, sin errores de consola.
+- **H6:** el objetivo dice ahora que las placas se suben a PAL-6 con FRK-01.
+- **Velocidad 1× a un tercio del tiempo real (pendiente anterior):** medido con `__banco.alFotograma`. En el panel oculto del navegador integrado, la página del juego recibe 1 fotograma por segundo. El bucle recorta cada fotograma a 0,25 s para no dar saltos, así que el juego avanza a 0,25×. Los programas no restan tiempo (0 s sin acumular). En una pestaña visible a 60 fps no pasa, así que no es un fallo del juego.
+- **Pendiente de tu decisión:** si las orugas derribadas en las Batallas dejan restos que lleguen a la fundidora de H6, y cuántos.
+
 ## Campaign-V2 · P7 · Producción circular: reglas, hito H6 jugable y taller en 3D · 26 de noviembre de 2026
 
 Primera porción del consolidado del 23-nov que no venía de War ni de Campaign 1: su corte vertical 13.A, «Producción circular mínima». El diseño está en [P7-CIRCULAR.md](docs/campaign-v2/P7-CIRCULAR.md).

@@ -117,6 +117,14 @@ Al elegir una unidad, la **minificha** aparece abajo a la izquierda, también en
 
 Al tocar la tarjeta fuera de un token se abre la ficha completa. Para regenerar las plantas tras cambiar la fábrica: `DEMO_PLANTAS=Prototypes/Campaign-V2/datos/plantas-demo.json node pruebas/campaign-v2-demo-fabrica.mjs`.
 
+## Daño y recuperación
+
+Experimento aislado del consolidado (13.B, [diseño](P8-DANIO.md)); no toca la campaña.
+
+| Inciso | Ruta | Qué mirar |
+|---|---|---|
+| Banco de daño · oruga blindada | `danio.html` | Elige explosivo, preciso o corrosivo y haz clic sobre la oruga (la esfera roja es el alcance). Con «Ácido en el centro ×4» quedan dos fragmentos grandes; con «Motor y arma» queda fuera de combate perdiendo 1,1 kg. El total siempre es 77,00 kg. «Recoger los restos» da los lotes de recortes y las placas de la fundidora. La calidad cambia la máscara, no el balance. |
+
 ## Campaña y paridad
 
 | Inciso | Ruta | Qué mirar |
@@ -138,4 +146,5 @@ Al tocar la tarjeta fuera de un token se abre la ficha completa. Para regenerar 
 - `node pruebas/campaign-v2-mando.mjs` prueba el mando táctil.
 - `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase) el deslizador de inclinación y la puerta de la muralla en la vista de la fábrica.
 - `node pruebas/campaign-v2-batallas-propias.mjs` juega B6–B8 con el intérprete: las torretas solas pierden y con la unidad nueva se gana; en la B6 también gana repartir el trabajo.
+- `node pruebas/campaign-v2-danio.mjs` prueba el daño por componentes: masa exacta en gramos en cada golpe, el tanque corroído en dos fragmentos, preciso frente a explosivo, el láser en un borde, la destrucción total sin botín doble, la estabilidad y el paso de los lotes recogidos por la fundidora de la fábrica.
 - `node pruebas/campaign-v2-i18n.mjs` revisa los textos de Campaign-V2: las mismas claves en español e inglés, ninguna vacía y los mismos `{parámetros}`; y que existe cada clave `cv2.…` escrita literalmente en el código.

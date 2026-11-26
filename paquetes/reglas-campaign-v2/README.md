@@ -28,3 +28,7 @@ Desde la raíz, las pruebas `pruebas/campaign-v2-{contenido,paridad,puente,secue
 En campaña y ensayo, una batalla puede declarar `unidades` y `hostiles` con tipo de ficha y puesto inicial local. `paso.js` monta sus reglas en metros, traduce las lecturas de War con `leerEnemigos` y entrega los impactos pendientes con `danoEnArea` antes del siguiente paso de War. Cada mecánica aporta `ficha.js` y `reglas.js`, una importación y una entrada ordenada en `pasos`. Una capacidad puede inyectar la misma función de orden en el intérprete y en el mundo.
 
 `ensayos/salida.js` fija la dotación, las oleadas y los programas de partida. En `pruebas/campaign-v2-mecanicas.mjs` se ejecuta el ensayo hasta la victoria y se observa el ciclo de vida de VEH-01 desde otra unidad.
+
+## Daño por componentes (P8)
+
+`danio` (de `danio/index.js`) es el experimento aislado del consolidado 13.B: `crearRestos(vehiculo)`, `golpear(restos, { perfil, punto, energia })`, `balance`, `fragmentos`, `estado` y `recuperar`. Las masas van en gramos enteros, así que el balance cuadra exacto. No depende de la vista ni de la malla, y todavía no se usa en las Batallas. El diseño está en `docs/campaign-v2/P8-DANIO.md` y la prueba en `pruebas/campaign-v2-danio.mjs`.

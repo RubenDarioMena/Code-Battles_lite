@@ -132,6 +132,8 @@ export function crearVistaCV2(campo: HTMLElement, opciones: {
   MISIL?: { radio: number }; estado?: EstadoVista;
 }): VistaCV2 | null;
 export { crearFicha3D } from './cv2/ficha.js';
+/** Restos de un vehículo dañado (P8): máscara de daño, fragmentos y chatarra a partir de las reglas de daño. */
+export { crearRestos3D } from './cv2/restos.js';
 /** Fábrica de Campaign-V2 en el mapa papercraft: el contrato de crearCampaign3D, en coordenadas de la planta. */
 export function crearFabricaCV2(estado: EstadoVista, deps: DependenciasCampaign & {
   cargarGLTFLoader?: () => Promise<any>; origen?: number[]; puertas?: { x: number; y: number }[];

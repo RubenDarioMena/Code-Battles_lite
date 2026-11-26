@@ -17,8 +17,10 @@ export { fichaClic } from './mecanicas/clic/ficha.js';
 import { lugarDeObjetivo } from './mecanicas/clic/reglas.js';
 export { lugarDeObjetivo, repartirClic } from './mecanicas/clic/reglas.js';
 export { validarNivel } from './validar.js';
+/** Daño por componentes y recuperación de material (P8, consolidado 13.B). */
+export * as danio from './danio/index.js';
 export const niveles = { 'nivel-1': nivel1 };
-export { esFabrica, hitosFabrica, moduloFabrica, nivelFabrica, motor as motorFabrica } from './fabrica/index.js';
+export { esFabrica, hitosFabrica, moduloFabrica, nivelFabrica, motor as motorFabrica, catalogo as catalogoFabrica } from './fabrica/index.js';
 const BODEGA_ENSAYO = 16;
 const otraSemilla = rng => Math.floor(rng() * 4294967296);
 

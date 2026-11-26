@@ -52,6 +52,9 @@ moveTo({x: 205.5, y: 81.5});`, para: 'MIN-01' },
     { titulo: 'H5 · La cadena entera', url: 'index.html', planta: 'h5', mirar: ['Todas las máquinas a la vez; el arsenal guarda los misiles.'] },
     { titulo: 'H6 · Carcasas (producción circular)', url: 'index.html', planta: 'h6', mirar: ['Taller al nordeste: embutidora, sierra, láser y fundidora; BOT-01 camina entre ellas.', 'Cada semiesfera deja recortes en la sierra; si nadie los retira, la sierra se bloquea.', 'Tres recortes en la fundidora dan una placa nueva; la meta pide 6 semiesferas con solo 5 placas.', 'El láser hace lo mismo que la sierra tres veces más rápido, a 5 kW.'] },
   ] },
+  { titulo: 'Daño y recuperación', nota: 'Experimento aislado del consolidado (13.B): no toca la campaña.', items: [
+    { titulo: 'Banco de daño · oruga blindada', url: 'danio.html', mirar: ['Elige explosivo, preciso o corrosivo y haz clic sobre la oruga: la esfera roja enseña el alcance.', '«Ácido en el centro ×4»: el chasis central se disuelve y quedan dos fragmentos grandes, popa con motor y proa con electrónica.', '«Motor y arma»: queda fuera de combate perdiendo poco más de 1 kg; la explosión en el centro pierde unos 12 kg y no deja nada reutilizable.', 'El total siempre es 77,00 kg. «Recoger los restos» da los lotes de recortes y las placas que saldrían de la fundidora.', 'Calidad alta o baja cambia la máscara de daño, no el balance.'] },
+  ] },
   { titulo: 'Campaña y paridad', items: [
     { titulo: 'Campaña desde el principio', url: 'index.html', mirar: ['Empieza en H0 (la fábrica es un marcador provisional) y sigue a B1 al cumplirlo.', 'Para empezar de cero, usa «Borrar el progreso» abajo.'] },
     { titulo: 'Paridad B1–B5', url: 'index.html?modo=paridad&batalla=b1', mirar: ['Cada Batalla con los parámetros exactos de War.', 'Cambia batalla=b2…b5 en la dirección.'] },

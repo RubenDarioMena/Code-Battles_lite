@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Code Battle Lite · Campaign-V2 · Banco de daño</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0F13">
+<link rel="stylesheet" href="css/danio.css">
+</head>
+<body>
+<div id="escena"><canvas id="lienzo" aria-label="Oruga blindada en 3D: haz clic sobre ella para golpearla"></canvas>
+  <p id="ayuda">Elige un ataque y haz clic sobre la oruga. Arrastra para girar la cámara.</p></div>
+<aside id="panel">
+  <header>
+    <h1>Banco de daño</h1>
+    <p class="nota">Experimento aislado del consolidado (13.B): una oruga blindada de 8 componentes y tres ataques abstractos. La masa se lleva en gramos y siempre cuadra. <a href="pruebas.html">Menú de pruebas</a></p>
+  </header>
+  <section aria-labelledby="t-ataque">
+    <h2 id="t-ataque">Ataque</h2>
+    <div class="botones" role="radiogroup" aria-label="Perfil de ataque">
+      <button type="button" data-perfil="explosivo" aria-pressed="true">Explosivo</button>
+      <button type="button" data-perfil="preciso" aria-pressed="false">Preciso</button>
+      <button type="button" data-perfil="corrosivo" aria-pressed="false">Corrosivo</button>
+    </div>
+    <label class="fila">Energía <input type="range" id="energia" min="0.2" max="3" step="0.1" value="1"> <output id="energia-v">1.0</output></label>
+    <p class="nota" id="perfil-nota"></p>
+  </section>
+  <section aria-labelledby="t-casos">
+    <h2 id="t-casos">Casos</h2>
+    <div class="botones casos">
+      <button type="button" data-caso="acido">Ácido en el centro ×4</button>
+      <button type="button" data-caso="precisos">Motor y arma (precisos)</button>
+      <button type="button" data-caso="explosion">Explosión en el centro</button>
+      <button type="button" data-caso="leve">Explosión leve</button>
+      <button type="button" data-caso="reiniciar">Reiniciar</button>
+    </div>
+  </section>
+  <section aria-labelledby="t-balance">
+    <h2 id="t-balance">Balance de masa</h2>
+    <div id="barra" role="img"></div>
+    <dl id="balance"></dl>
+    <p id="estado" class="estado"></p>
+  </section>
+  <section aria-labelledby="t-frag">
+    <h2 id="t-frag">Fragmentos</h2>
+    <ol id="fragmentos"></ol>
+  </section>
+  <section aria-labelledby="t-comp">
+    <h2 id="t-comp">Componentes</h2>
+    <table id="componentes"><thead><tr><th>Componente</th><th>Masa</th><th>Integridad</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section aria-labelledby="t-rec">
+    <h2 id="t-rec">Recogida y fundición</h2>
+    <label class="fila"><input type="checkbox" id="fundir" checked> Fundir también lo reutilizable</label>
+    <button type="button" id="recoger">Recoger los restos</button>
+    <div id="recogida" aria-live="polite"></div>
+  </section>
+  <section aria-labelledby="t-calidad">
+    <h2 id="t-calidad">Calidad gráfica</h2>
+    <div class="botones" role="radiogroup" aria-label="Calidad de la máscara">
+      <button type="button" data-calidad="alta" aria-pressed="true">Alta</button>
+      <button type="button" data-calidad="baja" aria-pressed="false">Baja</button>
+    </div>
+    <p class="nota" id="calidad-nota"></p>
+  </section>
+  <section aria-labelledby="t-ultimo">
+    <h2 id="t-ultimo">Último golpe</h2>
+    <p id="ultimo" class="nota">Ninguno todavía.</p>
+  </section>
+</aside>
+<script type="importmap">{"imports":{"three":"../../shared/vendor/three-r180/three.module.min.js"}}</script>
+<script type="module" src="js/danio.js"></script>
+</body>
+</html>
