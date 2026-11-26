@@ -43,7 +43,7 @@ export function paso(campo) {
   campo.cargas = campo.cargas.filter(c => {
     const dentro = suelo.filter(e => Math.hypot(e.x - c.x, e.y - c.y) <= c.radio);
     if (!dentro.length) return true;
-    campo.impactos.push({ id: 'v2-' + ++campo.secuencia, de: c.de, x0: c.x, y0: c.y, x1: c.x, y1: c.y, radio: c.radio, dano: c.dano });
+    campo.impactos.push({ id: 'v2-' + ++campo.secuencia, de: c.de, x0: c.x, y0: c.y, x1: c.x, y1: c.y, radio: c.radio, dano: c.dano, estallido: true });
     for (const e of campo.hostiles) if (Math.hypot(e.x - c.x, e.y - c.y) <= c.radio) { e.hp -= c.dano; e.golpeT = campo.t; }
     campo.hostiles = campo.hostiles.filter(e => e.hp > 0);
     // El evento llega al programa del minador aunque esté destruido en ese momento: se descarta si no hay programa.

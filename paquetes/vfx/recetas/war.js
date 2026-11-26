@@ -1,8 +1,9 @@
 /** Recetas finitas: ≤1,6 s, destellos ≤0,2 s y humo con alfa ≤0,24.
  * El radio viene de MISIL.radio por composición, nunca por import de reglas.
- * @param {{radioDanio: number}} opciones
+ * `radioCarga` es el aro de las detonaciones de Campaign-V2 (rueda y cargas del minador, 1,5–2,5 m).
+ * @param {{radioDanio: number, radioCarga?: number}} opciones
  * @returns {Record<string, import('../index.js').Receta>} */
-export function crearRecetasWar({ radioDanio }) {
+export function crearRecetasWar({ radioDanio, radioCarga = 2 }) {
   if (!Number.isFinite(radioDanio) || radioDanio <= 0) throw new Error('radioDanio debe ser positivo y finito');
   /** @returns {import('../index.js').Capa} */
   const humo = (alto = .3) => ({ forma: 'humo', mezcla: 'normal', n: 5,
@@ -39,6 +40,15 @@ export function crearRecetasWar({ radioDanio }) {
       { ...humo(.1), n: 5, vida: [.45, .85], tam: [.2, 1], color: ['edge', 'grid-2'] },
       aro('edge', .28, radioDanio),
     ] },
+    // Detonación de una carga o de la rueda: destello ancho, bola de fuego baja, aro del radio de daño y columna de humo.
+    detonacion: { capas: [
+      { forma: 'brillo', mezcla: 'suma', n: 1, destello: true, vida: .2, alto: .6,
+        tam: [4.5, 1.2], alfa: [1, 0], color: ['#fff4dc', 'explosion'] },
+      { forma: 'brillo', mezcla: 'suma', n: 14, vida: [.3, .7], alto: .45, dir: 'hemisferio',
+        vel: [.6, 2.6], arrastre: 2.6, tam: [.6, .85, .2], alfa: [.75, .4, 0], color: ['explosion', 'misil'] },
+      { ...chispas('misil'), n: 28, vel: [4, 9] }, restos('edge'), aro('explosion', .8, radioCarga),
+      { ...humo(.8), n: 9, vida: [.9, 1.4], tam: [.5, 1.8] },
+    ] },
     'derribo-oruga': { capas: [restos('enemigo'), chispas('enemigo'), humo(.2)] },
     'derribo-dron': { capas: [restos('enemigo'), { ...chispas('enemigo'), dir: 'esfera' }, humo(0)] },
     'derribo-dron-frio': { capas: [restos('enemigo-frio'), { ...chispas('enemigo-frio'), dir: 'esfera' }, humo(0)] },
@@ -59,7 +69,7 @@ export function crearRecetasWar({ radioDanio }) {
  * @param {import('../../protocolo/index.js').Suceso} suceso @returns {string | null} */
 export function recetaWar(suceso) {
   const d = suceso.datos || {};
-  if (suceso.tipo === 'explosion') return d.misil === null ? null : (d.golpe ? 'impacto' : 'fallo');
+  if (suceso.tipo === 'explosion') return d.carga ? 'detonacion' : d.misil === null ? null : (d.golpe ? 'impacto' : 'fallo');
   if (suceso.tipo === 'derribo') return ({ crawler: 'derribo-oruga', drone: 'derribo-dron', stealth: 'derribo-dron-frio' })[String(d.tipo)] || null;
   return ['disparo', 'atasco', 'reparado', 'brecha'].includes(suceso.tipo) ? suceso.tipo : null;
 }

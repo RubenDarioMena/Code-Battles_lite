@@ -145,7 +145,8 @@ export const catalogo = {
     'campaign.hito.5.pista.0': 'Cuando una tarima se lleva a la ensambladora, su brazo se queda sin destino: trae una vacía de STK-1 a ese puesto.',
     'campaign.hito.5.pista.1': 'Si falta material, BAY_1.request("steel") o BAY_1.request("polymer") pide otra tarima con el presupuesto.',
     'campaign.hito.5.pista.2': 'Acerca la mezcladora y la ensambladora a las células: cada metro del montacargas cuenta.',
-    'campaign.meta.hechos': '{pieza} fabricadas en este hito',
+    // Sin participio: las piezas son de los dos géneros («ojiva», «misil») y la meta va en singular, como «{pieza} en lotes».
+    'campaign.meta.hechos': '{pieza} de este hito',
     'campaign.meta.tarima': 'tarima en {lugar}',
     'campaign.hud.bodega': 'Bodega de la muralla: misiles listos para las Batallas',
     'campaign.hud.bodegaCorto': 'Bodega',

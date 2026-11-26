@@ -65,7 +65,8 @@ for (const nivel of ['alto', 'medio', 'bajo', 'no']) {
       const opciones = { dt: .05, calidad: nivel, colores: {} };
       for (const c of r.capas) for (const token of c.color) if (!token.startsWith('#')) opciones.colores[token] = '#369';
       const original = [], explicito = [], reducido = [], desmarcado = [];
-      evaluar(s, r, t, opciones, p => todas.push(p));
+      // El hash es el de las nueve recetas previas: la detonación (Campaign-V2) se valida igual pero no lo cambia.
+      if (tipo !== 'detonacion') evaluar(s, r, t, opciones, p => todas.push(p));
       evaluar(s, r, t, opciones, p => original.push(p));
       evaluar(s, r, t, { ...opciones, sinDestellos: false }, p => explicito.push(p));
       evaluar(s, sinMarcas, t, opciones, p => desmarcado.push(p));
@@ -89,7 +90,7 @@ assert.equal(createHash('sha256').update(bytes(todas)).digest('hex'),
 // Capturado ANTES del cambio (paso 2): identidad de 4360 partículas serializadas.
 assert.equal(createHash('sha256').update(JSON.stringify(todas)).digest('hex'),
   'a4bff7aa89332d6bd0869c80511d2f6ce8036019e0f464ffe02c00d845224322');
-assert.deepEqual(Object.entries(recetas).flatMap(([k, r]) => r.capas.flatMap((c, i) => c.destello ? [`${k}/${i}`] : [])), ['disparo/0', 'impacto/0']);
+assert.deepEqual(Object.entries(recetas).flatMap(([k, r]) => r.capas.flatMap((c, i) => c.destello ? [`${k}/${i}`] : [])), ['disparo/0', 'impacto/0', 'detonacion/0']);
 assert.deepEqual(validarReceta({ capas: [{ ...recetas.disparo.capas[0], destello: false }] }), []);
 assert(validarReceta({ capas: [{ ...recetas.disparo.capas[0], destello: 1 }] }).some(e => e.includes('destello')));
 console.log('Calidad: prioridad, persistencia independiente, movimiento reducido en caliente, esquema y filtro de destellos; 4360 partículas idénticas al hash anterior.');

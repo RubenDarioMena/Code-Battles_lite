@@ -16,8 +16,8 @@ const congelar = o => { if (o && typeof o === 'object') { Object.freeze(o); Obje
 function bytes(ps) {
   return Buffer.from(new Float64Array(ps.flatMap(p => [p.x, p.y, p.z, p.tam, p.alfa, ...p.color, p.paso, p.capa, p.indice, p.estela])).buffer);
 }
-prueba('Esquema de las nueve recetas y legibilidad', () => {
-  assert.equal(Object.keys(recetas).length, 9);
+prueba('Esquema de las diez recetas y legibilidad', () => {
+  assert.equal(Object.keys(recetas).length, 10);
   for (const [nombre, receta] of Object.entries(recetas)) {
     assert.deepEqual(validarReceta(receta), [], nombre);
     for (const c of receta.capas) {
@@ -124,6 +124,9 @@ prueba('Selector War evita duplicar atasco y descarta sucesos ajenos', () => {
   assert.equal(recetaWar(suceso), 'impacto');
   assert.equal(recetaWar({ ...suceso, datos: { misil: 1, golpe: 0 } }), 'fallo');
   assert.equal(recetaWar({ ...suceso, datos: { misil: null, golpe: 0 } }), null);
+  // Campaign-V2: la rueda y las cargas del minador detonan con su receta, haya golpe o no.
+  assert.equal(recetaWar({ ...suceso, datos: { misil: 'v2-1', golpe: false, carga: true } }), 'detonacion');
+  assert.equal(crearRecetasWar({ radioDanio: 1.3, radioCarga: 2.5 }).detonacion.capas.find(c => c.dir === 'anillo').radioFinal, 2.5);
   for (const [tipo, nombre] of [['crawler', 'derribo-oruga'], ['drone', 'derribo-dron'], ['stealth', 'derribo-dron-frio']]) assert.equal(recetaWar({ paso: 0, tipo: 'derribo', datos: { tipo } }), nombre);
   for (const tipo of ['golpe', 'aparece', 'registro']) assert.equal(recetaWar({ paso: 0, tipo }), null);
   for (const tipo of ['disparo', 'atasco', 'reparado', 'brecha']) assert.equal(recetaWar({ paso: 0, tipo }), tipo);

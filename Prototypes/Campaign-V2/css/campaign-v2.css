@@ -25,8 +25,12 @@
 #cv2-menu:not([hidden]) { right: 0; display: grid; gap: 8px; width: min(240px, 100%); }
 #cv2-menu label:not([hidden]) { display: flex; gap: 8px; align-items: center; }
 #cv2-menu select { margin-left: auto; }
-#cv2-unidades { position: relative; min-width: 0; }
-#cv2-unidades summary { white-space: nowrap; font-size: .85rem; }
+/* Cabecera del editor: «▸ Unidades · N» no se encoge bajo el selector de lenguaje. Cede el selector (que sigue
+   leyéndose entero desde 6,2em) y, si ni así cabe, el rótulo se corta con puntos suspensivos. */
+#cv2-unidades { position: relative; flex-shrink: 0; max-width: 48%; }
+#cv2-unidades summary { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+#detalles-editor .barra-prog > .herramientas { flex-shrink: 1; min-width: 0; }
+#detalles-editor .herramientas > #sel-lenguaje { flex: 0 1 auto; min-width: 6.2em; width: auto; }
 #cv2-arbol { top: calc(100% + 4px); left: 0; width: min(315px, calc(100vw - 32px)); max-height: min(55dvh, 400px); }
 #cv2-arbol label { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; cursor: pointer; }
 #cv2-arbol input { accent-color: var(--accent); }

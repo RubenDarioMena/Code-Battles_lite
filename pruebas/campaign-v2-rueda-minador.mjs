@@ -14,7 +14,9 @@ async function jugar(clave, cada) {
   const derribos = partida.sucesos(0).filter(s => s.tipo === 'derribo');
   conductor.cerrar();
   assert.deepEqual(avisos.filter(m => m.type === 'errorUnidad'), [], clave);
-  return { ...sim, fin: partida.evaluar(), derribos, logs: avisos.filter(m => m.type === 'consola') };
+  // Cada estallido deja una explosión marcada como carga: la vista la dibuja con la receta «detonacion».
+  const detonaciones = partida.sucesos(0).filter(s => s.tipo === 'explosion' && s.datos.carga);
+  return { ...sim, fin: partida.evaluar(), derribos, detonaciones, logs: avisos.filter(m => m.type === 'consola') };
 }
 
 // Rueda: espera en el carril, estalla con una oruga a menos de 1,5 m, desaparece, reaparece en casa a los 12 s y su
@@ -35,6 +37,8 @@ const r = await jugar('rueda', ({ partida }) => {
 assert.equal(r.fin?.fin, 'victoria', JSON.stringify(r.fin));
 assert.ok(estallidos >= 2 && reapariciones >= 1, `estallidos ${estallidos}, reapariciones ${reapariciones}`);
 assert.ok(r.derribos.filter(s => s.datos.por === whl).length >= ensayos.rueda.metas.derribosMin);
+assert.equal(r.detonaciones.length, estallidos, 'una explosión por estallido');
+assert.ok(r.detonaciones.every(s => s.unidad === whl && s.datos.radio === ensayos.rueda.unidades[0].radio));
 
 // Minador: siembra sus cuatro cargas en el carril, vuelve tras la muralla y cada carga que estalla avisa al programa.
 const min = 'MIN-01';
@@ -43,6 +47,7 @@ const m = await jugar('minador', ({ partida }) => {
   sembradas = Math.max(sembradas, ensayos.minador.unidades[0].cargas - (partida.mundo.campo.aliados[min]?.charges ?? 0));
 });
 assert.equal(sembradas, 4);
+assert.equal(m.detonaciones.length, 4, 'una explosión por carga');
 const avisosCarga = m.logs.filter(l => l.unidad === min && l.texto.startsWith('¡Carga!'));
 assert.ok(avisosCarga.length >= 3, JSON.stringify(m.logs));
 assert.ok(m.derribos.filter(s => s.datos.por === min).length >= ensayos.minador.metas.derribosMin, JSON.stringify(m.derribos.map(s => s.datos.por)));

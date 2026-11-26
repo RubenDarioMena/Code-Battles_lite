@@ -53,7 +53,7 @@ try {
   iniciarLaboratorio(THREE);
   const api = globalThis.laboratorioVfx;
   assert.equal(api.listo, true, api.error);
-  assert.equal(api.nombres.length, 9); assert.equal(contactos, 14);
+  assert.equal(api.nombres.length, 10); assert.equal(contactos, 14);
   assert(dibujados > 0);
   for (const receta of api.nombres) for (const calidad of ['alto', 'medio', 'bajo', 'no']) {
     const m = api.medir(receta, calidad);
@@ -78,4 +78,4 @@ try {
 } finally {
   for (const k of claves) { if (previos[k]) Object.defineProperty(globalThis, k, previos[k]); else delete globalThis[k]; }
 }
-console.log('Laboratorio VFX emulado en Node: 9 recetas × 4 calidades, hoja, controles, rebobinado, recursos locales y paridad ES/EN; sin rasterizado ni navegador.');
+console.log('Laboratorio VFX emulado en Node: 10 recetas × 4 calidades, hoja, controles, rebobinado, recursos locales y paridad ES/EN; sin rasterizado ni navegador.');

@@ -37,6 +37,9 @@ export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil, alturaSuelo =
   });
   const lotes = new Map(), alturas = new Map(), estelas = new Map();
   const bola = new THREE.Object3D(); bola.scale.setScalar(.12);
+  // Cargas del minador (Campaign-V2): un disco plano en el suelo con un piloto rojo que late, sin estela.
+  const G_MINA = new THREE.CylinderGeometry(.32, .38, .1, 16), mina = new THREE.Object3D();
+  const piloto = new THREE.Object3D();
   let destruida = false;
 
   function reservar(lote, capacidad) {
@@ -97,6 +100,15 @@ export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil, alturaSuelo =
     }
     retirarMuertas(alturas, vivos, false);
     for (const mi of escena.misiles) {
+      if (mi.carga) {
+        const [x, y, z] = posMisil(mi, t);
+        mina.position.set(x, y - .1, z); mina.updateMatrix();
+        poner(G_MINA, M.borde, mina.matrix);
+        piloto.position.set(x, y + .02, z); piloto.scale.setScalar(.1 + .05 * (1 + Math.sin(t * 7 + x)));
+        piloto.updateMatrix();
+        poner(G.esfera, M.golpe ?? M.misil, piloto.matrix);
+        continue;
+      }
       enVuelo.add(mi.id);
       bola.position.set(...posMisil(mi, t)); bola.updateMatrix();
       poner(G.esfera, M.misil, bola.matrix);
@@ -135,6 +147,7 @@ export function crearInstanciasWar({ THREE, G, M, L, TIPOS, movil, alturaSuelo =
     for (const alt of alturas.values()) movil.remove(alt);
     for (const estela of estelas.values()) { movil.remove(estela); estela.geometry.dispose(); }
     for (const g of propias) g.dispose();
+    G_MINA.dispose();
     lotes.clear(); alturas.clear(); estelas.clear(); propias.clear();
     // Materiales y geometrías de G pertenecen al visor; no son clones del lote.
   }

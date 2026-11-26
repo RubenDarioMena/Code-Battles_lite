@@ -56,5 +56,5 @@ export function crearEfectos(opciones: OpcionesEfectos): {
   particulas(tv: number, opciones?: Omit<OpcionesEvaluar, 'dt'>, emitir?: (p: Particula) => void): Particula[];
 };
 export const PRESUPUESTOS: Readonly<Record<Calidad, number>>;
-export function crearRecetasWar(opciones: { radioDanio: number }): Record<string, Receta>;
+export function crearRecetasWar(opciones: { radioDanio: number, radioCarga?: number }): Record<string, Receta>;
 export function recetaWar(suceso: Suceso): string | null;

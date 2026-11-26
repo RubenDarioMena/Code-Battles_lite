@@ -1,3 +1,29 @@
+## Campaign-V2 · Rueda y minador con modelo, cargas visibles y detonaciones · 26 de noviembre de 2026
+
+La rueda kamikaze y el minador no tenían modelo: se dibujaban como la caja gris de un edificio. Ahora tienen modelos sencillos de colores planos (`vista-3d/cv2/moviles.js`):
+
+- **WHL**: neumático con buje y radios rojos y un piloto ámbar que parpadea. Rueda sobre su eje al avanzar y mira hacia donde va.
+- **MIN**: chasis de orugas oliva con franja ámbar delante y una tolva que enseña las cargas que le quedan (`cargas` entra en la escena desde `entidadesCampo`).
+
+Las cargas sembradas eran la bolita de un misil. Ahora son un disco en el suelo con un piloto rojo que late, sin estela (`instancias-war.js`, solo para `carga: true`).
+
+Las detonaciones no tenían efecto, porque `danoEnArea` solo anota golpes y derribos. Ahora `paso.js` anota una `explosion` por cada impacto del campo:
+
+- la de la rueda y las cargas va marcada `carga` y usa la receta nueva `detonacion` (`vfx/recetas/war.js`): destello ancho, bola de fuego baja, aro de 2 m, restos y columna de humo, dentro de los límites del esquema;
+- la del misil del vehículo usa la receta `impacto` de los misiles de War (antes tampoco tenía efecto).
+
+Como en War, los efectos atribuyen a la explosión los derribos del mismo paso.
+
+Pruebas: `vfx.mjs` (diez recetas, selección de `detonacion`, radio configurable) y `campaign-v2-rueda-minador.mjs` (una explosión por estallido y por carga). Se vio en el navegador la rueda en el carril de la B7, y el minador con sus cuatro cargas sembradas en la B8.
+
+El laboratorio de VFX (`herramientas/laboratorio-vfx`) también enseña la detonación (`?receta=detonacion`). `vfx-calidad.mjs` sigue fijando el hash de las nueve recetas anteriores; la nueva se valida igual pero queda fuera del hash.
+
+Otros arreglos del mismo paso:
+
+- **Cabecera del editor:** «▸ Unidades · N» quedaba montado sobre el selector de lenguaje, porque el selector no cedía ancho. Ahora el selector se encoge hasta 6,2em y el rótulo, si aun así no cabe, se corta con puntos suspensivos (`campaign-v2.css`). Revisado a 1024 px y en móvil.
+- **Meta de piezas hechas:** decía «misil fabricadas en este hito». Ahora dice «{pieza} de este hito», sin participio que concordar, en el mismo estilo que «{pieza} en lotes».
+- **Prueba de textos:** `campaign-v2-i18n.mjs` comprueba que español e inglés tienen las mismas claves, ningún texto vacío y los mismos `{parámetros}`. También comprueba que existe cada clave `cv2.…` escrita literalmente en el código.
+
 ## Campaign-V2 · B6–B8: las unidades móviles entran en la campaña · 26 de noviembre de 2026
 
 Tras H5 vienen tres Batallas propias (`niveles/nivel-1/b6.js`, `b7.js`, `b8.js`). Antes H5 cerraba el nivel y su bodega no abastecía a nadie. Cada Batalla estrena una unidad que hasta ahora solo existía en su ensayo suelto, en el orden en que crecen las ideas de programación:

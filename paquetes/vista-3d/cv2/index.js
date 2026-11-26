@@ -6,6 +6,7 @@ import { liberarEscena } from '../recursos.js';
 import { altoBastion, crearPaisaje } from './paisaje.js';
 import { estadoRig, montarTorreta } from './torreta.js';
 import { modelos } from './modelos.js';
+import { montarRueda, montarMinador } from './moviles.js';
 import { zoomMax, PITCH_RASANTE } from './decorado.js';
 
 // Fachada en metros. Solo la composición conoce la conversión al marco del jugador.
@@ -47,7 +48,7 @@ export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS
     const grupo = new THREE.Group();
     grupo.userData.id = e.id;
     maquinas.add(grupo);
-    const unidad = { grupo, animar: null, luz: null, copia: null };
+    const unidad = { grupo, animar: null, luz: null, copia: null, mover: null };
     if (e.clase === 'lanzador') {
       const espera = caja(.95, .6, .95, M.rol);
       espera.position.y = .3;
@@ -66,7 +67,9 @@ export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS
         unidad.copia = copia;
         copia.traverse(n => { if (/^L[12]_/.test(n.name)) n.visible = false; });
       });
-    } else if (e.clase === 'vibracion') montarSensor(THREE, grupo, M, M.rol);
+    } else if (e.clase === 'rueda') unidad.mover = montarRueda(THREE, grupo);
+    else if (e.clase === 'minador') unidad.mover = montarMinador(THREE, grupo, e.cargas ?? 4);
+    else if (e.clase === 'vibracion') montarSensor(THREE, grupo, M, M.rol);
     else if (e.clase === 'reparador') montarReparador(THREE, grupo, M, M.rol);
     else {
       const base = caja(fabrica ? 2.2 : 1.4, .95, 1.7, M.edificio);
@@ -131,6 +134,7 @@ export function crearVistaCV2(campo, { THREE, cargarGLTFLoader, canvas, $, TIPOS
       const u = porId.get(m.id) ?? crearUnidad(m);
       u.grupo.visible = true;
       u.grupo.position.set(m.cx, alturaUnidad(m), m.cy);
+      u.mover?.(m, t);
       if (u.luz) {
         const ultimo = disparos.get(m.id) ?? -Infinity;
         const tiro = t - ultimo < .18 && e.misiles.find(mi => mi.de === m.id && mi.t0 === ultimo);

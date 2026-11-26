@@ -133,7 +133,8 @@ Al tocar la tarjeta fuera de un token se abre la ficha completa. Para regenerar 
 
 ## Pruebas automáticas
 
-- `node pruebas/campaign-v2-rueda-minador.mjs` juega los ensayos de la rueda y del minador con sus programas de ejemplo. Rueda: estallidos, reaparición en casa y `nearest`. Minador: cuatro cargas, avisos `onDetonation` y vuelta tras la muralla.
+- `node pruebas/campaign-v2-rueda-minador.mjs` juega los ensayos de la rueda y del minador con sus programas de ejemplo. Rueda: estallidos, reaparición en casa y `nearest`. Minador: cuatro cargas, avisos `onDetonation` y vuelta tras la muralla. Cada estallido y cada carga anota una explosión `carga` (la receta `detonacion`).
 - `node pruebas/campaign-v2-mando.mjs` prueba el mando táctil.
 - `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase) el deslizador de inclinación y la puerta de la muralla en la vista de la fábrica.
 - `node pruebas/campaign-v2-batallas-propias.mjs` juega B6–B8 con el intérprete: las torretas solas pierden y con la unidad nueva se gana; en la B6 también gana repartir el trabajo.
+- `node pruebas/campaign-v2-i18n.mjs` revisa los textos de Campaign-V2: las mismas claves en español e inglés, ninguna vacía y los mismos `{parámetros}`; y que existe cada clave `cv2.…` escrita literalmente en el código.

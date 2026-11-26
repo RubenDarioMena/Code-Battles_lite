@@ -77,7 +77,7 @@ export function entidadesCampo(c) {
     }
     const { x, y } = puntoEnMarco(u.position, c.origen);
     maquinas.push({ id: u.id, clase: u.clase, modelo: u.modelo, cx: x, cy: y, x, y, hp: u.hp, hpMax: def.vida,
-      misiles: u.missiles, programable: true, rol: porTipo[u.clase].ficha.rol });
+      misiles: u.missiles, cargas: u.charges, programable: true, rol: porTipo[u.clase].ficha.rol });
   }
   const enemigos = c.hostiles.map(({ def, traza, ...e }) => puntoEnMarco(e, c.origen));
   const trazas = c.hostiles.map(e => e.traza).filter(p => p && c.t < p.t0 + p.dur);
@@ -108,11 +108,17 @@ export function paso(m, dt, planta, war) {
   // El puente consume impactos del paso anterior antes de que War evalúe las metas.
   if (c?.impactos.length) {
     const anterior = b.sucesos.desde(pasoDe(b.t)).length;
+    const estallidos = [];
     for (const p of c.impactos.splice(0)) {
       const punto = puntoEnMarco({ x: p.x1, y: p.y1 }, c.origen);
-      war.danoEnArea(b, punto.x, punto.y, p.radio, p.dano, p.de);
+      const alcanzados = war.danoEnArea(b, punto.x, punto.y, p.radio, p.dano, p.de);
+      // Como los misiles de War, cada impacto deja su explosión para los efectos: la de la rueda y las cargas del
+      // minador va marcada (carga) y se dibuja más grande que la del misil del vehículo.
+      estallidos.push({ paso: pasoDe(m.t), tipo: 'explosion', unidad: p.de, datos: { x: punto.x, y: punto.y, z: p.z1 ?? 0,
+        misil: p.id, golpe: alcanzados.length > 0, radio: p.radio, ...(p.estallido ? { carga: true } : {}) } });
     }
     for (const s of b.sucesos.desde(pasoDe(b.t)).slice(anterior)) m.sucesos.anotar({ ...s, paso: pasoDe(m.t) });
+    for (const s of estallidos) m.sucesos.anotar(s);
   }
   if (m.puntuales.size) war.pasoConIntentoPuntual(b, dt, m.puntuales, (unidad, motivo) =>
     m.sucesos.anotar({ paso: pasoDe(m.t), tipo: 'puntual-descartada', unidad, datos: { motivo } }));

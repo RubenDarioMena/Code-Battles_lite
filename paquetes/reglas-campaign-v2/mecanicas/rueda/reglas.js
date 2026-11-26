@@ -50,7 +50,7 @@ export function paso(campo) {
     if (u?.clase !== ficha.id) continue;
     if (u.detonada) {
       const { x, y } = u.position, d = u.def;
-      campo.impactos.push({ id: 'v2-' + ++campo.secuencia, de: u.id, x0: x, y0: y, x1: x, y1: y, radio: d.radio, dano: d.dano });
+      campo.impactos.push({ id: 'v2-' + ++campo.secuencia, de: u.id, x0: x, y0: y, x1: x, y1: y, radio: d.radio, dano: d.dano, estallido: true });
       for (const e of campo.hostiles) if (Math.hypot(e.x - x, e.y - y) <= d.radio) { e.hp -= d.dano; e.golpeT = campo.t; }
       campo.hostiles = campo.hostiles.filter(e => e.hp > 0);
       campo.aliados[u.id] = null;
