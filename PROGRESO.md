@@ -1,9 +1,22 @@
+## Campaign-V2 · P7 · Producción circular: reglas e invariantes · 26 de noviembre de 2026
+
+Primera porción del consolidado del 23-nov que no venía de War ni de Campaign 1: su corte vertical 13.A, «Producción circular mínima». El diseño está en [P7-CIRCULAR.md](docs/campaign-v2/P7-CIRCULAR.md).
+
+- **Cadena:** placa (10 kg) → embutidora → domo → sierra o láser → semiesfera (6 kg) + recortes (4 kg). La fundidora convierte tres recortes en una placa y pierde 2 kg de escoria.
+- **Motor compartido** (`paquetes/fabrica`), con tres mecánicas opcionales. Solo se activan si el catálogo las declara, así que la misión 1 y Campaign del trunk dan lo mismo que antes (`campaign-reglas`, `partida-campaign`, `fronteras-campaign`, `campaign-v2-fabrica`):
+  - `sub`: subproductos por la misma salida; la máquina se bloquea si nadie los retira;
+  - `masa`: con `masa.js`, ninguna receta crea materia, la pérdida queda registrada y viaja en el checkpoint;
+  - `ritmo`: sierra y láser con la misma receta, a distinto tiempo y kW.
+- **Catálogo de V2:** cuatro piezas y cuatro máquinas nuevas, con sus nombres en español e inglés.
+- **Prueba nueva `campaign-v2-circular.mjs`:** conserva la masa en cada paso. Reciclando, 5 placas dan 7 semiesferas (sin reciclar, 5, con los recortes amontonados). Si solo se retiran las semiesferas, a la tercera la sierra se bloquea. Comprueba también que no hay duplicados, las capacidades, que cada máquina rechaza lo que no le toca y la repetición exacta. La sierra tarda 6 s con 1 kW y el láser 2 s con 5 kW (2,5 s si solo hay 4 kW). Un catálogo que crea masa no deja crear el motor.
+- **Falta:** el hito H6 jugable en la misión 1, con su taller, programas, pistas y vista.
+
 ## Campaign-V2 · P6 · Documentación de la rama · 26 de noviembre de 2026
 
 - `AGENTS.md` tiene una sección «Rama `Campaign-V2`» con lo que rige, dónde está el código, cómo se prueba la paridad y el balance, y cómo se publica. `CLAUDE.md` apunta a ella.
 - `CONTEXT.md` deja de ser borrador y suma *Batalla propia*, *Unidad móvil* y *Minificha*.
 - `PROGRESO.md` empieza ahora en Campaign-V2. Lo anterior, del 23-nov hacia atrás, está en `docs/historico/PROGRESO-hasta-2026-11-23.md`, con los enlaces relativos corregidos.
-- Pendiente: el consolidado preprototipo del 23-nov (21:33) que pide `DECISIONES-GRILL.md` para `docs/Vision/2026-11-23/` no está en el repositorio ni en los ZIP del 23-nov. Hace falta que el autor lo aporte.
+- El consolidado preprototipo del 23-nov lo aportó el autor y está en `docs/Vision/2026-11-23/DECISIONES-PREPROTOTIPO.md`.
 
 ## Campaign-V2 · Rueda y minador con modelo, cargas visibles y detonaciones · 26 de noviembre de 2026
 

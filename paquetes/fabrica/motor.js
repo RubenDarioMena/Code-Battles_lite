@@ -12,8 +12,14 @@
  *   - `salidaTarima` en una máquina: deja lo que produce sobre una tarima vacía en su salida.
  *   - `entregaA` en una máquina: entrega lo que produce directamente a esa unidad (la bodega).
  *   - `umbral` en una máquina: solo arranca si sus kW caben enteros en la energía libre.
- *   - `colocar(id, x, y)`: el jugador mueve puestos, máquinas y brazos dentro de la losa. */
+ *   - `colocar(id, x, y)`: el jugador mueve puestos, máquinas y brazos dentro de la losa.
+ *   - `sub` en una receta: subproductos que salen con la pieza por la misma salida (recortes de chapa). La máquina
+ *     solo arranca si caben todas las piezas del ciclo: si nadie retira los recortes, se bloquea.
+ *   - `masa` en las piezas: ninguna receta puede crear masa; lo que falta es pérdida (`m.perdida`, kg) y
+ *     `masaEnPlanta(m)` suma lo que hay para las pruebas de conservación.
+ *   - `ritmo` en una máquina: multiplica su velocidad de trabajo (sierra y láser con la misma receta). */
 import { adjuntarSucesos, anotarSuceso } from '../nucleo/index.js';
+import { crearMasa } from './masa.js';
 
 export const r2 = v => Math.round(v * 100) / 100;
 
@@ -24,6 +30,9 @@ export function crearMotor(cat) {
   const esMaquina = e => !!e && Object.hasOwn(MAQUINAS, e.clase);
   const esRobot = e => !!e && Object.hasOwn(ROBOT, e.clase);
   const esLugar = e => !!e && (e.clase === "lugar" || e.clase === "bahia");
+  const { conMasa, conMasaReceta, perdidaDe, masaEnPlanta } = crearMasa(cat, { esMaquina, esRobot });
+  // Piezas que deja un ciclo: la principal y sus subproductos.
+  const huecos = R => 1 + Object.values(R.sub || {}).reduce((a, n) => a + n, 0);
 
   // ---------- Estado ----------
   function estadoInicial(def) {
@@ -52,6 +61,7 @@ export function crearMotor(cat) {
       unidades, tarimas: [], sigTarima: 1, sigMisil: 1, tSuministro: 0, salva: null,
       misiles: [], explosiones: [], producidos: {}, pedidos: 0,
     };
+    if (conMasa) e.perdida = 0;
     const porId = Object.fromEntries(unidades.map(u => [u.id, u]));
     for (const u of unidades) {
       if (esMaquina(u) && u.pad) { const p = porId[u.pad]; p.maquina = u.id; u.cx = p.cx; u.cy = p.cy; }
@@ -70,7 +80,7 @@ export function crearMotor(cat) {
     return e;
   }
   // Lo que se guarda: el estado tal cual, sin tareas a medias (al volver no hay programas esperándolas).
-  const CAMPOS = ["version", "nivel", "rev", "t", "hito", "completado", "hitosT", "presupuesto", "gastado", "ingresado", "unidades", "tarimas", "sigTarima", "sigMisil", "tSuministro", "producidos", "pedidos", "baseHito"];
+  const CAMPOS = ["version", "nivel", "rev", "t", "hito", "completado", "hitosT", "presupuesto", "gastado", "ingresado", "unidades", "tarimas", "sigTarima", "sigMisil", "tSuministro", "producidos", "pedidos", "baseHito", "perdida"];
   function serializar(m) {
     const e = JSON.parse(JSON.stringify(Object.fromEntries(CAMPOS.filter(k => m[k] !== undefined).map(k => [k, m[k]]))));
     for (const u of e.unidades) if (esRobot(u)) {
@@ -128,8 +138,13 @@ export function crearMotor(cat) {
     const c = MAQUINAS[q.clase];
     if (c.entregaA) { const d = m.porId[c.entregaA]; return !d || (d.clase === "arsenal" && d.misiles >= ARSENAL.cap); }
     const t = q.tarimaSalida && m.tarimaPorId[q.tarimaSalida];
-    if (t && t.piezas.length < TARIMA_CAP) return false;
-    return q.salida.length >= capSalida(q);
+    const n = huecos(RECETAS[q.receta]);
+    if (n === 1) {
+      if (t && t.piezas.length < TARIMA_CAP) return false;
+      return q.salida.length >= capSalida(q);
+    }
+    // Con subproductos, el ciclo necesita sitio para todas sus piezas entre la tarima y la salida.
+    return (t ? TARIMA_CAP - t.piezas.length : 0) + Math.max(0, capSalida(q) - q.salida.length) < n;
   }
   function estadoMaquina(q, m = null) {
     if (!q.encendida) return "off";
@@ -137,7 +152,7 @@ export function crearMotor(cat) {
     if (q.cambio) return "changeover";
     if (q.proceso) return "working";
     if (!q.marcha) return "stopped";
-    if (m ? salidaLlena(m, q) : q.salida.length >= capSalida(q)) return "blocked";
+    if (m ? salidaLlena(m, q) : q.salida.length + huecos(RECETAS[q.receta]) - 1 >= capSalida(q)) return "blocked";
     if (q.sinEnergia) return "no_power";
     return "idle";
   }
@@ -472,12 +487,15 @@ export function crearMotor(cat) {
         return;
       }
       if (q.proceso) {
-        q.proceso.prog += dt * factor; q.st.tTrabajo += dt;
+        q.proceso.prog += dt * factor * (MAQUINAS[q.clase].ritmo ?? 1); q.st.tTrabajo += dt;
         const R = RECETAS[q.proceso.receta];
         if (q.proceso.prog >= R.t - 1e-9) {
           sacar(q, R.sale); q.hechos++; q.st.ciclos++; q.proceso = null;
           m.producidos[R.sale] = (m.producidos[R.sale] || 0) + 1;
-          anotarSuceso(m, "produccion", q.id, { pieza: R.sale, hechos: q.hechos });
+          for (const [p, n] of Object.entries(R.sub || {})) for (let i = 0; i < n; i++) { sacar(q, p); m.producidos[p] = (m.producidos[p] || 0) + 1; }
+          // La masa que no sale en ninguna pieza es pérdida registrada (escoria, humo), nunca materia que desaparece.
+          if (m.perdida !== undefined && conMasaReceta(R)) m.perdida += perdidaDe(R);
+          anotarSuceso(m, "produccion", q.id, R.sub ? { pieza: R.sale, hechos: q.hechos, sub: { ...R.sub } } : { pieza: R.sale, hechos: q.hechos });
         }
       }
       if (!q.proceso && q.marcha) {
@@ -616,5 +634,5 @@ export function crearMotor(cat) {
   }
 
   return { VERSION, crear, serializar, indexar, instantanea, metas, cuantos, enLotes, estadoMaquina, totalEntrada,
-    capSalida, tarimaDe, esMaquina, esRobot, conectar, piezasZona, piezasSalida, salidaLlena };
+    capSalida, tarimaDe, esMaquina, esRobot, conectar, piezasZona, piezasSalida, salidaLlena, masaEnPlanta };
 }

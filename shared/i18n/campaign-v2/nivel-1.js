@@ -148,6 +148,9 @@ export const catalogo = {
     // Sin participio: las piezas son de los dos géneros («ojiva», «misil») y la meta va en singular, como «{pieza} en lotes».
     'campaign.meta.hechos': '{pieza} de este hito',
     'campaign.meta.tarima': 'tarima en {lugar}',
+    // P7 · producción circular: piezas con masa y las máquinas del taller de carcasas.
+    'campaign.pieza.plate': 'placa', 'campaign.pieza.dome': 'domo', 'campaign.pieza.shell': 'semiesfera', 'campaign.pieza.scrap': 'recortes',
+    'campaign.clase.embutidora': 'Embutidora', 'campaign.clase.sierra': 'Sierra', 'campaign.clase.laser': 'Láser de corte', 'campaign.clase.fundidora': 'Fundidora',
     'campaign.hud.bodega': 'Bodega de la muralla: misiles listos para las Batallas',
     'campaign.hud.bodegaCorto': 'Bodega',
     'campaign.estado.maquina.no_power': 'sin energía',
@@ -319,6 +322,8 @@ export const catalogo = {
     'campaign.hito.5.pista.2': 'Move the mixer and the assembler closer to the cells: every forklift metre counts.',
     'campaign.meta.hechos': '{pieza} made in this milestone',
     'campaign.meta.tarima': 'pallet at {lugar}',
+    'campaign.pieza.plate': 'plate', 'campaign.pieza.dome': 'dome', 'campaign.pieza.shell': 'hemisphere', 'campaign.pieza.scrap': 'scrap',
+    'campaign.clase.embutidora': 'Deep-drawing press', 'campaign.clase.sierra': 'Saw', 'campaign.clase.laser': 'Cutting laser', 'campaign.clase.fundidora': 'Foundry',
     'campaign.hud.bodega': 'Wall depot: missiles ready for the Battles',
     'campaign.hud.bodegaCorto': 'Depot',
     'campaign.estado.maquina.no_power': 'no power',
