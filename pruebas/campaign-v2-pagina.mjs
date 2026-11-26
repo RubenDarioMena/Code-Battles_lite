@@ -33,7 +33,7 @@ for (const almacen of [plataforma.almacen, plataforma.sesion]) {
     almacen[metodo] = (k, ...args) => { claves.add(k); return original(k, ...args); };
   }
 }
-const etapas = ['h0', 'b1', 'b2', 'b3', 'b4', 'b5', 'salida'];
+const etapas = ['h0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'salida'];
 let destinoEnsayo;
 // Partida nueva: la página arranca la sesión Campaign sobre la planta de H0 (fabrica-v2.js), con el HUD de V2.
 const fabrica = await cargar('campaign-v2', '2d', false, false, null, 'movil', '', { plataforma, i18n: true, serie: 'campaign',

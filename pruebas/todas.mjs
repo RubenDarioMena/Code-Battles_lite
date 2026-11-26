@@ -52,7 +52,7 @@ const logica = [
   'pruebas/campaign-v2-puente.mjs', 'pruebas/campaign-v2-secuencia.mjs', 'pruebas/campaign-v2-checkpoint.mjs',
   'pruebas/campaign-v2-error-aislado.mjs', 'pruebas/campaign-v2-aplicar.mjs',
   'pruebas/campaign-v2-clic.mjs', 'pruebas/campaign-v2-gestos.mjs', 'pruebas/campaign-v2-seudo.mjs',
-  'pruebas/campaign-v2-repetir.mjs', 'pruebas/campaign-v2-pausa.mjs', 'pruebas/campaign-v2-marco.mjs', 'pruebas/campaign-v2-vista.mjs', 'pruebas/war-dano-en-area.mjs', 'pruebas/campaign-v2-mecanicas.mjs', 'pruebas/campaign-v2-decorado.mjs', 'pruebas/campaign-v2-fabrica.mjs', 'pruebas/campaign-v2-sesion-fabrica.mjs', 'pruebas/campaign-v2-demo-fabrica.mjs', 'pruebas/campaign-v2-mando.mjs', 'pruebas/campaign-v2-rueda-minador.mjs', 'pruebas/campaign-v2-minificha.mjs',
+  'pruebas/campaign-v2-repetir.mjs', 'pruebas/campaign-v2-pausa.mjs', 'pruebas/campaign-v2-marco.mjs', 'pruebas/campaign-v2-vista.mjs', 'pruebas/war-dano-en-area.mjs', 'pruebas/campaign-v2-mecanicas.mjs', 'pruebas/campaign-v2-decorado.mjs', 'pruebas/campaign-v2-fabrica.mjs', 'pruebas/campaign-v2-sesion-fabrica.mjs', 'pruebas/campaign-v2-demo-fabrica.mjs', 'pruebas/campaign-v2-mando.mjs', 'pruebas/campaign-v2-rueda-minador.mjs', 'pruebas/campaign-v2-minificha.mjs', 'pruebas/campaign-v2-batallas-propias.mjs',
   'fronteras-fase2', 'fronteras-factory', 'fronteras-campaign', 'juego-conductor',
 ];
 const navegador = ['ejecutar-idiomas', 'campaign-juego', 'partida-contraste', 'ejecutar-terreno', 'ejecutar-editor-demo', 'vista-caliente',

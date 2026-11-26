@@ -4,7 +4,7 @@ La app resuelve los retos y entrega a `crearReglamento(war, contenido, retos)` e
 
 ## Hitos de fábrica y Batallas
 
-El nivel intercala hitos de fábrica (`h0`…`h5`, `esFabrica(clave)`) con Batallas (`b1`…`b5`). La fábrica es el motor compartido `paquetes/fabrica` con el catálogo de `fabrica/catalogo.js` y la planta de `niveles/nivel-1/fabrica.js`. Cada hito tiene su archivo (`hN.js`, con metas y entregas al empezar).
+El nivel intercala hitos de fábrica (`h0`…`h5`, `esFabrica(clave)`) con Batallas (`b1`…`b5`, referencias a War). Tras H5 siguen tres Batallas propias seguidas (`b6`–`b8`), que estrenan el vehículo, la rueda y el minador. La fábrica es el motor compartido `paquetes/fabrica` con el catálogo de `fabrica/catalogo.js` y la planta de `niveles/nivel-1/fabrica.js`. Cada hito tiene su archivo (`hN.js`, con metas y entregas al empezar).
 
 - **En un hito de fábrica** la página juega la planta como una sesión de la serie Campaign (`moduloFabrica(contenido)`). El jugador escribe los programas de los robots, coloca tarimas, máquinas y brazos, y cumple las metas del hito. El reglamento de V2 no avanza nada mientras `m.hito` es de fábrica.
 - **En una Batalla** la misma planta sigue trabajando dentro del mundo compuesto (`m.fabrica`): sin programas, sin cambiar de hito (`paso(dt, { sinHitos: true })`), terminando lo que tenía en cola. Su arsenal es `mundo.bodega`: los misiles que fabrica abastecen las torretas.

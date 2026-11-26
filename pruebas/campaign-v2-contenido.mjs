@@ -27,7 +27,10 @@ for (const carpeta of carpetas) {
     assert.deepEqual([p.mundo.hito, p.mundo.modo], [hito, 'ensayo']);
     while (!p.evaluar() && p.pasoActual < 8001) p.paso();
     assert.ok(p.evaluar(), hito);
-    assert.deepEqual(c.reglas.escena(p.mundo), war.escena(p.mundo.batalla));
+    // Con unidades móviles (B6–B8), la escena añade las del campo detrás de las de War.
+    const escena = c.reglas.escena(p.mundo), deWar = war.escena(p.mundo.batalla);
+    if (!contenido[hito].unidades && !contenido[hito].hostiles) assert.deepEqual(escena, deWar);
+    else for (const k of ['maquinas', 'enemigos', 'misiles']) assert.deepEqual(escena[k].slice(0, deWar[k].length), deWar[k], hito);
     assert.ok(p.sucesos().some(s => s.tipo === 'fin'), hito);
   }
 }

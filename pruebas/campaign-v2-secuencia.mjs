@@ -51,8 +51,8 @@ assert.equal(vuelta.bodega.misiles, m.bodega.misiles);
 assert.notEqual(vuelta.semillaIntento, semilla);
 // Paridad y Batallas no se cierran como fábrica.
 assert.equal(reglas.cerrarFabrica(vuelta), false);
-// Tras el último hito de fábrica el nivel termina.
-const fin = reglas.restaurar({ ...cp, hito: 'h5' }, 3);
-assert.equal(reglas.cerrarFabrica(fin), true);
-assert.equal(fin.final.fin, 'victoria');
-console.log('H0 → B1 → H1 → B2: planta parada en fábrica, victoria, bodega gastada, programas, cierre de fábrica y final del nivel comprobados.');
+// Tras el último hito de fábrica vienen las Batallas propias: H5 monta la B6 con su vehículo.
+const tras = reglas.restaurar({ ...cp, hito: 'h5' }, 3);
+assert.equal(reglas.cerrarFabrica(tras), true);
+assert.deepEqual([tras.hito, tras.final, !!tras.campo.aliados['VEH-01']], ['b6', null, true]);
+console.log('H0 → B1 → H1 → B2: planta parada en fábrica, victoria, bodega gastada, programas, cierre de fábrica y paso de H5 a la B6 comprobados.');

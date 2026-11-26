@@ -38,7 +38,7 @@ let banco = await abrir(true), juego = juegoDe(banco);
 assert.equal(juego.fabricaV2.hito, 'h0');
 assert.equal(historial().ultimo, 'h0');
 assert.equal(banco.mundo.arsenal.misiles, niveles['nivel-1'].fabrica.bodegaInicial);
-assert.deepEqual(etapas(juego), ['h0', 'b1', 'b2', 'b3', 'b4', 'b5', 'salida']);
+assert.deepEqual(etapas(juego), ['h0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'salida']);
 banco.ejecutar();
 await correr(juego, () => juego.continuarHito, 4000);
 assert.equal(juego.ejec, null);
@@ -69,7 +69,7 @@ assert.equal(banco.mundo.hito, 1);
 const tBatalla = banco.mundo.t;
 assert.ok(tBatalla > 0, 'la Batalla hizo avanzar la planta');
 assert.deepEqual(banco.mundo.programables.map(u => u.id), ['FRK-01', 'ARM-01', 'PRS-01']);
-assert.deepEqual(etapas(juego), ['h0', 'b1', 'h1', 'b2', 'b3', 'b4', 'b5', 'salida']);
+assert.deepEqual(etapas(juego), ['h0', 'b1', 'h1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'salida']);
 
 // 4 · Colocador: solo con una pieza movible elegida; la orden entra como orden del jugador y el motor decide.
 const mover = juego.moverFabrica, boton = juego.$('b-mover');

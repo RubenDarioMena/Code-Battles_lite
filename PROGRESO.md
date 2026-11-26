@@ -1,3 +1,34 @@
+## Campaign-V2 · B6–B8: las unidades móviles entran en la campaña · 26 de noviembre de 2026
+
+Tras H5 vienen tres Batallas propias (`niveles/nivel-1/b6.js`, `b7.js`, `b8.js`). Antes H5 cerraba el nivel y su bodega no abastecía a nadie. Cada Batalla estrena una unidad que hasta ahora solo existía en su ensayo suelto, en el orden en que crecen las ideas de programación:
+
+- **B6 · Fuera de la muralla** (vehículo VEH-01 y tirador): moverse con `moveTo` y esperar con `await arrive()`. Llegan orugas y un enjambre de 20 drones. Las torretas solas dejan pasar orugas porque persiguen drones. Se gana con el vehículo cazando drones fuera, o repartiendo el trabajo: torretas a por las orugas y vehículo a por los drones.
+- **B7 · La rueda** (WHL-01): un bucle de espera sobre `nearest` y `detonate()`. Cinco orugas blindadas (7 de vida) en fila. La rueda reaparece y su programa vuelve a empezar.
+- **B8 · Siembra** (MIN-01): `for…of` con `drop()` y la función registrada con `onDetonation`. Una columna de ocho orugas llega a los 16 s. Es la última Batalla y al ganarla aparece el cierre del nivel.
+
+Las tres conservan las dos torretas y el sensor de la B5, así que los programas del jugador siguen valiendo. Los números se afinaron en Node con el intérprete real:
+
+| Batalla | Brechas solo con torretas | Brechas con la unidad nueva | Máximo |
+|---|---|---|---|
+| B6 | 3 | 1 | 2 |
+| B7 | 2 | 0 | 1 |
+| B8 | 4 | 2 | 3 |
+
+La B6 era frágil con solo más drones: según la cadencia, el vehículo no bastaba. Repartir el trabajo gana en todas las cadencias probadas, y esa es la pista. Los textos están en ES y EN (`cv2.b6.*`–`cv2.b8.*`). La B6 se llama «Fuera de la muralla» para no repetir el nombre del ensayo «Salida», que sigue en el menú.
+
+Pruebas: `campaign-v2-batallas-propias.mjs` (nueva); se actualizaron contenido, secuencia, página, sesión y demo de fábrica para el nivel más largo. Se comprobó en el navegador que la B6 carga, su HUD (máximo 2, mínimo 14) y que el vehículo sale y dispara sin errores.
+
+## Campaign-V2 · La velocidad 1× es real · 26 de noviembre de 2026
+
+En el panel del navegador de Claude, la Batalla parecía ir a un tercio de la velocidad. Se midió en la B1 con una torreta en marcha:
+
+- en el panel oculto, 10 s reales dan 4 s de juego;
+- el panel oculto entrega 1,3 fotogramas por segundo, aunque el hilo principal está libre (sin tareas largas, `setTimeout(0)` en 5 ms) y la página se cree visible;
+- `bucle.js` limita cada fotograma a 0,25 s de simulación (`Math.min(0.25, transcurrido)`), así que a 1 fps el juego va a 0,25–0,4×;
+- con `requestAnimationFrame` sustituido por un reloj de 16 ms, 10 s reales dan 10 s de juego.
+
+No se cambia nada. El tope evita que el juego salte hacia delante tras una pausa larga, y en un navegador normal una pestaña de fondo detiene los fotogramas del todo. Solo un equipo por debajo de 4 fps notaría el efecto.
+
 ## Campaign-V2 · Cámara a ras del suelo · 26 de noviembre de 2026
 
 La cámara 3D de la fábrica y de las Batallas baja ahora hasta unos 17° sobre el suelo (`PITCH_RASANTE = .3` en `vista-3d/cv2/decorado.js`). Antes no pasaba de 45° (.78). Hay cuatro formas de inclinarla:

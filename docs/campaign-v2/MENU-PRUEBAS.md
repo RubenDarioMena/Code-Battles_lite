@@ -15,6 +15,9 @@ Cada Batalla, como ensayo suelto, con la UI nueva, la muralla y la torreta esfer
 | B3 · Niebla | `index.html?ensayo=b3` | La cámara ve 4,5 casillas y la térmica 7. Prueba `autoTarget(tipo, "thermal")`. |
 | B4 · Enjambre | `index.html?ensayo=b4` | Dos enjambres de 18 drones: 1 disparo/s no basta. Prueba `burstFire(objetivo)` y vigila el atasco. |
 | B5 · Dos lanzadores | `index.html?ensayo=b5` | Un enjambre por el norte y otro por el sur. Cada lanzador lleva su programa (pestañas LAU-01 y LAU-02). |
+| B6 · Fuera de la muralla | `index.html?ensayo=b6` | Orugas y un enjambre de 20 drones. Las torretas solas dejan pasar orugas porque persiguen drones. VEH-01 sale por la puerta y caza drones lejos de la muralla. El tirador (x 227, y 84) lo desgasta si se acerca a 7 m. También gana repartir el trabajo: torretas con `autoTarget("crawler")` primero y el vehículo a por los drones. |
+| B7 · La rueda | `index.html?ensayo=b7` | Cinco orugas blindadas (7 de vida) en fila por el carril de la puerta, más rápidas de lo que las torretas tumban. WHL-01 espera en el carril, estalla con una oruga a menos de 2 m y reaparece a los 12 s con su programa desde el principio. |
+| B8 · Siembra | `index.html?ensayo=b8` | Una columna de ocho orugas llega a los 16 s. MIN-01 siembra sus cuatro cargas antes y vuelve tras la muralla. Cada carga que estalla escribe «¡Carga!» en la consola. Es la última Batalla: al ganarla en la campaña aparece el cierre del nivel. |
 
 Ejemplo para B1 (LAU-01):
 
@@ -132,4 +135,5 @@ Al tocar la tarjeta fuera de un token se abre la ficha completa. Para regenerar 
 
 - `node pruebas/campaign-v2-rueda-minador.mjs` juega los ensayos de la rueda y del minador con sus programas de ejemplo. Rueda: estallidos, reaparición en casa y `nearest`. Minador: cuatro cargas, avisos `onDetonation` y vuelta tras la muralla.
 - `node pruebas/campaign-v2-mando.mjs` prueba el mando táctil.
-- `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase) y la puerta de la muralla en la vista de la fábrica.
+- `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase) el deslizador de inclinación y la puerta de la muralla en la vista de la fábrica.
+- `node pruebas/campaign-v2-batallas-propias.mjs` juega B6–B8 con el intérprete: las torretas solas pierden y con la unidad nueva se gana; en la B6 también gana repartir el trabajo.

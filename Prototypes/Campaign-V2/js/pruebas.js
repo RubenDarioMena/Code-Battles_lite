@@ -17,6 +17,9 @@ const secciones = [
     { titulo: 'B3 · Niebla', url: 'index.html?ensayo=b3', mirar: ['La cámara ve 4,5 casillas y el térmico 7.', 'Prueba autoTarget(tipo, "thermal").'] },
     { titulo: 'B4 · Enjambre', url: 'index.html?ensayo=b4', mirar: ['Dos enjambres de 18 drones: a 1 disparo/s no alcanza.', 'Prueba burstFire(objetivo) y vigila el atasco.'] },
     { titulo: 'B5 · Dos lanzadores', url: 'index.html?ensayo=b5', mirar: ['Un enjambre por el norte y otro por el sur.', 'Cada lanzador con su programa (pestañas LAU-01 y LAU-02).'] },
+    { titulo: 'B6 · Fuera de la muralla', url: 'index.html?ensayo=b6', mirar: ['Vienen orugas y un enjambre de 20 drones; las torretas solas dejan pasar orugas porque persiguen drones.', 'VEH-01 sale por la puerta y caza drones lejos de la muralla; el tirador (x 227, y 84) lo desgasta si se acerca a 7 m.', 'Otra solución: torretas con autoTarget("crawler") primero y el vehículo a por los drones.'] },
+    { titulo: 'B7 · La rueda', url: 'index.html?ensayo=b7', mirar: ['Cinco orugas blindadas (7 de vida) en fila por el carril de la puerta: las torretas no las tumban a tiempo.', 'WHL-01 espera en el carril, estalla con una oruga a menos de 2 m y reaparece a los 12 s con su programa desde el principio.'] },
+    { titulo: 'B8 · Siembra', url: 'index.html?ensayo=b8', mirar: ['Una columna de ocho orugas llega a los 16 s.', 'MIN-01 siembra sus cuatro cargas antes y vuelve tras la muralla; cada carga que estalla escribe «¡Carga!» en la consola.', 'Es la última Batalla: al ganarla en la campaña aparece el cierre del nivel.'] },
   ] },
   { titulo: 'Mecánicas nuevas', nota: 'Cada ensayo trae su programa de ejemplo cargado: basta con pulsar Ejecutar.', items: [
     { titulo: 'Salida · vehículo VEH y tirador', url: 'index.html?ensayo=salida', mirar: ['VEH-01 sale por la puerta, llega a su puesto y dispara a los drones.', 'Si el tirador lo destruye, el árbol lo muestra en gris con cuenta atrás y reaparece.'] },
