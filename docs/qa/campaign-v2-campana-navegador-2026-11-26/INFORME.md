@@ -1,13 +1,30 @@
 # QA en el navegador · Campaign-V2 nivel 1 completo · 26-nov-2026
 
-**Estado:** parcial (se actualiza y se sube tras cada etapa).
+**Estado:** terminado. Nivel 1 jugado entero (H0 → B1 → H1 → B2 → H2 → B3 → H3 → B4 → H4 → B5 → H5 → B6 → B7 → B8 → H6) hasta «Misión 1 completada», y repetidos H1, B2 y H6 en móvil.
 
-- Rama `Campaign-V2`, worktree `Code-battle-lite-cv2`. Servidor sin caché (`.claude/servidor-sin-cache.py`, puerto 8779). Página `Prototypes/Campaign-V2/index.html`.
-- Navegador incorporado de la app (herramientas `mcp__Claude_Browser__*`), viewport 1024×768. El panel estaba oculto, así que se sustituyó `requestAnimationFrame` por un `setTimeout` de 16 ms tras cada carga, como indica la tarea.
-- Programas: los de `docs/campaign-v2-soluciones-nivel-1.html`. Se escribieron con el editor (CodeMirror) en B1 y en otras etapas indicadas en la tabla; en el resto, con `__banco.programas[id] = …`.
-- Partida limpia: borradas las claves `campaign-v2*` de `localStorage` (ver hallazgo M1: hay que hacerlo con la página cerrada).
-- Turbo ×4 en las Batallas salvo que se diga otra cosa. Los tiempos son de simulación.
+## Resumen
+
+- **La campaña no se puede terminar sin la consola.** Dos bloqueos: C1 (un pedido de BAY-1 que llega durante la Batalla se convierte en un «error del programa» a los 3 s; pasa en B2, B3, B5 y B6) y M3 (la bodega llega a B4 con 0 misiles). Para seguir se usaron parches de consola y una edición del checkpoint `b6`, anotados en cada fila.
+- **Errores de consola no capturados:** A1 al pasar de cada Batalla a la fábrica (6 veces en escritorio y 1 en móvil) y A2 al elegir WHL-01 o MIN-01, que congela el juego. Las fábricas no dieron ningún error.
+- **Funciona bien:** las tarjetas entre hitos, los checkpoints (menú ⋯, botón ↺ Checkpoint, volver a H1 y a H6 desde el menú), la recarga a mitad de un hito de fábrica, el colocador de PAL-3 con la interfaz real, las cargas del minador y el editor CodeMirror en escritorio y en móvil. Las repeticiones en móvil dieron exactamente los mismos tiempos y resultados (H1 a t 74,95; B2 13/13 con 20 misiles a 34,65 s; H6 a t 721,75): el juego es determinista.
+- **Luces:** nunca rojo. El ámbar solo aparece con la salida llena; una máquina que espera material luce verde (M4).
+- **Textos:** claves i18n crudas `cv2.b6.titulo`, `cv2.b7.titulo` y `cv2.b8.titulo` en las tarjetas (M7).
+
+## Cómo se probó
+
+- Rama `Campaign-V2`, worktree `Code-battle-lite-cv2`. Servidor sin caché (`.claude/servidor-sin-cache.py`, puerto 8779, configuración `campaign-v2` de `.claude/launch.json`). Página `Prototypes/Campaign-V2/index.html`.
+- Navegador incorporado de la app (herramientas `mcp__Claude_Browser__*`), viewport 1024×768. Móvil con el preajuste 375×812. El panel estaba oculto, así que tras cada carga se sustituyó `requestAnimationFrame` por un `setTimeout` de 16 ms, como indica la tarea. Los errores se recogieron con `read_console_messages` y con un capturador de `error`/`unhandledrejection` instalado en cada carga.
+- Programas: los de `docs/campaign-v2-soluciones-nivel-1.html`. Se escribieron **con el editor** (clic, Cmd+A y tecleo en CodeMirror) en B1, H1, B7 (WHL-01) y en H1 en móvil (editor a pantalla completa y su ▶). En el resto, con `__banco.programas[id] = …` seguido de `__banco.abrirPrograma(id)` (ver M2).
+- Partida limpia: borradas las claves `campaign-v2*` de `localStorage` desde otra página del mismo origen (ver M1).
+- Turbo ×4 en casi todo (×2 en partes de H3 y H4). Los tiempos son de simulación.
 - No se ha corregido código: solo se informa.
+
+### Rodeos usados para seguir (no son arreglos)
+
+1. **C1, B2/B3/B5:** `setInterval(() => { const p = __banco.mundo?.porId; if (p && !p["BAY-1"]) p["BAY-1"] = { id: "BAY-1" }; }, 20)` antes de Ejecutar.
+2. **C1, B6:** ahí `porId` es un getter no configurable y el rodeo 1 no sirve. Se editó `localStorage["campaign-v2-nivel-1"].hitos.b6` con la página cerrada: pedido de 5 placas quitado y tarima con 5 placas puesta en BAY-1, como si ya hubiera llegado.
+3. **M3, B4/B6/B8:** `__banco.partida.mundo.bodega.misiles = 60` justo **después** de pulsar Ejecutar (antes no sirve: M5). Los misiles que sobraron pasaron a las etapas siguientes (B5 y B7 se ganaron con esa bodega heredada).
+4. **A2, B7:** recargar y no elegir WHL-01.
 
 ## Tabla por etapa
 
@@ -36,19 +53,21 @@
 - **C1 · B2 no se puede jugar en la campaña: la llegada de un pedido a BAY-1 durante la Batalla se atribuye como error al programa de LAU-01.** Al cumplir H1, la fábrica pide 12 de polímero que llegan 3,0 s después (`BAY-1.pedidos[0].llega = 77,95` con la planta en 74,95). La fábrica sigue corriendo durante B2, y a los 3,0 s de Batalla emite el suceso `entrega-pedido`. `ciclo-programas.js:221` llama a `ctx.entregaCampaign(ctx.mundo.porId[s.unidad], d)`, pero en la Batalla `ctx.mundo` es el mundo de la Batalla y `porId["BAY-1"]` es `undefined`; `entregaCampaign` (`campaign.js:85`) lee `bahia.id` y lanza. El `.catch` de `avanzar` (`ciclo-programas.js:253-254`) lo achaca al programa seleccionado: «Error en el programa de LAU-01 · Cannot read properties of undefined (reading 'id')» e «Ir a la línea» señala `await esperar(0.5)`.
   - Comprobado: pasa con el programa de la guía, con el de B1, con `log(pos)`, con `while (true) { await esperar(0.5); }` y con `// nada`. Siempre a t = 3,0 s. En `?ensayo=b2` (sin fábrica) no pasa.
   - Confirmación: con `setInterval(() => { const p = __banco.mundo?.porId; if (p && !p["BAY-1"]) p["BAY-1"] = { id: "BAY-1" }; }, 20)` en la consola, B2 pasa de los 3 s y se gana. **Ese parche de consola se usó para seguir la campaña** en las Batallas siguientes en las que hacía falta (se indica en la tabla).
-  - Es probable que afecte a toda Batalla que empiece con un pedido de BAY-1 en camino (cada hito de fábrica que pide material al cumplirse).
+  - Alcance comprobado: B2 (tras H1), B3 (tras H2) y B6 (tras H5, error atribuido a VEH-01). En B5 (tras H4, dos pedidos en camino) se aplicó el parche de antemano. B4, B7 y B8 no tenían pedidos en camino y no fallaron. También se reprodujo en móvil ([captura](movil-b2-error-c1.jpg)).
   - Reproducir: partida limpia → H0 → B1 → H1 con los programas de la guía → B2 con cualquier programa → Ejecutar → a los 3 s, error.
 
 ### Alta
 
-- **A1 · Error no capturado al terminar una Batalla y pasar a la fábrica.** `TypeError: Cannot read properties of undefined (reading 'map')` en `paquetes/vista-3d/cv2/index.js:148` (`e.enemigos.map`), desde `bucle.js:16`. Sale una vez, justo cuando se gana B1 y aparece la tarjeta «superado» (la vista 3D de Batalla recibe una instantánea sin `enemigos`). La simulación sigue y la tarjeta funciona.
+- **A1 · Error no capturado al terminar una Batalla y pasar a la fábrica.** `TypeError: Cannot read properties of undefined (reading 'map')` en `paquetes/vista-3d/cv2/index.js:148` (`e.enemigos.map`), desde `bucle.js:16`. Sale una vez por Batalla, justo al ganar y aparecer la tarjeta «superado» antes de «A la fábrica»: en B1, B2, B3, B4, B5 y B8 (y en B2 en móvil); no al pasar de una Batalla a otra (B6 → B7 → B8) (la vista 3D de Batalla recibe una instantánea sin `enemigos`). La simulación sigue y la tarjeta funciona.
   - Reproducir: partida limpia → H0 → B1 con el programa de la guía → al ganar, leer la consola.
   - Agravante: `bucle.js` pide el siguiente `requestAnimationFrame` al final de `bucle()`, así que cualquier excepción dentro del fotograma **para el bucle para siempre**. Aquí no se nota porque «A la fábrica» recarga la página, pero cualquier error de dibujo o de inspector congela el juego (ver A2).
 - **A2 · Elegir WHL-01 (la rueda) lanza en el inspector y congela el juego.** `__banco.seleccionar("WHL-01")` (o abrir su programa, que lo selecciona) lanza `Cannot read properties of undefined (reading 'frio')` en `paquetes/interfaz/maquinas.js:269`: la clase de la rueda cae en la rama de enemigos de `pintarInspector` y `ctx.TIPOS[e.tipo]` es `undefined`. En el fotograma siguiente `actualizarVivos` → `htmlMetricas` (`maquinas.js:157`) lanza `Cannot read properties of null (reading 'map')` dentro de `bucle()`, que ya no vuelve a pedir fotograma: el tiempo se queda en 0 y Ejecutar no avanza. Solo se sale recargando.
-  - Reproducir: llegar a B7 (o recargar en B7) → elegir WHL-01 (pestaña de su programa, la unidad en el mapa o `__banco.seleccionar("WHL-01")`) → Ejecutar → el tiempo no pasa de 0.
+  - Alcance: también con MIN-01 (el minador) en `?ensayo=b8` y con WHL-01 en `?ensayo=b7`; VEH-01, LAU-01 y LAU-02 se eligen sin error.
+  - Reproducir: llegar a B7 (o abrir `?ensayo=b7`) → elegir WHL-01 (pestaña de su programa, la unidad en el mapa o `__banco.seleccionar("WHL-01")`) → Ejecutar → el tiempo no pasa de 0.
 
 ### Media
 
+- **M3 · Con la bodega real, B4 es imposible: llega con 0 misiles.** La bodega empieza en 48; B1 gasta 12 (→ 37), B2 gasta 20 (→ 18) y B3 gasta 24 (→ 0). H1–H3 no fabrican misiles. B4 necesita ~43 (la tarjeta de H3 dice «unos 36»; la guía, ~45). Con los programas de la guía, la campaña real no se puede ganar sin la consola. Información de balance: o la bodega inicial sube a ~100, o B1–B3 gastan menos, o algún hito previo repone misiles.
 - **M1 · El borrado de la campaña desde la consola no funciona con la página abierta.** La guía (sección «Partida guardada») propone borrar las claves `campaign-v2*` en la consola y recargar. Con `index.html` abierto, al recargar el guardado en vivo vuelve a escribir las claves antes de salir y la partida reaparece (en esta prueba volvieron los programas de H6 de una sesión anterior). Funciona si se borra desde otra página del mismo origen (p. ej. `/`) o con el botón del menú de pruebas.
   - Reproducir: abrir `index.html` con una partida avanzada → consola: `Object.keys(localStorage).filter(k => k.startsWith("campaign-v2")).forEach(k => localStorage.removeItem(k))` → recargar → los programas siguen ahí.
 - **M2 · `__banco.programas[id] = …` seguido de recarga pierde el programa.** La guía dice «Escribe un programa sin el editor (después recarga o vuelve a abrirlo)». Al recargar, el guardado de salida escribe el texto que hay en el editor y el programa asignado desaparece. «Volver a abrirlo» sí funciona (`__banco.abrirPrograma(id)` o tocar su pestaña).
@@ -58,7 +77,6 @@
 - **M7 · Claves i18n crudas en las tarjetas de B6 en adelante.** Al cumplir H5: «Ahora la Batalla: cv2.b6.titulo.». Al ganar B6: «cv2.b6.titulo · superado» y «Siguiente batalla: cv2.b7.titulo.». Faltan `cv2.bN.titulo` para las Batallas propias en el catálogo (o se buscan con otra clave); el título de la página («Fuera de la muralla») sí sale.
   - Reproducir: cumplir H5 → leer la tarjeta; ganar B6 → leer la tarjeta.
 - **M8 · El aviso de bodega de las tarjetas subestima el gasto de B6–B8.** Tarjeta de H5: «6 de unos 12 misiles», y B6 gastó 37 (con 6 se pierde). Tarjeta de B7: «0 de unos 2 misiles», y B8 gastó 50 (con 0 se pierde por 4 brechas). Parece que la estimación descuenta los cargadores o usa otra cuenta.
-- **M3 · Con la bodega real, B4 es imposible: llega con 0 misiles.** La bodega empieza en 48; B1 gasta 12 (→ 37), B2 gasta 20 (→ 18) y B3 gasta 24 (→ 0). H1–H3 no fabrican misiles. B4 necesita ~43 (la tarjeta de H3 dice «unos 36»; la guía, ~45). Con los programas de la guía, la campaña real no se puede ganar sin la consola. Información de balance: o la bodega inicial sube a ~100, o B1–B3 gastan menos, o algún hito previo repone misiles.
 - **M5 · `__banco.partida.mundo.bodega.misiles = 60` «antes de Ejecutar» no sirve.** Ejecutar crea una partida nueva desde el checkpoint (`__banco.partida` cambia de objeto) y la bodega vuelve al valor guardado. Hay que asignarlo justo después de pulsar Ejecutar. La guía (sección de comandos y aviso de B4/B5) dice «antes de Ejecutar».
   - Reproducir: en B4, Reiniciar → `__banco.partida.mundo.bodega.misiles = 60` → Ejecutar → `__banco.partida.mundo.bodega.misiles` vale 0.
 - **M6 · La pista de B4 culpa al programa cuando falta munición.** Con la bodega a 0 el cargador se vacía a los 23 s y se pierde, pero la tarjeta dice «Pista 1/3: El programa de partida espera a 0,35 para parar: es tarde.», aunque el programa ya era el bueno. No hay ninguna pista ni aviso sobre la bodega vacía al perder.
@@ -68,7 +86,28 @@
 - **O1 · El selector de checkpoints ofrece todas las Batallas desde el principio.** En H0 el menú ⋯ → Checkpoint lista H0, B1…B8 y SALIDA (`etapasDisponibles` solo filtra los hitos de fábrica). Se puede saltar a B8 o al banco «SALIDA» sin haber jugado nada. Si es intencionado (Batallas siempre rejugables), conviene ocultar SALIDA en la campaña.
 - **O2 · Recargar a mitad de una Batalla la reinicia a t = 0.** El programa se conserva; el intento no. Probablemente intencionado (la fábrica sí guarda en vivo), pero no se avisa.
 - **O3 · HUD de H0 adelantado.** Al cumplir H0, la barra ya muestra la meta de H1 («ojiva en PAL-2 0/6») mientras el título sigue en «Llegada».
+- **O4 · Contador de derribos con un fotograma de retraso.** Al ganar B1, el HUD decía «Derribados 5/6» mientras la tarjeta ya decía 6/6; un instante después el HUD pasó a 6/6.
 - **O5 · El aviso de bodega justa sale en H3 pero no en H4.** La tarjeta de H3 avisa «la bodega va justa para esta batalla (0 de unos 36 misiles)»; la de H4, con 22 misiles para B5 (que necesita unos 45), no dice nada.
 - **O6 · «Unidades · 1» en B5 con dos lanzadores.** El panel de programas dice «Unidades · 1» aunque LAU-01 y LAU-02 tienen programa propio (puede que cuente la selección; el rótulo confunde).
 - **O7 · Los misiles que la fábrica hace durante una Batalla cuentan para el hito siguiente, pero se gastan en la Batalla.** Durante B5 la planta terminó 2 misiles (`producidos.missile` 4 → 6), que entraron en la bodega y se dispararon. H5 pide «8 misiles más» contando desde el final de H4, así que se cumplió fabricando solo 6 en H5, y la bodega quedó en 6, no en 8.
-- **O4 · Contador de derribos con un fotograma de retraso.** Al ganar B1, el HUD decía «Derribados 5/6» mientras la tarjeta ya decía 6/6; un instante después el HUD pasó a 6/6.
+- **O8 · En móvil, el mando táctil tapa la tarjeta de error.** En B2 en móvil el joystick y los botones L/R quedan encima del mensaje «Error en el programa de LAU-01» y del botón «Ir a la línea» ([captura](movil-b2-error-c1.jpg)).
+- **O9 · En móvil la barra de metas de la fábrica se corta.** Las píldoras de la parte de abajo («semiesfera en PAL-7 6/6 · placas refundidas 1/1 · ₵ 107…») se salen por la derecha; el tiempo `t` no se ve. No hay desplazamiento horizontal de página (`scrollWidth` = 375).
+- **O10 · En móvil, el ▶ del editor a pantalla completa tapa el nombre de la segunda pestaña** («ARM…» en lugar de «ARM-01»).
+- **O11 · El menú ⋯ no ofrece «Usar los programas del checkpoint».** La casilla `cv2-con-fuentes` está oculta en la campaña, así que «Volver al hito» siempre conserva los programas actuales (al volver a H1, ARM-01 traía el programa vacío de H6). La tarjeta de fallo de una Batalla sí ofrece esa opción.
+
+## Móvil (375×812)
+
+| Etapa | Cómo se llegó | Resultado | Notas |
+|---|---|---|---|
+| H1 | menú ⋯ → Checkpoint H1 → «Volver al hito» (recarga en H1, t 40,75, bodega 37) | cumplido a t 74,95, igual que en escritorio | ARM-01 escrito con el editor a pantalla completa (botón `</>`) y ejecutado con su ▶. Tarjeta legible ([captura](movil-h1-tarjeta.jpg)). |
+| B2 | «A la batalla» desde la tarjeta | C1 igual que en escritorio; con el rodeo, victoria 13/13, 20 misiles, 34,65 s | El mando táctil aparece solo y tapa la tarjeta de error (O8). A1 al ganar. |
+| H6 | menú ⋯ → Checkpoint H6 → «Volver al hito» | cumplido a t 721,75; «Misión 1 completada» | Ejecutar tocado en la barra inferior. Tarjeta final legible ([captura](movil-h6-mision-completada.jpg)). Barra de metas cortada (O9). |
+
+Al terminar se volvió a la vista de escritorio. La partida queda guardada en H6 cumplido.
+
+## Capturas
+
+- [h6-mision-completada.jpg](h6-mision-completada.jpg): tarjeta final en escritorio.
+- [movil-h1-tarjeta.jpg](movil-h1-tarjeta.jpg): tarjeta de H1 cumplido en móvil.
+- [movil-b2-error-c1.jpg](movil-b2-error-c1.jpg): C1 en móvil (error falso de LAU-01 a los 2–3 s, con el mando encima).
+- [movil-h6-mision-completada.jpg](movil-h6-mision-completada.jpg): tarjeta final en móvil.
