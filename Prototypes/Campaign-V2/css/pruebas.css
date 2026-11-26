@@ -1,0 +1,22 @@
+/* Menú de pruebas de Campaign-V2: una columna legible en teléfono y tarjetas en rejilla en PC. */
+:root { color-scheme: dark; --fondo: #0b0f13; --tarjeta: #141c22; --borde: #26333c; --texto: #dfe7ea; --tenue: #8fa3ab; --acento: #62bcba; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 20px max(16px, env(safe-area-inset-left)) 40px; background: var(--fondo); color: var(--texto);
+  font: 15px/1.5 system-ui, -apple-system, sans-serif; max-width: 1100px; margin-inline: auto; }
+h1 { font-size: 1.4rem; margin: 0 0 6px; }
+h2 { font-size: 1.05rem; margin: 28px 0 4px; color: var(--acento); text-transform: uppercase; letter-spacing: .06em; }
+header p, .nota { color: var(--tenue); margin: 0 0 10px; }
+section { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+section > h2, section > .nota { grid-column: 1 / -1; }
+article { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 10px; padding: 12px 14px; }
+h3 { margin: 0 0 4px; font-size: 1rem; }
+a { color: #fff; text-decoration-color: var(--acento); text-underline-offset: 3px; }
+code.url { display: block; color: var(--tenue); font-size: .78rem; word-break: break-all; margin-bottom: 6px; }
+ul { margin: 0; padding-left: 18px; }
+li { margin: 2px 0; }
+details { margin-top: 8px; }
+summary { cursor: pointer; color: var(--acento); }
+pre { background: #0d1418; border: 1px solid var(--borde); border-radius: 6px; padding: 8px 10px; overflow-x: auto; font-size: .82rem; margin: 6px 0; }
+button { font: inherit; color: var(--texto); background: #1d2a31; border: 1px solid var(--borde); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+footer { margin-top: 32px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+#borrar { border-color: #7a3b3b; }

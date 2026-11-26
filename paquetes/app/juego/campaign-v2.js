@@ -6,7 +6,7 @@ import { instalarGestosClic } from './gestos-clic.js';
 import { crearExtensionV2 } from './proveedor-v2.js';
 import { dibujarIconoHito } from '../../vista-2d/index.js';
 import war, { retos, fijarSuministro, pasoConIntentoPuntual, leerEnemigos, danoEnArea, MISIL } from '../../reglas-war/index.js';
-import { crearReglamento, puntoEnMarco, puntoEnMetros, salida, fichas, mundoPantalla, piezasMoviles, fichaClic, lugarDeObjetivo, repartirClic, niveles, validarNivel, esFabrica, hitosFabrica } from '../../reglas-campaign-v2/index.js';
+import { crearReglamento, puntoEnMarco, puntoEnMetros, salida, ensayos, fichas, mundoPantalla, piezasMoviles, fichaClic, lugarDeObjetivo, repartirClic, niveles, validarNivel, esFabrica, hitosFabrica } from '../../reglas-campaign-v2/index.js';
 
 export function componerCampaignV2(params, contenido = niveles['nivel-1'], catalogo = undefined) {
   const errores = validarNivel('nivel-1', contenido, war.api.tipos, catalogo);
@@ -14,7 +14,7 @@ export function componerCampaignV2(params, contenido = niveles['nivel-1'], catal
   const { hitos } = contenido.default;
   const modo = params.get('modo') === 'paridad' ? 'paridad' : params.has('ensayo') ? 'ensayo' : 'campaign';
   const clave = (modo === 'paridad' ? params.get('batalla') ?? 'b1' : params.get('ensayo')) ?? hitos[0];
-  const ensayo = modo === 'ensayo' && clave === salida.clave ? salida : null;
+  const ensayo = modo === 'ensayo' && Object.hasOwn(ensayos, clave) ? ensayos[clave] : null;
   if ((!ensayo && !hitos.includes(clave)) || (modo === 'paridad' && esFabrica(clave)))
     throw new Error(`nivel-1/nivel.js · hitos · Batalla desconocida: ${clave}`);
   // Los hitos de fábrica no tienen ensayo suelto: su planta depende de lo fabricado antes (se abren desde su checkpoint).

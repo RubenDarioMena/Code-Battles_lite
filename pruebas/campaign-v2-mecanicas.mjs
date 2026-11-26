@@ -12,8 +12,11 @@ import { cargar, habilitarVM } from './juego-dom.mjs';
 
 habilitarVM(import.meta.url);
 const raiz = new URL('../paquetes/reglas-campaign-v2/', import.meta.url);
-const config = componerCampaignV2(new URLSearchParams('serie=campaign-v2&ensayo=salida'), undefined, catalogo);
-const ext = config.runtime.crearExtension(k => catalogo.es[k]);
+// Cada ensayo activa solo las fichas de sus unidades: los verbos de todas salen de la unión de los ensayos.
+const extension = clave => componerCampaignV2(new URLSearchParams('serie=campaign-v2&ensayo=' + clave), undefined, catalogo)
+  .runtime.crearExtension(k => catalogo.es[k]);
+const funciones = ['salida', 'rueda', 'minador'].flatMap(k => extension(k).funciones());
+const ext = { funciones: () => funciones };
 for (const f of fichas) {
   const carpeta = new URL('mecanicas/' + f.id + '/', raiz);
   assert.deepEqual((await readdir(carpeta)).sort(), ['ficha.js', 'reglas.js']);

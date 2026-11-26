@@ -4,6 +4,8 @@ import { puntoEnMarco, puntoEnMetros } from './marco.js';
 import * as movimiento from './mecanicas/movimiento/reglas.js';
 import * as vehiculo from './mecanicas/vehiculo/reglas.js';
 import * as tirador from './mecanicas/tirador/reglas.js';
+import * as rueda from './mecanicas/rueda/reglas.js';
+import * as minador from './mecanicas/minador/reglas.js';
 
 /** @type {Array<[{ ficha: import('./index.js').FichaMecanica, crear?: Function, orden?: Function, programa?: { api: Function, ordenar: Function },
  * tiro?: Function, objetivos?: Function, puntual?: Function }, (campo: any, dt: number) => void]>} */
@@ -11,6 +13,8 @@ const pasos = [
   [movimiento, (campo, dt) => movimiento.paso(campo, dt)],
   [vehiculo, (campo, dt) => vehiculo.paso(campo, dt)],
   [tirador, (campo, dt) => tirador.paso(campo, dt)],
+  [rueda, (campo, dt) => rueda.paso(campo, dt)],
+  [minador, (campo, dt) => minador.paso(campo, dt)],
 ];
 export const fichas = pasos.map(([modulo]) => modulo.ficha);
 const porTipo = Object.fromEntries(pasos.map(([modulo]) => [modulo.ficha.id, modulo]));
@@ -54,7 +58,9 @@ export function instantaneaCampo(c, snap, alturas) {
     snap.maq[id] = snap.moviles[id];
     if (!u) continue;
     const modulo = porTipo[u.clase];
-    snap.moviles[id].lecturas = [...modulo.ficha.lecturas, ...u.capacidades.flatMap(k => porTipo[k].ficha.lecturas)];
+    // Una pieza puede declararse a sí misma como capacidad (su verbo propio): las lecturas no se repiten.
+    snap.moviles[id].lecturas = [...new Set([...modulo.ficha.lecturas, ...u.capacidades.flatMap(k => porTipo[k].ficha.lecturas)])];
+    for (const k of snap.moviles[id].lecturas) if (!(k in snap.moviles[id]) && k in u) snap.moviles[id][k] = u[k];
     if (modulo.tiro) snap.tiro[id] = modulo.tiro(u, alturas);
     if (modulo.objetivos) snap.auto[id] = modulo.objetivos(c, u, alturas);
   }
@@ -75,7 +81,10 @@ export function entidadesCampo(c) {
   }
   const enemigos = c.hostiles.map(({ def, traza, ...e }) => puntoEnMarco(e, c.origen));
   const trazas = c.hostiles.map(e => e.traza).filter(p => p && c.t < p.t0 + p.dur);
-  const misiles = [...c.proyectiles, ...trazas].map(p => ({ ...p, movil: true, x0: p.x0 - c.origen[0], x1: p.x1 - c.origen[0],
+  // Las cargas del minador se dibujan como proyectiles quietos sobre el suelo hasta que estallan.
+  const cargas = (c.cargas ?? []).map(k => ({ id: k.id, de: k.de, t0: c.t, dur: 1e6, arco: 0, x0: k.x, y0: k.y, z0: .15,
+    x1: k.x, y1: k.y, z1: .15, carga: true }));
+  const misiles = [...c.proyectiles, ...trazas, ...cargas].map(p => ({ ...p, movil: true, x0: p.x0 - c.origen[0], x1: p.x1 - c.origen[0],
     y0: p.y0 - c.origen[1], y1: p.y1 - c.origen[1] }));
   const puertas = c.limites.puertas.map(y => puntoEnMarco({ x: c.limites.muro, y }, c.origen));
   return { maquinas, ausentes, enemigos, misiles, puertas };

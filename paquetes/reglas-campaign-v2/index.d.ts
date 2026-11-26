@@ -64,4 +64,5 @@ export type FichaMecanica = { id: string; rol?: string; modelo?: string; capacid
     campos: string[]; nota: string; seudo: string }[] };
 export { fichas, piezasMoviles } from './paso.js';
 export { default as salida } from './ensayos/salida.js';
+export const ensayos: Record<'salida' | 'rueda' | 'minador', typeof import('./ensayos/salida.js').default>;
 export function mundoPantalla<B, P>(m: Mundo<B, P>): B | P;

@@ -4,6 +4,11 @@ import { escenaEnMetros } from './marco.js';
 import { crearCampo, entidadesCampo, instantaneaCampo, ordenarCampo, paso as avanzar } from './paso.js';
 export { fichas, piezasMoviles } from './paso.js';
 export { default as salida } from './ensayos/salida.js';
+import salidaEnsayo from './ensayos/salida.js';
+import ruedaEnsayo from './ensayos/rueda.js';
+import minadorEnsayo from './ensayos/minador.js';
+/** Ensayos de mecánica sueltos (`?ensayo=clave`), además de las Batallas del nivel. */
+export const ensayos = { salida: salidaEnsayo, rueda: ruedaEnsayo, minador: minadorEnsayo };
 import * as nivel1 from './niveles/nivel-1/nivel.js';
 
 export { escenaEnMetros, puntoEnMarco, puntoEnMetros } from './marco.js';
