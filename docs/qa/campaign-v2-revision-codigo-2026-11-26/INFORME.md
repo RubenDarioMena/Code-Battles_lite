@@ -1,6 +1,6 @@
 # Revisión de código de Campaign-V2 · 26 de noviembre de 2026
 
-**Estado:** parcial (se completa por tandas).
+**Estado:** final (8 hallazgos verificados y dudas abiertas).
 
 - **Rama:** `Campaign-V2` frente a `origin/trunk`, con el merge-base `6330c0ed5ff91e79f2d16f05c91bbefc281ee232` como punto fijo (16 commits, unos 11 300 líneas añadidas).
 - **Prioridad:** lo de los últimos días: `paquetes/reglas-campaign-v2/` (fábrica, daño P8, `luzEstado` 9.2, depósito lleno 12.3, H6 circular), `paquetes/fabrica/motor.js`, `paquetes/app/juego/mover-fabrica.js`, `checkpoints-v2.js`, `paso.js`, las vistas `vista-2d/campaign.js` y `vista-3d/cv2/`, y `interfaz/campaign-ui.js`.
@@ -101,4 +101,22 @@ Gravedad: **Alta**, rompe la partida o pierde progreso en un camino normal. **Me
 
 ## Dudas no verificadas
 
-(Se completa al final.)
+Son puntos que no llegué a reproducir, que no se alcanzan desde la interfaz actual o que pueden ser decisiones de diseño. Conviene confirmarlos antes de tratarlos como errores.
+
+- **`luzEstado` frente a 9.2** (`paquetes/reglas-campaign-v2/fabrica/index.js:14-17`). La especificación dice «ámbar = espera/inactivo». El código deja `idle` (sin material, parada) en `off` y reserva el ámbar para `changeover`, `blocked` y `no_power`. La prueba `campaign-v2-circular.mjs:137` fija `idle → off`, así que parece deliberado: se separa «espera porque otro la bloquea» de «no tiene nada que hacer». Si es así, falta anotarlo en DECISIONES-PREPROTOTIPO.md. Si no, una máquina sin material debería verse en ámbar.
+- **`cerrarHito` y el historial de Campaign 1** (skill, candidato 5). En `paquetes/app/juego/campaign.js`, el cierre de hito con `inicio` podría desfasarse del historial (`historialC`) al volver atrás. No es alcanzable desde la página de Campaign-V2: no tiene `v-escenario` ni lista de retos, y ese historial solo lo usa la API del banco de pruebas. No lo reproduje en la UI.
+- **`mover-fabrica.js` vacía `respuestas` al colocar** (skill, candidato 8). Si se moviera una unidad con un programa en marcha, se perderían respuestas pendientes del trabajador. La UI solo deja mover con `!ctx.ejec`, así que solo se ve en pruebas. Además, el texto de reserva «rechazado» es poco claro si llega a mostrarse.
+- **`danoEnArea` no mira la altitud.** En el código compartido con War, una explosión en el suelo daña también a los drones que pasan por encima. Es el comportamiento de trunk, no lo introduce la rama, y no sé si es intencional en V2.
+- **Checkpoints «del futuro» tras volver atrás.** Al volver a un checkpoint anterior, los posteriores siguen en la lista con la planta de la línea temporal abandonada. Elegir uno restaura un mundo que ya no se corresponde con lo jugado. No llegué a decidir si es un fallo o la función prevista (saltar hacia delante).
+- **`pruebas/campaign-juego.cjs` no se ejecutó**, porque necesita Playwright y no está instalado (no se instalan dependencias). La parte de navegador la cubre el otro agente en `docs/qa/campaign-v2-campana-navegador-2026-11-26/`.
+- **Textos del banco de daño en español fijo** (`paquetes/reglas-campaign-v2/danio/`). Algunos rótulos del banco de pruebas P8 no pasan por i18n. Es una herramienta interna; si llega a mostrarse al jugador, faltan claves EN.
+- **Energía negativa en `danio`.** La API acepta una energía de impacto negativa, que «cura» componentes. La UI del banco la limita a 0,2–3, así que hoy no se alcanza.
+- **Ruta `'evento'` del trabajador** (`paquetes/anfitrion/anfitrion.js:130` → `api.js:328`). No revisé a fondo si todos los eventos de V2 (`runtime.eventos`) tienen un manejador registrado. Un evento sin oyente se descarta en silencio.
+
+## Revisado sin hallazgos
+
+- **Listeners duplicados.** `instalarInterfazV2` se conecta una sola vez desde `paquetes/app/juego/iniciar.js:51` al arrancar, y cada cambio de hito recarga la página. Ocurre lo mismo con `montarHudHito`, `montarInterfazHito`, `montarInclinacion`, `instalarGestosClic` y `montarMandoTactil`, así que sus `addEventListener` sobre `document` y `window` no se acumulan.
+- **i18n.** Todas las claves que se componen en tiempo de ejecución existen en ES y EN: `cv2.colocar.*`, `cv2.descarte.*`, `campaign.estado.maquina.*`, `campaign.meta.*`, `hud.bodega` y `cv2.mando.*`.
+- **Código compartido con trunk.** No encontré roturas para Campaign 1, War ni Factory en los cambios a `anfitrion/api.js`, `nucleo`, `reglas-war` (`fijarSuministro`, `pasoConIntentoPuntual`, `danoEnArea`), `vista-3d/camara.js`, las vistas 2D de campaign, factory y war, ni en `motor.js`. Con el catálogo de Campaign 1, `salidaLlena` se comporta como en trunk.
+- **Bodega y suministro** (`paso.js:103-107`). La recarga que predice `paso.js` coincide con `pasoLanzador` de War, así que no hay pérdida ni duplicación de misiles entre la planta y las torretas.
+- **Pruebas.** Las 30 `pruebas/campaign-v2-*.mjs` pasan. `node pruebas/todas.mjs` da 93 correctas y 7 fallos, que son exactamente los conocidos (dependencias npm). También pasan `campaign-reglas`, `factory-reglas`, `interaccion`, `fronteras-*`, `juego-conductor`, `campaign-soluciones`, `factory-oraculo`, `partida-war` y `partida-factory`.
