@@ -298,6 +298,7 @@ export function instalarMaquinas(ctx) {
       ${abierto ? `<div class="regla"></div><div class="grupo-tk ins-vitales-final"><h3><span class="placa" ${hojaInspector("inspector.seccion.vitales")}>${ctx.esc(textoInspector("inspector.seccion.vitales"))}</span></h3><div class="vitales" id="ins-vitales">${ctx.htmlVitales(e)}</div></div>` : ""}`);
     aplicarTextosInspector(ctx.$("ins-tira"));
     aplicarTextosInspector(ctx.$("ins-cuerpo"));
+    ctx.uiHito?.mini?.(e, ctx.insEstado); // Campaign-V2: la tira se vuelve la minificha (interfaz/minificha.js).
   }
 
   return {

@@ -6,6 +6,7 @@ import { crearPartida } from '../../nucleo/index.js';
 import { niveles, esFabrica, hitosFabrica, moduloFabrica, salida } from '../../reglas-campaign-v2/index.js';
 import { componerCampaignV2, avisoMunicion } from './campaign-v2.js';
 import { leerHistorialV2, escribirCheckpointV2 } from './checkpoints-v2.js';
+import { crearFabricaCV2, puertasDelMarco } from '../../vista-3d/index.js';
 
 // Guardado en vivo de la sesión Campaign (paquetes/app/juego/campaign.js) visto desde el almacén aislado de la página.
 const CLAVE_VIVO = 'cmg-banco03:campaign-1-vivo';
@@ -54,6 +55,8 @@ export function prepararFabricaV2(opciones) {
       reiniciar: () => reiniciarNivel(almacen),
       volver: hito => volverA(almacen, hito),
       tieneCheckpoint: hito => !!(almacen && leerHistorialV2(almacen).hitos[hito]),
+      // La planta se dibuja en el mapa papercraft, pegada a la muralla, con el lenguaje de las máquinas de Campaign 1.
+      crearVista3D: (estado, deps) => crearFabricaCV2(estado, { ...deps, origen: nivel.fabrica.origen, puertas: puertasDelMarco(nivel.marco) }),
     },
   };
 }

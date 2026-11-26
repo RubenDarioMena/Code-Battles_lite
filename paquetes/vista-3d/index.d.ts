@@ -96,6 +96,8 @@ export type OpcionesVista3D = (DependenciasWar | DependenciasCampaign) & {
   serie: 'war' | 'factory' | 'campaign';
   dt: number;
   estado?: EstadoVista;
+  /** Visor propio con el contrato de crearCampaign3D (la fábrica de Campaign-V2). */
+  crearBase?: (estado: EstadoVista, deps: any) => VistaCampaign3D | null;
   cols?: number;
   rows?: number;
   canvas?: HTMLCanvasElement;
@@ -130,3 +132,11 @@ export function crearVistaCV2(campo: HTMLElement, opciones: {
   MISIL?: { radio: number }; estado?: EstadoVista;
 }): VistaCV2 | null;
 export { crearFicha3D } from './cv2/ficha.js';
+/** Fábrica de Campaign-V2 en el mapa papercraft: el contrato de crearCampaign3D, en coordenadas de la planta. */
+export function crearFabricaCV2(estado: EstadoVista, deps: DependenciasCampaign & {
+  cargarGLTFLoader?: () => Promise<any>; origen?: number[]; puertas?: { x: number; y: number }[];
+}): VistaCampaign3D | null;
+/** Puertas de la muralla en metros a partir del marco de la Batalla. */
+export function puertasDelMarco(marco: { origen: number[]; puertas: number[] }): { x: number; y: number }[];
+/** Tonos de las máquinas de Campaign 1: [base, luz, sombra] o un color suelto. */
+export const paletaFabrica: Record<string, number | number[]>;

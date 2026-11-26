@@ -37,6 +37,11 @@
 #cv2-arbol button { margin-left: auto; font-size: .74rem; }
 #app[data-ui-hito] #progs { display: none; }
 #app .hud-sup { left: 50%; top: 8px; transform: translateX(-50%); }
+/* En el teléfono, los botones de vista caben entre «!» y «…» sin taparlos; el reloj de la planta se retira. */
+#app[data-forma="movil"] .hud-sup { left: 50px; right: 50px; transform: none; justify-content: center; }
+#app[data-forma="movil"] .vistas { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+#app[data-forma="movil"] .vistas button { flex: none; padding: 2px 7px; }
+#app[data-forma="movil"] #reloj { display: none; }
 #app[data-ui-hito] #reloj { display: none; } /* El tiempo forma parte de las metas. */
 #app[data-ui-hito] #metas {
   left: auto; right: 8px; bottom: auto; top: 52px; flex-flow: column nowrap;
@@ -47,6 +52,28 @@
 #app[data-ui-hito] .meta[data-estado="rota"] { color: var(--warn); }
 #app[data-ui-hito] .inspector[data-estado="tira"] { border-left: 3px solid var(--rol); background: var(--surface); }
 #app[data-ui-hito][data-forma="escritorio"] .inspector[data-estado="tira"] { inset: auto auto 8px 8px; }
+/* Minificha (paquetes/interfaz/minificha.js): la tira del inspector, abajo a la izquierda como la ficha compacta de
+   Campaign 1. En la fábrica las metas ocupan el pie del campo y la tarjeta sube encima de ellas. */
+#app[data-minificha] { --mini-abajo: 8px; }
+#app[data-minificha]:not([data-ui-hito]) { --mini-abajo: 42px; }
+#app[data-minificha] .inspector[data-estado="tira"] {
+  inset: auto auto var(--mini-abajo) 8px; width: min(340px, calc(100% - 16px));
+  border-left: 3px solid var(--rol); background: var(--surface);
+}
+#app[data-minificha] .inspector[data-estado="tira"] .ins-tira { gap: 7px; padding: 8px 10px 0; }
+#app[data-minificha] .inspector[data-estado="tira"] .ins-pista { margin: 0 -10px; padding: 6px 10px 7px; border-top: 1px solid var(--line); }
+.cv2-mini-dibujo { flex: none; width: 46px; height: 46px; box-sizing: border-box; padding: 3px; object-fit: contain;
+  border-radius: 7px; background: var(--code-bg); }
+/* Los sprites de los robots son pixel art de 48×32 visto desde arriba: sin margen y sin suavizado. */
+.cv2-mini-dibujo[src$=".png"] { padding: 0; image-rendering: pixelated; object-fit: cover; object-position: 40% 50%; }
+.cv2-mini-props { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.cv2-prop { display: flex; align-items: baseline; gap: 4px; min-width: 0; overflow: hidden; white-space: nowrap;
+  padding: 4px 7px; border-radius: 6px; background: var(--code-bg); font: 12.5px var(--f-code); }
+.cv2-prop .tk { padding: 0; }
+.cv2-mini-ord { display: flex; flex-wrap: wrap; gap: 5px; }
+.cv2-mini-ord .tk { border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+/* Con propiedades a la vista, los signos vitales sobran en la tarjeta (siguen en la ficha completa). */
+.ins-tira:has(.cv2-mini-props) .vitales { display: none; }
 #cv2-modelo:not([hidden]) { display: block; width: 100%; height: clamp(96px, 16dvh, 160px); background: var(--bg); border-radius: 8px; }
 .cv2-vida { position: absolute; width: 21px; height: 3px; border: 1px solid #22333b;
   transform: translate(-50%, -100%); background: #26333d; pointer-events: none; }

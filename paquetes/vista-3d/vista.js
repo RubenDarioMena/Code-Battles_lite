@@ -27,7 +27,8 @@ export function crearVista(contenedor, opciones) {
     efectos = crearEfectosWar(estado, opciones); efectos.montar(datos);
   } : undefined, ES_FACTORY: opciones.serie === 'factory',
     $: id => id === 'c3d' ? (opciones.canvas ?? contenedor.querySelector('canvas')) : opciones.$(id) };
-  const base = opciones.serie === 'campaign' ? crearCampaign3D(estado, deps) : crear3D(estado, deps);
+  // `crearBase`: una serie puede traer su propio visor con el mismo contrato (la fábrica de Campaign-V2).
+  const base = opciones.crearBase ? opciones.crearBase(estado, deps) : opciones.serie === 'campaign' ? crearCampaign3D(estado, deps) : crear3D(estado, deps);
   if (!base) return null;
   return {
     ...base,

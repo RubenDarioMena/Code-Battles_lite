@@ -1,3 +1,36 @@
+## Campaign-V2 · Fábrica al estilo Campaign 1 sobre el papercraft y minificha · 26 de noviembre de 2026
+
+La fábrica ya no usa la planta antigua del trunk. La nueva vista `vista-3d/cv2/fabrica.js` tiene el mismo contrato que `crearCampaign3D` y la dibuja sobre el mapa papercraft, junto a la muralla y con su puerta. Cuelga de un gancho de una línea (`crearBase` en `vista.js`, aportado por `fabricaV2.crearVista3D`). Las máquinas siguen el lenguaje de los SVG de Campaign 1, copiados a `img/campaign/`:
+
+- colores planos con contorno oscuro;
+- prensa amarilla en H con ariete blanco;
+- moldeadora morada con cilindros;
+- mezcladora verde con rotor blanco;
+- ensambladora turquesa con chevrones y franja de peligro;
+- bandeja de entrada cian y de salida amarilla;
+- consola con pantalla y piloto.
+
+Los robots son el brazo azul con pinza blanca y el montacargas rojo. Las máquinas sin corriente se ven apagadas pero conservan su color. La losa tiene el pasillo con líneas amarillas, el borde de peligro y una baldosa de 1 m. Se asienta a la altura del relieve a medida que llegan las teselas.
+
+La cámara es la de las Batallas. Encuadra solo la losa y deja pasear 5 m alrededor. La niebla de horizonte empieza detrás de la cámara.
+
+Al elegir una unidad, la tira del inspector pasa a ser la **minificha** de Campaign 1 (`interfaz/minificha.js`). Aparece abajo a la izquierda, en la fábrica y en las Batallas, también en el teléfono, en lugar de la ficha completa. Muestra:
+
+- el dibujo de la unidad;
+- id, estado y clase;
+- dos propiedades con su valor en vivo;
+- tres órdenes como tokens con el rótulo corto.
+
+Sus filas se toman de la ficha completa, así que coinciden con ella en contenido e idioma. Un clic en un token ya no abre la ficha. En el teléfono, los botones de vista ya no quedan tapados por «!».
+
+El menú de pruebas tiene una sección nueva, **Fábrica por hito**. Abre H1–H5 con la planta que deja la demo automática (`datos/plantas-demo.json`, que genera `DEMO_PLANTAS=… node pruebas/campaign-v2-demo-fabrica.mjs`).
+
+Prueba: `campaign-v2-minificha.mjs`. Suite: **89 ok, 7 falla** (las mismas dependencias sin instalar). Se comprobó en el navegador, en 800×600 y en 375×812:
+
+- H0 y H5 se dibujan sin errores;
+- la minificha aparece en la prensa, ARM-01, ASM-01, DEP-01 y LAU-01;
+- el doble clic en `goTo()` lo inserta en el editor.
+
 ## Campaign-V2 · P5b · Rueda WHL, minador y menú de pruebas · 25 de noviembre de 2026
 
 Hay dos mecánicas nuevas, cada una en su carpeta (`ficha.js` + `reglas.js`) y con una línea en el paso del campo. La **rueda WHL** es kamikaze: lee `nearest`, los metros hasta la oruga más cercana, y con `detonate()` estalla con daño en área. Al estallar desaparece y reaparece en casa, y su programa vuelve a la primera línea. El **minador** siembra cargas con `drop()` y lleva la cuenta en `charges`. Cuando un enemigo de suelo pisa una carga, esta estalla y avisa al programa con `onDetonation(carga)`, que da la posición y los enemigos alcanzados. Las cargas se dibujan como puntos sobre el carril. Las lecturas propias de una unidad ahora llegan al programa de forma genérica. Cada mecánica tiene su ensayo (`?ensayo=rueda`, `?ensayo=minador`), con programa de ejemplo en JS y Python y textos en es/en. Además, `index.html?pruebas=1` abre un **menú de pruebas** (`pruebas.html`) con un inciso por caso: B1–B5, las tres mecánicas, cámara y mando, campaña y paridad, y los otros prototipos. Cada inciso tiene «qué mirar» y, donde hace falta, un programa para copiar. Al final hay un botón para borrar solo el progreso de V2. La guía equivalente está en [MENU-PRUEBAS.md](docs/campaign-v2/MENU-PRUEBAS.md). Prueba: `campaign-v2-rueda-minador.mjs`. Suite: **88 ok, 7 falla** (las mismas dependencias sin instalar). Se comprobó en el navegador (puerto 8779) que los dos ensayos ganan. La rueda estalla a los 14,6 s, 25,3 s y 33,3 s, y reaparece 6 s después de cada estallido. El minador deja cuatro cargas visibles y la consola muestra cuatro «¡Carga! 1 enemigos». El menú carga sin errores y cabe en 375 px.

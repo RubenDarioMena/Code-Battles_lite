@@ -83,6 +83,35 @@ moveTo({x: 205.5, y: 81.5});
 | Mando táctil en PC | `index.html?ensayo=b1&mando=1` | El joystick, abajo a la izquierda, desplaza la cámara. La zona «Ratón», a la derecha, mueve el cursor. L selecciona; R da una orden puntual con el programa en marcha. Con L mantenido, arrastrar en la zona dibuja un recuadro de selección. |
 | Mando oculto | `index.html?ensayo=b1&mando=0` | Fuerza el mando oculto, también en el teléfono. El botón 🕹 lo vuelve a mostrar. |
 
+## Fábrica por hito
+
+La fábrica se dibuja sobre el mapa papercraft, junto a la muralla, con el estilo de las máquinas de Campaign 1:
+
+- prensa amarilla en H;
+- moldeadora morada con cilindros;
+- mezcladora verde con rotor;
+- ensambladora turquesa con chevrones;
+- brazos azules y montacargas rojo.
+
+Cada inciso abre un hito con la planta tal como la deja la demo automática (`datos/plantas-demo.json`). Antes pide confirmación, porque **sustituye el progreso** de Campaign-V2.
+
+| Inciso | Qué mirar |
+|---|---|
+| H1 · Prensa y ARM-01 | Prensa con su ariete; bandeja de entrada cian y de salida amarilla. |
+| H2 · Moldeadora y ARM-02 | PAL-3 queda fuera del alcance de ARM-02: muévela con «Mover». |
+| H3 · Mezcladora | El rotor gira mientras mezcla. |
+| H4 · Ensambladora | Chevrones y franja de peligro. |
+| H5 · La cadena entera | Todas las máquinas a la vez. |
+
+Al elegir una unidad, la **minificha** aparece abajo a la izquierda, también en las Batallas. Muestra:
+
+- el dibujo de la unidad (los SVG y sprites de Campaign 1);
+- su id, estado y clase;
+- dos propiedades con su valor en vivo;
+- las órdenes clave, como tokens que se insertan en el editor con doble clic.
+
+Al tocar la tarjeta fuera de un token se abre la ficha completa. Para regenerar las plantas tras cambiar la fábrica: `DEMO_PLANTAS=Prototypes/Campaign-V2/datos/plantas-demo.json node pruebas/campaign-v2-demo-fabrica.mjs`.
+
 ## Campaña y paridad
 
 | Inciso | Ruta | Qué mirar |
@@ -102,3 +131,4 @@ moveTo({x: 205.5, y: 81.5});
 
 - `node pruebas/campaign-v2-rueda-minador.mjs` juega los ensayos de la rueda y del minador con sus programas de ejemplo. Rueda: estallidos, reaparición en casa y `nearest`. Minador: cuatro cargas, avisos `onDetonation` y vuelta tras la muralla.
 - `node pruebas/campaign-v2-mando.mjs` prueba el mando táctil.
+- `node pruebas/campaign-v2-minificha.mjs` prueba la minificha (rótulos, filas elegidas, dibujo por clase) y la puerta de la muralla en la vista de la fábrica.

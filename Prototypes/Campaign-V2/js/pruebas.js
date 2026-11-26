@@ -41,6 +41,13 @@ moveTo({x: 205.5, y: 81.5});`, para: 'MIN-01' },
     { titulo: 'Mando táctil en PC', url: 'index.html?ensayo=b1&mando=1', mirar: ['Joystick abajo a la izquierda: desplaza la cámara.', 'Zona «Ratón» a la derecha: mueve el cursor; L selecciona, R da una orden puntual (con el programa en marcha).', 'L mantenido + arrastrar en la zona: recuadro de selección.'] },
     { titulo: 'Mando sin mando', url: 'index.html?ensayo=b1&mando=0', mirar: ['Fuerza el mando oculto incluso en el teléfono (el botón 🕹 lo vuelve a mostrar).'] },
   ] },
+  { titulo: 'Fábrica por hito', nota: 'La planta de cada hito tal como la deja la demo automática (datos/plantas-demo.json). Sustituye tu progreso de Campaign-V2.', items: [
+    { titulo: 'H1 · Prensa y ARM-01', url: 'index.html', planta: 'h1', mirar: ['Prensa amarilla en H con su ariete blanco; bandeja de entrada cian y de salida amarilla.', 'ARM-01: brazo azul con pinza blanca.'] },
+    { titulo: 'H2 · Moldeadora y ARM-02', url: 'index.html', planta: 'h2', mirar: ['Moldeadora morada con dos cilindros.', 'PAL-3 fuera del alcance de ARM-02: muévela con «Mover».'] },
+    { titulo: 'H3 · Mezcladora', url: 'index.html', planta: 'h3', mirar: ['Tambor verde con el rotor blanco girando mientras mezcla.'] },
+    { titulo: 'H4 · Ensambladora', url: 'index.html', planta: 'h4', mirar: ['Ensambladora turquesa con los chevrones y la franja de peligro.'] },
+    { titulo: 'H5 · La cadena entera', url: 'index.html', planta: 'h5', mirar: ['Todas las máquinas a la vez; el arsenal guarda los misiles.'] },
+  ] },
   { titulo: 'Campaña y paridad', items: [
     { titulo: 'Campaña desde el principio', url: 'index.html', mirar: ['Empieza en H0 (la fábrica es un marcador provisional) y sigue a B1 al cumplirlo.', 'Para empezar de cero, usa «Borrar el progreso» abajo.'] },
     { titulo: 'Paridad B1–B5', url: 'index.html?modo=paridad&batalla=b1', mirar: ['Cada Batalla con los parámetros exactos de War.', 'Cambia batalla=b2…b5 en la dirección.'] },
@@ -62,8 +69,10 @@ for (const s of secciones) {
   const seccion = el('section', {}, el('h2', { textContent: s.titulo }));
   if (s.nota) seccion.append(el('p', { className: 'nota', textContent: s.nota }));
   for (const it of s.items) {
+    const enlace = el('a', { href: it.url, textContent: it.titulo });
+    if (it.planta) enlace.addEventListener('click', ev => { ev.preventDefault(); abrirPlanta(it.planta, it.url); });
     const tarjeta = el('article', {},
-      el('h3', {}, el('a', { href: it.url, textContent: it.titulo })),
+      el('h3', {}, enlace),
       el('code', { className: 'url', textContent: it.url }),
       el('ul', {}, ...it.mirar.map(m => el('li', { textContent: m }))));
     if (it.ejemplo) {
@@ -79,6 +88,18 @@ for (const s of secciones) {
     seccion.append(tarjeta);
   }
   raiz.append(seccion);
+}
+
+// Abre un hito de fábrica con la planta de la demo: el historial hasta ese hito pasa a ser el progreso. Sin sello ni
+// programas guardados, la página siembra la planta desde el checkpoint y carga los programas de partida del hito.
+async function abrirPlanta(hito, url) {
+  if (!confirm(`¿Abrir ${hito.toUpperCase()} con la planta de la demo? Sustituye tu progreso de Campaign-V2 en este navegador.`)) return;
+  const final = await (await fetch('datos/plantas-demo.json')).json();
+  const claves = Object.keys(final.hitos);
+  const hitos = Object.fromEntries(claves.slice(0, claves.indexOf(hito) + 1).map(k => [k, final.hitos[k]]));
+  localStorage.setItem('campaign-v2-nivel-1', JSON.stringify({ ultimo: hito, hitos }));
+  for (const k of ['campaign-v2-nivel-1-programas', 'campaign-v2-nivel-1-sello']) localStorage.removeItem(k);
+  location.href = url;
 }
 
 // Borra solo las claves de Campaign-V2 (progreso, programas, guardado en vivo, mando…), no las de las otras series.

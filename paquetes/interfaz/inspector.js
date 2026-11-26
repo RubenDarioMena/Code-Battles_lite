@@ -89,7 +89,8 @@ export function instalarInspector(ctx) {
   }
   ctx.$("inspector").addEventListener("click", (ev) => {
     const b = /** @type {any} */ (ev.target).closest("[data-accion]");
-    if (!b) { if (ctx.insEstado === "tira" && /** @type {any} */ (ev.target).closest(".ins-tira")) ctx.abrirInspector(); return; }
+    // Un token de la tira (la minificha de Campaign-V2) se arma o inserta como en la ficha: no la abre.
+    if (!b) { if (ctx.insEstado === "tira" && /** @type {any} */ (ev.target).closest(".ins-tira") && !(/** @type {any} */ (ev.target).closest(".tk"))) ctx.abrirInspector(); return; }
     const a = b.dataset.accion;
     if (a === "programa") { ctx.verPanel("codigo"); ctx.abrirPestana("programa"); ctx.abrirPrograma(ctx.seleccion); }
     else if (a === "centrar") ctx.centrarEn(ctx.seleccion);

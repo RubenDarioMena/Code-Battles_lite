@@ -140,5 +140,8 @@ while (true) {
   'ARM-02': brazo('PAL_3', 'MLD_01', 'polymer', 'base', 'PAL_4'),
 });
 assert.ok(juego.mundo.completado, 'la misión termina con H5');
+// DEMO_PLANTAS=ruta.json vuelca el historial final: guarda el checkpoint con que empieza cada hito H1–H5, y el menú
+// de pruebas lo usa para abrir la fábrica de un hito ya construida (Prototypes/Campaign-V2/datos/plantas-demo.json).
+if (process.env.DEMO_PLANTAS) (await import('node:fs')).writeFileSync(process.env.DEMO_PLANTAS, JSON.stringify(historial()) + '\n');
 assert.equal(historial().ultimo, 'h5', 'tras H5 no hay más Batallas');
 console.log(`Campaign-V2 · demo de fábrica en la página: H0→H5 con programas del editor (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}), colocador en H2 y recarga entre hitos.`);

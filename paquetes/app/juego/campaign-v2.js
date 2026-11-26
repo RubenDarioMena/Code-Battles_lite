@@ -1,4 +1,4 @@
-import { montarInterfazHito, montarHudHito, montarMandoTactil } from '../../interfaz/index.js';
+import { montarInterfazHito, montarHudHito, montarMandoTactil, crearMinificha } from '../../interfaz/index.js';
 import { crearVinculos } from './vinculos-v2.js';
 import { volverACheckpoint } from './checkpoints-v2.js';
 import { crearFicha3D, crearVistaCV2 } from '../../vista-3d/index.js';
@@ -148,7 +148,13 @@ function elegirEtapa(ctx, hito, programas) {
   location.assign(url.href);
 }
 
+// Con una unidad elegida, la tira del inspector es la minificha de Campaign 1 en la fábrica y en las Batallas.
 export function instalarInterfazV2(ctx) {
+  const { vinculos, uiHito } = interfazV2(ctx);
+  if (uiHito) uiHito.mini = crearMinificha(ctx);
+  return { vinculos, uiHito };
+}
+function interfazV2(ctx) {
   const runtime = ctx.runtime;
   if (ctx.fabricaV2) return { vinculos: null, uiHito: hudFabrica(ctx) };
   if (ctx.batallasV2 && !runtime) {
