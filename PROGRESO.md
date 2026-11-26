@@ -27,7 +27,7 @@ El laboratorio de VFX (`herramientas/laboratorio-vfx`) también enseña la deton
 
 Otros arreglos del mismo paso:
 
-- **Cabecera del editor:** «▸ Unidades · N» quedaba montado sobre el selector de lenguaje, porque el selector no cedía ancho. Ahora el selector se encoge hasta 6,2em y el rótulo, si aun así no cabe, se corta con puntos suspensivos (`campaign-v2.css`). Revisado a 1024 px y en móvil.
+- **Cabecera del editor:** «▸ Unidades · N» quedaba montado sobre el selector de lenguaje, porque el selector no cedía ancho. Ahora los botones de esa barra miden 30 px y caben enteros el rótulo y «JavaScript». Si falta sitio, cede primero el selector (hasta 7,8em) y después el rótulo, que se corta con puntos suspensivos (`campaign-v2.css`). Revisado a 1024 px, publicado, y en móvil.
 - **Meta de piezas hechas:** decía «misil fabricadas en este hito». Ahora dice «{pieza} de este hito», sin participio que concordar, en el mismo estilo que «{pieza} en lotes».
 - **Prueba de textos:** `campaign-v2-i18n.mjs` comprueba que español e inglés tienen las mismas claves, ningún texto vacío y los mismos `{parámetros}`. También comprueba que existe cada clave `cv2.…` escrita literalmente en el código.
 
