@@ -46,6 +46,29 @@ Solo se activan si el catálogo las declara. La misión 1 y Campaign del trunk s
 6. **Sierra frente a láser:** la misma semiesfera, con distinto tiempo y energía.
 7. **Catálogo honesto:** una receta que crea masa no deja crear el motor.
 
+## H6 «Carcasas» en la misión 1
+
+Va después de la B8 (`hitos: [..., "b8", "h6"]` en `niveles/nivel-1/nivel.js`). El taller ocupa el bolsillo nordeste de la losa (x 93–103, y 42–48,5) sin tocar el decorado:
+
+- EMB-01, SAW-01 y LSR-01 en fila, mirando al sur;
+- FND-01 a su lado, mirando al oeste;
+- BOT-01, un robot libre (sin `alcance`), camina entre ellas;
+- PAL-6 recibe las placas, PAL-7 las semiesferas y PAL-8 los recortes.
+
+Todo aparece con `desde: 6`.
+
+- **Al empezar:** llegan 5 placas a BAY-1 (`alEmpezar.entregas`). FRK-01 tiene que llevarlas a PAL-6.
+- **Metas:** 6 semiesferas en PAL-7 y 1 placa refundida (`tipo: "hechos"`). Cinco placas dan cinco semiesferas, así que la sexta exige reciclar. La meta de la placa refundida impide saltárselo comprando placas.
+- **Programa de partida de BOT-01:** un solo ciclo que deja los recortes en la sierra. Si se repite tal cual, la sierra se bloquea, que es la primera lección.
+- **Pistas:** 1) subir las placas con FRK-01; 2) retirar los recortes a PAL-8 y refundir tres; 3) láser frente a sierra y su coste en kW.
+- **Soluciones probadas:**
+  - `campaign-v2-fabrica.mjs`: guion del motor, 102 s, con conservación de masa;
+  - `campaign-v2-demo-fabrica.mjs`: programa del editor en la página, 97 s.
+- **Vista:**
+  - `vista-3d/cv2/taller.js` tiene las cuatro máquinas;
+  - las piezas nuevas están en `fabrica.js` (3D) y `vista-2d/campaign.js` (plano);
+  - la minificha usa `prensa.svg` y `cnc.svg` hasta que haya dibujos propios.
+
 ## Fuera de esta porción
 
 El daño por componentes y la recuperación en combate (13.B), los vóxeles (13.C), los láseres como arma y la química.

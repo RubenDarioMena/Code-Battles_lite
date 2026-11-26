@@ -19,7 +19,7 @@ const secciones = [
     { titulo: 'B5 · Dos lanzadores', url: 'index.html?ensayo=b5', mirar: ['Un enjambre por el norte y otro por el sur.', 'Cada lanzador con su programa (pestañas LAU-01 y LAU-02).'] },
     { titulo: 'B6 · Fuera de la muralla', url: 'index.html?ensayo=b6', mirar: ['Vienen orugas y un enjambre de 20 drones; las torretas solas dejan pasar orugas porque persiguen drones.', 'VEH-01 sale por la puerta y caza drones lejos de la muralla; el tirador (x 227, y 84) lo desgasta si se acerca a 7 m.', 'Otra solución: torretas con autoTarget("crawler") primero y el vehículo a por los drones.'] },
     { titulo: 'B7 · La rueda', url: 'index.html?ensayo=b7', mirar: ['Cinco orugas blindadas (7 de vida) en fila por el carril de la puerta: las torretas no las tumban a tiempo.', 'WHL-01 espera en el carril, estalla con una oruga a menos de 2 m y reaparece a los 12 s con su programa desde el principio.'] },
-    { titulo: 'B8 · Siembra', url: 'index.html?ensayo=b8', mirar: ['Una columna de ocho orugas llega a los 16 s.', 'MIN-01 siembra sus cuatro cargas antes y vuelve tras la muralla; cada carga que estalla escribe «¡Carga!» en la consola.', 'Es la última Batalla: al ganarla en la campaña aparece el cierre del nivel.'] },
+    { titulo: 'B8 · Siembra', url: 'index.html?ensayo=b8', mirar: ['Una columna de ocho orugas llega a los 16 s.', 'MIN-01 siembra sus cuatro cargas antes y vuelve tras la muralla; cada carga que estalla escribe «¡Carga!» en la consola.', 'Es la última Batalla: al ganarla en la campaña se pasa al taller de H6, y el cierre del nivel llega al cumplirlo.'] },
   ] },
   { titulo: 'Mecánicas nuevas', nota: 'Cada ensayo trae su programa de ejemplo cargado: basta con pulsar Ejecutar.', items: [
     { titulo: 'Salida · vehículo VEH y tirador', url: 'index.html?ensayo=salida', mirar: ['VEH-01 sale por la puerta, llega a su puesto y dispara a los drones.', 'Si el tirador lo destruye, el árbol lo muestra en gris con cuenta atrás y reaparece.'] },
@@ -50,6 +50,7 @@ moveTo({x: 205.5, y: 81.5});`, para: 'MIN-01' },
     { titulo: 'H3 · Mezcladora', url: 'index.html', planta: 'h3', mirar: ['Tambor verde con el rotor blanco girando mientras mezcla.'] },
     { titulo: 'H4 · Ensambladora', url: 'index.html', planta: 'h4', mirar: ['Ensambladora turquesa con los chevrones y la franja de peligro.'] },
     { titulo: 'H5 · La cadena entera', url: 'index.html', planta: 'h5', mirar: ['Todas las máquinas a la vez; el arsenal guarda los misiles.'] },
+    { titulo: 'H6 · Carcasas (producción circular)', url: 'index.html', planta: 'h6', mirar: ['Taller al nordeste: embutidora, sierra, láser y fundidora; BOT-01 camina entre ellas.', 'Cada semiesfera deja recortes en la sierra; si nadie los retira, la sierra se bloquea.', 'Tres recortes en la fundidora dan una placa nueva; la meta pide 6 semiesferas con solo 5 placas.', 'El láser hace lo mismo que la sierra tres veces más rápido, a 5 kW.'] },
   ] },
   { titulo: 'Campaña y paridad', items: [
     { titulo: 'Campaña desde el principio', url: 'index.html', mirar: ['Empieza en H0 (la fábrica es un marcador provisional) y sigue a B1 al cumplirlo.', 'Para empezar de cero, usa «Borrar el progreso» abajo.'] },

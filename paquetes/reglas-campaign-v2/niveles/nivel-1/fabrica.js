@@ -1,4 +1,4 @@
-// La planta de la misión 1: mapa, instalación y programas de partida. Los hitos H0–H5 viven en h0.js…h5.js.
+// La planta de la misión 1: mapa, instalación y programas de partida. Los hitos H0–H6 viven en h0.js…h6.js.
 // Coordenadas locales de la fábrica (1 casilla = 1 m); `nivel.fabrica.origen` las lleva a metros del mapa.
 const MAPA = {
   cols: 200, rows: 104,
@@ -46,6 +46,17 @@ const UNIDADES = [
   tarima("PAL-4", 91.2, 47.6, NORTE, true),
   tarima("PAL-5", 88, 56.4, SUR),
   { id: "DEP-01", clase: "arsenal", cx: 101.6, cy: 57, ax: 101.6, ay: SUR },
+  // Taller de carcasas (H6, P7): la producción circular del consolidado en la esquina noreste de la losa.
+  // Las máquinas miran al sur; BOT-01 camina entre ellas. PAL-6 recibe las placas, PAL-7 las semiesferas y PAL-8
+  // guarda los recortes hasta la fundidora.
+  { id: "EMB-01", clase: "embutidora", cx: 94.6, cy: 43.6, ax: 94.6, ay: 45.4, desde: 6 },
+  { id: "SAW-01", clase: "sierra", cx: 97.6, cy: 43.6, ax: 97.6, ay: 45.4, desde: 6 },
+  { id: "LSR-01", clase: "laser", cx: 100.6, cy: 43.6, ax: 100.6, ay: 45.4, desde: 6 },
+  { id: "FND-01", clase: "fundidora", cx: 100.9, cy: 47.2, ax: 98.9, ay: 47.2, desde: 6 },
+  { id: "BOT-01", clase: "obrero", cx: 97.6, cy: 45.8, desde: 6 },
+  tarima("PAL-6", 93.8, 47.4, NORTE),
+  tarima("PAL-7", 96.2, 47.4, NORTE, true),
+  tarima("PAL-8", 98.6, 47.6, NORTE, true),
 ];
 
 // La luz de cada máquina sigue a su sensor de salida hasta que el jugador la reprograme.
@@ -67,7 +78,21 @@ const INICIAL = {
     "await pickUp(MLD_01, \"base\");",
     "await deliver(PAL_4);",
   ],
+  "BOT-01": [
+    "// BOT-01 camina por el taller y lleva cada pieza a la máquina siguiente.",
+    "// Un ciclo: placa a la embutidora, domo a la sierra y semiesfera a PAL-7.",
+    "// ¿Qué pasa con los recortes que deja la sierra?",
+    "await pickUp(PAL_6, \"plate\");",
+    "await deliver(EMB_01);",
+    "while (EMB_01.output === 0) { await wait(0.3); }",
+    "await pickUp(EMB_01, \"dome\");",
+    "await deliver(SAW_01);",
+    "while (SAW_01.output < 2) { await wait(0.3); }",
+    "await pickUp(SAW_01, \"shell\");",
+    "await deliver(PAL_7);",
+  ],
   "PRS-01": luz("PRS-01"), "MLD-01": luz("MLD-01"), "MIX-01": luz("MIX-01"), "ASM-01": luz("ASM-01"),
+  "EMB-01": luz("EMB-01"), "SAW-01": luz("SAW-01"), "LSR-01": luz("LSR-01"), "FND-01": luz("FND-01"),
 };
 
 export default {

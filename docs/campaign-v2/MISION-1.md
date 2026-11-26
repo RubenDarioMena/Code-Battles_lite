@@ -21,6 +21,9 @@ La fábrica corre sobre el motor compartido `paquetes/fabrica` (extraído de `re
 | MLD-01 · moldeadora | rápida, con brazo ARM-02 | polímero | base con aletas | 2,5 s |
 | MIX-01 · mezcladora | **lenta**, absorbe de sus tarimas (`zona: 2`) y deja la carga en una tarima de salida | acero + polímero | carga | 7 s |
 | ASM-01 · ensambladora | **umbral de energía** (6 kW enteros o no arranca), absorbe de 3 tarimas | ojiva + base + carga | misil → DEP-01 (bodega) | 4 s |
+| EMB-01 · embutidora | taller de H6 ([P7](P7-CIRCULAR.md)), 2 kW | placa | domo | 3 s |
+| SAW-01 · sierra / LSR-01 · láser | misma receta: sierra 1 kW, láser 5 kW y tres veces más rápido | domo | semiesfera **+ recortes** | 6 s / 2 s |
+| FND-01 · fundidora | recicla y pierde 2 kg de escoria, 3 kW | 3 recortes | placa | 6 s |
 
 | Pieza | Dónde |
 |---|---|
@@ -42,6 +45,7 @@ La bodega empieza con 48 misiles para B1–B4, porque el misil completo no sale 
 | H3 Máquina lenta | 4 cargas fabricadas | MIX-01 | sincronizar dos piezas |
 | H4 Ensamblaje | 4 misiles fabricados | ASM-01 | coordinar, energía (parar máquinas para que arranque) |
 | H5 | 8 misiles fabricados | — | la cadena entera sostenida |
+| H6 Carcasas (tras la B8) | 6 semiesferas en PAL-7 y 1 placa refundida; llegan 5 placas | EMB-01, SAW-01, LSR-01, FND-01, BOT-01 (robot libre), PAL-6/7/8 | subproductos, reciclaje, energía frente a tiempo |
 
 ## Decisiones del autor (25-nov)
 
@@ -54,6 +58,6 @@ Consecuencia del punto 3: los programas no pueden depender de coordenadas fijas.
 
 ## Estado
 
-- Jugable de H0 a H5 en `Prototypes/Campaign-V2/`. Las transiciones entre fábrica y Batalla recargan la página desde el checkpoint (`paquetes/app/juego/fabrica-v2.js`).
+- Jugable de H0 a H6 en `Prototypes/Campaign-V2/`. Las transiciones entre fábrica y Batalla recargan la página desde el checkpoint (`paquetes/app/juego/fabrica-v2.js`).
 - Pruebas: `campaign-v2-fabrica.mjs` (misión completa con programas guionizados) y `campaign-v2-sesion-fabrica.mjs` (página, recargas, colocador, Checkpoint).
 - Abierto: girar al colocar, la consola de energía de la base compartida con las torretas y equilibrar números jugando.

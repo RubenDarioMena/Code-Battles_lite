@@ -17,7 +17,7 @@ Cada Batalla, como ensayo suelto, con la UI nueva, la muralla y la torreta esfer
 | B5 · Dos lanzadores | `index.html?ensayo=b5` | Un enjambre por el norte y otro por el sur. Cada lanzador lleva su programa (pestañas LAU-01 y LAU-02). |
 | B6 · Fuera de la muralla | `index.html?ensayo=b6` | Orugas y un enjambre de 20 drones. Las torretas solas dejan pasar orugas porque persiguen drones. VEH-01 sale por la puerta y caza drones lejos de la muralla. El tirador (x 227, y 84) lo desgasta si se acerca a 7 m. También gana repartir el trabajo: torretas con `autoTarget("crawler")` primero y el vehículo a por los drones. |
 | B7 · La rueda | `index.html?ensayo=b7` | Cinco orugas blindadas (7 de vida) en fila por el carril de la puerta, más rápidas de lo que las torretas tumban. WHL-01 espera en el carril, estalla con una oruga a menos de 2 m y reaparece a los 12 s con su programa desde el principio. |
-| B8 · Siembra | `index.html?ensayo=b8` | Una columna de ocho orugas llega a los 16 s. MIN-01 siembra sus cuatro cargas antes y vuelve tras la muralla. Cada carga que estalla escribe «¡Carga!» en la consola. Es la última Batalla: al ganarla en la campaña aparece el cierre del nivel. |
+| B8 · Siembra | `index.html?ensayo=b8` | Una columna de ocho orugas llega a los 16 s. MIN-01 siembra sus cuatro cargas antes y vuelve tras la muralla. Cada carga que estalla escribe «¡Carga!» en la consola. Es la última Batalla: al ganarla en la campaña se pasa al taller de H6, y el cierre del nivel llega al cumplirlo. |
 
 Ejemplo para B1 (LAU-01):
 
@@ -106,6 +106,7 @@ Cada inciso abre un hito con la planta tal como la deja la demo automática (`da
 | H3 · Mezcladora | El rotor gira mientras mezcla. |
 | H4 · Ensambladora | Chevrones y franja de peligro. |
 | H5 · La cadena entera | Todas las máquinas a la vez. |
+| H6 · Carcasas (producción circular) | Los recortes bloquean la sierra si nadie los retira; tres refundidos dan una placa. La meta pide 6 semiesferas con 5 placas. |
 
 Al elegir una unidad, la **minificha** aparece abajo a la izquierda, también en las Batallas. Muestra:
 

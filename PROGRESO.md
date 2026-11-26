@@ -1,4 +1,4 @@
-## Campaign-V2 · P7 · Producción circular: reglas e invariantes · 26 de noviembre de 2026
+## Campaign-V2 · P7 · Producción circular: reglas, hito H6 jugable y taller en 3D · 26 de noviembre de 2026
 
 Primera porción del consolidado del 23-nov que no venía de War ni de Campaign 1: su corte vertical 13.A, «Producción circular mínima». El diseño está en [P7-CIRCULAR.md](docs/campaign-v2/P7-CIRCULAR.md).
 
@@ -9,7 +9,20 @@ Primera porción del consolidado del 23-nov que no venía de War ni de Campaign 
   - `ritmo`: sierra y láser con la misma receta, a distinto tiempo y kW.
 - **Catálogo de V2:** cuatro piezas y cuatro máquinas nuevas, con sus nombres en español e inglés.
 - **Prueba nueva `campaign-v2-circular.mjs`:** conserva la masa en cada paso. Reciclando, 5 placas dan 7 semiesferas (sin reciclar, 5, con los recortes amontonados). Si solo se retiran las semiesferas, a la tercera la sierra se bloquea. Comprueba también que no hay duplicados, las capacidades, que cada máquina rechaza lo que no le toca y la repetición exacta. La sierra tarda 6 s con 1 kW y el láser 2 s con 5 kW (2,5 s si solo hay 4 kW). Un catálogo que crea masa no deja crear el motor.
-- **Falta:** el hito H6 jugable en la misión 1, con su taller, programas, pistas y vista.
+- **H6 «Carcasas» en la misión 1**, tras la B8. Se enciende un taller al nordeste de la losa: EMB-01, SAW-01, LSR-01, FND-01, el robot libre BOT-01 y las tarimas PAL-6, PAL-7 y PAL-8. Llegan 5 placas a BAY-1 y la meta pide 6 semiesferas en PAL-7 y al menos una placa refundida, así que sin reciclar no se puede. Tiene objetivo, lección y tres pistas en español e inglés.
+- **Pruebas de la misión:**
+  - `campaign-v2-fabrica.mjs` la juega ahora de H0 a H6: el guion de H6 tarda 102 s y comprueba que la masa se conserva de principio a fin;
+  - `campaign-v2-demo-fabrica.mjs` cumple H6 en la página con un programa escrito como lo haría el jugador (97 s).
+- **Menú de pruebas:** nuevo inciso «H6 · Carcasas». `datos/plantas-demo.json` se regeneró con la planta al empezar H6.
+- **Vista:**
+  - `vista-3d/cv2/taller.js`, con las cuatro máquinas en el estilo papercraft:
+    - embutidora naranja con su punzón de media esfera;
+    - sierra con su disco girando;
+    - láser con el cabezal y el haz rojo;
+    - fundidora con la boca encendida mientras funde. Mira al oeste, hacia su punto de trabajo.
+  - Las piezas nuevas tienen forma en 3D (el domo con su ala, la semiesfera recortada y el medio anillo de recortes) y color en el plano.
+  - La minificha usa los SVG de prensa y CNC de Campaign 1.
+- **Probado en el navegador:** H6 se completa con el programa del editor (6/6 y 1/1, +50 de premio), y el HUD marca 2, 5 y 7 kW según qué máquinas trabajan.
 
 ## Campaign-V2 · P6 · Documentación de la rama · 26 de noviembre de 2026
 

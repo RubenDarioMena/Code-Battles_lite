@@ -9,7 +9,8 @@ import { niveles } from '../paquetes/reglas-campaign-v2/index.js';
 import { catalogo } from '../shared/i18n/campaign-v2/nivel-1.js';
 
 const nivel = niveles['nivel-1'];
-assert.deepEqual(nivel.default.hitos.slice(-4), ['h5', 'b6', 'b7', 'b8'], 'tras H5, las tres Batallas propias');
+const { hitos } = nivel.default;
+assert.deepEqual(hitos.slice(hitos.indexOf('h5'), hitos.indexOf('h5') + 5), ['h5', 'b6', 'b7', 'b8', 'h6'], 'tras H5, las tres Batallas propias y el taller de H6');
 async function jugar(clave, textos) {
   const { partida, conductor, avisos } = await montar({ consulta: 'ensayo=' + clave, textos });
   while (!partida.evaluar() && partida.pasoActual < 6000) await conductor.avanzar(1);

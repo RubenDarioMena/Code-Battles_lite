@@ -3,7 +3,8 @@
  * Solo dibujo: lee el mundo y nunca lo cambia. */
 import { crearTerreno } from './campaign-terreno.js';
 
-const PIEZA = { steel: "#9fb2c0", polymer: "#e6d79a", nose: "#e2704c", base: "#5fa06a", charge: "#b884e0", motor: "#e0a04e", missile: "#eef2f4" };
+const PIEZA = { steel: "#9fb2c0", polymer: "#e6d79a", nose: "#e2704c", base: "#5fa06a", charge: "#b884e0", motor: "#e0a04e", missile: "#eef2f4",
+  plate: "#c3cad5", dome: "#9aa3b2", shell: "#dfe4ec", scrap: "#615e6c" }; // taller de carcasas de Campaign-V2 (P7)
 const LUZ = { green: "#4be38a", amber: "#ffc247", red: "#ff5a4f" };
 // mapa y reglas (esRobot, esMaquina, estadoMaquina) los da la app: una vista no importa reglamentos.
 /** ¿Se dibujan los alcances? Solo cuando la selección incluye un brazo anclado, una tarima libre o una máquina. */

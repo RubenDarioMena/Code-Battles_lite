@@ -8,7 +8,7 @@ import war from '../paquetes/reglas-war/index.js';
 
 const contenido = niveles['nivel-1'];
 assert.deepEqual(validarNivel('nivel-1', contenido, war.api.tipos, catalogo), []);
-assert.deepEqual(hitosFabrica(contenido.default), ['h0', 'h1', 'h2', 'h3', 'h4', 'h5']);
+assert.deepEqual(hitosFabrica(contenido.default), ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 assert.ok(esFabrica('h3') && !esFabrica('b3') && !esFabrica(undefined));
 const def = nivelFabrica(contenido);
 
@@ -200,9 +200,45 @@ tiempos.h5 = jugar(m, {
   'FRK-01': despachador,
   'ARM-01': brazo('PAL-1', 'PRS-01', 'steel', 'nose', 'PAL-2'),
   'ARM-02': brazo('PAL-3', 'MLD-01', 'polymer', 'base', 'PAL-4'),
+}, hito(5));
+assert.equal(m.hito, 6, 'tras H5 viene el taller de carcasas');
+assert.ok(['EMB-01', 'SAW-01', 'LSR-01', 'FND-01'].every(id => m.porId[id].encendida) && m.porId['BOT-01'].presente);
+m = batalla(m, 40);
+
+// H6 · producción circular: FRK-01 lleva las placas a PAL-6 y BOT-01 hace la cadena y refunde los recortes.
+// Las cinco placas del pedido llegan a la bahía durante la Batalla: son toda la masa de la planta.
+const masa0 = motor.masaEnPlanta(m) + m.perdida;
+assert.deepEqual([n(m, 'BAY-1', 'plate'), masa0], [5, 50]);
+const taller = function* (m) {
+  const q = id => m.porId[id];
+  const lleva = function* (origen, pieza, destinos) {
+    assert.equal(yield { verbo: 'pickUp', args: [origen, pieza] }, 'ok', `${origen}: ${pieza}`);
+    for (;;) for (const d of destinos) if ((yield { verbo: 'deliver', args: [d] }) === 'ok') return; else yield { wait: 0.5 };
+  };
+  while (true) {
+    const saw = q('SAW-01'), fnd = q('FND-01'), emb = q('EMB-01');
+    if (saw.salida.includes('shell')) { yield* lleva('SAW-01', 'shell', ['PAL-7']); continue; }
+    if (saw.salida.includes('scrap')) { yield* lleva('SAW-01', 'scrap', ['FND-01', 'PAL-8']); continue; }
+    if (n(m, 'PAL-8', 'scrap') && (fnd.entrada.scrap || 0) < 3 && !fnd.proceso) { yield* lleva('PAL-8', 'scrap', ['FND-01']); continue; }
+    if (fnd.salida.includes('plate')) { yield* lleva('FND-01', 'plate', ['EMB-01', 'PAL-6']); continue; }
+    if (emb.salida.includes('dome') && !saw.proceso && !saw.entrada.dome) { yield* lleva('EMB-01', 'dome', ['SAW-01']); continue; }
+    if (n(m, 'PAL-6', 'plate') && !emb.entrada.plate && !emb.proceso) { yield* lleva('PAL-6', 'plate', ['EMB-01']); continue; }
+    yield { wait: 0.5 };
+  }
+};
+tiempos.h6 = jugar(m, {
+  'FRK-01': function* (m) {
+    yield { hasta: m => n(m, 'BAY-1', 'plate') > 0 };
+    assert.equal(yield { verbo: 'pickUp', args: ['BAY-1'] }, 'ok');
+    assert.equal(yield { verbo: 'deliver', args: ['PAL-6'] }, 'ok');
+  },
+  'BOT-01': taller,
 }, m => m.completado);
 assert.ok(m.completado);
 assert.ok(motor.metas(m).every(x => x.cumplida));
+assert.ok(m.producidos.plate >= 1 && m.perdida >= 2, 'al menos una placa refundida, con su escoria');
+assert.equal(motor.masaEnPlanta(m) + m.perdida, masa0, 'se conserva la masa: lo que queda más la escoria');
+assert.ok(n(m, 'PAL-7', 'shell') >= 6);
 
 // El guardado no lleva tareas y deja los brazos en su base.
 const g = motor.serializar(m);
@@ -210,4 +246,4 @@ assert.ok(g.unidades.filter(u => u.alcance).every(u => u.cx === u.base.x && u.cy
 assert.equal(motor.crear(def, g).hito, m.hito);
 
 const total = Object.values(tiempos).reduce((a, b) => a + b, 0);
-console.log(`Campaign-V2 · fábrica: H0→H5 cumplidos con programas guionizados (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}; ${total} s de planta). Alcance, colocador, zona de tarimas, tarima de salida, umbral de energía y Batallas sin hitos comprobados.`);
+console.log(`Campaign-V2 · fábrica: H0→H6 cumplidos con programas guionizados (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}; ${total} s de planta). Alcance, colocador, zona de tarimas, tarima de salida, umbral de energía, Batallas sin hitos y taller circular con conservación de masa comprobados.`);

@@ -64,7 +64,8 @@
     }
     // Contadores que se ven sin seleccionar: tarimas con piezas, máquinas encendidas y la bodega.
     const siempre = e => (esLugar(e) && !!tarimaDe(e) && tarimaDe(e).piezas.length > 0) || (C.esMaquina(e) && e.encendida && (e.salida.length > 0 || !!e.proceso)) || (e.clase === "arsenal" && e.misiles > 0);
-    const ALTO = { obrero: 1.3, montacargas: 2.1, prensa: 2.7, moldeadora: 2.7, mezcladora: 2.9, ensambladora: 3.6, banda: 1.3, control: 4.4, bahia: 2.4, lugar: 1.5, pad: .5, pila: 1.6, arsenal: 3, torreta: 6.2 };
+    const ALTO = { obrero: 1.3, montacargas: 2.1, prensa: 2.7, moldeadora: 2.7, mezcladora: 2.9, ensambladora: 3.6, banda: 1.3, control: 4.4, bahia: 2.4, lugar: 1.5, pad: .5, pila: 1.6, arsenal: 3, torreta: 6.2,
+      embutidora: 2.9, sierra: 1.9, laser: 2.3, fundidora: 2.6 };
     const altoEtiqueta = e => ALTO[e.clase] || 1.2;
 
     const seg = v => `${Math.round(v)} s`;
@@ -241,6 +242,9 @@
     const pistas = () => Array.from({ length: nPistas() }, (_, i) => t(`campaign.hito.${M().hito}.pista.${i}`));
     // «en», «lotes» y «banda» son del nivel original; «hechos» y «tarima», de los hitos de fábrica de Campaign-V2.
     function nombreMeta(x) {
+      // Una meta puede traer su propio rótulo (campaign.meta.k.<k>), como «placas refundidas» en H6.
+      const propio = x.k && t(`campaign.meta.k.${x.k}`);
+      if (propio && propio !== `campaign.meta.k.${x.k}`) return propio;
       if (x.tipo === "en") return t("campaign.meta.en", { pieza: pieza(x.pieza), lugar: x.lugar });
       if (x.tipo === "lotes") return t("campaign.meta.lotes", { pieza: pieza(x.pieza) });
       if (x.tipo === "hechos") return t("campaign.meta.hechos", { pieza: pieza(x.pieza) });

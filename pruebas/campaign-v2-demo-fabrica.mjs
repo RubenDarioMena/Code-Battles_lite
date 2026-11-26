@@ -1,4 +1,4 @@
-// Campaign-V2 · los seis hitos de fábrica jugados en la página con programas escritos como los escribiría el jugador
+// Campaign-V2 · los siete hitos de fábrica jugados en la página con programas escritos como los escribiría el jugador
 // (solo órdenes y propiedades del editor), el colocador de H2 y recargas entre hitos. Cada Batalla se sustituye por
 // 40 s de planta sin programas, como en campaign-v2-fabrica.mjs; las Batallas reales las cubren sus propias pruebas.
 import assert from 'node:assert/strict';
@@ -139,9 +139,34 @@ while (true) {
   'ARM-01': brazo('PAL_1', 'PRS_01', 'steel', 'nose', 'PAL_2'),
   'ARM-02': brazo('PAL_3', 'MLD_01', 'polymer', 'base', 'PAL_4'),
 });
-assert.ok(juego.mundo.completado, 'la misión termina con H5');
-// DEMO_PLANTAS=ruta.json vuelca el historial final: guarda el checkpoint con que empieza cada hito H1–H5, y el menú
+assert.equal(juego.mundo.hito, 6, 'tras H5, la planta ya está en el taller de carcasas');
+assert.equal(historial().ultimo, 'b6', 'tras H5 viene la B6');
+// B6, B7 y B8 se sustituyen por los 40 s de planta de la B6: sus Batallas las cubren sus propias pruebas.
+pasarBatalla(6);
+
+// H6 · producción circular: FRK-01 sube las placas a PAL-6; BOT-01 hace la cadena y refunde los recortes de PAL-8.
+const { juego: ultimo } = await jugar('h6', {
+  'FRK-01': 'while (count(BAY_1, "plate") === 0) { await wait(0.5); }\nawait pickUp(BAY_1);\nawait deliver(PAL_6);',
+  'BOT-01': `async function llevar(origen, pieza, destino) {
+  if ((await pickUp(origen, pieza)) !== "ok") return;
+  while ((await deliver(destino)) !== "ok") { await wait(0.5); }
+}
+while (true) {
+  if (count(SAW_01, "shell") > 0) { await llevar(SAW_01, "shell", PAL_7); continue; }
+  if (count(SAW_01, "scrap") > 0) { await llevar(SAW_01, "scrap", PAL_8); continue; }
+  if (count(PAL_8, "scrap") >= 3 && FND_01.input === 0) {
+    for (let i = 0; i < 3; i++) { await llevar(PAL_8, "scrap", FND_01); }
+    continue;
+  }
+  if (count(FND_01, "plate") > 0) { await llevar(FND_01, "plate", PAL_6); continue; }
+  if (count(EMB_01, "dome") > 0 && SAW_01.input === 0) { await llevar(EMB_01, "dome", SAW_01); continue; }
+  if (count(PAL_6, "plate") > 0 && EMB_01.input === 0) { await llevar(PAL_6, "plate", EMB_01); continue; }
+  await wait(0.5);
+}`,
+  'ARM-01': libre, 'ARM-02': libre,
+});
+assert.ok(ultimo.mundo.completado, 'la misión termina con H6');
+// DEMO_PLANTAS=ruta.json vuelca el historial final: guarda el checkpoint con que empieza cada hito H1–H6, y el menú
 // de pruebas lo usa para abrir la fábrica de un hito ya construida (Prototypes/Campaign-V2/datos/plantas-demo.json).
 if (process.env.DEMO_PLANTAS) (await import('node:fs')).writeFileSync(process.env.DEMO_PLANTAS, JSON.stringify(historial()) + '\n');
-assert.equal(historial().ultimo, 'b6', 'tras H5 viene la B6');
-console.log(`Campaign-V2 · demo de fábrica en la página: H0→H5 con programas del editor (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}), colocador en H2 y recarga entre hitos.`);
+console.log(`Campaign-V2 · demo de fábrica en la página: H0→H6 con programas del editor (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}), colocador en H2 y recarga entre hitos.`);

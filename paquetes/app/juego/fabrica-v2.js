@@ -73,7 +73,7 @@ function cerrarHito(ctx, h, { almacen, inicio, nivel, claves, config }) {
   const stats = ctx.ti18n('campaign.banner.stats', { t: ctx.coma(ctx.mundo.t), presupuesto: ctx.mundo.presupuesto });
   const superado = ctx.ti18n('cv2.fab.superado', { hito: clave.toUpperCase(), titulo });
   if (!siguiente) {
-    // Tras H5 no hay más Batallas: la planta queda en marcha y el jugador puede seguir mirándola.
+    // Tras el último hito (H6) no hay más Batallas: la planta queda en marcha y el jugador puede seguir mirándola.
     const reiniciar = () => { reiniciarNivel(almacen); location.reload(); };
     ctx.mostrarBanner('victoria', ctx.ti18n('cv2.fab.fin'), `<p>${ctx.esc(superado)}</p><p>${ctx.esc(ctx.ti18n('cv2.fab.finTexto', { n: misiles }))}</p>`, stats,
       [[ctx.ti18n('cv2.fin.otra'), 'primario', ctx.ocultarBanner], [ctx.ti18n('cv2.fin.reiniciar'), '', reiniciar]]);

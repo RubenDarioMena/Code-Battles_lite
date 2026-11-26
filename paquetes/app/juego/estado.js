@@ -75,13 +75,16 @@ export function crearEstadoJuego(opciones = {}) {
     mezcladora: { principal: "fabrica" }, ensambladora: { principal: "fabrica" }, banda: { principal: "fabrica" }, bahia: { principal: "fabrica" },
     lugar: { principal: "fabrica" }, pad: { principal: "fabrica" }, pila: { principal: "fabrica" }, arsenal: { principal: "fabrica" },
     torreta: { principal: "ofensiva" }, control: { principal: "rastreo" },
+    // Campaign-V2 · taller de carcasas (P7); la fundidora ya estaba arriba.
+    embutidora: { principal: "fabrica" }, sierra: { principal: "fabrica" }, laser: { principal: "fabrica" },
   };
   const TIPOS = { ...datosWar.TIPOS };
   for (const [id, ficha] of Object.entries(batallas?.runtime?.tiposHostiles ?? {}))
     TIPOS[id] = { ...TIPOS[ficha.primitiva], nombre: ti18n(ficha.nombre), hp: ficha.experimental.vida };
   const funcionDe = (e) => FUNCION_DE[e.clase] || (e.rol ? { principal: e.rol } : null);
   const RADIO_DE = { lanzador: .9, vibracion: .6, deposito: 1.2, reparador: .5,
-    obrero: .8, montacargas: 1.3, prensa: 1.7, moldeadora: 1.7, mezcladora: 1.7, ensambladora: 2.4, banda: 1.2, bahia: 1.9, lugar: 1, pad: 1.4, pila: 1, arsenal: 1.9, torreta: 1.1, control: 1.2 };
+    obrero: .8, montacargas: 1.3, prensa: 1.7, moldeadora: 1.7, mezcladora: 1.7, ensambladora: 2.4, banda: 1.2, bahia: 1.9, lugar: 1, pad: 1.4, pila: 1, arsenal: 1.9, torreta: 1.1, control: 1.2,
+    embutidora: 1.7, sierra: 1.7, laser: 1.7, fundidora: 1.9 };
   const radioDe = (e) => RADIO_DE[e.clase] || .6;
   // Luces de cada clase en coordenadas locales (x, altura, y del mapa). El frente mira a la derecha.
   const LUCES = { lanzador: [[.56, .32, .3], [.56, .32, -.3]], vibracion: [[0, 1.4, 0]], deposito: [[.71, .52, .55], [.71, .52, -.55]], reparador: [[.12, .7, .12]] };

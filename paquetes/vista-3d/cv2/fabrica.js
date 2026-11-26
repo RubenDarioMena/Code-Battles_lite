@@ -8,6 +8,7 @@ import { crearCamara3D } from '../camara.js';
 import { liberarEscena } from '../recursos.js';
 import { crearPaisaje } from './paisaje.js';
 import { zoomMax, PITCH_RASANTE } from './decorado.js';
+import { maquinaTaller, ALTO_TALLER } from './taller.js';
 
 /** Tonos de las máquinas de Campaign 1 (generar.py de svg-b): [base, luz, sombra]. */
 export const PALETA = {
@@ -22,7 +23,9 @@ export const PALETA = {
   entrada: 0x3fc1e0, salida: 0xf6b817, apagado: 0x59606e, piloto: 0x7dff6a,
 };
 const PIEZA = { steel: PALETA.acero[0], polymer: 0xe9dca0, nose: PALETA.naranja[0], base: PALETA.verde[0], charge: PALETA.morado[1],
-  motor: PALETA.amarillo[0], missile: PALETA.blanco[0] };
+  motor: PALETA.amarillo[0], missile: PALETA.blanco[0],
+  // Taller de carcasas (P7): la placa y el domo en bruto son acero; la semiesfera recortada brilla; los recortes, hierro.
+  plate: PALETA.acero[1], dome: PALETA.acero[0], shell: 0xdfe4ec, scrap: PALETA.hierro[1] };
 const LUZ = { green: PALETA.piloto, amber: 0xffc247, red: 0xff5a4f, off: 0x3a4150 };
 
 /** Puertas de la muralla en metros, a partir del marco de la Batalla (paso.js: el muro está en x0 + 3).
@@ -70,6 +73,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     misil: new THREE.MeshBasicMaterial({ color: 0xffd27a }), estela: new THREE.LineBasicMaterial({ color: 0xffc070, transparent: true, opacity: .7 }),
     explosion: new THREE.MeshBasicMaterial({ color: 0xffa94d, transparent: true, opacity: .4, depthWrite: false }),
     progreso: new THREE.MeshBasicMaterial({ color: PALETA.piloto }),
+    brasa: new THREE.MeshBasicMaterial({ color: 0xff7a1f }),
   };
   const luces = Object.fromEntries(Object.entries(LUZ).map(([k, c]) => [k, new THREE.MeshBasicMaterial({ color: c })]));
   const geo = g => { geos.add(g); return g; };
@@ -100,6 +104,9 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     k.rotation.z = Math.PI / 2; k.position.y = y;
     return k;
   }
+  /** Media esfera hacia arriba, con la base en el centro (el punzón de la embutidora la gira). */
+  const semiesfera = (r, color) => trazo(forma(`s${r}`, () => new THREE.SphereGeometry(r, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2)), mat(color));
+  const herramientas = { THREE, P: PALETA, caja, cil, cilX, geo, semiesfera, haz: luces.red, brasa: especiales.brasa };
 
   // Texturas pintadas en un lienzo: franjas de peligro, pantalla de la consola, chevrones de la ensambladora y la losa.
   function lienzo(w, h, pintar) {
@@ -195,8 +202,13 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     nose: torno([[0, .24], [.15, -.1], [.15, -.2], [0, -.2]]), base: torno([[0, .18], [.15, .18], [.15, -.04], [.3, -.18], [0, -.18]]),
     charge: geo(new THREE.CylinderGeometry(.1, .1, .26, 10)), motor: torno([[0, .32], [.15, .32], [.15, -.14], [.3, -.3], [0, -.3]]),
     missile: torno([[0, .62], [.15, .28], [.15, -.3], [.3, -.46], [0, -.46]]),
+    // El domo sale de la embutidora con su ala; la sierra o el láser la recortan: semiesfera limpia y medio anillo.
+    plate: geo(new THREE.BoxGeometry(.46, .05, .46)),
+    dome: torno([[0, .2], [.1, .185], [.16, .13], [.19, .05], [.2, 0], [.27, 0], [.27, -.03], [0, -.03]]),
+    shell: torno([[0, .2], [.1, .185], [.16, .13], [.19, .05], [.2, 0], [0, 0]]),
+    scrap: geo(new THREE.TorusGeometry(.2, .035, 4, 10, Math.PI).rotateX(-Math.PI / 2)),
   };
-  const ALTO_P = { steel: .035, polymer: .11, nose: .2, base: .18, charge: .13, motor: .3, missile: .46 };
+  const ALTO_P = { steel: .035, polymer: .11, nose: .2, base: .18, charge: .13, motor: .3, missile: .46, plate: .025, dome: .03, shell: .005, scrap: .035 };
   function ponerPieza(o, tipo) {
     if (o.userData.tipo !== tipo) { o.geometry = GP[tipo]; o.material = mat(PIEZA[tipo] ?? PALETA.naranja[0]); o.userData.tipo = tipo; }
     o.visible = true;
@@ -233,6 +245,11 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     luz.position.set(x + .1, .8, z - .08);
     g.add(luz);
     return luz;
+  }
+  /** El frente (+z) mira al punto de trabajo: al sur o al norte; al este u oeste solo si queda de lado (la fundidora). */
+  function rumbo(e, pad) {
+    const dx = (pad.ax ?? e.cx) - e.cx, dz = (pad.ay ?? e.cy + 1) - e.cy;
+    return Math.abs(dx) > Math.abs(dz) ? Math.sign(dx) * Math.PI / 2 : dz < 0 ? Math.PI : 0;
   }
   function maquinaObj(e) {
     const g = new THREE.Group(), cuerpo = [], o = { grupo: g, cuerpo, alto: 2.7 };
@@ -271,7 +288,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
       o.pala.add(cil(.1, .1, .1, PALETA.blanco[0], 0, -.02, 0));
       o.pala.position.set(0, 1.47, -.1); g.add(o.pala);
       g.add(caja(.42, .3, .36, PALETA.acero[0], .98, .45, -.1));
-    } else {
+    } else if (!maquinaTaller(e, g, o, { ...herramientas, c })) {
       // Ensambladora: cuerpo turquesa con chevrones y el sello «+» arriba, y su franja de estado al frente.
       g.add(c(caja(2.4, 1.3, 1.6, PALETA.turquesa[0], .1, .25, -.15)));
       const tapa = new THREE.Mesh(geo(new THREE.PlaneGeometry(2.36, 1.56)), MT.chevron);
@@ -286,7 +303,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     o.salida = piezas(g, 3, i => [ancho / 2 - .5 + i * .15, .39, frente]);
     o.barra = new THREE.Mesh(geo(new THREE.BoxGeometry(1, .07, .07)), especiales.progreso);
     o.barra.position.set(0, .4, fondo / 2 + .04); o.barra.visible = false; g.add(o.barra);
-    o.alto = grande ? 2.2 : e.clase === 'prensa' ? 2.9 : 1.8;
+    o.alto = ALTO_TALLER[e.clase] ?? (grande ? 2.2 : e.clase === 'prensa' ? 2.9 : 1.8);
     return o;
   }
   function robotObj(e) {
@@ -446,7 +463,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
       } else if (C.esMaquina(e)) {
         const est = C.estadoMaquina(e), enc = e.encendida, pad = e.pad ? m.porId[e.pad] : e;
         g.position.set(e.cx, e.enVilo ? .62 : 0, e.cy);
-        if (!e.enVilo) g.rotation.y = (pad.ay ?? e.cy + 1) < e.cy ? Math.PI : 0;
+        if (!e.enVilo) g.rotation.y = rumbo(e, pad);
         for (const c of o.cuerpo) c.material = enc ? c.userData.color : apagadoDe(c.userData.color);
         pintarPiezas(o.entrada, Object.entries(e.entrada).flatMap(([p, n]) => Array(n).fill(p)));
         pintarPiezas(o.salida, e.salida);
@@ -460,6 +477,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
         if (o.pieza) o.pieza.visible = !!e.proceso;
         if (o.cil) o.cil.forEach((x, i) => { x.scale.y = anda ? 1 + .18 * Math.sin(ahora / 180 + i * 2) : 1; });
         if (o.pala && anda) o.pala.rotation.y = ahora / 130;
+        if (o.anima) o.anima(anda, ahora);
         if (o.franja) {
           o.franja.material = luces[!enc ? 'off' : est === 'working' ? 'green' : est === 'changeover' ? 'amber' : est === 'blocked' ? 'red' : 'off'];
           g.position.y += anda ? .015 * Math.sin(ahora / 30) : 0;
