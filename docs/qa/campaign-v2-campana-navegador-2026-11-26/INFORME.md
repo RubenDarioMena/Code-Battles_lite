@@ -17,6 +17,7 @@
 | B1 · Primer blanco | victoria | 35,9 s | 0 / 6 | 48 → 37 | **1** (A1) | editor (tecleado) | 12 misiles gastados. Recarga a los 10 s: la Batalla vuelve a t = 0 con el programa conservado. |
 | H1 · Máquina rápida | cumplido | ≈ 34 s de planta (40,8 → 75,0) | — | 37 → 37 | 0 | editor (ARM-01) | Luz de PRS-01 verde mientras prensa. La recarga «a mitad» llegó tarde: el hito ya se había cumplido y la recarga saltó la tarjeta y abrió B2 directamente (el checkpoint de B2 estaba guardado). |
 | B2 · Prioridades | **bloqueada (C1)**; victoria con parche de consola | 34,7 s | 0 / 13 | 37 → 18 | 1 (A1) + error de programa falso (C1) | `__banco.programas` + `abrirPrograma` | Sin parche, *cualquier* programa (incluso vacío) termina en «Error en el programa de LAU-01 · Cannot read properties of undefined (reading 'id')» a los 3,0 s; 5 intentos y una recarga. En `?ensayo=b2` el mismo programa va bien. Con el parche: 20 misiles gastados, 13/13. |
+| H2 · Dos brazos | cumplido | ≈ 44 s de planta (109,6 → 153,3) | — | 18 → 18 | 0 | `__banco.programas` + `abrirPrograma` (FRK-01, ARM-02); ARM-01 seguía con el de H1 | PAL-3 movida con la interfaz real: seleccionar → «Mover» → toque junto a ARM-02 → barra ↻ ✓ ✕ → ✓. Quedó en (86,97; 47,59), a 2,2 m de ARM-02 (alcance 2,8); aviso «PAL-3 colocado.». Luces: ver M4. Al cumplir, BAY-1 pide acero (llega a +3 s) y polímero (+6 s): B3 empezará con dos pedidos en camino (C1). |
 
 ## Hallazgos (por gravedad)
 
@@ -39,6 +40,8 @@
   - Reproducir: abrir `index.html` con una partida avanzada → consola: `Object.keys(localStorage).filter(k => k.startsWith("campaign-v2")).forEach(k => localStorage.removeItem(k))` → recargar → los programas siguen ahí.
 - **M2 · `__banco.programas[id] = …` seguido de recarga pierde el programa.** La guía dice «Escribe un programa sin el editor (después recarga o vuelve a abrirlo)». Al recargar, el guardado de salida escribe el texto que hay en el editor y el programa asignado desaparece. «Volver a abrirlo» sí funciona (`__banco.abrirPrograma(id)` o tocar su pestaña).
   - Reproducir: en B2, `__banco.programas["LAU-01"] = "…"` → recargar → el editor y `__banco.programas["LAU-01"]` muestran el programa anterior.
+- **M4 · Una máquina parada por falta de material luce verde.** En H2, PRS-01 sin proceso, sin acero en la entrada y con `tSinMaterial` creciendo (111 s) tenía `luz = "green"`; MLD-01 igual mientras esperaba polímero. El programa de luz de partida es `light(outputFull ? "amber" : "green")`: solo pone ámbar con la salida llena, no cuando la máquina espera material. Choca con la regla «ámbar = espera, verde = trabajando».
+  - Reproducir: H2 con los programas de la guía → mirar PRS-01 cuando ARM-01 espera acero: verde.
 - **M3 · Bodega muy justa para B4.** La bodega empieza en 48; B1 gasta 12 (→ 37) y B2 gasta 20 (→ 18). H1–H3 no fabrican misiles, así que B3 y B4 llegan con menos de 20, lejos de los ~45 que necesita B4 (ver filas B3–B4).
 
 ### Baja / observaciones
