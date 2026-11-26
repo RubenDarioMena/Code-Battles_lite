@@ -78,6 +78,25 @@ Gravedad: **Alta**, rompe la partida o pierde progreso en un camino normal. **Me
   - `2 s después, 0 kW en uso y sin material: ASM state no_power energía uso 0 luz {"luz":"amber","aviso":true}`.
 - **Propuesta:** en las máquinas con `umbral`, poner `q.sinEnergia = false` en las ramas de bloqueo y de falta de material, y cuando `marcha` sea false.
 
+### 7 · Media · Un guardado anterior a P7 se restaura sin el taller de carcasas y H6 no se puede ganar (contenido cambiado sin subir la revisión)
+
+- **Dónde:** `paquetes/reglas-campaign-v2/niveles/nivel-1/nivel.js:3` (`revision: 2` desde `e4bf2b1`), `fabrica/catalogo.js:7` (`VERSION = 2` desde `e4bf2b1`) y `paquetes/fabrica/motor.js:95-97` (`crear`).
+- **Qué falla:** P7 (`77d8fe4` y `fd2cbc8`) añadió a la planta EMB-01, SAW-01, LSR-01, FND-01, BOT-01, PAL-6, PAL-7 y PAL-8, y añadió `h6` al final de `hitos`, pero no subió `revision` ni `VERSION`. `motor.crear(def, guardado)` da por válido cualquier guardado con la misma `version`, `nivel` y `rev` y toma sus `unidades` tal cual. Así, todo checkpoint o guardado en vivo anterior a P7 (incluidos los de quien probó la misión 1 entre el 25 y el 26 de noviembre) se restaura con 15 de las 23 unidades. Al llegar a H6, las metas miran a PAL-7 y a la fundidora, que no existen, y el hito no se puede cumplir. Además, el programa de BOT-01 no tiene unidad. Ni `campaign-v2-checkpoint.mjs` ni `abrirCheckpoints` lo detectan, porque para ellos el checkpoint es compatible.
+- **Reproducción (Node):** `v10-guardado-viejo.mjs`, con la planta de `7e12388:…/fabrica.js` serializada:
+  - `guardado viejo: version 2 nivel nivel-1 rev 2 | unidades 15`;
+  - `restaurado con el nivel actual: unidades 15 de 23 | faltan: EMB-01, SAW-01, LSR-01, FND-01, BOT-01, PAL-6, PAL-7, PAL-8`;
+  - `en H6: metas ["semiesferas 0/6","refundidas 0/1"] | cuantos(PAL-7, shell) = null`.
+- **Propuesta:** subir `revision` del nivel (a 3) en el mismo commit que cambia unidades o hitos, y documentarlo como cambio de formato de guardado (AGENTS: «no cambies los formatos de guardado sin documentarlo»). Antes conviene arreglar el hallazgo 2, porque la subida de revisión pasa justo por ese camino. Como red de seguridad, `crear` podría añadir las unidades del `def` que falten en el guardado, o rechazar el guardado si la lista de ids no coincide. Una prueba que compare los ids de la planta con los del guardado de cada checkpoint evitaría que vuelva a pasar.
+
+### 8 · Baja · Mover una torreta con la Batalla en pausa cambia los marcadores de bastión de la Batalla en curso
+
+- **Dónde:** `paquetes/reglas-campaign-v2/index.js:59-74` y `:97-101` (`posiciones` y `listaBastiones` mezclan `m.colocadas`).
+- **Qué falla:** con la Batalla ya empezada (`t > 0`), `colocar` solo anota la elección para la Batalla siguiente (es lo que está documentado). Pero `listaBastiones` ya trata la torreta como si estuviera en el bastión nuevo: el bastión donde sigue disparando se marca libre (sale el «+» del colocador) y el destino figura ocupado, aunque esté vacío. El jugador puede «poner» otra torreta en un bastión que en pantalla sigue ocupado, y nada le dice que el cambio vale para la siguiente.
+- **Reproducción (Node):** `v9-bastiones.mjs`, con B2 en campaña y 40 pasos:
+  - antes: `lanzadores LAU-01@6,9 bastiones ["0:libre","1:LAU-01","2:libre"]`;
+  - tras `colocar LAU-01 → 0` y 5 pasos más: `LAU-01@6,9 bastiones ["0:LAU-01","1:libre","2:libre"]`.
+- **Propuesta:** calcular la ocupación de la Batalla en curso con `m.batalla.lanzadores` y mostrar aparte las elecciones pendientes (un fantasma o un rótulo «en la siguiente Batalla»), o no aceptar `colocar` con la Batalla empezada.
+
 ---
 
 ## Dudas no verificadas
