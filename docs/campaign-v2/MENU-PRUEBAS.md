@@ -102,7 +102,7 @@ Cada inciso abre un hito con la planta tal como la deja la demo automática (`da
 | Inciso | Qué mirar |
 |---|---|
 | H1 · Prensa y ARM-01 | Prensa con su ariete; bandeja de entrada cian y de salida amarilla. |
-| H2 · Moldeadora y ARM-02 | PAL-3 queda fuera del alcance de ARM-02: muévela con «Mover». |
+| H2 · Moldeadora y ARM-02 | PAL-3 queda fuera del alcance de ARM-02: muévela con «Mover». Un fantasma verde (o rojo si no cabe) sigue al ratón; el toque lo fija y abre la barra ↻ ✓ ✕. R gira el punto de trabajo (el disco amarillo), Intro confirma y Esc cancela. |
 | H3 · Mezcladora | El rotor gira mientras mezcla. |
 | H4 · Ensambladora | Chevrones y franja de peligro. |
 | H5 · La cadena entera | Todas las máquinas a la vez. |

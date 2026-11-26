@@ -1,5 +1,6 @@
 // Campaign-V2 · la página entre fábrica y Batalla, con el mismo almacén en todas las recargas: partida nueva en H0,
-// recarga a B1, vuelta a la planta en H1, colocador, guardado en vivo y botón Checkpoint. DOM y GPU emulados.
+// recarga a B1, vuelta a la planta en H1, colocador (fantasma, giro, confirmar y cancelar), guardado en vivo y botón
+// Checkpoint. DOM y GPU emulados.
 import assert from 'node:assert/strict';
 import { cargar, habilitarVM } from './juego-dom.mjs';
 import { crearPlataformaMemoria } from '../paquetes/app/index.js';
@@ -83,8 +84,57 @@ boton.click();
 assert.equal(mover.activo, false);
 assert.equal(mover.colocar('PAL-2', 120, 50), 'fuera_de_losa');
 assert.equal(mover.colocar('BAY-1', 80, 50), 'no_movible');
-assert.equal(mover.colocar('PAL-2', 82.6, 47.6), 'ok');
 const pal2 = () => [banco.mundo.porId['PAL-2'].cx, banco.mundo.porId['PAL-2'].cy];
+const trabajo2 = () => [banco.mundo.porId['PAL-2'].ax, banco.mundo.porId['PAL-2'].ay];
+
+// Fantasma: tocar el suelo solo lo fija (la planta no cambia) y abre la barra; girar lleva el punto de trabajo
+// alrededor del centro; cancelar no deja nada; donde no cabe, ✓ se apaga y el aviso dice por qué.
+// La vista falsa de juego-dom no proyecta: aquí, 10 px por metro.
+const plano = juego.vistaActual();
+plano.proyectar = (x, _alto, y) => ({ x: x * 10, y: y * 10, visible: true });
+plano.suelo = (px, py) => ({ x: px / 10, y: py / 10, z: 0 });
+const pantalla = (x, y) => plano.proyectar(x, 0, y);
+const barra = juego.$('cv2-colocar'), ok = juego.$('cv2-colocar-ok');
+const [x0, y0] = pal2(), [ax0, ay0] = trabajo2();
+boton.click();
+assert.equal(mover.fase, 'apuntar');
+assert.deepEqual([mover.plan.x, mover.plan.y], [x0, y0], 'el fantasma empieza sobre la pieza');
+let s = pantalla(82.6, 47.6);
+assert.equal(mover.tocar(s.x, s.y), true);
+mover.pintar();
+assert.equal(mover.fase, 'fijar');
+assert.equal(barra.hidden, false);
+assert.equal(ok.disabled, false);
+const destino = [mover.plan.x, mover.plan.y];
+assert.ok(Math.hypot(destino[0] - 82.6, destino[1] - 47.6) < 0.05, `el toque fija el destino (${destino})`);
+assert.deepEqual(pal2(), [x0, y0], 'fijar no mueve la tarima');
+mover.girar(); mover.girar();
+assert.equal(mover.plan.giro, 2);
+assert.deepEqual([mover.plan.respuesta.ax, mover.plan.respuesta.ay].map(v => Math.round(v * 100) / 100),
+  [destino[0] - (ax0 - x0), destino[1] - (ay0 - y0)].map(v => Math.round(v * 100) / 100), 'media vuelta: el punto, al otro lado');
+juego.$('cv2-colocar-no').click();
+assert.equal(mover.fase, null);
+assert.equal(barra.hidden, true);
+assert.deepEqual([...pal2(), ...trabajo2()], [x0, y0, ax0, ay0], 'cancelar no deja nada');
+boton.click();
+s = pantalla(80, 46.2);
+mover.tocar(s.x, s.y); mover.pintar();
+assert.equal(mover.plan.respuesta.resultado, 'ocupado', 'encima de la prensa');
+assert.equal(ok.disabled, true);
+mover.confirmar();
+assert.equal(mover.fase, 'fijar', 'donde no cabe, confirmar (Intro) no coloca');
+assert.deepEqual(pal2(), [x0, y0]);
+// Tocar otro punto lleva el fantasma; girar un cuarto y confirmar con ✓.
+s = pantalla(82.6, 47.6);
+mover.tocar(s.x, s.y); mover.girar(); mover.pintar();
+ok.click();
+assert.equal(mover.fase, null);
+assert.deepEqual(pal2(), destino);
+const girado = trabajo2();
+assert.ok(Math.abs(girado[0] - (destino[0] - (ay0 - y0))) < 0.011 && Math.abs(girado[1] - (destino[1] + (ax0 - x0))) < 0.011,
+  `un cuarto en el sentido de las agujas del reloj: (dx, dy) → (−dy, dx) (${girado})`);
+// La API directa sigue colocando sin fantasma (también la usan las demos).
+assert.equal(mover.colocar('PAL-2', 82.6, 47.6), 'ok');
 assert.deepEqual(pal2(), [82.6, 47.6]);
 
 // 5 · Recarga en el mismo hito: sigue desde el guardado en vivo (la tarima donde quedó), no desde el checkpoint.
@@ -129,4 +179,4 @@ banco = await abrir(true); juego = juegoDe(banco);
 assert.equal(juego.fabricaV2.hito, 'h0');
 assert.equal(banco.mundo.hito, 0);
 assert.equal(banco.mundo.t, 0);
-console.log('Sesión de fábrica V2: H0 → B1 → H1 con recargas, planta en marcha durante la Batalla, colocador, guardado en vivo, Checkpoint, H1 resuelto con el programa de sus pistas y vuelta a H0.');
+console.log('Sesión de fábrica V2: H0 → B1 → H1 con recargas, planta en marcha durante la Batalla, colocador con fantasma, giro y confirmación, guardado en vivo, Checkpoint, H1 resuelto con el programa de sus pistas y vuelta a H0.');

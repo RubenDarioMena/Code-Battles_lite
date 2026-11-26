@@ -60,4 +60,5 @@ Consecuencia del punto 3: los programas no pueden depender de coordenadas fijas.
 
 - Jugable de H0 a H6 en `Prototypes/Campaign-V2/`. Las transiciones entre fábrica y Batalla recargan la página desde el checkpoint (`paquetes/app/juego/fabrica-v2.js`).
 - Pruebas: `campaign-v2-fabrica.mjs` (misión completa con programas guionizados) y `campaign-v2-sesion-fabrica.mjs` (página, recargas, colocador, Checkpoint).
-- Abierto: girar al colocar, la consola de energía de la base compartida con las torretas y equilibrar números jugando.
+- Colocador con fantasma (26-nov): verde si cabe y rojo si no, con girar (R), confirmar (Intro) y cancelar (Esc). Girar lleva el punto de trabajo, donde se para el obrero, alrededor del centro.
+- Abierto: la consola de energía de la base compartida con las torretas y equilibrar números jugando.

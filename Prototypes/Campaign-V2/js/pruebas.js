@@ -46,7 +46,7 @@ moveTo({x: 205.5, y: 81.5});`, para: 'MIN-01' },
   ] },
   { titulo: 'Fábrica por hito', nota: 'La planta de cada hito tal como la deja la demo automática (datos/plantas-demo.json). Sustituye tu progreso de Campaign-V2.', items: [
     { titulo: 'H1 · Prensa y ARM-01', url: 'index.html', planta: 'h1', mirar: ['Prensa amarilla en H con su ariete blanco; bandeja de entrada cian y de salida amarilla.', 'ARM-01: brazo azul con pinza blanca.'] },
-    { titulo: 'H2 · Moldeadora y ARM-02', url: 'index.html', planta: 'h2', mirar: ['Moldeadora morada con dos cilindros.', 'PAL-3 fuera del alcance de ARM-02: muévela con «Mover».'] },
+    { titulo: 'H2 · Moldeadora y ARM-02', url: 'index.html', planta: 'h2', mirar: ['Moldeadora morada con dos cilindros.', 'PAL-3 fuera del alcance de ARM-02: muévela con «Mover».', 'Al mover, un fantasma verde (o rojo si no cabe) sigue al ratón; el toque lo fija y abre la barra ↻ ✓ ✕. R gira el punto de trabajo (el disco amarillo), Intro confirma y Esc cancela.'] },
     { titulo: 'H3 · Mezcladora', url: 'index.html', planta: 'h3', mirar: ['Tambor verde con el rotor blanco girando mientras mezcla.'] },
     { titulo: 'H4 · Ensambladora', url: 'index.html', planta: 'h4', mirar: ['Ensambladora turquesa con los chevrones y la franja de peligro.'] },
     { titulo: 'H5 · La cadena entera', url: 'index.html', planta: 'h5', mirar: ['Todas las máquinas a la vez; el arsenal guarda los misiles.'] },

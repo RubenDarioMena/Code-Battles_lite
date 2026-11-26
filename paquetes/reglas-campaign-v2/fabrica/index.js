@@ -54,7 +54,7 @@ export function crearPlanta(def) {
  * @param {any} contenido módulo del nivel */
 export function moduloFabrica(contenido) {
   const def = nivelFabrica(contenido);
-  const { reglamento, quieto } = crearReglamentoFabrica(motor, { id: 'campaign', catalogo });
+  const { reglamento, quieto, probarColocar } = crearReglamentoFabrica(motor, { id: 'campaign', catalogo });
   return {
     ...catalogo, default: reglamento, VERSION: motor.VERSION,
     crear: motor.crear, serializar: motor.serializar, indexar: motor.indexar, instantaneaHistorica: motor.instantanea,
@@ -62,6 +62,6 @@ export function moduloFabrica(contenido) {
     estadoMaquina: motor.estadoMaquina, totalEntrada: motor.totalEntrada, esMaquina: motor.esMaquina, esRobot: motor.esRobot,
     nivel: { RETOS: [def], NIVEL: def, MAPA: def.mapa },
     restaurar: (guardado, reto = def) => motor.crear(reto, guardado),
-    quieto,
+    quieto, probarColocar,
   };
 }

@@ -12,7 +12,8 @@
  *   - `salidaTarima` en una máquina: deja lo que produce sobre una tarima vacía en su salida.
  *   - `entregaA` en una máquina: entrega lo que produce directamente a esa unidad (la bodega).
  *   - `umbral` en una máquina: solo arranca si sus kW caben enteros en la energía libre.
- *   - `colocar(id, x, y)`: el jugador mueve puestos, máquinas y brazos dentro de la losa.
+ *   - `colocar(id, x, y, giro)`: el jugador mueve puestos, máquinas y brazos dentro de la losa; `giro` (cuartos de vuelta)
+ *     lleva el punto de trabajo alrededor del centro. `probarColocar` da el mismo resultado y el punto, sin tocar el mundo.
  *   - `sub` en una receta: subproductos que salen con la pieza por la misma salida (recortes de chapa). La máquina
  *     solo arranca si caben todas las piezas del ciclo: si nadie retira los recortes, se bloquea.
  *   - `masa` en las piezas: ninguna receta puede crear masa; lo que falta es pérdida (`m.perdida`, kg) y
@@ -403,23 +404,50 @@ export function crearMotor(cat) {
 
     // --- Colocar: el jugador mueve un puesto, una máquina o un brazo dentro de la losa ---
     const movible = u => (u.clase === "lugar" && u.tipo === "lot") || (esMaquina(u) && !u.pad) || (esRobot(u) && !!u.alcance);
-    function colocar(id, x, y) {
-      const u = m.porId[id], losa = def.mapa?.losa;
+    // Girar solo tiene sentido con punto de trabajo: el giro lo lleva alrededor del centro, y con él el frente de la
+    // máquina o la tarima. Un brazo anclado no tiene frente.
+    const girable = u => !!u && u.ax != null;
+    // Cuartos de vuelta en el sentido de las agujas del reloj, visto desde arriba (x al este, y al sur):
+    // (dx, dy) → (−dy, dx). Devuelve el punto de trabajo tras colocar en (x, y), sin tocar el mundo.
+    function puntoGirado(u, x, y, giro) {
+      if (!girable(u)) return { giro: 0, ax: null, ay: null };
+      const g = ((Math.trunc(giro) || 0) % 4 + 4) % 4;
+      let dx = u.ax - (u.base ? u.base.x : u.cx), dy = u.ay - (u.base ? u.base.y : u.cy);
+      for (let k = 0; k < g; k++) [dx, dy] = [-dy, dx];
+      return { giro: g, ax: r2(x + dx), ay: r2(y + dy) };
+    }
+    // Por qué no se puede colocar ahí, o null si se puede. La vista lo pregunta para pintar el fantasma.
+    function motivoColocar(u, x, y, giro) {
+      const losa = def.mapa?.losa;
       if (!u || !u.presente || !movible(u)) return "no_movible";
       if (!Number.isFinite(x) || !Number.isFinite(y)) return "fuera_de_losa";
       const rad = e => RADIO[e.clase] ?? 1;
       if (losa && (x < losa.x0 + rad(u) || x > losa.x1 - rad(u) || y < losa.y0 + rad(u) || y > losa.y1 - rad(u))) return "fuera_de_losa";
+      // El punto de trabajo, girado o no, también ha de quedar en la losa: es donde se para el obrero.
+      const p = puntoGirado(u, x, y, giro);
+      if (losa && p.ax != null && (p.ax < losa.x0 || p.ax > losa.x1 || p.ay < losa.y0 || p.ay > losa.y1)) return "fuera_de_losa";
       if ((esMaquina(u) && (u.proceso || u.cambio || u.enVilo)) || (esRobot(u) && (u.tarea || u.carga))) return "ocupado";
       for (const o of m.unidades) {
         if (o === u || !o.presente || o.clase === "torreta" || o.clase === "banda" || (esRobot(o) && !o.alcance)) continue;
         const ox = o.base ? o.base.x : o.cx, oy = o.base ? o.base.y : o.cy;
         if (Math.hypot(ox - x, oy - y) < (rad(u) + rad(o)) * 0.75) return "ocupado";
       }
+      return null;
+    }
+    // Lo que respondería `colocar` y dónde quedaría el punto de trabajo (null sin él), para el fantasma del colocador.
+    function probarColocar(id, x, y, giro = 0) {
+      const u = m.porId[id], p = u ? puntoGirado(u, x, y, giro) : { ax: null, ay: null };
+      return { resultado: motivoColocar(u, x, y, giro) ?? "ok", ax: p.ax, ay: p.ay };
+    }
+    function colocar(id, x, y, giro = 0) {
+      const u = m.porId[id], motivo = motivoColocar(u, x, y, giro);
+      if (motivo) return motivo;
+      const p = puntoGirado(u, x, y, giro);
       const dx = x - (u.base ? u.base.x : u.cx), dy = y - (u.base ? u.base.y : u.cy);
       u.cx += dx; u.cy += dy;
-      if (u.ax != null) { u.ax += dx; u.ay += dy; }
+      if (p.giro) { u.ax = p.ax; u.ay = p.ay; } else if (u.ax != null) { u.ax += dx; u.ay += dy; }
       if (u.base) { u.base.x = x; u.base.y = y; u.cx = x; u.cy = y; }
-      anotarSuceso(m, "colocada", id, { x: r2(x), y: r2(y) });
+      anotarSuceso(m, "colocada", id, p.giro ? { x: r2(x), y: r2(y), giro: p.giro } : { x: r2(x), y: r2(y) });
       return "ok";
     }
 
@@ -629,7 +657,7 @@ export function crearMotor(cat) {
       if (m.hito >= 5 && m.arsenal && m.arsenal.misiles && m.torretas.some(t => t.misiles < TORRETA.cap)) return false;
       return true;
     }
-    return { paso, iniciarOrden, cancelarTareas, aplicarModo, soltarLuces, evaluar, salva, quieto, colocar, empezarHito,
+    return { paso, iniciarOrden, cancelarTareas, aplicarModo, soltarLuces, evaluar, salva, quieto, colocar, probarColocar, empezarHito,
       instantanea: () => instantanea(m), metas: () => metas(m), cuantos: (id, pieza) => cuantos(m, id, pieza) };
   }
 

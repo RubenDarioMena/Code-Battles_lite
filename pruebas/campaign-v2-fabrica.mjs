@@ -1,7 +1,8 @@
-// Campaign-V2 · misión 1 jugada de punta a punta sobre el motor compartido, con programas guionizados.
+// Campaign-V2 · misión 1 jugada de punta a punta sobre el motor compartido, con programas guionizados, y el colocador
+// (solapes, losa, giro del punto de trabajo y prueba en seco).
 // Cada hito pasa por el mismo camino que en la página: checkpoint → Batalla (planta sin hitos) → checkpoint → fábrica.
 import assert from 'node:assert/strict';
-import { DT } from '../paquetes/nucleo/index.js';
+import { DT, adjuntarSucesos } from '../paquetes/nucleo/index.js';
 import { niveles, nivelFabrica, motorFabrica as motor, esFabrica, hitosFabrica, validarNivel } from '../paquetes/reglas-campaign-v2/index.js';
 import { catalogo } from '../shared/i18n/campaign-v2/nivel-1.js';
 import war from '../paquetes/reglas-war/index.js';
@@ -109,6 +110,28 @@ assert.equal(n(m, 'BAY-1', 'polymer'), 12, 'el polímero de H2 llega durante la 
   assert.equal(c.colocar('BAY-1', 80, 50), 'no_movible');
   assert.equal(c.colocar('PAL-3', 86.8, 47.6), 'ok');
   assert.deepEqual([m.porId['PAL-3'].ax, m.porId['PAL-3'].ay], [86.8, 49.5], 'el punto de trabajo se mueve con la tarima');
+
+  // Girar: cuartos de vuelta en el sentido de las agujas del reloj, vistos desde arriba. El punto de trabajo
+  // (al sur, a 1,9 m) gira alrededor del centro; probarColocar responde lo mismo que colocar sin tocar el mundo.
+  const pal3 = () => [m.porId['PAL-3'].cx, m.porId['PAL-3'].cy, m.porId['PAL-3'].ax, m.porId['PAL-3'].ay];
+  const antes = pal3();
+  assert.deepEqual(c.probarColocar('PAL-3', 86.8, 47.6, 1), { resultado: 'ok', ax: 84.9, ay: 47.6 }, 'un cuarto: al oeste');
+  assert.deepEqual(c.probarColocar('PAL-3', 86.8, 47.6, 2), { resultado: 'ok', ax: 86.8, ay: 45.7 }, 'media vuelta: al norte');
+  assert.deepEqual(c.probarColocar('PAL-3', 86.8, 47.6, 5), c.probarColocar('PAL-3', 86.8, 47.6, 1), 'cinco cuartos son uno');
+  assert.deepEqual(c.probarColocar('PAL-3', 86.8, 47.6, -1), c.probarColocar('PAL-3', 86.8, 47.6, 3), 'girar al revés');
+  assert.deepEqual(pal3(), antes, 'probar no mueve nada');
+  assert.equal(c.probarColocar('PAL-3', 71.5, 47.6, 0).resultado, 'ok');
+  assert.equal(c.probarColocar('PAL-3', 71.5, 47.6, 1).resultado, 'fuera_de_losa', 'el punto girado cae fuera de la losa');
+  assert.equal(c.probarColocar('PAL-3', 89.2, 46.6, 1).resultado, 'ocupado');
+  assert.equal(c.probarColocar('BAY-1', 80, 50).resultado, 'no_movible');
+  assert.deepEqual(c.probarColocar('ARM-02', 89, 48.6, 1), { resultado: 'ok', ax: null, ay: null }, 'un brazo anclado no tiene frente');
+  // En una copia, para no cambiar los recorridos del resto de la misión: el giro queda en el suceso y en el guardado.
+  const copia = motor.crear(def, motor.serializar(m)), registro = adjuntarSucesos(copia);
+  assert.equal(motor.conectar(copia).colocar('PAL-3', 86.8, 47.6, 1), 'ok');
+  assert.deepEqual([copia.porId['PAL-3'].ax, copia.porId['PAL-3'].ay], [84.9, 47.6]);
+  assert.deepEqual(registro.desde(0).filter(x => x.tipo === 'colocada').at(-1).datos, { x: 86.8, y: 47.6, giro: 1 });
+  const vuelta = motor.crear(def, JSON.parse(JSON.stringify(motor.serializar(copia))));
+  assert.deepEqual([vuelta.porId['PAL-3'].ax, vuelta.porId['PAL-3'].ay], [84.9, 47.6], 'el giro viaja en el checkpoint');
 }
 tiempos.h2 = jugar(m, {
   'FRK-01': function* () { yield { verbo: 'pickUp', args: ['BAY-1'] }; yield { verbo: 'deliver', args: ['PAL-3'] }; },
@@ -246,4 +269,4 @@ assert.ok(g.unidades.filter(u => u.alcance).every(u => u.cx === u.base.x && u.cy
 assert.equal(motor.crear(def, g).hito, m.hito);
 
 const total = Object.values(tiempos).reduce((a, b) => a + b, 0);
-console.log(`Campaign-V2 · fábrica: H0→H6 cumplidos con programas guionizados (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}; ${total} s de planta). Alcance, colocador, zona de tarimas, tarima de salida, umbral de energía, Batallas sin hitos y taller circular con conservación de masa comprobados.`);
+console.log(`Campaign-V2 · fábrica: H0→H6 cumplidos con programas guionizados (${Object.entries(tiempos).map(([k, v]) => `${k} ${v} s`).join(', ')}; ${total} s de planta). Alcance, colocador con giro, zona de tarimas, tarima de salida, umbral de energía, Batallas sin hitos y taller circular con conservación de masa comprobados.`);

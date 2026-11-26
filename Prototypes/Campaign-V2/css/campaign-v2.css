@@ -113,6 +113,23 @@
   box-shadow: 0 0 0 2px #193a3c, 0 0 8px #77e1c0; cursor: pointer;
 }
 
+/* Colocador de la fábrica (paquetes/app/juego/mover-fabrica.js): barra sobre el fantasma para girar, confirmar y
+   cancelar. En el plano, el fantasma es un aro (verde si cabe, rojo si no) y un punto marca dónde trabaja el obrero. */
+.cv2-colocar { position: absolute; z-index: 5; transform: translate(-50%, calc(-100% - 18px)); display: flex; gap: 4px;
+  padding: 4px; border-radius: 999px; background: rgba(23, 27, 38, .88); box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+.cv2-colocar[hidden], .cv2-fantasma-plano[hidden], .cv2-fantasma-punto[hidden] { display: none; }
+.cv2-colocar button { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .25);
+  background: #2a3140; color: #fff; font: 700 17px/1 system-ui, sans-serif; cursor: pointer; }
+.cv2-colocar button:disabled { opacity: .4; cursor: default; }
+.cv2-colocar #cv2-colocar-ok:not(:disabled) { background: #1f7a47; border-color: #4fd68a; }
+.cv2-colocar #cv2-colocar-no { background: #5b2226; border-color: #c0282d; }
+@media (pointer: coarse) { .cv2-colocar button { width: 42px; height: 42px; font-size: 20px; } }
+.cv2-fantasma-plano { position: absolute; z-index: 2; pointer-events: none; transform: translate(-50%, -50%);
+  width: 30px; height: 30px; border-radius: 50%; border: 2px dashed #4fd68a; background: rgba(79, 214, 138, .2); }
+.cv2-fantasma-plano.no { border-color: #ff5a4f; background: rgba(255, 90, 79, .2); }
+.cv2-fantasma-punto { position: absolute; z-index: 2; pointer-events: none; transform: translate(-50%, -50%);
+  width: 9px; height: 9px; border-radius: 50%; background: #f6b817; box-shadow: 0 0 0 2px #171b26; }
+
 /* Mando táctil de las Batallas (paquetes/interfaz/mando-tactil.js): joystick a la izquierda con un botón en cada
    esquina inferior, zona de ratón a la derecha y el cursor que mueve. Semitransparente para no tapar el campo. */
 .mando-tactil { position: absolute; inset: 0; pointer-events: none; z-index: 6; }

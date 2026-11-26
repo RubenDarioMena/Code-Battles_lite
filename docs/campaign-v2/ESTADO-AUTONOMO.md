@@ -14,7 +14,7 @@ Sin commits ni push. La misión del autor ([MISION-1.md](MISION-1.md)) está imp
 - Corregido en `app/conductor.js`: una planta restaurada con t > 0 retrasaba cada orden ese tiempo entero. También afectaba al Campaign del trunk al recargar.
 - Falta:
   - jugar en el navegador B2–B5 con la bodega de la planta;
-  - girar al colocar;
+  - ~~girar al colocar~~ (hecho el 26-nov: fantasma, girar, confirmar y cancelar);
   - la energía compartida con las torretas;
   - equilibrar los números.
 

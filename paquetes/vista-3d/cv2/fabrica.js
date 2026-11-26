@@ -247,10 +247,8 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     return luz;
   }
   /** El frente (+z) mira al punto de trabajo: al sur o al norte; al este u oeste solo si queda de lado (la fundidora). */
-  function rumbo(e, pad) {
-    const dx = (pad.ax ?? e.cx) - e.cx, dz = (pad.ay ?? e.cy + 1) - e.cy;
-    return Math.abs(dx) > Math.abs(dz) ? Math.sign(dx) * Math.PI / 2 : dz < 0 ? Math.PI : 0;
-  }
+  const frente = (dx, dz) => Math.abs(dx) > Math.abs(dz) ? Math.sign(dx) * Math.PI / 2 : dz < 0 ? Math.PI : 0;
+  function rumbo(e, pad) { return frente((pad.ax ?? e.cx) - e.cx, (pad.ay ?? e.cy + 1) - e.cy); }
   function maquinaObj(e) {
     const g = new THREE.Group(), cuerpo = [], o = { grupo: g, cuerpo, alto: 2.7 };
     const c = m => { m.userData.color = m.material; cuerpo.push(m); return m; };
@@ -429,6 +427,48 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     }
     camion.visible = false; camion.traverse(x => { x.raycast = () => {}; });
     movil.add(camion);
+  }
+
+  // ---------- Fantasma del colocador (app/juego/mover-fabrica.js) ----------
+  // Copia translúcida de la pieza en su destino: verde si el motor la acepta ahí y roja si no. Un disco amarillo marca
+  // el punto de trabajo, ya girado: donde se parará el obrero. Cuelga de `planta`, fuera de lo que se elige con el ratón,
+  // y la pieza real sigue en su sitio hasta que el jugador confirma.
+  const fantasmaMat = {
+    si: new THREE.MeshBasicMaterial({ color: 0x4fd68a, transparent: true, opacity: .42, depthWrite: false }),
+    no: new THREE.MeshBasicMaterial({ color: LUZ.red, transparent: true, opacity: .42, depthWrite: false }),
+  };
+  const fantasmaTinta = { si: new THREE.LineBasicMaterial({ color: 0x1f7a47 }), no: new THREE.LineBasicMaterial({ color: 0x8a1a1e }) };
+  const discoTrabajo = new THREE.Mesh(geo(new THREE.CylinderGeometry(.34, .34, .03, 20)), especiales.alcance);
+  discoTrabajo.visible = false;
+  planta.add(discoTrabajo);
+  const fantasmas = new Map();
+  let fantasmaVisto = null;
+  function fantasma(f) {
+    if (fantasmaVisto && (!f || fantasmaVisto.id !== f.id)) { fantasmaVisto.grupo.visible = false; fantasmaVisto = null; }
+    discoTrabajo.visible = !!f && f.ax != null;
+    if (!f) return;
+    const e = estado.escena?.porId[f.id];
+    if (!e) return;
+    if (!fantasmas.has(f.id)) {
+      const o = C.esMaquina(e) ? maquinaObj(e) : C.esRobot(e) ? robotObj(e) : otroObj(e);
+      if (!o) return;
+      o.grupo.traverse(x => { x.raycast = () => {}; });
+      planta.add(o.grupo);
+      fantasmas.set(f.id, { id: f.id, grupo: o.grupo, valido: null });
+    }
+    const v = fantasmaVisto = fantasmas.get(f.id);
+    if (v.valido !== f.valido) {
+      const k = f.valido ? 'si' : 'no';
+      v.grupo.traverse(x => {
+        if (x.isMesh) x.material = fantasmaMat[k];
+        else if (x.isLine) x.material = fantasmaTinta[k];
+      });
+      v.valido = f.valido;
+    }
+    v.grupo.visible = true;
+    v.grupo.position.set(f.x, .03, f.y);
+    v.grupo.rotation.y = f.ax == null ? 0 : frente(f.ax - f.x, f.ay - f.y);
+    if (f.ax != null) discoTrabajo.position.set(f.ax, .05, f.ay);
   }
 
   const posMisil = (mi, t) => {
@@ -622,7 +662,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     return null;
   }
   return {
-    construir, actualizar, render, tamano,
+    construir, actualizar, render, tamano, fantasma,
     proyectar(x, altoP, y, w, h) {
       v.set(x + ox, altoP + alto, y + oy).project(camara);
       return { x: (v.x + 1) / 2 * w, y: (1 - v.y) / 2 * h, visible: v.z < 1 && v.z > -1 };
@@ -644,7 +684,8 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
     destruir() {
       control.destruir(); paisaje.destruir();
       for (const t of texturas) t.dispose();
-      liberarEscena(escena, renderer, [...mats.values(), ...geos, tinta, ...Object.values(especiales), ...Object.values(luces), ...Object.values(MT), ...veladas.values()]);
+      liberarEscena(escena, renderer, [...mats.values(), ...geos, tinta, ...Object.values(especiales), ...Object.values(luces), ...Object.values(MT), ...veladas.values(),
+        ...Object.values(fantasmaMat), ...Object.values(fantasmaTinta)]);
     },
   };
 }

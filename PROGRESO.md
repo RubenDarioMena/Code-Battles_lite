@@ -1,3 +1,23 @@
+## Campaign-V2 · Colocador de la fábrica con fantasma, giro y confirmación · 26 de noviembre de 2026
+
+MISION-1 pedía «confirmar, girar, cancelar y fijar», como en el feedback del 17-nov, y el consolidado del 23-nov (2.1) habla de una «imagen fantasma de colocación». Antes, un toque colocaba al instante y no se podía girar.
+
+- **Dos fases:**
+  - apuntar: al pulsar «Mover», un fantasma de la pieza sigue al ratón, verde si cabe y rojo si no;
+  - fijar: el toque lo deja en el suelo y abre una barra encima con ↻ (girar, R), ✓ (confirmar, Intro) y ✕ (cancelar, Esc). Tocar otro punto lo lleva allí.
+  
+  La pieza real no se mueve hasta confirmar.
+- **El motor decide, también para el fantasma:** `probarColocar` (paquetes/fabrica) da la misma respuesta que `colocar`, sin tocar el mundo, y dice dónde quedaría el punto de trabajo. Donde no cabe, el ✓ se apaga y el aviso explica por qué.
+- **Girar tiene efecto en el juego:** cada cuarto de vuelta lleva el punto de trabajo (donde se para el obrero) alrededor del centro, y con él el frente de la máquina o la tarima. El punto ha de quedar en la losa. El giro viaja en la orden (`args: [x, y, giro]`) y en el checkpoint. Un brazo anclado no tiene frente, así que ↻ se apaga.
+- **Vistas:**
+  - en 3D, el fantasma es una copia translúcida de la pieza con un disco amarillo en el punto de trabajo;
+  - en el plano, un aro y un punto.
+- **Arreglado:** en la fábrica, «ocupado» decía «El bastión ya está ocupado» (el texto de las Batallas). Ahora tiene el suyo.
+- **Pruebas:**
+  - `campaign-v2-fabrica`: giros, prueba en seco, punto girado fuera de la losa, suceso y checkpoint;
+  - `campaign-v2-sesion-fabrica`: el recorrido en la página (fijar sin mover, girar, cancelar, ✓ apagado donde no cabe, confirmar).
+- **Probado en el navegador** en H6, en 3D y en el plano, con PC y móvil: R gira, el toque lleva el fantasma, Intro confirma y PAL-6 queda con su punto de trabajo al oeste. Sin errores.
+
 ## Campaign-V2 · P8 · Daño por componentes y recuperación · 26 de noviembre de 2026
 
 Segunda porción del consolidado del 23-nov: su corte vertical 13.B, «Un experimento aislado de daño y recuperación», en la versión mínima sin vóxeles (8.2). El diseño está en [P8-DANIO.md](docs/campaign-v2/P8-DANIO.md).

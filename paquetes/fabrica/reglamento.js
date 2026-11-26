@@ -35,7 +35,7 @@ export function crearReglamentoFabrica(motor, { id = 'campaign', catalogo, alCre
       }
       // El colocador es del jugador: los programas no mueven la planta.
       if (orden.verbo === 'colocar') {
-        const resultado = orden.origen === 'jugador' ? c.colocar(orden.unidad, orden.args?.[0], orden.args?.[1]) : 'rechazado';
+        const resultado = orden.origen === 'jugador' ? c.colocar(orden.unidad, orden.args?.[0], orden.args?.[1], orden.args?.[2]) : 'rechazado';
         pendientes.get(mundo).push({ unidad: orden.unidad, ref: orden.ref, resultado, modo: true });
         return;
       }
@@ -68,5 +68,7 @@ export function crearReglamentoFabrica(motor, { id = 'campaign', catalogo, alCre
   const quieto = mundo => conexion(mundo).quieto();
   /** Para el anfitrión de pruebas y V2: la conexión viva de un mundo (colocar, empezarHito…). */
   const conectado = mundo => conexion(mundo);
-  return { reglamento, quieto, conectado };
+  /** Fuera del contrato común: qué respondería `colocar` ahí, sin tocar el mundo (el fantasma del colocador). */
+  const probarColocar = (mundo, id, x, y, giro = 0) => conexion(mundo).probarColocar(id, x, y, giro);
+  return { reglamento, quieto, conectado, probarColocar };
 }

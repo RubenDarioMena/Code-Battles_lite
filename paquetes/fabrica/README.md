@@ -12,7 +12,7 @@ Lo usan Campaign (trunk, `paquetes/reglas-campaign`) y Campaign-V2 (`paquetes/re
   - `paso(dt, { sinHitos })`;
   - `iniciarOrden(id, { id: ref, verbo, args })` para los encargos;
   - `aplicarModo(id, verbo, args)` para los modos;
-  - `colocar(id, x, y)`, `empezarHito()` y `cancelarTareas()`.
+  - `colocar(id, x, y, giro)`, `probarColocar(id, x, y, giro)`, `empezarHito()` y `cancelarTareas()`.
 - `crearReglamentoFabrica(motor, { id, catalogo, alCrear })` envuelve el motor en el contrato de `crearPartida`: `crearMundo`, `paso`, `aplicarOrden`, `respuestas`, `instantanea`, `escena` y `evaluar`.
   - Los resultados de los encargos y de `colocar` salen en `respuestas(mundo)`.
 - `validar` y `modoEnSnap` comprueban un nivel contra su catálogo.
@@ -35,7 +35,9 @@ Solo se activan si las declara el catálogo o la unidad.
 - **`salidaTarima`**: la máquina deja lo que produce sobre una tarima vacía en su salida.
 - **`entregaA: 'DEP-01'`**: la máquina entrega lo que produce directamente a esa unidad (la bodega).
 - **`umbral`**: la máquina solo arranca si sus kW caben enteros en la energía libre de la base. Si no caben, no se ralentiza: se para.
-- **`colocar(id, x, y)`** mueve tarimas, máquinas sin puesto y brazos dentro de la losa. Los radios del catálogo (`RADIO`) impiden solapes. El punto de trabajo y la base del brazo se mueven con la unidad.
+- **`colocar(id, x, y, giro)`** mueve tarimas, máquinas sin puesto y brazos dentro de la losa. Los radios del catálogo (`RADIO`) impiden solapes. El punto de trabajo y la base del brazo se mueven con la unidad.
+  - `giro` son cuartos de vuelta en el sentido de las agujas del reloj, vistos desde arriba. Llevan el punto de trabajo alrededor del centro, y con él el frente de la máquina o la tarima. El punto de trabajo, girado o no, también ha de caer en la losa. Un brazo anclado no tiene frente y lo ignora.
+  - `probarColocar` devuelve `{ resultado, ax, ay }` sin tocar el mundo: el colocador lo usa para pintar el fantasma en verde o en rojo y el punto de trabajo. El reglamento lo exporta fuera del contrato común, junto a `quieto`.
 - **`sub`** en una receta (P7): subproductos que salen con la pieza por la misma salida, como los recortes de chapa. La máquina solo arranca si caben todas las piezas del ciclo, así que se bloquea si nadie los retira. Cuentan en `producidos`.
 - **`masa`** en las piezas (P7, `masa.js`): una receta lleva masa en todas sus piezas o en ninguna, y nunca crea materia (el motor no se crea si lo hace). Lo que entra y no sale es pérdida registrada (`m.perdida`, kg, viaja en el checkpoint). `masaEnPlanta(m)` suma lo que hay en tarimas, máquinas, procesos, obreros y banda.
 - **`ritmo`** en una máquina (P7): multiplica su velocidad de trabajo. La sierra y el láser comparten la receta y difieren en tiempo y kW.
