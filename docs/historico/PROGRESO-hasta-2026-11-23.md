@@ -1,0 +1,1317 @@
+# PROGRESO hasta el 23 de noviembre de 2026
+
+Archivo del `PROGRESO.md` común (trunk, fases 0–5, unificación, kit de Blender y rama `assets-3d`), tal como estaba al nacer la rama `Campaign-V2`. Lo nuevo de Campaign-V2 se registra en el [`PROGRESO.md`](../../PROGRESO.md) de la raíz.
+
+## Rama `assets-3d`: assets 3D reunidos · 23 de noviembre de 2026
+
+- Sale de `trunk` (6330c0e) y reúne:
+  - `exportador-rig` (b8d58f6), fusionada entera: kit, T1, vehículo tubular y torreta, con sus GLB. Incluye el solver y el cambio de `factory.js` porque los GLB nuevos usan `cbl-rig` v2.
+  - `papercraft-campaign` (421ca8e): solo `arte/blender/papercraft/`.
+  - `vfx-explosiones-singularidad` (0f78213): solo `arte/blender/vfx/`, con el rayo y la carga del piso.
+  - `ccr-684f16c6-yq5at1` (6c4416f): unidades de batalla y rueda kamikaze, diseño tentativo; sin el laboratorio.
+- **Motor de vóxeles de la muralla (23-nov, a petición del autor: será el sistema que se use).** Traído desde `papercraft-campaign` (aa0858e), que lo tenía idéntico a `muralla-tension` (62ccb64) más las finalistas: `shared/muralla/`, `herramientas/muralla/` (laboratorio y `finalistas.html`), `pruebas/muralla-voxeles.cjs` y `docs/MURALLA-VOXELES.md`. Three r128 va en `herramientas/muralla/vendor/` y no en `shared/vendor/`, para no publicarlo. 275 comprobaciones del motor, las de las finalistas y `node pruebas/todas.mjs` 71/71 (dependencias enlazadas desde otro worktree). Revisado en el navegador: laboratorio y finalistas sin errores.
+- Fuera: destrucción por piezas, laboratorio de batalla y la animación CODEMAGEDDON (`experimento-animacion-1`).
+- **Muralla elegida (23-nov): C · Traba + Cordón.** Torreón cilíndrico de Cordón en los cambios de ángulo drásticos y nudo de Traba donde hay torre y el trazado sigue recto; el resto queda como referencia (`arte/blender/papercraft/MURALLA-OPCIONES.md`). El motor de vóxeles con el que se probó sigue fuera de esta rama (`papercraft-campaign`, `herramientas/muralla/finalistas.html`).
+- Verificación actual: carpetas idénticas a su rama de origen, GLB bien formados y `node pruebas/todas.mjs` con 71 correctas (dependencias enlazadas desde otro worktree). Sin abrir en navegador ni regenerar en Blender.
+
+## Kit de Blender: exportador y validador compartidos, y solver del rig en three.js · 20 de noviembre de 2026
+
+- **Exportador y validador (tarea 02, con Astra).**
+  - Las tres máquinas (T1, vehículo tubular y torreta de observación) se exportan desde descriptores con
+    `arte/blender/kit/exportar.py`, que valida cada GLB (`validar_glb.py` y `validar_rig.py`) antes de sustituirlo.
+  - Rig `cbl-rig` v2 en los `extras`: reglas `LOCAL` con expresiones y las restricciones COPIAR_POSICION, APUNTAR,
+    APUNTAR_BLOQUEADO y ESTIRAR.
+  - Poses de referencia de Blender en `pruebas/rig/` (57 del vehículo y 21 de la torreta).
+  - El orquestador admitió la FCurve identidad que Blender 5 crea en cada driver (`curva_identidad`).
+  - Los GLB nuevos sustituyen a los del juego. Las triangulaciones coinciden con las históricas; el T1 y la torreta
+    se apoyan ahora en el suelo (sus orígenes se movieron +12,5 mm y −55 mm).
+- **Solver (tarea 03).** Paquete puro `paquetes/rig/` y adaptador `conectarRig` en `vista-3d`.
+  - Factory mueve el T1 con sus controles, en lugar de escribir `rotation.*` a mano.
+  - Visor en `herramientas/visor-rig/`: deslizadores, reproducción del bucle y muestras de referencia con su
+    error.
+  - Astra lo dejó funcionando y con pruebas antes de agotar las dos cuentas; el orquestador escribió el README y
+    verificó.
+- **Verificación actual.**
+  - Error máximo frente a Blender: **1,3e−6** en el vehículo (todos los niveles) y **2,3e−7** en la torreta;
+    tolerancia 1e−4.
+  - La prueba detecta cuatro mutaciones (eje de APUNTAR, volumen de ESTIRAR, orden topológico y desplazamiento).
+  - Factory frente al código anterior: 6,5e−8. Adaptador r180 frente al solver puro: ≤ 2e−15.
+  - `evaluar` del vehículo (181 pivotes): ≈ 0,04 ms.
+  - `npm test` **71 ok**; tipos, fronteras y las dos suites Python del kit correctos.
+  - Visor y Factory revisados en WebGL sin errores de consola; capturas en `docs/qa/visor-rig-2026-11-20/`.
+- **Límites.**
+  - Ningún GLB usa todavía APUNTAR_BLOQUEADO ni influencias menores que 1: esos casos se prueban solo con escenas
+    sintéticas.
+  - War aún no usa el vehículo ni la torreta.
+  - Sin commits, push ni publicación.
+
+## Arte · kit de piezas común para las máquinas · 20 de noviembre de 2026 · rama `kit-piezas`
+
+- **Qué es.** [arte/blender/kit/](../../arte/blender/kit/README.md): 25 piezas reutilizables para modelar máquinas nuevas, sacadas de lo que repetían el buggy tubular, la esfera de la torreta y `robots.py`. Incluye estructura, chapa, tornillería, engranajes evolventes, corona, cremallera, sinfín, rodamiento, cardán, rótula, resorte, amortiguador, rueda, oruga y LED. La rama nace de `trunk` (`6330c0e`). Solo arte: no toca el juego.
+- **Cómo se hizo.** Astra (`gpt-6.2-astra`, esfuerzo alto, unos 115k tokens) escribió el kit con el [prompt 01](../../arte/blender/kit/prompts/01-kit-base.md). La geometría es Python puro (`geometria.py`), con un adaptador fino de `bpy` (`blender.py`), para que el kit se pueda probar sin Blender. Cada pieza se construye en L0, L1 o L2 (detalle por construcción, sin decimar) y declara el último nivel en que existe. Las reglas de rig usan el formato `MANDO` de la torreta.
+- **Verificación.** `python3 arte/blender/kit/pruebas.py`: 8/8 (mallas cerradas y bien orientadas, medidas a 0,5 mm, triángulos decrecientes, engrane sin interpenetración, paso y avance del sinfín). Claude renderizó el catálogo en Blender 5.2 sin errores ([previas](../../arte/blender/kit/previas/01/)) y comprobó que su GLB carga en three.js r180 (L0/L1/L2: 31,7k/14,2k/7,5k triángulos).
+- **Límites.** La rueda del sinfín tiene dientes rectos y el filete del sinfín es fino. Se aceptan: las piezas pequeñas apenas se verán con la cámara del juego. Ninguna máquina usa el kit todavía.
+- **Siguiente paso exacto.** Del autor: elegir la primera máquina que se haga con el kit.
+
+## Unificación: `trunk` = fase 5 + VFX de trunk + CodeMirror + harness · 19 de noviembre de 2026
+
+- **Qué es.** `trunk` pasa a ser la única línea canónica (regla nueva en `AGENTS.md` y `CLAUDE.md`). Rama de integración `unificacion/canonica`: nace de `arquitectura/fase-5` (fases 0–5), incorpora el único commit de `trunk` que le faltaba (`ba48661`, VFX de singularidad y artillería; conflicto solo en este archivo, se conservaron las dos entradas), porta CodeMirror desde `codemirror-mobile` (`567f7d6`) al paquete y añade el harness de `peer-review-harness-plan` (`47bb23d`). `trunk` avanza a esta rama sin reescribir historia.
+- **CodeMirror en la nueva arquitectura.** `paquetes/editor/codemirror.js` es el adaptador de `567f7d6` como módulo ES: la biblioteca llega con `configurar({ codemirror })` (sin leer `window`), igual que acorn y lezer. Los enganches de foco y geometría se aplicaron a `editor.js`, `nucleo-ui.js`, `edicion-{acciones,controles,protomouse,sugerencias}.js` y `seudo-gestos.js`; en el juego, a `paquetes/interfaz/layout.js` y `paquetes/app/juego/pulsos.js`. `window.cmg` expone `tieneFoco()` y `motorTexto`. Juego y demo cargan `shared/vendor/codemirror/codemirror.min.js` y `paquetes/editor/estilos/codemirror.css`; `?editor=textarea` conserva el motor anterior.
+- **Pruebas adaptadas en el mismo cambio** (sin borrar casos): las que escribían o miraban el foco en el textarea oculto ahora usan `.cm-content` o `cmg.tieneFoco()` (`editor-demo`, `idiomas*`, `navegador`, `editor-movil`, `factory-*-comun`, `recuperacion-harness`, `war-recuperacion-regresion`); `codemirror.cjs` apunta a la demo nueva y abre la revisión por el menú en vez de `window.__revisionJuego`; `editor/pruebas/carga.mjs` admite `codemirror.css` al final de la cascada.
+- **Verificación.** `npm test` 70/70, `npm run tipos` sin errores, `npm run test:navegador` en verde, `node pruebas/codemirror.cjs` 63/63 (demo, War y Factory; sin errores ni recursos externos). En este entorno el Playwright fijado (1.65.1) no tenía su navegador: se ejecutó con el Playwright preinstalado de la máquina, sin cambiar el repositorio.
+- **Harness.** `harness/`, `docs/pantallas/editor.md` (actualizada a `paquetes/editor`), `docs/bugs/`, `docs/salidas/`, `pruebas/clicker-editor.mjs` (ahora sobre `paquetes/editor/demo/demo.html`) y `.claude/settings.json` sin memoria automática.
+- **Límites.** Android físico sin probar con CodeMirror. Las ramas `codemirror-mobile` y `peer-review-harness-plan` se registran como integradas con un merge sin contenido (`-s ours`): su contenido ya está portado aquí.
+- **Siguiente paso.** Del autor: revisar la spec del editor; después, pasar Haiku por `trunk` y por `campaign-nivel-1` para listar features.
+
+## Fase 5 cerrada: intérprete propio, programas sin Workers, 500 unidades a paso fijo y paso a paso · 17 de noviembre de 2026 · rama `arquitectura/fase-5`
+
+- **Qué es.** Fase 5 de [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md). La rama `arquitectura/fase-5` nace del cierre de la fase 4 (`dfe4225`). Criterio: los programas guardados dan los mismos resultados y una partida con 500 unidades programadas mantiene el paso fijo. El criterio **se cumple**: las 41 referencias no se regrabaron y dan la misma huella con el intérprete, y en Electron (M1) una partida de 500 unidades avanza 20,0 pasos por segundo real en War y Campaign, 2D y 3D. Pasos: (1) prueba corta y decisión; (2) paquete `interprete`; (3) el anfitrión sin Workers y presupuesto en lugar del vigía de 2,5 s; (4) API de confianza e instantánea compartida, medida de 500 unidades; (5) paso a paso.
+- **Commits.**
+  - `9a38d2a` paso 1 (con Codex): **prueba corta**. QuickJS 0.32.0 (MIT; descarga aprobada por el autor, fuera del repo) y un intérprete propio sobre Acorn, los dos ejecutando el texto completo del Worker por unidad: 41/41 referencias, Factory 28/28 y Campaign 12/12 tramos. Con 500 unidades, War 29 ms (QuickJS) y 21 ms (propio) de media por turno; Campaign 165 y 71; la VM nativa, 9 y 35. Corte determinista de `while (true) {}` por presupuesto en los dos. Informe en [docs/qa/interprete-2026-11-17/](../../docs/qa/interprete-2026-11-17/README.md). **Decisión: intérprete propio**, registrada en el plan; Codex recomendaba QuickJS, pero su compilación publicada no puede suspender en una línea, es más lento y pesado y cambiaría los mensajes de error que ve el jugador.
+  - `f028faf` paso 2 (con Codex): **paquete `interprete`**, sin dependencias (Acorn llega por opciones) y determinista: cola de promesas propia, presupuesto por nodos con el error `CBL_PRESUPUESTO` (cuenta y línea), pausas por sentencia en las funciones async del programa, compilación dinámica con Acorn y fachadas congeladas de los intrínsecos. Camino rápido sin generadores y otro con generadores para el código con `await`/`yield`. Diferencial contra V8: 140 fragmentos y 80 programas reales (17 de Python); 339 comprobaciones de aislamiento.
+  - `60e6f62` paso 3 (con Codex): **el juego ejecuta los programas con el intérprete, sin Workers**. `crearTrabajadorInterprete` en `anfitrion` (canal con clonado, timers virtuales, cola de trabajos y presupuesto por entrega). Se retiran Blob/Worker y el vigía de 2,5 s de reloj real: un bucle sin `await` se corta por presupuesto, siempre en el mismo punto y con la línea del bucle; textos nuevos ES/EN en catálogo. La partida sin pantalla usa el intérprete por defecto y conserva la VM (`--motor vm`); `bucle-sin-await` de Factory pasa a ser determinista. Las pruebas de Workers y del vigía se adaptaron con comprobaciones equivalentes; ninguna se borró.
+  - `bc383e5` paso 4a (con Codex): **API de confianza e instantánea compartida**. `anfitrion/api.js` es la fuente única de la API del jugador: corre fuera del presupuesto y la VM recibe su texto por `toString`. Un reino del intérprete por partida con un ámbito por unidad; la instantánea se comparte y War guarda las escrituras de cada unidad en una capa propia. Con 500 unidades, `ceder` pasa de 17,1 a 2,4 ms (War) y de 60,1 a 5,4 ms (Campaign). En la revisión, el presupuesto de 44 024 nodos (el mínimo del corpus) era demasiado justo para programas guardados con más cálculo legítimo: queda en **1 000 000** (`PRESUPUESTO`), que corta un bucle vacío en ~60 ms y el peor caso medido en ~0,3 s en un M1 (`herramientas/espina-interprete/corte.mjs`).
+  - `4490852` paso 4b (con Codex): **partida real de 500 unidades**. `herramientas/medir-unidades.mjs` mide partidas de 50/200/500 unidades sin pantalla y en el juego real (Electron o Chromium) con un gancho de banco que solo observa fotogramas. El perfil mostró en `api.js` un arranque O(N³) y N getters por llamada: con cuentas precalculadas y getters compartidos, War 500 pasa de 175 a 9 ms de p95 por paso sin pantalla y el arranque de 16 s a 0,4 s, igual a la VM mensaje a mensaje (prueba de 50 lanzadores que se leen entre sí). El orden de mensajes usa el índice de carga, equivalente al anterior.
+  - `676dff8` paso 5 (con Codex): **paso a paso**. `crearAnfitrion({ pasoAPaso: true })` detiene cada unidad antes de cada sentencia del programa del jugador (nunca dentro de la API ni del preludio de Python; en Python, la línea es la del programa Python) y ofrece `pausas()`, `avanzarLinea(unidad?)` y `continuar()`; mientras haya una pausa, el turno no termina y el reloj de juego no avanza. El conductor devuelve `esperandoPausa`, `jugarPartida` acepta `alLinea`/`maxLineas`, `herramientas/partida.mjs --paso-a-paso [--max-lineas N]` imprime unidad, tiempo y línea, y el juego expone `__banco.pasoAPaso`, `pausas`, `avanzarLinea` y `continuar` para QA, sin interfaz. Sin `pasoAPaso` el camino es el de antes.
+- **Verificación.** Tras el paso 1: `npm test` **60/60**; `comparar.mjs`: VM, QuickJS y propio 41/41, 28/28, 2/2. Tras el paso 2: `npm test` **64/64**. Tras el paso 3: `npm test` **66/66** y `npm run test:navegador` **74/74** (contraste 41/41 con el intérprete en el juego real). Tras el paso 4a: `npm test` **67/67**, `npm run test:navegador` **75/75**, secuencia completa de mensajes igual a la VM (41/41, Factory 28/28, Campaign 12/12, 80 programas reales). Tras el paso 4b: `npm test` **68/68**, `npm run test:navegador` **76/76** (contraste 41/41) y `npm run test:escritorio` en verde; medida en Electron (Apple M1, 1280×720, efectos altos, 60 s a 1×): 20,0 pasos por segundo real en los cuatro casos y paso completo con p95 de **15,2 ms** en War y **5,4 ms** en Campaign, bajo 16,7 ms ([datos](../../docs/qa/interprete-2026-11-17/paso-4b-electron.json)). Tras el paso 5: `npm test` **70/70**, con las 41 referencias jugadas línea a línea (todas las unidades, avanzando siempre la primera pausa): misma huella, pasos, resultado y secuencia íntegra de mensajes que sin pausas (14 415 sentencias); secuencia de líneas y variables locales comprobadas en War, Python y Campaign con `Promise.all`; `npm run test:navegador` **78/78** (contraste 41/41) y `npm run test:escritorio` en verde; tipos, fronteras, autoprueba, identificadores y `juego-conductor` correctos. En la página real de War, con `__banco.pasoAPaso`, la unidad queda en pausa en la línea 1, el tiempo de juego no avanza mientras dura y, al avanzar, el turno cierra y la partida sigue.
+- **Límites.** Con 500 unidades, **War dibuja a ~30 fps**: los fotogramas que contienen un paso (~10 ms, sobre todo `ceder`) más el dibujo de 500 lanzadores no caben en 16,7 ms; Campaign 2D va a 60 fps. Opciones: repartir el turno entre fotogramas, abaratar más `ceder` o llevar núcleo e intérprete a un hilo aparte. La pestaña llega a **~2 GB** con 500 unidades (681 MiB sin pantalla), sin investigar: riesgo para Android (fase 6). El criterio `mantieneRitmo` de `medir-unidades` marca fallo por el primer fotograma, que carga los 500 programas y se recorta a 0,25 s; sin él son 19,997 pasos/s. El paso a paso no suspende dentro de callbacks síncronos nativos, getters ni trampas de Proxy (corren hasta volver), y pausar cuesta CPU y memoria, no presupuesto. El motor del intérprete se comparte entre las unidades de una partida: `__banco.pasoAPaso` debe fijarse antes de ejecutar. Las medidas son de un Mac M1.
+- **Siguiente paso exacto.** Fase 5 cerrada. Del autor: decidir si el paso a paso llega a la interfaz (botones y atajos del editor) y cómo; si War con cientos de unidades debe ir a 60 fps (y con qué opción); revisar la memoria de la pestaña antes de Android. De los agentes, cuando el autor lo pida: la fase 6 (Android) o la interfaz del paso a paso.
+
+## Fase 4 cerrada: efectos de War en las dos vistas, calidad en Ajustes, medida de carga, instancias y Three r180 · 17 de noviembre de 2026 · rama `arquitectura/fase-4`
+
+- **Qué es.** Fase 4 de [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md). La rama `arquitectura/fase-4` nace del cierre de la fase 3 (`6b84db0`). Criterio: los efectos de War se ven en las dos vistas y la medida de carga queda registrada para los tres niveles. Pasos: (1) paquete `vfx`, dibujantes y laboratorio, sin cambios en el juego; (2) efectos de War en las dos vistas a partir de los sucesos; (3) niveles de calidad en Ajustes y medida de carga; (4) instancias para unidades repetidas en `vista-3d`; (5) Three r180, que el autor aprobó aceptando que el 3D se vea distinto. El criterio del plan **se cumple**.
+- **Commits.**
+  - `6e7d11c` paso 1 (con Codex): **paquete `vfx`**, que solo importa `protocolo`. Recetas como datos con `validarReceta`; `evaluar` sin estado (cada partícula es función del tiempo y de un hash del suceso, sin `Math.random` ni reloj); `crearEfectos` con presupuesto por calidad (alto 2000, medio 1200, bajo 600, no 0; primero se descarta el humo y luego los restos de los efectos más antiguos). Nueve recetas de War (`disparo`, `impacto` con el aro del radio de daño, `fallo`, tres derribos, `atasco`, `reparado`, `brecha`), con el radio pasado por opciones. Dibujantes en las vistas, **sin conectar todavía**: `vista-3d/efectos.js` (dos `THREE.Points` normal y aditivo con `ShaderMaterial` y niebla de r128) y `vista-2d/efectos.js` (sellos de degradado radial en caché, luz con `lighter`). Laboratorio en `herramientas/laboratorio-vfx/` (3D y plano a la vez, barra de tiempo, calidades, hoja de contactos; textos ES/EN propios, fuera de la publicación) y `herramientas/vfx-hojas.mjs` (PNG por receta y calidad y `resumen.json`).
+  - `bd6881a` paso 2 (con Codex): **efectos de War en el juego**. `app/juego` reenvía los sucesos de War a las dos vistas, así que el cambio 2D/3D en caliente conserva los efectos en curso; se vacían al ejecutar, reiniciar, crear mundo y destruir. Cada vista completa el origen con la escena (disparo desde el lanzador a la altura de salida del misil, derribo en la última posición dibujada o en la explosión del mismo paso, atasco, reparación y brecha) sin tocar el suceso ni el mundo. Se retiran el disco y la esfera de explosiones y atascos; en 2D se conservan el aro discontinuo y la altura de las explosiones en el aire, y la mira y la selección se dibujan encima de los efectos. Calidad provisional con `?vfx=alto|medio|bajo|no`.
+  - `cc20a78` paso 3 (con Codex): **calidad en Ajustes y medida de carga**. Ajustes → Pantalla → Efectos visuales (automático, alto, medio, bajo y sin efectos; ES y EN), guardado en la preferencia nueva e independiente `cmg-juego-efectos` (la que reservaba PLAN-VFX; ningún guardado existente cambia). La app resuelve `?vfx=` > preferencia > automático; automático elige bajo con `prefers-reduced-motion`, y con movimiento reducido se quitan siempre los destellos (clave de capa `destello` en `vfx`: fogonazo del disparo y destello del impacto). Las dos vistas leen la calidad en cada fotograma: el cambio llega al siguiente sin recargar ni vaciar. `herramientas/medir-carga.mjs` mide la partida real y una saturación sintética por nivel y vista, en Electron o en Chromium; en la revisión, la ventana de la partida real empezaba antes del primer disparo (llega a los 17 s) y medía cero partículas: ahora empieza con la primera explosión, y `--ritmo` fija la saturación. Medida registrada en [docs/qa/vfx-carga-2026-11-17/](../../docs/qa/vfx-carga-2026-11-17/README.md).
+  - `e46a374` paso 4 (con Codex): **instancias**. `vista-3d/instancias-war.js` dibuja enemigos (cuerpos normal, frío y golpe, orugas, brazos, rotores, sombras) y esferas de misil con `InstancedMesh`, un lote por geometría y material, con capacidad que se duplica y matrices sacadas de los mismos modelos sueltos (que siguen sirviendo a los retratos). La selección usa `instanceId`. `capturas-vista` gana capturas de combate en 2D y 3D detenidas en un paso exacto (reto 3, semilla 7, paso 512, pausa dentro de `alPaso`) y las llamadas de dibujo en `resumen.json`; `--enemigos N` monta una escena de carga solo en la vista.
+  - `9109f77`: `three.module.min.js`, `loaders/GLTFLoader.js` y `utils/BufferGeometryUtils.js` de r180 en `shared/vendor/three-r180/`, copiados del tag oficial (descarga aprobada por el autor) con su SHA-256; el core que ya estaba coincide byte a byte con el del tag.
+  - `f3a883f` paso 5 (con Codex): **Three r180**. Import map para `three`; `servicios.js` importa el módulo y lo inyecta como antes (sin `window.THREE`); GLTFLoader bajo demanda para Factory. Gestión de color activa: salida sRGB sin tone mapping, lienzos sRGB, `colorspace_fragment` en el shader de los efectos y RGB de `vfx` convertido a lineal. Luces ×π (War y Factory 0,85/0,55; Campaign 0,82/0,62). En la revisión, el paisaje de Campaign salía lavado porque sus colores de vértice eran sRGB: ahora se convierten a lineal. Laboratorio, hojas, terreno compartido y pruebas en r180; se retiran r128, su GLTFLoader y su licencia. La comprobación de fronteras admite que solo las pruebas de `vista-3d` importen la distribución local.
+- **Verificación.** Tras el paso 1: `npm test` **54/54**, tipos, fronteras, autoprueba (con cinco casos nuevos para `vfx`) e identificadores; `npm run test:navegador` **62/62** (contraste 41/41); hojas de contactos de las nueve recetas en las cuatro calidades sin errores de página: como máximo 125 partículas por efecto en alto, 73 en medio, 35 en bajo y 0 en «no», con ≤0,6 ms de CPU por llamada. Tras el paso 2: `npm test` **55/55** (41 referencias iguales), tipos, fronteras, autoprueba e identificadores; `npm run test:navegador` **63/63** (contraste 41/41; cambio en caliente, 42 comprobaciones); capturas deterministas idénticas a las del paso 1 salvo el ruido conocido del brazo de Factory 3D; efectos vistos en una partida de War (reto 1, semilla 7) en 2D y 3D, iguales en las dos vistas y sin errores de página. Tras el paso 3: `npm test` **57/57** (41 referencias iguales), tipos, fronteras, autoprueba e identificadores; `npm run test:navegador` **65/65** (contraste 41/41); capturas idénticas a las del paso 2 salvo el brazo de Factory 3D; en una página real, el ajuste pasa a «sin efectos» a mitad de partida y el siguiente fotograma tiene 0 partículas, se guarda, sobrevive a la recarga, se traduce, y con movimiento reducido automático da 25 partículas por impacto en vez de 125. **Medida de carga** (Electron, GPU Apple M1 por Metal, 1280×720 a 2×): en la partida real, 60 fps fijos en los cuatro niveles y las dos vistas, picos de 194/113/52 partículas y menos de 0,3 ms de CPU; con saturación de 12 tríos de sucesos por segundo, 60 fps en todo; con 120 por segundo, medio y bajo siguen a 60 fps y alto en 2D pierde fotogramas. Tras el paso 4: `npm test` **59/59**, `npm run test:navegador` **67/67**; la captura de combate es idéntica entre dos ejecuciones de la misma versión; frente al paso 3 solo cambian 37 píxeles del combate 3D (delta máx. 11/255) donde la línea de altura de un dron cruza su sombra, porque cambia el orden de mezcla de dos transparentes; un clic sobre un dron o una oruga instanciados los selecciona. Tras el paso 5: `npm test` **60/60** (41 referencias iguales), tipos, fronteras, autoprueba e identificadores; `npm run test:navegador` **68/68** (contraste 41/41); `npm run test:escritorio` en verde; capturas 2D idénticas a r128 (salvo el ruido conocido de un chip de texto, que también aparece entre dos capturas de r180); 3D comparado en [docs/qa/three-r180-2026-11-17/](../../docs/qa/three-r180-2026-11-17/antes-despues.png): War y Factory con el mismo brillo medio, Campaign algo menos saturado; explosiones iguales en 2D y 3D en una partida real; medida de carga repetida en r180 con el mismo resultado.
+- **Límites.** Los efectos se leen bien pero son más discretos que el disco anterior, y el fogonazo del disparo apenas se distingue: queda por ajustar el tamaño de las recetas con el autor. La medida de CPU del laboratorio no incluye GPU ni dibujo. El presupuesto limita lo que se dibuja, no lo que se calcula: `particulas()` evalúa todas las partículas de todos los sucesos vivos antes de descartar, y por eso alto pierde fotogramas con 120 tríos por segundo (CPU, no GPU; ninguna partida actual se acerca). Acotar también el cálculo cambia el orden de descarte de PLAN-VFX: decisión del autor. Sin post-proceso: nada está limitado por la GPU, r128 necesitaría módulos de `examples/` que no están en `shared/vendor`, y la actualización de Three está pendiente; se reconsidera tras esa decisión y la medida en teléfono (fase 6). La medida es de un Mac M1; Windows, Linux y Steam Deck quedan para el autor.
+- **Siguiente paso exacto.** Fase 4 cerrada. Del autor: jugar con los efectos y decidir el tamaño de las recetas y si el presupuesto debe acotar también el cálculo de partículas; revisar el aspecto 3D en r180. De los agentes, cuando el autor lo pida: la fase 5 (anfitrión determinista con presupuesto de instrucciones) o la fase 6 (Android).
+
+## Fase 3 cerrada por los agentes: cáscara de escritorio con Electron, ejecutables de Windows y Linux, Steam opcional y lista del autor · 16 de noviembre de 2026 · rama `arquitectura/fase-3`
+
+- **Qué es.** Fase 3 de [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md). La rama `arquitectura/fase-3` nace del cierre de la fase 2 (`ccd6af7`). El criterio del plan **se cumple**: un guion genera un ejecutable de Windows y otro de Linux, y [docs/STEAM.md](../../docs/STEAM.md) es la lista de lo que el autor debe hacer en Steamworks. Falta la validación real en Steam (Windows, Linux y Steam Deck), que solo puede hacer el autor.
+- **Commits.**
+  - `33d9391`: Electron 45.2.1 y @electron/packager 20.3.0 como dependencias de desarrollo (fijadas, las últimas con al menos dos semanas); `dist/` fuera del repositorio.
+  - `4961e4a` paso 1 (con Codex): **`cascaras/escritorio`**. Protocolo propio `cbl://` (sin `file://`) que sirve el juego desde el repositorio o desde `app.asar`, endurecido contra rutas que salen de la raíz. Ventana que recuerda tamaño, posición y pantalla completa; F11; menú Ver → Resolución (1280×720, 1600×900, 1920×1080) y Pantalla completa, en español o inglés. Aislamiento, sandbox, una sola instancia, navegación solo interna y ninguna petición fuera de `cbl:`/`blob:`/`data:`. Guardado en `guardado.json` (en `userData`) con escritura atómica agrupada, volcado al cerrar y archivo dañado apartado (nunca borrado), detrás del contrato `Plataforma` de la fase 2; mismas claves que la web. `npm run escritorio` lo abre; `npm run escritorio:empaquetar` genera `dist/escritorio/` para Windows y Linux x64 con el mismo conjunto de archivos que Netlify.
+  - `a1cb95c`: steamworks.js 0.4.0 (fijada).
+  - `7d36760` paso 2 (con Codex): **Steam opcional y lista del autor**. Adaptador `steam.cjs`: sin AppID no carga nada (`steam.json` trae `appId: null`); con Steam cerrado avisa una vez y el juego sigue; superposición solo si Steam inició y lanzó el proceso. Logro de prueba `CBL_PRUEBA_VICTORIA` por `Plataforma.logros` (opcional; la web no lo tiene). Steam Cloud por Auto-Cloud sobre `guardado.json`, sin código. El empaquetado lleva los nativos de Steam fuera del `asar`; `npm run escritorio:steam-vdf` genera los VDF de SteamPipe. En la revisión: la superposición exigía solo que el módulo cargara (ahora, que Steam inicie) y el principal anotaba como error una carga sustituida por otra navegación.
+- **Verificación.** Tras el paso 2: `npm test` **51/51** (41 referencias iguales), tipos, fronteras y autoprueba; `npm run test:navegador` **59/59** (contraste 41/41); `npm run test:escritorio` (Electron real sin Steam: 3 series, sandbox, guardado y reapertura, archivo dañado, protocolo, red, navegación, menú, War 2/7 igual que la web y una victoria con logros inactivos). Empaquetado: `code-battle-lite.exe` (PE32+ x64) y `code-battle-lite` (ELF x64) con los nativos de Steam en `app.asar.unpacked`. Un build de macOS empaquetado arranca las tres series desde `app.asar`, guarda en disco, no sirve las fuentes de la cáscara y, con `CBL_STEAM_APPID=480`, carga steamworks.js, falla al iniciar Steam (no instalado aquí), avisa y sigue. Arranque: 0,5 s en arm64 nativo (unos 30 s en x64 bajo Rosetta, que no aplica a Windows ni Linux).
+- **Límites.** Los ejecutables de Windows y Linux no se han abierto en esas máquinas (solo su formato y el build de macOS). Steam real, la superposición, el logro, la nube y Steam Deck no se han probado: no hay Steam ni cuenta aquí. Sin icono ni firma de código. En escritorio siguen visibles «Probar en dispositivos» y «Terreno ↗», que son de la web, y el juego aún no tiene controles de mando. La telemetría remota (`/api/t`) recibe 404 en escritorio y no sale de la máquina.
+- **Siguiente paso exacto.** Del autor: seguir [docs/STEAM.md](../../docs/STEAM.md) (cuenta, AppID, depósitos, logro, Auto-Cloud, rama privada, subida y pruebas en Windows, Linux y Steam Deck). De los agentes, cuando el autor lo pida: icono y metadatos del ejecutable, ocultar en escritorio lo que es solo de la web, controles de mando para Steam Deck, o la fase 4 (motor de dibujo y efectos).
+
+## Fase 2 cerrada: anfitrión, vistas con crearVista, juego.js repartido entre interfaz y app, sin globales ni ?v=, guardado detrás de la plataforma · 16 de noviembre de 2026 · rama `arquitectura/fase-2`
+
+- **Qué es.** La fase 2 de [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md), **cerrada**: las cuatro pruebas de frontera pasan, `npm run test:navegador` pasa entero y la comprobación de fronteras no tiene excepciones. El juego se comporta igual (las 41 referencias no se regrabaron); las diferencias medidas están en «Decisiones». La fase 3 (cáscara de escritorio) tiene lo que necesita: una entrada única, paquetes sin globales y el guardado detrás de una interfaz de plataforma.
+- **Commits.**
+  - `96027f4` paso 1: `paquetes/anfitrion` con el texto del Worker (idéntico byte a byte al de `runtime.js` en `fb9a8e9`) y el despertar del lockstep. Se retira `js/runtime.js`; el puente publica `RUNTIME` y la partida sin pantalla importa el paquete.
+  - `694267e` paso 2: `crearAnfitrion` (cargar/ceder, solo War), `app` con `crearVistaNula` y `jugarPartida`, `canonico` en `protocolo` y `api.conf` en `reglas-war`. `pruebas/fronteras-fase2.mjs`: pruebas de frontera 1–3.
+  - `4385d0b` paso 3: prueba de frontera 4 (editor montado solo) en `test:navegador` con `pruebas/ejecutar-editor-demo.cjs`.
+  - `9ab9b43` paso 4: `escena(mundo)` en los tres reglamentos y `copiaPlana` en el núcleo; las vistas leen solo `estado.escena`. `pruebas/vista-caliente.cjs`: cambio 2D/3D en caliente. `herramientas/capturas-vista.mjs`: capturas deterministas y comparación píxel a píxel entre dos versiones.
+  - `d6c82f4` paso 5: las vistas 2D pasan a `paquetes/vista-2d` como módulos ES (`crearPlano`, `dibujarFactory`, `crearPlanoCampaign`, `crearTerreno`). Se retiran `js/factory-vista.js`, `js/campaign-plano.js` y `js/campaign-terreno.js`; los iconos de la paleta de Factory quedan en `js/factory-iconos.js`. El puente publica `VISTA_2D` y `CAMPAIGN_TERRENO`.
+  - `1934c34` paso 6 (sesión en el Mac, con Codex): las vistas 3D pasan a `paquetes/vista-3d` como módulos ES. `crear3D` se parte en `war.js`, `camara.js` (posturas, gestos, proyección y selección) y `terreno.js` (paisaje y terreno del editor); `factory.js` exporta `factory3d` (con `ultimo`, gancho de `pruebas/factory-3d.mjs`) y `campaign.js` exporta `crearCampaign3D`. La app inyecta `mapa`, `crearTerreno` y `reglas` en Campaign, y `CMGTerreno` y los datos del terreno del editor en War: la lectura de `?terreno=editor` y del guardado pasa a `juego.js`. El puente publica `VISTA_3D` y `FACTORY_3D` y deja de publicar `CAMPAIGN_TERRENO`. Se retiran `js/vistas.js`, `js/factory-3d.js` y `js/campaign-3d.js`.
+  - `2a189dc` paso 7a (en el Mac, con Codex): **Factory en `crearAnfitrion`**. El reglamento de Factory contesta a los encargos sin el gancho del juego: `respuestas(mundo)` devuelve `{ unidad, resultado, instantanea }` con la instantánea tomada al terminar el encargo (a mitad de paso, como hoy), y la orden de sistema `programa-acabado` sustituye a los ganchos `programaAcabado`/`llamadaPendiente`. El núcleo gana `partida.aplicarOrdenes()` (aplica ya las órdenes del paso actual, las mismas que `paso()` aplicaría al empezar). `jugarPartida` aplica las órdenes al llegar y entrega con `anfitrion.responder` las respuestas inmediatas (`manos_llenas`, `manos_vacias`) sin dar un paso, como el juego. El registro de actividad (`eventos`, `verbos`, `resultados`, `consolas`) pasa a ser del anfitrión (`registro()`): las reglas no lo leen. `pruebas/fronteras-factory.mjs`: las **28 referencias de Factory** por el camino nuevo, con huella, pasos, resultado completo (eventos incluidos) y repetición exacta **28/28**. El juego, `legado` y `herramientas/partida` no cambian.
+  - `0475b0b` paso 7b (en el Mac, con Codex): **Campaign en `crearAnfitrion`**. La orden admite `ref` (referencia del emisor que el reglamento devuelve en la respuesta): el anfitrión emite los encargos con la clave `programa#id` de siempre. `reglas-campaign` contesta con `respuestas(mundo)` los encargos (con instantánea) y los modos (`modo: true`, solo para el registro), y añade la orden de sistema `fin-tramo` (`cancelarTareas` + `soltarLuces`) y `quieto(mundo)` fuera del contrato. `paquetes/anfitrion/campaign.js`: varias esperas y encargos por programa, cesiones, límite de 4000 y registro (eventos, uso, consolas). `jugarPartida` acepta `partida` (otro tramo sobre la misma partida) y `detener(partida)`, y tras cada paso entrega primero las continuaciones de los encargos y después las esperas, como el ciclo. `pruebas/fronteras-campaign.mjs`: las **2 referencias de Campaign** (JS y Python, H0–H5): secuencia paso a paso idéntica (16 707 pasos), pasos, huella y resultado de cada tramo, repetición exacta 12/12.
+  - `378b6b3` paso 8a (con Codex): **conductor común**. `crearConductor` en `app` es el lockstep de `jugarPartida` partido en llamadas (`iniciar`, `avanzar(maxPasos)`, `cerrar`; `alPaso`, `alSucesos`, `alTurno`, `detener`) y devuelve el control mientras un Worker corre; `jugarPartida` lo usa. `reglas-war` anota sucesos `registro`, `aviso` y `globo` junto a sus ganchos de presentación. El anfitrión gana el registro de War (eventos, uso, consolas y lecturas por sensor, que ya no se suman en el mundo), `registro({ desde })` y `vigilar(ahora, ms, mensaje)`. `fronteras-fase2`: el registro de War por el camino nuevo coincide con el del ciclo en las 10 partidas (orden incluido).
+  - `f90da9a` paso 8b (con Codex): **el juego sobre `crearPartida`, `crearAnfitrion` y el conductor** en las tres series. Desaparecen del juego sus Workers propios, `alMensaje`, `mensajeCampaign`, el despertar, `NUCLEO.avanzar` y los ganchos de `conectar`. La pantalla sale de los avisos de cada turno, de los sucesos y del registro del anfitrión. El juego ya no escribe en el mundo: al parar ordena `fin-tramo` (Campaign) o `fin-intento` (Factory, orden nueva). El puente publica `window.APP` en vez de `RUNTIME` y `NUCLEO`. Las pruebas de navegador usan el gancho `__banco` (`alPaso`, `alTerminar`, `alHito`, `registro`) en vez de interceptar globales; `pruebas/juego-conductor.mjs` ejecuta el adaptador del juego en VM contra las 41 referencias.
+  - `81f71d6` paso 8c (con Codex): **`herramientas/partida` por el camino nuevo y fin de `legado`**. La partida sin pantalla (CLI, referencias, contraste) juega con `crearAnfitrion` y `jugarPartida` desde `herramientas/partida/jugar.mjs`, que también usan las pruebas de frontera; se retira `ciclo.mjs`. Los tres reglamentos dejan el objeto `legado`: exportan con nombre lo que aún se usa (datos, `crear`, `serializar`, `validar`, `modoEnSnap`, `metas`, `instantaneaHistorica` para la huella de las referencias) y `conectar` queda dentro de cada paquete. `factory-reglas.cjs` y `campaign-reglas.cjs` usan el contrato del reglamento con un adaptador (mismos casos y aserciones). Misma salida en las 41 referencias y en la CLI salvo `ms`.
+  - `b626700` paso 9 (con Codex): **`paquetes/lenguaje`**, sin imports, globales ni DOM (Acorn, Lezer y el reconocedor de huecos se inyectan): léxico JS, estructura tolerante, traductor de Python (partido en cuatro módulos de menos de 500 líneas) y `desde-js`, que salen de `shared/`, más el vocabulario por serie, `instrumentar`, `revisar`, `opcionesPython`, `mensajePython` y los formatos de `juego.js`. El puente del juego y uno junto a la demo del editor publican los globales antiguos mientras el editor y el juego sean scripts clásicos. `herramientas/partida` importa el paquete en vez de extraer funciones del texto de `juego.js`.
+  - `32edc77` paso 10 (con Codex): **el editor sale de `shared/editor/` a `paquetes/editor`** (módulos ES; solo importa `lenguaje`). `edicion.js` se parte en siete módulos y `seudo.js` en cuatro, todos de menos de 500 líneas, con un contexto por instancia; los iconos, los CSS (idénticos), la demo (prueba de frontera 4, ahora en `paquetes/editor/demo/`) y el contrato van con él; i18n, presentación y Lezer se inyectan con `configurar()`.
+  - `b2cc747` paso 11a (con Codex): **`juego.js` como módulo ES**, que importa los paquetes directamente, con un contexto compartido (`ctx`, accesores). A `paquetes/interfaz`: consola, registro, ayuda, pestañas, ficha del reto, máquinas e inspector; a `paquetes/app/juego/`: ciclo de los programas, cierre de intentos y bucle. `juego.js` baja de 2.650 a 1.617 líneas. En la revisión se corrigieron dos nombres estropeados por un reemplazo (`window.FACTORY_FORM`, `window.CAMPAIGN_UI`) que impedían arrancar Factory y Campaign; Node no lo veía, las suites de navegador sí.
+  - `2f7353d` paso 11b (con Codex): **el resto de `juego.js` a `app` e `interfaz`**. Interfaz: etiquetas y globos, retos en pantalla, variantes (`?poc=1`), editor de texto y sugerencias. `app/juego`: estado y `ctx`, guardado local, vistas y cámara, programas, Python, escenario propio, Campaign en vivo y arranque (`arrancarJuego()`). `Prototypes/Rocket Launcher/js/juego.js` queda en 3 líneas. Pruebas nuevas en Node de identificadores libres y zona muerta temporal. Comprobados a mano `?poc=1`, el formulario de Factory y los checkpoints de Campaign.
+  - `abab874` paso 11c (con Codex): **los scripts clásicos del juego a `interfaz` y `app`**. Interfaz: `layout` (partido en `layout`, `layout-menu` y `layout-panel`), `campaign-ui`, `factory-form` y `factory-iconos`. `app/juego`: proveedor, paleta, programas, pulsos, remota y revisión. Se retiran `compat-paquetes.js` y `seudo.js`. La página del juego solo carga como clásicos las librerías de terceros y las compartidas con otras páginas (i18n, terreno, motor de revisión). Los ganchos de QA pasan a `window.cmg` (`revisionJuego`, `pulsos`, `estructura`, `factory3d`). En la revisión: Factory no arrancaba (el editor lee `cmg` durante el arranque; Node no lo veía, las suites de navegador sí). Además, un bisect mostró que las pruebas del modo revisión en el juego (`educational-animation/revision/pruebas/juego.mjs` y `depuracion.mjs`, fuera de `todas.mjs`) fallaban desde el paso 8b: leían `__banco.mundo.activo`, que el juego ya no escribe. Ahora leen `cmg.ejecutando`, con la misma comprobación. Mismo estado del DOM que la base tras los mismos clics en 3 series, escritorio y teléfono.
+  - `6bf0648` paso 12 (con Codex): **forma `crearVista`**. `vista-2d` y `vista-3d` exportan `crearVista(contenedor, { serie, dt, estado, … })` con el contrato del plan (`dibujar(anterior, actual, fraccion, ahora?)`, `alSuceso`, `elegir`, `proyectar`, `suelo`, `redimensionar`, `destruir`; la 3D conserva sus extras). `geo2`, `elegir2D` y `proyectar2D` salen de la app; el bucle, la selección y las etiquetas usan `vistaActual()` sin ramas. Única diferencia medida: las etiquetas en 3D se proyectan con el rectángulo de `#campo` (como ya hacía la selección) y se desplazan menos de 0,3 px. Capturas deterministas: lienzos idénticos salvo el ruido conocido.
+  - `8eb4d32` paso 13 (con Codex): **un solo punto de lectura de globales y fin de `?v=`**. `Prototypes/Rocket Launcher/js/servicios.js` es lo único del juego que lee las bibliotecas clásicas (i18n, presentación, terreno, motor de revisión, Three, Acorn, Lezer) y se las pasa a `arrancarJuego({ servicios })`. En `paquetes/` solo quedan APIs del navegador y la publicación de `cmg`, `__banco` y `__juegoListo` (prueba `globales-juego`). Las bibliotecas compartidas con otras páginas y las de terceros siguen siendo scripts clásicos (decisión anotada en el plan). Sin `?v=`: para probar en el teléfono, usar el enlace por commit. Las pruebas del modo revisión en el juego entran en `test:navegador`.
+  - `19a2b51` paso 14 (con Codex): **interfaz de plataforma para el guardado**. `app` define `Plataforma = { almacen, sesion }` (`leer`/`escribir`/`borrar` de texto, síncrona) y `crearPlataformaMemoria()`. `cascaras/web/plataforma.js` la implementa sobre `localStorage`/`sessionStorage` y la entrada del juego la pasa a `arrancarJuego`. Ningún paquete toca el almacenamiento del navegador; fronteras: `cascaras/web` solo importa la entrada de `app`. Comprobado con un volcado de `localStorage` y `sessionStorage` tras la misma secuencia de uso (migración `cmg-banco02`, reto, vista, edición, ejecutar, parar, recargar): **idéntico a la base** en las tres series.
+- **Pruebas de frontera.**
+  1. Partida completa con vista nula: las **10 partidas War de referencia** juegan con `reglas-war`, `crearAnfitrion` (imitación de Worker) y la vista nula sobre `crearPartida`, y dan la misma huella, pasos y final que `pruebas/referencias/partidas.json`.
+  2. Repetición exacta: War 2/7 se repite desde escenario, semilla y órdenes (`restaurar` y `jugarPartida` sin anfitrión) con la misma huella paso a paso, instantánea final, sucesos y final.
+  3. Orden de origen `jugador`: hace disparar a `LAU-01` en el paso indicado y la partida se repite igual.
+  4. Editor montado solo: `shared/editor/demo.html`, 73 comprobaciones, sin globales del juego ni errores de página.
+- **Decisiones (registradas en el plan y en los README).**
+  - Cierre: las bibliotecas de terceros y las compartidas con otras páginas (i18n, terreno, motor de revisión) siguen como scripts clásicos; el juego las lee solo en `js/servicios.js`. El mapa de imports queda para la fase 3. `shared/i18n` conserva su `localStorage` para el idioma.
+  - Paso 12: las etiquetas del campo en 3D se proyectan con el rectángulo de `#campo` y se mueven menos de 0,3 px. `dibujar(anterior, …)` aún no interpola: `anterior` llega `null`.
+  - Paso 13: sin `?v=`, el enlace de rama puede servir archivos en caché; para QA, el enlace por commit.
+  - Paso 8b: el hito de Campaign detiene al conductor **en su paso**, antes de entregar mensajes, hasta «Seguir». Antes el juego seguía dando pasos hasta acabar el fotograma (la prueba de contraste lo cortaba a mano); ahora el juego hace lo mismo que las referencias. Es la única diferencia visible: H1 termina a 52,9 s de juego en vez de 53.
+  - Paso 8b: con Workers reales, dos encargos seguidos sin `await` llegan en mensajes distintos y el turno se cierra con el primero. El anfitrión expone `fallo()` y el conductor no da otro paso si hay un fallo anotado (como el ciclo antiguo, que lo veía antes del siguiente fotograma). Lo detectó el contraste (Factory sin-await).
+  - Paso 8b: el juego llama al conductor en cuanto los programas ceden, no en el siguiente fotograma, como hacía el ciclo antiguo al recibir `espera`. Medido en H0–H3: misma velocidad que antes.
+  - Paso 7a: la huella de las referencias (fase 0) se calculó sobre la instantánea del legado de Factory, que conserva campos `undefined`; la instantánea pública los quita (protocolo). `fronteras-factory` mide la huella con `legado.instantanea(mundo)`, el mismo estado del mundo. Sin ese ajuste coincidían pasos y resultado 28/28 y solo 4/28 huellas.
+  - Paso 7a: `restaurar` no aplica las órdenes pendientes del paso guardado (la prueba del núcleo lo exige). Quien jugó con `jugarPartida`, que las aplica al llegar, llama `aplicarOrdenes()` tras restaurar: una orden puede terminar la partida sin avanzar (`programa-acabado`).
+  - Paso 7a: como el ciclo antiguo, el encargo sin `await` y el sensor 501 fallan sin registrarse; la consola que pasa de 4000 se registra y después falla.
+  - Orden de mensajes entre Workers: `crearAnfitrion` entrega órdenes y avisos por unidad (orden de carga) y llegada. No cambió ninguna referencia, **tampoco las de Campaign** (paso 7b: medido con orden por unidad y con orden por llegada; coincide todo en los dos casos, así que no hizo falta elegir entre A y B ni regrabar). El juego todavía usa su ciclo propio con `window.RUNTIME`, así que en el navegador el orden sigue igual que antes.
+  - Escena e instantánea: la instantánea de los programas no tiene lo que dibujan las vistas y protege las huellas. Cada reglamento exporta `escena(mundo)` (datos planos de lo visible). Las vistas siguen extrapolando como antes.
+  - `escena` usa `copiaPlana` (omite funciones y copia getters): Factory guarda una función en `robot.tarea` y tiene `cx`/`cy` como getters no enumerables. La primera versión perdía el robot de Factory 3D; la comparación de capturas lo detectó y ahora también la prueba de Node.
+- **Verificación actual.**
+  - Tras el paso 14, en el Mac: `npm test` **45/45** (incluye `partida-referencias` **41 iguales** sin regrabar, `fronteras-factory` **28/28**, `fronteras-campaign` **2/2**, `fronteras-fase2`, `globales-juego`, `plataforma`, `vistas-contrato`), tipos limpios, fronteras sin excepciones y autoprueba 54. `npm run test:navegador` **53/53** en una ejecución: idiomas 261, Campaign H0–H5, contraste **41/41**, terreno, editor montado solo 73, cambio 2D/3D 42, revisión en el juego 72 y depuración 173.
+  - Fuera de la suite, con adaptador de Playwright: `python-juego` 27, `python-ejecucion`, `factory-editor-comun`.
+  - Por paso (11c–14): mismo estado del DOM que el commit anterior tras los mismos clics (3 series, escritorio y teléfono, 778 líneas, sin errores); capturas deterministas tras el paso 12.
+  - Paso 6: capturas 2D y 3D de las tres series idénticas a las de `d315f3b` salvo la pose del brazo del robot de Factory 3D (ruido del reloj real: entre dos capturas del mismo commit cambian de 28 a 325 píxeles en esa zona; revisado a ojo). Terreno del editor guardado → War 3D con `?terreno=editor`: se dibuja el relieve, sin avisos ni errores.
+  - Capturas deterministas (tiempo congelado) de War, Factory y Campaign en 2D y 3D, antes y después de los pasos 4 y 5: idénticas píxel a píxel salvo el ruido que ya había entre dos capturas de la base (brazo animado del robot de Factory 3D y un chip de texto). A mitad de batalla, con misiles y explosiones, el mismo instante dibujado desde el mundo y desde la escena es idéntico.
+- **Forma de trabajo.** Pasos 1–5: sesión en la nube, sin Codex CLI ni la carpeta del Mac: escribió Claude el código, en `/home/user/Code-Battles_lite`, misma rama. Chromium de Playwright necesitó enlazar la compilación instalada (1243) con la que pide Playwright 1.65.1 (1255), fuera del repositorio. Paso 6: sesión en el Mac (`Code-battle-lite-fase0`); Codex CLI (gpt-6.1-sol, esfuerzo alto) escribió el paso en un worktree aparte con un encargo cerrado y `d6c82f4` como modelo; Claude revisó el diff (comparación de líneas normalizadas contra los originales), corrió las suites de navegador y las capturas e hizo el commit. Codex no tocó PROGRESO ni las referencias. Paso 7a, igual: Codex llegó a pasos y resultado 28/28 y paró, como se le pidió, al ver que la huella no coincidía. Claude encontró la causa (campos `undefined` del legado), corrigió el registro de la consola 4001 y la repetición, y verificó. Pasos 8–14, igual: Codex escribió cada paso con un encargo cerrado en su worktree y Claude revisó el diff, corrió todas las suites y las comparaciones con el commit anterior e hizo el commit. Correcciones de Claude en la revisión: el hito y la velocidad de Campaign (8b), los nombres estropeados del 11a, el arranque de Factory (11c), la demo del editor movida fuera de su paquete (13) y el ejecutor de depuración (13). Codex se detuvo una vez por su límite de uso (11c); se esperó a que se renovara.
+- **Límites.**
+  - Las pruebas de navegador que exportan funciones para ego-browser y no están en la suite (`navegador.mjs`, `editor-movil`, `editor-movil-regresiones`, `factory-comun`) ya fallaban antes del paso 10 con un adaptador de Playwright (tiempos de espera o un origen fijo); no se han usado como criterio. `python-juego`, `python-ejecucion`, `factory-editor-comun` y las del modo revisión en el juego (`juego.mjs`, `depuracion.mjs`) sí pasan. Estas últimas no estaban en `todas.mjs`: por eso el fallo del paso 8b pasó inadvertido hasta el 11c. Desde el paso 13 sí están. El laboratorio de revisión (otro proyecto) da dos errores «showModal … not in a Document» en Chromium sin pantalla; ya estaban antes y no afectan al juego.
+  - `dibujar(anterior, actual, fraccion)` no interpola todavía entre dos escenas: `anterior` llega `null` y las vistas extrapolan la actual como antes (decisión «Escena e instantánea»). Los sucesos (`alSuceso`) se reciben pero no se usan hasta `vfx` (fase 4).
+  - No se probó en teléfono real.
+- **Siguiente paso exacto.** Fase 3: `cascaras/escritorio` con Electron (ventana, pantalla completa, guardado en disco con una `Plataforma` que carga al arrancar y escribe por detrás), elegir empaquetador y mapa de imports para las librerías de terceros. Antes, conviene arreglar e incluir en la suite `navegador.mjs`, `editor-movil*.mjs` y `factory-comun.mjs`. QA del autor en teléfono real con el enlace por commit.
+
+## trunk unido antes de la fase 2 (editor de terreno) · 15 de noviembre de 2026 · rama `arquitectura/fase-2`
+
+- **Qué es.** La rama `arquitectura/fase-2` nace de `arquitectura/fase-1` y une `trunk` (`e2d4680`, `c2f0d21`: editor de terreno WebGPU, estudio y vista previa en War con `?terreno=editor`), con autorización del autor. La fase 2 **no ha empezado**.
+- **Conflictos resueltos.**
+  - `Prototypes/Rocket Launcher/index.html`: se conserva la carga de la fase 1 (defer y puente) con los tres scripts de `shared/terreno/` antes de `js/vistas.js?v=4`.
+  - `scripts/preparar-netlify.mjs`: publica `paquetes/` (sin sus pruebas), `herramientas/terreno` y los tres módulos del motor de revisión.
+  - `PROGRESO.md`: se conservan las dos historias.
+- **Corrección.** El enlace «Editor de terreno ↗» de la portada no tenía clave i18n y `idiomas.mjs` lo detectó. Ahora usa `inicio.terreno.probar` (ES/EN), e `inicio.js` sube a `v=4`.
+- **Pruebas.** `npm test` incluye las del terreno: `terreno` **80**, `terreno-bloques` **16**, `terreno-estudio` **8** y `terreno-png`. `npm run test:navegador` añade `pruebas/ejecutar-terreno.cjs`: editor **27**, modelado **28** y estudio **21** en Chromium con WebGL por software. Estas suites ya existían en trunk, pero no tenían ejecutor.
+- **Verificación actual.** `npm test` **26/26**, con las 41 referencias de paridad iguales. `npm run test:navegador` **30/30**, con el contraste **41/41**. i18n **1439 claves**. Publicación de Netlify: **10 páginas y 129 referencias**. Tipos y fronteras limpios.
+- **Límites.** En Playwright, el editor de terreno usa WebGL; WebGPU solo se comprobó en trunk con Vulkan/SwiftShader. El enlace «Terreno ↗» de la barra del juego sigue sin clave i18n (no lo detecta ninguna prueba). No se probó en teléfono real.
+
+## Fase 1 cerrada: núcleo, protocolo y los tres reglamentos en paquetes · 15 de noviembre de 2026 · rama `arquitectura/fase-1`
+
+- **Qué es.** La fase 1 de [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md), a partir de `arquitectura/fase-0`. Las reglas de las tres series viven en `paquetes/` como módulos ES que corren en Node sin `window`. El juego las usa sin cambiar su interfaz.
+- **Commits.**
+  - `82c2241` protocolo (instantánea, suceso y orden: tipos y validadores).
+  - `bb5fc75` núcleo (paso fijo, RNG con semilla, cola de órdenes, registro de sucesos, `crearPartida` con serializar y restaurar) y `js/compat-paquetes.js`, el único archivo que publica globales.
+  - `7982174` reglas-war: la orden de disparo pasa del juego al reglamento.
+  - `5560c05` reglas-factory.
+  - `95406ae` reglas-campaign: `campaign.js` partido en `estado.js`, `mundo.js` y `validacion.js` por el límite de 500 líneas.
+  - Se retiran `js/nucleo.js`, `war.js`, `war-retos.js`, `factory.js`, `factory-retos.js`, `campaign.js` y `campaign-nivel.js`.
+- **Sucesos.** Las tres series anotan disparos, explosiones, derribos, recogidas, entregas, producción, hitos, misiles y fin en un registro no enumerable del núcleo. Ninguna regla ni programa los lee, y no entran en la instantánea ni en la huella.
+- **Cuidado conservado.** `runtime.js` copia `validar` (Factory, Campaign) y `modoEnSnap` (Campaign) al texto del Worker. Siguen autocontenidas, y una prueba las evalúa desde su `toString()` en un contexto vacío.
+- **Correcciones en la revisión.**
+  - El reglamento de War declaraba la orden de disparo como `fireAt`; ahora usa `regularShoot`, el nombre real de la API del jugador. No cambió el comportamiento: `aplicarOrden` trataba igual cualquier otro verbo.
+  - Las pruebas de los paquetes ya no fijan la versión `?v=` del puente.
+- **Verificación actual.**
+  - `npm test` **22/22**: protocolo **105**, núcleo **3202**, reglas-war **4525**, reglas-factory **4625** y reglas-campaign **3010** comprobaciones. Incluye `partida-referencias` (**41 iguales**, sin regrabar) y el oráculo de Factory (0 diferencias nuevas).
+  - `npm run test:navegador` **25/25** (Chromium de Playwright, 8771), con el contraste con el juego real **41/41**.
+  - Captura de la salva final de Campaign H5 revisada. Tipos y fronteras limpios.
+- **Forma de trabajo.**
+  - La sesión que empezó la fase 1 escribió protocolo, núcleo y el borrador de reglas-war, y se cortó por el límite de uso con el paso a medias. Aquí se revisó, se corrigió `fireAt` y se cerró.
+  - Factory y Campaign los escribió Codex CLI (gpt-6.1-sol, esfuerzo alto) con encargos cerrados que tomaban el paso anterior como modelo. Claude comparó la lógica movida línea a línea y ejecutó navegador y capturas.
+- **Límites.**
+  - Los reglamentos exportan además `legado`, porque `juego.js` todavía conecta el mundo con hooks. La partida sin pantalla sigue usando `runtime.js` y `juego.js` por `vm`.
+  - No se probó en teléfono real.
+  - `trunk` sigue sin unir.
+- **Siguiente (fase 2).**
+  - Antes de empezar, unir `trunk`: su editor de terreno toca `js/vistas.js` e `index.html`.
+  - Después: vistas 2D/3D con instantáneas y sucesos, `anfitrion` fuera de `runtime.js` y del ciclo de `juego.js`, reparto de `juego.js` y `layout.js` entre `interfaz` y `app`, y fin de los globales, de `legado`, de `compat-paquetes.js` y de los `?v=`.
+  - El criterio son las cuatro pruebas de frontera del plan, más las referencias y el contraste.
+
+## Fase 0 cerrada: herramientas, partida sin pantalla y referencias de paridad · 15 de noviembre de 2026 · rama `arquitectura/fase-0`
+
+- **Qué es.** La fase 0 de [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md), sin cambiar el juego: `Prototypes/` y `shared/` están intactos desde `2474a6d`. Base: `ccr-bcc040cc-27c0zn` (plan y Campaign nivel 1). No se unió `trunk`.
+- **Herramientas.** `package.json` con workspaces `paquetes/*` y devDependencies exactas (TypeScript 5.9.3, Playwright 1.65.1, @types/node 22.20.5). `tsconfig.json` con `checkJs`. `npm test`, `npm run test:navegador` y `npm run tipos` (`pruebas/todas.mjs` ejecuta listas explícitas, cada suite en su proceso).
+- **Paquetes.** 13 carpetas en `paquetes/` con `package.json` y README de contrato (de dónde sale cada uno, qué puede importar), todavía sin código. Entre paquetes solo se importa `../<otro>/index.js`. `pruebas/fronteras.mjs` (con Acorn) comprueba dependencias, entradas públicas y entorno prohibido; su autoprueba espera 48 infracciones.
+- **Partida sin pantalla.** `herramientas/partida.mjs` (`--reglas war|factory|campaign`). Carga los scripts actuales en `node:vm`, usa el texto real del Worker de `runtime.js` y extrae `instrumentar` de `juego.js` al ejecutarse, sin copias. Replica el ciclo de programas con timers virtuales. La huella es el SHA-256 de la instantánea canónica tras cada paso.
+- **Contraste con el juego real.** `pruebas/partida-contraste.mjs` (Playwright, Workers y reloj reales, gancho previo a la carga): **41/41** iguales en hash, pasos y resultado.
+- **Referencias.** `pruebas/referencias/partidas.json` (41 partidas, 2 MB): War retos 1–5 × semillas 1 y 7, 27 casos del oráculo de Factory, Campaign H0–H5 en JS y en Python, War 2/7 y Factory reto-1 en Python. Se comprueban en `npm test` (~7 s). Regrabarlas exige `--forzar` y una decisión del autor.
+- **Pruebas tocadas.**
+  - `idiomas-juego.mjs` espera «Revisar» también en Factory: lo añadió `860a0f6` a propósito y el test seguía diciendo «todavía no».
+  - `idiomas-pendientes.mjs` elige el enlace de volver por su clave: `9ca0c35` añadió el del prototipo.
+  - `campaign-juego.cjs` sale con 1 si no completa H0–H5.
+  - `campaign-soluciones.cjs` gana la versión Python de la partida de referencia.
+  - `campaign-reglas.cjs` exporta los datos de su partida, con las mismas comprobaciones.
+- **Verificación actual.**
+  - `npm test` **17/17**, también en un clon limpio con `npm ci`. Incluye interacción **124**, i18n **1438 claves**, editor Python **34**, traductor **64**, conversión **20**, fronteras, referencias **41** y oráculo de Factory (14 iguales, 13 deltas aceptados, 0 nuevas, 1 excluido).
+  - `npm run test:navegador` **20/20** (Chromium de Playwright, 8771): idiomas **261**, Campaign H0–H5 en escritorio y contraste **41/41**.
+  - `npm run tipos` limpio.
+- **Forma de trabajo.** Codex CLI (gpt-6.1-sol, esfuerzo medio o alto) escribió cada paso con un encargo cerrado, en una sesión nueva por paso. Claude revisó cada diff y ejecutó los contrastes de Chromium (el sandbox de Codex no puede lanzarlo). En el paso 3a, Codex añadió cambios en este archivo sin que se pidieran y se deshicieron.
+- **Límites.**
+  - El vigía de 2,5 s de reloj real no se reproduce sin pantalla: `bucle-sin-await` queda fuera.
+  - En el navegador, los mensajes de varios Workers en el mismo instante llegan en orden de reloj real. Hoy solo cambia el orden del registro de eventos de Campaign H5; el contraste lo ordena por unidad dentro de cada `t`.
+  - `navegador.mjs`, `python-juego.mjs`, `factory-*.mjs` y `editor-movil*.mjs` siguen siendo del arnés de ego-browser y no están en `test:navegador`.
+  - No se probó en teléfono real.
+  - No se archivó este archivo.
+- **Siguiente (fase 1).**
+  - `protocolo`, `nucleo` y los tres reglamentos en `paquetes/`, ejecutables en Node, con sucesos anotados.
+  - El juego los usa sin cambiar la interfaz.
+  - Criterio: `npm test` con `partida-referencias` y `npm run test:navegador` con el contraste, sin regrabar nada.
+  - Las herramientas de `herramientas/partida/` pasarán a importar los paquetes en vez de los scripts globales.
+  - Antes de la fase 2, unir `trunk` (editor de terreno, toca `vistas.js`). Decisiones abiertas en el plan.
+
+## Cambio de dirección: Steam, arquitectura modular y retirada de «sin compilación» · 15 de noviembre de 2026
+
+- **Decisión del autor.** Steam primero (Electron) y Android después (Capacitor); el navegador queda como canal de QA. Se mantiene la tecnología web y JavaScript/Python reales. Los efectos de batalla son prioritarios en equipo modesto. El diseño actual de War, Factory y Campaign no es definitivo.
+- **Plan nuevo.** [docs/PLAN-ARQUITECTURA.md](../../docs/PLAN-ARQUITECTURA.md): paquetes con fronteras comprobadas (protocolo, núcleo, reglamentos, lenguaje, anfitrión, editor, vfx, vistas 2D y 3D, interfaz, app), tres fronteras (instantáneas y sucesos, órdenes, anfitrión de programas) y fases 0 a 6 con criterio de «hecho».
+- **Instrucciones.** `AGENTS.md` y `CLAUDE.md` reescritos: se retiran «sin framework ni compilación», «sin npm», «cambios pequeños» y la obligación de conservar `window.cmg`; siguen el determinismo, la compatibilidad de los programas y la paridad hasta cerrar la fase 2. `docs/VISION.md`, `README.md`, `docs/PLAN-UNIFICACION.md` (cerrado) y `docs/PLAN-VFX.md` (ahora fase 4) remiten al plan.
+- **Verificación.** Solo documentación; no cambió código, reglas ni pruebas. No se ejecutaron suites.
+- **Pendiente.** Empezar la fase 0 (herramientas y referencias de paridad). Decidir si se archiva este archivo al cerrarla.
+
+## Campaign · nivel 1 «Primera fábrica» (H0–H5) · 12 de noviembre de 2026 · rama `campaign-nivel-1`
+
+- **Qué es.** Primer nivel de la campaña como tercera serie de la aplicación común (`?serie=campaign`), con la misma interfaz, JS y Python. Decisiones, API, hitos y límites en [docs/CAMPAIGN-NIVEL-1.md](../../docs/CAMPAIGN-NIVEL-1.md). War y Factory no cambian de reglas.
+- **Mundo.** Planta continua en vivo (Ejecutar no reinicia el mundo), checkpoints autoguardados por hito, historial para volver y estado en vivo que sobrevive a recargar. Seis hitos: montacargas guiado, prensa rápida, dos estaciones lentas, pedidos y reubicación, ensambladora por lotes con control maestro y banda hasta la bodega de la muralla; al final, salva de prueba.
+- **Mapa.** 200 × 104 m calcado del boceto (fábrica, muralla, dos carriles y flanco, montes y río). Diorama low-poly en WebGL (Three r128) con modo batalla (cuadrícula de War) y plano 2D con zoom.
+- **Runtime.** Un programa puede esperar varios encargos a la vez; el Worker avisa («cede») cuando vuelve a esperar. Validación y resultado de los modos compartidos entre el Worker y el mundo (`campaign.js`).
+- **Verificación actual.** `campaign-reglas.cjs` (reglas, conservación, checkpoints, determinismo y partida de referencia H0–H5); i18n **1438 claves**; lógica **124**; editor Python **34**; traductor **64**; contrato y lenguajes del editor; reglas de Factory. Navegador (Playwright + Chromium con SwiftShader, 8771): `campaign-juego.cjs` completa H0–H5 en escritorio y en formato móvil sin errores de página; Python comprobado en H0 y en la luz de PRS-01; War y Factory arrancan y ejecutan.
+- **Límites.** No se probó en teléfono real ni con WebGL de GPU real. No se ejecutaron las suites de Ego Browser (`navegador.mjs` y afines). Mensajes del runtime de Campaign solo en español. Robots y máquinas con primitivas. Números de ritmo y economía sin QA humano.
+- **Pendiente.** QA del autor; decidir cuándo pasa a `trunk`; modelos (T1, torreta de observación); oleadas en los carriles; relación local/maestro; divisores de banda.
+## VFX · unificación de singularidad, artillería y previas · 16 de noviembre de 2026
+
+- **Fuente canónica:** `vfx-explosiones-singularidad`, reuniendo `ccr-62599b2d-2y0dow` (`346d4e2`, singularidad renovada), `ccr-293f5765-o1sulj` (`57402d7`, artillería) y `ccr-f2aee30f-2ivzok` (`ec18c69`, previa fuego/polvo). Los commits de las tres ramas quedan en el historial de la canónica; se retiran sus nombres remotos tras publicar la unión.
+- **Contenido sincronizado:** `arte/blender/vfx/` en la canónica, `trunk` y `campaign-nivel-1`. Singularidad con anillos finos, borde morado y disco al 250 %; artillería terrestre/aérea de tres poderes, estelas, incendio y capas; todas las previas adicionales. Las dos hojas de explosión en borrador se conservan como referencias históricas, junto al vídeo fuego/polvo. README combinado con procedencia y límites.
+- **Alcance:** en las ramas de destino solo se añade la carpeta VFX y esta entrada, conservando la torreta y los demás cambios propios de cada rama. Los efectos siguen fuera del juego y del paquete Netlify.
+- **Verificación actual:** sintaxis de los seis scripts Python, resolución estática de imports locales, 16 JSON válidos, `bash -n`, 15 MP4 con vídeo y duración positiva comprobados con ffprobe; interacción **124**, editor Python **34**, traductor Python **64** en las tres bases. Igualdad del árbol VFX entre las tres ramas y comparación con las fuentes.
+- **Límites:** no se regeneran renders ni atlas, no se repite QA visual o de navegador (no cambia la interacción/arranque); los resultados de render anteriores son históricos. Los atlas PNG siguen sin estar versionados y no hay nueva medición GPU.
+
+## 12-nov-2026 · Estudio de terreno: espacio de trabajo, extensión y precisión
+
+- **Decisión.** Evolucionar la base de `trunk` (`e2d4680`): conserva Three r180, datos compartidos, modelado, historial y exportaciones; sustituye la distribución del prototipo. Sin framework, instalación ni cambios de simulación. Commit y push a `trunk` autorizados por el usuario al entregar esta iteración.
+- **Espacio de trabajo.** Visor que ocupa la pantalla de la aplicación, barra lateral de herramientas, inspector plegable, Archivo y controles de vista. Smartphone: barra inferior desplazable e inspector superpuesto, sin scroll de página. Pantalla completa del navegador donde esté disponible, atajos 1–8 / [ ] / F, encuadre según las dimensiones y renderizado solo cuando cambia la vista o la escena.
+- **Extensión.** Dimensiones numéricas, ampliar/recortar franjas de 4 m por borde y paso de 1 / 0,5 / 0,25 m. Hasta 257 muestras por eje; índices de 32 bits para 257 × 257. Conserva muestras coincidentes, interpola al cambiar resolución y añade suelo plano/seco. Recorte, resolución e importación se pueden deshacer. Los bloques permanecen al recortar.
+- **Pinceles y precisión.** Inflar según pendiente, detalle de punta concentrada, forma cuadrada, dureza, radio hasta 32 m y entradas numéricas. Invertir/borrar disponible sin Shift. Tomar cota para aplanar; elegir X/Z y fijar la altura Y de una muestra. Bloques/vértices: desplazamientos ±XYZ con paso configurable y referencia de ejes; coordenadas de objeto en mundo y de vértice locales.
+- **Pintura elevada.** Raycast de la primera superficie visible. Material sobre relieve elevado y caras triangulares de bloques; no pinta el suelo oculto. Colores de caras persistentes en JSON, recarga, historial, extrusión, unión y vista de War. Cambiar el color base del bloque limpia su pintura de caras.
+- **Formato.** V3 para extensión variable y pintura/unión de bloques; lectura de v1/v2 conservada. Exportación PNG sigue las dimensiones reales. Límite de importación 32 MB; se conserva la protección del campo de War. Las versiones antiguas del editor no abren v3.
+- **Verificación actual.** Datos **80**, bloques **16**, nuevas regresiones de extensión/índices/pinceles/precisión/colores **8**, PNG (CRC, zlib, canales y muestras), interacción histórica **124**. Chromium/WebGL: editor **27**, modelado **28**, estudio **21**, incluyendo ampliación, resolución, pintura a altura 12 m, historial, descarga, persistencia, War v3, toque emulado y cámara. Sintaxis de los scripts modificados y paquete estático: **10 páginas / 125 referencias**. Arranque automático del renderizador selecciona WebGL en este entorno; no se afirma una prueba WebGPU nueva.
+- **Límites.** Smartphone emulado, sin prueba física de S Pen/palma ni medición en GPU física. Terreno de alturas (sin cuevas ni salientes), pintura de bloques por triángulo completo (sin UV), campo jugable de War sin redimensionar, sin nuevas colisiones. Presupuesto máximo de malla comprobado en datos; el rendimiento de mapas grandes en teléfonos reales queda pendiente. El almacenamiento local puede llenarse: JSON permite conservar el documento.
+
+## 12-nov-2026 · Editor de terreno, agua y blocking en Three.js
+
+- **Base.** Rama local `editor-terreno-webgpu`, desde `trunk` (`67d26d3`). La migración del juego a WebGPU no está en las ramas publicadas examinadas. El editor vive en `herramientas/terreno/`, con Three r180 ESM local, WebGPU preferido y respaldo WebGL 2. El juego mantiene r128 y comparte únicamente los datos/adaptadores. Sin npm, framework ni compilación.
+- **Terreno.** Pinceles de subir/bajar, suavizar, aplanar y pintar cuatro materiales; radio, intensidad y presión opcional del lápiz. El campo de War (32 × 18 m) y un margen de 1 m conservan altura cero. El editor prepara una cuadrícula de 129 × 97 muestras, paso 0,5 m, con relieve determinista.
+- **Agua.** Máscara independiente, cota horizontal ajustable y borrado con Shift. Malla con alfa por vértice compatible con ambos renderizadores; solo se dibujan triángulos mojados. Se oculta por completo al estar vacía para evitar draws de cero índices en WebGPU.
+- **Blocking.** Caja, rampa, cilindro y plano; selección individual/múltiple, posición/rotación/escala/color, edición de vértices locales y extrusión de caras triangulares. Unir combina las mallas transformadas en un objeto editable, sin booleanas ni eliminación de caras interiores. Límite de 64 objetos, 4096 vértices y 24576 índices. El plano se coloca 4 cm sobre el suelo para evitar interferencias.
+- **Archivos e historial.** JSON v2 con migración automática de v1; exportación de altura PNG de 16 bits, mezcla RGBA y máscara de agua gris8. Borrador local, veinte operaciones de deshacer/rehacer y validación antes de importar o editar. El autoguardado persiste el último mapa confirmado cuando hay un trazo activo; Escape/cancelación no se recuperan como cambios al recargar. Se detiene el pincel al salir de la malla. Nombres inválidos conservan el mapa anterior.
+- **War.** «Probar en War» abre `?terreno=editor` con copia local del escenario. Terreno, agua y bloques son visuales: selección, colisiones, RNG, paso fijo y programas se mantienen. Factory y War sin esa query conservan sus paisajes. Corregida la interferencia entre la malla y la cuadrícula; primitivas con Phong y caras planas en r128.
+- **Paquete.** Incluye el editor. Se corrigió una omisión preexistente de `trunk`: se distribuyen únicamente los tres módulos de revisión que el juego ya referenciaba; las páginas/proyectos del laboratorio siguen excluidos.
+- **Verificación actual.** Datos y mallas: **80** comprobaciones; primitivas y topología: **16**; PNG: CRC, zlib, altura16, RGBA, agua gris8, orientación y las **12.513** muestras. Interacción del editor en Chromium/WebGL: **27**, con presión de lápiz por CDP, cancelación/autoguardado, agua, tres descargas PNG, JSON, historial y War. Modelado: **27** comprobaciones completas más una regresión focal de precisión (la suite reproducible contiene 28): vértices, caras, unión, historial, descarga/importación y recarga. Renombrar o cambiar un solo eje conserva exactamente los doubles de los campos intactos. Interacción histórica **124** y contrato de lenguajes/integridad de vendors originales correctos. Paquete: **10 páginas y 125 referencias**, y arranque real de editor/inserción/War desde `dist/`, sin excepciones.
+- **WebGPU y móvil.** Chromium con Vulkan/SwiftShader: backend WebGPU real de software, relieve, agua y primitivas visibles, interacción y exportación, sin excepciones ni avisos en los arranques finales seco/húmedo. Recuperación WebGL 2 comprobada ante solicitud de adaptador fallida. Móvil 390 px: toque emulado pinta agua, sin desbordamiento; no es una prueba de S Pen ni rechazo de palma físicos. [Captura WebGPU](../../docs/qa/editor-terreno-2026-11-12/webgpu.png) y [móvil](../../docs/qa/editor-terreno-2026-11-12/movil.png).
+- **Límites.** Sin medición en GPU física ni QA de S Pen real; agua visual sin simulación de fluidos, unión de mallas sin booleanas. La migración del resto del juego sigue separada. [Uso y formato](../../docs/EDITOR-TERRENO.md). Entrega: commit y push a `trunk` autorizados por el usuario.
+
+## 10-nov-2026 · Torreta de observación: fuentes y propuestas de mecanismo
+
+- Incorporados en `arte/blender/torreta_observacion/` el modelo Blender de 1 m, la secuencia de observación y dos propuestas animadas (cardán dentado y ruedas omni), con documentación y visor HTML.
+- Verificación: integridad SHA-256 de los recursos copiados; videos ya comprobados con ffprobe (19 s base, 13 s propuestas). Cambio limitado a arte y documentación; sin cambios de reglas o código del juego.
+- Pendiente: elección del mecanismo, dimensionamiento mecánico y preparación de LOD, colisiones, animaciones horneadas y exportación GLB para integrar al juego.
+
+## Revisión · ciclo 05 con Astra (xhigh): forEach con cuerpo expresión · 8 de noviembre de 2026
+
+- **Proceso.** Quinto ciclo. Astra en Codex CLI con esfuerzo xhigh y solo lectura. Hubo 3 turnos: diagnóstico, un rechazo y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/05-foreach-expresion/`.
+- **Pregunta.** ¿Cuántas vueltas y qué vale `x`? `forEach(x => console.log(x))` era una sola fila «Ejecuta […] → undefined». Con llaves, en cambio, era un bucle «por cada».
+- **Trazador (compartido con el juego).** `x => (__T.c(id,x),__T.s(idExpr),expr)` en las mismas posiciones. Un `forEach` anidado en un cuerpo expresión también se reconoce, y su llamada queda sin gancho de valor. Un callback `async` ya no se instrumenta como bucle. Con llaves (no async), el resultado es idéntico byte a byte a HEAD; los pulsos salen idénticos en 77 programas (comprobado por Astra).
+- **Diagrama.** El cuerpo expresión es una fila cuyo nodo es la expresión (`P.cuerpoExpr`, `FL.expresion`); etiqueta, lectura, traza, tarjeta y píldora la tratan como una sentencia expresión. Las continuaciones `async` se narran «sigue […], que se había quedado esperando», una por ejecución. `x => y => x` se narra «Crea la función […], sin llamarla».
+- **Verificación actual.** Flujo **420** (18 nuevas), trazador **27**, lógica **124**, i18n **1146 / 12697**, editor Python **34**, traductor Python **64**. Navegador 8771: `depuracion.mjs` **173** (la versión del renderizador pasa a v11). Capturas antes/después revisadas.
+- **Límites.**
+  - `l?.forEach`, `forEach(f)` y `forEach` con segundo argumento no se representan como bucle.
+  - No se repitió `juego.mjs` (falta Playwright).
+  - Versiones: en War, trazador v6, flujo v9 y revisión v11; en la página de ejemplos, v11.
+
+## Revisión · ciclo 04 con Astra (xhigh): for…of con y sin llaves, y saltos con etiqueta · 8 de noviembre de 2026
+
+- **Proceso.** Cuarto ciclo. Astra en Codex CLI con esfuerzo **xhigh**, en la misma sesión y solo lectura. Hubo 3 turnos: diagnóstico, «aceptar con cambios» y la aceptación. El caso y la imagen antes/después están en `revision/pruebas/casos/04-forof-llaves/`.
+- **Pregunta.** ¿Cuántas vueltas da y qué vale `x`? `for (const x of l) f(x)` sin llaves no tenía ni vueltas ni valores, y con llaves sí. El trazador solo ponía el gancho de cada vuelta dentro de un bloque.
+- **Trazador (compartido con el juego).** Sin llaves, el cuerpo se envuelve en las mismas líneas: `{__T.c(id,x);{__T.s(…);sentencia}}`. Con llaves, el resultado es **idéntico byte a byte**: lo comprobé en 51 programas, y Astra en 68 programas y sondas con el filtro de pulsos. `pulsos.js`: el filtro de condiciones exige `campo === "test"` (antes aceptaba cualquier sentencia colgada de un `if`).
+- **Diagrama.** Los saltos con etiqueta van a su destino: `continue fuera` vuelve al bucle de fuera, `a: b: for` reconoce las dos etiquetas, un bloque `b: {…}` consume su `break b`, y un `switch` deja pasar `break fuera`. Cada `break` dice si sale de un bucle, de un `switch` o de un bloque. Una desestructuración ya no narra `= true`.
+- **Verificación actual.** Flujo **402** (19 nuevas), trazador **27**, lógica **124**, i18n **1146 / 12697**, editor Python **34**, traductor Python **64**. Navegador 8771: `depuracion.mjs` **173**. Capturas antes/después; la del `continue fuera` «antes» se sacó de HEAD en un worktree temporal (puerto 8772).
+- **Límites.**
+  - `forEach(x => expr)` con cuerpo expresión sigue sin vueltas: es el ciclo 05 propuesto.
+  - `do…while` cuenta una sola vuelta (ya pasaba antes).
+  - No se repitió `juego.mjs` (falta Playwright).
+  - Versiones: en War, trazador v5, flujo v8, pulsos v3 y revisión v10; en la página de ejemplos, v10.
+
+## Revisión · ciclo 03 con Astra: crear un generador frente a consumirlo · 7 de noviembre de 2026
+
+- **Proceso.** Tercer ciclo adversarial. Astra en Codex CLI, con esfuerzo alto y solo lectura. Hubo 4 turnos: diagnóstico, dos rechazos y la aceptación. El caso, las respuestas, el registro y la imagen antes/después están en `revision/pruebas/casos/03-generador/`.
+- **Pregunta.** ¿Se imprime «cuerpo»? Antes, el motor **afirmaba algo falso**: «Ejecuta la función g y, cuando acaba, sigue aquí» y «sigue en (3)», cuando el cuerpo no corre. Además, en `g().next()` narraba el resultado antes que el cuerpo.
+- **Árbol.** `trazador.js` marca `generador` y `delega` (`yield*`) en la tabla de nodos. Son solo metadatos: no cambian los ganchos ni `V`, y el juego no los lee. En `python.js`, un `def` con `yield` es generador; además, un **`yield` sin valor ya no da error de sintaxis** (limitación de lezer 1.1.19 tolerada solo ahí).
+- **Vista.**
+  - Etiquetas: «Crea un generador con [g()]», «Pide el siguiente valor a [g()]», «Generador g()», «Entrega 1 y se para» y «Entrega uno a uno los valores de…».
+  - Lectura: «todavía no ejecuta el cuerpo», y en la fila del generador «corre a trozos».
+  - Traza: pide → cuerpo → yield → **«Vuelve de [it.next()]: el generador se paró en un yield y da «1»»**, también con `await it.next()`. Con un generador async sin `await`: «sin esperarlo… devuelve una promesa».
+  - Un nombre de función que se reasigna ya no se enlaza a ningún cuerpo. Asignar una función ya no se narra como «undefined».
+- **Verificación actual.**
+  - Flujo **383**: 30 nuevas (creado o consumido, varios yield, yield dentro de otra sentencia, función normal, `next` propio, reasignaciones, async, `function*` en expresión, `yield*`, Python `yield`/`yield from`, inglés).
+  - Trazador **27**, lógica **124**, i18n **1146 / 12697**, editor Python **34**, traductor Python **64**.
+  - Navegador 8771: `depuracion.mjs` **173**. Capturas antes/después revisadas.
+- **Límites.**
+  - El objeto generador sigue como `{}` en la píldora de la traza.
+  - Un `for (x of …)` sin llaves no da pasos por vuelta (ya pasaba antes).
+  - Las tablas antiguas solo se acreditan por la sintaxis reconocida.
+  - Python solo tiene lectura. No se repitieron `interfaz.mjs`/`juego.mjs`.
+  - Versiones: en War/Factory, trazador v4, flujo v7, python v2 y revisión v9; en la página de ejemplos, v9.
+
+## Revisión · ciclo 02 con Astra: agendar un callback frente a ejecutarlo · 7 de noviembre de 2026
+
+- **Proceso.** Segundo ciclo adversarial. Astra en Codex CLI con esfuerzo **alto**, en la misma sesión que el ciclo 01 y solo lectura. Hubo 4 turnos: diagnóstico, dos rechazos y la aceptación final. El caso, las respuestas, el registro y la imagen antes/después están en `revision/pruebas/casos/02-agendar/`.
+- **Pregunta.** ¿Qué se imprime primero, «callback» o «fin»? `queueMicrotask(cb)` y `(cb)()` se veían iguales («→ undefined»), y la traza ni siquiera tenía los eventos del callback, porque el trazador vaciaba su búfer antes de que corriera.
+- **Ejecutor (`ejecutar.js`, solo «Tu código» y la página de ejemplos).** `setTimeout`/`setInterval`/`clear*`/`queueMicrotask` propios, con temporizadores virtuales sobre el reloj del programa (`esperar` es uno más) y un bucle de eventos propio. Nada queda vivo al devolver el resultado, y los errores de los callbacks, también los `async`, van al informe. Marcas `["corre"]`/`["/corre"]` por ejecución y `["luego"]` desde el `finally` del cuerpo. Un `setInterval` sin fin se corta.
+- **Vista.**
+  - Etiqueta «Agenda [fn] para después», o «…; su número, en [id]».
+  - Lectura «no se ejecuta ahora y el programa sigue sin esperarla», con el «cuándo» plegado, frente a «Ejecuta [fn] ahora mismo. Escribe "callback"».
+  - La última fila dice «Aquí acaba el código principal; después corre lo que siga agendado de (1)».
+  - Traza: 1 agenda → 2 imprime → **1 «Ya terminó el código principal: ahora se ejecuta [fn]…»**, o «El código principal está esperando: mientras…» si corre durante un `await`. Un paso por ejecución.
+  - El ciclo 01 se reforzó: un `push` sustituido (`f.push = cb => cb()`) ya no acredita que la función se guarde.
+- **Verificación actual.** Flujo **353** (30 nuevas del ciclo 02: orden, `await`, redefinido, `forEach`, `setTimeout` por nombre, `then`, dos ejecuciones, llamada directa, retraso de 30 ms, errores síncrono y `async`, intervalos, orden de temporizadores, intervalo infinito, cancelaciones e inglés), trazador **27**, lógica **124**, i18n **1146 / 12697**. Navegador 8771: `depuracion.mjs` **173**. Capturas antes/después a 1000 px revisadas (`antes-despues.png`).
+- **Límites.**
+  - Los tiempos y el orden entre fuentes de tareas no son fieles al navegador ni a Node (el reloj es virtual).
+  - No se capturan los rechazos sueltos de promesas. Los `then` no llevan marcas durante un `await`.
+  - La píldora `undefined` sigue en la fila que agenda.
+  - El juego no cambia: su visor solo lee el código. El Worker sigue sin vaciado final de pulsos.
+  - No se repitieron `interfaz.mjs`/`juego.mjs` (falta Playwright).
+  - Versiones: `flujo.js` v6 en War/Factory; motor v8.
+- **Siguiente ciclo propuesto por Astra.** Un generador creado (`g()`) frente a uno consumido (`g().next()`).
+
+## Revisión · ciclo 01 con Astra: funciones guardadas en un bucle (`var`/`let`) · 7 de noviembre de 2026
+
+- **Proceso.** Primer ciclo adversarial: Opus implementa y Astra ataca (Codex CLI, `codex exec`, esfuerzo medio, sandbox de solo lectura). Antes se verificó que `revision-flujo` ya contenía todo lo remoto (`origin/*`: nada pendiente de pull) y se commiteó Depurar (`05e3812`). Hubo 3 turnos de Astra. El caso, las respuestas y el registro están en `revision/pruebas/casos/01-var-let/` (`caso.md`, `astra-1..3.md`).
+- **Pregunta.** ¿Qué parte de la vista permite predecir `3 3 3` (`var`) frente a `0 1 2` (`let`)? Antes no había ninguna: filas, etiquetas, frases y narración salían idénticas.
+- **Fallo corregido (`flujo.js`).** Las lecturas que ocurren dentro de una función en línea (`() => i`) al llamarla se atribuían a pasos *anteriores* de la fila donde se escribió, en orden invertido. Ahora pertenecen al paso que la llama (`paso.lecturas`, agrupadas por llamada, también con `await f()`).
+- **Lo nuevo.** En lectura, la fila que crea la función dice «[() => i] no se ejecuta aquí: se queda con la [i] de esta vuelta…» (`let`) o «…leerá [i] cuando la llamen, y todas las de este bucle comparten la misma [i]» (`var`, variable de fuera, Python). En traza, la fila que llama dice «Al llamar: [f[0]()] lee [i] «3» · …». La resolución de ámbitos (`declaracion`) es real: bloques, cabecera del `for`, `var` por función, parámetros y Python por función. «No se ejecuta aquí» solo aparece con receptores acreditados (lista `[]`, `new Set`/`new Map` del programa, `setTimeout` sin redefinir); con `map` o un `receptor.push` cualquiera, la frase es neutral. La pista de una `let`/`const` del cuerpo va plegada, y en traza solo aparece en la primera visita.
+- **Verificación actual.** Flujo **323** (26 nuevas: var/let, contraejemplo `f.push(i)`, llamada inmediata, parámetro homónimo, `let` de fuera, dos llamadas, `map`, llaves, bloque hermano, `await`, `receptor.push`, Python, inglés), trazador **27**, lógica **124**, i18n **1146 claves / 12697**. Navegador 8771 con Ego Browser: `depuracion.mjs` **173** correctas. Capturas de la fila 4 en traza a 1280 y 390 px revisadas. Python comparado con CPython (`2 2 2`).
+- **Límites.** Astra no revisó la última variante del criterio de receptor acreditado (propuso quitar la lista). En traza, `push` sigue mostrando «→ «1»» (ruido; R3 no se aplicó). Python solo tiene lectura. No se repitieron `interfaz.mjs`/`juego.mjs` (Playwright no está instalado). Versiones: `flujo.js` v5 en War/Factory, motor `v=7` en `revision-juego.js` y en la página de ejemplos.
+- **Siguiente ciclo propuesto.** Un callback agendado frente a uno ejecutado (`queueMicrotask(...)` frente a `(() => …)()`).
+
+## Revisión · informe del código y su representación · 7 de noviembre de 2026
+
+- **Rama y petición.** Trabajo en `revision-flujo` (recuperada desde `origin/revision-flujo`), para compartir casos del diagrama entre el usuario y los agentes y poder convertirlos en regresiones de representación.
+- **Acceso.** Botón **Depurar** en la esquina inferior derecha del diagrama, en la página de ejemplos y en War/Factory. Tiene una franja propia y un objetivo de 44 px: permanece accesible al desplazar/ampliar el flujo y no tapa sus filas. Abre un diálogo de solo lectura con **Copiar JSON** y **Descargar JSON**; pausa el avance automático y conserva el programa, paso y selección al cerrar. Si falla el portapapeles, selecciona todo el JSON para copiar manualmente. Controles ES/EN.
+- **Contenido.** Informe `cmg-revision-debug` v1: entrada original completa de todos los programas (JS/Python sin conversión), árbol/comentarios/eventos; filas con código y rangos UTF-16, etiquetas, frases, destinos, orden, salidas, flechas de vuelta y recorrido; idioma/selección/reparto; HTML/SVG, narración y medidas de la vista actual, y URL/versiones del motor cargado. Captura congelada al abrir; copia y descarga usan exactamente ese contenido. Maps/Sets se serializan como listas; BigInt/números no finitos, con etiquetas reversibles.
+- **Agentes y regresión.** `window.__revisionJuego.vista.depurar()` (juego) y `window.__revision.depurar()` (ejemplos) devuelven objetos JSON independientes sin mover ni ejecutar el programa. [Contrato y reproducción](../../educational-animation/revision/README.md#depurar-una-representación): compartir el JSON, volver a montar su entrada y comparar `salida` con el motor actualizado. Los archivos originales del motor siguen en `educational-animation/revision/motor/`.
+- **Verificación actual.** Nueva suite `revision/pruebas/depuracion.mjs` con Ego Browser/Chromium en el puerto dedicado **8771**: **173 comprobaciones** correctas, a 1280, 390 y 320 px. Incluye descarga real, portapapeles permitido/denegado simulado (sin tocar el del sistema), copia exacta e independiente, selección/foco/teclado del diálogo, traducción sin alterar la captura, Python, traza con valores, Unicode/HTML como texto, serialización especial, reproducción idéntica del resultado y limpieza al destruir. Integración por binoculares/menú ⋯ en War y Factory, PC/teléfono, JS/Python, conservación del editor y sin arrancar la partida. Capturas del botón en PC y teléfono y del diálogo móvil revisadas visualmente. Lógica **124**, flujo **297**, trazador **27**, runtime i18n y catálogos **1146 claves / 12697 comprobaciones** correctos; sintaxis de los scripts modificados y diff-check correctos.
+- **Límites.** QA de navegador emulado; pendiente teclado/tacto y descarga en Android/Safari físicos. El informe contiene datos y HTML/SVG, no una captura de píxeles ni una página autónoma. No se repitieron las suites históricas completas `interfaz.mjs`/`juego.mjs` (su dependencia Playwright no está instalada en este checkout); la suite nueva recorre la interacción modificada y su integración con ambos juegos. No cambia la simulación ni la semántica de programas. Versiones de recursos de revisión `v=6`. Sin commits, push ni publicación.
+
+## Modo revisión · también en Factory · 7 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario: Factory comparte la interfaz con War pero no tenía el visor. El motor ya era genérico y el catálogo ya tenía al robot con sus textos ES/EN; lo que lo apagaba eran tres bloqueos: el aviso «El modo revisión todavía no está en Factory» en `revision-juego.js`, el botón oculto con `[data-serie="factory"] .b-revisar` y la entrada «Revisar» del menú ⋯ oculta en `layout.js`.
+- Se quitan los tres; la revisión recibe la serie real (`cmg.revision.serie`), así `pickUp`, `deliver`, `count` y `wait` (y `pick_up` en Python) se explican con el catálogo del robot: «Va a "ENT-1" y recoge "cobre"», «¿cuánto "cobre" hay en "ENT-1" es mayor que 0?».
+- Textos nuevos `revision.cat.robot.{recoger,entregar}.corta` (ES/EN) para `const r = await deliver("FUN")`: «Guarda en r: el resultado de entregar en "FUN"». Se borra la clave `juego.revision.factory`.
+- Fuera de este cambio: los pulsos del código durante la partida siguen solo en War (el runtime de Factory no los envía).
+- **Pruebas:** `juego.mjs` 72 (Factory en PC y teléfono: botón y menú ⋯, filas y frase del robot en JavaScript y en Python, sin ejecutar nada). Siguen pasando `flujo.cjs` 297, `interfaz.mjs` 206, `interaccion.cjs` 124, i18n y catálogos (1146 claves).
+
+## Modo revisión · forEach como bucle y salidas laterales sin solaparse · 7 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario con dos capturas del mismo programa: en Python el `for` dibuja la flecha de vuelta del `if` a su bucle, y en JavaScript el `lista.forEach(elemento => { … })` no (salía como un paso y una «Función sin nombre» aparte). Y en JavaScript la condición `Array.isArray(elemento)` se montaba sobre su salida lateral `true →`.
+- **forEach** (`motor/flujo.js`, `explicar.js`, `trazador.js`): `lista.forEach(x => { … })` (o con `function (x) { … }`) como sentencia se lee como un `for…of`: fila «Por cada elemento de lista», flechas de vuelta, el código ilumina `elemento`, y su función ya no sale en «Funciones». Un `return` dentro acaba solo esa vuelta (como `continue`). Con la traza, el trazador pone `__T.c(id, x)` al abrir la función y cuenta las vueltas. `P.porCada` reúne los tres tipos de bucle «por cada».
+- **Salidas laterales** (`motor/revision.css`): el código largo parte la línea (`overflow-wrap: anywhere`) en vez de salirse de su caja; la fila guarda al menos el 42 % para su caja; y la salida lateral baja debajo de su fila según el ancho del diagrama (container query), no de la pantalla: así también en el panel junto al código del escritorio.
+- **Juego:** los archivos del motor que cargan los binoculares llevan versión (`?v=4` en `revision-juego.js`) para que el navegador no use los de la caché.
+- **Pruebas:** `flujo.cjs` 297 (forEach = for de Python: mismas filas, flechas y frases; return; traza con 3 vueltas), `interfaz.mjs` 206 (forEach dibujado como bucle; la salida lateral no se monta ni se sale a 390, 900, 1280 y 1600 px; falla con el CSS anterior), `juego.mjs` 58, `trazador.cjs` 27.
+
+## Modo revisión · Python · 7 de noviembre de 2026
+
+- **Lector de Python** (`educational-animation/revision/motor/python.js`): árbol de lezer → la tabla de nodos de acorn, con posiciones en el texto de Python. Con eso el diagrama, el recorrido de lectura, las tarjetas y la documentación funcionan igual que en JavaScript. El reto 5 en Python da el mismo diagrama y las mismas frases que en JavaScript (`pruebas/flujo.cjs` lo compara).
+- La precedencia de `not`, `and`/`or`, `is not` y `not in` se rehace con la tabla de Python. Los nombres del juego en Python se buscan en el catálogo por su nombre de JS (`desdePython`); `wait` y `print` son alias de `esperar` y `console.log`.
+- Las frases, los valores, las flechas del diagrama, el resaltado del código y los títulos de la documentación usan `None`, `True`, `False`, `print`, `elif`, `FOR…IN`…
+- **Juego:** los binoculares leen también los programas en Python (se quita el aviso «solo JavaScript»). Los pulsos de Python laten en la llamada de su línea con el color de su fila (antes, la línea entera con un color por clase).
+- **Página de revisión:** ejemplo «Reto 5 · Python» y selector JavaScript/Python en «Tu código».
+- **Pruebas:** `flujo.cjs` 287, `interfaz.mjs` 200, `juego.mjs` 58, `trazador.cjs` 27. Siguen pasando i18n, catálogos (420 claves), interacción 124, traductor 64, editor Python 34, Python en el juego 27, ejecución 26 e idiomas del juego 45.
+
+## Modo revisión · frases de lectura más cortas · 7 de noviembre de 2026
+
+- Recorrido de lectura: ninguna frase pasa de ~75 caracteres visibles en el reto 5 (antes, hasta 127 en ES y 143 en EN). Se quita «Solo pasa por aquí si…» (la decisión anterior ya lo dice), las órdenes del lanzador y `esperar` tienen frases breves nuevas, y el final ya no repite «Ese es todo el programa» cuando el bucle es sin fin.
+- `??` encadenado: «Guarda en pos lo primero que encuentre, probando 3 opciones en orden», con las opciones en «Más detalles».
+- Una lectura del juego dice el null en la misma frase: «Lo guarda en pos (null si no ve ninguno)». Corrige el inglés «If it it sees none».
+- Tiempo de lectura: los detalles plegados no cuentan. Abrir «Más detalles» durante ▶ para el avance.
+- Pruebas: `flujo.cjs` 232, `interfaz.mjs` 182, `juego.mjs` 50, `trazador.cjs` 27.
+
+## Modo revisión · recorrido de lectura sin partida y pulsos del código en la batalla · 7 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario: priorizar que se entienda el código antes que la precisión de lo que pasó; desligar la revisión de la batalla (sin haberlo corrido); ▶ a ritmo de lectura humana; ✕ no debe quitar la selección; tarjetas largas en el teléfono (S24 Ultra); montaña en toda la app; «Revisar» también en el menú ⋯; quitar el modo mapa/código/diagrama; en la batalla, pulsos de color en el código que se activa (inspirados en shock/wave de la bug tool).
+- **Motor** (`educational-animation/revision/motor`):
+  - `flujo.js`: `estructura(P, F)` (una visita por fila en orden de lectura, `R.estructural`) y `dentro(P, F, i)`.
+  - `explicar.js`: `describir` y `resumen` (qué hace cada fila y adónde sigue, en lenguaje de personas); segmento `{ mas }` plegado para lo secundario de las tarjetas; sin cuentas de ejecución en la lectura.
+  - `textos.js`: claves `revision.r.*`, `ui.texto`, `ui.ocultar`, `ui.lectura`, `que.b.mas` y frases `breve` del catálogo (ES/EN).
+  - `trazador.js`: opción `filtro` para poner solo algunos ganchos.
+  - `catalogo.js`: el global pasa a `CMGCatalogoRevision` (pisaba el `CMGCatalogo` de la paleta).
+- **Interfaz** (`revision.js`, `revision.css`, `index.html`):
+  - Modo `lectura` por defecto (`?modo=traza` conserva la traza grabada).
+  - ▶: caracteres ÷ 21,8 por segundo × 1,15, con un mínimo de 1,2 s, dividido por la velocidad. Las 7 velocidades se recuerdan.
+  - ✕ oculta el texto y deja la selección. El botón del globo (o T) lo devuelve; Esc quita la selección.
+  - En el teléfono, narración más baja.
+  - «Tu código» se lee sin ejecutarse.
+  - Fuera: «junto», el reloj del mundo y `alInstante`.
+- **Juego** (`Prototypes/Rocket Launcher`):
+  - `juego.js` vuelve a como estaba antes de la repetición del intento.
+  - `cmg.revision` mínimo: `programas()`, `reto`, `titulo`, `seleccionado`, `serie`.
+  - `revision-juego.js` lee el código actual sin ejecutar.
+  - «Revisar» en el menú ⋯ (`layout.js`).
+  - Montaña en `#b-mapa-movil` y `#b-ver-mapa`.
+  - `js/pulsos.js` y su CSS en `componentes.css`, más el trazador y flujo cargados al arrancar.
+- **Pendiente para la próxima sesión** (lo pidió el usuario): repasar la lectura y los textos (#15).
+- **Verificación.**
+  - `revision/pruebas`: `interfaz.mjs` **174** (PC y teléfono), `flujo.cjs` **230**, `trazador.cjs` **27**, `juego.mjs` **50**. Esta última comprueba que la partida instrumentada es la misma que la grabada.
+  - `pruebas/interaccion.cjs` **124**, `i18n-catalogos.cjs` 422 claves, `i18n.cjs`.
+  - `idiomas-juego.mjs` **45** (menú con «Revisar»).
+  - `editor-movil.mjs` actualizado para el menú. Su regresión 13 (consola tras ejecutar) se queda en un tiempo de espera igual en `537d92a`: no viene de este cambio.
+
+## Modo revisión · dentro del juego, escritorio a dos columnas y las tres cosas a la vez · 6 de noviembre de 2026
+
+- **Por qué.** El usuario pidió el botón para entrar (sugirió libro o binoculares), una montaña nevada en lugar del mapa («se ve el mundo»), código y flujo lado a lado en el escritorio, y un botón solo de escritorio que junte código y flujo con el mapa en su sitio para ver las tres cosas reproduciéndose. Señaló The Farmer Was Replaced: allí ver el código ejecutarse está mucho mejor coordinado con lo que pasa en el juego.
+- **En el juego** (`js/revision-juego.js`, ganchos `cmg.revision` en `juego.js`, botón `#b-revisar` con binoculares en la barra del mapa):
+  - Cada intento de War que termina queda guardado: programas, semilla y resultado.
+  - Los binoculares cargan el motor de `educational-animation/revision/motor` solo la primera vez. Instrumentan los programas y repiten el intento con `ejecutar({ revision })`, a velocidad turbo, sin contar intento, telemetría ni récords. El juego guarda la traza y una foto del mundo por paso (0,05 s).
+  - Al cambiar de paso, el mapa enseña la foto de ese instante; al salir, vuelve el mundo del final. Ejecutar, Reiniciar y cambiar de reto cierran la revisión.
+  - Python y Factory lo avisan; todavía no.
+- **Carrera corregida.** El trazador envía su último lote después del mensaje `espera`. Si esa espera era la que terminaba la partida, el juego cerraba los Workers antes de recibir el lote y la última vuelta se perdía (145 de 146 vueltas, a veces). Ahora la repetición cierra 120 ms más tarde, cuando el mundo ya tiene fin. La traza es idéntica a la de `grabar.mjs` en todas las ejecuciones probadas.
+- **Interfaz** (`motor/revision.js`, `revision.css`):
+  - Disposición `lado` desde 900 px: código a la izquierda; diagrama y narración a la derecha; franja abajo. El asa pasa a vertical y cada disposición recuerda su reparto.
+  - La montaña nevada sustituye al mapa.
+  - Botón «junto», solo en el escritorio y cuando hay un mapa al lado: código y diagrama apilados en el panel del código, con pocos botones.
+  - Velocidad ½×–4×.
+  - **Al compás de la partida**, como en un juego de programar: con el mapa al lado, ▶ deja el mundo quieto mientras se leen los pasos de un instante. Mientras el programa espera, el mundo avanza a velocidad de juego hasta el paso siguiente, y la franja y los segundos siguen al reloj.
+- **Verificación.**
+  - `revision/pruebas/juego.mjs`: **32** en el puerto 8771, en PC 1440×900 y teléfono 390×844. Cubre el aviso sin intento, misma partida y exactamente la misma traza que `grabar.mjs`, una foto por paso, `lado`/apilado, «junto» en el panel del código con el mapa al lado, el mapa en el instante del paso (adelante y atrás), ▶ moviendo código y mapa a la vez, salir con `</>` devolviendo el mundo final y Ejecutar cerrando la revisión.
+  - `interfaz.mjs`: **118**. `flujo.cjs`: 167. `trazador.cjs`: 25. `pruebas/interaccion.cjs`: 124. `i18n-catalogos.cjs`: 421 claves.
+  - `idiomas-juego.mjs`: **45**, con un adaptador `page.cdp` sobre Playwright, también a 320 px con el botón nuevo.
+  - `pruebas/navegador.mjs` no corre con ese adaptador: se queda en «Cerrar el inspector», igual en la versión anterior a estos cambios.
+
+## Modo revisión · asa, documentación por pulsación larga y barra del juego · 6 de noviembre de 2026
+
+- **Por qué.** Feedback del usuario sobre el diagrama de flujo (paso 1 de 3; luego el botón en el juego y Python).
+- **Qué cambia.**
+  - **Barra.** Sale el selector ES/EN: el idioma es el de la interfaz del juego (misma preferencia `cmg-interfaz-idioma`). En su lugar, los símbolos de las otras pantallas: el mapa y `</>`. Fuera del juego son placeholders que vuelven al juego (`alMapa`, `alCodigo` en `CMGRevision.montar`).
+  - **Asa** entre el código y el diagrama, como el divisor del juego. Arriba del todo, el diagrama ocupa toda la pantalla. Doble clic o Intro alterna; ↑ ↓ e Inicio desde el teclado. El reparto se recuerda (`cmg-revision-reparto`).
+  - **Documentación.** Mantener pulsado 1,2 s un elemento de `.rv-flujo` (fila, salida, conector o ficha de la etiqueta) abre una página que tapa el código. Una barra se llena mientras se pulsa, y el clic al soltar no cuenta como toque. El tema sale de `motor/documentacion.js` (árbol y catálogo: `IF`, `ELSE IF`, `FOR…OF`, `ARGUMENTO CON VALOR POR DEFECTO`, `MÉTODO DE LISTA · push`, `ORDEN DEL JUEGO · burstFire`…). Por ahora el texto es «TEMA: PLACEHOLDER» y hay un recuadro «ANIMACIÓN: PLACEHOLDER».
+- **Verificación.** `flujo.cjs` **167** (temas de documentación, ES/EN, y todos los nodos de 9 programas variados sin claves sueltas); `interfaz.mjs` **112** en PC y teléfono (sin ES/EN, iconos, asa y su memoria, pulsación corta frente a larga, la documentación tapa el código, Esc, ✕ y cambio de idioma con la página abierta); `trazador.cjs` 25.
+
+## Modo revisión · diagrama de flujo con un color por fila · 6 de noviembre de 2026
+
+- **Rama.** `revision-flujo`, creada desde `refactor/idiomas-interfaz` y con `trunk` unido, para seguir los cambios de idioma que afecten a cómo se expresa esta herramienta.
+- **Por qué.** El usuario vio el primer prototipo «muy preparado» y lejos de su idea. Pidió:
+  - seguir la imagen de los seis cafés: código arriba y, abajo, un diagrama donde la correlación sea evidente;
+  - que funcione como su bug tool multilenguaje: cada campo tiene su color y, al recibir el foco, ilumina su parte del texto generado;
+  - nada de texto escrito para el reto: el modo debe explicar cualquier código por sí solo.
+- **Qué cambia.**
+  - Abajo ahora está el programa como diagrama, generado del árbol (`flujo.js`): filas numeradas, `true →` al lado, `↓ false` y flechas de vuelta. Los seis cafés salen con la misma forma que la infografía.
+  - Cada fila tiene número y color propios, repetidos en el margen del código y en la franja de tiempo.
+  - Tocar o señalar el código ilumina su fila y la explica. Tocar una fila ilumina su código y dice cuántas veces se ejecutó y cuántas fue true o false.
+  - La narración es una sola frase por paso, con los valores reales.
+  - Desaparecen la introducción del reto, los tramos resumidos, la comparación con la variante y las fichas de «lo que vio».
+  - La franja de tiempo queda con un tramo por vuelta, del color de la rama que tomó.
+- **Genérico.**
+  - `explicar.js` y `catalogo.js` se reescribieron sin frases por reto: plantillas por tipo de nodo y catálogo del juego.
+  - `ejecutar.js` corre cualquier JavaScript con traza y reloj virtual, y se usa en «Tu código…» y para grabar ejemplos sueltos en Node. Ejemplos: los cafés, pares con función y `for…of`, y el reto 5 regrabado en el juego en esta rama (misma partida, 1099 eventos).
+- **Idiomas.**
+  - Todas las frases están en `motor/textos.js` como catálogo `CMGI18n` (claves `revision.*`, ES/EN, plantillas con huecos para fichas).
+  - El catálogo de máquinas declara sus claves (`clavesDe`).
+  - El selector ES/EN usa el mismo runtime y la misma preferencia que el juego.
+- **Trazador.** Añade un evento por vuelta de `for…of`/`for…in` y deja de envolver el nombre de una función declarada (rompía la sintaxis). El búfer también se vacía en condiciones y valores, para cortar un `while (true) {}`.
+- **Verificación actual.**
+  - `revision/pruebas/trazador.cjs`: **25** comprobaciones.
+  - `flujo.cjs`: **158**. Forma del diagrama de los cafés, valores por vuelta, recursión, `for…of`, reto 5 en los dos programas, paridad ES/EN y claves del catálogo, un robot nuevo, 9 programas variados sin claves sin traducir, corte de un bucle infinito, errores y reloj virtual.
+  - `interfaz.mjs`: **76** en Chromium a 1280×800 y 390×844. Comprueba la pareja de color entre fila y código, tocar y señalar, la franja, el idioma, el avance solo, LAU-01/LAU-02 en el mismo instante y «Tu código…». Sin desplazamiento lateral ni errores.
+  - En la rama siguen pasando `pruebas/i18n.cjs`, `i18n-catalogos.cjs` (414 claves), `python-traductor.cjs` (64), `python-semantica-regresiones.cjs` (3), `python-conversion-regresiones.cjs` (20) y `editor-contrato.cjs`.
+- **Límites.**
+  - Solo JavaScript. Para Python, el diagrama tendría que salir del árbol de lezer, y el traductor tendría que conservar columnas.
+  - Fuera del juego: falta el botón junto al mapa.
+  - La franja divide solo por el bucle principal.
+  - Pendiente QA en un teléfono real y revisión humana de las frases.
+
+## Cierre de textos pendientes ES/EN · 6 de noviembre de 2026
+
+- **Alcance.** Traducidas las ayudas completas de Órdenes en War/Factory, las fichas de enemigos, explicaciones/unidades del inspector, resultados y estadísticas de victoria/fallo, botones y pistas de banners, avisos y sugerencias del editor, orden de la barra y diagnósticos de JS/Python. El anuncio Campaign, el probador de dispositivos y los controles experimentales también respetan ES/EN. Las etiquetas descriptivas de bloques del formulario Factory se localizan conservando sus valores.
+- **Presentación.** Nuevo catálogo `shared/i18n/pendientes.js` con 478 mensajes heredados y `presentacion.js`, invocado explícitamente desde los renderizadores. Se reconocen frases/plantillas y se marcan hojas y atributos para refrescar texto sin reconstruir controles, mover foco, reiniciar temporizadores ni resolver acciones pendientes. No hay observación global del DOM. Los ejemplos y valores insertables, nombres personalizados, programas, datos de simulación y guardados mantienen sus valores originales.
+- **Diagnósticos.** Se traducen al presentarlos: los emisores, tipos/motivos, respuestas de la API y telemetría siguen crudos. Se conservan parámetros, líneas, nombres y valores de código. Los mensajes libres de `console` y `print` no se traducen. Los errores nativos externos que no son mensajes del juego conservan su texto técnico. Comprobado que parámetros con etiquetas HTML se muestran como texto, sin ejecutar código.
+- **Resultados abiertos.** Victoria real de Factory y fallo real de War comprobados en inglés y al volver a español. Se conservan mundo, telemetría, botones, foco y pistas; no se vuelven a ejecutar callbacks. El probador conserva sus iframes y URL al cambiar idioma; sus modelos y valores guardados siguen iguales.
+- **Regresión corregida.** La sustitución de títulos de la pasada local anterior había alcanzado el selector `?poc=1`, introduciendo una referencia a `i` fuera de ámbito. Corregido sin alterar las opciones visuales y añadido un check de arranque/traducción específico.
+- **Verificación actual.** **1141 claves ES/EN, 12644 comprobaciones de catálogos**, incluidas 478 resoluciones de patrones con parámetros concretos para detectar colisiones/pérdidas. Runner de Chromium en contextos aislados y vista Plano: **261 comprobaciones correctas**, incluidas 22 nuevas de ayudas, diagnósticos, resultados reales, preservación del texto del jugador, edición, Campaign, probador y selector experimental. Tras ajustar el título Factory del probador se repitieron sus 22 comprobaciones, correctas. Runtime i18n, interacción 124, contratos/lenguajes, editor Python 34, traductor Python 64 y reglas Factory correctos. Sintaxis JS y scripts inline, diff-check y paquete estático correctos: 9 páginas y 107 referencias locales.
+- **Límites.** Sin lotes conocidos de textos de interfaz pendientes en las zonas inventariadas. Código, API, contenido del jugador, mensajes libres y documentación conservan su idioma. Siguen pendientes QA con teclado/gestos en teléfonos físicos y validación específica del Worker en 3D; esta pasada usa Plano y emulación de Chromium.
+- **Entrega local.** Misma rama `refactor/idiomas-interfaz`, sin commit, push ni publicación. Versiones: `juego.js?v=44`, `factory-form.js?v=3`, catálogo Factory `v=2`, `inicio.js?v=2`, `edicion.js?v=8`, `nucleo-ui.js?v=6`; presentador y catálogo nuevos `v=1`.
+
+## Idiomas · contenido de retos, pistas y metas · 6 de noviembre de 2026
+
+- **Continuación.** Se conserva el trabajo local anterior en `refactor/idiomas-interfaz`. Nuevo catálogo `shared/i18n/retos.js`: 87 claves adicionales, **659 claves ES/EN** en total.
+- **Contenido.** Títulos del selector y de las cabeceras, objetivos, lecciones y pistas de los cinco retos War y seis Factory se traducen en presentación. Los datos originales de `RETOS`/`def`, programas, telemetría, formularios y JSON se conservan. Los retos propios, importados o copiados mantienen su contenido original, incluso si coincide con un reto incluido.
+- **Pistas.** Cada parte tiene una clave propia ligada a la división española original. El cambio de idioma conserva número de partes, desbloqueos, nodos de pistas ya abiertas y guardados. Se traducen también las instrucciones para pedir/desbloquear partes. El contrato de catálogos comprueba el español contra las fuentes de los retos.
+- **Metas.** Etiquetas, límites, estados de la ficha y HUD de War (brechas, derribados, atascos, coste, récord y tooltip) usan el idioma vigente. El refresco conserva las filas de la ficha, sus pestañas, foco y portales del inspector/consola; no cambia los valores de la simulación.
+- **Verificación actual.** Runtime i18n; 659 claves/7339 comprobaciones de catálogos; interacción 124; contratos y lenguajes; editor Python 34; traductor Python 64; reglas Factory: correctos. Runner completo en Chromium/Plano: **239 comprobaciones**, incluidas 46 nuevas de retos, pistas, metas, conservación de datos y cabeceras a 320/393 px. Sintaxis y diff-check correctos. Paquete: 9 páginas y 100 referencias locales.
+- **Pendientes.** Ayuda extensa de Órdenes, fichas de enemigos, resúmenes y banners de resultado (incluida su pista), explicaciones/unidades restantes del inspector, otros avisos del editor y diagnósticos de ejecución. Los campos de los formularios siguen mostrando los datos originales del escenario. QA física de teclado y gestos y validación del Worker en 3D fuera de esta pasada.
+- **Entrega local.** `juego.js?v=43` y catálogo `retos.js?v=1`. Sin commit, push ni publicación.
+
+## Revisión de la rama de idiomas · formulario War · 6 de noviembre de 2026
+
+- **Estado recibido.** `refactor/idiomas-interfaz` en `68e2e5b`, cuatro commits por delante de `main`, sin commits de `main` pendientes ni cambios locales al recuperar la rama. La traducción era parcial: 537 claves ES/EN. Se verificaron de nuevo las suites de lógica y las 170 comprobaciones de idiomas en navegador antes de continuar.
+- **Formulario War.** Nuevo catálogo `shared/i18n/war-form.js`, con 35 claves `escenario.*`: enunciado, metas, defensa, oleadas, aviso del reto fijo, acciones, accesibilidad y mensajes de JSON. Total: **572 claves ES/EN**. Los cambios de idioma actualizan hojas y atributos sobre los mismos controles, sin guardar el borrador ni cambiar foco, selección, programas o mundo. Los tipos de enemigos y los IDs siguen visibles como valores de la API; el enunciado y el contenido escrito o importado conservan su idioma.
+- **Acciones y JSON.** La delegación admite pulsar las etiquetas internas de copiar, añadir/quitar oleadas, guardar y aplicar. El aviso «Copiado» conserva su estado y temporizador original al cambiar de idioma; al vencer, muestra la etiqueta del idioma vigente. Los errores localizan el prefijo y conservan el detalle técnico del parser como texto escapado. Se comprueban copia con/sin portapapeles, JSON inválido, importación válida, guardado y recarga.
+- **Móvil.** Las oleadas usaban una cuadrícula de siete columnas que desbordaba el formulario. En la distribución de teléfono pasan a dos columnas, con Quitar al final. Comprobado sin desplazamiento horizontal a 320 y 393 px; captura inglesa de 393 px revisada. La prueba usa el reparto automático, sin forzar la distribución de PC en el teléfono.
+- **Verificación actual.** Runtime i18n; 572 claves y 6370 comprobaciones de catálogos; interacción 124; contratos y lenguajes del editor; editor Python 34; traductor Python 64; reglas Factory: correctos. Runner completo de idiomas: **193 comprobaciones correctas** en contextos aislados y vista Plano, incluidas las 23 nuevas del formulario War. Paquete estático: 9 páginas y 99 referencias locales correctas. Sintaxis de los scripts modificados/nuevos y `git diff --check` correctos. Sin excepciones durante el recorrido nuevo de War.
+- **Pendientes.** Contenido de retos/escenarios y sus indicadores de metas, ayudas extensas, explicaciones/unidades restantes del inspector, otros avisos del editor y diagnósticos de ejecución. QA con teclado y gestos en teléfonos físicos; esta pasada emula Chromium y no valida el watchdog del Worker en 3D. Campaign y el laboratorio de animación siguen separados. La traducción global continúa siendo parcial.
+- **Entrega local.** Cambios en la misma rama, sin commit, push ni publicación. Versiones: `juego.js?v=42`, `componentes.css?v=23` y nuevo catálogo `war-form.js?v=1`.
+
+## Idiomas de interfaz · formulario Factory y estados del inspector · 6 de noviembre de 2026
+
+- **Rama.** Continuación con dos subagentes Luna en `refactor/idiomas-interfaz`. Se añaden 123 claves; total 537 ES/EN. El formulario de Factory traduce etiquetas, leyendas, opciones descriptivas, botones y mensajes de JSON; los títulos, textos del reto, materiales, IDs, valores de opciones y JSON guardado se conservan.
+- **Borrador.** Cambiar idioma refresca hojas y atributos, sin reconstruir el formulario, perder valores pendientes, mover el foco ni reiniciar el estado/temporizador de copia. La delegación de clic resuelve el botón ancestro para admitir etiquetas internas. Se comprueban borradores sin guardar, selección y guardado posterior, también a 393 px.
+- **Inspector.** Estados, clases, roles y etiquetas de métricas se localizan en presentación; `estadoDe` y `metricasDe` siguen dando datos crudos. Los refrescos vivos usan el idioma vigente y el evento lee el estado actual de la entidad. Ensambladora y Muelle mantienen su identidad; los nombres personalizados se muestran sin traducir.
+- **Verificación.** Runtime i18n, 537 claves/5980 comprobaciones, lógica 124, contratos, lenguajes, editor Python 34, traductor 64 y reglas Factory correctos. Nuevas pruebas de navegador: formulario 7 e inspector 12 (incluidos estado que cambia tras abrir la ficha y nombre personalizado). Paquete: 9 páginas y 98 referencias locales. Runner completo: 170 comprobaciones de idiomas en contextos aislados y vista Plano. Sintaxis y diff-check correctos.
+- **Pendientes.** Contenido de retos/escenarios, ayudas extensas, formulario War, explicaciones/unidades aún no migradas del inspector, otros avisos del editor y diagnósticos; QA con teclado y gestos de teléfono real. El contenido escrito por el jugador conserva su idioma original.
+- **Versiones.** `juego.js?v=41`, `factory-form.js?v=2`, catálogo `inspector.js?v=2` y nuevo `factory-form.js?v=1` en `shared/i18n/`.
+
+## Idiomas de interfaz · paletas e inspector · 6 de noviembre de 2026
+
+- **Rama y alcance.** Se continúa en `refactor/idiomas-interfaz` con dos subagentes Luna y revisión cruzada: paletas de inserción JS/Python y presentación del inspector de War/Factory. Se añaden 97 claves; total 414 claves ES/EN en los catálogos.
+- **Paletas.** Metadatos `i18n` opcionales en el catálogo común y en las órdenes de cada serie. Se traducen nombres, tooltips, accesibilidad, variantes abiertas y nombres descriptivos de teclas. Los textos de código, operadores, huecos, `data-tip-cod` y valores funcionales de las plantillas no se traducen. El idioma actualiza solo atributos y textos existentes; la demo autónoma mantiene el respaldo español.
+- **Inspector.** Encabezados, leyenda, pistas, botones y etiquetas vitales traducidos mediante marcadores sobre hojas y atributos. Se conservan los tokens arrastrables/insertables, sus `data-ins`/`data-fin`, las firmas, unidades seleccionadas y los valores de la simulación. El evento de idioma no reconstruye el inspector; sus repintados normales ya generan las etiquetas en el idioma elegido. Estados, clases, roles y métricas detalladas siguen pendientes.
+- **Verificación actual.** Catálogos: 414 claves, 4439 comprobaciones; runtime i18n, interacción 124, contratos, lenguajes, editor Python 34, traductor 64 y reglas de Factory correctos. Runner de navegador: 151 comprobaciones de idiomas (115 previas más 36 nuevas); demo autónoma 73. Nueva suite `idiomas-paleta-inspector.mjs`: War/Factory y JS/Python, menú abierto, nodos, foco, selección, datos y texto insertable. La identidad de botones del inspector se compara dentro de la misma tarea que emite el evento para aislarla de los repintados diferidos del editor. Paquete: 9 páginas y 97 referencias locales; sintaxis y `git diff --check` correctos.
+- **Pendientes.** Resto de diálogos y avisos del editor, estados/clases/roles y métricas del inspector, contenido de retos y escenarios, ayudas extensas, formularios y diagnósticos; QA en teléfono real. Campaign y el laboratorio de animación siguen fuera del ámbito del juego.
+- **Versiones.** `nucleo-ui.js?v=5`, `plantillas.js?v=6` en juego/demo; `paleta.js?v=6`, `juego.js?v=40`; catálogos `paleta.js?v=1` e `inspector.js?v=1`.
+
+## Idiomas de interfaz · barra de edición y modo sin teclado · 6 de noviembre de 2026
+
+- **Continuidad.** Recuperada la rama `refactor/idiomas-interfaz` tras su subida en `b0c6c6e`. La portada, Ajustes y controles ya tenían ES/EN. Se continúa con dos subagentes Luna, en esta misma rama, sobre la interfaz; el arreglo JS/Python de `trunk` es independiente.
+- **Lote.** 42 claves nuevas en `shared/i18n/editor.js`: acciones de edición, etiquetas de variantes móviles, selección/ProtoMouse y descripciones activas del modo sin teclado. El catálogo integrado suma 317 claves ES/EN. La demo autónoma conserva el respaldo español sin cargar i18n.
+- **Estado.** El evento de idioma actualiza atributos y textos de la barra y de sus variantes abiertas sin reconstruir controles ni cambiar selección, foco, historial o modo de teclado. El listener usa el ciclo de vida de la instancia. La regresión anterior del botón de teclado ahora exige traducir la descripción manteniendo su estado activo.
+- **Verificación actual.** Catálogos: 317 claves y 3463 comprobaciones; runtime i18n, lógica 124, contratos, editor Python 34 y traductor 64 correctos. Chromium/Playwright: las 105 comprobaciones previas de idiomas, las 10 nuevas de barra y las 73 de la demo autónoma pasan. La suite nueva comprueba variantes abiertas ES→EN→ES, nodos, selección, foco, modo sin teclado, undo/redo y recreación JS→Python. Sus fuentes se preparan mediante el selector de cabecera oculto en móvil; no sustituye QA manual de ese flujo. Paquete: 9 páginas y 95 referencias locales; sintaxis y `git diff --check` correctos. Sin cambios de reglas de simulación ni de formatos de guardado.
+- **Pendientes.** Paletas de inserción, demás diálogos/avisos del editor, inspector, contenido de retos/escenarios, ayudas extensas, formularios y diagnósticos; QA en teléfono real. La traducción global sigue siendo parcial.
+- **Versiones.** `edicion.js?v=7` en juego y demo; catálogo `editor.js?v=1`.
+
+## Idiomas de interfaz · navegación, controles y diálogos · 5 de noviembre de 2026
+
+- **Rama:** `refactor/idiomas-interfaz`. Se amplía la migración a navegación, controles principales, información de pantalla completa y textos estáticos de los diálogos. El catálogo integrado suma **275 claves ES/EN**; las fuentes de traducción siguen separadas del código del juego.
+- **Presentación dinámica.** Ejecutar/Detener, Pausa/Seguir, intento/reloj, selector JS/Python y sus vistas, selección múltiple, Replace abierto, confirmaciones de copiar/restaurar/borrar, estados vacíos, ruteo y resumen tienen refrescos de texto propios. Los menús móviles y las etiquetas accesibles de paneles/pantalla completa se actualizan sobre los mismos nodos. Los textos específicos de War/Factory tienen un único propietario dinámico para evitar que el HTML vuelva a poner etiquetas genéricas.
+- **Estado conservado.** El cambio de idioma no reabre documentos, reconstruye opciones, cambia valores de la API/telemetría, toca guardados, modifica pausa/velocidad ni reinicia temporizadores. Replace conserva destinos, checkbox, foco y promesa pendiente. Los catálogos se insertan como texto o atributos, incluido un caso de prueba con marcado HTML hostil.
+- **Doble revisión.** Agentes Luna High/Max implementaron módulos separados y una revisión independiente comprobó handlers, carga, nodos y timers. La revisión final retiró un marcador estático de los botones de teclado: su descripción activa pertenece al editor compartido y no debe volver al estado genérico al traducir. Queda una regresión específica; su traducción completa se hará con el componente del editor.
+- **Verificación actual.** `node pruebas/ejecutar-idiomas.cjs` pasa **105** comprobaciones en contextos aislados y vista Plano: 34 de infraestructura, 26 de bordes y **45 nuevas** de controles/confirmaciones. Pasan también runtime, paridad/variables/duplicados/referencias de los catálogos, lógica **124**, contratos, lenguajes, editor Python **34**, traductor **64** y reglas de Factory. Navegador: War **92**, arranque/Python **27**, editor Factory **18**, vistas Factory **31**, editor móvil **72 en Plano**, entrada/paquete **8**. Paquete regenerado: **9 páginas y 94 referencias locales**; sintaxis y `git diff --check` correctos. El límite previo del Worker con 3D por software sigue documentado en la etapa anterior.
+- **Continuidad.** README y [contrato de idiomas](../../docs/IDIOMAS-INTERFAZ.md) explican cómo añadir textos y repetir la QA con un comando. Quedan pendientes el editor/paletas compartidos, ayudas extensas, formularios, contenido de retos/escenarios y diagnósticos; el mensaje de Ajustes indica que la migración aún es parcial. Los textos se podrán revisar globalmente en sus catálogos sin alterar reglas. Versiones: `juego.js?v=39`, `layout.js?v=19`, `ajustes.js?v=2`; nuevos catálogos `juego-estatico.js`, `juego-dinamico.js` y `disposicion.js`, `?v=1`.
+
+## Idiomas de interfaz · primera etapa · 5 de noviembre de 2026
+
+- **Rama:** `refactor/idiomas-interfaz`, sin commits, push ni publicación. Primera entrega: infraestructura compartida y portada/Ajustes en español e inglés; el resto del juego y los diálogos secundarios siguen pendientes y el selector lo indica.
+- **Runtime y catálogos.** `shared/i18n/` separa el motor de las 96 claves ES/EN de las dos pantallas. El selector funciona sin recargar y guarda únicamente `cmg-interfaz-idioma`; español es el idioma por defecto y el respaldo de claves ausentes. Se traducen textos de hojas y atributos accesibles permitidos, sin interpretar HTML ni sustituir controles. Ajustes vuelve a pintar su nota de orientación, descripciones de las vistas previas y estado de pantalla completa.
+- **Contratos conservados.** Idioma de interfaz, idioma del seudocódigo y lenguaje JS/Python son independientes. No cambian API, simulación, RNG, programas ni formatos de guardado. Las pruebas comprueban identidad de objetos, fuentes JS/Python, selección, foco, controles, almacenamiento y continuidad de un Worker activo.
+- **Revisión por lotes.** Implementación acotada con agentes Luna High/Max y revisión independiente de runtime y casos límite. Se detectó y corrigió la carrera de los scripts `defer` que aplicaban claves antes de registrar los catálogos; queda una regresión específica para `readyState=interactive` y para registro posterior a inicialización completa.
+- **Verificación actual.** Runtime, catálogos (paridad, duplicados, variables y referencias), lógica **124**, contratos, lenguajes, editor Python **34**, traductor **64** y reglas de Factory correctos. Navegador/Playwright con adaptador `page.cdp`: idiomas **34**, casos límite **26**, War **92**, editor de Factory **18**, vistas de Factory **31**, entrada/paquete **8** y editor móvil **72 en vista Plano**. El adaptador externo selecciona el control visible cuando la suite histórica encuentra etiquetas duplicadas. Paquete: **9 páginas y 91 referencias locales**. Sintaxis y `git diff --check` correctos.
+- **Límite confirmado en 3D.** La suite móvil en 3D por software llega a 51 comprobaciones principales y 12 de regresión; después, el arranque del Worker activa el watchdog de 2,5 s antes de producir `fila 99`. Se reprodujo el mismo error con el HTML y layout originales de `HEAD`, servidos sin modificar el checkout; no es una regresión atribuible a i18n. La suite completa pasa con la preferencia de vista Plano, sin alterar runtime, watchdog ni assertions. Pendiente QA de teclado y gestos en teléfonos reales.
+- **Continuidad.** [Contrato, glosario y migración por lotes](../../docs/IDIOMAS-INTERFAZ.md). Futuras traducciones deben recibir solo claves nuevas/modificadas y su contexto de pantalla; una clave nueva sin extraer en las zonas migradas falla en QA. Versiones: `inicio.css?v=3`, `layout.js?v=18`, nuevos módulos i18n `?v=1`.
+
+## Modo revisión · prototipo con el reto 5 · 6 de noviembre de 2026
+
+- **Origen.** Propuesta del usuario: un modo junto al del mapa que deje la pantalla en dos franjas de borde a borde, con el código arriba (sin editar) y su explicación abajo en lenguaje natural, con el resaltado en el orden real de ejecución. Tocar un texto debe mostrar qué representa. Pidió probarlo con el reto 5, que la solución use los nombres de las máquinas como objetos y el dato `jammed`, y que cada máquina o robot nuevo se pueda ir añadiendo. Scrimba queda solo como referencia.
+- **Solución del reto 5** (`educational-animation/revision/ejemplos/reto-5/`): si `LAU_02.jammed` (o `LAU_01.jammed`), disparo normal, porque el único reparador está ocupado; si no, ráfaga mientras `failureRate < 0.12`; espera 0,25 s.
+  - Se eligió con un barrido en el juego real (headless, puerto 8771): 12 de 12 semillas sin brechas y con 2 atascos.
+  - Sin la regla también gana, pero con 3 atascos en 9 de 12. La primera idea (cubrir al compañero con ráfaga) perdía con 2 brechas.
+- **Cómo se hace, sin LLM.**
+  - `trazador.js` instrumenta el programa por su árbol (acorn) sin mover líneas.
+  - `grabar.mjs` ejecuta el juego real con esos programas, recoge la traza de cada Worker y repite la partida sin traza con la misma semilla. Falla si cambia el resultado o los eventos de alguna máquina. El orden entre Workers dentro de un mismo instante sí varía, porque es concurrencia real; no cambia el mundo.
+  - `pasos.js` agrupa vueltas y tramos.
+  - `explicar.js` y `catalogo.js` escriben las frases con los valores reales.
+- **Interfaz** (`revision/index.html`):
+  - Pantalla partida a todo el ancho. Arriba están el código, con anillos y bandas de color por papel e insignias de valor, y el selector LAU-01/LAU-02, que conserva el momento de la partida.
+  - Abajo están la narración, lo que vio el programa (las dos máquinas y si REP-01 está reparando), ‹ ▶ › y la franja de tramos con atascos y reparaciones.
+  - Tocar el código abre «¿qué es?»; otro toque sube al bloque que lo contiene. Tocar un fragmento de la explicación lo señala en el código.
+  - Los comentarios del programa aparecen como «nota del autor».
+- **Catálogo ampliable.** Una máquina nueva es una llamada a `CMGCatalogo.registrar(...)` con sus propiedades y métodos. Trae el lanzador, el sensor de vibración, la espera, la consola y el robot de Factory (este, sin grabación de ejemplo).
+- **Verificación actual.**
+  - `revision/pruebas/trazador.cjs`: **20** comprobaciones. Mismas líneas y mismo resultado con traza; «seis cafés»; `else if`, etiquetas, `?.`, `typeof`, `await`, `this`.
+  - `pasos.cjs`: **43** comprobaciones. Grabación, vueltas, orden de los pasos, textos sin `undefined`, la historia de los dos atascos y una máquina nueva registrada en la prueba.
+  - `interfaz.mjs`: **42** comprobaciones en Chromium a 1280×800 y 390×844 (puerto 8793). Sin desplazamiento lateral ni errores.
+  - Grabación: misma partida con y sin traza (1099 eventos del juego). Dos grabaciones seguidas son idénticas byte a byte; los eventos de un mismo instante se guardan ordenados por máquina. Repetida tras el commit remoto de Python (`bfb205b`) con el mismo resultado.
+- **Límites.**
+  - Solo JavaScript. Python llegaría por líneas, y por expresiones si el traductor conserva columnas.
+  - Fuera del juego: falta el botón junto al mapa y repetir el último intento instrumentado.
+  - Solo se agrupa el bucle principal.
+  - Pendiente QA en un teléfono real y revisión humana de las plantillas.
+  - No cambia el juego. Publicado como artifact privado para revisión; commit en `trunk` a petición del hook de la sesión.
+
+## Continuidad de lenguajes · conversión JS/Python · 6 de noviembre de 2026
+
+- **Punto de partida.** Revisión del historial y de las ramas remotas: el trabajo de Python se hizo en `trunk` y E5–E7 ya estaban incorporadas también a `main`. Se retoma `trunk` desde `fd15451`, con dos subagentes Luna a petición del usuario. El registro del 4 de noviembre dejaba pendientes diferencias de nombres, parámetros por defecto y Unicode; no se encontró una rama de traducción de la interfaz.
+- **Python → JS.** Los valores por defecto de `def`, `async def` y `lambda` se evalúan una sola vez al definir, en el ámbito exterior. Se conservan la lista mutable compartida, `None`, los argumentos por nombre y los efectos laterales aunque se pase un argumento explícito. Los nombres del jugador `__r` y `__tN` ya no colisionan con auxiliares de comprensiones y desempaquetado. Se mantienen las líneas del programa.
+- **JS → Python.** El renombrado evita colisiones entre palabras reservadas, builtins, nombres con `$`, identificadores Unicode normalizados a NFKC y destinos de API. Los nombres de propiedades no pasan por el renombrado de variables. Los defaults dinámicos, `undefined` explícito en llamadas a funciones con defaults, los parámetros obligatorios después de uno opcional y los alcances que no se pueden conservar se rechazan con un motivo y línea. La comprobación de alcance es conservadora: puede pedir renombrar o reescribir un programa válido. El JS original se conserva.
+- **Regresiones.** `python-semantica-regresiones.cjs`: tres programas contrastados con CPython. `python-conversion-regresiones.cjs`: 20 comprobaciones, con ejecución de las salidas en CPython 3.12.14. `python-ejecucion.mjs` añade cinco comprobaciones del Worker y del selector, incluidos errores con su línea y conservación del JS al fallar la conversión.
+- **Verificación actual.** Interacción 124, editor Python 34, traductor 64, regresiones nuevas, contratos, catálogo de lenguajes y reglas de Factory correctos. Chromium/Playwright, puerto 8771: Python en el juego 27; ejecución JS/Python en War y Factory 26 (las 21 previas más las cinco nuevas), sin excepciones en esta última suite. La suite de arranque fuerza una excepción deliberada por un recurso ausente. Una pasada con 3D por software se detuvo con la consola vacía; la pasada completa de ejecución en Plano dio 26/26. No se modificó el runtime ni su watchdog. Paquete estático: 9 páginas y 87 referencias locales. Sintaxis y `git diff --check` correctos.
+- **Pendientes.** QA de teclado y gestos en un teléfono físico; normalización de identificadores y operaciones Unicode en textos escritos directamente en Python. Diccionarios, tuplas completas y D8 siguen como ampliaciones/decisiones del plan, fuera de estas correcciones. Correcciones en `trunk`; el usuario solicitó después el enlace de raw.githack, por lo que se guardan en un commit y se suben a esa rama. No se despliega en Netlify.
+- **Versiones.** `traductor.js?v=2` y `desde-js.js?v=3`.
+
+## Infografías animadas · skill, motor y ejemplo «seis cafés» · 5 de noviembre de 2026
+
+- **Origen.** Tutoriales animados del juego: infografías paso a paso como las de aprendejavascript.dev. Cada explicación debe tener vídeo en horizontal y en vertical, en JavaScript y en Python, y una versión interactiva por diapositivas para releer. El sitio de referencia no es accesible desde la nube (red bloqueada) y su código no es público. El análisis sale de **8 capturas** del usuario (`for`, tipos, comparación, `if`), así que el movimiento está inferido.
+- **Decisión técnica.** HTML + GSAP 3.13 sin compilación: una sola spec por concepto produce el reproductor interactivo y los 4 vídeos. La animación es una línea de tiempo en pausa: el reproductor la reproduce y el render la coloca en cada fotograma (Playwright + CDP + FFmpeg), sin depender del reloj. Remotion y Motion Canvas siguen para las piezas de personajes. GSAP (licencia estándar gratuita, uso comercial) y las fuentes OFL viven en `educational-animation/infografias/`, **no en el juego**.
+- **Receta (skill `.claude/skills/infografia-animada`).**
+  - Mapa completo atenuado con un foco que avanza.
+  - Código, estado, diagrama y narración cuentan lo mismo a la vez.
+  - **El color es el papel**, a raíz de la observación del usuario: en la primera versión todo era ámbar. Ahora la condición es amarilla, el cuerpo cian o cobre, la actualización morada, `break` roja y `continue` cian, igual en anillos, nodos, líneas y narración. Varias partes pueden encenderse a la vez.
+  - Valores concretos, causa antes que efecto, preguntas de predicción, vueltas comprimidas con casos especiales en detalle.
+  - Paridad JS/Python con glosario (`{{true}}` → `True`) y anclas en lugar de números de línea.
+- **Motor.** Paneles de código, fichas, consola, flujo (salidas, vueltas por carriles), fila (catálogo, lista, vueltas) y expresión. Pasos con `foco`, `hecho`, `marca` (varios anillos), `linea`, `valores` (secuencias con `en`, iconos), `consola`, `mostrar`/`ocultar` y `pregunta` (el reproductor espera la respuesta). Lienzo de 960×540 / 540×960 que se escala; en pantallas estrechas pasa solo a vertical. Sin ligaduras para que `===` se lea tal cual.
+- **Render.** `render.mjs --hoja` genera un PNG por variante y avisa de desbordes en vídeo y en interactivo. Sin `--hoja` genera los MP4 (1920×1080 y 1080×1920, 30 fps), `.vtt` y un manifiesto con sha256. La captura por CDP y la reutilización de fotogramas en las pausas lo aceleraron ≈5× (la primera versión iba a ~1 fotograma/s).
+- **Ejemplos.**
+  - `while-cinta`: 9 pasos, 1 pregunta.
+  - `seis-cafes`: el `while` del usuario con `break` y `continue`. Tiene 12 pasos y 2 preguntas, y la traza real se comprobó con `node` y `python3`: 6 cafés, vuelta 5 `continue`, vuelta 8 `break`. La condición `< 10` nunca llega a `false`.
+- **Verificación actual.**
+  - Hojas de las 8 variantes sin avisos.
+  - Reproductor del `while`: **22** comprobaciones (auto-avance, pausa, ‹ ›, teclado, puntos, pregunta, JS↔Python, final, móvil 390×844).
+  - Reproductor del café: **12** comprobaciones (pregunta, 6 tazas, Python con `==`/`True`/`drink_coffee`, móvil).
+  - Sintaxis de motor, render y specs.
+  - Render de los 4 vídeos del café: 1920×1080 y 1080×1920, 30 fps, H.264, comprobados con ffprobe. JS: 106,8 s y 3204 fotogramas. Python: 106,4 s y 3192 fotogramas. Cada uno con `.vtt` y manifiesto, sin avisos. Tardó 5 min 49 s en total, con 2 en paralelo y ≈45 % de fotogramas capturados. Los MP4 no se versionan.
+- **Pendiente.**
+  - Voz: elegir entre grabación y TTS; el motor y el render ya aceptan un clip por paso.
+  - Revisión humana de las metáforas y prueba en un teléfono real. En ejemplos densos, el código queda a ~11 px en un teléfono de 390 px.
+  - Decidir si GSAP entra en `shared/vendor/` para mostrar infografías dentro del juego.
+- **Límite.** No cambia el juego. Cambios locales, sin commits, push ni publicación en el repo; el ejemplo se publicó como artifact privado para revisión.
+
+## Correcciones del review del editor móvil · 5 de noviembre de 2026
+
+- **Ficha accesible en todas las vistas.** JS, Seudo y Bloques comparten un contenedor para el programa y la ficha ⓘ. Ocultar el textarea ya no retira el acceso al Inspector y a la Consola; el asa mide ese contenedor común. Se conservan los mismos nodos, valores vivos y preferencias de alto.
+- **Tab en líneas vacías.** Con solo el cursor, sangrar y quitar sangría actúan también sobre una línea vacía o con espacios (dos por nivel en JS, cuatro en Python). Al comienzo de una línea se usa esa línea, no la anterior; se conserva la posición del cursor. El tratamiento de las líneas vacías dentro de una selección múltiple se mantiene.
+- **Listas de Seudo/Bloques.** El desplegable queda dentro de la vista del programa y del viewport visible, respetando las barras tanto arriba (PC) como abajo (teléfono). Se recoloca al desplazar o redimensionar; una opción sigue editando el mismo hueco.
+- **Consola larga.** Al abrirla o recibir mensajes visibles, se desplaza el contenedor real hasta el último mensaje, sin saltar a los ajustes posteriores ni mover el resto de la pantalla. Una consola oculta por el mapa conserva el aviso de novedades.
+- **Regresiones.** `pruebas/editor-movil-regresiones.mjs` añade **21** comprobaciones de los cuatro fallos, integradas en `editor-movil.mjs`, incluido volver del mapa con mensajes pendientes y la ficha aún abierta. La prueba del ProtoMouse usa la anchura real del carácter y movimientos sin aceleración desde el primer paso: ya no necesita una preferencia previa de letra de 13 px.
+- **Verificación actual.** Chromium/Playwright, puerto 8771: móvil **72** (51 previas + 21 nuevas, con la letra predeterminada); War **92**; demo **73**; editor de Factory **18** y vistas **31**; Python en el juego **27** y ejecución JS/Python **21**. La excepción de arranque de la suite Python es deliberada. Lógica **124**, editor Python **34**, traductor **64**, contratos, lenguajes y reglas de Factory correctos. Sintaxis y `git diff --check` correctos; paquete con **9 páginas y 87 referencias**. Medidas de la distribución de PC comparadas con `56435c7`, sin diferencias; capturas del inspector en Seudo y de la consola larga revisadas.
+- **War.** La primera pasada llegó a 90 comprobaciones y reprodujo el fallo previo al review: watchdog de 2,5 s antes del primer mensaje del Worker con el mapa 3D por software. La prueba final de los botones pasa a Plano después de comprobar los gestos y las cámaras en 3D; la suite elige 3D explícitamente al empezar. No se cambia el runtime ni su límite. La repetición completa dio **92/92**.
+- **Límite.** Emulación de Chromium; pendiente comprobar el teclado y los gestos en un teléfono real. Cambios locales, sin commits, push ni publicación.
+- **Versiones:** `layout.css?v=24`, `layout.js?v=17`, `edicion.js?v=6` (juego y demo), `seudo.js?v=2`.
+
+## Editor del teléfono · hoja ⓘ, edición en la barra de inserción y sin teclado arriba · 5 de noviembre de 2026
+
+- **Origen.** Ajustes pedidos sobre el rediseño (capturas del usuario): la ficha ⓘ desaprovechaba el ancho y desaparecía con el teclado; faltaban línea nueva, tab, comentar y borrar a mano; el modo sin teclado merecía un botón propio. Solo cambia el teléfono (`data-forma="movil"`); PC igual.
+- **Ficha ⓘ como hoja.** El botón redondo pasa a ser una pestaña con una flecha en la esquina inferior derecha del código, apoyada en la barra de edición, también con el teclado abierto. Abre una hoja del ancho del código que empieza en la mitad de la pantalla (o lo que quepa). El asa de arriba cambia el alto, que se guarda como fracción del código (`cmg-juego-info-alto`) y se recuerda al cerrar y al recargar; con el teclado la hoja se adapta. La flecha hacia abajo, Escape o soltar el asa casi abajo la cierran (vuelve la pestaña, sin olvidar el alto). Tocar el código ya no la cierra en el teléfono: se puede leer el inspector mientras se escribe. El asa también responde a las flechas del teclado.
+- **Barra superior.** Comentar deja su sitio al interruptor del modo sin teclado (rojo y tachado al estar activo; oculto en seudocódigo). Sale del menú ⋯, que pierde su marca roja.
+- **Barra de inserción, dos conjuntos.** Edición y sintaxis: línea nueva (debajo de la línea actual, esté donde esté el cursor, ya sangrada), tab (mantener: quitar sangría), comentar, borrar (no toca el portapapeles), pares y signos. Bloques: bucles, if, operadores, variable, órdenes y consola. Con teclado, edición y sintaxis van primero; sin teclado se cambian de sitio (solo CSS, `order`) y la tira vuelve al principio al cambiar de modo. Los tres botones nuevos son entradas `movil` del catálogo común con `accion`, que llama a la acción de la barra (`cmg.edicion.accion`); no cuentan como inserciones en la telemetría.
+- **Verificación.** `editor-movil.mjs` 51 (15 nuevas: pestaña, hoja, asa, alto recordado, botones nuevos, orden por modo); War 92 (adaptada al interruptor); Factory 28, 31, 18, 10 y 7; Python en el juego 27 y ejecución 21; demo 73; entrada 8; lógica 124 (catálogo ampliado); contratos, lenguajes, Python del editor 34, traductor 64 y reglas de Factory correctos. Playwright con el adaptador `page.cdp`; la excepción de `python-juego.mjs` es la deliberada. PC: la ficha flotante y la paleta sin cambios a la vista.
+- **Pendiente:** QA en teléfono real (alto inicial de la hoja, asa con el pulgar, pestaña junto a la franja del ProtoMouse).
+- **Versiones:** `componentes.css?v=22`, `layout.css?v=23`, `iconos.js?v=6`, `plantillas.js?v=5`, `edicion.js?v=5`, `nucleo-ui.js?v=4`, `juego.js?v=38`, `layout.js?v=16` (y las compartidas también en la demo).
+
+## Editor del teléfono rediseñado · rama `ui-movil-editor` · 5 de noviembre de 2026
+
+- **Origen.** [Lineamientos acordados](../../docs/REDISENO-EDITOR-MOVIL.md) para dar más sitio al código y facilitar la edición táctil sin perder las herramientas ni el metal. Precisiones: lenguaje y letra se elegirán al empezar y después en Ajustes; bucles e `if` usan los botones metálicos que ya existían; puntuación y envolventes llevan ese estilo. Rama propia para pruebas de UI. Solo cambia el teléfono (`data-forma="movil"`).
+- **Reparto.** De arriba abajo: barra mínima, código, barra de edición con ProtoMouse y barra metálica de inserción. Con el teclado abierto, las dos barras quedan justo encima de él y el código ocupa el resto del viewport visible; la antigua barra de símbolos ya no aparece.
+- **Barra superior.** Programas (también a pantalla completa), ▶ (■ en rojo mientras corre), comentar, mapa (con pantalla completa), pantalla completa (si el código ocupa la esquina) y ⋯. No se pliega, ni con el teclado. El ⋯ abre placas metálicas: Programa, Registro, Órdenes, Escenario, Sin teclado (que ⋯ recuerda con una marca roja) y Ajustes. Fuera del programa reaparecen las pestañas para volver. Lenguaje, letra y colores: Ajustes (sección nueva **Editor**, también en PC).
+- **Barra de edición.** deshacer · rehacer · selección · **ProtoMouse** · cortar · copiar · pegar. Lo demás, manteniendo pulsado su pariente (esquina marcada, las placas de las variantes): Selección → ampliar, reducir, subir, bajar; Cortar → borrar, desenvolver; Copiar → duplicar; Pegar → línea nueva, sangrar, quitar sangría (nuevas en el teléfono; con solo el cursor, la sangría lo conserva en su sitio). En seudocódigo vuelve la barra completa. El orden de Ajustes sigue valiendo para PC y seudocódigo.
+- **ProtoMouse.** Trackpad relativo en `shared/editor/edicion.js`: arrastrar mueve un puntero virtual (aceleración hasta ×2,6) y el cursor salta al carácter más cercano por renglones visuales, con el espejo del textarea; sin teclado usa la vista de bloques. La captura del puntero deja seguir fuera de la franja; al pasar arriba o abajo, el código se desplaza. No enfoca el código: el teclado se queda como estaba. Con el teclado cerrado pinta su cursor y su selección. El interruptor de selección (luz azul) hace que amplíe desde el extremo fijo; se apaga al cambiar el texto o usar otra acción.
+- **Inserción.** La paleta de siempre, al pie. Delante, dos botones nuevos del catálogo común (JS y Python), solo en el teléfono: pares `( ) [ ] { } " "` (rodean lo elegido) y puntuación `. , ; :`, con variantes. Van al final del catálogo, así no cambian los índices de PC. Comentar sale de la paleta porque está arriba. Desplazar la tira anula la pulsación larga.
+- **Ficha ⓘ.** Inspector (segunda pestaña) y Consola (última) muestran los nodos vivos del panel inferior, que se retira en el teléfono; la ⓘ marca los mensajes nuevos. Las sugerencias ya no suben por encima del código ni tapan las barras de abajo.
+- **PC sin cambios:** columna del código idéntica píxel a píxel a la de `trunk` en War, Factory y a 1100 px.
+- **Verificación** (detalle y capturas en `docs/qa/editor-movil-2026-11-05/`): nueva `editor-movil.mjs` 36; War 92 (parte del teléfono adaptada, 2 nuevas); Factory 28, 31, 18, 10 y 7; Python en el juego 27 y ejecución 21; demo 73; entrada 8; paquete 9 páginas y 87 referencias; lógica 123 (grupos de la paleta ampliados), contratos, lenguajes, Python del editor 34, traductor 64. Ejecutadas con Playwright y un adaptador de `page.cdp`; con él, `trunk` da War 90/90.
+- **Pendiente:** QA en teléfonos reales (tacto y ganancia del ProtoMouse, franja de ~70 px a 360 px, teclado de Android; iOS sin revisar); elegir lenguaje y letra al empezar; teléfono en horizontal (sigue con la distribución de PC); demo del editor con la barra clásica.
+- **Versiones:** `edicion.css?v=7`, `layout.css?v=22`, `iconos.js?v=5`, `plantillas.js?v=4`, `edicion.js?v=4`, `nucleo-ui.js?v=3`, `juego.js?v=37`, `layout.js?v=15` (y las compartidas también en la demo).
+
+## Arreglo · concatenaciones JS → Python y diagnóstico de arranque · 4 de noviembre de 2026
+
+- **Concatenaciones.** `"x=" + (1 + 2)` conserva la suma agrupada y produce `x=3`. La conversión respeta el orden del árbol: solo aplana el lado derecho cuando ya se sabe que es texto. Los literales se convierten a texto antes de montar la f-string, para no perder números al final de una concatenación con variables y conservar `true`/`null` literales. Las expresiones mixtas no representables siguen dando un diagnóstico.
+- **Arranque.** La página usa `window.__juegoListo`, que se activa al terminar la inicialización, en lugar de dar por listo el juego cuando aparece `__banco`. Si falta `factory-form.js`, ahora muestra el recurso ausente y la excepción tardía; al recuperar el archivo, Factory crea el mundo sin aviso. El aviso diagnostica el fallo: no sustituye un recurso ausente.
+- **Verificación actual.** Traductor: 64 comprobaciones (6 regresiones nuevas de concatenación); nueve conversiones comparadas también con CPython 3.12 real. Interacción: 123; editor Python: 34. Navegador Chromium: Python en el juego 27 (2 nuevas de arranque), ejecución JS/Python en War y Factory 21, entrada/paquete 8. La excepción de la prueba que fuerza el 404 es deliberada; las suites de ejecución y entrada no registran excepciones. Sintaxis y `git diff --check` correctos. Paquete: 9 páginas y 87 referencias.
+- **Pendiente.** No se cambian renombrado/colisiones de variables, parámetros por defecto, Unicode ni las demás diferencias semánticas detectadas en la revisión. El renombrado requiere más pruebas. Sin QA de teléfono físico y sin publicación.
+- Versiones: `desde-js.js?v=2`, `juego.js?v=36`.
+
+## Arreglo · Factory en negro otra vez: caché con versiones mezcladas · 4 de noviembre de 2026
+
+- **Causa.** El catálogo se había publicado como archivo nuevo (`catalogo.js`), con su propia etiqueta en `index.html`, y `plantillas.js` pasó a depender de él. Una caché que sirve un `index.html` anterior junto con el `plantillas.js` nuevo deja `CMGCatalogo` sin definir. raw.githack ignora `?v=`, y las copias por rama se renuevan a destiempo. `CMGPaleta.crear` lanzaba un error y el arranque se cortaba antes de la rama de Factory: «Primer blanco», pestaña «Escenario», paleta e inspector vacíos, mapa negro. Se reprodujo sirviendo cada archivo cambiado en su versión anterior (`cc10e0b` y `92c1b09`), uno por uno.
+- **Arreglo.**
+  - El catálogo vive dentro de `plantillas.js`, que todas las páginas ya cargan antes que `python.js`. `catalogo.js` desaparece y no hay etiqueta nueva de la que dependa el arranque.
+  - La paleta ya no puede tumbar el juego. Los adaptadores leen sus plantillas de forma perezosa y protegida. `juego.js` arma la paleta con `paletaSegura`: si falla, el juego arranca con la paleta vacía y avisa en el editor que hay que recargar sin caché.
+  - `index.html` registra los errores del arranque. Si el juego no llega a arrancar, muestra un aviso con el detalle («no cargó juego.js…») en vez de quedarse en negro.
+  - Con estas tres medidas, todas las mezclas de un archivo viejo con los demás nuevos arrancan, contra las dos versiones anteriores.
+- **Pruebas.** En `python-juego.mjs`: unas plantillas rotas no cortan el arranque de Factory, y la página avisa si falta `juego.js`.
+- **Para probar en raw.githack** conviene la URL fijada al commit en lugar de `trunk`, que puede mezclar copias.
+- Versiones: `plantillas.js?v=3`, `adaptador-js.js?v=2`, `adaptador-python.js?v=4`, `juego.js?v=35`.
+
+## Catálogo único de la paleta (JS y Python) · 4 de noviembre de 2026
+
+- `CMGCatalogo` (en `shared/editor/plantillas.js`; primero fue `catalogo.js`, ver la entrada de arriba) es una sola tabla de botones comunes con el texto de cada lenguaje. `plantillas.js` (JS) y `plantillas()` de `python.js` ya no tienen listas propias: las generan desde la tabla.
+- **Sin cambio visible.** Se comprobó que las listas generadas son idénticas a las anteriores, en JS y en Python, con y sin pausa (War 0,5 s y Factory).
+- Un botón nuevo se añade una vez y aparece en JS, Python, War, Factory y el IDE. Lo propio de un lenguaje es la entrada que el otro no declara.
+- Pruebas: `editor-contrato.cjs` comprueba los botones compartidos, la pausa por lenguaje y que cada lista sea independiente.
+- Versiones: `plantillas.js?v=2`, `python.js?v=3` (juego y demo).
+
+## Paleta común en War y Factory · 4 de noviembre de 2026
+
+- **Problema.** La paleta de Factory se armaba a mano en `juego.js` y sustituía a la común. En JS y en Python le faltaban If / else (con If e If / else if), los operadores (`??`, `&&`, `||`, `!`, comparaciones; en Python `and`, `or`, `not`, `is None`) y Variable. Los bucles tampoco eran los de War: For y While sueltos, sin While true, Do … while ni Salir del bucle.
+- **Ahora.** Todas las paletas siguen la misma composición en `js/paleta.js`: `comentar | sección común del lenguaje + Esperar | órdenes de la serie | consola`.
+  - La sección común sale del catálogo del lenguaje (`shared/editor/plantillas.js`, `CMGEditorPython.plantillas`), el mismo que usa la demo del IDE.
+  - Cada serie declara solo su pausa de bucle y sus órdenes, escritas una vez en JS. Python las obtiene con `aPython`. War pone pausa `esperar(0.5)` porque disparar no espera. Factory no la necesita: sus órdenes ya llevan `await`.
+- **Cambio visible.** Factory muestra los mismos bucles (While true, con While, For, Do … while y Salir del bucle como variantes), If / else, operadores y Variable que War. Esperar pasa a la sección común. Consola (Aviso o `print`) va al final, como en War.
+- **Sincronía.** `pruebas/editor-contrato.cjs` comprueba que War y Factory tienen la misma sección común en JS y en Python, y que cada serie solo aporta sus órdenes. Si alguien vuelve a armar una paleta aparte, la prueba falla.
+- Versiones: `paleta.js?v=5`, `juego.js?v=34`.
+
+## Arreglo · Factory en negro en Netlify y desplegable de lenguaje · 4 de noviembre de 2026
+
+- **Causa de la pantalla negra.** Factory buscaba el enlace con `a[href="probar.html"]`. En Netlify, «Pretty URLs» reescribe ese `href` como `probar`, así que el selector no encontraba nada y el `TypeError` cortaba el arranque de Factory (juego.js, rama `ES_FACTORY`). Por eso no había mapa ni inspector, Ejecutar no hacía nada, la paleta seguía siendo la de War y Python no aparecía. En local y en `dist/` no se veía, porque nadie reescribe el HTML.
+- **Arreglo.** El enlace se busca por id (`#b-probar`) y se le añade `serie=factory` sobre la URL que tenga. `probar.html` tenía el mismo patrón con `a[href="index.html"]` y ahora usa `#abrir-solo`. La regresión está en `pruebas/python-juego.mjs`: reescribe el `href` como Netlify y comprueba que Factory arranca sin errores.
+- **Desplegable de lenguaje (D7) en la cabecera del juego.** Sustituye a los botones JS/Bloques/Seudo/Py por `<select id="sel-lenguaje">` con JavaScript y Python. Debajo, en «Vistas de JavaScript», están Seudocódigo y, solo en Factory, Bloques. Con varias unidades en lenguajes distintos muestra «Varios lenguajes». El comportamiento no cambia: Python convierte o recupera; JS, Seudo y Bloques vuelven a JavaScript y aplican la vista. Ajustes conserva sus botones. Las pruebas que pulsaban los botones de la cabecera ahora eligen en el desplegable.
+- Versiones: `juego.js?v=33`, `componentes.css?v=21`, `layout.css?v=21`.
+
+## Editor · E5–E7: Python se ejecuta, listas y conversión desde JS · 4 de noviembre de 2026
+
+- **Se retiró `?python=1`.** Py (cabecera) y Python (Ajustes) están siempre. Cambio visible declarado: las capturas de War y Factory ya no son las de E4b, porque el botón Py aparece en la cabecera.
+- **E5: Python se ejecuta.**
+  - `shared/python/traductor.js` traduce Python a JS con las mismas líneas. Usa el árbol de lezer para las sentencias y reasocia las expresiones con la precedencia de Python, porque lezer agrupa distinto `not a and b` y `await f() + 1`.
+  - Resuelve los ámbitos (`global`, `nonlocal`, comprensiones, lambdas) y renombra con `$` lo que choca con JS o con la API. Las funciones locales llamadas como la API, como `count`, siguen siendo locales.
+  - La API pasa por `proveedor.alias("python")` (D1). Una orden que espera sin `await`, o una `async def` llamada sin `await`, se avisa antes de ejecutar (D2).
+  - El preludio `__py` va dentro del Worker (`runtime.js`): verdad de vacíos, operadores con sus `TypeError`, igualdad profunda, `print`/`repr`, f-strings con formato y redondeo mitad al par. Los errores de JS se reescriben al estilo de Python (`NameError`, `AttributeError`…).
+  - Sintaxis, sangría y huecos se revisan al pulsar Ejecutar, con la línea de Python. Los mensajes de la API usan los nombres Python.
+  - D3 aplicada: `print` va al registro; `info`, `warn` y `error`, a sus niveles.
+  - Telemetría: lleva el texto Python y `lenguajes`, también en la remota y en la columna del CSV.
+  - Récords (D6): una tabla por reto con el lenguaje como etiqueta. War lo guarda en `records-lenguaje` para no cambiar `records`; Factory, en `lenguaje` dentro del récord.
+- **E6: listas.** Índices negativos, trozos con paso, métodos de lista y de texto, `enumerate`, comprensiones con varios `for` e `if`, `del xs[i]` y tuplas para desempacar.
+- **E7: conversión y documentación.**
+  - `shared/python/desde-js.js` convierte JS a Python por el árbol de acorn. Conserva comentarios y líneas en blanco y convierte también el código comentado. Pasa el `for` clásico a `range`, el `??` de una lectura a `or` y las sumas que empiezan por texto a f-strings.
+  - Py convierte el JS de una unidad que aún no tiene Python, y el programa de partida sale convertido. Si algo no cabe, explica el motivo con su línea y el JS se conserva.
+  - Documentación actualizada: `REGLAMENTO` (sección Python), `VISION`, `README`, `AGENTS`, `TELEMETRIA`, el plan y `CONTRATO.md`.
+- **Teléfono.** La pestaña del programa dice solo la unidad (`R1`, `LAU-01`). Ya no la recorta la fila JS/Bloques/Seudo/Py (era el pendiente de E4b).
+- **Verificación** (detalle en `docs/qa/editor-e5-e7-2026-11-04/`):
+  - Nuevas: `python-traductor.cjs` 58 (27 salidas iguales a CPython 3.13, copiadas en la prueba) y `python-ejecucion.mjs` 21. Esta última es la compuerta de E5: mismos eventos con sus líneas, tiempos y resultados en JS y en Python, en War y en Factory.
+  - `python-juego.mjs` 22, adaptada a E5.
+  - War 90/90, editor 18, vistas 31, API 7, paridad 28/28, 3D 10, demo 73.
+  - Python del editor 34, lógica 123, contratos e integridad, paquete de 9 páginas con 88 referencias.
+  - `telemetria.mjs` no se ejecutó: necesita `npm install`.
+- **Límites:**
+  - No hay QA en un teléfono real; la compuerta de E7 sigue **pendiente** y solo hay emulación.
+  - No se distingue entero de real (`4 / 2` → `2`).
+  - Diccionarios y tuplas completas quedan para la etapa siguiente.
+  - Py recupera el último Python guardado en vez de volver a convertir.
+  - D8 (Bloques y Seudo) sigue sin decidir.
+- **Versiones:** juego 32, runtime 4, traductor y conversión 1, remota 3, paleta 4, adaptador Python 3, componentes 20, layout 20.
+
+## Editor · E4b: Python en el juego detrás de ?python=1 · 4 de noviembre de 2026
+
+- **Sin el flag nada cambia.** Las suites dan las mismas cifras y las 32 capturas de War y Factory son idénticas píxel a píxel. El juego carga los módulos Python, pero no los ofrece ni lee `fuentes-<reto>`.
+- **Con `?python=1`:**
+  - el botón **Py** de la cabecera y **Python** en Ajustes pasan la unidad a Python; JS, Seudo y Bloques la devuelven a JavaScript;
+  - `programas` y `prog-<reto>` siguen siendo solo JS; el Python va a `fuentes-<reto>` (`{ lenguaje, texto, enUso }`) y se conserva al volver a JS;
+  - Ejecutar muestra un aviso: Python todavía no se ejecuta (E5);
+  - paleta, inspector, sugerencias y valores vivos salen en Python mediante `aPython`: nombres D1 (`esperar` → `wait`), huecos D4, sin `;`, operadores y literales de Python;
+  - Add y Replace solo con unidades del mismo lenguaje; copiar y restaurar, por lenguaje.
+- **Cambios de código:**
+  - `CMGPaleta.crearPython`;
+  - las plantillas Python ponen la pausa como en JS (línea vacía y luego la pausa);
+  - el juego llama siempre a la fachada vigente del editor, y `window.cmg.edicion` y `window.cmg.seudo` son getters.
+- **Verificación** (detalle en `docs/qa/editor-e4b-2026-11-04/`):
+  - Nueva `python-juego.mjs`: 22.
+  - War 90/90, editor 18, vistas 31, API 7, 3D 10, demo 73, Python sin DOM 34, lógica 123, contratos, paquete.
+  - Paridad: 28/28 en tres repeticiones; **falló una vez** dentro de la pasada completa («sin-await: tiempo», un caso de error que depende de cuándo llega el mensaje del Worker). No se declara resuelto.
+- **Límites:**
+  - Python no se ejecuta.
+  - En el teléfono con Factory, Py recorta la pestaña del programa (solo con el flag).
+  - El lenguaje aún no llega a telemetría y récords (E5).
+  - Solo emulación.
+- **Versiones:** juego 31, paleta 3, python.js 2.
+
+## Editor · E4a: Python en el componente · 4 de noviembre de 2026
+
+- **E4 se dividió en dos entregas.** E4a (esta) cubre el componente y la demo; E4b, el juego detrás de `?python=1`. Así cada una se revisa por separado.
+- **lezer en el repo.** `@lezer/python` 1.1.19, con lr 1.4.11, common 1.5.4 y highlight 1.2.5, está empaquetado en `shared/vendor/lezer-python-1.1.19.js`. Lo genera `herramientas/lezer-python/construir.sh` (esbuild 0.28.2 y `package-lock.json` fijados; regenerarlo da el mismo archivo, byte a byte). Su licencia y su SHA-256 están en el manifiesto. Jugar y probar no usan npm ni CDN.
+- **Módulos nuevos:**
+  - `python.js`: léxico, huecos `__nombre__` (D4), líneas lógicas, niveles de sangría, `pass` para bloques vacíos, plantillas, operadores, teclas y `#`.
+  - `estructura-python.js`: pasa el árbol de lezer a los nodos del editor.
+  - `adaptador-python.js`.
+- **Código compartido con el juego.** `estructura.js` expone `consultas(...)` y JS usa la instancia por defecto, que se comporta como antes. `edicion.js` toma del adaptador la sangría, los huecos, el final de sentencia y las sugerencias. Con sangría significativa:
+  - mover, arrastrar (el nivel lo da la columna del puntero), borrar, pegar y desenvolver respetan los bloques de Python;
+  - un bloque que se queda vacío recibe `pass`.
+
+  El proveedor recibe el lenguaje. Hay iconos Python para `and`, `or`, `not`, `==`, `!=` e `is None`.
+- **Demo:** cada espacio tiene un documento por lenguaje y el segundo editor empieza en Python. `AGENTS.md`, el plan y `CONTRATO.md` están actualizados.
+- **Verificación** (detalle en `docs/qa/editor-e4a-2026-11-04/`):
+  - Python sin DOM: 34, nueva.
+  - Demo: 73, de las cuales 22 son nuevas.
+  - War 90/90, editor 18, vistas 31, API 7, paridad 28/28 y 3D 10.
+  - Lógica 123, contratos e integridad correctos, entrada 8, paquete de 9 páginas con 79 referencias.
+  - 32 capturas de War y Factory idénticas píxel a píxel contra E3.
+- **Límites:**
+  - Solo emulación de Chromium; el arrastre táctil con nivel está pendiente de QA manual.
+  - La demo no convierte entre lenguajes.
+  - El juego aún no carga Python (E4b).
+- **Versiones:** estructura 4, edicion 3, nucleo-ui 2, editor 4, iconos 4, demo 4; módulos Python v1.
+
+## Editor · E3: lenguaje del documento · 4 de noviembre de 2026
+
+- **Alcance revisado por el usuario antes de empezar:**
+  - Los lenguajes del juego (se traducen a JS y corren en su Worker) son distintos de los del editor (los que el componente sabe editar).
+  - Otra aplicación puede usar el editor con su propio motor; eso queda fuera de este proyecto.
+  - Solo se añade Python.
+  - Bloques y probablemente Seudo saldrán, porque no son prioridad para un IDE. Queda como decisión pendiente D8 y el juego no cambia mientras tanto.
+- **`CMGLenguajes`** ahora tiene un catálogo de presentación (`js`, `python`) y las funciones `describir` y `disponibles`. Un adaptador sin entrada en el catálogo usa su propio nombre.
+- **Las instancias autónomas** tienen un `<select>` nativo de lenguaje (D7 aplicada). Cambiar de lenguaje es pedírselo al anfitrión con `alCambiarLenguaje`, que responde con un documento, con `{ motivo }` o con una promesa. Las respuestas tardías se descartan. `abrir` con otro lenguaje rehace el interior con su adaptador, sin oyentes duplicados y conservando la forma, la letra, la pantalla completa, el modo sin teclado y un historial por documento. `edicion.js` acepta el mapa de historiales de la instancia.
+- **Vistas opcionales** (`opciones.vistas`): el juego las pide y la demo no, y la demo ya no carga `seudo.js`. Con eso desaparece la fuga de los ladrillos de War que se anotó en E2.1. La API está documentada en `shared/editor/CONTRATO.md` y el plan quedó actualizado (E3 revisada, E4 con el selector del juego, D7–D9).
+- **Verificación** (detalle en `docs/qa/editor-e3-2026-11-04/`):
+  - War 90/90, editor 18, vistas 31, API 7, paridad 28/28 y 3D 10.
+  - Demo 51, de las cuales 13 son nuevas.
+  - Lógica 123, contratos y catálogo correctos, entrada 8, y paquete de 9 páginas con 79 referencias.
+  - 32 capturas de War y Factory idénticas píxel a píxel contra `d739dec`.
+- **Límites y versiones:**
+  - Sin dispositivos reales.
+  - El juego todavía no tiene selector: llega en E4 junto con Python detrás de `?python=1`.
+  - Versiones: editor.js 3, edicion.js 2, lenguajes.js 2, autonomo.css 3 y demo 3.
+
+## Editor · E2.1: paridad de la demo con War y pantalla completa · 4 de noviembre de 2026
+
+- Pedido por el usuario antes de E3, tras revisar la demo a 1920×1080, 1400×900, 1024×768, 768×1024, 390×844, 360×640 y 844×390: editor fijo de 300 px sin pantalla completa, siempre con tamaños de PC, barras de edición y símbolos siempre visibles, sin tooltips ni A−/A+, ajustes junto al editor y primer ejemplo sin Seudo.
+- Reglas por forma de paleta, barra de edición y Seudo trasladadas de `layout.css` a `shared/css/edicion.css` con `.cmg-anfitrion` (la `.app` del juego o la raíz autónoma). Tooltips trasladados de `layout.js` a `shared/editor/tips.js`, que usan el juego y la demo. Las instancias autónomas deducen su forma, muestran los símbolos solo al escribir en el teléfono y montan JS/Seudo, sin teclado, A−/A+, Ajustes y pantalla completa con el aspecto del juego.
+- Pantalla completa por editor: cubre el viewport visual (también con el teclado del teléfono), pide la del navegador donde existe (no en iPhone) y sale con el botón, Esc, el Esc del navegador o `destruir()`. API `pantallaCompleta(si?)`, `forma()`, opciones `forma`, `pantallaNavegador`, `alPantallaCompleta`; documentado en `shared/editor/CONTRATO.md`. Distinta del modo pantalla completa del juego.
+- Verificación actual: War y Factory idénticos píxel a píxel en 32 capturas (4 tamaños × 4 estados × 2 series). **War 90/90** en esta pasada, editor 18, vistas 31, API 7, paridad 28/28, Factory 3D 10, demo **38** (18 nuevas; dos expectativas de E2 adaptadas al nuevo ejemplo), lógica 123, contratos, reglas, entrada 8, paquete 9 páginas/79 referencias. Corregido un fallo hallado en la prueba: salir antes de que el navegador concediera la pantalla completa la dejaba puesta. Reporte y capturas en `docs/qa/editor-e2-1-2026-11-04/`.
+- Límites: emulación de Chromium, sin dispositivos reales (pendiente iPhone y Android con teclado). El Seudo de la demo muestra los ladrillos de War (catálogo de E3). War sigue tratando el teléfono en horizontal como PC. Versiones: edicion.css6, layout.css19, layout.js14, editor.js2, tips.js1, autonomo.css2, demo2.
+
+## Editor · E2: demo y acceso desde la portada · 4 de noviembre de 2026
+
+- Nueva `shared/editor/demo.html`, con dos instancias reales de `CMGEditor`, proveedor declarativo de mensajes y documentos Principal/Borrador. Historial, selección, menús, modo sin teclado y preferencias son independientes. Solo lectura y recrear editor se prueban en cada panel; la demo no carga `cmg`, `__banco`, simulaciones ni Workers. Sin persistencia del anfitrión, los documentos duran mientras la página está abierta.
+- Enlace «Probar el editor de código» al pie de la portada, debajo de Factory/War/Campaign, como pidió el usuario. No es una copia del editor: ambas entradas cargan los mismos módulos de `shared/editor/`. Las correcciones de UI se hacen una vez en esos archivos.
+- Verificación E2: `editor-demo.mjs`, **20 comprobaciones** (sin globals del juego, IDs únicos, documentos e historial por instancia/documento, atajos acotados al foco, solo lectura y barra, revisión/marcas antiguas incluidas las de otro documento, recrear tres veces sin duplicación, destruir idempotente y edición sin proveedor/persistencia). Revisión visual a 1400×900 y 390×844, sin desborde; capturas en el reporte. Portada/paquete: 8 comprobaciones de entrada, enlace del footer hasta dos editores funcionando, paquete final 9 páginas/77 referencias locales. E1 por separado también se empaquetó: 8 páginas/57 referencias.
+- Se mantienen los resultados de Factory y la limitación de War de E1: la suite completa no se declara pasada. En otra repetición con un adaptador de clic distinto también apareció la intermitencia del anillo táctil; no se cambiaron las expectativas para ocultarla. Requiere revisión manual del arranque a pantalla completa y los gestos en un dispositivo real.
+- Listo para que el usuario revise la demo antes de seguir. E3 (dropdown) y E4/E5 (editar/ejecutar Python) siguen pendientes. Cambios de esta etapa: inicio.css2 y demo HTML/CSS/JS v1; sin nuevas dependencias ni CDN.
+
+## Editor · E1: instancia compartida e integración · 4 de noviembre de 2026
+
+- `CMGEditor.crear` en `shared/editor/editor.js`: marcado propio, documento/revisión, selección, marcas con descarte por revisión, solo lectura, modo sin teclado, preferencias inyectadas y `destruir()` idempotente. Fichas/historial y Seudo/Bloques son fábricas compartidas. El juego crea una instancia, conserva IDs, fachadas y claves locales, y aporta funciones/sugerencias/plantillas de sus máquinas. Las plantillas genéricas y las teclas se definen una sola vez; símbolos, medición y resaltado salen de juego/layout. Las simulaciones y el runtime no cambian.
+- `vida.js` retira oyentes con AbortController, cancela timers/RAF/microtareas, desconecta observers y retira portales por instancia; el portapapeles asíncrono descarta trabajo tras destruir. Las instancias autónomas tienen IDs y ámbito propios. Tokens y estilos de edición también se comparten.
+- Corregida una hoja de sugerencias demasiado baja con coordenadas visibles en móvil, reproducida en el trunk anterior: se omiten encabezados de grupo con menos de 160 px para que quepan los valores completos. Ninguna opción se elimina. El aspecto normal del editor es idéntico al anterior en las capturas comparadas.
+- Verificación: 123 lógica, contratos E0 y D1/D2, reglas Factory; navegador Factory editor 18, vistas 31, API 7 y paridad 28/28. Chromium 155/Playwright en 8771, caché desactivada y adaptador de clic sobre el primer elemento visible; expectativas sin modificar. Capturas PC/móvil de `#v-programa` idénticas píxel a píxel contra dfa5f33 (546×770 y 360×314). Sintaxis y diff correctos.
+- Límite observado: War llega a 88/90; al ejecutar desde pantalla completa el Worker alcanzó el vigía de 2.5 s sin mensajes en esa secuencia larga de emulación. El mismo botón arrancó bien en prueba dirigida en dfa5f33 y en E1 (672/739 ms); no se declara pasada la suite completa. Referencia actualizada y evidencia en `docs/qa/editor-e1-e2-2026-11-04/`. Sin QA en dispositivos físicos.
+- Versiones: juego30, layout13, paleta2, base4, componentes19, edición CSS5; módulos compartidos nuevos v1. E2 entrega la demo con dos instancias y acceso desde la portada.
+
+## Editor · E0: contrato y red de pruebas preparados · 4 de noviembre de 2026
+
+- Continuación autorizada tras D1/D2, sobre `trunk` en `0319866`. `shared/editor/CONTRATO.md` documenta API actuales, puertos, rangos UTF-16, líneas desde 0/1, estructura tolerante, sugerencias reales, fachada `cmg`, eventos, historial, preferencias, dependencias DOM y ciclo de vida previsto para E1. Distingue explícitamente lo implementado de `CMGEditor.crear` todavía pendiente.
+- `pruebas/interaccion.cjs` ya no recorta `juego.js`. Léxico, huecos y operaciones JS en `shared/editor/javascript.js`; catálogo de atajos en `js/paleta.js`; Add/Replace en `js/programas.js`. El juego y las pruebas cargan los mismos módulos de producción. Expectativas de las 123 comprobaciones conservadas literalmente; solo cambió el arnés. Estructura se resuelve al operar, respetando su carga actual posterior a juego.js. Sin cambios de CSS; juego29 y módulos nuevos v1.
+- Verificación actual: 123 lógica; nuevo `editor-contrato.cjs` correcto (carga sin DOM/juego/almacenamiento, aislamiento de puertos/paletas, UTF-16, estructura diferida y confirmaciones asíncronas ante cambio de reto/ejecución, cancelación y error); D1/D2 e integridad de dependencias correctos; reglas Factory correctas; sintaxis, expectativas y diff correctos; paquete con 8 páginas y 50 referencias locales.
+- `shared/editor/REFERENCIA-E0.json` registra cifras históricas: War 90, editor 18, vistas 31, paridad 28/28 y API 7. **No se han vuelto a ejecutar estas suites ni comparado capturas.** Intento Chromium headless con perfil temporal: `setsockopt: Operation not permitted`; no se solicitó otra espera de permisos. La compuerta de navegador/QA visual de E0 permanece pendiente; el usuario revisará manualmente esta entrega y D1/D2.
+- Siguiente etapa: E1, instancia de editor con marcado propio, adaptador JS completo, preferencias inyectadas y destruir; después E2 con dos interfaces independientes. Esta entrega prepara la separación y conserva las fachadas actuales; no implementa todavía la extracción completa ni edición/ejecución Python.
+
+## Editor · decisiones D1/D2 y dependencias locales · 3 de noviembre de 2026
+
+- Plan subido primero a `trunk` en `b11039e`, incorporando la condición del usuario de no usar CDN. D1/D2 son las decisiones sobre nombres y await, distintas de las etapas E1/E2.
+- Nuevo proveedor declarativo del juego: nombres principales, formas Python, alias españoles, firmas, esperas, vocabulario y tabla de resolución para el futuro traductor. `cmg.funciones()` conserva la fachada y `cmg.proveedor` expone el proveedor. El editor recibe los nombres como datos. El generador inicial de llamadas escribe los nombres Python y await explícito; documentados async def y await superior al estilo del REPL de asyncio.
+- Acorn 8.11.3, Three r128 y GLTFLoader r128 se sirven desde `shared/vendor/`, con licencias y manifiesto SHA-256. Eliminadas las cargas de fuentes externas del juego y probador: se usan alternativas locales del dispositivo, con posible variación de métricas. Versiones juego28 y factory-3d2.
+- Verificación actual: 123 comprobaciones de lógica, reglas Factory, contrato D1/D2 e integridad/versiones de dependencias, sintaxis de scripts modificados, paquete con 8 páginas y 47 referencias locales correctas. No se ejecutaron las suites de navegador ni QA visual: el entorno denegó abrir el servidor de prueba en 8771. No se afirma equivalencia visual ni QA en dispositivos físicos.
+- Alcance: contrato inicial de D1/D2; Python todavía no se edita ni ejecuta. La extracción del editor, demo y traductor siguen pendientes de las etapas E0–E5. La tabla de alias deberá usarse tras resolver ámbitos para conservar funciones locales como count. Detalles en `docs/EDITOR-D1-D2.md`.
+
+## Factory en 3D con el transporte T1 · 3 de noviembre de 2026
+
+- Factory tiene vista 3D (por defecto; plano disponible y elección recordada en `factory-vista`, separada de la de War). Usa el visor común de `vistas.js`: misma cámara, zoom, selección, etiquetas y centrado. Su contenido está en el nuevo `factory-3d.js`: suelo y cuadrícula sin cordillera, puertas discontinuas, bodegas con cajas por material y stock, y máquinas con tolva hacia la puerta, chimenea, franja del material, cola de entrada, barra de progreso y engranaje que gira al procesar. Zoom de 2,5 a 30 m. El anillo de selección sigue a R1.
+- R1 es el transporte T1 de `arte/blender/robots.py`. `arte/blender/exportar_t1.py` lo exporta sin ventana a `modelos/t1.glb` (743 KB; 297 KB con gzip) con tres niveles: **LOD0 11.016**, **LOD1 4.430** y **LOD2 1.018** triángulos. Los tres tienen los mismos pivotes (torreta, hombro, codo, muñeca, dedos y carga), con una malla rígida por pivote y sin esqueleto. En el juego los materiales pasan a Lambert sRGB como el resto del escenario; el turquesa toma el color de la función (`--rol-utilitaria`) y la caja se tiñe del material que lleva.
+- El nivel se elige por **tamaño del robot en pantalla** (110 px y 45 px, con un margen del 12 % para que no parpadee), no por distancia: el teléfono baja de nivel a la misma distancia aparente que el PC. Pose: rumbo según el desplazamiento; al recoger o entregar, la torreta gira hacia el edificio y el brazo lo alcanza con cinemática inversa de dos tramos, con la pinza hacia el suelo. En los traslados, plegado con o sin caja. Todo se suaviza en tiempo real, así que a 4× el gesto sigue viéndose.
+- Dependencia aprobada por el usuario: GLTFLoader r128 (jsdelivr `three@0.128.0`), que `factory-3d.js` inyecta solo al abrir el 3D de Factory; War no lo descarga. Si no carga, R1 se dibuja como un bloque. `factory.js` añade a la orden en curso `verbo` y `lugar`, que solo lee el dibujo: ninguna regla cambia.
+- Versiones: `factory-retos.js?v=6`, `factory.js?v=4`, `vistas.js?v=2`, `factory-3d.js?v=1`, `juego.js?v=27`, `modelos/t1.glb?v=1`.
+- **Verificación actual** (Ego Browser, 8771, caché desactivada): nueva `pruebas/factory-3d.mjs` **10** (abre en 3D, pivotes en los tres LOD, triángulos decrecientes, LOD0 al acercar y LOD2 al alejar, un solo nivel visible, IK, caja visible al recoger y ausente tras entregar, victoria en 8,7 s igual que en plano, vista recordada por serie). Paridad **28/28**, vistas **31**, editor **18**, API **7**, reglas, **123** lógica, **90 War**, entrada **8**, paquete **8 páginas/43 referencias** con `modelos/t1.glb`. Capturas revisadas en [docs/qa/factory-3d-2026-11-03](../../docs/qa/factory-3d-2026-11-03/): vista general, alcance, transporte con caja y teléfono a 390 × 844.
+- **Límites:** emulación de Chromium; no se midió el rendimiento en un teléfono real. Ajustes visuales pendientes: la pinza queda algo por encima de las cajas al recoger, los edificios son primitivas provisionales y las ruedas no giran (están dentro de la malla rígida del chasis). Pendiente la charla técnica sobre primitivas frente a GLB y piezas rígidas frente a esqueleto.
+
+## Unificación · etapas 4 y 5: resto de Factory y retirada del original · 3 de noviembre de 2026
+
+- **Etapa 4.** Seis retos y «Tu reto» (editor de enunciado, metas y mapa en `factory-form.js`) en `?serie=factory`; bloques, seudocódigo y JS sobre el texto JS como fuente, con `ladrillos` por reto; récord por tiempo (`comun-v1`) y telemetría local. Lección de «Hasta vaciar»: `count` lee al instante y no necesita `await` (cierra 3.7 en Factory; War ya lo explica en «Primer blanco»). Móvil: los ladrillos de la paleta son solo icono (nombre en `aria-label`); antes la etiqueta asomaba junto al último botón, muy visible con los tres ladrillos de Factory y también presente en War.
+- **Etapa 5.** `Prototypes/Tres vistas/index.html`, su `probar.html` y `Prototypes/02_tres_vistas.html` redirigen a `Rocket Launcher/?serie=factory` (o a su probador) conservando query y hash. La portada apunta Factory a la nueva entrada; desaparece con el original la franja «War es la versión más actualizada». Borrados `Prototypes/Tres vistas/css`, `js`, `pruebas/tres-vistas.mjs` y `pruebas/factory-editor.mjs`: quedan en el historial (`b76411b`). `factory-oraculo.mjs` y su documentación indican que regenerar el oráculo exige un checkout de ese commit. `server.ps1` ya no exige el original.
+- Versiones: `layout.css?v=18`, `factory-retos.js?v=5`.
+- **Verificación actual** (Ego Browser, 8771, caché desactivada): oráculo común **28/28** (13 deltas aprobados, 15 exactos); vistas comunes **31** (seis soluciones con el mismo tiempo en bloques, seudocódigo y JS, ida y vuelta de los iniciales, importación de árbol y texto desde `cmg-banco02`, Tu reto); editor común **18**; API **7**; `factory-reglas.cjs` correcto; **123 lógica**; **90 War** a la primera. Récord tipado y telemetría local comprobados en los seis retos. Paquete: `preparar-netlify` y `publicacion.mjs` (**8 páginas, 42 referencias**); `entrada.mjs` **8** sobre `dist/`. Enlaces antiguos con `?forma=` y hash llegan a la nueva entrada y al reto guardado en `cmg-banco02:reto`. Capturas revisadas a 1400 × 900 y 390 × 844 ([móvil](../../docs/qa/unificacion-2026-11-03/etapa4-movil.png)). `node --check` y `git diff --check` correctos.
+- **Límites:** emulación de Chromium, sin dispositivos físicos. En móvil, `pickUp` y `deliver` comparten casi el mismo icono. `pruebas/telemetria.mjs` sigue sin poder ejecutarse en este checkout (falta `@netlify/blobs`); Factory no envía telemetría remota. El plan de unificación queda cerrado; Campaign y el primer reto mixto se planificarán aparte.
+
+## Unificación · etapas 3.4–3.7: API y reglamento · 3 de noviembre de 2026
+
+- `yo.` opcional, edificios como variables reutilizables y API `pickUp/deliver/wait/count`; alias españoles conservados. Inspector, sugerencias y paleta enseñan la API principal. Nuevo `docs/REGLAMENTO.md` explica encargos, modos, lecturas, tiempo, metas, resultados y compatibilidad.
+- Verificación actual: 8 casos comunes correctos (deltas de victoria/null explícitos), 6 casos de API en navegador, todos ganan en 8,7 s; 123 comprobaciones de lógica. Una función local llamada `count` conserva su significado. Sintaxis correcta. Versiones juego23, runtime2, factory3, factory-retos3.
+
+## Unificación · etapa 3.3: lecturas null/0 · 3 de noviembre de 2026
+
+- `cuantos` devuelve `null` para lugar inexistente y `0` para un material ausente en un edificio existente. Material inválido sigue siendo error. `await` en lecturas sigue aceptado.
+- Verificación: pruebas puras de ambos valores y validación de encargos; expectativa del caso histórico `lugar-inexistente` actualizada explícitamente en el arnés común (ahora termina incompleto tras leer `null`).
+
+## Unificación · etapa 3.2: entregas rechazadas · 3 de noviembre de 2026
+
+- Destino lleno devuelve `lleno`; material incompatible devuelve `rechazado`. Ambos conservan carga y procedencia, cuentan rechazos y no crean derrames. Retos y límites pasan a «Sin entregas rechazadas»; `maxDerrames` antiguo se importa como `maxRechazos`.
+- Verificación actual: `node pruebas/factory-reglas.cjs`, encargos con paso fijo, devolución a bodega, conservación, rechazo por material y límite. Récords bajo `comun-v1`, separados de reglas anteriores.
+
+## Unificación · etapa 3.1: victoria por metas · 3 de noviembre de 2026
+
+- Factory gana al alcanzar las metas del mundo, incluso con código pendiente. Récords separados con regla `metas-v1`.
+- Verificación: 8 casos en el runtime común; el bucle continuo ahora coincide con la solución finita (8,7 s). Los otros siete conservan la referencia histórica. Fixture original intacto; delta explícito en el arnés común.
+
+# Code-battle-lite · progreso
+
+## Unificación · etapa 2 completada · 3 de noviembre de 2026
+
+- Trasladados combate y constantes a `war.js`, datos/normalización a `war-retos.js`, Worker y despertar de programas a `runtime.js`, paso fijo compartido a `nucleo.js`, y visores 3D/plano a `vistas.js`. `juego.js` conserva coordinación, editor e interfaz y pasa de ~3.400 a ~2.350 líneas. Los visores reciben estado y colaboradores explícitos; las familias usan el mismo ciclo y runtime. Sin nuevas reglas en este traslado.
+- Versiones: `juego.js?v=21`; cinco módulos nuevos `?v=1`. El empaquetador ya copia la carpeta completa del juego: no necesita otra excepción en la lista permitida.
+- Verificación actual: **123 lógica, 90 navegador War, 8 casos exactos de paridad Factory, 43 Tres vistas y 23 editor Factory**. War pasó en la repetición tras el fallo conocido de doble toque emulado. **8 páginas/53 referencias locales** del paquete estático verificadas; sintaxis y diff correctos. La prueba adicional `pruebas/telemetria.mjs` no arrancó: este checkout no tiene instalado `@netlify/blobs`; la función remota no fue modificada. No se instalaron dependencias.
+- Usuario confirmó para etapas 3/4: **JS como fuente; «Sin entregas rechazadas»; `pickUp`, `deliver`, `wait`, `count` y alias españoles; `null` para lugar inexistente; `await` en lecturas aceptado sin aviso; telemetría Factory local; mantener la ruta de War**. Estas decisiones se implementan después de este traslado.
+
+## Unificación · etapa 1 completada · 3 de noviembre de 2026
+
+- «Primer viaje» disponible dentro de War mediante `Prototypes/Rocket Launcher/?serie=factory`, también desde el selector de series en la hoja de retos. Misma interfaz, editor, inspector, ficha de metas, selección y pantalla completa. La portada y Factory original siguen intactos.
+- Nuevos módulos `factory-retos.js`, `factory.js` y `factory-vista.js`: datos y reglas de logística trasladados del original, con mapa 9×7 por reto y dibujo plano. R1 es una máquina programable propia; no se incluye en la colección de lanzadores. El Web Worker y ciclo de War reciben encargos, resultados e instantáneas; las lecturas no avanzan el reloj. Se conserva el fin por programa, derrame, mensajes y límites de la fase de paridad.
+- Importación de solo lectura de `cmg-banco02:prog-0`; copia independiente en `cmg-banco03:prog-factory-0`, selección `factory-reto`, telemetría local separada y récord tipado de tiempo con regla `paridad`. Sin envío remoto de la nueva serie.
+- Versiones: `juego.js?v=20`, `seudo.js?v=4`, `remota.js?v=2`, módulos nuevos `?v=1`. JS de Factory en esta etapa; bloques/seudocódigo y resto de retos se incorporan después.
+- Verificación actual: **8 casos de Primer viaje idénticos al oráculo** con Worker real (incluidos eventos, tiempos exactos, errores y líneas); comprobado que no escribe en banco 02. **123 lógica y 90 navegador War correctas**, sin modificar suites; primer intento War falló en el doble toque emulado ya conocido y el segundo pasó completo. Sintaxis y diff correctos. Capturas revisadas a [1400×900](../../docs/qa/unificacion-2026-11-03/etapa1-pc.png) y [390×844](../../docs/qa/unificacion-2026-11-03/etapa1-movil.png). Emulación de Chromium; no dispositivos físicos.
+- Continúa la etapa 2: separación de responsabilidades conservando las reglas. Pendientes las decisiones de etapas 3/4 planteadas al usuario. Sin commits ni publicación.
+
+## Unificación · etapa 0 completada · 3 de noviembre de 2026
+
+- Inicio solicitado por el usuario. Leídos el plan revisado, la visión, el progreso y los dos análisis. `git fetch --prune origin`: `auto-testing-ui` (rama de trabajo) y `trunk` coinciden con sus remotos en `b76411b`; `main` y su rama Claude están 4 commits detrás, y la rama del plan VFX 14 detrás, sin commits exclusivos pendientes. No hizo falta pull ni fusión. Conservados los cambios locales previos del plan, este progreso y `docs/Vision/`.
+- `AGENTS.md` y `CLAUDE.md` fijan War como base de la unificación y Factory original como referencia congelada; solo recibe arreglos que impidan usarlo. README y plan enlazan el oráculo y distinguen esta preparación de la etapa 1 jugable, aún pendiente.
+- Nuevo [oráculo de Factory](../../pruebas/factory-oraculo.md): `pruebas/factory-oraculo.mjs` ejecuta programas en el navegador y los Web Workers originales mediante `window.__banco`/`window.cmg`, sin extraer ni duplicar la simulación. El [fixture JSON](../../pruebas/factory-oraculo.json) identifica el commit completo `b76411b31a020dbf8a3b5039f82f03c37017b25e` y SHA-256 de la fuente.
+- **28 casos y 56 ejecuciones**: inicial y victoria de cada uno de los seis retos y un reto propio explícito; los cinco stocks de «Hasta vaciar»; derrame con/sin límite, viaje vacío permitido/prohibido, falta de `await`, vigía, bucle que cumple metas pero no termina, límite de sensores, lugar inexistente y material rechazado. Guarda fin, motivo, mensaje/línea, tiempo sin redondear, intento, stock, metas, carga/posición, resultados y eventos. Marcados todos los casos que derraman (incluidos iniciales) y el bucle continuo para los cambios de etapa 3.
+- **Verificación actual**: las dos pasadas completas en Ego Browser, origen **8771**, coincidieron exactamente en todos los campos. Velocidad oficial 4× y paso fijo sin sustituciones del reloj. `node pruebas/interaccion.cjs`: **123 correctas**. War: **90 comprobaciones correctas** en la segunda ejecución; la primera falló en la 18, doble toque emulado, intermitencia ya registrada antes de esta etapa. Suite sin editar. `node --check pruebas/factory-oraculo.mjs`, identidad de la fuente/fixture, identificadores únicos, marcas de etapa 3 y `git diff --check` correctos.
+- El arnés solo admite localhost/127.0.0.1:8771 y restaura las claves de Factory al acabar, incluso ante errores controlados. No sobrescribe un fixture existente. Las suites de interacción de Factory (43/23) no se repitieron en esta etapa: aquí se ejecutó el oráculo nuevo de reglas/runtime. No cambia ningún CSS/JS del producto, así que no hay versiones `?v=` ni lista de publicación que actualizar.
+- **Límites y siguiente paso**: etapa 1, «Primer viaje» dentro de War, todavía sin implementar; el oráculo no demuestra paridad de una versión migrada. La prueba de War usó ratón y tacto/teclado emulados, no dispositivos físicos. Campaign, decisiones de etapa 3 y retirada del original siguen fuera de esta entrega. Sin commits, push ni publicación.
+
+## Plan de unificación revisado y visión de Campaign · 3 de noviembre de 2026
+
+- [Plan de unificación](../../docs/PLAN-UNIFICACION.md) reescrito con el feedback del autor del 2 de noviembre. Queda acotado a Factory + War: nueva tabla de decisiones del autor y lista de cambios respecto al plan anterior. Etapa 3: reglas ya aprobadas, aplicadas una a una después de la paridad con el oráculo (victoria por metas del mundo, carga que se queda en el robot ante destino lleno, `null` frente a `0`, `yo.` opcional, máquinas como variables, API en inglés con alias). Salen del plan el primer reto mixto y Campaign. Pendiente nuevo: qué hacer con el reto «Sin derrames».
+- Nueva carpeta [`docs/Vision/2026-11-03/`](../../docs/Vision/2026-11-03/VISION-CAMPANA.md) (markdown y [HTML](../../docs/Vision/2026-11-03/vision-campana.html)): principio central, narrativa, escala, armas y sensores, Control Maestro, bandas y túneles, producción adaptable, matriz de decisiones y una ruta de pruebas propuesta (no decidida) hacia Campaign. Nada de esto se implementa todavía.
+- Solo documentación. HTML revisado en el navegador a 1024 y 390 px (sin desbordamiento horizontal; el filtro de la matriz funciona).
+
+## Plan de unificación Factory + War · 2 de noviembre de 2026
+
+- Nuevo [plan para el agente ejecutor](../../docs/PLAN-UNIFICACION.md): llevar Factory a la base de War por etapas, como catálogo de máquinas en un mismo mundo (no como modo aparte), con el runtime de War para todos (un encargo es una espera que decide la simulación) y el Factory original congelado como oráculo hasta la paridad. Incluye estado de partida comparado, arquitectura objetivo, invariantes, ocho etapas (0–7) con criterio de hecho, decisiones pendientes del usuario y riesgos.
+- Solo documentación: reglas, APIs, editor y guardados sin cambios. No se ejecutaron pruebas; los datos del documento se comprobaron leyendo el código actual.
+
+## `??` y operadores ajustados a la estructura, «Apuntar» en un hueco y EJECUTAR flotante · 2 de noviembre de 2026
+
+- Bugs del vídeo de QA (War): el atajo «Si no hay (??)» y sus variantes (`&&`, `||`, `!`, comparaciones) usaban el texto elegido tal cual. Ahora el operando se ajusta con `ESTRUCTURA`. Una sentencia o declaración aporta su expresión (`const pos = X;` → `X ?? /* valor */;`, también eligiendo `pos` o la línea entera). El nombre de una función o el objeto de `a.b` arrastran la llamada entera. Sin selección se usa la expresión que acaba en el cursor (tras el `;`, la de esa sentencia). Sin nada que tomar se escriben dos huecos. Lo que no es una expresión (un `while`…) avisa y no cambia el código. Se añaden paréntesis cuando hacen falta: `(a || b) ?? x`, `(a ?? b) && x`.
+- Con un hueco elegido, una plantilla `const x = valor;` («Apuntar», «Sensor de vibración») rellena el hueco con su valor y elige su primer hueco. Antes abría otra línea con un segundo `const pos`.
+- No se restringen por tipo las sugerencias de «Valor»: decisión de diseño, se prefieren muchas opciones mientras la mecánica cambie.
+- Pantalla completa: con las herramientas plegadas (`.cabecera-editor.plegada`), un botón **▶ EJECUTAR** (`#b-ejecutar-flot`) flota abajo a la izquierda del código. Hace lo mismo que el de la barra (ejecuta y pasa al mapa; DETENER mientras corre) y se oculta con el teclado del teléfono abierto.
+- Versiones: `juego.js?v=19`, `componentes.css?v=18`, `layout.css?v=16`.
+- Verificación: `node pruebas/interaccion.cjs` (**123 comprobaciones**, 27 nuevas de operadores y hueco). Navegador integrado en **8771**: `??` tras el `;` y con `autoTarget` elegido, y «Apuntar» en el hueco, con los botones reales de la paleta. Tableta emulada 768×1024 en pantalla completa: el botón aparece al plegar, ejecuta, pasa al mapa, alterna DETENER y se oculta al desplegar; consola sin errores. No se ejecutó `pruebas/navegador.mjs` (Ego Browser), ni tacto real.
+
+## Análisis jugable de Factory + War para Campaign · 1 de noviembre de 2026
+
+- Nuevo [HTML ilustrado de reglas para la campaña](../../docs/analisis/factory-war-reglas-campana.html), autónomo y sin recursos de red. El centro es jugable: autonomía, encargos frente a modos persistentes, seguimiento frente a coordenadas, bloqueos, suministro y metas. JavaScript y la hipótesis sobre el diseño de las demos quedan en un apartado breve. Cuatro situaciones permiten comparar la regla actual y la recomendación.
+- Recomendaciones por validar: seguimiento de entidades mediante una orden nueva (conservar el significado actual de `regularShoot`), mantener la carga ante una entrada llena, conectar producción y munición, programas por unidad y victoria por metas del mundo aun con bucles activos. Se explican sus costes educativos y los sistemas que aún faltan. No son decisiones aprobadas ni implementaciones de Campaign; reglas, APIs, editor y guardados del juego sin cambios.
+- Verificación de esta entrega: `node pruebas/interaccion.cjs` (**96 comprobaciones**), `node --check` del script extraído del HTML, 30 identificadores únicos, 11 enlaces locales válidos y ausencia de recursos externos. Ego Browser en **8771**: cuatro situaciones actualizan texto e ilustración; sin desbordamiento de página a 1440, 768, 390 y 320 px en claro/oscuro. Capturas de PC y móvil emulado revisadas visualmente; no prueba de balance de las reglas propuestas.
+- Límite de interacción: el selector se verificó con `selectOption`; no se confirmó su cambio con flechas/Home sintéticos de Ego. Pendiente teclado físico y tacto real. Documento local, sin publicación ni commits.
+
+## Fusión de `main` en `trunk` · 1 de noviembre de 2026
+
+- `trunk` (Desenvolver, inspector cerrado, hoja móvil) y `main` (pantalla completa, panel inferior, información del reto, telemetría, VFX) habían divergido: el enlace de githack a `trunk` no tenía las 9 commits de `main`. Fusionado `origin/main` en `auto-testing-ui`; conflictos solo en `?v=` y en este archivo. Versiones: `juego.js?v=18`, `edicion.js?v=17`, `estructura.js?v=3`, `seudo.js?v=3`.
+- Verificación: 96 lógica, 90 navegador War (dos veces seguidas), 43 Tres vistas, 23 editor Factory. La comprobación «un botón justo después de un toque…» falló una vez en la fusión y también en un `main` limpio: es intermitente por tiempos.
+
+## Desenvolver e inspector cerrado por defecto · 1 de noviembre de 2026
+
+- **Desenvolver** (P3 de la tanda de 20 ciclos): botón nuevo de la barra de edición, al final del grupo de líneas. Quita el `if`/`while`/`for`/`do` más cercano que contiene lo elegido y deja su contenido elegido, un nivel menos sangrado; Deshacer lo devuelve. Un `else` (o `else if`) que solo tiene plantilla se descarta; si tiene código, no cambia nada y avisa. En seudocódigo avisa de que está en JavaScript. Lógica en `shared/js/estructura.js` (`ESTRUCTURA.desenvolver`), botón en `shared/js/edicion.js`. Un orden de barra guardado recibe el botón en un grupo nuevo al final (Ajustes lo recoloca).
+- **Inspector cerrado por defecto**: causa, `abrirPrograma()` llamaba a `seleccionar(id)` y en el teléfono (ficha «completo») eso desplegaba la ficha al cargar el reto, al cambiar de pestaña de programa, al restaurar y al saltar a un error. Ahora abrir un programa, y la corrección de selección cuando desaparece una unidad, cambian de unidad conservando el estado del inspector (`inspeccionar: "conservar"`). Elegir en el campo, en los chips o en un enlace sigue abriéndolo.
+- Versiones: `juego.js?v=14` (Rocket), `edicion.js?v=16`, `estructura.js?v=3`, `seudo.js?v=3`; `pruebas/war-20-ciclos.mjs` exige las nuevas.
+- Verificación: **96 lógica** (9 de Desenvolver), **73 navegador War** dos veces seguidas (nuevas: Desenvolver + Deshacer, inspector cerrado al cargar y tras abrir programa, abierto al elegir), **43 Tres vistas**, **23 editor Factory**. La comprobación 18 («doble toque selecciona el mismo tipo visible») falló 2 de 6 ejecuciones y pasó al repetir: intermitente por tiempos del doble toque sintético, previa a estos cambios. Móvil emulado, no tacto real.
+
+## Corrección WAR-20-UI-01 (hoja móvil sobre el asa de línea) · 1 de noviembre de 2026
+
+- `shared/js/edicion.js` (v15): cuando la lista de sugerencias pasa a hoja inferior, primero desplaza la vista de bloques para subir lo elegido (como mucho hasta su borde superior) y vuelve a colocarla; si aún hace falta hoja, esta deja libre la columna de asas (números a la izquierda o borde derecho). Un toque en el número elige la línea con la lista abierta, sin cerrarla antes.
+- Hallado al reproducirlo con toque emulado: la hoja podía abrirse bajo el dedo y el clic de ese mismo toque elegía la opción de debajo (`missiles`). Ahora un clic en la lista solo cuenta si la pulsación empezó en ella (o viene del teclado).
+- Verificación: **87 lógica, 68 navegador War** (2 nuevas: hoja sin tapar números y toque en el número elige la línea; fallan con el `edicion.js` anterior), **43 Tres vistas, 23 editor Factory**. Comprobado además a mano en 393×660 y 393×600. Móvil emulado con CDP, no tacto real. `pruebas/war-20-ciclos.mjs` exige ahora `edicion.js?v=15`.
+- Desenvolver (P3) se implementó después: ver la entrada de arriba.
+
+## Verificación posterior y 20 ciclos aleatorios · 30 de octubre de 2026
+
+- Tanda válida con build actual y caché desactivada: **20/20 recuperaciones exactas**, 10 PC y 10 móvil emulado, 12 en nivel 4, fixtures R1–R5 y semilla `war-postfix-20-20261030-v1`. Tres recuperaciones con Borrar, dos terminando con borrado por línea y quince con Deshacer de la perturbación; 56 clics dentro del área y dos cierres de sugerencias fuera. Son pruebas de edición, no veinte partidas ni búsqueda de estrategia ganadora.
+- **87 comprobaciones de lógica y 66 de navegador War correctas**. Vídeos nuevos de SEL-01: 0/2 rápidos envuelven el while anterior (68/65 ms), controles pausados iguales y recuperación exacta. Tres MP4 decodificados completos y revisados por fotogramas.
+- Fricción **WAR-20-UI-01**: hoja móvil sobre el asa de línea (ciclo 14); un clic en el punto del número elige `missiles`. Vídeo dirigido confirma el efecto; cerrar lista → elegir línea → Borrar recupera el texto. No se confirma pérdida de datos ni se reabre ED-04. Carencia de desenvolver conserva interés; el ensayo local fue acotado y no agota alternativas manuales.
+- La primera tanda mezcló HTML actual en PC y antiguo en móvil por caché. Se conserva aparte y se excluye; se repitieron los veinte con verificación de versiones por intento. [Reporte, trazas, capturas, diagrama y vídeos](../../docs/qa/war-20-ciclos-2026-10-30/REPORTE.md). Recursos del producto sin cambios; adaptadores de QA nuevos y grabador con carpeta configurable. Sin commits/publicación, ratón y móvil emulado, tokens sin medir.
+
+## Aviso en Factory: War es la versión vigente · 31 de octubre de 2026
+
+- Factory (`Prototypes/Tres vistas/`) muestra una franja fija arriba: «War es la versión más actualizada del juego», con el botón «Ir a War» y ×, que lo oculta durante la sesión. La app baja 36 px para que no tape nada. La franja se oculta con el teclado de código abierto y en pantallas estrechas usa un texto corto. `componentes.css?v=6`.
+- Verificación: Tres vistas 43 OK y editor Factory 23 OK. La primera versión, flotante abajo, tapaba controles y rompía la suite; se cambió por la franja. Revisado en PC 1400 y teléfono 390.
+
+## Telemetría mínima para la prueba con compañeros · 31 de octubre de 2026
+
+- War envía eventos `entrada`, `reto` e `intento` (resultado, motivo, línea y código de cada lanzador, incluidos los errores de sintaxis al pulsar EJECUTAR) a `/api/t`. La función de Netlify `netlify/functions/t.mjs` los guarda en Netlify Blobs. Se leen con la clave `TELEMETRIA_CLAVE` como JSON, CSV o un resumen por persona y reto. Detalle en `docs/TELEMETRIA.md`.
+- `juego.js` solo emite `CustomEvent` (`cmg:intento`, `cmg:reto`); el envío está en `js/remota.js` (`sendBeacon`). Hay un id anónimo por navegador, `?quien=` opcional para etiquetar enlaces, y un ajuste o `?telemetria=0` para desactivarlo. No envía nada en local, en githack ni en la red local.
+- Nuevo `package.json` con la única dependencia `@netlify/blobs@^8.2.0`, que es solo para la función; el juego sigue sin compilación. `netlify.toml` declara `netlify/functions`.
+- Versiones: `juego.js?v=17` y `remota.js?v=1`.
+- Verificación: `pruebas/telemetria.mjs` (11 OK) y `interaccion.cjs` (87 OK). En el navegador, el envío se probó interceptando `/api/t`: nada en local, la entrada con quien/id/sesión, el intento con error de sintaxis y su código, el intento terminado, el cambio de reto y el ajuste desactivado. War: 82 OK; paquete de Netlify verificado.
+- Pendiente: definir `TELEMETRIA_CLAVE` en Netlify y comprobar un evento real tras el despliegue. Conviene avisar a los compañeros de que se guarda su código.
+
+## Información del reto con pestañas (en curso) · 31 de octubre de 2026
+
+- La ficha ⓘ del editor tiene una tira de pestañas deslizable (dedo, rueda, arrastre con ratón) con flechas que avisan de que hay más: **Objetivo**, **Metas** en vivo (verde cumplida, rojo rota), **Enemigos** del reto con miniatura (`img/enemigos/*.png`, capturas del modelo actual con `cmg.retrato(tipo)`), **Pista** escalonada por frases (la primera a petición; cada intento fallido muestra y abre la siguiente; el aviso de fallo muestra la última parte) y **Último intento** (motivo, «Ir a la línea» en errores, economía mínima). Paleta, barra de edición y pestañas se deslizan 36 px más allá del último botón.
+- Versiones: `juego.js?v=16`, `layout.js?v=12`, `componentes.css?v=17`.
+- Verificación parcial: 87 de lógica; capturas en PC (metas en vivo hasta la victoria) y teléfono 390 × 844.
+- Pendiente: progreso de derribos necesarios para que las metas se pongan en verde durante el intento; en el teléfono emulado del navegador de pruebas un programa con `await` termina por el vigía a t = 0 (sin comprobar si ya pasaba antes); posible solape de CBL con el número del reto en PC durante un intento; comprobaciones de navegador de las pestañas.
+
+## Cámara giratoria, campo girado, terreno con montañas y objetivo desde el código · 31 de octubre de 2026
+
+- **Girar con dos dedos** (War, todas las formas, vista 3D): además de pellizcar y desplazar, girar dos dedos gira el escenario alrededor del punto entre ellos. Un umbral de ~7° evita girar sin querer al pellizcar. La pista del inspector lo menciona.
+- **Campo girado 90° en pantalla completa** (War): con el modo activo y la pantalla en vertical, la cámara pasa a una vista girada con la base abajo y los enemigos llegando desde arriba, encuadrada para que el ancho del campo llene la pantalla. Al girar el teléfono a horizontal vuelve la vista normal. Se desactiva en Ajustes («Con la pantalla en vertical, girar el campo 90°», preferencia `cmg-juego-pantalla-girar`, activa por defecto). Hay una cámara por postura (horizontal, vertical y vertical girada): cada una recuerda durante la sesión dónde la dejó el jugador; ⌖ la devuelve a su encuadre inicial. Se interpretó «vertical» como la postura en la que el giro aprovecha la pantalla, según el ejemplo enviado por el usuario.
+- **Terreno «infinito» y montañas** (War, todas las formas): el suelo y su cuadrícula siguen más allá del campo de 32 × 18 (algo más oscuros) hasta perderse en una bruma de horizonte que no toca el campo; el reto con niebla conserva su niebla. Detrás del borde norte hay una cordillera de columnas de 1 m de lado y terrazas de 1 m (picos fijos + ruido suave sin `Math.random`, una sola `InstancedMesh`, sin colisión ni efecto en la simulación), con cumbres claras. La cámara horizontal inicial se inclinó un poco (1,02 → 0,93 rad) y mira 1,3 m más al norte para dejar ver las laderas; orbitando se ve la cordillera entera. El plano 2D prolonga la cuadrícula, tenue, hasta los bordes. El desplazamiento de cámara admite 4 m más allá del campo.
+- **Botón del mapa** (War, pantalla completa): ya no está abajo en el editor; flota bajo el botón de pantalla completa con su mismo estilo, algo menos brillante. La paleta se acorta para no quedar debajo.
+- **Botón de información** (War, todas las formas): en el sitio del antiguo botón del mapa, abajo a la derecha del editor, abre una ficha con el reto, su objetivo y la lección (lo mismo que `section.objetivo` de la hoja del reto). Se cierra con ×, Esc o tocando fuera, y se actualiza al cambiar de reto.
+- `window.cmg.camara()` devuelve la postura y el estado de la cámara 3D (para pruebas).
+- Versiones: `juego.js?v=15`, `layout.js?v=11`, `componentes.css?v=16`, `layout.css?v=15`.
+- Verificación actual en 8771 (Chromium/Playwright con el adaptador de Ego y CDP para tacto real de dos dedos): **87 de lógica** y **82 de War** (8 nuevas: campo girado en vertical, giro con dos dedos en su sentido, umbral, ajuste, memoria por cámara, botón del mapa bajo el de pantalla completa, botón de información), todas correctas salvo ED-04 («la lista de sugerencias cabe con dos opciones a la vista»), que falla igual sin estos cambios solo con el cambio de viewport del adaptador; paquete de Netlify verificado. Capturas revisadas en PC 1400, teléfono 390 × 844 y 844 × 390, y tableta 768 × 1024.
+- Límites: tacto emulado por CDP; falta QA real del giro con dos dedos en Android/iPhone y del cambio de cámara al girar el dispositivo. Desde la cámara inicial se ven las laderas, no las cumbres. Factory sin cambios.
+
+## Pantalla completa, alternativas sin teclado y panel inferior · 31 de octubre de 2026
+
+- **Atajo Ctrl+Alt+A** (ambos juegos, `shared/js/edicion.js`): activa o desactiva el modo sin teclado desde cualquier parte; no actúa con un diálogo abierto ni en seudocódigo. El tooltip del botón lo muestra.
+- **Menú de alternativas sin teclado** (ambos juegos): clic derecho sobre un elemento, o con el dedo mantener 2 s sin arrastrar (el primer segundo no pasa nada; el segundo se llena un anillo). Sobre una función: todas las funciones disponibles (`cmg.funciones()`, nuevo en ambos `juego.js`), conservando los argumentos cuyo nombre de parámetro coincide y añadiendo/quitando `await`. Sobre un operador: los de su familia (comparar, combinar, calcular, asignar). Sobre `const`/`let`, `true`/`false`/`null`, variables, propiedades, textos y números: lo que encaja en su sitio (argumento, condición, comparación) más los de su tipo. En un hueco vacío de `( )` sus valores, y en una línea vacía dentro de `{ }` las órdenes como sentencias. Usa la misma lista de sugerencias (teclado ↑↓/Intro/Esc).
+- **Tooltip de la paleta** (ambos juegos): queda debajo de la paleta y del menú de variantes, y se recoloca si el menú se abre o se cierra; su capa queda por debajo de `.variantes`.
+- **Modo pantalla completa** (War): botón semitransparente de cuatro esquinas solo en teléfono/tableta (forma móvil, ≤ 1100 px, o puntero táctil ≤ 1400 px), en la esquina superior derecha de la app: junto a Ajustes si ahí está el mapa, o flotando bajo ▴ si está el código. Se activa y desactiva manteniéndolo 2 s (círculo grande que se llena); un toque corto solo avisa. Activo, el icono brilla en blanco, aparece «Full screen mode active. More details on settings.» y la batalla pasa a pantalla completa. `</>` junto a Ajustes lleva al código; en el editor, **▶ EJECUTAR** sustituye a las pestañas de programas, corre el código, vuelve a la batalla y cierra el inspector; el botón del mapa abajo a la derecha del editor vuelve sin ejecutar. «Ir a la línea» y «Editar el programa» llevan al código. El divisor sigue funcionando; los botones vuelven a pantalla completa mientras el modo siga activo. Ajustes muestra el estado y abre un diálogo explicativo. Preferencia `cmg-juego-pantalla-completa`; el reparto guardado no se toca.
+- **▴ de las herramientas siempre visible** (ambos juegos): queda fijo a la derecha de las pestañas, que se deslizan por debajo (en 1024 px y en el teléfono quedaba fuera).
+- **Inspector** (War, todas las formas): cabecera más baja; los signos vitales pasan al final de la ficha abierta (la tira de PC los conserva); las unidades son botones delgados en una fila deslizante.
+- **Panel inferior** (War, todas las formas): donde estaba la consola hay una barra arrastrable como el divisor (hasta abajo lo cierra; un toque o ▾/▴ lo cierra o recupera su último alto) con el selector Inspector/Consola. El inspector, por defecto, muestra solo lo que el programa abierto puede usar: funciones, propiedades con valores vivos, variables y constantes del programa y la red de sensores; doble toque inserta y se puede arrastrar. La consola marca con un punto los mensajes nuevos mientras está oculta. En PC empieza abierto (170 px) y en el teléfono cerrado. Preferencias `cmg-juego-pie-*`.
+- Verificación actual en 8771 con Chromium/Playwright mediante un adaptador del objeto `page` de Ego Browser (CDP para tacto): **75 de lógica**, **67 de War** (10 nuevas: Ctrl+Alt+A, anillo y menú de funciones por pulsación de 2 s, conservación de argumentos, botón, toque corto, activación, EJECUTAR, salida), **43 de Tres vistas** y **23 del editor Factory**, todas correctas. La comprobación de la consola móvil se adaptó al panel nuevo. Capturas revisadas en PC 1400, tableta 1024 y teléfono 390. Los CDN no eran accesibles: Three.js r128 y Acorn 8.11.3 se sirvieron desde copias locales solo para la prueba.
+- Después: «Editar programa» del aviso de fallo también pone el código a pantalla completa. Unidas en `main` las ramas `auto-testing-ui` (incluye `trunk`: arnés de recuperación, QA de War, arte y animación; correcciones ED-01–ED-09) y `claude/inspiring-feynman-9clnvf` (plan de VFX). Conflictos solo en versiones `?v=` (subidas por encima de ambas) y en este archivo.
+- Límites: el arrastre de una palabra a `stopFire(` de la suite de War falla de forma intermitente (~1 de 4 en una reproducción aislada) también con el código anterior: depende del tiempo entre dos arrastres seguidos y no es una regresión. Tacto emulado; falta QA real de los 2 s en Android/iPhone (menú del sistema, vibración) y del cambio de panel al girar la tableta. El modo pantalla completa no usa la API Fullscreen del navegador: reparte los paneles de la app. Factory no tiene el modo ni el panel inferior nuevo.
+
+## Correcciones del editor sin teclado (ED-01–ED-09) · 30 de octubre de 2026
+
+- Corregidas las nueve incidencias de la regresión del mismo día. Cambios en `shared/js/edicion.js` (selección pendiente, Borrar sin restos, operandos, cursor y colocación de la lista), `shared/js/estructura.js` (contexto de operandos y nivel «línea» en Ampliar), `shared/css/edicion.css` (animación solo de opacidad y hoja inferior compacta) y `Prototypes/Rocket Launcher/js/juego.js` (envolver con 2 espacios y según la categoría de lo elegido; Variable con la misma regla). Tres vistas recibe la sangría de 2 espacios y los módulos compartidos.
+- Versiones: `edicion.js?v=14`, `estructura.js?v=2`, `edicion.css?v=3`, `juego.js?v=13` (Rocket) y `juego.js?v=7` (Tres vistas).
+- Verificación actual en 8771 con la caché desactivada: **87 comprobaciones de lógica** (12 nuevas; la suite carga ahora `estructura.js`), **66 de navegador de Rocket** (9 nuevas), **43 de Tres vistas** y **23 del editor Factory**, todas correctas. Barrido de Borrar repetido: 0 restos en 143 borrados (antes 24/133); diagnóstico de SEL-01 sin reproducción. Detalle en [el reporte](../../docs/qa/editor-2026-10-30/REPORTE.md). Móvil emulado, sin tacto real; el piloto aleatorio no se repitió.
+
+## Regresión del editor sin teclado (Rocket Launcher) · 30 de octubre de 2026
+
+- Misión de QA sin correcciones al juego: regresión dirigida de WAR-SEL-01/EDIT-02/VIEW-03, barrido de Borrar sobre todas las fichas de R1–R5 y **primer piloto real R1–R5 × PC/móvil** del ciclo de recuperación (semilla `rocket-piloto-v1`): **10/10 recuperados exactos**, 7 locales y 3 con Deshacer, sin teclado.
+- [Reporte con prioridades, causa y propuesta por incidencia](../../docs/qa/editor-2026-10-30/REPORTE.md). P1: **ED-01** la selección pendiente de 380 ms hace que Borrar rápido vacíe el programa entero; **ED-02** los operandos de `??`/`&&`/`||` se clasifican como condición (`estructura.js:510`) y Borrar los rechaza o deja `/* condición */`. P2: lista de sugerencias que tapa el código y se coloca 80 ms tarde por `@keyframes tip`; lista fuera de pantalla en móvil (`max(90, …)`); envolver con 4 espacios; plantillas que envuelven sin respetar la categoría (`;;`, `);`, `if` en expresiones); 18 % de borrados con restos. P3: cursor tras borrar una línea intermedia y Ampliar sin nivel «línea».
+- Verificación actual: **75 comprobaciones de lógica y 57 de navegador correctas**; ninguna cubre estas incidencias. Ego restablece la emulación entre rondas: los intentos 2–5 se cerraron a 1224×670. Móvil emulado con ratón. Tokens no medidos. Sin commits.
+
+## Skill de QA visual · 30 de octubre de 2026
+
+- Creada la skill personal `qa-regresion-visual` en `~/.codex/skills/`, con las capturas, cuatro vídeos, trazas y diagrama de War como assets históricos, más instrucciones reutilizables para recopilación, reproducción y recuperación. Diez ciclos por tanda como valor predeterminado ajustable.
+- Retirado de esta entrega el caso descartado por el usuario: menciones, medios, diagnóstico y entradas del manifiesto. Se conservan los casos de selección, borrado y espacio móvil. Recursos y reglas del juego sin cambios.
+
+## Vídeos de reproducción de incidencias de War · 30 de octubre de 2026
+
+- **WAR-SEL-01 reproducido en ambos formatos**: intervalos rápidos de unos 51 y 77 ms hacen operar sobre el `while` anterior; Deshacer recupera el texto exacto y el control con pausa de 450 ms utiliza la ficha nueva. El control evalúa la selección, no que la inserción elegida genere un programa correcto.
+- Fricciones filmadas sin reclasificarlas como bugs: restos `??`, `const =` y `;` tras borrar; en móvil plegar herramientas aumenta la altura de fichas de 111,7 a 262 px.
+- Grabador externo `pruebas/grabar-regresiones-war.mjs`, mediante CDP `Page.startScreencast` y FFmpeg ya instalado. MP4 H.264 sin audio, tiempos reales de captura y duplicación a 30 fps de salida; no se promete 30 capturas distintas por segundo. HUD de QA solo sobrepuesto, sin cambios en recursos del juego. Preparación con fixtures fuera de la recuperación; solo origen 8771.
+- Verificación actual: cuatro MP4 examinados con FFprobe, decodificados íntegramente con FFmpeg y revisados visualmente por fotogramas; script con sintaxis válida, **75 comprobaciones de lógica correctas** y hashes de juego idénticos a los del reporte anterior. Las 57 comprobaciones de navegador citadas el día 29 son históricas y no se repitieron para esta grabación. Ratón y móvil emulado; pendiente tacto real. Sin correcciones del juego, commits, push ni publicación.
+
+
+## Robots 3D en Blender (exploración de arte) · 29 de octubre de 2026
+
+- `arte/blender/robots.py` genera por código tres robots con la estética «fábrica de juguete» (crema, turquesa «rol», grafito, amarillo y luces emisivas) y las convenciones de Concepto2 (1 m = 1 casilla, mirada a +Y, pivotes con nombre, animación «ciclo» de 2 s). Escena guardada en `arte/blender/robots.blend`; render en `arte/blender/render_familia.png`.
+- Transporte T1 con orugas y brazo largo alineado con su torreta, según la referencia. Araña de ocho patas con cara pixel art en «pantalla» (candidata a protagonista de Campaign). Escarabajo explorador de seis patas y cuerpo único: los élitros se abren y despliegan un propulsor a cada lado (`pose_vuelo`). Las patas caminan con cinemática inversa y los pies de apoyo no resbalan.
+- Sin integrar en los juegos ni exportar GLB. `dist/` no incluye `arte/`. Sin commits. *(El 3 de noviembre el T1 se integró en Factory: ver la entrada «Factory en 3D».)*
+
+## QA exploratoria de War con inputs aleatorios · 29 de octubre de 2026
+
+- Misión de recopilación, sin corregir recursos del juego: **10 ciclos de edición/recuperación, 6 sobre el nivel 4**, cinco en escritorio y cinco en móvil emulado. Las diez perturbaciones efectivas se recuperaron con texto exacto mediante UI, sin teclado durante los intentos. Se guardan partida, perturbación y final de cada ciclo, selección, coordenadas, tiempos y cadena de botones.
+- Hallazgo prioritario **WAR-SEL-01**: un clic dentro de una selección espera 380 ms; un botón pulsado antes puede actuar sobre el bloque anterior. Evidencia clara en 7/10 ciclos y reproducción dirigida rápida 2/2; el control con pausa de 450 ms usa la nueva selección. Deshacer permitió continuar. Queda pendiente corregir y añadir la aserción de regresión cuando cambie la UI; no se ha corregido el juego en esta misión.
+- Fricciones: tres reparaciones locales dejaron `??`, `const =` o `;` residual; no son bugs confirmados de Borrar. En móvil, las preferencias con herramientas/inspector desplegados dejan pocas líneas visibles. Las seis ejecuciones del programa inicial del nivel 4 con semilla 17 finalizaron en 33 derribos, 2 brechas y 4 atascos a 49,2 s; no se buscó una estrategia ganadora.
+- [Reporte priorizado, evidencia y diagrama secuencial](../../docs/qa/war-2026-10-29/REPORTE.md), [cadena de inputs por ciclo](../../docs/qa/war-2026-10-29/LOG-INPUTS.md) y diagnóstico reutilizable `pruebas/war-recuperacion-regresion.mjs`. Arnés externo adaptado a fichas y barra actual; se conservan diferencias temporales entre los primeros tres ciclos y los siguientes. No corresponde a la matriz R1–R5 del piloto original.
+- Verificación actual: **75 comprobaciones de lógica y 57 de navegador de War correctas**, sintaxis de arnés/diagnóstico y `git diff --check` correctos. Diagrama Archify: 9/9 comprobaciones, evidencia de navegador y revisión visual de capturas. Solo puerto 8771, Chromium con ratón/móvil emulado; pendiente tacto y teclado reales. Esta misión no hizo commits, push ni publicación.
+
+
+## Plan de efectos visuales · 29 de octubre de 2026
+
+- Añadido [docs/PLAN-VFX.md](../../docs/PLAN-VFX.md). Propone efectos procedurales definidos como recetas de datos y partículas sin estado, calculadas en función del tiempo. Un módulo compartido sin dependencias las dibujaría en Three.js r128 (nubes de puntos con un shader propio) y en canvas 2D. La simulación anotaría los sucesos visibles en `mundo.fx`; ninguna regla, instantánea de los programas ni telemetría lee esa lista. Fases: base y laboratorio, combate de War, estado de War, Factory y Ajustes.
+- Validación con un prototipo desechable fuera del repositorio: War real en Chromium sin pantalla (WebGL por SwiftShader, Three r128) y tres recetas (disparo, impacto, derribo de dron) comparadas con la explosión actual en hojas de contactos 3D/plano. Bastaron dos iteraciones de ajuste. 60 efectos simultáneos (869 partículas) cuestan 0,7–0,8 ms de CPU por fotograma. Detalle: `mundo.derribados` se anota, pero hoy no se dibuja.
+- En esta nube la red del entorno bloquea cdnjs y jsdelivr. Las pruebas sirvieron la misma Three r128 y Acorn 8.11.3 desde el registro npm, interceptando las peticiones sin cambiar el juego.
+- Comprobación actual: 75 comprobaciones de lógica correctas (solo cambió documentación).
+- Límites: no se modificaron juegos, pruebas, `window.cmg` ni formatos de guardado, y el juego no tiene efectos nuevos. SwiftShader dibuja en la CPU: la fluidez y el coste de GPU se medirán en Android/iPhone reales. Pendiente: aprobación del enfoque y Fase 0.
+
+## Corrección del despliegue de main en Netlify · 29 de octubre de 2026
+
+- Reproducido el 404 de `https://codewar-mageddon.netlify.app/`. Netlify tenía publicado `main@49bd493`, sin `index.html` en la raíz; la portada, recursos compartidos y configuración de publicación seguían sin seguimiento en la carpeta local.
+- Incluido en `main` mediante `4175c37` el conjunto estático ya implementado: entrada Factory / War / Campaign (Próximamente), recursos de ambos juegos, `netlify.toml` y generador de `dist/`. El laboratorio de animación y el arnés de recuperación quedaron fuera de esta subida.
+- Comprobación actual: 75 pruebas de lógica, sintaxis de scripts, 8 HTML y 41 referencias locales del paquete correctos. Las 131 comprobaciones de navegador pasan en 8771: War (57), Tres vistas (43), editor Factory (23) y entrada (8), incluidos arranque de Factory/War, Campaign, retorno al inicio y anchos móviles emulados. En Netlify se confirmó base `/`, sin comando ni directorio de publicación configurados; el archivo TOML versionado aporta ambos valores.
+- Netlify confirmó **Published deploy** para `main@4175c37` (despliegue `6ae338eb20d6be29f4801ccd`). Verificación real en el dominio público: portada disponible, Factory y War arrancan con sus módulos/CDN, Campaign muestra Próximamente y los enlaces permiten regresar al inicio. La suite que modifica programas se ejecutó solo en 8771. Los programas continúan guardándose por origen, y el tacto/teclado real sigue pendiente de QA manual.
+
+## Factory refinado, entrada común y preparación Netlify · 29 de octubre de 2026
+
+- Entrada nueva en `index.html` con **tres cuadros**, según la aclaración del usuario: Factory → Tres vistas, War → Rocket Launcher y Campaign → «Próximamente». Portada adaptable, navegación por teclado, página Campaign y 404. Ambos juegos vuelven al inicio desde CBL en PC o desde Ajustes en móvil.
+- Herramientas de editor extraídas a `shared/`: iconos generales, estructura tolerante y editor sin teclado, más su CSS. Factory añade sus iconos y datos de edificios/materiales/sensores. War consume los mismos módulos; no se duplicó la simulación ni se añadieron dependencias.
+- Factory incorpora fichas sin teclado, selección semántica ampliable/reducible, arrastre de valores y líneas, asas por número o borde, sugerencias para rellenar argumentos/huecos, variantes por pulsación larga/clic derecho y barra reordenable por grupos. La barra actúa también sobre bloques/seudocódigo (cortar/copiar/pegar, duplicar, borrar, mover y seleccionar al contenedor); sustituye visualmente a los controles de selección antiguos. Seudocódigo refinado con placas por categoría, chips y guías de sangría. Paleta/barra en una línea y consola móvil cerrada.
+- El historial de Factory guarda texto y árbol juntos. Los ids de UI se regeneran y se excluyen de la identidad del documento; cambiar de reto conserva el historial correspondiente durante la sesión. Se guarda antes de cambiar de reto y se vacía el guardado pendiente al ocultar/abandonar la página. Comentar e insertar sin teclado no enfocan el textarea. Programas y preferencias mantienen `cmg-banco02:*` y `cmg-banco02-ui-*`; no comparten las preferencias de War.
+- Review de War: corregida la traducción que cambiaba `let`/`var` a `const`, convertía reasignaciones en declaraciones o renombraba el índice de un `for`. Ahora conserva esas formas. Se rechazan con aviso las comparaciones con coerción (`==`/`!=`), los ámbitos de bloque independientes y `console[variable](…)`, que antes podían cambiar de significado al editarse. Corregida la supresión de un clic antiguo tras elegir variantes. Regresiones añadidas a la suite de War; el fixture de seudocódigo ya no depende de programas guardados por una prueba anterior.
+- Comparación textual con HEAD: runtime/Web Worker, modelo/generador/traductor y núcleo de creación/simulación de Factory sin cambios; RNG y creación del mundo de War sin cambios. No se cambió la API del jugador ni el formato de guardado. `window.cmg` conserva sus miembros y añade el adaptador opcional del historial/edición.
+- Netlify: `netlify.toml` ejecuta `node scripts/preparar-netlify.mjs` y publica `dist/`. La lista permitida incluye solo portada, Campaign, juegos, `shared/` y la redirección heredada de `Prototypes/`. Excluye animación educativa, pruebas, documentación y metadatos. `dist/` está generado e ignorado; también puede subirse manualmente. README/VISION actualizados; PowerShell ajustado a servir la raíz completa con los recursos compartidos.
+- Verificación actual en el puerto dedicado 8771: **75 comprobaciones de lógica y 131 de navegador correctas** (43 de Tres vistas, 23 nuevas de Factory, 57 de War y 8 de portada/paquete). Un mismo programa completa el reto con idéntico tiempo en los tres modos. Paquete regenerado: **8 HTML y 41 referencias locales** verificados, con exclusión del material de desarrollo. Sintaxis de los scripts y pruebas, lectura de TOML y `git diff --check` correctos. Capturas de PC/móvil emulado revisadas. PowerShell no está instalado en este entorno.
+- Límites: Factory conserva su plano 2D, un robot programable y sus retos de recogida; 3D, selección múltiple/Add/Replace y sensores de defensa pertenecen a War. Se mantiene el subconjunto de cada traductor, los CDN y el almacenamiento por origen: Netlify no importa automáticamente los programas locales. Tacto y teclado de las pruebas son emulación de Chromium; pendiente QA en Android/iPhone reales. No se validó PowerShell en Windows ni un despliegue real en Netlify. Sin commits, push ni publicación; cambios previos de animación educativa/arnés conservados.
+
+## Seudocódigo, barras de una línea y orden de la barra · 29 de octubre de 2026
+
+- Seudocódigo en Rocket Launcher (`js/seudo.js`, nuevo), traído de Tres vistas y adaptado al lanzador. Interruptor JS/Seudo junto a la letra y en Ajustes → Lenguaje del programa, con idioma ES/EN (`cmg-juego-modo`, `cmg-juego-idioma-seudo`). Renglones: apunta (con alternativa `??`), escucha (red de sensores), dispara, ráfaga, deja de disparar, espera, avisa, repite siempre, repite N, mientras, si / si no (con `else if`) y sal del bucle. Condiciones: variable o propiedad que existe o no, o comparada con un número o un modo.
+- El programa se sigue guardando y ejecutando como JavaScript: al entrar se traduce con Acorn y cada cambio reescribe el texto, así que deshacer/rehacer de la barra sirven igual. El programa de partida comentado se ve como el de partida y el texto no cambia hasta editar. Lo no traducible se queda intacto en JavaScript con un aviso; si hay comentarios, se avisa de que se quitan al editar en seudocódigo. La línea en ejecución ilumina su renglón y la edición se bloquea mientras corre. El inspector no inserta en seudocódigo.
+- Edición como en Tres vistas: tocar un valor abre su lista (datos de la máquina y variables del programa); tocar un renglón coloca el cursor; los ladrillos se tocan o se arrastran; un renglón se arrastra (con el dedo, mantener 0,28 s) y soltado sobre la paleta se borra. La barra de edición actúa sobre el renglón elegido: borrar, cortar/copiar/pegar bloques, duplicar, subir/bajar, ampliar al bloque que lo contiene y reducir.
+- Estilo nuevo de los renglones: placas con franja del color de su clase (órdenes, sentidos, espera, control), valores en chips con los colores del código y guía de sangría en los bloques.
+- La paleta y la barra de edición ocupan una línea cada una y se deslizan; en PC la rueda las desplaza en horizontal. En el teléfono la consola empieza cerrada (solo el asa «Consola»).
+- Ajustes → «Ordenar botones y grupos…» abre un diálogo para arrastrar botones dentro de su grupo o a otro, mover grupos enteros por su asa ⋮⋮ y crear un grupo nuevo; «Restaurar» vuelve al orden de fábrica (`cmg-juego-barra`). Los separadores de la barra salen de los grupos.
+- Verificación actual en el puerto 8771: **75 comprobaciones de lógica**, **52 de navegador de Rocket Launcher** (11 nuevas: seudocódigo, orden de la barra, consola y una línea por barra en el teléfono) y **43 de Tres vistas**, todas correctas.
+- Límites: tacto emulado en Chromium; falta QA en el teléfono del arrastre de renglones y del diálogo de orden. El seudocódigo no cubre variables propias (`let x = 1`), operadores `&&`/`||` en condiciones ni funciones: esos programas se quedan en JavaScript. Tres vistas no cambia.
+
+## Modo sin teclado y edición por bloques en Rocket Launcher · 29 de octubre de 2026
+
+- Corregido el bug «un clic elige otro elemento». `getComputedStyle(textarea).font` llega vacío por `font-variant-ligatures: none` y el espejo de `caracterCodigo` medía con la letra proporcional del body. Con dos argumentos, el doble clic en el primero elegía el segundo. Ahora copia las propiedades sueltas, también en Tres vistas (`juego.js?v=4`). La suite de navegador medía igual y se corrigió.
+- Modo sin teclado (`js/edicion.js`, nuevo). Un botón con un teclado se tacha en rojo: en PC va junto a la letra y en el teléfono es el primero de la barra de edición. El textarea sigue siendo el modelo (valor, selección, guardado y ejecución sin cambios); en pantalla lo sustituye una vista de fichas que no abre el teclado ni la selección nativa del sistema. Un toque elige un elemento entero: textos con sus comillas, comentarios, nombres y números. Una palabra clave, un signo o una llave eligen su construcción. El doble toque o doble clic amplía: `"oro"` → `entregar("oro")` → `yo.entregar("oro")` → el `if`. «Reducir» deshace la ampliación.
+- Arrastre: un valor se copia sobre un hueco, un argumento o dentro de `( )`/`[ ]`, con las comas necesarias. Con el dedo, primero se mantiene pulsado. Las líneas completas se mueven con la sangría del destino y Alt/Ctrl las copia. No se suelta partiendo otra construcción. Las asas van en el número de línea o en el borde derecho (Ajustes «Asa para mover líneas»). Se guardan `cmg-juego-sin-teclado` y `cmg-juego-asa`. En PC la vista acepta Supr, Ctrl+Z/Y/D/C/X/V, Alt+↑↓, Mayús+Alt+→/← y flechas.
+- `js/estructura.js` (nuevo, sin DOM): análisis tolerante sobre `lexico()`. Huecos, argumentos vacíos y código a medio escribir no lo rompen. Da átomos, niveles semánticos, unidades de línea, fronteras válidas, contexto de argumentos y condiciones, y destinos de soltar.
+- Sugerencias con los datos de la máquina, `cmg.sugerencias` en `juego.js`: tipos (primero los del reto), sensores con su alcance (y niebla), lugares (variables, `autoTarget` del reto, red de sensores, `target`, `null`, lugar manual), condiciones (propiedades, variables y operadores con huecos), valores, segundos y mensajes. Elegir rellena y pasa al siguiente hueco de la línea. Los números tienen −/+ y «Escribir otro valor…» abre un campo. Con teclado se usan ↑↓, Intro/Tab y Esc. La lista no sube por encima de la paleta ni de la barra.
+- Barra de edición: deshacer, rehacer, cortar, copiar, pegar, borrar, ampliar, reducir, duplicar, subir, bajar y línea nueva. Está siempre bajo la paleta en el teléfono, también con el teclado abierto; en PC solo sin teclado. Sin teclado, borrar un argumento deja su hueco (`/* sensor */`) y borrar una condición, `/* condición */`. Las líneas se quitan enteras. El historial es propio, por documento.
+- Paleta con variantes (mantener ~0,45 s o clic derecho; se puede soltar el dedo sobre la variante). While true: While, For, Do … while y Salir del bucle. If / else: If e If / else if. `??`: `&&`, `||`, `!`, `===`, `!==`, `>`, `<`. Variable: `let` y asignar. Aviso: log, info y error. El `While` deja de ser un botón aparte. If / else conserva su inserción por defecto. Los operadores usan lo elegido como primer operando y «Aviso» deja `/* mensaje */`. Los huecos comparten vocabulario (`NOMBRES_HUECO`) para resaltar, seleccionar y revisar antes de ejecutar. Insertar en una línea vacía toma la sangría de la anterior.
+- `window.cmg` suma `lexico`, `clasificar`, `sugerencias`, `firma`, `reHueco`, `aviso`, `alDesplazar`, `alternarEjecucion`, `claveDocumento` y `edicion`. Eventos del textarea: `cmg:medido`, `cmg:documento`, `cmg:seleccion` y `cmg:estado`. API del jugador, simulación y formatos de guardado sin cambios.
+- Verificación actual en el puerto 8771: **75 comprobaciones de lógica** (25 nuevas), **41 de navegador de Rocket Launcher** (16 nuevas, con ratón real por CDP y tacto emulado) y **43 de Tres vistas**, todas correctas. Sintaxis de los ocho scripts correcta. Una ejecución intermedia falló en el cuadro táctil del mapa por latencia del puente de automatización: aislado pasó 3/3 y la ejecución final fue completa.
+- Límites: los gestos táctiles son emulación de Chromium. Falta QA en Android/iPhone de mantener pulsado, desplazar frente a arrastrar, asas y ausencia del menú nativo. Con teclado sigue el menú nativo de Android al seleccionar: suprimirlo quitaría el pegado del sistema. Sin teclado no se escribe texto libre salvo con «Escribir otro valor…». En la IP de la red local, pegar usa lo copiado en el juego. Tres vistas solo recibió el arreglo del clic. Sin commits.
+- Para el arnés de recuperación que se prepara aparte (aún sin commit): barra `#edicion`, interruptor `#b-teclado` en PC y `#edicion .b-teclado` en el teléfono, vista `#bloques`, variantes `.variantes .variante` y sugerencias `.sugerencias .sug`. La paleta conserva `#paleta button.atajo[data-i]`.
+
+## Arnés de recuperación sin teclado · 29 de octubre de 2026
+
+- Preparado un ciclo externo para **Rocket Launcher**, en `pruebas/recuperacion-editor.mjs`, sin modificar archivos del juego, simulación, `window.cmg` ni formatos de guardado. La UI nueva de Claude todavía no estaba presente al iniciar esta preparación; otros procesos comenzaron a modificar el juego durante el trabajo y sus cambios se conservaron.
+- Cada intento cuenta 1–4 clics reales en editor/botoneras y entonces pulsa un carácter visible y un botón de código, con RNG propio con semilla y exclusión de copiar/pegar. Una sola perturbación por intento; durante la reparación se suspende el inyector. Verificador de reconstrucción textual exacta, clasificación separada de bugs sospechados, límites de UI, fallos del agente e infraestructura; inyección sin efecto o teclado observado quedan inconclusos.
+- Resumen de todos los intentos; JSON con código, selección, coordenadas, pasos y estados antes/después, más PNG al cierre, únicamente para incidencias. Las trazas sanas se descartan. Evidencias fuera de Git en `.qa-recuperacion/`. Reproductor del clic+botón y reanudación entre escritorio/móvil conservando numeración y RNG.
+- `pruebas/recuperacion-ejercicios.mjs` define cinco referencias repetidas en escritorio/móvil para un piloto de 10 intentos. `docs/CICLO-RECUPERACION-EDITOR.md` documenta el ciclo, los límites, el uso y un prompt para el agente. Evaluación inspirada en RLVR, sin entrenamiento de pesos.
+- `pruebas/uso-tokens.mjs` lee contadores `token_count` de un rollout Codex indicado, separa entrada, salida y subconjuntos de caché/razonamiento, conserva `null` cuando el intervalo no puede medirse y explicita el retraso del proveedor. No hay extracción de uso de Claude implementada ni consumo medido de un piloto real.
+- Verificación actual del arnés sobre el editor anterior: **50 comprobaciones de lógica existentes y 36 del arnés en Ego Browser**, con clics reales en el puerto 8771, reproducción, exportación selectiva, cambio a móvil emulado y detección de teclado. Sintaxis de los cuatro módulos nuevos y `git diff --check` correctos en esa revisión. Capturas de calibración de escritorio/móvil revisadas. No se repitió la suite completa histórica de navegador del juego.
+- La calibración tiene cuatro casos sintéticos, usa restauración de fixtures y recompensa `null`: **no cuenta como los 10 intentos reales ni valida la nueva UI sin teclado**. Pendiente estabilizar esa UI, adaptar sus selectores/activar el modo, ejecutar el piloto y medir sus tokens. No demuestra tacto, teclado ni menú contextual de Android/iPhone reales. Sin commits, push ni publicación.
+
+## Repositorio Git y subida inicial · 28 de octubre de 2026
+
+- Vinculada esta carpeta a `https://github.com/RubenDarioMena/Code-Battles_lite.git`, rama `main`, conservando el commit inicial del remoto.
+- Preparada la subida del estado actual: los dos prototipos, pruebas, documentación y el laboratorio `educational-animation/`. Los `.gitignore` existentes excluyen dependencias instaladas, cachés, archivos de entorno y salidas de vídeo.
+- Actualizado el README para identificar el repositorio propio. No se cambian las reglas ni la interfaz del juego.
+- Verificación actual: **50 comprobaciones de lógica correctas**, sintaxis de los seis scripts de los prototipos y de las dos suites de navegador correcta; `npm run typecheck` correcto en Motion Canvas y Remotion. No se repitieron las suites de navegador ni se realizó QA de dispositivos para esta subida.
+
+## Tareas visuales de Opus en Rocket Launcher (V1–V10) · 28 de octubre de 2026
+
+- Revisado antes de tocar: la lógica de Add/Replace, el cuadro de selección con ratón y el inspector móvil a pantalla completa (`inspector-movil`, «tira» reservada para Ajustes) ya estaban implementados. No se tocó su lógica.
+- V1–V3: color por función principal con tablas provisionales en `juego.js` (`FUNCIONES`, `FUNCION_DE`): lanzador ofensivo (+ rastreo como secundaria), sensor de vibración en rastreo, reparador utilitario y depósito como fábrica. Tokens `--rol-*` en `base.css`, con tres paletas en prueba (A Neón por defecto, B Contraste, C Sobria). Los enemigos conservan sus colores.
+- V4: las etiquetas de nombre solo aparecen en unidades seleccionadas, con franja del color de su función, borde claro en la principal y escalonado automático si se tocan.
+- V5: halo difuso del color de la función en las máquinas no seleccionadas; la secundaria se insinúa con un arco arriba a la izquierda. El halo pasa a rojo con el lanzador atascado. La selección es el mismo círculo, nítido y claro (`--sel`), en 3D y en el plano.
+- V6: cuadro de selección claro con filo oscuro, estilo RTS. En táctil, doble toque en el suelo y arrastrar con el segundo toque dibuja el cuadro; sustituye a «mantener y arrastrar» (recorrido), que se eliminó. Arrastrar con un dedo mueve la cámara; la pulsación larga sigue abriendo la ficha y el doble toque sobre una unidad sigue eligiendo las del mismo tipo.
+- V7–V8: brillo como calcos aditivos (texturas de canvas sobre el suelo y puntos de luz), sin luces simuladas. Variantes: Pilotos (por defecto), Faros, Aura y sin brillo; intensidad baja/media/alta. Halo: Medio (por defecto), Suave, Neón o ninguno. Selector con `?poc=1`; la elección queda en la URL. Los calcos no cuentan al elegir con el puntero.
+- V9: ficha móvil a pantalla completa con franja de color de la función, nombre a 21 px, función y estado, signos vitales en dos columnas, unidades en fila desplazable, toques de 44 px y métricas en cuadrícula.
+- V10: Add con contorno verde e icono «+» (subtítulo «al final»); Replace rojo macizo («borra el anterior»), también en el diálogo de confirmación. Texto de estado encima y botones iguales.
+- Verificación actual en el puerto 8771: **50 comprobaciones de lógica y 25 de navegador de Rocket Launcher correctas** (la prueba de recorrido táctil se sustituyó por cuadro con doble toque y arrastre de un dedo sin selección). Sintaxis correcta. Recorridas todas las variantes en 3D y plano sin errores de consola; capturas de PC y móvil emulado revisadas.
+- Pendiente: elegir paleta, halo, brillo e intensidad en QA real (Android y iPhone); decidir si la selección sigue siendo blanca o toma el color de la función. Gestos táctiles emulados en Chromium, no en dispositivo. Tres vistas no se modificó. Sin commits ni publicación.
+
+## Investigación de StykAnimate y tutoriales · 28 de octubre de 2026
+
+- Añadido `docs/INFORME-STYKANIMATE.md`, con fuentes sobre el editor, MCPs comunitarios y uso junto a GSAP, Three.js, Remotion y HyperFrames. Refinado con la skill `unslop` indicada por el usuario.
+- Confirmada la existencia de varias implementaciones MCP y de la PR oficial #21, abierta, sin fusionar y sin marca de borrador en la consulta actual. Distinguida la edición de archivos, el control del editor activo y la generación/exportación de vídeo.
+- Comprobado en el código y el diálogo web que WebM de navegador no conserva alfa. PNG/APNG y WebM nativo de escritorio tienen capacidades diferentes. Propuesta una guía HTML separada de las reglas de simulación y una prueba de vídeo con HyperFrames.
+- Verificación documental, revisión de código público y navegación por el sitio, los ejercicios y el diálogo de exportación. No se instalaron ni ejecutaron los MCPs, no se exportaron clips ni se midió rendimiento. Solo se modificó documentación; no corresponde repetir las pruebas del juego por este informe.
+- Pendiente, como propuesta y sin implementar: probar una lección de recoger/entregar, elegir el flujo de autoría y comprobar sincronización, legibilidad móvil y conservación de programas/borradores.
+
+## Tres vistas con la interfaz de Rocket Launcher · 28 de octubre de 2026
+
+- Adaptado el prototipo de recogida en `Prototypes/Tres vistas/`, separado en `index.html`, estilos, iconos, lógica y distribución, con su propio `probar.html`. `Prototypes/02_tres_vistas.html` conserva la entrada anterior mediante redirección que mantiene query y hash. La copia `02_tres_vistas.html` de la raíz queda como referencia histórica.
+- Trasladados los marcos y controles de Rocket Launcher: reparto adaptable, divisor hasta los extremos, orden independiente por eje, Ajustes, cabecera plegable, consola móvil, inspector sobre el plano y cierre fijo mientras se desplaza toda la ficha. El plano 2D se ajusta al espacio del panel y conserva sus coordenadas de interacción.
+- Se conservan los modos Bloques, Pseudocódigo y JavaScript. Bloques y pseudocódigo mantienen sus textos EN/ES, edición de valores y arrastre; cada modo muestra su paleta. Ajustes permite elegir modo, idioma de los bloques y tamaño de letra. En teléfonos de poca altura, idioma/letra se consultan en Ajustes y la consola espera a desplegarse para conservar espacio de edición. En móvil los botones con etiquetas conservan su ancho natural y se desplazan horizontalmente.
+- JavaScript incorpora iconos de recogida/entrega, resaltado opcional, doble clic en cadenas/comentarios, triple clic en delimitadores y elementos envolventes. La barra de símbolos aparece sobre el teclado móvil únicamente en JavaScript. El probador permite emular ese reparto desde PC.
+- Conservados por comparación textual los retos, API de R1, Web Worker, generador/traductor, creación de mundo, reglas y bucle de paso fijo del banco 02. Siguen las claves y formatos `cmg-banco02:*`; las preferencias nuevas de interfaz usan `cmg-banco02-ui-*` y no comparten las de defensa. Añadida la comunicación editor/layout mediante `window.cmg` sin retirar miembros anteriores de `window.__banco`.
+- Corregida la recepción del evento en la confirmación de dos pulsaciones para descartar JavaScript no traducible; la primera pulsación conserva el texto y la segunda recupera el árbol.
+- Documentados arranque y estructura de los dos prototipos. Reparadas las rutas de las pruebas existentes tras el traslado previo de Rocket Launcher a `Prototypes/Rocket Launcher/`; no se modificaron sus recursos de juego.
+- Verificación actual en el puerto dedicado **8771**: **50 comprobaciones de lógica, 24 de navegador de Rocket Launcher y 43 de navegador de Tres vistas correctas**. La suite nueva cubre paletas/idiomas, edición y arrastre con ratón y tacto emulado, traducción, confirmación de descarte, persistencia, inspector, divisor, Ajustes y teclado simulado. Un mismo programa completó el reto en los tres modos con idéntico tiempo de simulación. Sintaxis de los scripts nuevos y pruebas correcta; recursos locales verificados y entrada disponible en el servidor manual 8770.
+- Límites: conserva el mapa 2D de recogida; no se añadió un visor 3D ni se habilitaron otros lenguajes en defensa. El teclado y el tacto automatizados son emulación de Chromium: sigue pendiente el QA con teclado real, Android y Safari/iPhone. Se mantienen las dependencias CDN y el guardado por origen. Sin commits, push ni publicación.
+
+## Inspector en PC · 28 de octubre de 2026
+
+- Se extendió el desplazamiento de la ficha completa al escritorio: la cabecera y los signos vitales salen de vista y solo el cierre queda fijo, igual que en móvil. Cambios en `css/layout.css` y su versión en `index.html`.
+- Verificación básica: 50 comprobaciones de lógica y recurso CSS servido con las reglas para ambos formatos; pendiente QA manual de desplazamiento en PC.
+
+## Separación del proyecto · 28 de octubre de 2026
+
+- Creada la carpeta `/Users/rubenmena/Documents/Dev/Code-battle-lite` como proyecto independiente, copiando el estado actual del worktree de origen, incluidos los cambios sin commit y las pruebas nuevas.
+- El juego vive en la raíz: `index.html`, `css/`, `js/`, `probar.html`, `server.ps1` y `pruebas/`. Se conservó la lógica y los estilos de la sesión; se actualizaron el título y la marca visible a Code Battle Lite/CBL.
+- Documentación propia: README de arranque/estructura/QA, `docs/VISION.md`, este progreso e instrucciones `AGENTS.md`/`CLAUDE.md`. No se heredan las reglas ni las pruebas Godot del origen.
+- Fuera de la copia: proyectos Godot, demos/bancos antiguos, SQL/backend, modelos y recursos no utilizados, imágenes de referencia, logs generales, dependencias instaladas y metadatos Git.
+- `server.ps1` arranca desde la raíz nueva y ya no depende de `Concept-HTML/juego` ni de Trunk.
+- La suite de navegador ahora habilita las coordenadas desde Ajustes y genera el doble toque con Chromium para evitar que la latencia del puente de automatización descomponga el gesto.
+- Verificación de migración: **50 comprobaciones de lógica y 24 de navegador correctas**, sintaxis de los cuatro scripts comprobados, título y siete recursos locales disponibles por HTTP, enlaces de documentación válidos y ausencia de enlaces simbólicos/dependencias de carpetas del origen. Comparación del contenido JS/CSS tras las cabeceras: idéntico al origen.
+- Servidor de uso manual en el puerto 8770: `http://localhost:8770/`, accesible también mediante la IP de la computadora en la Wi-Fi. El puerto 8771 se dedicó al QA automatizado.
+- Se mantienen los identificadores internos y formatos de localStorage para no alterar el guardado durante la copia. El origen nuevo no importa automáticamente los datos del puerto anterior. Las dependencias CDN siguen requiriendo conexión.
+- No se inicializó Git, no se hicieron commits ni se publicó un remoto. El historial queda en el repositorio de origen; esta separación parte de una copia limpia del estado actual.
+- El proyecto original y sus servidores existentes se conservaron. Continúa pendiente el QA con teclado y dispositivos reales.
+
+## Sesión del 28 de octubre de 2026
+
+Registro exclusivo del proyecto HTML. Consolida el informe de revisión de la sesión interrumpida y todas las iteraciones posteriores de esta conversación. El diseño vigente se resume en `docs/VISION.md`. Las rutas y pruebas Godot citadas en la cronología corresponden al proyecto de origen.
+
+### Estado de entrega
+
+- Se actualizó el checkout principal con `git fetch --prune origin` y `git pull --ff-only origin Trunk`: `98c801b` → `259ac33`, sin conflictos.
+- Se revisaron los cuatro commits recibidos: servidor con recarga, diagnóstico de archivos/rutas, cambios de editor/interacción/programas múltiples y registro de conversación.
+- Correcciones e iteraciones en el worktree `revision-html`, rama `agente/codex/revision-html`. Todos los cambios de esta sesión permanecen sin commit, push ni merge.
+- Concepto2, su simulación, contrato, esquema SQL y API de programas no se modificaron. La imagen local sin seguimiento del checkout principal se preservó.
+
+### 1. Recuperación de la sesión interrumpida
+
+- Ejecutar con un borrador de selección múltiple pendiente exige aplicar Add o Replace antes de arrancar los programas.
+- Cerrar el inspector conserva la selección de unidades y el contexto del editor.
+- Los borradores de grupos con programas distintos se recuperan al volver a seleccionar el mismo conjunto, independientemente del orden de selección.
+- Add/Replace consumen el borrador; recargar o cambiar de reto lo descarta. Los borradores no se guardan en disco.
+- Reconstruir el mundo sincroniza el contexto del editor con las unidades seleccionadas.
+- Se revisó el servidor PowerShell existente: no requirió cambios de implementación en esta sesión.
+
+### 2. Selección y elementos envolventes
+
+- Doble clic selecciona comentarios `/* … */` completos, incluidos los multilínea, igual que las cadenas con sus comillas.
+- Con código seleccionado, los iconos de `while (true)`, `while` e `if/else` lo envuelven y añaden cuatro espacios de sangría conservando la sangría relativa.
+- Las llamadas con huecos colocan la selección en el primer argumento disponible.
+- Los pares de símbolos de la barra móvil envuelven la selección con sus delimitadores.
+- Sin selección se mantienen las plantillas anteriores. Los bloques nuevos pueden declarar `ATAJOS.envolvente`; `window.cmg.envolver` comparte la operación con la interfaz móvil.
+- El usuario confirmó manualmente esta iteración como verificada.
+
+### 3. Pruebas en la red de casa
+
+- Se conservó el servidor local PowerShell con recarga en el puerto 8768.
+- Se inició un servidor de pruebas accesible por Wi-Fi: `python3 -m http.server 8769 --bind 0.0.0.0 --directory Concept-HTML/juego`.
+- Dirección usada en esta sesión: `http://192.168.1.70:8769/`. La IP puede cambiar y el servidor debe seguir ejecutándose. Este servidor Python requiere recargar la página tras editar archivos.
+- No se publicó un sitio externo por este cambio.
+
+### 4. Ajustes
+
+- Engrane al final derecho de la cabecera del mapa para abrir el modal de Ajustes.
+- Confirmación de Replace activable/desactivable y persistente.
+- Opciones futuras de idioma (español/English) y lenguaje (seudocódigo/JavaScript/Python) visibles y deshabilitadas; siguen activos español y JavaScript.
+- Opción para mostrar coordenadas manuales; quedan ocultas por defecto y la función se conserva.
+- Botón para restaurar el reparto entre mapa y código.
+
+### 5. Distribución de pantalla y divisor
+
+- Distribución automática, izquierda/derecha o arriba/abajo.
+- Dos preferencias de posición siempre disponibles: mapa a izquierda/derecha y mapa arriba/abajo. Ambas tienen vista previa y se guardan de forma independiente.
+- Automático indica la distribución activa y utiliza la posición correspondiente al cambiar el tamaño de ventana o dispositivo.
+- Los paneles existentes se reordenan sin reiniciar programas o cámara; se conserva el foco/selección del editor cuando corresponde y se adapta el orden de tabulación.
+- El divisor permite reducir cualquiera de los paneles a cero, con ajuste a los extremos. El asa permanece disponible para recuperarlo.
+- El panel oculto deja de recibir foco; si contenía el foco se retira. El divisor admite ratón, dedo, flechas del eje y Home/End; doble clic restaura el reparto inicial.
+- El porcentaje representa el tamaño del mapa y se adapta al invertir el orden. Los repartos se conservan por formato y orientación según el modo.
+- Se evita recalcular la cámara cuando el campo tiene ancho o alto cero.
+
+### 6. Escritura móvil y herramientas
+
+- Pestañas, barra de programas y coordenadas manuales agrupadas en una cabecera plegable.
+- Mientras se escribe con teclado móvil, se prioriza la paleta de iconos y se pliega la cabecera. El editor aprovecha el viewport visual encima de la barra de símbolos.
+- El botón permite desplegar herramientas sin cerrar el teclado ni perder la selección de código.
+- Al plegar, desaparece la fila vacía: el botón flota sobre la paleta con borde rojo tenue.
+- Las herramientas del programa se muestran según la pestaña activa.
+
+### 7. Inspector en pantallas estrechas
+
+- Etiquetas, valores y pie de gráfica admiten saltos de línea para que FailureRate y sus datos queden dentro de las tarjetas.
+- Estado final: solo el botón de cerrar queda fijo en la ficha móvil completa. Nombre, controles restantes y signos vitales se desplazan con las estadísticas.
+- La iteración intermedia que fijaba toda la cabecera fue sustituida por este comportamiento.
+
+### Archivos de implementación y documentación
+
+- `index.html`: estructura de herramientas, Ajustes, cierre móvil y versiones de recursos.
+- `css/componentes.css`: estilos de Ajustes, vistas previas y adaptación de signos vitales.
+- `css/layout.css`: orientación, plegado completo, teclado, herramientas y cierre flotante.
+- `js/juego.js`: selección/borradores, elementos envolventes, pestañas y tamaño del campo.
+- `js/layout.js`: preferencias, reordenación, divisor, foco, teclado y símbolos envolventes.
+- `pruebas/interaccion.cjs`: ampliación de las pruebas de lógica.
+- `pruebas/navegador.mjs`: nueva suite de navegador de la revisión inicial.
+- `README.md`, este archivo y el informe general de colaboración: comportamiento, resultados y límites.
+
+### Verificaciones realizadas durante la sesión
+
+- Lógica: se pasó de 20 a 50 comprobaciones correctas tras añadir selección de comentarios y elementos envolventes.
+- Revisión inicial: 24 comprobaciones en navegador, con ratón/tacto, Add/Replace, Web Workers, WebGL y teclado simulado; ocho comprobaciones HTTP del servidor PowerShell.
+- Iteraciones posteriores: comprobaciones breves de Ajustes, persistencia, extremos del divisor, orientación/orden, foco y paleta con teclado simulado, cambio automático de eje y cierre tras desplazar hasta el final.
+- A 320 px se comprobó que los signos vitales no desbordaban y que únicamente el cierre permanecía fijo.
+- Sintaxis JS y `git diff --check` correctos en las revisiones correspondientes.
+- Las pruebas obligatorias de Godot (`prueba_sim.gd` y `prueba_larga.gd`) se ejecutaron secuencialmente y finalizaron con código 0 en las iteraciones registradas. No hubo cambios en Godot.
+- Los resultados anteriores corresponden a sus respectivas etapas: la suite completa inicial de 24 comprobaciones no se volvió a ejecutar después de todos los cambios de interfaz. Debe actualizarse, entre otros puntos, para habilitar las coordenadas manuales cuando las necesite.
+
+### Pendientes y límites
+
+- Continuar QA manual con teclado real, selección táctil, Samsung S24 Ultra/hyperMarker e iPhone/Safari.
+- Idiomas y modos seudocódigo/Python aún no implementados.
+- Persistencia de borradores múltiples entre recargas aún no implementada.
+- El adjunto original con criterios T1–T12 no está disponible en el repositorio; se trabajó con el log y los comportamientos descritos.
+- Servidor PowerShell sin validación en Windows; las comprobaciones HTTP se hicieron en este entorno.
+- Preferencias y programas dependen del origen del navegador: cambiar IP, puerto o dominio no traslada automáticamente su almacenamiento local.
+
+
+## 28-oct-2026 · Setup de animación educativa (`educational-animation/`)
+
+- Nueva carpeta aislada del juego con npm workspaces: Motion Canvas 3.17.2 (`concepts/motion-canvas`) y Remotion 4.0.535 (`compositions/remotion`). El juego no cambia ni gana dependencias.
+- Piloto `await` vs polling ocupado implementado en ambos motores con lógica compartida (`shared/`): paleta y resaltado del editor del juego (propio, no CodeMirror), stickman vectorial provisional, contador con motion blur determinista, cues con nombre.
+- Verificado: `npm install` y `npm run typecheck` (ambos proyectos) correctos; el bundle de Remotion compila incluyendo `shared/`.
+- Motion Canvas: corregido el arranque (el plugin es CJS; se quitó `"type": "module"` como en la plantilla oficial). Editor abierto en navegador y fotograma 300 revisado (contador borroso, estela, resaltado). Las cajas ya no flotan antes de caer. No se renderizó vídeo.
+- Remotion: el Chrome headless que descarga (Chromium 157) se cierra al abrir la página en macOS 26.5.1 (`icudtl.dat not found in bundle`, `GPU process isn't usable`, `Session closed`), también en la terminal del usuario. Actualizar a 4.0.539 no cambió el navegador. Solución aplicada: `remotion.config.ts` usa el Google Chrome instalado (156) en modo `chrome-for-testing`; con eso renderiza.
+- Pendiente: personajes StykAnimate, variante B, voz, HyperFrames/Motion Studio.
+
+### 29-oct-2026 · pnpm y MCP de StykAnimate
+
+- `educational-animation/` usa pnpm 11.1.2 (ya instalado con Homebrew) con `pnpm-workspace.yaml`; se eliminó `package-lock.json`. Scripts de instalación aprobados solo para esbuild y ffmpeg/ffprobe.
+- `tools/render-manifest.mjs` busca las versiones en el `node_modules` de cada workspace.
+- Verificado con pnpm: `pnpm typecheck`, Motion Canvas en navegador (fotograma 300, sin errores en consola) y `pnpm render:remotion` (23 s, 1920×1080, 30 fps, con manifiesto).
+- MCP `stykanimate` (mashhoorahdal, commit `de645ec`) registrado en local con `pnpm dlx`; `prepare` descargó StykAnimate `def97214` y `claude mcp get` lo da por conectado. `npx` falló por un error de npm 10.9.3 con paquetes de GitHub. Sus herramientas aparecen solo en sesiones nuevas; aún no se ha usado.
+
+### 29-oct-2026 · Actuación de los stickmen con el MCP de StykAnimate
+
+- Escena del piloto `await` creada con `build_animation` (1920×1080, 30 fps, 23 s, mismas posiciones que la composición): el de polling se agacha cada vez más rápido, se tambalea y se desploma; el de `await` respira, mira, se encoge de hombros y recoge su caja en el segundo 17. Cajas y caída con `physics_plan`.
+- Guardado `educational-animation/characters/stickman-wait.styk`. Referencia en `educational-animation/renders/stykanimate/stickman-wait.mp4` (691 fotogramas, verificado con ffprobe) y hoja de revisión. El spec se genera con `experiments/stykanimate-await-spec.mjs`.
+- Sin trabajo manual en la app; tres iteraciones revisadas con `preview_frames`. Detalles y limitaciones en `experiments/observations.md`.
+- Pendiente para Remotion: el MCP no exporta PNG con alfa. Hay que exportar la secuencia PNG a mano desde stykanimate.com o usar el MP4 opaco como capa inferior.
+

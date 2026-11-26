@@ -18,6 +18,17 @@ Este proyecto es autónomo. Antes de hacer cambios lee, en este orden: [`docs/PL
 - **El diseño no es definitivo.** El estilo gráfico, la interfaz y el combate de War, Factory y Campaign pueden cambiar mucho (control manual de unidades, muchas más unidades). No construyas suponiendo que se quedan como están, y no los rediseñes sin que se pida.
 - **JavaScript y Python reales** siguen siendo el lenguaje del jugador ([plan](docs/PLAN-EDITOR-LENGUAJES.md)). Python se traduce a JS con las mismas líneas (`paquetes/lenguaje/python.js`). Si cambias su semántica, compárala con CPython y añádela a `pruebas/python-traductor.cjs`. No se añaden otros lenguajes.
 
+## Rama `Campaign-V2` (desde el 24 de noviembre de 2026)
+
+Campaign-V2 une fábrica y batalla en un solo nivel de hitos alternos y es la experiencia principal. War, Factory y la campaña H0–H5 siguen en el código, pero solo como QA desde el menú de pruebas. En esta rama:
+
+- **Vocabulario:** [`CONTEXT.md`](CONTEXT.md) (nivel, hito, Batalla, munición básica, checkpoint…). Usa esos términos en código, textos y commits.
+- **Qué rige:** las decisiones de [`docs/campaign-v2/DECISIONES-GRILL.md`](docs/campaign-v2/DECISIONES-GRILL.md) y `DECISIONES-WAYFINDER.md`, el plan y estado de [`PLAN-PORCIONES.md`](docs/campaign-v2/PLAN-PORCIONES.md) y la misión jugable de [`MISION-1.md`](docs/campaign-v2/MISION-1.md). Si chocan, manda el documento más reciente. Los números de juego son provisionales y se ajustan jugando.
+- **Dónde está:** la página es `Prototypes/Campaign-V2/`; las reglas, niveles y mecánicas, `paquetes/reglas-campaign-v2/` (con War inyectado); la escena, `paquetes/vista-3d/cv2/`.
+- **Paridad de War:** una Batalla `{ war: N }` da la misma huella que el reto N de War (`pruebas/campaign-v2-paridad.mjs`). Una Batalla propia (B6 en adelante) es un reto normalizado. Su prueba de balance demuestra que la torreta sola pierde y que con la unidad nueva se gana (`pruebas/campaign-v2-batallas-propias.mjs`).
+- **Probar:** [`docs/campaign-v2/MENU-PRUEBAS.md`](docs/campaign-v2/MENU-PRUEBAS.md) tiene las URL de cada hito y ensayo (`?pruebas=1`, `?ensayo=…`) y las suites.
+- **Publicar:** los checkpoints se suben a `Campaign-V2`. La rama se integra en `trunk` solo cuando el autor lo pide.
+
 ## Reglas
 
 - **Determinismo.** Paso fijo y RNG con semilla. Sin azar global ni tiempo de reloj en las reglas.

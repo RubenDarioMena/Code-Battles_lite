@@ -1,6 +1,6 @@
-# Campaign-V2 · glosario (borrador)
+# Campaign-V2 · glosario
 
-Borrador del `CONTEXT.md` de la rama `Campaign-V2`. Se moverá a la raíz de esa rama cuando exista. Solo contiene términos resueltos en el grill (rondas 1 y 2); los pendientes están en `campaign-v2-ronda-3.html`.
+Glosario de la rama `Campaign-V2`: los términos resueltos en el grill y los que han entrado después al jugar. Úsalos en código, textos y commits. Las rondas del grill están en `docs/campaign-v2/origen/`.
 
 ## Estructura de la campaña
 
@@ -26,6 +26,9 @@ El depósito de munición de la muralla. En el Nivel 1 abastece sola a las torre
 **Batalla**
 Hito de combate contra oleadas. Las cinco primeras replican los cinco retos de War y se alternan con hitos de fábrica. Durante una batalla, la fábrica sigue funcionando.
 _Evitar_: «reto» (es el término de la serie War).
+
+**Batalla propia**
+Batalla que no copia un reto de War (B6 en adelante). Estrena una unidad móvil y tiene sus propias metas de brechas y derribos. Su prueba de balance demuestra que con la torreta sola se pierde.
 
 **Checkpoint**
 Estado guardado al empezar un hito: la fábrica, la bodega, las torretas y los programas. La batalla no se guarda: se vuelve a montar desde su reto. Al perder una batalla se puede elegir a cuál volver, y el último aparece como opción por defecto; se vuelve con los programas actuales.
@@ -60,6 +63,12 @@ El rectángulo del mapa donde ocurre una Batalla: el campo de War colocado frent
 **Torreta esfera**
 El lanzador de Campaign-V2: torreta esférica montada en un bastión. En las cinco primeras batallas (quizá solo las tres primeras) ya viene montada de serie. Apunta, abre la compuerta y dispara por el telescopio.
 _Evitar_: «torreta de observación» (es el nombre del asset de arte, no el papel en el juego), «LAU» (es el término de War).
+
+**Unidad móvil**
+Unidad programable que sale de la muralla por la puerta del marco y vuelve a casa al ser destruida: el vehículo VEH (dispara un misil), la rueda WHL (estalla junto al enemigo) y el minador MIN (siembra cargas que estallan cuando entra un enemigo de suelo).
+
+**Minificha**
+La ficha compacta de una unidad elegida, abajo a la izquierda del campo, al estilo de Campaign 1: dibujo, dos propiedades vivas y tres órdenes. Desde ella se abre la ficha completa.
 
 **Placeholder**
 Una entidad que todavía no tiene modelo definitivo (dron, oruga, sensor, reparador) y se dibuja con la primitiva actual de War.
