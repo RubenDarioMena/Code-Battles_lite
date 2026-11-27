@@ -23,6 +23,8 @@ assert.equal(m.batalla.enemigos.length, 0);
 const b1 = m.batalla, semilla = m.semillaIntento, fabrica = m.fabrica;
 m.programas['LAU-01'] = 'mi programa';
 for (let i = 0; m.hito === 'b1' && i < 1500; i++) {
+  // Misiles que la planta monta sola durante la Batalla: no cuentan para las metas «hechos» del hito siguiente.
+  if (i === 20) m.fabrica.producidos.missile = (m.fabrica.producidos.missile ?? 0) + 3;
   const l = b1.lanzadores[0];
   const lugar = p.instantanea().auto[l.id].visual.crawler;
   p.ordenar({ paso: p.pasoActual, origen: 'jugador', unidad: l.id, verbo: 'regularShoot', args: [lugar] });
@@ -34,6 +36,7 @@ assert.equal(m.hito, 'h1');
 assert.equal(m.batalla, null);
 assert.equal(m.superado.hito, 'b1');
 assert.ok(fabrica.t > t0);
+assert.deepEqual(m.fabrica.baseHito, m.fabrica.producidos, 'las metas «hechos» del hito empiezan al abrir su sesión');
 // Las vistas siguen dibujando la Batalla ganada detrás de la tarjeta (antes recibían la escena de la planta y la vista
 // 3D fallaba en e.enemigos.map); el checkpoint no la lleva.
 const quieta = reglas.escena(m), quietaMetros = reglas.escenaMetros(m);

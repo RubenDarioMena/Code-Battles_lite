@@ -137,4 +137,22 @@ for (const [consulta, id, lectura] of [['&ensayo=b7', 'WHL-01', null], ['&ensayo
   if (lectura) assert.match(ficha, new RegExp(lectura), `${id}: ficha con ${lectura}`);
   assert.doesNotMatch(ficha, /inspector\.clase\./, `${id}: sin claves crudas`);
 }
+// B4 en ensayo arranca con 16 misiles en la bodega y no se puede ganar: al perder sin munición, la tarjeta lo dice en lugar
+// de la pista del reto, que culpaba al programa (QA del 26-nov, M6).
+{
+  const { ui: juego } = await entrar('&ensayo=b4');
+  const banco = juego.__banco;
+  banco.programas['LAU-01'] = 'while(true){const p=autoTarget("drone","visual")??autoTarget("crawler","visual");burstFire(p);await esperar(0.4);}';
+  juego.guardarProgramas();
+  banco.ejecutar();
+  const mundo = () => banco.partida.mundo;
+  for (let n = 0; n < 4000 && !mundo().final && !mundo().batalla?.final; n++) {
+    await juego.enVuelo; juego.acum = 0.5; juego.avanzar(); await juego.enVuelo; await new Promise(r => setImmediate(r));
+  }
+  assert.equal(mundo().bodega.misiles, 0, 'la bodega se vació');
+  for (let n = 0; n < 20 && !juego.$('banner').innerHTML; n++) { await juego.enVuelo; juego.avanzar(); await new Promise(r => setImmediate(r)); }
+  const tarjeta = juego.$('banner').innerHTML;
+  assert.match(tarjeta, /Sin munición/, 'la tarjeta habla de la munición');
+  assert.doesNotMatch(tarjeta, /Pista/, 'y no de la pista del programa');
+}
 console.log('Fábrica H0 y Batallas · misión, metas, idioma, ajustes, selección en ambos sentidos, grupos JS/Python, desvinculación, recarga, checkpoints, móvil y tira clásica de War.');

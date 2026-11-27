@@ -37,7 +37,7 @@
         return ["", t("campaign.estado.libre")];
       }
       if (C.esMaquina(e)) {
-        const s = C.estadoMaquina(e);
+        const s = C.estadoMaquina(e, m);
         // Con la luz de la serie (V2, 9.2), la ficha usa sus mismos colores: verde trabaja, ámbar espera.
         const tono = C.luzEstado ? { green: "activo", amber: "alerta" }[C.luzEstado(s).luz] : { working: "activo", blocked: "mal", changeover: "alerta", moving: "activo" }[s];
         return [tono || "", t(`campaign.estado.maquina.${s}`, { receta: e.cambio ? e.cambio.a : e.receta })];
@@ -58,7 +58,7 @@
     // Etiqueta sobre el mapa: el nombre y el contador que más importa de esa unidad.
     function etiqueta(e) {
       if (C.esMaquina(e)) {
-        const s = C.estadoMaquina(e), avisa = C.luzEstado ? C.luzEstado(s).aviso : s === "blocked";
+        const s = C.estadoMaquina(e, M()), avisa = C.luzEstado ? C.luzEstado(s).aviso : s === "blocked";
         return e.encendida ? `${e.id} · ${e.salida.length}/${MAQUINAS[e.clase].salida}${avisa ? " ⚠" : ""}` : e.id;
       }
       if (esLugar(e)) { const ta = tarimaDe(e); const n = ta ? Object.entries(cuenta(ta.piezas)).map(([p, k]) => `${k} ${p}`).join(" · ") : ""; return n ? `${e.id} · ${n}` : e.id; }

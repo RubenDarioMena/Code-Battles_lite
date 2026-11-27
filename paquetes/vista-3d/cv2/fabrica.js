@@ -503,7 +503,7 @@ export function crearFabricaCV2(estado, { THREE, cargarGLTFLoader, $, mapa, regl
         }
         if (o.horquilla) o.horquilla.position.y = e.carga ? .55 : .14;
       } else if (C.esMaquina(e)) {
-        const est = C.estadoMaquina(e), enc = e.encendida, pad = e.pad ? m.porId[e.pad] : e;
+        const est = C.estadoMaquina(e, m), enc = e.encendida, pad = e.pad ? m.porId[e.pad] : e;
         g.position.set(e.cx, e.enVilo ? .62 : 0, e.cy);
         if (!e.enVilo) g.rotation.y = rumbo(e, pad);
         for (const c of o.cuerpo) c.material = enc ? c.userData.color : apagadoDe(c.userData.color);

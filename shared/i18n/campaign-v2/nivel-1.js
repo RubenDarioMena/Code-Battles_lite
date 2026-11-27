@@ -109,6 +109,7 @@ export const catalogo = {
     'cv2.fin.otra': 'Seguir aquí',
     'cv2.fin.reiniciar': 'Empezar la campaña de nuevo',
     'cv2.fin.escasa': 'Ojo: la bodega va justa para esta batalla ({n} de unos {falta} misiles).',
+    'cv2.fin.sinMunicion': 'Sin munición: la bodega y los cargadores se vaciaron antes del final. No es cosa del programa: hacen falta más misiles de la planta, o gastar menos por derribo.',
     // Misión 1 · hitos de fábrica (sustituyen a los de Campaign en esta página).
     'campaign.hito.0.titulo': 'Llegada',
     'campaign.hito.0.objetivo': 'La planta está recién instalada junto a la muralla. En BAY-1 espera una tarima con 12 láminas de acero. Llévala con FRK-01 hasta PAL-1, el puesto de la futura prensa.',
@@ -297,6 +298,7 @@ export const catalogo = {
     'cv2.fin.otra': 'Stay here',
     'cv2.fin.reiniciar': 'Start the campaign again',
     'cv2.fin.escasa': 'Heads up: the depot is tight for this battle ({n} of about {falta} missiles).',
+    'cv2.fin.sinMunicion': 'Out of ammo: the depot and the magazines ran dry before the end. It is not the program: the factory needs to make more missiles, or each kill needs fewer shots.',
     // Mission 1 · factory milestones (they replace Campaign's on this page).
     'campaign.hito.0.titulo': 'Arrival',
     'campaign.hito.0.objetivo': 'The plant has just been set up next to the wall. A pallet with 12 steel sheets waits at BAY-1. Take it with FRK-01 to PAL-1, the spot of the future press.',

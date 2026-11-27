@@ -1,7 +1,10 @@
 export default {
   clave: "nivel-1",
   // 2: la fábrica programable (misión 1). Los checkpoints de la prensa automática ya no valen.
-  revision: 2,
+  // 3: el taller de carcasas de P7 (EMB-01, SAW-01, LSR-01, FND-01, BOT-01, PAL-6…8) y el hito H6. Un guardado de la
+  //    revisión 2 se restauraba sin esas unidades y H6 no se podía cumplir. Toda subida purga los checkpoints viejos.
+  //    pruebas/campaign-v2-revision.mjs guarda la huella de la planta y los hitos: si cambian, toca subir este número.
+  revision: 3,
   // Cada hito de fábrica (hN) va antes de su Batalla (bN): la bodega que deja es la que llega a la muralla.
   // Tras H5, tres Batallas propias estrenan las unidades móviles: el vehículo (B6), la rueda (B7) y el minador (B8).
   // H6 cierra con el taller de carcasas: la producción circular del consolidado del 23-nov (P7).

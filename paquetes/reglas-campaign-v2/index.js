@@ -166,8 +166,12 @@ export function crearReglamento(war, contenido, retos) {
       // Tras la Batalla viene un hito de fábrica: el checkpoint guarda la planta y la página abre la fábrica.
       // Las vistas siguen dibujando la Batalla terminada, quieta detrás de la tarjeta, hasta que la página recarga en la
       // fábrica: `cerrada` no entra en el checkpoint.
-      if (esFabrica(siguiente)) Object.assign(m, { batalla: null, campo: null, reto: null, cerrada: { batalla: b, campo: m.campo, reto: m.reto } });
-      else montarBatalla(m, retos[siguiente], otraSemilla(m.rng));
+      if (esFabrica(siguiente)) {
+        // Las metas «hechos» cuentan lo fabricado en la sesión del hito: lo que la planta montó sola durante la Batalla
+        // ya entró en la bodega y se disparó.
+        m.fabrica.baseHito = { ...m.fabrica.producidos };
+        Object.assign(m, { batalla: null, campo: null, reto: null, cerrada: { batalla: b, campo: m.campo, reto: m.reto } });
+      } else montarBatalla(m, retos[siguiente], otraSemilla(m.rng));
     } else {
       m.final = fin;
       if (!b) m.sucesos.anotar({ paso: pasoDe(m.t), tipo: 'fin', datos: fin });

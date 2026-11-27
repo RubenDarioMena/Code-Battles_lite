@@ -1,12 +1,30 @@
 // Solo la frontera de hito se escribe aquí. Las ediciones se guardan bajo otra clave.
 const CLAVE = 'campaign-v2-nivel-1';
 
+/** ¿El checkpoint es del mismo nivel y revisión que `ref` (otro checkpoint o el propio nivel)?
+ * @param {{ clave?: string, revision?: number } | undefined} cp
+ * @param {{ clave: string, revision: number }} ref */
+export const vigenteV2 = (cp, ref) => !!cp && cp.clave === ref.clave && cp.revision === ref.revision;
+
+/** Quita del historial los checkpoints de otra revisión: ya no se pueden restaurar, y elegirlos llevaría a un H0
+ * nuevo sin explicación. Devuelve cuántos quitó. */
+export function purgarHistorialV2(historial, ref) {
+  let quitados = 0;
+  for (const [h, cp] of Object.entries(historial.hitos)) if (!vigenteV2(cp, ref)) { delete historial.hitos[h]; quitados++; }
+  if (!historial.hitos[historial.ultimo]) historial.ultimo = null;
+  return quitados;
+}
+
 /** El historial sin reglamento: la sesión de fábrica no compone las Batallas, pero escribe su checkpoint aquí. */
 export function leerHistorialV2(almacen) {
   try { return JSON.parse(almacen.leer(CLAVE)) ?? { ultimo: null, hitos: {} }; } catch { return { ultimo: null, hitos: {} }; }
 }
+export function guardarHistorialV2(almacen, historial) {
+  try { almacen.escribir(CLAVE, JSON.stringify(historial)); } catch { /* Sesión en memoria. */ }
+}
 export function escribirCheckpointV2(almacen, cp) {
   const historial = leerHistorialV2(almacen);
+  purgarHistorialV2(historial, cp);
   historial.hitos[cp.hito] = cp;
   historial.ultimo = cp.hito;
   try { almacen.escribir(CLAVE, JSON.stringify(historial)); } catch { /* Sesión en memoria. */ }
@@ -35,6 +53,7 @@ export function abrirCheckpoints(config, almacen) {
   };
   function guardar(m, datos) {
     const cp = { ...config.reglas.serializar(m), ...datos };
+    purgarHistorialV2(historial, cp);
     historial.hitos[cp.hito] = cp;
     historial.ultimo = cp.hito;
     escribir(CLAVE, historial);
@@ -58,6 +77,10 @@ export function abrirCheckpoints(config, almacen) {
       aviso = m.aviso;
       historial = { ultimo: null, hitos: {} };
       guardar(m);
+    } else if (purgarHistorialV2(historial, inicial)) {
+      // El último vale, pero quedan checkpoints de una revisión anterior (guardados antes de que se purgaran al escribir).
+      aviso = 'cv2.revision';
+      escribir(CLAVE, historial);
     }
   }
   return { guardar, volver, ultimo, guardarActuales, aviso, get actuales() { return actuales; },

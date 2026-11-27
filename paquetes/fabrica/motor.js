@@ -428,7 +428,9 @@ export function crearMotor(cat) {
       if (losa && p.ax != null && (p.ax < losa.x0 || p.ax > losa.x1 || p.ay < losa.y0 || p.ay > losa.y1)) return "fuera_de_losa";
       if ((esMaquina(u) && (u.proceso || u.cambio || u.enVilo)) || (esRobot(u) && (u.tarea || u.carga))) return "ocupado";
       for (const o of m.unidades) {
-        if (o === u || !o.presente || o.clase === "torreta" || o.clase === "banda" || (esRobot(o) && !o.alcance)) continue;
+        // Un brazo anclado que aún no ha llegado (su hito `desde`) ya reserva su base: aparecería dentro de la pieza.
+        const reserva = o.presente || (esRobot(o) && !!o.alcance);
+        if (o === u || !reserva || o.clase === "torreta" || o.clase === "banda" || (esRobot(o) && !o.alcance)) continue;
         const ox = o.base ? o.base.x : o.cx, oy = o.base ? o.base.y : o.cy;
         if (Math.hypot(ox - x, oy - y) < (rad(u) + rad(o)) * 0.75) return "ocupado";
       }

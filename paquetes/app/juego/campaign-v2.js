@@ -5,7 +5,7 @@ import { crearFicha3D, crearVistaCV2 } from '../../vista-3d/index.js';
 import { instalarGestosClic } from './gestos-clic.js';
 import { crearExtensionV2 } from './proveedor-v2.js';
 import { dibujarIconoHito } from '../../vista-2d/index.js';
-import war, { retos, fijarSuministro, pasoConIntentoPuntual, leerEnemigos, danoEnArea, MISIL } from '../../reglas-war/index.js';
+import war, { retos, fijarSuministro, pasoConIntentoPuntual, leerEnemigos, danoEnArea, MISIL, TIPOS } from '../../reglas-war/index.js';
 import { crearReglamento, puntoEnMarco, puntoEnMetros, salida, ensayos, fichas, mundoPantalla, piezasMoviles, fichaClic, lugarDeObjetivo, repartirClic, niveles, validarNivel, esFabrica, hitosFabrica } from '../../reglas-campaign-v2/index.js';
 
 export function componerCampaignV2(params, contenido = niveles['nivel-1'], catalogo = undefined) {
@@ -77,20 +77,31 @@ function montarMando(ctx) {
 }
 
 // Los hitos de fábrica toman su título del catálogo de la serie Campaign (campaign.hito.N.titulo, N = su posición entre los hN).
+// Las Batallas propias de V2 (b6…) guardan una clave cv2.*; las heredadas de War, el texto.
 const tituloHito = (ctx, h, porHito, contenido) => esFabrica(h)
-  ? ctx.ti18n(`campaign.hito.${hitosFabrica(contenido.default).indexOf(h)}.titulo`) : porHito[h]?.titulo ?? h.toUpperCase();
+  ? ctx.ti18n(`campaign.hito.${hitosFabrica(contenido.default).indexOf(h)}.titulo`) : tituloBatalla(ctx.ti18n, porHito[h], h);
+
+/** Título visible de una Batalla. Las propias de V2 (b6…) guardan una clave cv2.*; las heredadas de War, el texto.
+ * @param {(clave: string) => string} ti18n
+ * @param {{ titulo?: string } | undefined} reto
+ * @param {string} h clave de la etapa, de reserva si el reto no tiene título */
+export function tituloBatalla(ti18n, reto, h) {
+  const titulo = reto?.titulo;
+  return typeof titulo === 'string' && titulo.startsWith('cv2.') ? ti18n(titulo) : titulo ?? h.toUpperCase();
+}
 const resumenHito = (ctx, s) => ctx.ti18n('cv2.fin.stats', { derribos: s.derribos, total: s.total, misiles: s.misiles,
   atascos: s.atascos, t: Math.round(s.t) });
 
 /** ¿Alcanza la bodega para la Batalla siguiente? Devuelve una clave i18n con sus datos, o null si no hace falta avisar.
  * Cada torreta empieza la Batalla con el cargador lleno del reto; después solo recarga desde la bodega (ticket 04.6).
  * @param {number} bodega misiles que quedan en la bodega de la muralla
- * @param {{ cargador: number, lanzadores: unknown[], oleadas: { n: number }[] }} reto la Batalla que viene
+ * @param {{ cargador: number, lanzadores: unknown[], oleadas: { n: number, tipo: string, hp?: number }[] }} reto la Batalla que viene
  * @returns {{ k: string, [dato: string]: unknown } | null} */
 export function avisoMunicion(bodega, reto) {
-  // Estimación: un misil por enemigo más un 20 % de fallos; los cargadores llenos cubren el principio.
-  const enemigos = reto.oleadas.reduce((total, oleada) => total + oleada.n, 0);
-  const necesarios = Math.ceil(enemigos * 1.2) - reto.lanzadores.length * reto.cargador;
+  // Estimación: un misil por punto de vida (cada impacto quita uno) más un 20 % de fallos; los cargadores llenos cubren
+  // el principio. Contar enemigos se quedaba corto con las orugas blindadas de B7 y B8 (7 y 5 de vida).
+  const vida = reto.oleadas.reduce((total, oleada) => total + oleada.n * (oleada.hp ?? TIPOS[oleada.tipo]?.hp ?? 1), 0);
+  const necesarios = Math.ceil(vida * 1.2) - reto.lanzadores.length * reto.cargador;
   return necesarios > 0 && bodega < necesarios ? { k: 'cv2.fin.escasa', n: bodega, falta: necesarios } : null;
 }
 

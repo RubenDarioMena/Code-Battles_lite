@@ -115,7 +115,7 @@ export function crearPlanoCampaign(estado, { $c2d, ctx2: g, funcionDe, radioDe, 
         const ux = (e.x1 - e.x0) / e.largo, uy = (e.y1 - e.y0) / e.largo;
         for (const x of e.piezas) { g.fillStyle = PIEZA[x.pieza]; g.beginPath(); g.arc(X(e.x0 + ux * x.s), Y(e.y0 + uy * x.s), .28 * S, 0, 7); g.fill(); }
       } else if (C.esMaquina(e)) {
-        const lado = e.clase === "ensambladora" ? 3 : 2.2, est = C.estadoMaquina(e);
+        const lado = e.clase === "ensambladora" ? 3 : 2.2, est = C.estadoMaquina(e, m);
         cuadro(e.cx, e.cy, lado, lado, e.encendida ? col.building : "#1b242b", e.encendida ? rol(e) : rgba(col.edge, .6));
         if (e.proceso) { const R = C.RECETAS[e.proceso.receta]; g.fillStyle = col.ink; g.fillRect(X(e.cx - lado / 2 + .15), Y(e.cy + lado / 2 - .4), (lado - .3) * S * Math.min(1, e.proceso.prog / R.t), .22 * S); }
         // El piloto avisa de una espera que necesita a otro. Las reglas de la serie dan su luz (V2: ámbar, 9.2); sin ella, rojo.

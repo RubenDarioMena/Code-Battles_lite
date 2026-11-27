@@ -126,7 +126,8 @@ export function instalarArranqueJuego(ctx) {
   ctx.aplicarVista(ctx.vista);
   ctx.aplicarLetra();
   ctx.elegirReto(ctx.retoIdx);
-  if (ctx.checkpointsV2?.aviso) ctx.consola("sistema", null, null, ctx.esc(ctx.ti18n(ctx.checkpointsV2.aviso)));
+  const avisoCheckpoint = ctx.checkpointsV2?.aviso ?? ctx.fabricaV2?.aviso;
+  if (avisoCheckpoint) ctx.consola("sistema", null, null, ctx.esc(ctx.ti18n(avisoCheckpoint)));
   if (ctx.paletaRota) ctx.avisoEditor("La paleta no se pudo cargar: recarga la página sin caché (Ctrl+F5 o Ctrl+Shift+R).");
   function actualizarTextosDinamicos() {
     ctx.actualizarEtiquetasControles();

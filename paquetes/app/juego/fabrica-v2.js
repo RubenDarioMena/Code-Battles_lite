@@ -4,8 +4,8 @@
 // fábrica trae la planta de vuelta.
 import { crearPartida } from '../../nucleo/index.js';
 import { niveles, esFabrica, hitosFabrica, moduloFabrica, salida } from '../../reglas-campaign-v2/index.js';
-import { componerCampaignV2, avisoMunicion } from './campaign-v2.js';
-import { leerHistorialV2, escribirCheckpointV2 } from './checkpoints-v2.js';
+import { componerCampaignV2, avisoMunicion, tituloBatalla } from './campaign-v2.js';
+import { leerHistorialV2, escribirCheckpointV2, guardarHistorialV2, purgarHistorialV2 } from './checkpoints-v2.js';
 import { crearFabricaCV2, puertasDelMarco } from '../../vista-3d/index.js';
 
 // Guardado en vivo de la sesión Campaign (paquetes/app/juego/campaign.js) visto desde el almacén aislado de la página.
@@ -29,8 +29,10 @@ export function prepararFabricaV2(opciones) {
   const contenido = niveles['nivel-1'], nivel = contenido.default;
   const config = componerCampaignV2(params, contenido, servicios.catalogoNivel1);
   const historial = almacen ? leerHistorialV2(almacen) : { ultimo: null, hitos: {} };
+  // Los checkpoints de otra revisión del nivel ya no valen: se quitan todos (no solo el último) y se avisa una vez.
+  const aviso = purgarHistorialV2(historial, nivel) ? 'cv2.revision' : null;
+  if (aviso && almacen) guardarHistorialV2(almacen, historial);
   let cp = historial.hitos[historial.ultimo];
-  if (cp && (cp.clave !== nivel.clave || cp.revision !== nivel.revision)) cp = null;
   if (cp && !esFabrica(cp.hito)) return null;
   if (!cp) {
     // Partida nueva: el checkpoint de H0 tiene la planta recién instalada, la bodega inicial y las torretas de partida.
@@ -50,7 +52,7 @@ export function prepararFabricaV2(opciones) {
   return {
     ...opciones, serie: 'campaign', serieFija: 'campaign', campaign: moduloFabrica(contenido),
     fabricaV2: {
-      hito: cp.hito, claves, etapas: [...nivel.hitos, salida.clave], contenido,
+      hito: cp.hito, claves, etapas: [...nivel.hitos, salida.clave], contenido, aviso,
       alCumplirHito: (ctx, h) => cerrarHito(ctx, h, { almacen, inicio, nivel, claves, config }),
       reiniciar: () => reiniciarNivel(almacen),
       volver: hito => volverA(almacen, hito),
@@ -90,7 +92,7 @@ function cerrarHito(ctx, h, { almacen, inicio, nivel, claves, config }) {
   almacen?.borrar?.(CLAVE_SELLO);
   const reto = config.retos[config.batallas.indexOf(siguiente)];
   const aviso = reto && avisoMunicion(misiles, reto);
-  const html = `<p>${ctx.esc(ctx.ti18n('cv2.fab.siguiente', { titulo: reto?.titulo ?? siguiente.toUpperCase() }))}</p>`
+  const html = `<p>${ctx.esc(ctx.ti18n('cv2.fab.siguiente', { titulo: tituloBatalla(ctx.ti18n, reto, siguiente) }))}</p>`
     + `<p>${ctx.esc(ctx.ti18n('cv2.fab.bodega', { n: misiles }))}</p>`
     + (aviso ? `<p class="aviso">${ctx.esc(ctx.ti18n(aviso.k, aviso))}</p>` : '');
   // `continuarHito` también lo usan las pruebas para saltar la tarjeta.

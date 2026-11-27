@@ -34,8 +34,15 @@ const etapas = juego => {
   return lista;
 };
 
+// 0 · Un progreso de una revisión anterior del nivel: se purga entero (no solo el último) y se avisa en la consola.
+const nivel = niveles['nivel-1'].default, rev = nivel.revision - 1;
+plataforma.almacen.escribir('campaign-v2-nivel-1', JSON.stringify({ ultimo: 'b3', hitos: Object.fromEntries(
+  ['h0', 'b1', 'h1', 'b2', 'b3'].map(h => [h, { clave: nivel.clave, revision: rev, hito: h }])) }));
 // 1 · Partida nueva: H0 con la bodega inicial; los programas de partida cumplen el hito y la sesión se para.
 let banco = await abrir(true), juego = juegoDe(banco);
+assert.equal(juego.fabricaV2.aviso, 'cv2.revision');
+assert.deepEqual(Object.keys(historial().hitos), ['h0'], 'sin checkpoints de la revisión anterior');
+assert.ok(juego.fabricaV2.tieneCheckpoint('h0') && !juego.fabricaV2.tieneCheckpoint('h1'));
 assert.equal(juego.fabricaV2.hito, 'h0');
 assert.equal(historial().ultimo, 'h0');
 assert.equal(banco.mundo.arsenal.misiles, niveles['nivel-1'].fabrica.bodegaInicial);

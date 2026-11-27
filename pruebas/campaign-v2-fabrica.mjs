@@ -12,6 +12,12 @@ assert.deepEqual(validarNivel('nivel-1', contenido, war.api.tipos, catalogo), []
 assert.deepEqual(hitosFabrica(contenido.default), ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 assert.ok(esFabrica('h3') && !esFabrica('b3') && !esFabrica(undefined));
 const def = nivelFabrica(contenido);
+// Antes de H2, ARM-02 aún no está en la planta, pero su base ya está reservada: si no, aparecería dentro de una tarima.
+{
+  const m0 = motor.crear(def);
+  assert.equal(m0.porId['ARM-02'].presente, false);
+  assert.equal(motor.conectar(m0).probarColocar('PAL-3', 89, 48.6).resultado, 'ocupado', 'la base de ARM-02 está reservada');
+}
 
 /** Corre guiones (generadores que ceden órdenes) hasta que `fin(m)` se cumple. Devuelve el mundo y los segundos usados. */
 function jugar(m, guiones, fin, max = 900) {

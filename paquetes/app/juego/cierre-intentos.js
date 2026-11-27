@@ -52,9 +52,13 @@ export function instalarCierreIntentos(ctx) {
       const comentados = ctx.def.lanzadores.filter(l => lenguajes[l.id] === "python" ? !(codigos[l.id] || "").split("\n").some(x => x.trim() && !/^\s*#/.test(x)) : ctx.soloComentarios(codigos[l.id] || "")).map(l => l.id);
       let extra = comentados.length ? ` El programa de ${comentados.join(" y ")} está todo comentado: no hace nada.` : "";
       for (const p of acabados) if (!comentados.includes(p.id)) extra += ` El programa de ${p.id} terminó a los ${p.finT.toFixed(1)} s: desde entonces nadie volvió a apuntar.`;
-      const pista = ctx.pistaTrasFallo();
+      // Campaign-V2: perder con la bodega y los cargadores vacíos no es culpa del programa. Se dice eso en lugar de la
+      // pista del reto, que no avanza.
+      const bodega = ctx.batallasV2 ? ctx.partida.mundo.bodega : null;
+      const sinMunicion = !!bodega && bodega.misiles === 0 && m.lanzadores.every(l => !l.misiles);
+      const pista = sinMunicion ? null : ctx.pistaTrasFallo();
       ctx.ultimoAviso[ctx.claveReto()] = { resultado, motivo, texto: texto + extra, intento: ctx.intento, t: ctx.r2(m.t), derribos: `${m.derribos}/${m.total}`, cpd: cpd == null ? null : ctx.r2(cpd), cuando: Date.now() };
-      ctx.mostrarBanner("fallo", "Aún no", ctx.esc(texto + extra), pista ? `Pista ${pista.n > 1 ? `${pista.i}/${pista.n}` : ""}: ${pista.texto}`.replace(" :", ":") : "Revisa el registro y la consola.", [["Editar programa", "primario", () => { ctx.ocultarBanner(); ctx.verPanel("codigo"); ctx.abrirPestana("programa"); }]]);
+      ctx.mostrarBanner("fallo", "Aún no", ctx.esc(texto + extra), sinMunicion ? ctx.ti18n("cv2.fin.sinMunicion") : pista ? `Pista ${pista.n > 1 ? `${pista.i}/${pista.n}` : ""}: ${pista.texto}`.replace(" :", ":") : "Revisa el registro y la consola.", [["Editar programa", "primario", () => { ctx.ocultarBanner(); ctx.verPanel("codigo"); ctx.abrirPestana("programa"); }]]);
       if (ctx.checkpointsV2 && ctx.partida.mundo.modo === 'campaign') ofrecerCheckpoint(ctx);
     } else if (resultado === "error") {
       ctx.pistaTrasFallo();

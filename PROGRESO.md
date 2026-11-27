@@ -1,3 +1,20 @@
+## Campaign-V2 · Hallazgos medios del QA · 27 de noviembre de 2026
+
+Segunda tanda de los dos informes del 26-nov (`docs/qa/campaign-v2-*-2026-11-26/`), tras C1, A1 y A2.
+
+- **Títulos de B6–B8 sin traducir (M7).** Las tarjetas entre etapas mostraban `cv2.b6.titulo`. Las Batallas propias guardan una clave y las de War el texto: `tituloBatalla` traduce la clave, y lo usan la tarjeta de la Batalla y la de la fábrica.
+- **Checkpoints de otra revisión (revisión, hallazgo 2).** Al cambiar la revisión del nivel solo se descartaba el último checkpoint; los demás seguían en la lista y llevaban a un H0 sin explicación. Ahora `purgarHistorialV2` quita todos los de otra revisión al escribir un checkpoint, al abrir la página de Batalla y al abrir la sesión de fábrica, y la consola avisa una vez.
+- **Revisión 3 del nivel (revisión, hallazgo 7).** P7 añadió el taller de carcasas y H6 sin subir la revisión: un guardado anterior se restauraba sin esas unidades y H6 no se podía cumplir. **Cambio de formato de guardado:** todo progreso de la revisión 2 se purga y la partida vuelve a H0 con los programas del jugador. `campaign-v2-revision` guarda la huella de la planta y de los hitos: si cambian sin subir la revisión, la prueba falla.
+- **Metas «hechos» de H5 (revisión, hallazgo 3, y O7).** Contaban los misiles que la planta montó sola durante la Batalla anterior, que ya se habían disparado. Al ganar una Batalla seguida de fábrica, la producción de partida del hito se fija en ese momento.
+- **Base de un brazo aún ausente (revisión, hallazgo 4).** El colocador dejaba poner una tarima donde aparecerá ARM-02 en H2. Ahora la base de un brazo anclado está reservada desde el principio (`motivoColocar`, motor compartido; Factory y Campaign siguen pasando sus pruebas).
+- **Aviso de bodega (M8 y O5).** Contaba enemigos, y las orugas blindadas de B7 y B8 aguantan 7 y 5 impactos. Ahora cuenta puntos de vida: con los datos del QA estima 23 para B5, 19 para B6 y 40 para B8 (gastados de la bodega: 19, 17 y 30). La tarjeta de H4 ya avisa para B5.
+- **Perder sin munición (M6).** Con la bodega y los cargadores vacíos, la tarjeta de derrota dice «Sin munición…» en lugar de una pista que culpaba al programa, y esa pista no avanza.
+- **Estado con la bodega llena (revisión, hallazgo 5).** Las vistas V2 y la ficha llaman a `estadoMaquina` con el mundo: ASM-01 con la bodega llena se ve bloqueada, como la leen los programas.
+- **Guía de soluciones** (`docs/campaign-v2-soluciones-nivel-1.html`, fuera del repositorio): rellenar la bodega después de Ejecutar (M5), reabrir un programa escrito por consola en vez de recargar (M2) y borrar el guardado desde otra página (M1).
+- **Pruebas:** `campaign-v2-revision` (nueva), y casos en `campaign-v2-batallas-propias` (títulos y aviso de bodega), `campaign-v2-secuencia` (metas «hechos»), `campaign-v2-fabrica` (base reservada), `campaign-v2-sesion-fabrica` (purga en la fábrica) y `campaign-v2-ui` (tarjeta sin munición). Las que cubren un fallo fallan sin su arreglo. La suite da 94 correctas (93 más la nueva) y los 7 fallos conocidos por las dependencias npm.
+- **Probado en el navegador:** `?ensayo=b4` perdido con la bodega a 0 muestra «Sin munición»; un guardado real de la revisión 2 (h0, b1, h1) se purga al abrir, queda H0 de la revisión 3, sale el aviso y H1 desaparece de la lista. Sin errores.
+- **Pendiente, por decidir:** el balance de la bodega (M3) y si una máquina que espera material debe verse en ámbar (M4 y la duda de 9.2). También quedan los hallazgos bajos (O1–O11, `sinEnergia`, mover una torreta a mitad de Batalla).
+
 ## Campaign-V2 · Arreglos del QA en el navegador (C1, A1, A2) · 26 de noviembre de 2026
 
 El QA jugando la campaña entera (`docs/qa/campaign-v2-campana-navegador-2026-11-26/`) encontró tres fallos que paraban el juego. La revisión de código del mismo día (`docs/qa/campaign-v2-revision-codigo-2026-11-26/`) confirmó el A1.
