@@ -143,7 +143,8 @@ export function instalarMaquinas(ctx) {
   };
   const claseInspector = (e) => {
     if (ctx.ES_CAMPAIGN) return ctx.uiC.clase(e);
-    if (e?.modelo) return ctx.ti18n('cv2.tipo.' + (e.clase || e.tipo));
+    // Las unidades del campo de Campaign-V2 (programable) y los hostiles con modelo propio; la rueda y el minador no tienen modelo.
+    if (e?.modelo || e?.programable) return ctx.ti18n('cv2.tipo.' + (e.clase || e.tipo));
     if (!e?.clase || e.clase === "enemigo") return `${textoInspector("inspector.clase.enemigo")} · ${textoInspector(`inspector.enemigo.${e.tipo}`)}`;
     if (e.clase === "bodega" || e.clase === "fundidora") {
       const claveNombre = { Bodega: "inspector.clase.bodega", Fundidora: "inspector.clase.fundidora", Ensambladora: "inspector.clase.ensambladora", Muelle: "inspector.clase.muelle" }[e.nombre];
@@ -248,10 +249,11 @@ export function instalarMaquinas(ctx) {
           fila(nota(`alcance: cámara ${ctx.alcance("visual")} · térmico ${ctx.alcance("thermal")}${ctx.def.niebla ? " (niebla)" : ""}`)),
           fila(nota("tipos:"), ...Object.keys(ctx.TIPOS).map(t => tk("str", `"${t}"`, `"${t}"`))));
       botones = (propioProg ? "" : `<button type="button" class="btn chico" data-accion="programa" ${atributoInspector("aria-label", "inspector.accion.editar_programa", { unidad: e.id })} data-ins-i18n-text="inspector.accion.editar_programa">${ctx.esc(textoInspector("inspector.accion.editar_programa", { unidad: e.id }))}</button>`);
-    } else if (e.programable && e.modelo) {
+    } else if (e.programable) {
       c1 = grupo("Funciones", ...ctx.extension.verbos.map(f => fila(tk("fn", f.nombre, f.paleta), nota(ctx.ti18n(f.nota)))));
       c2 = grupo("Contenido", fila(tk("prop", "hp", pre + "hp"), tkValor(e.hp, e.id + ":hp")),
-        fila(tk("prop", "missiles", pre + "missiles"), tkValor(e.misiles, e.id + ":missiles")));
+        ...(e.misiles != null ? [fila(tk("prop", "missiles", pre + "missiles"), tkValor(e.misiles, e.id + ":missiles"))] : []),
+        ...(e.cargas != null ? [fila(tk("prop", "charges", pre + "charges"), tkValor(e.cargas, e.id + ":charges"))] : []));
     } else if (e.clase === "vibracion") {
       c1 = grupo("Nombre", fila(tk("var", ctx.varDe(e.id), ctx.varDe(e.id)), nota(`en pantalla ${e.id}`)))
         + grupo("Funciones", fila(tk("fn", `${ctx.varDe(e.id)}.detect(tipo)`, `${ctx.varDe(e.id)}.detect(/* tipo de enemigo */)`, { fin: "// → posición actual o null" }), nota("→ posición, sin predicción")))

@@ -81,9 +81,11 @@ export function instalarCampaignJuego(ctx) {
     else volverA(historialC.find(c => String(c.id) === b.dataset.cpVolver), !!b.dataset.cpProgramas);
   }
 
-  function entregaCampaign(bahia, pedido) {
-    ctx.consola("sistema", bahia.id, null, ctx.esc(ctx.ti18n("campaign.aviso.entrega", { n: pedido.n, pieza: pedido.pieza })));
-    ctx.globo(bahia.id, "info", `${pedido.n} × ${pedido.pieza}`);
+  // En Campaign-V2 la planta sigue durante la Batalla y sus pedidos llegan con el campo de War en pantalla: allí la
+  // bahía no existe y solo queda la línea de consola.
+  function entregaCampaign(id, pedido) {
+    ctx.consola("sistema", id, null, ctx.esc(ctx.ti18n("campaign.aviso.entrega", { n: pedido.n, pieza: pedido.pieza })));
+    if (ctx.mundo?.porId?.[id]) ctx.globo(id, "info", `${pedido.n} × ${pedido.pieza}`);
   }
   function terminarCampaign(resultado, motivo, texto, linea, idProg) {
     if (!ctx.mundo || !ctx.ejec) return;

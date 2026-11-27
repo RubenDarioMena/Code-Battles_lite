@@ -124,4 +124,17 @@ war.medirUnidades(juego => {
   assert.equal(juego.$('cv2-hud'), null);
   assert.match(juego.$('progs').innerHTML, /class="prog-tab".*LAU-01/);
 });
+// B7 y B8: elegir la rueda o el minador abre su ficha. No tienen modelo propio y caían en la rama de enemigos del
+// inspector (TIPOS[e.tipo] indefinido), lo que paraba el bucle de dibujo.
+for (const [consulta, id, lectura] of [['&ensayo=b7', 'WHL-01', null], ['&ensayo=b8', 'MIN-01', 'charges']]) {
+  const { ui: juego } = await entrar(consulta);
+  juego.seleccionar([id]);
+  juego.ponerInspector('abierto');
+  juego.pintarInspector();
+  juego.actualizarVivos();
+  const ficha = juego.$('ins-cuerpo').innerHTML;
+  assert.match(ficha, /hp/, `${id}: ficha con su vida`);
+  if (lectura) assert.match(ficha, new RegExp(lectura), `${id}: ficha con ${lectura}`);
+  assert.doesNotMatch(ficha, /inspector\.clase\./, `${id}: sin claves crudas`);
+}
 console.log('Fábrica H0 y Batallas · misión, metas, idioma, ajustes, selección en ambos sentidos, grupos JS/Python, desvinculación, recarga, checkpoints, móvil y tira clásica de War.');

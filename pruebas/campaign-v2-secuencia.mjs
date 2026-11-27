@@ -34,6 +34,12 @@ assert.equal(m.hito, 'h1');
 assert.equal(m.batalla, null);
 assert.equal(m.superado.hito, 'b1');
 assert.ok(fabrica.t > t0);
+// Las vistas siguen dibujando la Batalla ganada detrás de la tarjeta (antes recibían la escena de la planta y la vista
+// 3D fallaba en e.enemigos.map); el checkpoint no la lleva.
+const quieta = reglas.escena(m), quietaMetros = reglas.escenaMetros(m);
+assert.ok(Array.isArray(quieta.enemigos) && Array.isArray(quieta.misiles) && quieta.maquinas.some(e => e.id === 'LAU-01'));
+assert.ok(quietaMetros.marco && Array.isArray(quietaMetros.enemigos) && quietaMetros.bastiones.length);
+assert.equal('cerrada' in reglas.serializar(m), false);
 assert.ok(m.bodega.misiles < planta.bodegaInicial);
 const cp = reglas.serializar(m);
 assert.equal(cp.hito, 'h1');
@@ -44,6 +50,7 @@ assert.equal(reglas.cerrarFabrica(vuelta, vuelta.fabrica), true);
 assert.equal(vuelta.hito, 'b2');
 assert.equal(vuelta.batalla.t, 0);
 assert.equal(vuelta.batalla.atascos, 0);
+assert.equal(vuelta.cerrada ?? null, null);
 assert.equal(vuelta.batalla.lanzadores[0].misiles, config.retos[1].cargador);
 assert.equal(vuelta.programas['LAU-01'], 'mi programa');
 assert.equal(vuelta.fabrica.t, fabrica.t);

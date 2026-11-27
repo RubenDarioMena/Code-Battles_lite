@@ -111,6 +111,7 @@ export function instalarInspector(ctx) {
     if (!e) return null;
     switch (p) {
       case "missiles": return e.misiles;
+      case "charges": return e.cargas;
       case "failureRate": return ctx.r3(e.falla);
       case "fireRate": return ctx.cadencia(e.modo);
       case "mode": return e.modo;
@@ -143,7 +144,7 @@ export function instalarInspector(ctx) {
     const barra = $i.querySelector("[data-barra]"); if (barra && !ctx.ES_CAMPAIGN) barra.style.width = `${Math.round(e.falla * 100)}%`;
     const est = $i.querySelector("[data-estado]"); if (est) { const [cls] = ctx.estadoDe(e); est.className = `estado ${cls}`; est.textContent = ctx.textoEstadoInspector(e); }
     const vit = ctx.$("ins-vitales"); if (vit) { const h = htmlVitales(e); if (vit.innerHTML !== h) vit.innerHTML = h; }
-    const met = $i.querySelector("[data-metricas]"); if (met) { const h = ctx.htmlMetricas(ctx.metricasDe(e)); if (met.innerHTML !== h) met.innerHTML = h; }
+    const met = $i.querySelector("[data-metricas]"), metricas = met && ctx.metricasDe(e); if (metricas) { const h = ctx.htmlMetricas(metricas); if (met.innerHTML !== h) met.innerHTML = h; }
   }
 
   // Doble clic (o doble toque) inserta; un clic solo arma el token y explica qué insertará.

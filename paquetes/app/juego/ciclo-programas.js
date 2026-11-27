@@ -218,7 +218,7 @@ export function instalarCicloProgramas(ctx) {
       else if (s.tipo === "puntual-descartada") ctx.consola("warn", s.unidad, null, ctx.esc(ctx.ti18n("cv2.descarte." + d.motivo)));
       else if (s.tipo === "aviso") ctx.avisoSistema(d.texto);
       else if (s.tipo === "globo") ctx.globo(s.unidad, d.nivel, d.texto);
-      else if (s.tipo === "entrega-pedido") ctx.entregaCampaign(ctx.mundo.porId[s.unidad], d);
+      else if (s.tipo === "entrega-pedido") ctx.entregaCampaign(s.unidad, d);
       else if (s.tipo === "hito") { ctx.hitoPendiente = d; ctx.hitoDetiene = true; }
     }
   }

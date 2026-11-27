@@ -1,3 +1,19 @@
+## Campaign-V2 · Arreglos del QA en el navegador (C1, A1, A2) · 26 de noviembre de 2026
+
+El QA jugando la campaña entera (`docs/qa/campaign-v2-campana-navegador-2026-11-26/`) encontró tres fallos que paraban el juego. La revisión de código del mismo día (`docs/qa/campaign-v2-revision-codigo-2026-11-26/`) confirmó el A1.
+
+- **C1 · Un pedido de la planta paraba la Batalla.** La planta sigue durante la Batalla y sus pedidos (el polímero de H2, las placas de H6…) llegan con el campo de War en pantalla. La página buscaba BAY-1 en ese campo, donde no existe, y el fallo salía como «Error en el programa de LAU-01». Ahora el pedido deja su línea en la consola, el globo solo sale si la bahía está en pantalla y la Batalla sigue (`campaign.js`, `ciclo-programas.js`).
+- **A1 · Error en la vista al ganar una Batalla seguida de fábrica.** Al ganar, las reglas quitaban la Batalla y las vistas 2D y 3D recibían la escena de la planta. Ahora la Batalla terminada queda en `m.cerrada` y `escena`/`escenaMetros` la siguen dibujando quieta detrás de la tarjeta hasta que la página recarga en la fábrica. `cerrada` no entra en el checkpoint y se borra al montar la Batalla siguiente.
+- **A2 · Elegir la rueda o el minador congelaba el juego.** Su ficha no tiene modelo propio y caían en la rama de enemigos del inspector. Ahora entran por la rama de unidades del campo (`programable`), con `charges` para el minador. Las métricas vivas ya no fallan si una ficha no tiene métricas.
+- **Pruebas:** cada arreglo tiene su regresión, y las tres fallan sin él con el mismo error que vio el QA:
+  - `campaign-v2-sesion-fabrica` (7b): B2 en la página con el pedido llegando;
+  - `campaign-v2-secuencia`: la escena tras ganar la B1;
+  - `campaign-v2-ui`: las fichas de WHL-01 y MIN-01.
+  
+  La suite da 93 correctas y los 7 fallos conocidos por las dependencias npm.
+- **Probado en el navegador:** H0 → B1 ganada → tarjeta sobre el campo, en 3D y en plano, sin errores; MIN-01 elegido en `?ensayo=b8` con la Batalla en marcha.
+- **Pendiente de los informes:** el balance de la bodega (B4 llega con 0 misiles), los guardados anteriores a P7, los checkpoints viejos en la lista, las metas de H5 que cuentan producción de la Batalla, los títulos de B6–B8 sin traducir en las tarjetas y el resto de hallazgos medios y bajos.
+
 ## Campaign-V2 · Esperas en ámbar y depósito de recortes lleno · 26 de noviembre de 2026
 
 Dos pendientes del consolidado del 23-nov: el lenguaje de estados de 9.2 («ámbar = espera; verde = ejecutando; rojo reservado para daño o ataque») y el caso de prueba de 12.3 «el depósito de sobrantes se llena».

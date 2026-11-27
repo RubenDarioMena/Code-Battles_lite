@@ -170,6 +170,17 @@ assert.ok(banco.mundo.porId['PAL-2'] && juego.campaign.cuantos(banco.mundo, 'PAL
 assert.equal(historial().ultimo, 'b2');
 assert.equal(historial().hitos.b2.fabrica.hito, 2, 'la Batalla B2 lleva la planta ya en H2');
 
+// 7b · B2 con la planta ya en H2: el pedido de polímero llega a BAY-1 en plena Batalla, donde la bahía no está en el
+// campo. Deja su línea de consola y la Batalla sigue (antes la paraba como un error del programa de LAU-01).
+banco = await abrir(false); juego = juegoDe(banco);
+assert.equal(banco.partida.mundo.hito, 'b2');
+const pedidos = () => juego.$('consola').children.filter(l => /BAY-1/.test(l.innerHTML)).length;
+const antes = pedidos();
+banco.ejecutar();
+await correr(juego, () => banco.partida.mundo.batalla.t > 12 || !juego.ejec, 2000);
+assert.ok(juego.ejec, `la Batalla sigue tras el pedido: ${JSON.stringify(juego.finActual)}`);
+assert.ok(pedidos() > antes, 'el pedido deja su línea en la consola');
+
 // 8 · Desde el menú, H0: su checkpoint trae la planta recién instalada.
 juego.$('cv2-opciones').click();
 juego.$('cv2-checkpoints').value = 'h0';

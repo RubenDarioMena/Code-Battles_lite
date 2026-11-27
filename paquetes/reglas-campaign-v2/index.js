@@ -34,6 +34,7 @@ export function crearReglamento(war, contenido, retos) {
   const bastiones = nivel.marco.bastiones ?? [];
   const clave = p => `${p.x},${p.y}`;
   function montarBatalla(m, reto, semilla) {
+    m.cerrada = null;
     const elegidas = { ...m.torretas, ...m.colocadas };
     // Un lanzador nuevo que cae en un bastión ya ocupado pasa al primer bastión libre.
     const ocupados = new Set();
@@ -72,11 +73,14 @@ export function crearReglamento(war, contenido, retos) {
     if (m.batalla && m.batalla.t === 0) montarBatalla(m, m.reto, m.semillaIntento);
     m.sucesos.anotar({ paso: pasoDe(m.t), tipo: 'colocada', unidad, datos: { indice } });
   }
+  /** La Batalla que dibujan las vistas: la que corre o, tras ganarla y antes de recargar en la fábrica, la última. */
+  const enPantalla = m => m.batalla ? m : m.cerrada ?? m;
   function escena(m) {
-    if (m.batalla) {
-      const e = war.escena(m.batalla);
-      if (m.campo) {
-        const extras = entidadesCampo(m.campo);
+    const { batalla, campo } = enPantalla(m);
+    if (batalla) {
+      const e = war.escena(batalla);
+      if (campo) {
+        const extras = entidadesCampo(campo);
         e.puertas = extras.puertas;
         for (const k of ['maquinas', 'enemigos', 'misiles']) e[k].push(...extras[k]);
         for (const u of extras.maquinas) e.porId[u.id] = u;
@@ -90,8 +94,9 @@ export function crearReglamento(war, contenido, retos) {
   /** La escena para las vistas de Campaign-V2: en metros, con los bastiones y su ocupación. */
   function escenaMetros(m) {
     const { origen, tam = [32, 18] } = nivel.marco;
-    if (!m.batalla) return { ...escenaEnMetros(escena(m), nivel.fabrica?.origen ?? [0, 0]), bastiones: listaBastiones(m) };
-    const e = escenaEnMetros(escena(m), origen, [m.reto?.mapa?.cols ?? tam[0], tam[1]]);
+    const { batalla, reto } = enPantalla(m);
+    if (!batalla) return { ...escenaEnMetros(escena(m), nivel.fabrica?.origen ?? [0, 0]), bastiones: listaBastiones(m) };
+    const e = escenaEnMetros(escena(m), origen, [reto?.mapa?.cols ?? tam[0], tam[1]]);
     return m.modo === 'paridad' ? e : { ...e, bastiones: listaBastiones(m) };
   }
   function listaBastiones(m) {
@@ -159,7 +164,9 @@ export function crearReglamento(war, contenido, retos) {
       m.torretas = posiciones(m);
       m.hito = siguiente;
       // Tras la Batalla viene un hito de fábrica: el checkpoint guarda la planta y la página abre la fábrica.
-      if (esFabrica(siguiente)) Object.assign(m, { batalla: null, campo: null, reto: null });
+      // Las vistas siguen dibujando la Batalla terminada, quieta detrás de la tarjeta, hasta que la página recarga en la
+      // fábrica: `cerrada` no entra en el checkpoint.
+      if (esFabrica(siguiente)) Object.assign(m, { batalla: null, campo: null, reto: null, cerrada: { batalla: b, campo: m.campo, reto: m.reto } });
       else montarBatalla(m, retos[siguiente], otraSemilla(m.rng));
     } else {
       m.final = fin;
